@@ -56,6 +56,57 @@
         {
           "artifacts": [
             {
+              "bytes": 1126,
+              "path": "claude-code/package-risk-summary/developer-edition/README.md",
+              "sha256": "6b84c49e1392ca2ba1e017748e9c6c20ea3ce8a60a44bfafc59fc7bcc558a438"
+            },
+            {
+              "bytes": 5406,
+              "path": "claude-code/package-risk-summary/developer-edition/package-risk-summary.md",
+              "sha256": "3be0eb9da27bc557c196ac92846ff6aa00bc6c766061a4f7f9e2caf8bcd68939"
+            }
+          ],
+          "id": "developer-edition",
+          "name": "Developer Edition",
+          "requires_endorctl": ""
+        },
+        {
+          "artifacts": [
+            {
+              "bytes": 1165,
+              "path": "claude-code/package-risk-summary/enterprise-edition/README.md",
+              "sha256": "43db385a1cb1ea41b39f6ec54ffd5166dc8072ea33e316c392d0a784597b7c18"
+            },
+            {
+              "bytes": 828,
+              "path": "claude-code/package-risk-summary/enterprise-edition/endorctl-setup.md",
+              "sha256": "37f33aff3efd6bb6171cf194caad2f14d1b7b4b00b886497a0c71df094465c39"
+            },
+            {
+              "bytes": 9490,
+              "path": "claude-code/package-risk-summary/enterprise-edition/package-risk-summary.md",
+              "sha256": "80204c1aeec2ded099b015d108bc64fd95c4ff74d225ed4f4ee7ad341c1b48d3"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "package-risk-summary",
+      "name": "Endor Labs Package Risk Summary",
+      "source": {
+        "builder_recipe": "agents/package-risk-summary/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 1026,
               "path": "claude-code/vulnerability-explainer/developer-edition/README.md",
               "sha256": "c91b686f34bfc3d385465084d236f52ab5e807702bfa5dd03fc93c0f95e19a8f"
