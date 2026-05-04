@@ -1,0 +1,103 @@
+{
+  "agents": [
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 948,
+              "path": "claude-code/dependency-decision-helper/developer-edition/README.md",
+              "sha256": "549e7892e91b06fd1645d8018063304d2a986e51956b9ee85dbc80f2fed18db1"
+            },
+            {
+              "bytes": 5344,
+              "path": "claude-code/dependency-decision-helper/developer-edition/dependency-decision-helper.md",
+              "sha256": "f329064c2fe606a34e9222a9d43487225aba2cb287090c5b083cae8583c1ced0"
+            }
+          ],
+          "id": "developer-edition",
+          "name": "Developer Edition",
+          "requires_endorctl": ""
+        },
+        {
+          "artifacts": [
+            {
+              "bytes": 987,
+              "path": "claude-code/dependency-decision-helper/enterprise-edition/README.md",
+              "sha256": "c9d4970fa05b193873e8be30df06b8cfcca392ed49ab20c817186b8b78d81297"
+            },
+            {
+              "bytes": 9364,
+              "path": "claude-code/dependency-decision-helper/enterprise-edition/dependency-decision-helper.md",
+              "sha256": "ca4e948442e60047687b6287c4eec9688bea0fa878cd5ce9d010814640ef64d5"
+            },
+            {
+              "bytes": 828,
+              "path": "claude-code/dependency-decision-helper/enterprise-edition/endorctl-setup.md",
+              "sha256": "37f33aff3efd6bb6171cf194caad2f14d1b7b4b00b886497a0c71df094465c39"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "dependency-decision-helper",
+      "name": "Dependency Decision Helper",
+      "source": {
+        "builder_recipe": "agents/dependency-decision-helper/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 1026,
+              "path": "claude-code/vulnerability-explainer/developer-edition/README.md",
+              "sha256": "c91b686f34bfc3d385465084d236f52ab5e807702bfa5dd03fc93c0f95e19a8f"
+            },
+            {
+              "bytes": 5262,
+              "path": "claude-code/vulnerability-explainer/developer-edition/vulnerability-explainer.md",
+              "sha256": "5772304e7a8d0e1805535e84b01320e8eadabf00d0b4cc9c9e1d03b9b5196d2d"
+            }
+          ],
+          "id": "developer-edition",
+          "name": "Developer Edition",
+          "requires_endorctl": ""
+        },
+        {
+          "artifacts": [
+            {
+              "bytes": 1027,
+              "path": "claude-code/vulnerability-explainer/enterprise-edition/README.md",
+              "sha256": "5ddc95df21b7d732b6a32d8df4aab70f3cb479ba2440e71f3b0648a6bf30b84a"
+            },
+            {
+              "bytes": 5440,
+              "path": "claude-code/vulnerability-explainer/enterprise-edition/vulnerability-explainer.md",
+              "sha256": "3914cf54bc82c98365820f940c486accf79cff79c063f69df34df5d6e28ba28d"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ""
+        }
+      ],
+      "host": "claude-code",
+      "id": "vulnerability-explainer",
+      "name": "Endor Labs Vulnerability Explainer",
+      "source": {
+        "builder_recipe": "agents/vulnerability-explainer/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    }
+  ],
+  "generated_by": "endor-agent-kit-builder",
+  "schema_version": 1
+}
