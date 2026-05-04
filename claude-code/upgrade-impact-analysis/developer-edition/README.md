@@ -1,4 +1,4 @@
-# Endor Labs Dependency Upgrade Advisor Developer Edition
+# Endor Labs Upgrade Impact Analysis Developer Edition
 
 Use this agent when the user asks whether a dependency upgrade is safer,
 urgent, risky, or worth deferring. Examples: "Should I upgrade lodash from
@@ -8,7 +8,7 @@ recommendation with risk delta, reasons, next checks, and any data gaps.
 
 ## Install
 
-Copy `dependency-upgrade-advisor.md` into your target repository's `.claude/agents/` directory,
+Copy `upgrade-impact-analysis.md` into your target repository's `.claude/agents/` directory,
 then restart Claude Code if needed.
 
 ## Requirements
@@ -20,7 +20,7 @@ then restart Claude Code if needed.
 ## Example
 
 ```text
-@agent-dependency-upgrade-advisor assess npm lodash from 4.17.20 to 4.17.21
+@agent-upgrade-impact-analysis assess npm lodash from 4.17.20 to 4.17.21
 ```
 
 ## Notes

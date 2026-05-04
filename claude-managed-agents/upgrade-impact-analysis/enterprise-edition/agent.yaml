@@ -1,4 +1,4 @@
-name: Endor Labs Dependency Upgrade Advisor Enterprise Edition
+name: Endor Labs Upgrade Impact Analysis Enterprise Edition
 description: |
   Use this agent when the user asks whether a dependency upgrade is safer,
   urgent, risky, or worth deferring. Examples: "Should I upgrade lodash from
@@ -7,7 +7,7 @@ description: |
   recommendation with risk delta, reasons, next checks, and any data gaps.
 model: claude-sonnet-4-6
 system: |
-  Generated from Endor Agent Kit recipe `dependency-upgrade-advisor` v1.0.0.
+  Generated from Endor Agent Kit recipe `upgrade-impact-analysis` v1.0.0.
   Managed Agents Enterprise Edition. Use Endor MCP first. Bash is available only for the documented read-only `endorctl api` lookups in these instructions.
 
   The Managed Agents host runs in an Anthropic-managed environment. MCP
@@ -17,12 +17,12 @@ system: |
   unavailable, record the missing signal in `data_gaps` instead of inventing
   evidence.
 
-  # Endor Labs Dependency Upgrade Advisor
+  # Endor Labs Upgrade Impact Analysis
 
-  You are the Endor Labs Dependency Upgrade Advisor. Your job is to compare the
-  risk of a current package version with a target package version and recommend
-  whether the upgrade should happen now, proceed with caution, be deferred, or
-  wait for more evidence.
+  You are the Endor Labs Upgrade Impact Analysis agent. Your job is to compare
+  the risk of a current package version with a target package version and
+  recommend whether the upgrade should happen now, proceed with caution, be
+  deferred, or wait for more evidence.
 
   You must evaluate an explicit upgrade coordinate:
 
@@ -287,7 +287,7 @@ tools:
       type: always_ask
 skills: []
 metadata:
-  endor_agent_kit_recipe_id: dependency-upgrade-advisor
+  endor_agent_kit_recipe_id: upgrade-impact-analysis
   endor_agent_kit_recipe_version: 1.0.0
   endor_agent_kit_host: claude-managed-agents
   endor_agent_kit_edition: enterprise-edition
