@@ -12,6 +12,7 @@ workflow.
 | Agent | Use it when you want to... | Claude Code path |
 | --- | --- | --- |
 | Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` |
 
 Currently supported host:
@@ -33,20 +34,6 @@ Then invoke it from Claude Code:
 
 ```text
 @agent-dependency-decision-helper assess npm lodash version 4.17.20
-```
-
-To install the Vulnerability Explainer instead:
-
-```bash
-mkdir -p .claude/agents
-cp /path/to/endor-labs-agent-kit/claude-code/vulnerability-explainer/developer-edition/vulnerability-explainer.md \
-  .claude/agents/vulnerability-explainer.md
-```
-
-Then invoke it from Claude Code:
-
-```text
-@agent-vulnerability-explainer explain CVE-2021-44228
 ```
 
 ## Editions
@@ -73,41 +60,24 @@ Dependency Decision Helper:
 @agent-dependency-decision-helper assess npm lodash version 4.17.20
 ```
 
+Endor Labs Package Risk Summary:
+
 ```text
-@agent-dependency-decision-helper assess maven org.apache.logging.log4j:log4j-core version 2.14.1 using all available signals
+@agent-package-risk-summary summarize npm lodash version 4.17.20
 ```
 
-Vulnerability Explainer:
+Endor Labs Vulnerability Explainer:
 
 ```text
 @agent-vulnerability-explainer explain CVE-2021-44228
 ```
 
-```text
-@agent-vulnerability-explainer explain CVE-2021-45046 for maven org.apache.logging.log4j:log4j-core version 2.14.1
-```
-
 ## Output
 
 Agents return concise prose plus a JSON block. The exact schema depends on the
-agent.
-
-Dependency Decision Helper verdicts:
-
-- `SAFE`
-- `SAFE_WITH_CONDITIONS`
-- `NOT_RECOMMENDED`
-- `BLOCKED`
-
-Vulnerability Explainer actions:
-
-- `CRITICAL_ACTION_REQUIRED`
-- `ACTION_RECOMMENDED`
-- `MONITOR`
-- `INSUFFICIENT_DATA`
-
-If a signal is unavailable because of setup, authentication, account tier, or
-tooling, agents record that in `data_gaps` instead of inventing evidence.
+agent. If a signal is unavailable because of setup, authentication, account
+tier, or tooling, agents record that in `data_gaps` instead of inventing
+evidence.
 
 ## Safety Model
 
@@ -136,6 +106,14 @@ claude-code/
       README.md
     enterprise-edition/
       dependency-decision-helper.md
+      README.md
+      endorctl-setup.md
+  package-risk-summary/
+    developer-edition/
+      package-risk-summary.md
+      README.md
+    enterprise-edition/
+      package-risk-summary.md
       README.md
       endorctl-setup.md
   vulnerability-explainer/
