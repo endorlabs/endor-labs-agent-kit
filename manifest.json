@@ -56,57 +56,6 @@
         {
           "artifacts": [
             {
-              "bytes": 1032,
-              "path": "claude-code/dependency-upgrade-advisor/developer-edition/README.md",
-              "sha256": "f18ea7afc89180e03c2f3cd295ce71250a3eb7e390d23118b83b9c750a837949"
-            },
-            {
-              "bytes": 6692,
-              "path": "claude-code/dependency-upgrade-advisor/developer-edition/dependency-upgrade-advisor.md",
-              "sha256": "313f63b0ffdd0912a6acb8acb0443af1887f1398c61f9a63535a021e5f1b921d"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1071,
-              "path": "claude-code/dependency-upgrade-advisor/enterprise-edition/README.md",
-              "sha256": "c1dda1b9fa2da5f708b9fe198d6f0557dc9acd7d24a95a22c07b22a473383c0f"
-            },
-            {
-              "bytes": 11470,
-              "path": "claude-code/dependency-upgrade-advisor/enterprise-edition/dependency-upgrade-advisor.md",
-              "sha256": "e3b117beeed54108c599679afec1a3ab111424437ec2d42ec0d23f2a92005f84"
-            },
-            {
-              "bytes": 931,
-              "path": "claude-code/dependency-upgrade-advisor/enterprise-edition/endorctl-setup.md",
-              "sha256": "fc57a4792f4a2a92d9a9d60d57d61359f12245b4449436c5b2cb2010c8a0aed1"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ">=1.0"
-        }
-      ],
-      "host": "claude-code",
-      "id": "dependency-upgrade-advisor",
-      "name": "Endor Labs Dependency Upgrade Advisor",
-      "source": {
-        "builder_recipe": "agents/dependency-upgrade-advisor/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
               "bytes": 1126,
               "path": "claude-code/package-risk-summary/developer-edition/README.md",
               "sha256": "6b84c49e1392ca2ba1e017748e9c6c20ea3ce8a60a44bfafc59fc7bcc558a438"
@@ -149,6 +98,57 @@
       "name": "Endor Labs Package Risk Summary",
       "source": {
         "builder_recipe": "agents/package-risk-summary/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 1023,
+              "path": "claude-code/upgrade-impact-analysis/developer-edition/README.md",
+              "sha256": "a309e0dda3bc97cdb6f13b0ce3b85ad97f7a67e78455a902d407467287acf3ec"
+            },
+            {
+              "bytes": 6686,
+              "path": "claude-code/upgrade-impact-analysis/developer-edition/upgrade-impact-analysis.md",
+              "sha256": "fd86d6137a0f0e58ba99cde234b04541469c2c64b382e99d231621d5591e9581"
+            }
+          ],
+          "id": "developer-edition",
+          "name": "Developer Edition",
+          "requires_endorctl": ""
+        },
+        {
+          "artifacts": [
+            {
+              "bytes": 1062,
+              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/README.md",
+              "sha256": "6b80e308bb6121b6e110acd265d726e2cc7c5a2cd46431d67c3d26b3f5d53e16"
+            },
+            {
+              "bytes": 928,
+              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/endorctl-setup.md",
+              "sha256": "3320f6966fd618b3dd4eff65c2fc98cf7bef42d662ee6f02114813a0c0fb7353"
+            },
+            {
+              "bytes": 11464,
+              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/upgrade-impact-analysis.md",
+              "sha256": "14649479e4044a395792945daf84c6a5614972c890d8c15a0154b94d315679ed"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "upgrade-impact-analysis",
+      "name": "Endor Labs Upgrade Impact Analysis",
+      "source": {
+        "builder_recipe": "agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -275,77 +275,6 @@
         {
           "artifacts": [
             {
-              "bytes": 1479,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/developer-edition/README.md",
-              "sha256": "2cd18eb72dce34cca65b4cd76935d256493ddde0464f4982d5a372d56d97474c"
-            },
-            {
-              "bytes": 7475,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/developer-edition/agent.yaml",
-              "sha256": "6f64ae5ba785e4717d8a16e866c1c180aa9918598c0dad37966a2442ac250660"
-            },
-            {
-              "bytes": 224,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/developer-edition/environment.yaml",
-              "sha256": "d0d062de2edd9fc82bbfc7ba7b099546dde3c7622524f998e89c8e1d47aa9210"
-            },
-            {
-              "bytes": 85,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/developer-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1590,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/enterprise-edition/README.md",
-              "sha256": "2ded2b40107d9569e2c8ba86040d21760c2206644980802725a7c943b0f61d62"
-            },
-            {
-              "bytes": 12696,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/enterprise-edition/agent.yaml",
-              "sha256": "6e1fb7a59f9b342f52267da3ebfd846e39f9be371883ed598157ef892ccf8862"
-            },
-            {
-              "bytes": 931,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/enterprise-edition/endorctl-setup.md",
-              "sha256": "fc57a4792f4a2a92d9a9d60d57d61359f12245b4449436c5b2cb2010c8a0aed1"
-            },
-            {
-              "bytes": 260,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/enterprise-edition/environment.yaml",
-              "sha256": "55a1822e27fb303790d792e2f53054b9f17918261fb9bde2d77533706a4e34ac"
-            },
-            {
-              "bytes": 85,
-              "path": "claude-managed-agents/dependency-upgrade-advisor/enterprise-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ">=1.0"
-        }
-      ],
-      "host": "claude-managed-agents",
-      "id": "dependency-upgrade-advisor",
-      "name": "Endor Labs Dependency Upgrade Advisor",
-      "source": {
-        "builder_recipe": "agents/dependency-upgrade-advisor/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
               "bytes": 1575,
               "path": "claude-managed-agents/package-risk-summary/developer-edition/README.md",
               "sha256": "d9b2a44beb5d431bec3d4e50cf59b5483b9a2ebcfbd5f94ea5fe28cf9439a74e"
@@ -408,6 +337,77 @@
       "name": "Endor Labs Package Risk Summary",
       "source": {
         "builder_recipe": "agents/package-risk-summary/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 1476,
+              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/README.md",
+              "sha256": "f44539b11d80912c927aaec1c3acff5056fbc70f5deeb1c78de751b6ea0684cc"
+            },
+            {
+              "bytes": 7466,
+              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/agent.yaml",
+              "sha256": "179ff793aa52bfa275875c709d8b8fca919b11b8bad245873f5ea6c4b6509406"
+            },
+            {
+              "bytes": 221,
+              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/environment.yaml",
+              "sha256": "e8f2262fc8552d90376861aa51946c388d536340c75a37c2f0f0592ba1cd11a0"
+            },
+            {
+              "bytes": 85,
+              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/session-template.yaml",
+              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
+            }
+          ],
+          "id": "developer-edition",
+          "name": "Developer Edition",
+          "requires_endorctl": ""
+        },
+        {
+          "artifacts": [
+            {
+              "bytes": 1587,
+              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/README.md",
+              "sha256": "2f84ea8f3a25f914bcc3f700bd8d68d0ca9b717b4cc0bf3af51a77cf7c0f857f"
+            },
+            {
+              "bytes": 12687,
+              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml",
+              "sha256": "3909d838a876fce0481c9b8377def8c34857824eeb262ec53c8af708b41c6d18"
+            },
+            {
+              "bytes": 928,
+              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/endorctl-setup.md",
+              "sha256": "3320f6966fd618b3dd4eff65c2fc98cf7bef42d662ee6f02114813a0c0fb7353"
+            },
+            {
+              "bytes": 257,
+              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/environment.yaml",
+              "sha256": "2074fcfb1a6b4f1011f69aa1474a7439a1273c09c73af58c11d9a4b208018702"
+            },
+            {
+              "bytes": 85,
+              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/session-template.yaml",
+              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-managed-agents",
+      "id": "upgrade-impact-analysis",
+      "name": "Endor Labs Upgrade Impact Analysis",
+      "source": {
+        "builder_recipe": "agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"

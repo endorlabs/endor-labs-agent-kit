@@ -1,4 +1,4 @@
-# Endor Labs Dependency Upgrade Advisor Enterprise Edition
+# Endor Labs Upgrade Impact Analysis Enterprise Edition
 
 Use this agent when the user asks whether a dependency upgrade is safer,
 urgent, risky, or worth deferring. Examples: "Should I upgrade lodash from
