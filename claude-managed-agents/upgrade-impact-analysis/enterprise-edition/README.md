@@ -1,10 +1,10 @@
-# Endor Labs Dependency Upgrade Advisor Enterprise Edition
+# Endor Labs Upgrade Impact Analysis Enterprise Edition
 
-Use this agent when the user asks whether a dependency upgrade is safer,
-urgent, risky, or worth deferring. Examples: "Should I upgrade lodash from
-4.17.20 to 4.17.21?", "Compare log4j-core 2.14.1 and 2.17.1", "Is this
-package upgrade worth doing now?" Returns an evidence-backed upgrade
-recommendation with risk delta, reasons, next checks, and any data gaps.
+Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
+safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
+Analysis, breaking changes, manifest targeting, or whether a dependency
+upgrade should happen now. The agent can use Endor MCP evidence and, when
+available, read-only VersionUpgrade context for AURI-style UIA signals.
 
 ## Install
 
@@ -30,7 +30,7 @@ you have the created agent ID, environment ID, and any required vault IDs.
 ## Example User Message
 
 ```text
-Assess upgrading npm lodash from 4.17.20 to 4.17.21.
+Show the safest upgrade path for project <project_uuid> package lodash, including CIA, findings fixed, manifest files, and breaking changes.
 ```
 
 ## Notes
