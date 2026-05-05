@@ -1,10 +1,11 @@
-# Endor Labs Dependency Upgrade Advisor Developer Edition
+# Endor Labs Upgrade Impact Analysis Developer Edition
 
-Use this agent when the user asks whether a dependency upgrade is safer,
-urgent, risky, or worth deferring. Examples: "Should I upgrade lodash from
-4.17.20 to 4.17.21?", "Compare log4j-core 2.14.1 and 2.17.1", "Is this
-package upgrade worth doing now?" Returns an evidence-backed upgrade
-recommendation with risk delta, reasons, next checks, and any data gaps.
+Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
+safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
+Analysis, breaking changes, manifest targeting, or whether a dependency
+upgrade should happen now. Enterprise Edition mirrors AURI's read-only UIA
+workflow by querying precomputed VersionUpgrade resources. Developer Edition
+is a lighter MCP-only explicit package-version comparator.
 
 ## Install
 

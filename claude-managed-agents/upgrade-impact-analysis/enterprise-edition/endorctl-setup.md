@@ -1,6 +1,6 @@
 # endorctl Setup
 
-The Enterprise Edition Endor Labs Dependency Upgrade Advisor uses read-only Endor lookups
+The Enterprise Edition Endor Labs Upgrade Impact Analysis uses read-only Endor lookups
 through `endorctl api` for package scores, license classification, and
 similar-package signals. Install and authenticate `endorctl` before
 using the Enterprise Edition artifact.
@@ -9,6 +9,9 @@ Required version: `>=1.0`
 
 The recipe documents these read-only API invocation groups:
 
+- `list_version_upgrade_recommendations`
+- `get_version_upgrade_details`
+- `get_finding_fixing_upgrades`
 - `lookup_current_package_version_uuid`
 - `lookup_target_package_version_uuid`
 - `get_current_package_scores`
