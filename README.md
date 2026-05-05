@@ -9,17 +9,18 @@ workflow.
 
 ## Available Agents
 
-| Agent | Use it when you want to... | Claude Code | Claude Managed Agents |
-| --- | --- | --- | --- |
-| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` |
-| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` |
-| Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` |
-| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` |
+| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | GitHub Copilot / AgentHQ plugin |
+| --- | --- | --- | --- | --- |
+| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | `github-copilot-plugin/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | `github-copilot-plugin/package-risk-summary/` |
+| Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | `github-copilot-plugin/upgrade-impact-analysis/` |
+| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | `github-copilot-plugin/vulnerability-explainer/` |
 
 Currently supported hosts:
 
 - Claude Code subagents
 - Claude Managed Agents
+- GitHub Copilot / AgentHQ plugin packages
 
 ## Quick Start
 
@@ -54,11 +55,24 @@ ant beta:environments create < environment.yaml
 
 Use `session-template.yaml` as the starting point when creating sessions.
 
+### GitHub Copilot / AgentHQ
+
+Choose an agent and edition, then install the generated plugin package with
+GitHub Copilot CLI from the package directory.
+
+```bash
+cd /path/to/endor-labs-agent-kit/github-copilot-plugin/vulnerability-explainer/developer-edition
+copilot plugin install .
+```
+
+For AgentHQ, use the generated plugin package as the public plugin repository
+contents for the corresponding Agentic App and edition.
+
 ## Editions
 
 Each agent is published in one or more editions.
 
-| Edition | Best for | Signals | Shell access |
+| Edition | Best for | Signals | Shell/execute access |
 | --- | --- | --- | --- |
 | Developer Edition | Fast, low-friction checks | Endor Model Context Protocol (MCP) tools | Not allowed |
 | Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, plus documented read-only `endorctl api` lookups for agents that need them | Agent-specific; always read-only |
@@ -67,8 +81,9 @@ Use **Developer Edition** when you want the safest default with no Bash access.
 
 Use **Enterprise Edition** when you have authenticated Endor setup and want the
 highest-fidelity signals available for that agent. Some Enterprise Edition
-agents are still MCP-only; their generated subagent frontmatter will deny Bash
-when no read-only `endorctl api` lookups are required.
+agents are still MCP-only; their generated host configuration leaves shell
+or `execute` access disabled when no read-only `endorctl api` lookups are
+required.
 
 ## Example Prompts
 
@@ -120,6 +135,8 @@ When an agent permits Bash, its prompt limits Bash to documented read-only Endor
 lookup commands. Claude Code artifacts deny Bash when it is not needed.
 Claude Managed Agents artifacts omit the pre-built agent toolset unless an
 agent needs read-only Bash, and then enable only Bash with confirmation.
+GitHub Copilot plugins enable `execute` only for Enterprise Edition agents
+that require the documented read-only Endor lookups.
 
 ## Repository Layout
 
@@ -204,6 +221,43 @@ claude-managed-agents/
       agent.yaml
       environment.yaml
       session-template.yaml
+github-copilot-plugin/
+  dependency-decision-helper/
+    developer-edition/
+      README.md
+      dependency-decision-helper.agent.md
+      plugin.json
+    enterprise-edition/
+      README.md
+      dependency-decision-helper.agent.md
+      plugin.json
+  package-risk-summary/
+    developer-edition/
+      README.md
+      package-risk-summary.agent.md
+      plugin.json
+    enterprise-edition/
+      README.md
+      package-risk-summary.agent.md
+      plugin.json
+  upgrade-impact-analysis/
+    developer-edition/
+      README.md
+      upgrade-impact-analysis.agent.md
+      plugin.json
+    enterprise-edition/
+      README.md
+      upgrade-impact-analysis.agent.md
+      plugin.json
+  vulnerability-explainer/
+    developer-edition/
+      README.md
+      vulnerability-explainer.agent.md
+      plugin.json
+    enterprise-edition/
+      README.md
+      vulnerability-explainer.agent.md
+      plugin.json
 manifest.json
 ```
 

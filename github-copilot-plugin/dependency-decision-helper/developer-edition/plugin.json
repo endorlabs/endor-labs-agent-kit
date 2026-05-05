@@ -1,0 +1,17 @@
+{
+  "agents": "agents/",
+  "author": {
+    "name": "Endor Labs"
+  },
+  "category": "security",
+  "description": "Dependency Decision Helper Developer Edition plugin for GitHub Copilot and AgentHQ.",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "dependencies",
+    "github-copilot",
+    "agenthq"
+  ],
+  "name": "endor-labs-dependency-decision-helper-developer",
+  "version": "1.0.0"
+}

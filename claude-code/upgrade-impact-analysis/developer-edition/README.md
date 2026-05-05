@@ -3,8 +3,9 @@
 Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
 safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
 Analysis, breaking changes, manifest targeting, or whether a dependency
-upgrade should happen now. The agent can use Endor MCP evidence and, when
-available, read-only VersionUpgrade context for AURI-style UIA signals.
+upgrade should happen now. Enterprise Edition mirrors AURI's read-only UIA
+workflow by querying precomputed VersionUpgrade resources. Developer Edition
+is a lighter MCP-only explicit package-version comparator.
 
 ## Install
 
