@@ -12,8 +12,8 @@ workflow.
 | Agent | Use it when you want to... | Claude Code | Claude Managed Agents |
 | --- | --- | --- | --- |
 | Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` |
-| Endor Labs Dependency Upgrade Advisor | Compare current and target versions before a dependency upgrade | `claude-code/dependency-upgrade-advisor/` | `claude-managed-agents/dependency-upgrade-advisor/` |
 | Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` |
+| Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` |
 
 Currently supported hosts:
@@ -78,16 +78,16 @@ Dependency Decision Helper:
 @agent-dependency-decision-helper assess npm lodash version 4.17.20
 ```
 
-Endor Labs Dependency Upgrade Advisor:
-
-```text
-@agent-dependency-upgrade-advisor assess npm lodash from 4.17.20 to 4.17.21
-```
-
 Endor Labs Package Risk Summary:
 
 ```text
 @agent-package-risk-summary summarize npm lodash version 4.17.20
+```
+
+Endor Labs Upgrade Impact Analysis:
+
+```text
+@agent-upgrade-impact-analysis show the safest upgrade path for project <project_uuid> package lodash
 ```
 
 Endor Labs Vulnerability Explainer:
@@ -133,14 +133,6 @@ claude-code/
       README.md
       dependency-decision-helper.md
       endorctl-setup.md
-  dependency-upgrade-advisor/
-    developer-edition/
-      README.md
-      dependency-upgrade-advisor.md
-    enterprise-edition/
-      README.md
-      dependency-upgrade-advisor.md
-      endorctl-setup.md
   package-risk-summary/
     developer-edition/
       README.md
@@ -149,6 +141,14 @@ claude-code/
       README.md
       endorctl-setup.md
       package-risk-summary.md
+  upgrade-impact-analysis/
+    developer-edition/
+      README.md
+      upgrade-impact-analysis.md
+    enterprise-edition/
+      README.md
+      endorctl-setup.md
+      upgrade-impact-analysis.md
   vulnerability-explainer/
     developer-edition/
       README.md
@@ -169,7 +169,7 @@ claude-managed-agents/
       endorctl-setup.md
       environment.yaml
       session-template.yaml
-  dependency-upgrade-advisor/
+  package-risk-summary/
     developer-edition/
       README.md
       agent.yaml
@@ -181,7 +181,7 @@ claude-managed-agents/
       endorctl-setup.md
       environment.yaml
       session-template.yaml
-  package-risk-summary/
+  upgrade-impact-analysis/
     developer-edition/
       README.md
       agent.yaml

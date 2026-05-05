@@ -1,4 +1,4 @@
-name: endor-dependency-upgrade-advisor-enterprise-edition
+name: endor-upgrade-impact-analysis-developer-edition
 config:
   type: cloud
   networking:
@@ -6,7 +6,4 @@ config:
     allowed_hosts:
     - https://api.endorlabs.com
     allow_mcp_servers: true
-    allow_package_managers: true
-  packages:
-    npm:
-    - endorctl
+    allow_package_managers: false
