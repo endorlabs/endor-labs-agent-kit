@@ -1,24 +1,36 @@
 ---
-name: upgrade-impact-analysis
-description: |
-  Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
-  safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
-  Analysis, breaking changes, manifest targeting, or whether a dependency
-  upgrade should happen now. Enterprise Edition mirrors AURI's read-only UIA
-  workflow by querying precomputed VersionUpgrade resources. Developer Edition
-  is a lighter MCP-only explicit package-version comparator.
-mcpServers:
-  - endor-cli-tools:
-      type: stdio
-      command: npx
-      args: ["-y", "endorctl", "ai-tools", "mcp-server"]
-      alwaysLoad: true
-disallowedTools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
-model: sonnet
+name: Endor Labs Upgrade Impact Analysis
+description: 'Use this agent when the user asks for Endor Labs Upgrade Impact Analysis: safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact Analysis, breaking changes, manifest targeting, or whether a dependency upgrade should happen now. Enterprise Edition mirrors AURI''s read-only UIA workflow by querying precomputed VersionUpgrade resources. Developer Edition is a lighter MCP-only explicit package-version comparator.'
+target: github-copilot
+disable-model-invocation: true
+user-invocable: true
+tools:
+- endor-cli-tools/check_dependency_for_risks
+- endor-cli-tools/check_dependency_for_vulnerabilities
+- endor-cli-tools/get_endor_vulnerability
+- execute
+mcp-servers:
+  endor-cli-tools:
+    type: stdio
+    command: npx
+    args:
+    - -y
+    - endorctl
+    - ai-tools
+    - mcp-server
+    tools:
+    - check_dependency_for_risks
+    - check_dependency_for_vulnerabilities
+    - get_endor_vulnerability
+metadata:
+  endor_agent_id: upgrade-impact-analysis
+  endor_agent_version: 1.0.0
+  endor_edition: enterprise-edition
+  endor_recipe_schema_version: '1'
 ---
 
 > Generated from Endor Agent Kit recipe `upgrade-impact-analysis` v1.0.0.
-> Enterprise Edition. Bash is allowed only for read-only Endor lookups through `endorctl api`.
+> Enterprise Edition. The `execute` tool is enabled only for the read-only Endor lookups documented in the prompt.
 
 # Endor Labs Upgrade Impact Analysis
 
