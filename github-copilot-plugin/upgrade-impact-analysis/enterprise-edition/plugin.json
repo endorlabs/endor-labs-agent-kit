@@ -1,0 +1,17 @@
+{
+  "agents": "agents/",
+  "author": {
+    "name": "Endor Labs"
+  },
+  "category": "security",
+  "description": "Endor Labs Upgrade Impact Analysis Enterprise Edition plugin for GitHub Copilot and AgentHQ.",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "dependencies",
+    "github-copilot",
+    "agenthq"
+  ],
+  "name": "endor-labs-upgrade-impact-analysis-enterprise",
+  "version": "1.0.0"
+}
