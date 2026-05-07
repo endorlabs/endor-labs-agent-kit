@@ -1,0 +1,18 @@
+{
+  "agents": "agents/",
+  "author": {
+    "name": "Endor Labs"
+  },
+  "category": "security",
+  "description": "Endor Labs Tenant Findings Enterprise Edition plugin for GitHub Copilot and AgentHQ.",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "findings",
+    "reachability",
+    "github-copilot",
+    "agenthq"
+  ],
+  "name": "endor-labs-tenant-findings-enterprise",
+  "version": "1.0.0"
+}

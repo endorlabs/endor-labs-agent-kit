@@ -505,14 +505,14 @@
         {
           "artifacts": [
             {
-              "bytes": 816,
+              "bytes": 924,
               "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/README.md",
-              "sha256": "31428eedf95af83fd3856588e3a7199c58d78db97439ee531ad8f34ce1775831"
+              "sha256": "cb4670bffb617785c57fedd859451b1fcce0b416a5fc49c9be69282e68495ed1"
             },
             {
-              "bytes": 9727,
+              "bytes": 9904,
               "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/agents/dependency-decision-helper.agent.md",
-              "sha256": "2d756a8eece4e1681a1ecd388f1b877fadde1d14f255fa5cbe44284e85d410f4"
+              "sha256": "f60f1b150058168d12e178be0515156cfc1f5b55a928470337a266d8496f319f"
             },
             {
               "bytes": 396,
@@ -561,14 +561,14 @@
         {
           "artifacts": [
             {
-              "bytes": 997,
+              "bytes": 1105,
               "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/README.md",
-              "sha256": "3e424295d74c33156a0332c005a3a4a2ad8f93df405ca03b279479bc5c7179d8"
+              "sha256": "fa6a34f88a932256bfa5ea08dd14c8e50ad339b581267ce94b5904289fba473e"
             },
             {
-              "bytes": 9852,
+              "bytes": 10029,
               "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/agents/package-risk-summary.agent.md",
-              "sha256": "2ae2afd4b8b3c70d4f8d9636a9548fbd40769c2f6683e1e8fefd4f8eda80e998"
+              "sha256": "d655f7ee426cf4d1b188ca73a6b74750cb873b0145eea589b8bc7265b7801d15"
             },
             {
               "bytes": 395,
@@ -586,6 +586,40 @@
       "name": "Endor Labs Package Risk Summary",
       "source": {
         "builder_recipe": "agents/package-risk-summary/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 922,
+              "path": "github-copilot-plugin/tenant-findings/enterprise-edition/README.md",
+              "sha256": "a8a7d4404505dd5c5d174dd657223a744b6008647348a41f0a9f21d0466db271"
+            },
+            {
+              "bytes": 6839,
+              "path": "github-copilot-plugin/tenant-findings/enterprise-edition/agents/tenant-findings.agent.md",
+              "sha256": "77af0576bfc24704910df872e636e67876235ce7bc96058cf29e3dd030724704"
+            },
+            {
+              "bytes": 401,
+              "path": "github-copilot-plugin/tenant-findings/enterprise-edition/plugin.json",
+              "sha256": "d9c4f2f96d0730c8d38c7a6e336d44fd699d12e9e56aed27a132206e70c88305"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "github-copilot-plugin",
+      "id": "tenant-findings",
+      "name": "Endor Labs Tenant Findings",
+      "source": {
+        "builder_recipe": "agents/tenant-findings/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -617,14 +651,14 @@
         {
           "artifacts": [
             {
-              "bytes": 958,
+              "bytes": 1066,
               "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "90e77082e15351cb431b1401d192a1c9625e5f3f1d001a96c388185f0210e3c0"
+              "sha256": "2bfd4657e6321ca0f3dbdd57b0faeb6b5d270860da02921f823104f92a2cdbcb"
             },
             {
-              "bytes": 18248,
+              "bytes": 18425,
               "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/agents/upgrade-impact-analysis.agent.md",
-              "sha256": "2f0823e6fd0dbad88f87d04f6d1896ef6350593c96ba9b922adf4b7d4a5b25f8"
+              "sha256": "0bd1132b382c6666f89b5f8667148646d8a94dd47a070517a04a92cda3aaa7b7"
             },
             {
               "bytes": 401,
@@ -673,14 +707,14 @@
         {
           "artifacts": [
             {
-              "bytes": 882,
+              "bytes": 990,
               "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/README.md",
-              "sha256": "d0c93749f065da5955410764a803c5fbe8a6a7cdc2c4a61eb3691abcf1eff3b3"
+              "sha256": "bd8f170ee82178d10755a47ef63d45bfca5cbb3c3863895162b589a44f0d1462"
             },
             {
-              "bytes": 5593,
+              "bytes": 5770,
               "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/agents/vulnerability-explainer.agent.md",
-              "sha256": "72d084a98c7770c44fe3d644a9f677add48f0efa02bb3f8e2709b5f026e6f35a"
+              "sha256": "0f0b445d653358d44a6436ef90c06f8b4aace4028c74cd5b7f041e0ef4b6b3c3"
             },
             {
               "bytes": 401,
