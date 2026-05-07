@@ -13,6 +13,7 @@ workflow.
 | --- | --- | --- | --- | --- |
 | Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | `github-copilot-plugin/dependency-decision-helper/` |
 | Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | `github-copilot-plugin/package-risk-summary/` |
+| Endor Labs Tenant Findings | Summarize tenant findings for an imported project, including reachable findings | - | - | `github-copilot-plugin/tenant-findings/` |
 | Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | `github-copilot-plugin/upgrade-impact-analysis/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | `github-copilot-plugin/vulnerability-explainer/` |
 
@@ -68,6 +69,10 @@ copilot plugin install .
 For AgentHQ, use the generated plugin package as the public plugin repository
 contents for the corresponding Agentic App and edition.
 
+For Enterprise Edition GitHub Copilot plugins that need tenant data, configure
+Endor GitHub Actions keyless authentication in the target repository. See
+`github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md`.
+
 ## Editions
 
 Each agent is published in one or more editions.
@@ -103,6 +108,12 @@ Endor Labs Upgrade Impact Analysis:
 
 ```text
 @agent-upgrade-impact-analysis show the safest upgrade path for project <project_uuid> package lodash
+```
+
+Endor Labs Tenant Findings:
+
+```text
+@agent-tenant-findings show reachable findings for project <project_uuid>
 ```
 
 Endor Labs Vulnerability Explainer:
@@ -239,6 +250,11 @@ github-copilot-plugin/
     enterprise-edition/
       README.md
       package-risk-summary.agent.md
+      plugin.json
+  tenant-findings/
+    enterprise-edition/
+      README.md
+      tenant-findings.agent.md
       plugin.json
   upgrade-impact-analysis/
     developer-edition/
