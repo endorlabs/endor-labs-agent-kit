@@ -35,6 +35,7 @@ READ_OR_WRITE_TOOLS = (
     "WebSearch",
     "TodoWrite",
 )
+READ_ONLY_FILE_TOOLS = frozenset({"Read", "Glob", "Grep", "LS"})
 
 
 def compile_claude_code(
@@ -93,7 +94,7 @@ def _remove_legacy_output_dirs(out_dir: Path) -> None:
 
 def _render_subagent(recipe: EndorAgentRecipe, instructions: str, *, edition: str) -> str:
     body = _instructions_for_edition(instructions, edition)
-    disallowed_tools = READ_OR_WRITE_TOOLS
+    disallowed_tools = _disallowed_tools(recipe)
     if edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
         disallowed_tools = ("Bash",) + disallowed_tools
 
@@ -136,6 +137,18 @@ def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
 
 def _allows_read_only_endorctl(recipe: EndorAgentRecipe) -> bool:
     return "endorctl_api" in recipe.supported_transports and bool(recipe.endorctl_api_invocations)
+
+
+def _disallowed_tools(recipe: EndorAgentRecipe) -> tuple[str, ...]:
+    """Map abstract recipe capabilities to Claude Code tool restrictions."""
+
+    if recipe.host_capabilities_required.read_files:
+        return tuple(
+            tool
+            for tool in READ_OR_WRITE_TOOLS
+            if tool not in READ_ONLY_FILE_TOOLS
+        )
+    return READ_OR_WRITE_TOOLS
 
 
 def _instructions_for_edition(instructions: str, edition: str) -> str:

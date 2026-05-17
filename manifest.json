@@ -108,6 +108,52 @@
           "artifacts": [
             {
               "bytes": 1095,
+              "path": "claude-code/repository-dependency-reviewer/developer-edition/README.md",
+              "sha256": "df782c9380a5ac637ac8ef4efef44146425bceaf824c5f585bd03e5c70ab0437"
+            },
+            {
+              "bytes": 7502,
+              "path": "claude-code/repository-dependency-reviewer/developer-edition/repository-dependency-reviewer.md",
+              "sha256": "6bfc9306b02b13286bd77604dee6af653ba1d70f9967a4b887120bca1f5b0d5b"
+            }
+          ],
+          "id": "developer-edition",
+          "name": "Developer Edition",
+          "requires_endorctl": ""
+        },
+        {
+          "artifacts": [
+            {
+              "bytes": 1096,
+              "path": "claude-code/repository-dependency-reviewer/enterprise-edition/README.md",
+              "sha256": "f4adda73fedd89f189c888f2ae0f71ec2db442c2dfb70e3dcfe85af4637f0e23"
+            },
+            {
+              "bytes": 7540,
+              "path": "claude-code/repository-dependency-reviewer/enterprise-edition/repository-dependency-reviewer.md",
+              "sha256": "5a57c8cc9a0bcf411b1547fb14c3f8b7bede767e118262fd7d952263424ffa7e"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ""
+        }
+      ],
+      "host": "claude-code",
+      "id": "repository-dependency-reviewer",
+      "name": "Endor Labs Repository Dependency Reviewer",
+      "source": {
+        "builder_recipe": "agents/repository-dependency-reviewer/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 1095,
               "path": "claude-code/upgrade-impact-analysis/developer-edition/README.md",
               "sha256": "4a5b18968b5ac81268784cc6b6cc1f9708022e45d0ea2f43c9718019acdd453b"
             },

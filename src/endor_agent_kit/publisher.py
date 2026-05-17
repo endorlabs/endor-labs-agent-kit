@@ -443,6 +443,7 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "- [Output Contract](#output-contract)",
         "- [Safety Model](#safety-model)",
         "- [Contribute An Agent](#contribute-an-agent)",
+        "- [Create Agents With The Skill](#create-agents-with-the-skill)",
         "- [Recipe Reference](#recipe-reference)",
         "- [Repository Reference](#repository-reference)",
         "- [Release And License](#release-and-license)",
@@ -566,6 +567,10 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "When an agent permits Bash, its prompt limits Bash to documented read-only Endor",
         "lookup commands. Claude Code artifacts deny Bash when it is not needed.",
+        "When a recipe declares `host_capabilities_required.read_files: true`,",
+        "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS` for",
+        "read-only workspace inspection; file mutation, notebook, web, and todo tools",
+        "remain denied.",
         "Claude Managed Agents artifacts omit the pre-built agent toolset unless an",
         "agent needs read-only Bash, and then enable only Bash with confirmation.",
         "GitHub Copilot plugins enable `execute` only for Enterprise Edition agents",
@@ -576,6 +581,35 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "This repository is both the source of truth and the distribution catalog.",
         "Contributor workflow is recipe-first: edit source files under `agents/`, then",
         "regenerate customer-facing artifacts.",
+        "",
+        "### Create Agents With The Skill",
+        "",
+        "Use the Create Endor Labs Agent skill to make your own Endor Labs agent.",
+        "The skill lives at `skills/create-endor-labs-agent/SKILL.md` and guides an",
+        "assistant through agent design, recipe authoring, prompt sections, evals,",
+        "tests, catalog regeneration, and validation.",
+        "",
+        "For Claude Code, install it at either the repository or user level:",
+        "",
+        "```bash",
+        "# Repository-level install",
+        "mkdir -p .claude/skills",
+        "cp -R skills/create-endor-labs-agent .claude/skills/",
+        "",
+        "# User-level install",
+        "mkdir -p ~/.claude/skills",
+        "cp -R skills/create-endor-labs-agent ~/.claude/skills/",
+        "```",
+        "",
+        "Then ask your assistant:",
+        "",
+        "```text",
+        "Use the create Endor Labs agent skill to make an agent that <does the workflow you want>.",
+        "```",
+        "",
+        "You can also point any agent directly at",
+        "`skills/create-endor-labs-agent/SKILL.md` if it does not support native",
+        "skills.",
         "",
         "### Development Setup",
         "",
@@ -647,6 +681,9 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "    recipe.yaml",
         "    instructions.md",
         "    evals/cases.yaml",
+        "skills/",
+        "  create-endor-labs-agent/",
+        "    SKILL.md",
         "src/endor_agent_kit/",
         "tests/",
         *layout_agents,
@@ -727,6 +764,7 @@ def _agent_summary(agent_id: str) -> str:
         "dependency-decision-helper": "Decide whether to add, upgrade to, or keep a specific package version",
         "upgrade-impact-analysis": "Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
         "package-risk-summary": "Summarize the risk profile of a specific package version",
+        "repository-dependency-reviewer": "Review local dependency manifests with read-only file inspection and Endor evidence",
         "tenant-findings": "Summarize tenant findings for an imported project, including reachable findings",
         "vulnerability-explainer": "Understand a specific CVE, GHSA, or Endor vulnerability and what to do next",
     }
@@ -738,6 +776,7 @@ def _agent_example(agent_id: str) -> str:
         "dependency-decision-helper": "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
         "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for project <project_uuid> package lodash",
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
+        "repository-dependency-reviewer": "@agent-repository-dependency-reviewer review this repository's dependency manifests",
         "tenant-findings": "@agent-tenant-findings show reachable findings for project <project_uuid>",
         "vulnerability-explainer": "@agent-vulnerability-explainer explain CVE-2021-44228",
     }
@@ -752,8 +791,14 @@ def _claude_code_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
             "Endor MCP access through the subagent's bundled MCP server config.",
             "No shell access or authenticated endorctl setup is required for this edition.",
         ]
+        if recipe.host_capabilities_required.read_files:
+            requirements.insert(2, "Read-only access to dependency manifests in the target workspace.")
         notes = [
-            "This edition uses Endor MCP tools only.",
+            (
+                "This edition uses Endor MCP tools plus Claude Code read-only file inspection."
+                if recipe.host_capabilities_required.read_files
+                else "This edition uses Endor MCP tools only."
+            ),
             "It records unavailable non-MCP signals in data_gaps rather than fabricating evidence.",
         ]
     else:

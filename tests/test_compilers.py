@@ -8,6 +8,8 @@ import yaml
 
 from endor_agent_kit.cli import main
 from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
+from endor_agent_kit.compilers.claude_code import _disallowed_tools
+from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 
 from conftest import repo_root
 
@@ -21,6 +23,27 @@ def _copy_agent(tmp_path: Path) -> Path:
     dst = tmp_path / "dependency-decision-helper"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"
+
+
+def _minimal_recipe(*, read_files: bool) -> EndorAgentRecipe:
+    return EndorAgentRecipe(
+        recipe_schema_version=1,
+        id="read-only-fixture",
+        name="Read Only Fixture",
+        version="1.0.0",
+        description="Fixture",
+        safety_class="read_only",
+        supported_transports=("mcp",),
+        host_capabilities_required=HostCapabilities(read_files=read_files),
+        inputs=(),
+        outputs=(),
+        evals="evals/cases.yaml",
+        compatible_hosts=("claude-code",),
+        mutations=(),
+        required_endor_mcp_tools=("get_resource",),
+        instructions_path="instructions.md",
+        model="sonnet",
+    )
 
 
 def test_claude_code_compiler_emits_developer_and_enterprise_editions(tmp_path):
@@ -57,6 +80,22 @@ def test_claude_code_compiler_emits_developer_and_enterprise_editions(tmp_path):
     assert "endorctl api list" in enterprise
     assert "data_gaps" in developer
     assert "data_gaps" in enterprise
+
+
+def test_claude_code_disallowed_tools_allow_read_only_file_access():
+    disallowed = set(_disallowed_tools(_minimal_recipe(read_files=True)))
+
+    assert not {"Read", "Glob", "Grep", "LS"} & disallowed
+    assert {"Write", "Edit", "MultiEdit", "NotebookRead", "NotebookEdit"} <= disallowed
+    assert "WebFetch" in disallowed
+    assert "TodoWrite" in disallowed
+
+
+def test_claude_code_disallowed_tools_block_file_access_by_default():
+    disallowed = set(_disallowed_tools(_minimal_recipe(read_files=False)))
+
+    assert {"Read", "Glob", "Grep", "LS"} <= disallowed
+    assert {"Write", "Edit", "MultiEdit", "NotebookRead", "NotebookEdit"} <= disallowed
 
 
 def test_claude_code_compiler_edition_filter(tmp_path):

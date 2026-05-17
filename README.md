@@ -19,6 +19,7 @@ Use this repository in two ways:
 - [Output Contract](#output-contract)
 - [Safety Model](#safety-model)
 - [Contribute An Agent](#contribute-an-agent)
+- [Create Agents With The Skill](#create-agents-with-the-skill)
 - [Recipe Reference](#recipe-reference)
 - [Repository Reference](#repository-reference)
 - [Release And License](#release-and-license)
@@ -33,6 +34,7 @@ maintainer-facing source of truth.
 | --- | --- | --- | --- | --- |
 | Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | `github-copilot-plugin/dependency-decision-helper/` |
 | Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | `github-copilot-plugin/package-risk-summary/` |
+| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - |
 | Endor Labs Tenant Findings | Summarize tenant findings for an imported project, including reachable findings | - | - | `github-copilot-plugin/tenant-findings/` |
 | Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | `github-copilot-plugin/upgrade-impact-analysis/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | `github-copilot-plugin/vulnerability-explainer/` |
@@ -135,6 +137,12 @@ Endor Labs Package Risk Summary:
 @agent-package-risk-summary summarize npm lodash version 4.17.20
 ```
 
+Endor Labs Repository Dependency Reviewer:
+
+```text
+@agent-repository-dependency-reviewer review this repository's dependency manifests
+```
+
 Endor Labs Tenant Findings:
 
 ```text
@@ -175,6 +183,10 @@ They do not:
 
 When an agent permits Bash, its prompt limits Bash to documented read-only Endor
 lookup commands. Claude Code artifacts deny Bash when it is not needed.
+When a recipe declares `host_capabilities_required.read_files: true`,
+Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS` for
+read-only workspace inspection; file mutation, notebook, web, and todo tools
+remain denied.
 Claude Managed Agents artifacts omit the pre-built agent toolset unless an
 agent needs read-only Bash, and then enable only Bash with confirmation.
 GitHub Copilot plugins enable `execute` only for Enterprise Edition agents
@@ -185,6 +197,35 @@ that require the documented read-only Endor lookups.
 This repository is both the source of truth and the distribution catalog.
 Contributor workflow is recipe-first: edit source files under `agents/`, then
 regenerate customer-facing artifacts.
+
+### Create Agents With The Skill
+
+Use the Create Endor Labs Agent skill to make your own Endor Labs agent.
+The skill lives at `skills/create-endor-labs-agent/SKILL.md` and guides an
+assistant through agent design, recipe authoring, prompt sections, evals,
+tests, catalog regeneration, and validation.
+
+For Claude Code, install it at either the repository or user level:
+
+```bash
+# Repository-level install
+mkdir -p .claude/skills
+cp -R skills/create-endor-labs-agent .claude/skills/
+
+# User-level install
+mkdir -p ~/.claude/skills
+cp -R skills/create-endor-labs-agent ~/.claude/skills/
+```
+
+Then ask your assistant:
+
+```text
+Use the create Endor Labs agent skill to make an agent that <does the workflow you want>.
+```
+
+You can also point any agent directly at
+`skills/create-endor-labs-agent/SKILL.md` if it does not support native
+skills.
 
 ### Development Setup
 
@@ -256,6 +297,9 @@ agents/
     recipe.yaml
     instructions.md
     evals/cases.yaml
+skills/
+  create-endor-labs-agent/
+    SKILL.md
 src/endor_agent_kit/
 tests/
 claude-code/
@@ -275,6 +319,13 @@ claude-code/
       README.md
       endorctl-setup.md
       package-risk-summary.md
+  repository-dependency-reviewer/
+    developer-edition/
+      README.md
+      repository-dependency-reviewer.md
+    enterprise-edition/
+      README.md
+      repository-dependency-reviewer.md
   upgrade-impact-analysis/
     developer-edition/
       README.md
