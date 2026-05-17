@@ -462,6 +462,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-decision-helper")
     upgrade_recipe = _copy_agent(tmp_path / "upgrade", "upgrade-impact-analysis")
     package_recipe = _copy_agent(tmp_path / "package", "package-risk-summary")
+    repository_recipe = _copy_agent(tmp_path / "repository", "repository-dependency-reviewer")
     vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
     dest = tmp_path / "endor-labs-agent-kit"
 
@@ -470,6 +471,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         str(dependency_recipe),
         str(upgrade_recipe),
         str(package_recipe),
+        str(repository_recipe),
         str(vulnerability_recipe),
         "--dest",
         str(dest),
@@ -480,6 +482,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "dependency-decision-helper.md" in output
     assert "upgrade-impact-analysis.md" in output
     assert "package-risk-summary.md" in output
+    assert "repository-dependency-reviewer.md" in output
     assert "vulnerability-explainer.md" in output
     assert "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml" in output
     assert "claude-managed-agents/package-risk-summary/enterprise-edition/agent.yaml" in output
@@ -489,6 +492,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-code", "package-risk-summary"),
+        ("claude-code", "repository-dependency-reviewer"),
         ("claude-code", "upgrade-impact-analysis"),
         ("claude-code", "vulnerability-explainer"),
         ("claude-managed-agents", "dependency-decision-helper"),
@@ -504,6 +508,10 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "## Table Of Contents" in root_readme
     assert "## Contribute An Agent" in root_readme
     assert "## Recipe Reference" in root_readme
+    assert "host_capabilities_required.read_files: true" in root_readme
+    assert "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS`" in root_readme
+    assert "Review local dependency manifests with read-only file inspection and Endor evidence" in root_readme
+    assert "@agent-repository-dependency-reviewer review this repository's dependency manifests" in root_readme
     assert "endor-agent-kit publish agents/*/recipe.yaml --dest . --prune" in root_readme
     assert "Endor Labs Upgrade Impact Analysis" in root_readme
     assert "Endor Labs Package Risk Summary" in root_readme
@@ -513,6 +521,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "claude-code/package-risk-summary/" in root_readme
     assert "claude-managed-agents/package-risk-summary/" in root_readme
     assert "github-copilot-plugin/package-risk-summary/" in root_readme
+    assert "claude-code/repository-dependency-reviewer/" in root_readme
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:

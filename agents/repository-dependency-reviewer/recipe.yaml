@@ -1,0 +1,74 @@
+recipe_schema_version: 1
+id: repository-dependency-reviewer
+name: Endor Labs Repository Dependency Reviewer
+version: 1.0.0
+description: |
+  Use this agent inside a source repository when the user wants a read-only
+  dependency risk review based on local manifests. It inspects dependency files,
+  resolves exact package coordinates when possible, checks those coordinates
+  with Endor MCP tools, and reports risky dependencies, unresolved versions,
+  recommended next checks, and data gaps.
+safety_class: read_only
+endor_tier_minimum: free
+supported_transports:
+  - mcp
+host_capabilities_required:
+  run_commands: false
+  read_files: true
+  write_files: false
+  open_pr: false
+inputs:
+  - name: repository_path
+    kind: string
+    required: false
+    description: Local repository path to inspect. Defaults to the current Claude Code workspace.
+  - name: ecosystems
+    kind: list[string]
+    required: false
+    description: Optional ecosystem filter such as npm, pypi, maven, go, cargo, gem, nuget, or packagist.
+  - name: focus
+    kind: string
+    required: false
+    description: Optional review focus such as production dependencies, direct dependencies, critical findings, or newly added manifests.
+outputs:
+  - name: risk_posture
+    kind: enum
+    required: true
+    description: LOW, MODERATE, HIGH, CRITICAL, or UNKNOWN.
+  - name: manifests
+    kind: list[object]
+    required: true
+    description: Manifest or lock files inspected with detected ecosystems and parsing notes.
+  - name: dependencies_reviewed
+    kind: list[object]
+    required: true
+    description: Exact dependency coordinates checked with Endor evidence.
+  - name: findings
+    kind: list[object]
+    required: true
+    description: Evidence-backed dependency risk findings with package, version, severity, and source file.
+  - name: recommended_actions
+    kind: list[string]
+    required: true
+    description: Follow-up actions such as upgrade, investigate reachability, or run a fuller Endor scan.
+  - name: summary
+    kind: string
+    required: true
+    description: One-paragraph human-readable repository dependency review.
+  - name: data_gaps
+    kind: list[string]
+    required: true
+    description: Signals unavailable because a manifest was unsupported, versions were unresolved, tools failed, or Endor data was unavailable.
+evals: evals/cases.yaml
+compatible_hosts:
+  - claude-code
+mutations: []
+required_endor_mcp_tools:
+  - check_dependency_for_risks
+  - check_dependency_for_vulnerabilities
+  - get_endor_vulnerability
+endorctl_api_invocations: []
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ">=2.4"
+requires_endorctl: ""
