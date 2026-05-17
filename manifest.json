@@ -505,14 +505,14 @@
         {
           "artifacts": [
             {
-              "bytes": 924,
+              "bytes": 1032,
               "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/README.md",
-              "sha256": "cb4670bffb617785c57fedd859451b1fcce0b416a5fc49c9be69282e68495ed1"
+              "sha256": "538bc1ec3491d1b0f1f0f19fae06572afba4482077ce329f91d46d82399f6de6"
             },
             {
               "bytes": 9904,
               "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/agents/dependency-decision-helper.agent.md",
-              "sha256": "f60f1b150058168d12e178be0515156cfc1f5b55a928470337a266d8496f319f"
+              "sha256": "dcb1ff14f2282c78f9adce3f78cdb3004b161a2c7ce2908b2c6ec8f80d2e8ca1"
             },
             {
               "bytes": 396,
@@ -561,14 +561,14 @@
         {
           "artifacts": [
             {
-              "bytes": 1105,
+              "bytes": 1213,
               "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/README.md",
-              "sha256": "fa6a34f88a932256bfa5ea08dd14c8e50ad339b581267ce94b5904289fba473e"
+              "sha256": "cb636640c359099a4d74739774b8c8eec642f14c731e298621f59f458f65eb5f"
             },
             {
               "bytes": 10029,
               "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/agents/package-risk-summary.agent.md",
-              "sha256": "d655f7ee426cf4d1b188ca73a6b74750cb873b0145eea589b8bc7265b7801d15"
+              "sha256": "faa079d16af9406cbef183e4c501578fce7fde54bba4c96c6378a824dcd039a9"
             },
             {
               "bytes": 395,
@@ -595,14 +595,14 @@
         {
           "artifacts": [
             {
-              "bytes": 922,
+              "bytes": 1063,
               "path": "github-copilot-plugin/tenant-findings/enterprise-edition/README.md",
-              "sha256": "a8a7d4404505dd5c5d174dd657223a744b6008647348a41f0a9f21d0466db271"
+              "sha256": "1341ff8cff6ec612b287ccd6d30f1635b7f4db138fbb62f60281d11dd89adaec"
             },
             {
-              "bytes": 6839,
+              "bytes": 6857,
               "path": "github-copilot-plugin/tenant-findings/enterprise-edition/agents/tenant-findings.agent.md",
-              "sha256": "77af0576bfc24704910df872e636e67876235ce7bc96058cf29e3dd030724704"
+              "sha256": "67a79b570514c0ba3d044c6544559e1ccb8f9f8e5e215831ce1845db1f2a3aed"
             },
             {
               "bytes": 401,
@@ -651,14 +651,14 @@
         {
           "artifacts": [
             {
-              "bytes": 1066,
+              "bytes": 1174,
               "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "2bfd4657e6321ca0f3dbdd57b0faeb6b5d270860da02921f823104f92a2cdbcb"
+              "sha256": "2626954f80b85d053196df3b816367221f1335449f5ba120ea987f09957e1b54"
             },
             {
               "bytes": 18425,
               "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/agents/upgrade-impact-analysis.agent.md",
-              "sha256": "0bd1132b382c6666f89b5f8667148646d8a94dd47a070517a04a92cda3aaa7b7"
+              "sha256": "fed8b63112750a1fd764530a6df190dee0279c3d653bdab57cf07d0a864ba619"
             },
             {
               "bytes": 401,
@@ -707,14 +707,14 @@
         {
           "artifacts": [
             {
-              "bytes": 990,
+              "bytes": 1098,
               "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/README.md",
-              "sha256": "bd8f170ee82178d10755a47ef63d45bfca5cbb3c3863895162b589a44f0d1462"
+              "sha256": "df2df80cd8c4ec174a57a647cc201621a4e6eb73b55d4377020c484de2b6a1b0"
             },
             {
               "bytes": 5770,
               "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/agents/vulnerability-explainer.agent.md",
-              "sha256": "0f0b445d653358d44a6436ef90c06f8b4aace4028c74cd5b7f041e0ef4b6b3c3"
+              "sha256": "990599d2f6fc4f7deb97c9b661f54fad77b3be3bbd3275eec7fbb73c1e483412"
             },
             {
               "bytes": 401,
@@ -737,6 +737,6 @@
       "version": "1.0.0"
     }
   ],
-  "generated_by": "endor-agent-kit-builder",
+  "generated_by": "endor-agent-kit",
   "schema_version": 1
 }

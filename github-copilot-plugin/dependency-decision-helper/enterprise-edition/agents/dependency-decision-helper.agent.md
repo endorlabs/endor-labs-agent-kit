@@ -19,7 +19,7 @@ mcp-servers:
     - ai-tools
     - mcp-server
     env:
-      ENDOR_GITHUB_ACTION_TOKEN_ENABLE: "true"
+      ENDOR_GITHUB_ACTION_TOKEN_ENABLE: 'true'
       ENDOR_NAMESPACE: $COPILOT_MCP_ENDOR_NAMESPACE
       ENDOR_API: ${COPILOT_MCP_ENDOR_API:-https://api.endorlabs.com}
     tools:

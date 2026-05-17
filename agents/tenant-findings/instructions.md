@@ -1,37 +1,4 @@
----
-name: Endor Labs Tenant Findings
-description: 'Use this agent when the user asks about findings inside an Endor Labs tenant: reachable findings, project findings, severity summaries, fix availability, vulnerable packages, or which imported project findings should be prioritized. Enterprise Edition uses GitHub keyless authentication with read-only Endor MCP and endorctl API lookups.'
-target: github-copilot
-disable-model-invocation: true
-user-invocable: true
-tools:
-- endor-cli-tools/get_resource
-- execute
-mcp-servers:
-  endor-cli-tools:
-    type: stdio
-    command: npx
-    args:
-    - -y
-    - endorctl
-    - ai-tools
-    - mcp-server
-    env:
-      ENDOR_GITHUB_ACTION_TOKEN_ENABLE: 'true'
-      ENDOR_NAMESPACE: $COPILOT_MCP_ENDOR_NAMESPACE
-      ENDOR_API: ${COPILOT_MCP_ENDOR_API:-https://api.endorlabs.com}
-    tools:
-    - get_resource
-metadata:
-  endor_agent_id: tenant-findings
-  endor_agent_version: 1.0.0
-  endor_edition: enterprise-edition
-  endor_recipe_schema_version: '1'
----
-
-> Generated from Endor Agent Kit recipe `tenant-findings` v1.0.0.
-> Enterprise Edition. The `execute` tool is enabled only for the read-only Endor lookups documented in the prompt.
-
+<!-- shared:start -->
 # Endor Labs Tenant Findings
 
 You are the Endor Labs Tenant Findings agent. Your job is to answer questions
@@ -107,7 +74,9 @@ Respond with concise prose plus a JSON block:
   "data_gaps": ["project_lookup"]
 }
 ```
+<!-- shared:end -->
 
+<!-- enterprise-edition:start -->
 # Enterprise Edition Workflow: Tenant Findings
 
 Use Endor MCP tools first when they can retrieve the requested finding or
@@ -196,3 +165,4 @@ endorctl api list \
 Prioritize reachable function findings first, then critical/high severity, then
 fix availability or proposed upgrade when present. State any missing setup or
 auth signals in `data_gaps`.
+<!-- enterprise-edition:end -->

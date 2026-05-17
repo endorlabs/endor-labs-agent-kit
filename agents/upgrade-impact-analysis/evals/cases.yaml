@@ -1,0 +1,69 @@
+cases:
+  - id: auri-project-best-upgrade
+    input:
+      project_uuid: 00000000-0000-0000-0000-000000000000
+      package_name: lodash
+    expected:
+      upgrade_recommendation: UPGRADE_NOW
+      risk_delta: LOWER
+      required_evidence:
+        - query VersionUpgrade recommendations for the project before using package-version fallback
+        - include upgrade risk, findings fixed, CIA status, manifest files, and score explanation when returned
+        - use AURI ranking of most findings fixed then lowest upgrade risk
+      data_gaps_allowed: true
+
+  - id: vulnerable-current-clean-target
+    input:
+      ecosystem: npm
+      package_name: lodash
+      current_version: 4.17.20
+      target_version: 4.17.21
+    expected:
+      upgrade_recommendation: UPGRADE_NOW
+      risk_delta: LOWER
+      required_evidence:
+        - target version reduces known vulnerability or risk evidence
+        - next checks before merging are named
+      data_gaps_allowed: true
+
+  - id: target-introduces-risk
+    input:
+      ecosystem: npm
+      package_name: lodash
+      current_version: 4.17.21
+      target_version: 4.17.20
+    expected:
+      upgrade_recommendation: DEFER
+      risk_delta: HIGHER
+      required_evidence:
+        - target version has worse risk or vulnerability evidence than current
+        - do not recommend a downgrade or riskier target as an upgrade
+      data_gaps_allowed: true
+
+  - id: critical-current-fixed-target
+    input:
+      ecosystem: maven
+      package_name: org.apache.logging.log4j:log4j-core
+      current_version: 2.14.1
+      target_version: 2.17.1
+    expected:
+      upgrade_recommendation: UPGRADE_NOW
+      risk_delta: LOWER
+      required_evidence:
+        - critical current-version vulnerability or known exploited evidence
+        - target version remediation or reduced-risk evidence
+      data_gaps_allowed: true
+
+  - id: insufficient-data
+    input:
+      ecosystem: npm
+      package_name: package-that-should-not-exist-endor-agent-kit
+      current_version: 0.0.1
+      target_version: 0.0.2
+    expected:
+      upgrade_recommendation: INSUFFICIENT_DATA
+      risk_delta: UNKNOWN
+      required_evidence:
+        - unavailable evidence must be named
+        - do not fabricate vulnerability, score, license, or breaking-change evidence
+      data_gaps_allowed: true

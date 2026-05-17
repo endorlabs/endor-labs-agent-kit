@@ -1,10 +1,10 @@
 # Endor Labs Tenant Findings Enterprise Edition
 
-Use this agent when the user asks about findings that already exist inside an
-Endor Labs tenant, including reachable findings for an imported project.
-Examples: "What reachable findings are in this project?", "List high severity
-findings for project app-java-demo", or "Summarize the reachable Endor findings
-for this repository."
+Use this agent when the user asks about findings inside an Endor Labs tenant:
+reachable findings, project findings, severity summaries, fix availability,
+vulnerable packages, or which imported project findings should be prioritized.
+Enterprise Edition uses GitHub keyless authentication with read-only Endor MCP
+and endorctl API lookups.
 
 ## Install
 
@@ -19,8 +19,6 @@ Uninstall with `copilot plugin uninstall endor-labs-tenant-findings-enterprise`.
 ## Notes
 
 - The custom agent is in `agents/` and embeds its Endor MCP server configuration.
-- This package enables Copilot's `execute` tool only for documented read-only
-  Endor lookups.
-- In GitHub Copilot cloud agent or AgentHQ, the target repository must be set up
-  for Endor GitHub Actions keyless authentication. See
-  `github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md`.
+- This package also enables Copilot's `execute` tool for the documented read-only Endor lookups.
+- The Endor MCP server is configured for GitHub Actions keyless auth. The target repository still needs the `copilot` environment and setup workflow described in `github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md`.
+- AgentHQ app wrapping and any OIDC token exchange endpoints are configured outside this generated package.
