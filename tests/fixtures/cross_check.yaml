@@ -1,0 +1,22 @@
+packages:
+  - id: lodash-safe
+    ecosystem: npm
+    package_name: lodash
+    version: 4.17.21
+    expected_family: safe
+  - id: lodash-vulnerable
+    ecosystem: npm
+    package_name: lodash
+    version: 4.17.20
+    expected_family: vulnerable
+  - id: log4shell
+    ecosystem: maven
+    package_name: org.apache.logging.log4j:log4j-core
+    version: 2.14.1
+    expected_family: critical
+  - id: pypi-firewall-demo
+    ecosystem: pypi
+    package_name: endor-firewall-test
+    version: 1.0.0
+    expected_family: blocked_if_tenant_firewall_data_available
+

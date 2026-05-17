@@ -1,0 +1,89 @@
+recipe_schema_version: 1
+id: tenant-findings
+name: Endor Labs Tenant Findings
+version: 1.0.0
+description: |
+  Use this agent when the user asks about findings inside an Endor Labs tenant:
+  reachable findings, project findings, severity summaries, fix availability,
+  vulnerable packages, or which imported project findings should be prioritized.
+  Enterprise Edition uses GitHub keyless authentication with read-only Endor MCP
+  and endorctl API lookups.
+safety_class: read_only
+endor_tier_minimum: enterprise
+supported_transports:
+  - mcp
+  - endorctl_api
+host_capabilities_required:
+  run_commands: true
+  read_files: false
+  write_files: false
+  open_pr: false
+inputs:
+  - name: namespace
+    kind: string
+    required: false
+    description: Endor tenant namespace. Enterprise Edition uses the configured namespace when omitted.
+  - name: project_uuid
+    kind: string
+    required: false
+    description: Endor project UUID.
+  - name: project_name
+    kind: string
+    required: false
+    description: Endor project name, such as app-java-demo.
+  - name: repository
+    kind: string
+    required: false
+    description: GitHub repository name, used only as a hint when project context is omitted.
+  - name: finding_uuid
+    kind: string
+    required: false
+    description: Specific Endor finding UUID.
+  - name: filters
+    kind: list[string]
+    required: false
+    description: Finding filters such as reachable, severity, fix_available, or vulnerability id.
+outputs:
+  - name: project
+    kind: object
+    required: true
+    description: Resolved namespace, project name, and project UUID when known.
+  - name: filters
+    kind: list[string]
+    required: true
+    description: Filters applied while gathering findings.
+  - name: summary
+    kind: string
+    required: true
+    description: One-paragraph tenant findings summary.
+  - name: counts
+    kind: object
+    required: true
+    description: Counts for returned, reachable function, critical, high, and fix-available findings.
+  - name: findings
+    kind: list[object]
+    required: true
+    description: Evidence-backed finding records with severity, package, aliases, tags, and recommended action.
+  - name: data_gaps
+    kind: list[string]
+    required: true
+    description: Signals unavailable because setup, auth, permissions, namespace, project lookup, or API shape was missing.
+evals: evals/cases.yaml
+compatible_hosts:
+  - github-copilot-plugin
+host_editions:
+  github-copilot-plugin:
+    - enterprise-edition
+mutations: []
+required_endor_mcp_tools:
+  - get_resource
+endorctl_api_invocations:
+  - get_project_by_name
+  - list_reachable_findings
+  - list_project_findings
+  - list_high_and_critical_findings
+  - list_findings_by_vulnerability_id
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ">=2.4"
+requires_endorctl: ">=1.0"

@@ -1,0 +1,79 @@
+recipe_schema_version: 1
+id: package-risk-summary
+name: Endor Labs Package Risk Summary
+version: 1.0.0
+description: |
+  Use this agent when the user wants a concise risk profile for a specific
+  package version without asking for a yes/no dependency decision. Examples:
+  "Summarize npm lodash 4.17.20 risk", "Give me the risk picture for
+  log4j-core 2.14.1", "What should I know about this package version before I
+  review it?" Returns an evidence-backed package risk summary with
+  vulnerabilities, malware or typosquat signals, package scores, license notes,
+  recommended next checks, and any data gaps.
+safety_class: read_only
+endor_tier_minimum: free
+supported_transports:
+  - mcp
+  - endorctl_api
+host_capabilities_required:
+  run_commands: true
+  read_files: false
+  write_files: false
+  open_pr: false
+inputs:
+  - name: ecosystem
+    kind: string
+    required: true
+    description: Package ecosystem, such as npm, pypi, maven, go, cargo, gem, nuget, or packagist.
+  - name: package_name
+    kind: string
+    required: true
+    description: Exact package name as it appears in a manifest.
+  - name: version
+    kind: string
+    required: true
+    description: Exact package version to summarize.
+outputs:
+  - name: risk_posture
+    kind: enum
+    required: true
+    description: LOW, MODERATE, HIGH, CRITICAL, or UNKNOWN.
+  - name: findings
+    kind: list[string]
+    required: true
+    description: Evidence-backed vulnerability, malware, typosquat, score, or license findings.
+  - name: strengths
+    kind: list[string]
+    required: true
+    description: Positive evidence such as clean risk checks, good scores, or known safe alternatives.
+  - name: next_checks
+    kind: list[string]
+    required: true
+    description: Follow-up checks, review areas, or upgrade/remediation actions.
+  - name: summary
+    kind: string
+    required: true
+    description: One-paragraph human-readable assessment.
+  - name: data_gaps
+    kind: list[string]
+    required: true
+    description: Signals that were unavailable because setup, auth, edition, or tooling was missing.
+evals: evals/cases.yaml
+compatible_hosts:
+  - claude-code
+  - claude-managed-agents
+  - github-copilot-plugin
+mutations: []
+required_endor_mcp_tools:
+  - check_dependency_for_risks
+  - check_dependency_for_vulnerabilities
+  - get_endor_vulnerability
+endorctl_api_invocations:
+  - lookup_package_version_uuid
+  - get_package_scores
+  - get_package_license
+  - query_similar_packages
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ">=2.4"
+requires_endorctl: ">=1.0"

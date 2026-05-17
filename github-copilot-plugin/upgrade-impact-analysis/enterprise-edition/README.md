@@ -22,3 +22,4 @@ Uninstall with `copilot plugin uninstall endor-labs-upgrade-impact-analysis-ente
 - The custom agent is in `agents/` and embeds its Endor MCP server configuration.
 - This package also enables Copilot's `execute` tool for the documented read-only Endor lookups.
 - The Endor MCP server is configured for GitHub Actions keyless auth. The target repository still needs the `copilot` environment and setup workflow described in `github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md`.
+- AgentHQ app wrapping and any OIDC token exchange endpoints are configured outside this generated package.
