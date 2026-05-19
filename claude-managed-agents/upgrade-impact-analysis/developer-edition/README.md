@@ -34,6 +34,12 @@ you have the created agent ID, environment ID, and any required vault IDs.
 Assess upgrading npm lodash from 4.17.20 to 4.17.21.
 ```
 
+## Architecture
+
+![Endor Labs Upgrade Impact Analysis architecture](architecture.svg)
+
+This read-only agent resolves a human project selector to the Endor project used for VersionUpgrade queries. Claude Managed Agents do not inspect local git by default, so sessions should provide a repository URL, owner/repo, or Endor project name instead of requiring a project UUID.
+
 ## Notes
 
 - This edition uses the Managed Agents MCP connector only.

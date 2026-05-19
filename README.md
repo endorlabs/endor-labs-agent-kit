@@ -156,7 +156,7 @@ Use `session-template.yaml` as the starting point when creating sessions.
 AI SAST Triage:
 
 ```text
-@agent-ai-sast-triage triage AI SAST findings for project <project_uuid>
+@agent-ai-sast-triage triage AI SAST findings for this repository
 ```
 
 Dependency Decision Helper:
@@ -180,7 +180,7 @@ Endor Labs Repository Dependency Reviewer:
 Endor Labs Upgrade Impact Analysis:
 
 ```text
-@agent-upgrade-impact-analysis show the safest upgrade path for project <project_uuid> package lodash
+@agent-upgrade-impact-analysis show the safest upgrade path for repository <owner>/<repo> package lodash
 ```
 
 Endor Labs Vulnerability Explainer:
@@ -192,7 +192,7 @@ Endor Labs Vulnerability Explainer:
 Remediation Planner:
 
 ```text
-@agent-remediation-planner preview remediation options for project <project_uuid>
+@agent-remediation-planner preview remediation options for this repository
 ```
 
 ## Output Contract
@@ -348,6 +348,7 @@ claude-code/
     enterprise-edition/
       README.md
       ai-sast-triage.md
+      architecture.svg
       endorctl-setup.md
   dependency-decision-helper/
     developer-edition/
@@ -368,6 +369,7 @@ claude-code/
   remediation-planner/
     enterprise-edition/
       README.md
+      architecture.svg
       remediation-planner.md
   repository-dependency-reviewer/
     developer-edition/
@@ -379,9 +381,11 @@ claude-code/
   upgrade-impact-analysis/
     developer-edition/
       README.md
+      architecture.svg
       upgrade-impact-analysis.md
     enterprise-edition/
       README.md
+      architecture.svg
       endorctl-setup.md
       upgrade-impact-analysis.md
   vulnerability-explainer/
@@ -420,11 +424,13 @@ claude-managed-agents/
     developer-edition/
       README.md
       agent.yaml
+      architecture.svg
       environment.yaml
       session-template.yaml
     enterprise-edition/
       README.md
       agent.yaml
+      architecture.svg
       endorctl-setup.md
       environment.yaml
       session-template.yaml

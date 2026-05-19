@@ -16,8 +16,14 @@ then restart Claude Code if needed.
 ## Example
 
 ```text
-@agent-remediation-planner preview remediation options for project <project_uuid>
+@agent-remediation-planner preview remediation options for this repository
 ```
+
+## Architecture
+
+![Remediation Planner architecture](architecture.svg)
+
+This dry-run workflow resolves project or finding context, gathers Endor remediation evidence, and returns a plan only. It does not edit files, push branches, or open PRs/MRs.
 
 ## Notes
 

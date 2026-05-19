@@ -8,6 +8,7 @@ Required endorctl version: `>=1.0`
 
 The recipe documents these Endor lookup groups:
 
+- `resolve_project_from_repository`
 - `list_ai_sast_findings`
 - `get_finding_explanation`
 - `fetch_project_source_version`

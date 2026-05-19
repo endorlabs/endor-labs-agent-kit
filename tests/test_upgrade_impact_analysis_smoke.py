@@ -52,6 +52,8 @@ def test_upgrade_impact_analysis_compiled_artifacts_carry_expected_rules(tmp_pat
     assert "direct_dependency_manifest_files" in enterprise
     assert "is_endor_patch" in enterprise
     assert "project_uuid" in enterprise
+    assert "Do not make Endor project UUID knowledge a prerequisite" in enterprise
+    assert "repository URL, owner/repo, or Endor project name" in enterprise
     assert "QuerySimilarPackages" in enterprise
 
 
@@ -88,6 +90,8 @@ def test_upgrade_impact_analysis_managed_agents_artifacts_carry_expected_rules(t
     assert "finding_fixing_upgrades" in enterprise["system"]
     assert "cia_results" in enterprise["system"]
     assert "project_uuid" in enterprise["system"]
+    assert "Do not make Endor project UUID knowledge a prerequisite" in enterprise["system"]
+    assert "repository URL, owner/repo, or Endor project name" in enterprise["system"]
 
 
 def test_upgrade_impact_analysis_setup_doc_uses_agent_name(tmp_path):

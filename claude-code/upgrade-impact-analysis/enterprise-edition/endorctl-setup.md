@@ -9,6 +9,7 @@ Required version: `>=1.0`
 
 The recipe documents these read-only API invocation groups:
 
+- `resolve_project_from_repository`
 - `list_version_upgrade_recommendations`
 - `get_version_upgrade_details`
 - `get_finding_fixing_upgrades`

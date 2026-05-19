@@ -24,10 +24,18 @@ inputs:
     kind: string
     required: false
     description: Endor tenant namespace. Enterprise Edition uses the configured namespace when omitted.
+  - name: project_name
+    kind: string
+    required: false
+    description: Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL.
+  - name: repository_url
+    kind: string
+    required: false
+    description: Optional source repository URL when the host cannot infer it from a local checkout or session context.
   - name: project_uuid
     kind: string
     required: false
-    description: Endor project UUID for AURI-parity VersionUpgrade queries.
+    description: Optional advanced fallback when project_name or repository_url cannot be resolved uniquely.
   - name: finding_uuid
     kind: string
     required: false
@@ -139,6 +147,7 @@ required_endor_mcp_tools:
   - check_dependency_for_vulnerabilities
   - get_endor_vulnerability
 endorctl_api_invocations:
+  - resolve_project_from_repository
   - list_version_upgrade_recommendations
   - get_version_upgrade_details
   - get_finding_fixing_upgrades

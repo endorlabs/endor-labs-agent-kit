@@ -31,8 +31,14 @@ you have the created agent ID, environment ID, and any required vault IDs.
 ## Example User Message
 
 ```text
-Show the safest upgrade path for project <project_uuid> package lodash, including CIA, findings fixed, manifest files, and breaking changes.
+Show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA, findings fixed, manifest files, and breaking changes.
 ```
+
+## Architecture
+
+![Endor Labs Upgrade Impact Analysis architecture](architecture.svg)
+
+This read-only agent resolves a human project selector to the Endor project used for VersionUpgrade queries. Claude Managed Agents do not inspect local git by default, so sessions should provide a repository URL, owner/repo, or Endor project name instead of requiring a project UUID.
 
 ## Notes
 
