@@ -392,6 +392,8 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "## Table Of Contents" in root_readme
     assert "## Contribute An Agent" in root_readme
     assert "## Recipe Reference" in root_readme
+    assert "### Ask An LLM To Install It" in root_readme
+    assert "Preserve the generated agent prompt exactly" in root_readme
     assert "host_capabilities_required.read_files: true" in root_readme
     assert "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS`" in root_readme
     assert "Review local dependency manifests with read-only file inspection and Endor evidence" in root_readme
