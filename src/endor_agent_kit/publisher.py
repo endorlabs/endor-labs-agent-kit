@@ -11,19 +11,17 @@ from typing import Any
 from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
-    compile_github_copilot_plugin,
     compile_raw,
 )
 from endor_agent_kit.compilers.claude_code import EDITIONS, _allows_read_only_endorctl
 from endor_agent_kit.compilers.claude_managed_agents import HOST as CLAUDE_MANAGED_AGENTS_HOST
-from endor_agent_kit.compilers.github_copilot_plugin import TARGET as GITHUB_COPILOT_PLUGIN_HOST
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host, load_recipe
 from endor_agent_kit.validator import validate_recipe_file
 
 MANIFEST_PATH = "manifest.json"
 CLAUDE_CODE_HOST = "claude-code"
 GENERATOR_NAME = "endor-agent-kit"
-GITHUB_KEYLESS_AUTH_DOC = "github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md"
+PUBLISHED_HOSTS = (CLAUDE_CODE_HOST, CLAUDE_MANAGED_AGENTS_HOST)
 
 
 def publish_recipe(recipe_path: str | Path, dest: str | Path) -> list[Path]:
@@ -54,13 +52,6 @@ def publish_recipe(recipe_path: str | Path, dest: str | Path) -> list[Path]:
         host_written, edition_records = _publish_claude_managed_agents(recipe_file, recipe, destination)
         written.extend(host_written)
         manifest = _write_manifest(destination, recipe, CLAUDE_MANAGED_AGENTS_HOST, edition_records)
-
-    if GITHUB_COPILOT_PLUGIN_HOST in recipe.compatible_hosts:
-        compile_github_copilot_plugin(recipe_file)
-        host_written, edition_records = _publish_github_copilot_plugin(recipe_file, recipe, destination)
-        written.extend(host_written)
-        written.append(_write_github_keyless_auth_doc(destination))
-        manifest = _write_manifest(destination, recipe, GITHUB_COPILOT_PLUGIN_HOST, edition_records)
 
     if manifest is not None:
         written.append(manifest)
@@ -162,27 +153,6 @@ def _publish_claude_managed_agents(
     return written, edition_records
 
 
-def _publish_github_copilot_plugin(
-    recipe_file: Path,
-    recipe: EndorAgentRecipe,
-    destination: Path,
-) -> tuple[list[Path], list[dict[str, Any]]]:
-    agent_root = destination / GITHUB_COPILOT_PLUGIN_HOST / recipe.id
-    if agent_root.exists():
-        shutil.rmtree(agent_root)
-
-    written: list[Path] = []
-    edition_records: list[dict[str, Any]] = []
-    for edition in editions_for_host(recipe, GITHUB_COPILOT_PLUGIN_HOST, EDITIONS):
-        edition_dir = agent_root / edition
-        source_dir = recipe_file.parent / "dist" / GITHUB_COPILOT_PLUGIN_HOST / edition
-        shutil.copytree(source_dir, edition_dir)
-        files = sorted(path for path in edition_dir.rglob("*") if path.is_file())
-        written.extend(files)
-        edition_records.append(_edition_record(destination, recipe, edition, edition_dir))
-    return written, edition_records
-
-
 def _edition_record(destination: Path, recipe: EndorAgentRecipe, edition: str, edition_dir: Path) -> dict[str, Any]:
     files = sorted(path for path in edition_dir.rglob("*") if path.is_file())
     return {
@@ -222,7 +192,7 @@ def _write_manifest(
         "host": host,
         "source": {
             "recipe_schema_version": recipe.recipe_schema_version,
-            "builder_recipe": f"agents/{recipe.id}/recipe.yaml",
+            "builder_recipe": f"source/agents/{recipe.id}/recipe.yaml",
         },
         "editions": edition_records,
     })
@@ -270,7 +240,7 @@ def _prune_stale_agents(destination: Path, active_host_agents: set[tuple[str, st
     for agent in stale_agents:
         host = str(agent.get("host", ""))
         agent_id = str(agent.get("id", ""))
-        if host not in {CLAUDE_CODE_HOST, CLAUDE_MANAGED_AGENTS_HOST, GITHUB_COPILOT_PLUGIN_HOST} or not agent_id:
+        if host not in set(PUBLISHED_HOSTS) or not agent_id:
             continue
         shutil.rmtree(destination / host / agent_id, ignore_errors=True)
 
@@ -282,102 +252,6 @@ def _prune_stale_agents(destination: Path, active_host_agents: set[tuple[str, st
     }
     path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return path
-
-
-def _write_github_keyless_auth_doc(destination: Path) -> Path:
-    path = destination / GITHUB_KEYLESS_AUTH_DOC
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(_github_keyless_auth_doc(), encoding="utf-8")
-    return path
-
-
-def _github_keyless_auth_doc() -> str:
-    return "\n".join([
-        "# Endor GitHub Keyless Auth For Copilot Agents",
-        "",
-        "GitHub Copilot cloud agent and AgentHQ run in a GitHub Actions-backed",
-        "environment. Endor Labs can authenticate that workload with GitHub Actions OIDC",
-        "when `endorctl` is started with GitHub action token support enabled.",
-        "",
-        "## Endor Labs Setup",
-        "",
-        "In Endor Labs, create an auth policy:",
-        "",
-        "- Identity provider: `GitHub Action OIDC`",
-        "- Permission: the least-privileged role that can read the tenant data needed by",
-        "  the agent; `Code Scanner` is the baseline role Endor documents for GitHub",
-        "  Actions keyless authentication",
-        "- Claim key: `user`",
-        "- Claim value: the GitHub organization or owner that contains the target",
-        "  repository",
-        "",
-        "## Target Repository Setup",
-        "",
-        "In the GitHub repository where Copilot cloud agent will run, create the",
-        "`copilot` environment and add:",
-        "",
-        "- Environment variable: `COPILOT_MCP_ENDOR_NAMESPACE`",
-        "- Optional environment variable: `COPILOT_MCP_ENDOR_API`",
-        "",
-        "Then add `.github/workflows/copilot-setup-steps.yml` to the target repository:",
-        "",
-        "```yaml",
-        "name: \"Copilot Setup Steps\"",
-        "",
-        "on:",
-        "  workflow_dispatch:",
-        "  push:",
-        "    paths:",
-        "      - .github/workflows/copilot-setup-steps.yml",
-        "  pull_request:",
-        "    paths:",
-        "      - .github/workflows/copilot-setup-steps.yml",
-        "",
-        "jobs:",
-        "  copilot-setup-steps:",
-        "    runs-on: ubuntu-latest",
-        "    permissions:",
-        "      id-token: write",
-        "      contents: read",
-        "    environment: copilot",
-        "    steps:",
-        "      - name: Configure Endor keyless auth",
-        "        run: |",
-        "          echo \"ENDOR_GITHUB_ACTION_TOKEN_ENABLE=true\" >> \"$GITHUB_ENV\"",
-        "          echo \"ENDOR_NAMESPACE=${{ vars.COPILOT_MCP_ENDOR_NAMESPACE }}\" >> \"$GITHUB_ENV\"",
-        "          echo \"ENDOR_API=${{ vars.COPILOT_MCP_ENDOR_API || 'https://api.endorlabs.com' }}\" >> \"$GITHUB_ENV\"",
-        "```",
-        "",
-        "## Plugin MCP Configuration",
-        "",
-        "Enterprise GitHub Copilot plugin agents in this kit pass the same values into",
-        "their local Endor MCP server:",
-        "",
-        "```yaml",
-        "env:",
-        "  ENDOR_GITHUB_ACTION_TOKEN_ENABLE: \"true\"",
-        "  ENDOR_NAMESPACE: $COPILOT_MCP_ENDOR_NAMESPACE",
-        "  ENDOR_API: ${COPILOT_MCP_ENDOR_API:-https://api.endorlabs.com}",
-        "```",
-        "",
-        "This path intentionally uses Endor's GitHub Actions OIDC support rather than",
-        "long-lived Endor API keys. It does not add an AgentHQ MCP `oidc` block, because",
-        "`endorctl` performs the GitHub Actions OIDC exchange with Endor directly when",
-        "`ENDOR_GITHUB_ACTION_TOKEN_ENABLE=true`.",
-        "",
-        "## Verification",
-        "",
-        "Start a Copilot cloud agent session and expand the setup logs:",
-        "",
-        "1. `Copilot Setup Steps` should run before MCP startup.",
-        "2. The `endor-cli-tools` MCP server should start.",
-        "3. Tenant lookups should succeed without Endor API key secrets.",
-        "",
-        "If Endor reports an auth failure, confirm the target repository owner matches",
-        "the Endor auth policy claim and that the setup job has `id-token: write`.",
-        "",
-    ])
-
 
 def _write_root_readme(destination: Path) -> Path:
     manifest = json.loads((destination / MANIFEST_PATH).read_text(encoding="utf-8"))
@@ -398,13 +272,8 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
             if CLAUDE_MANAGED_AGENTS_HOST in item["hosts"]
             else "-"
         )
-        github_copilot_path = (
-            f"`{GITHUB_COPILOT_PLUGIN_HOST}/{agent_id}/`"
-            if GITHUB_COPILOT_PLUGIN_HOST in item["hosts"]
-            else "-"
-        )
         agent_rows.append(
-            f"| {item['name']} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {github_copilot_path} |"
+            f"| {item['name']} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} |"
         )
 
     layout_agents = _repository_layout(agents)
@@ -435,6 +304,7 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "## Table Of Contents",
         "",
         "- [Agent Catalog](#agent-catalog)",
+        "- [Which Directory Do I Use?](#which-directory-do-i-use)",
         "- [Supported Hosts](#supported-hosts)",
         "- [Editions](#editions)",
         "- [Install An Agent](#install-an-agent)",
@@ -451,12 +321,28 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "## Agent Catalog",
         "",
         "Generated artifacts are checked in so users can copy or install agents without",
-        "running the builder. Source recipes live under `agents/` and are the",
+        "running the builder. Maintainer source recipes live under `source/agents/` and are the",
         "maintainer-facing source of truth.",
         "",
-        "| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | GitHub Copilot / AgentHQ plugin |",
-        "| --- | --- | --- | --- | --- |",
+        "If you are installing an agent, start with the generated host directories below.",
+        "You only need `source/agents/` when you are changing or contributing an agent.",
+        "",
+        "| Agent | Use it when you want to... | Claude Code | Claude Managed Agents |",
+        "| --- | --- | --- | --- |",
         *agent_rows,
+        "",
+        "## Which Directory Do I Use?",
+        "",
+        "| Goal | Start Here | You Do Not Need |",
+        "| --- | --- | --- |",
+        "| Install a Claude Code agent | `claude-code/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |",
+        "| Install a Claude Managed Agent | `claude-managed-agents/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |",
+        "| Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |",
+        "| Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |",
+        "",
+        "The `source/agents/` tree is for maintainers and contributors. It is not",
+        "copied into Claude Code or Managed Agents. Installable artifacts",
+        "are the generated host directories listed in the catalog.",
         "",
         "## Supported Hosts",
         "",
@@ -464,26 +350,25 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "| --- | --- | --- |",
         "| Claude Code | `claude-code/<agent>/<edition>/` | `.claude/agents/` in the target repository |",
         "| Claude Managed Agents | `claude-managed-agents/<agent>/<edition>/` | Anthropic Console or `ant` CLI agent and environment creation |",
-        "| GitHub Copilot / AgentHQ plugin | `github-copilot-plugin/<agent>/<edition>/` | Copilot plugin package or AgentHQ app repository contents |",
         "",
         "## Editions",
         "",
         "Each agent is published in one or more editions. If an edition does not apply",
         "to a host, the catalog omits that host/edition directory.",
         "",
-        "| Edition | Best for | Signals | Shell/execute access |",
+        "| Edition | Best for | Signals | Shell access |",
         "| --- | --- | --- | --- |",
         "| Developer Edition | Fast, low-friction checks | Endor Model Context Protocol (MCP) tools | Not allowed |",
-        "| Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, plus documented read-only `endorctl api` lookups for agents that need them | Agent-specific; always read-only |",
+        "| Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, documented Endor API lookups, and declared host capabilities | Agent-specific; see the recipe safety class |",
         "",
-        "Use **Developer Edition** when you want the safest default with no Bash or",
-        "execute access.",
+        "Use **Developer Edition** when you want the safest default with no Bash",
+        "access.",
         "",
         "Use **Enterprise Edition** when you have authenticated Endor setup and want",
         "the highest-fidelity signals available for that agent. Some Enterprise",
         "Edition agents are still MCP-only; their generated host configuration leaves",
-        "shell or `execute` access disabled when no read-only `endorctl api` lookups",
-        "are required.",
+        "Bash access disabled when no read-only `endorctl api` lookups",
+        "or mutating workflow capabilities are required.",
         "",
         "## Install An Agent",
         "",
@@ -521,26 +406,13 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "Use `session-template.yaml` as the starting point when creating sessions.",
         "",
-        "### GitHub Copilot / AgentHQ",
-        "",
-        "Install the generated plugin package with GitHub Copilot CLI from the",
-        "package directory.",
-        "",
-        "```bash",
-        "cd /path/to/endor-labs-agent-kit/github-copilot-plugin/vulnerability-explainer/developer-edition",
-        "copilot plugin install .",
-        "```",
-        "",
-        "For AgentHQ, use the generated plugin package as the public plugin repository",
-        "contents for the corresponding Agentic App and edition.",
-        "",
         "## Configure Endor Access",
         "",
         "| Access path | Used by | Notes |",
         "| --- | --- | --- |",
         "| Endor MCP | Developer Edition and Enterprise Edition agents | Required for every published agent. Configure it through the target host's MCP mechanism. |",
         "| Read-only `endorctl api` | Enterprise Edition agents that need tenant or project data beyond public MCP tools | The generated prompts constrain commands to documented read-only lookups. Per-edition README files link to `endorctl-setup.md` when needed. |",
-        "| GitHub Actions keyless auth | Enterprise GitHub Copilot / AgentHQ plugins that need tenant data | Configure the target repository using `github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md`. |",
+        "| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required only when the agent is expected to apply patches and open change requests. |",
         "",
         "## Example Prompts",
         "",
@@ -554,9 +426,10 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "## Safety Model",
         "",
-        "The agents in this kit are read-only.",
+        "Most agents in this kit are read-only. Recipes declare their safety class and",
+        "host capabilities explicitly.",
         "",
-        "They do not:",
+        "Read-only agents do not:",
         "",
         "- edit files",
         "- create pull requests",
@@ -565,21 +438,26 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "- create policies",
         "- mutate Endor Labs state",
         "",
-        "When an agent permits Bash, its prompt limits Bash to documented read-only Endor",
-        "lookup commands. Claude Code artifacts deny Bash when it is not needed.",
+        "Mutating agents are published only when their recipe declares the required",
+        "host capabilities. AI SAST Triage is the current mutating agent: it may",
+        "fetch source context, write patch files, run git/source-provider commands,",
+        "and open a change request when the user asks for that workflow and the target",
+        "repository credentials are available.",
+        "",
+        "When a read-only agent permits Bash, its prompt limits Bash to documented",
+        "read-only Endor lookup commands. Claude Code artifacts deny Bash when it is",
+        "not needed.",
         "When a recipe declares `host_capabilities_required.read_files: true`,",
         "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS` for",
         "read-only workspace inspection; file mutation, notebook, web, and todo tools",
         "remain denied.",
         "Claude Managed Agents artifacts omit the pre-built agent toolset unless an",
         "agent needs read-only Bash, and then enable only Bash with confirmation.",
-        "GitHub Copilot plugins enable `execute` only for Enterprise Edition agents",
-        "that require the documented read-only Endor lookups.",
         "",
         "## Contribute An Agent",
         "",
         "This repository is both the source of truth and the distribution catalog.",
-        "Contributor workflow is recipe-first: edit source files under `agents/`, then",
+        "Contributor workflow is recipe-first: edit source files under `source/agents/`, then",
         "regenerate customer-facing artifacts.",
         "",
         "### Create Agents With The Skill",
@@ -622,17 +500,17 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "### Authoring Workflow",
         "",
-        "1. Edit `agents/<agent>/recipe.yaml`.",
-        "2. Edit `agents/<agent>/instructions.md`.",
-        "3. Update `agents/<agent>/evals/cases.yaml`.",
+        "1. Edit `source/agents/<agent>/recipe.yaml`.",
+        "2. Edit `source/agents/<agent>/instructions.md`.",
+        "3. Update `source/agents/<agent>/evals/cases.yaml`.",
         "4. Add or update tests under `tests/`.",
         "5. Validate and regenerate the catalog.",
         "",
         "```bash",
-        "endor-agent-kit validate agents/<agent>/recipe.yaml",
-        "endor-agent-kit publish agents/*/recipe.yaml --dest . --prune",
+        "endor-agent-kit validate source/agents/<agent>/recipe.yaml",
+        "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune",
         "python -m pytest -q",
-        "git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents github-copilot-plugin",
+        "git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents",
         "```",
         "",
         "Pull requests should include both source changes and regenerated artifacts.",
@@ -642,13 +520,13 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "| Command | Purpose |",
         "| --- | --- |",
-        "| `endor-agent-kit validate agents/<agent>/recipe.yaml` | Validate one recipe. |",
-        "| `endor-agent-kit compile agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |",
-        "| `endor-agent-kit compile agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |",
-        "| `endor-agent-kit publish agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |",
+        "| `endor-agent-kit validate source/agents/<agent>/recipe.yaml` | Validate one recipe. |",
+        "| `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |",
+        "| `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |",
+        "| `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |",
         "",
         "Supported compile targets are `claude-code`, `claude-managed-agents`,",
-        "`github-copilot-plugin`, and `raw`.",
+        "and `raw`.",
         "",
         "## Recipe Reference",
         "",
@@ -659,13 +537,13 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "| Field | Purpose |",
         "| --- | --- |",
         "| `id`, `name`, `version`, `description` | Public catalog identity and copy. |",
-        "| `safety_class`, `mutations` | Safety contract. v1 launch recipes are read-only and must not declare mutations. |",
+        "| `safety_class`, `mutations` | Safety contract. Recipes may be `read_only`, `dry_run`, or explicitly `mutating` with matching host capabilities. |",
         "| `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |",
         "| `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |",
         "| `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |",
         "| `compatible_hosts` | Hosts that should receive generated artifacts. |",
         "| `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |",
-        "| `required_endor_mcp_tools`, `endorctl_api_invocations` | Endor tools and read-only API lookups the prompt may use. |",
+        "| `required_endor_mcp_tools`, `endorctl_api_invocations` | Endor tools and API lookup groups the prompt may use. |",
         "| `instructions_path`, `evals` | Source prompt and eval case files relative to the recipe. |",
         "",
         "Generated artifacts must not be edited as the first step. Change the recipe",
@@ -676,11 +554,12 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "### Layout",
         "",
         "```text",
-        "agents/",
-        "  <agent>/",
-        "    recipe.yaml",
-        "    instructions.md",
-        "    evals/cases.yaml",
+        "source/",
+        "  agents/",
+        "    <agent>/",
+        "      recipe.yaml",
+        "      instructions.md",
+        "      evals/cases.yaml",
         "skills/",
         "  create-endor-labs-agent/",
         "    SKILL.md",
@@ -702,7 +581,6 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "- `claude-code/`",
         "- `claude-managed-agents/`",
-        "- `github-copilot-plugin/`",
         "- `manifest.json`",
         "",
         "These paths are customer-facing and should stay stable.",
@@ -739,7 +617,7 @@ def _agent_catalog(agents: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _repository_layout(agents: list[dict[str, Any]]) -> list[str]:
     lines: list[str] = []
-    for host in (CLAUDE_CODE_HOST, CLAUDE_MANAGED_AGENTS_HOST, GITHUB_COPILOT_PLUGIN_HOST):
+    for host in PUBLISHED_HOSTS:
         host_agents = [agent for agent in agents if agent.get("host") == host]
         if not host_agents:
             continue
@@ -761,11 +639,12 @@ def _agent_name(agent: dict[str, Any]) -> str:
 
 def _agent_summary(agent_id: str) -> str:
     summaries = {
+        "ai-sast-triage": "Triage Endor AI SAST findings, generate grounded patches, and open requested change requests",
         "dependency-decision-helper": "Decide whether to add, upgrade to, or keep a specific package version",
         "upgrade-impact-analysis": "Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
         "package-risk-summary": "Summarize the risk profile of a specific package version",
+        "remediation-planner": "Preview safe dependency remediation options without opening PRs",
         "repository-dependency-reviewer": "Review local dependency manifests with read-only file inspection and Endor evidence",
-        "tenant-findings": "Summarize tenant findings for an imported project, including reachable findings",
         "vulnerability-explainer": "Understand a specific CVE, GHSA, or Endor vulnerability and what to do next",
     }
     return summaries.get(agent_id, "Use an Endor Labs workflow agent")
@@ -773,11 +652,12 @@ def _agent_summary(agent_id: str) -> str:
 
 def _agent_example(agent_id: str) -> str:
     examples = {
+        "ai-sast-triage": "@agent-ai-sast-triage triage AI SAST findings for project <project_uuid>",
         "dependency-decision-helper": "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
         "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for project <project_uuid> package lodash",
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
+        "remediation-planner": "@agent-remediation-planner preview remediation options for project <project_uuid>",
         "repository-dependency-reviewer": "@agent-repository-dependency-reviewer review this repository's dependency manifests",
-        "tenant-findings": "@agent-tenant-findings show reachable findings for project <project_uuid>",
         "vulnerability-explainer": "@agent-vulnerability-explainer explain CVE-2021-44228",
     }
     return examples.get(agent_id, f"@agent-{agent_id} help")
@@ -785,7 +665,19 @@ def _agent_example(agent_id: str) -> str:
 
 def _claude_code_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
     name = _edition_name(edition)
-    if edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
+    if recipe.safety_class == "mutating":
+        requirements = [
+            "Claude Code with the generated subagent file installed.",
+            "Endor tenant access through the configured Endor MCP server and documented Endor API lookups.",
+            "A local workspace checkout for any repository the agent will patch.",
+            "Git and source-provider credentials that can push a branch and open the requested pull request or merge request.",
+        ]
+        notes = [
+            "This edition preserves the AURI workflow capabilities as a mutating agent.",
+            "The agent may fetch source context, prepare patches, edit files, run commands, and open a change request when the workflow requires it.",
+            "Confirm repository and branch targets before allowing write or pull-request actions.",
+        ]
+    elif edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
         requirements = [
             "Claude Code with the generated subagent file installed.",
             "Endor MCP access through the subagent's bundled MCP server config.",
@@ -912,6 +804,10 @@ def _edition_name(edition: str) -> str:
 
 def _example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition") -> str:
     input_names = {field.name for field in recipe.inputs}
+    if recipe.id == "ai-sast-triage":
+        return f"@agent-{recipe.id} triage AI SAST findings for project <project_uuid>"
+    if recipe.id == "remediation-planner":
+        return f"@agent-{recipe.id} preview remediation options for project <project_uuid>"
     if "vulnerability_id" in input_names:
         return f"@agent-{recipe.id} explain CVE-2021-44228"
     if recipe.id == "upgrade-impact-analysis":
@@ -920,8 +816,6 @@ def _example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition
         return f"@agent-{recipe.id} show the safest upgrade path for project <project_uuid> package lodash, including CIA and manifest files"
     if recipe.id == "package-risk-summary":
         return f"@agent-{recipe.id} summarize npm lodash version 4.17.20"
-    if recipe.id == "tenant-findings":
-        return f"@agent-{recipe.id} show reachable findings for project <project_uuid>"
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
         return f"@agent-{recipe.id} assess npm lodash version 4.17.20"
     return f"@agent-{recipe.id} help"
@@ -929,6 +823,10 @@ def _example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition
 
 def _managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition") -> str:
     input_names = {field.name for field in recipe.inputs}
+    if recipe.id == "ai-sast-triage":
+        return "Triage AI SAST findings for project <project_uuid>."
+    if recipe.id == "remediation-planner":
+        return "Preview remediation options for project <project_uuid>."
     if "vulnerability_id" in input_names:
         return "Explain CVE-2021-44228."
     if recipe.id == "upgrade-impact-analysis":
@@ -937,8 +835,6 @@ def _managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise
         return "Show the safest upgrade path for project <project_uuid> package lodash, including CIA, findings fixed, manifest files, and breaking changes."
     if recipe.id == "package-risk-summary":
         return "Summarize npm lodash version 4.17.20."
-    if recipe.id == "tenant-findings":
-        return "Show reachable findings for project <project_uuid>."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
         return "Assess npm lodash version 4.17.20."
     return "Help me use this Endor Labs agent."

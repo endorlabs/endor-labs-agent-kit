@@ -1,0 +1,17 @@
+cases:
+- id: happy-path
+  input:
+    auri_agent_id: remediation_planner
+  expected:
+    required_evidence:
+    - Endor evidence
+    - data_gaps when signals are missing
+    data_gaps_allowed: true
+- id: missing-signal
+  input:
+    auri_agent_id: remediation_planner
+    missing_endor_signal: true
+  expected:
+    required_evidence:
+    - data_gaps
+    data_gaps_allowed: true

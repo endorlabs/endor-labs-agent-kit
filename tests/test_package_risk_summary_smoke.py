@@ -11,7 +11,7 @@ from conftest import repo_root
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "agents" / "package-risk-summary"
+    src = repo_root() / "source" / "agents" / "package-risk-summary"
     dst = tmp_path / "package-risk-summary"
     shutil.copytree(src, dst)
     return dst / "recipe.yaml"
@@ -48,7 +48,7 @@ def test_package_risk_summary_compiled_artifacts_carry_expected_rules(tmp_path):
 
 
 def test_package_risk_summary_eval_cases_cover_v0_postures():
-    evals = yaml.safe_load((repo_root() / "agents" / "package-risk-summary" / "evals" / "cases.yaml").read_text())
+    evals = yaml.safe_load((repo_root() / "source" / "agents" / "package-risk-summary" / "evals" / "cases.yaml").read_text())
 
     case_ids = {case["id"] for case in evals["cases"]}
     assert case_ids == {

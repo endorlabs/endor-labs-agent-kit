@@ -11,7 +11,7 @@ from conftest import repo_root
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "agents" / "upgrade-impact-analysis"
+    src = repo_root() / "source" / "agents" / "upgrade-impact-analysis"
     dst = tmp_path / "upgrade-impact-analysis"
     shutil.copytree(src, dst)
     return dst / "recipe.yaml"
@@ -102,7 +102,7 @@ def test_upgrade_impact_analysis_setup_doc_uses_agent_name(tmp_path):
 
 def test_upgrade_impact_analysis_eval_cases_cover_recommendations_and_deltas():
     evals = yaml.safe_load(
-        (repo_root() / "agents" / "upgrade-impact-analysis" / "evals" / "cases.yaml").read_text()
+        (repo_root() / "source" / "agents" / "upgrade-impact-analysis" / "evals" / "cases.yaml").read_text()
     )
 
     case_ids = {case["id"] for case in evals["cases"]}

@@ -11,7 +11,7 @@ from conftest import repo_root
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "agents" / "dependency-decision-helper"
+    src = repo_root() / "source" / "agents" / "dependency-decision-helper"
     dst = tmp_path / "dependency-decision-helper"
     shutil.copytree(src, dst)
     return dst / "recipe.yaml"
@@ -47,7 +47,7 @@ def test_dependency_decision_helper_compiled_artifacts_carry_load_bearing_rules(
 
 
 def test_eval_cases_cover_v0_outcomes():
-    evals = yaml.safe_load((repo_root() / "agents" / "dependency-decision-helper" / "evals" / "cases.yaml").read_text())
+    evals = yaml.safe_load((repo_root() / "source" / "agents" / "dependency-decision-helper" / "evals" / "cases.yaml").read_text())
 
     case_ids = {case["id"] for case in evals["cases"]}
     assert case_ids == {

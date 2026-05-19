@@ -10,11 +10,11 @@ def test_create_endor_labs_agent_skill_is_available_and_actionable():
 
     assert "name: create-endor-labs-agent" in content
     assert "Create Endor Labs Agent" in content
-    assert "agents/<agent-id>/recipe.yaml" in content
-    assert "agents/<agent-id>/instructions.md" in content
-    assert "agents/<agent-id>/evals/cases.yaml" in content
-    assert "endor-agent-kit validate agents/<agent-id>/recipe.yaml" in content
-    assert "endor-agent-kit publish agents/*/recipe.yaml --dest . --prune" in content
+    assert "source/agents/<agent-id>/recipe.yaml" in content
+    assert "source/agents/<agent-id>/instructions.md" in content
+    assert "source/agents/<agent-id>/evals/cases.yaml" in content
+    assert "endor-agent-kit validate source/agents/<agent-id>/recipe.yaml" in content
+    assert "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune" in content
     assert "Read`, `Glob`, `Grep`, and\n`LS`" in content
 
 

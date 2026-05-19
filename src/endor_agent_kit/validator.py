@@ -20,7 +20,7 @@ PUBLIC_MCP_TOOLS = frozenset(
 )
 
 SUPPORTED_TRANSPORTS = frozenset({"mcp", "endorctl_api", "direct_api"})
-SUPPORTED_HOSTS = frozenset({"claude-code", "claude-managed-agents", "github-copilot-plugin", "raw"})
+SUPPORTED_HOSTS = frozenset({"claude-code", "claude-managed-agents", "raw"})
 SUPPORTED_EDITIONS = frozenset({"developer-edition", "enterprise-edition"})
 SAFETY_CLASSES = frozenset({"read_only", "dry_run", "mutating"})
 FORBIDDEN_V0_FIELDS = frozenset({"graph", "nodes", "edges"})
@@ -78,16 +78,19 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
     safety = data.get("safety_class")
     if safety not in SAFETY_CLASSES:
         errors.append("safety_class: must be one of read_only, dry_run, mutating")
-    elif safety != "read_only":
-        errors.append("safety_class: v0 launch recipes must be read_only; dry_run/mutating land later")
 
     mutations = data.get("mutations")
     if mutations is None:
-        pass
+        mutations = []
     elif not isinstance(mutations, list):
         errors.append("mutations: must be a list")
-    elif mutations:
-        errors.append("mutations: v0 recipes must leave this reserved field empty")
+        mutations = []
+    elif safety == "read_only" and mutations:
+        errors.append("mutations: read_only recipes must leave this field empty")
+    elif safety == "dry_run" and mutations:
+        errors.append("mutations: dry_run recipes must leave this field empty")
+    elif safety == "mutating" and not mutations:
+        errors.append("mutations: mutating recipes must declare their mutation types")
 
     transports = _list_of_strings(data.get("supported_transports"), "supported_transports", errors)
     for transport in transports:
@@ -102,6 +105,16 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
         for key, value in capabilities.items():
             if not isinstance(value, bool):
                 errors.append(f"host_capabilities_required.{key}: must be boolean")
+
+    if safety == "mutating":
+        if not bool(capabilities.get("write_files", False)) and not bool(capabilities.get("open_pr", False)):
+            errors.append("host_capabilities_required: mutating recipes must require write_files or open_pr")
+        if "write_files" in mutations and not bool(capabilities.get("write_files", False)):
+            errors.append("host_capabilities_required.write_files: required when mutations includes write_files")
+        if "open_pr" in mutations and not bool(capabilities.get("open_pr", False)):
+            errors.append("host_capabilities_required.open_pr: required when mutations includes open_pr")
+        if bool(capabilities.get("open_pr", False)) and not bool(capabilities.get("run_commands", False)):
+            errors.append("host_capabilities_required.run_commands: required when opening pull requests")
 
     if "endorctl_api" in transports and not bool(capabilities.get("run_commands", False)):
         errors.append("host_capabilities_required.run_commands: must be true when supported_transports includes endorctl_api")

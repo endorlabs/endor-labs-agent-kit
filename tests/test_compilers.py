@@ -19,7 +19,7 @@ ENTERPRISE_EDITION_SHA256 = "ca4e948442e60047687b6287c4eec9688bea0fa878cd5ce9d01
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "agents" / "dependency-decision-helper"
+    src = repo_root() / "source" / "agents" / "dependency-decision-helper"
     dst = tmp_path / "dependency-decision-helper"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"

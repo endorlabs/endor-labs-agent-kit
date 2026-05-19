@@ -8,7 +8,6 @@ from pathlib import Path
 from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
-    compile_github_copilot_plugin,
     compile_raw,
 )
 from endor_agent_kit.compilers.claude_code import EDITION_CHOICES
@@ -27,7 +26,7 @@ def main(argv: list[str] | None = None) -> int:
     compile_parser.add_argument("recipe", type=Path)
     compile_parser.add_argument(
         "--target",
-        choices=("claude-code", "claude-managed-agents", "github-copilot-plugin", "raw"),
+        choices=("claude-code", "claude-managed-agents", "raw"),
         required=True,
     )
     compile_parser.add_argument(
@@ -69,8 +68,6 @@ def main(argv: list[str] | None = None) -> int:
                 outputs = compile_claude_code(args.recipe, edition=args.edition)
             elif args.target == "claude-managed-agents":
                 outputs = compile_claude_managed_agents(args.recipe, edition=args.edition)
-            elif args.target == "github-copilot-plugin":
-                outputs = compile_github_copilot_plugin(args.recipe, edition=args.edition)
             else:
                 if args.edition is not None:
                     print("ERROR: --edition/--variant is only valid for Claude provider targets")

@@ -11,6 +11,7 @@ Use this repository in two ways:
 ## Table Of Contents
 
 - [Agent Catalog](#agent-catalog)
+- [Which Directory Do I Use?](#which-directory-do-i-use)
 - [Supported Hosts](#supported-hosts)
 - [Editions](#editions)
 - [Install An Agent](#install-an-agent)
@@ -27,17 +28,34 @@ Use this repository in two ways:
 ## Agent Catalog
 
 Generated artifacts are checked in so users can copy or install agents without
-running the builder. Source recipes live under `agents/` and are the
+running the builder. Maintainer source recipes live under `source/agents/` and are the
 maintainer-facing source of truth.
 
-| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | GitHub Copilot / AgentHQ plugin |
-| --- | --- | --- | --- | --- |
-| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | `github-copilot-plugin/dependency-decision-helper/` |
-| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | `github-copilot-plugin/package-risk-summary/` |
-| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - |
-| Endor Labs Tenant Findings | Summarize tenant findings for an imported project, including reachable findings | - | - | `github-copilot-plugin/tenant-findings/` |
-| Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | `github-copilot-plugin/upgrade-impact-analysis/` |
-| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | `github-copilot-plugin/vulnerability-explainer/` |
+If you are installing an agent, start with the generated host directories below.
+You only need `source/agents/` when you are changing or contributing an agent.
+
+| Agent | Use it when you want to... | Claude Code | Claude Managed Agents |
+| --- | --- | --- | --- |
+| AI SAST Triage | Triage Endor AI SAST findings, generate grounded patches, and open requested change requests | `claude-code/ai-sast-triage/` | - |
+| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` |
+| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - |
+| Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` |
+| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` |
+| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - |
+
+## Which Directory Do I Use?
+
+| Goal | Start Here | You Do Not Need |
+| --- | --- | --- |
+| Install a Claude Code agent | `claude-code/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |
+| Install a Claude Managed Agent | `claude-managed-agents/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |
+| Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |
+| Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |
+
+The `source/agents/` tree is for maintainers and contributors. It is not
+copied into Claude Code or Managed Agents. Installable artifacts
+are the generated host directories listed in the catalog.
 
 ## Supported Hosts
 
@@ -45,26 +63,25 @@ maintainer-facing source of truth.
 | --- | --- | --- |
 | Claude Code | `claude-code/<agent>/<edition>/` | `.claude/agents/` in the target repository |
 | Claude Managed Agents | `claude-managed-agents/<agent>/<edition>/` | Anthropic Console or `ant` CLI agent and environment creation |
-| GitHub Copilot / AgentHQ plugin | `github-copilot-plugin/<agent>/<edition>/` | Copilot plugin package or AgentHQ app repository contents |
 
 ## Editions
 
 Each agent is published in one or more editions. If an edition does not apply
 to a host, the catalog omits that host/edition directory.
 
-| Edition | Best for | Signals | Shell/execute access |
+| Edition | Best for | Signals | Shell access |
 | --- | --- | --- | --- |
 | Developer Edition | Fast, low-friction checks | Endor Model Context Protocol (MCP) tools | Not allowed |
-| Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, plus documented read-only `endorctl api` lookups for agents that need them | Agent-specific; always read-only |
+| Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, documented Endor API lookups, and declared host capabilities | Agent-specific; see the recipe safety class |
 
-Use **Developer Edition** when you want the safest default with no Bash or
-execute access.
+Use **Developer Edition** when you want the safest default with no Bash
+access.
 
 Use **Enterprise Edition** when you have authenticated Endor setup and want
 the highest-fidelity signals available for that agent. Some Enterprise
 Edition agents are still MCP-only; their generated host configuration leaves
-shell or `execute` access disabled when no read-only `endorctl api` lookups
-are required.
+Bash access disabled when no read-only `endorctl api` lookups
+or mutating workflow capabilities are required.
 
 ## Install An Agent
 
@@ -102,28 +119,21 @@ ant beta:environments create < environment.yaml
 
 Use `session-template.yaml` as the starting point when creating sessions.
 
-### GitHub Copilot / AgentHQ
-
-Install the generated plugin package with GitHub Copilot CLI from the
-package directory.
-
-```bash
-cd /path/to/endor-labs-agent-kit/github-copilot-plugin/vulnerability-explainer/developer-edition
-copilot plugin install .
-```
-
-For AgentHQ, use the generated plugin package as the public plugin repository
-contents for the corresponding Agentic App and edition.
-
 ## Configure Endor Access
 
 | Access path | Used by | Notes |
 | --- | --- | --- |
 | Endor MCP | Developer Edition and Enterprise Edition agents | Required for every published agent. Configure it through the target host's MCP mechanism. |
 | Read-only `endorctl api` | Enterprise Edition agents that need tenant or project data beyond public MCP tools | The generated prompts constrain commands to documented read-only lookups. Per-edition README files link to `endorctl-setup.md` when needed. |
-| GitHub Actions keyless auth | Enterprise GitHub Copilot / AgentHQ plugins that need tenant data | Configure the target repository using `github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md`. |
+| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required only when the agent is expected to apply patches and open change requests. |
 
 ## Example Prompts
+
+AI SAST Triage:
+
+```text
+@agent-ai-sast-triage triage AI SAST findings for project <project_uuid>
+```
 
 Dependency Decision Helper:
 
@@ -143,12 +153,6 @@ Endor Labs Repository Dependency Reviewer:
 @agent-repository-dependency-reviewer review this repository's dependency manifests
 ```
 
-Endor Labs Tenant Findings:
-
-```text
-@agent-tenant-findings show reachable findings for project <project_uuid>
-```
-
 Endor Labs Upgrade Impact Analysis:
 
 ```text
@@ -161,6 +165,12 @@ Endor Labs Vulnerability Explainer:
 @agent-vulnerability-explainer explain CVE-2021-44228
 ```
 
+Remediation Planner:
+
+```text
+@agent-remediation-planner preview remediation options for project <project_uuid>
+```
+
 ## Output Contract
 
 Agents return concise prose plus a JSON block. The exact schema depends on the
@@ -170,9 +180,10 @@ evidence.
 
 ## Safety Model
 
-The agents in this kit are read-only.
+Most agents in this kit are read-only. Recipes declare their safety class and
+host capabilities explicitly.
 
-They do not:
+Read-only agents do not:
 
 - edit files
 - create pull requests
@@ -181,21 +192,26 @@ They do not:
 - create policies
 - mutate Endor Labs state
 
-When an agent permits Bash, its prompt limits Bash to documented read-only Endor
-lookup commands. Claude Code artifacts deny Bash when it is not needed.
+Mutating agents are published only when their recipe declares the required
+host capabilities. AI SAST Triage is the current mutating agent: it may
+fetch source context, write patch files, run git/source-provider commands,
+and open a change request when the user asks for that workflow and the target
+repository credentials are available.
+
+When a read-only agent permits Bash, its prompt limits Bash to documented
+read-only Endor lookup commands. Claude Code artifacts deny Bash when it is
+not needed.
 When a recipe declares `host_capabilities_required.read_files: true`,
 Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS` for
 read-only workspace inspection; file mutation, notebook, web, and todo tools
 remain denied.
 Claude Managed Agents artifacts omit the pre-built agent toolset unless an
 agent needs read-only Bash, and then enable only Bash with confirmation.
-GitHub Copilot plugins enable `execute` only for Enterprise Edition agents
-that require the documented read-only Endor lookups.
 
 ## Contribute An Agent
 
 This repository is both the source of truth and the distribution catalog.
-Contributor workflow is recipe-first: edit source files under `agents/`, then
+Contributor workflow is recipe-first: edit source files under `source/agents/`, then
 regenerate customer-facing artifacts.
 
 ### Create Agents With The Skill
@@ -238,17 +254,17 @@ python -m pip install -e ".[dev]"
 
 ### Authoring Workflow
 
-1. Edit `agents/<agent>/recipe.yaml`.
-2. Edit `agents/<agent>/instructions.md`.
-3. Update `agents/<agent>/evals/cases.yaml`.
+1. Edit `source/agents/<agent>/recipe.yaml`.
+2. Edit `source/agents/<agent>/instructions.md`.
+3. Update `source/agents/<agent>/evals/cases.yaml`.
 4. Add or update tests under `tests/`.
 5. Validate and regenerate the catalog.
 
 ```bash
-endor-agent-kit validate agents/<agent>/recipe.yaml
-endor-agent-kit publish agents/*/recipe.yaml --dest . --prune
+endor-agent-kit validate source/agents/<agent>/recipe.yaml
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
 python -m pytest -q
-git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents github-copilot-plugin
+git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
 ```
 
 Pull requests should include both source changes and regenerated artifacts.
@@ -258,13 +274,13 @@ CI runs the same validation and generated-artifact drift check.
 
 | Command | Purpose |
 | --- | --- |
-| `endor-agent-kit validate agents/<agent>/recipe.yaml` | Validate one recipe. |
-| `endor-agent-kit compile agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |
-| `endor-agent-kit compile agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |
-| `endor-agent-kit publish agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |
+| `endor-agent-kit validate source/agents/<agent>/recipe.yaml` | Validate one recipe. |
+| `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |
+| `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |
+| `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |
 
 Supported compile targets are `claude-code`, `claude-managed-agents`,
-`github-copilot-plugin`, and `raw`.
+and `raw`.
 
 ## Recipe Reference
 
@@ -275,13 +291,13 @@ published host editions.
 | Field | Purpose |
 | --- | --- |
 | `id`, `name`, `version`, `description` | Public catalog identity and copy. |
-| `safety_class`, `mutations` | Safety contract. v1 launch recipes are read-only and must not declare mutations. |
+| `safety_class`, `mutations` | Safety contract. Recipes may be `read_only`, `dry_run`, or explicitly `mutating` with matching host capabilities. |
 | `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |
 | `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |
 | `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |
 | `compatible_hosts` | Hosts that should receive generated artifacts. |
 | `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |
-| `required_endor_mcp_tools`, `endorctl_api_invocations` | Endor tools and read-only API lookups the prompt may use. |
+| `required_endor_mcp_tools`, `endorctl_api_invocations` | Endor tools and API lookup groups the prompt may use. |
 | `instructions_path`, `evals` | Source prompt and eval case files relative to the recipe. |
 
 Generated artifacts must not be edited as the first step. Change the recipe
@@ -292,17 +308,23 @@ or instructions source, publish the catalog, then review the generated diff.
 ### Layout
 
 ```text
-agents/
-  <agent>/
-    recipe.yaml
-    instructions.md
-    evals/cases.yaml
+source/
+  agents/
+    <agent>/
+      recipe.yaml
+      instructions.md
+      evals/cases.yaml
 skills/
   create-endor-labs-agent/
     SKILL.md
 src/endor_agent_kit/
 tests/
 claude-code/
+  ai-sast-triage/
+    enterprise-edition/
+      README.md
+      ai-sast-triage.md
+      endorctl-setup.md
   dependency-decision-helper/
     developer-edition/
       README.md
@@ -319,6 +341,10 @@ claude-code/
       README.md
       endorctl-setup.md
       package-risk-summary.md
+  remediation-planner/
+    enterprise-edition/
+      README.md
+      remediation-planner.md
   repository-dependency-reviewer/
     developer-edition/
       README.md
@@ -389,48 +415,6 @@ claude-managed-agents/
       agent.yaml
       environment.yaml
       session-template.yaml
-github-copilot-plugin/
-  dependency-decision-helper/
-    developer-edition/
-      README.md
-      dependency-decision-helper.agent.md
-      plugin.json
-    enterprise-edition/
-      README.md
-      dependency-decision-helper.agent.md
-      plugin.json
-  package-risk-summary/
-    developer-edition/
-      README.md
-      package-risk-summary.agent.md
-      plugin.json
-    enterprise-edition/
-      README.md
-      package-risk-summary.agent.md
-      plugin.json
-  tenant-findings/
-    enterprise-edition/
-      README.md
-      tenant-findings.agent.md
-      plugin.json
-  upgrade-impact-analysis/
-    developer-edition/
-      README.md
-      upgrade-impact-analysis.agent.md
-      plugin.json
-    enterprise-edition/
-      README.md
-      upgrade-impact-analysis.agent.md
-      plugin.json
-  vulnerability-explainer/
-    developer-edition/
-      README.md
-      vulnerability-explainer.agent.md
-      plugin.json
-    enterprise-edition/
-      README.md
-      vulnerability-explainer.agent.md
-      plugin.json
 manifest.json
 ```
 
@@ -446,7 +430,6 @@ The root catalog directories are intentionally checked in:
 
 - `claude-code/`
 - `claude-managed-agents/`
-- `github-copilot-plugin/`
 - `manifest.json`
 
 These paths are customer-facing and should stay stable.

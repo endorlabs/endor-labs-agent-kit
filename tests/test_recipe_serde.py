@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from endor_agent_kit.recipe import load_recipe, read_instructions, recipe_from_dict, recipe_to_dict
 
-from conftest import recipe_path, repo_root
+from conftest import recipe_path
 
 
 def test_recipe_yaml_round_trips_core_fields():
@@ -30,9 +30,12 @@ def test_recipe_reads_instructions_relative_to_recipe():
     assert "<!-- enterprise-edition:start -->" in body
 
 
-def test_recipe_reads_host_edition_overrides():
-    recipe = load_recipe(repo_root() / "agents" / "tenant-findings" / "recipe.yaml")
+def test_recipe_parses_host_edition_overrides():
+    data = recipe_to_dict(load_recipe(recipe_path()))
+    data["compatible_hosts"] = ["claude-code"]
+    data["host_editions"] = {"claude-code": ["enterprise-edition"]}
 
-    assert recipe.id == "tenant-findings"
-    assert recipe.compatible_hosts == ("github-copilot-plugin",)
-    assert recipe.host_editions == {"github-copilot-plugin": ("enterprise-edition",)}
+    recipe = recipe_from_dict(data)
+
+    assert recipe.compatible_hosts == ("claude-code",)
+    assert recipe.host_editions == {"claude-code": ("enterprise-edition",)}

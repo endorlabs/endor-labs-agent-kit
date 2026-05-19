@@ -12,7 +12,7 @@ from conftest import repo_root
 
 
 def _copy_agent(tmp_path: Path, agent_id: str = "dependency-decision-helper") -> Path:
-    src = repo_root() / "agents" / agent_id
+    src = repo_root() / "source" / "agents" / agent_id
     dst = tmp_path / agent_id
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"
@@ -46,18 +46,6 @@ def _managed_agent_paths(agent_id: str, *, has_setup: bool) -> set[str]:
     return paths
 
 
-def _github_copilot_plugin_paths(agent_id: str) -> set[str]:
-    return {
-        "github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md",
-        f"github-copilot-plugin/{agent_id}/developer-edition/plugin.json",
-        f"github-copilot-plugin/{agent_id}/developer-edition/README.md",
-        f"github-copilot-plugin/{agent_id}/developer-edition/agents/{agent_id}.agent.md",
-        f"github-copilot-plugin/{agent_id}/enterprise-edition/plugin.json",
-        f"github-copilot-plugin/{agent_id}/enterprise-edition/README.md",
-        f"github-copilot-plugin/{agent_id}/enterprise-edition/agents/{agent_id}.agent.md",
-    }
-
-
 def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -68,7 +56,6 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert written_paths == (
         _claude_code_paths("dependency-decision-helper", has_setup=True)
         | _managed_agent_paths("dependency-decision-helper", has_setup=True)
-        | _github_copilot_plugin_paths("dependency-decision-helper")
         | {"manifest.json", "README.md"}
     )
     assert not (dest / "claude-code" / "dependency-decision-helper" / "standard").exists()
@@ -87,17 +74,7 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert "disallowedTools: Bash" in developer
     assert "Enterprise Edition" in enterprise
     assert "endorctl api list" in enterprise
-    plugin = (
-        dest
-        / "github-copilot-plugin"
-        / "dependency-decision-helper"
-        / "enterprise-edition"
-        / "agents"
-        / "dependency-decision-helper.agent.md"
-    ).read_text()
-    assert "target: github-copilot" in plugin
-    assert "- execute" in plugin
-    assert "endorctl api list" in plugin
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
@@ -110,7 +87,6 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
     assert written_paths == (
         _claude_code_paths("vulnerability-explainer", has_setup=False)
         | _managed_agent_paths("vulnerability-explainer", has_setup=False)
-        | _github_copilot_plugin_paths("vulnerability-explainer")
         | {"manifest.json", "README.md"}
     )
     enterprise = (
@@ -130,15 +106,7 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
         / "enterprise-edition"
         / "endorctl-setup.md"
     ).exists()
-    plugin_enterprise = (
-        dest
-        / "github-copilot-plugin"
-        / "vulnerability-explainer"
-        / "enterprise-edition"
-        / "agents"
-        / "vulnerability-explainer.agent.md"
-    ).read_text()
-    assert "- execute" not in plugin_enterprise
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
@@ -163,17 +131,7 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
     assert "QuerySimilarPackages" in enterprise
     assert "summarize npm lodash version 4.17.20" in enterprise_readme
     assert (dest / "claude-code" / "package-risk-summary" / "enterprise-edition" / "endorctl-setup.md").is_file()
-    plugin = (
-        dest
-        / "github-copilot-plugin"
-        / "package-risk-summary"
-        / "enterprise-edition"
-        / "agents"
-        / "package-risk-summary.agent.md"
-    ).read_text()
-    assert "target: github-copilot" in plugin
-    assert "- execute" in plugin
-    assert "QuerySimilarPackages" in plugin
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
@@ -226,41 +184,7 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
         / "enterprise-edition"
         / "endorctl-setup.md"
     ).is_file()
-    plugin = (
-        dest
-        / "github-copilot-plugin"
-        / "upgrade-impact-analysis"
-        / "enterprise-edition"
-        / "agents"
-        / "upgrade-impact-analysis.agent.md"
-    ).read_text()
-    assert "target: github-copilot" in plugin
-    assert "- execute" in plugin
-    assert "--resource VersionUpgrade" in plugin
-
-
-def test_publish_recipe_writes_enterprise_only_tenant_findings_distribution(tmp_path):
-    recipe = _copy_agent(tmp_path, "tenant-findings")
-    dest = tmp_path / "endor-labs-agent-kit"
-
-    written = publish_recipe(recipe, dest)
-
-    written_paths = {path.relative_to(dest).as_posix() for path in written}
-    assert written_paths == {
-        "github-copilot-plugin/ENDOR_GITHUB_KEYLESS_AUTH.md",
-        "github-copilot-plugin/tenant-findings/enterprise-edition/plugin.json",
-        "github-copilot-plugin/tenant-findings/enterprise-edition/README.md",
-        "github-copilot-plugin/tenant-findings/enterprise-edition/agents/tenant-findings.agent.md",
-        "manifest.json",
-        "README.md",
-    }
-    assert not (dest / "github-copilot-plugin" / "tenant-findings" / "developer-edition").exists()
-    assert not (dest / "claude-code" / "tenant-findings").exists()
-    manifest = json.loads((dest / "manifest.json").read_text())
-    assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
-        ("github-copilot-plugin", "tenant-findings"),
-    ]
-    assert manifest["agents"][0]["editions"][0]["id"] == "enterprise-edition"
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
@@ -275,7 +199,6 @@ def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-managed-agents", "dependency-decision-helper"),
-        ("github-copilot-plugin", "dependency-decision-helper"),
     ]
     agent = manifest["agents"][0]
     assert [edition["id"] for edition in agent["editions"]] == ["developer-edition", "enterprise-edition"]
@@ -313,14 +236,13 @@ def test_publish_recipe_is_idempotent_and_preserves_other_manifest_agents(tmp_pa
         ("claude-code", "dependency-decision-helper"),
         ("claude-code", "other-agent"),
         ("claude-managed-agents", "dependency-decision-helper"),
-        ("github-copilot-plugin", "dependency-decision-helper"),
     ]
 
 
 def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
     recipe = _copy_agent(tmp_path, "dependency-decision-helper")
     dest = tmp_path / "endor-labs-agent-kit"
-    for host in ("claude-code", "claude-managed-agents", "github-copilot-plugin"):
+    for host in ("claude-code", "claude-managed-agents"):
         stale_dir = dest / host / "dependency-upgrade-advisor" / "developer-edition"
         stale_dir.mkdir(parents=True)
         (stale_dir / "stale.md").write_text("stale", encoding="utf-8")
@@ -331,7 +253,6 @@ def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
             "agents": [
                 {"id": "dependency-upgrade-advisor", "host": "claude-code", "editions": []},
                 {"id": "dependency-upgrade-advisor", "host": "claude-managed-agents", "editions": []},
-                {"id": "dependency-upgrade-advisor", "host": "github-copilot-plugin", "editions": []},
             ],
         }),
         encoding="utf-8",
@@ -343,12 +264,10 @@ def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
     assert status == 0
     assert not (dest / "claude-code" / "dependency-upgrade-advisor").exists()
     assert not (dest / "claude-managed-agents" / "dependency-upgrade-advisor").exists()
-    assert not (dest / "github-copilot-plugin" / "dependency-upgrade-advisor").exists()
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-managed-agents", "dependency-decision-helper"),
-        ("github-copilot-plugin", "dependency-decision-helper"),
     ]
     assert "dependency-upgrade-advisor" not in (dest / "README.md").read_text()
 
@@ -375,10 +294,6 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         ("claude-managed-agents", "package-risk-summary"),
         ("claude-managed-agents", "upgrade-impact-analysis"),
         ("claude-managed-agents", "vulnerability-explainer"),
-        ("github-copilot-plugin", "dependency-decision-helper"),
-        ("github-copilot-plugin", "package-risk-summary"),
-        ("github-copilot-plugin", "upgrade-impact-analysis"),
-        ("github-copilot-plugin", "vulnerability-explainer"),
     ]
     package = next(
         agent
@@ -399,20 +314,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         "README.md",
         "vulnerability-explainer.md",
     }
-    package_plugin = next(
-        agent
-        for agent in manifest["agents"]
-        if agent["host"] == "github-copilot-plugin" and agent["id"] == "package-risk-summary"
-    )
-    package_plugin_enterprise = [
-        edition for edition in package_plugin["editions"] if edition["id"] == "enterprise-edition"
-    ][0]
-    assert package_plugin_enterprise["requires_endorctl"] == ">=1.0"
-    assert {artifact["path"].split("/")[-1] for artifact in package_plugin_enterprise["artifacts"]} == {
-        "README.md",
-        "package-risk-summary.agent.md",
-        "plugin.json",
-    }
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
@@ -421,18 +323,13 @@ def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
     stale = dest / "claude-code" / "dependency-decision-helper" / "standard" / "old.md"
     stale.parent.mkdir(parents=True)
     stale.write_text("stale", encoding="utf-8")
-    stale_plugin = dest / "github-copilot-plugin" / "dependency-decision-helper" / "old-edition" / "old.md"
-    stale_plugin.parent.mkdir(parents=True)
-    stale_plugin.write_text("stale", encoding="utf-8")
 
     publish_recipe(recipe, dest)
 
     assert not stale.exists()
-    assert not stale_plugin.exists()
     assert (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").is_dir()
     assert (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").is_dir()
-    assert (dest / "github-copilot-plugin" / "dependency-decision-helper" / "developer-edition").is_dir()
-    assert (dest / "github-copilot-plugin" / "dependency-decision-helper" / "enterprise-edition").is_dir()
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_cli_publish_writes_distribution(tmp_path, capsys):
@@ -448,14 +345,7 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert (
         dest / "claude-code" / "dependency-decision-helper" / "developer-edition" / "dependency-decision-helper.md"
     ).is_file()
-    assert (
-        dest
-        / "github-copilot-plugin"
-        / "dependency-decision-helper"
-        / "developer-edition"
-        / "agents"
-        / "dependency-decision-helper.agent.md"
-    ).is_file()
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
 def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
@@ -486,8 +376,6 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "vulnerability-explainer.md" in output
     assert "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml" in output
     assert "claude-managed-agents/package-risk-summary/enterprise-edition/agent.yaml" in output
-    assert "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/agents/upgrade-impact-analysis.agent.md" in output
-    assert "github-copilot-plugin/package-risk-summary/enterprise-edition/agents/package-risk-summary.agent.md" in output
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
@@ -499,10 +387,6 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         ("claude-managed-agents", "package-risk-summary"),
         ("claude-managed-agents", "upgrade-impact-analysis"),
         ("claude-managed-agents", "vulnerability-explainer"),
-        ("github-copilot-plugin", "dependency-decision-helper"),
-        ("github-copilot-plugin", "package-risk-summary"),
-        ("github-copilot-plugin", "upgrade-impact-analysis"),
-        ("github-copilot-plugin", "vulnerability-explainer"),
     ]
     root_readme = (dest / "README.md").read_text()
     assert "## Table Of Contents" in root_readme
@@ -512,15 +396,13 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS`" in root_readme
     assert "Review local dependency manifests with read-only file inspection and Endor evidence" in root_readme
     assert "@agent-repository-dependency-reviewer review this repository's dependency manifests" in root_readme
-    assert "endor-agent-kit publish agents/*/recipe.yaml --dest . --prune" in root_readme
+    assert "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune" in root_readme
     assert "Endor Labs Upgrade Impact Analysis" in root_readme
     assert "Endor Labs Package Risk Summary" in root_readme
     assert "claude-code/upgrade-impact-analysis/" in root_readme
     assert "claude-managed-agents/upgrade-impact-analysis/" in root_readme
-    assert "github-copilot-plugin/upgrade-impact-analysis/" in root_readme
     assert "claude-code/package-risk-summary/" in root_readme
     assert "claude-managed-agents/package-risk-summary/" in root_readme
-    assert "github-copilot-plugin/package-risk-summary/" in root_readme
     assert "claude-code/repository-dependency-reviewer/" in root_readme
 
 
