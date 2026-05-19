@@ -17,27 +17,31 @@ inputs:
 - name: project_name
   kind: string
   required: false
-  description: Input derived from AURI state field `project_name`.
+  description: Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL. The agent should infer this from the current Git workspace first, not ask the user for a project UUID.
+- name: repository_url
+  kind: string
+  required: false
+  description: Optional source repository URL when the agent is not running inside the target repository. Normally inferred from git remote origin.
 - name: finding_limit
   kind: integer
   required: false
-  description: Input derived from AURI state field `finding_limit`.
+  description: Maximum AI SAST findings to triage after project resolution.
 - name: severity_filter
   kind: list[string]
   required: false
-  description: Input derived from AURI state field `severity_filter`.
+  description: Optional Endor severity filter such as CRITICAL or HIGH.
 - name: cwe_filter
   kind: list[string]
   required: false
-  description: Input derived from AURI state field `cwe_filter`.
+  description: Optional CWE filter such as CWE-79.
 - name: finding_uuids
   kind: list[string]
   required: false
-  description: Input derived from AURI state field `finding_uuids`.
+  description: Optional finding UUID allow-list for targeted re-triage. Do not require this for normal use.
 - name: namespace
   kind: string
   required: false
-  description: Input derived from AURI state field `namespace`.
+  description: Optional Endor namespace override when the tenant uses child namespaces.
 outputs:
 - name: summary
   kind: string
@@ -71,6 +75,7 @@ mutations:
 required_endor_mcp_tools:
 - get_resource
 endorctl_api_invocations:
+- resolve_project_from_repository
 - list_ai_sast_findings
 - get_finding_explanation
 - fetch_project_source_version

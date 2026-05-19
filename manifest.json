@@ -5,19 +5,24 @@
         {
           "artifacts": [
             {
-              "bytes": 1100,
+              "bytes": 1575,
               "path": "claude-code/ai-sast-triage/enterprise-edition/README.md",
-              "sha256": "fffec140350ed88f18d1c9bf681f264e9fcff0f1a23649209df7fc6eff0746bd"
+              "sha256": "8e0ccd4b9b414d3d46517c0fd5f6f4d0e3121f1cec596b42b127c5f0a080080a"
             },
             {
-              "bytes": 4552,
+              "bytes": 5352,
               "path": "claude-code/ai-sast-triage/enterprise-edition/ai-sast-triage.md",
-              "sha256": "97ff184da5c8b1c7fad9723905fc64c6852069a75015d0a109146b5ce6aac8e8"
+              "sha256": "c6ce98bacbe790683415252f48b8eb41dd60155360d2c2d2696457244f5c5047"
             },
             {
-              "bytes": 629,
+              "bytes": 10622,
+              "path": "claude-code/ai-sast-triage/enterprise-edition/architecture.svg",
+              "sha256": "5dff4bd00f093a434951859c0b1fdad6d7f56ea0f263105cc0181d7f9ccdfca7"
+            },
+            {
+              "bytes": 665,
               "path": "claude-code/ai-sast-triage/enterprise-edition/endorctl-setup.md",
-              "sha256": "1bfe5505763a4dc66f4f6f9f48b5a9ef6eaf3220d0cb76540c1306d3e9f45556"
+              "sha256": "e9149e3b2fcf1d64a3d78f6d7b2e2eb4178e2a8b77124a4da28800151074a64f"
             }
           ],
           "id": "enterprise-edition",
@@ -141,14 +146,19 @@
         {
           "artifacts": [
             {
-              "bytes": 707,
+              "bytes": 949,
               "path": "claude-code/remediation-planner/enterprise-edition/README.md",
-              "sha256": "ca97edf262a8d578a904f058e65a6e6addbcd0acfbf890cdc42d071adfe9d29a"
+              "sha256": "67a57f02bf613d78f99c0f53c9715965111c6dcafa7ac26df72e1473d4688eb8"
             },
             {
-              "bytes": 1326,
+              "bytes": 9815,
+              "path": "claude-code/remediation-planner/enterprise-edition/architecture.svg",
+              "sha256": "111df69191335b4248bf9cc1612752c7fab4433191c0a7f298aa089657452941"
+            },
+            {
+              "bytes": 2200,
               "path": "claude-code/remediation-planner/enterprise-edition/remediation-planner.md",
-              "sha256": "149fe2d39dc28454fb123bd3983be892df77db1d215fc480fdebca44cbe7953a"
+              "sha256": "fac2bb7d8cd6931a433046d452a9ac3ddf44b99a2b088706c440651ccc4686dc"
             }
           ],
           "id": "enterprise-edition",
@@ -216,14 +226,19 @@
         {
           "artifacts": [
             {
-              "bytes": 1095,
+              "bytes": 1467,
               "path": "claude-code/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "4a5b18968b5ac81268784cc6b6cc1f9708022e45d0ea2f43c9718019acdd453b"
+              "sha256": "35ea92fc38af8d080669ebeb32053599783d6431017c3418ec256ace4206acbc"
             },
             {
-              "bytes": 9619,
+              "bytes": 9921,
+              "path": "claude-code/upgrade-impact-analysis/developer-edition/architecture.svg",
+              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
+            },
+            {
+              "bytes": 10786,
               "path": "claude-code/upgrade-impact-analysis/developer-edition/upgrade-impact-analysis.md",
-              "sha256": "cdcf7284a6cc1f6830d12c57493a6eb42630943e8f02e00be05485b410ec9b7f"
+              "sha256": "8c6764aa9bfe6a2ab224144c5c108d4ce5fd45d8d7f3a245a59dfb2a80d3d790"
             }
           ],
           "id": "developer-edition",
@@ -233,19 +248,24 @@
         {
           "artifacts": [
             {
-              "bytes": 1197,
+              "bytes": 1572,
               "path": "claude-code/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "aff5caa400deefdf384da12c0af51c4b8734cf6b3c33fdc6995315bd45deb524"
+              "sha256": "e3d6bb2f1b0b81a12c0fb1e85328cb91403a97411ddce28a230a1666bc47ed22"
             },
             {
-              "bytes": 1033,
+              "bytes": 9921,
+              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/architecture.svg",
+              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
+            },
+            {
+              "bytes": 1069,
               "path": "claude-code/upgrade-impact-analysis/enterprise-edition/endorctl-setup.md",
-              "sha256": "5e067fe2a1fd1bd66f83eed4052805ad7b0f7b770564582fd22d53bcaa5d726e"
+              "sha256": "a5710b178a26c80385e498e0100b1ec7d3ed0da75302af079735c530f80dfc04"
             },
             {
-              "bytes": 17880,
+              "bytes": 19570,
               "path": "claude-code/upgrade-impact-analysis/enterprise-edition/upgrade-impact-analysis.md",
-              "sha256": "c0acb22ec15a978c19ecf845d38af9843e631e637bb109e7d8cf6c001f09af71"
+              "sha256": "913f8f9f1389014d2bef1eaccf711c3d90f1cc387ca9a7fb99625a875010a18f"
             }
           ],
           "id": "enterprise-edition",
@@ -455,14 +475,19 @@
         {
           "artifacts": [
             {
-              "bytes": 1548,
+              "bytes": 1920,
               "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "e31e931bc1fa219b34099e183cebbaac2f13bab2c513cd33e54ab089d2ec608f"
+              "sha256": "380dc131e1286985f99814615e672945aad340b296f7335bf93c5bc4480deb3a"
             },
             {
-              "bytes": 10519,
+              "bytes": 11714,
               "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/agent.yaml",
-              "sha256": "86f07e1d0e71372d700fdfdc439aaa3affe316e3aae1cae734cff1c5b5b2aafc"
+              "sha256": "fe803759e4270ab1b867e5724f6146f05cf497e1c0c1fa2e805b2b8786cacfef"
+            },
+            {
+              "bytes": 9921,
+              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/architecture.svg",
+              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
             },
             {
               "bytes": 221,
@@ -482,19 +507,24 @@
         {
           "artifacts": [
             {
-              "bytes": 1747,
+              "bytes": 2122,
               "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "f6dbde9c098790ddc6eaf12fb3352f8d6334e052b1c4a6e44dcc3ef1cb55e33b"
+              "sha256": "d83a0ac3fa72d4a4383ca4f6e4a21a2de566d3d5dda6a4a445eb6969689ffbc6"
             },
             {
-              "bytes": 19273,
+              "bytes": 21005,
               "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml",
-              "sha256": "31c8aa2b5d8eda1ba539e1707fee98dc50414dc963addc0f8d015c607cbd5562"
+              "sha256": "055538528cb6a76cbc6a3c9b68b1830658c284e28730232d66ef03d981831c19"
             },
             {
-              "bytes": 1033,
+              "bytes": 9921,
+              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/architecture.svg",
+              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
+            },
+            {
+              "bytes": 1069,
               "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/endorctl-setup.md",
-              "sha256": "5e067fe2a1fd1bd66f83eed4052805ad7b0f7b770564582fd22d53bcaa5d726e"
+              "sha256": "a5710b178a26c80385e498e0100b1ec7d3ed0da75302af079735c530f80dfc04"
             },
             {
               "bytes": 257,

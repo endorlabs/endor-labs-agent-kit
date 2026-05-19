@@ -174,8 +174,20 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
     assert "spec.upgrade_info.is_best==true" in enterprise
     assert "finding_fixing_upgrades" in enterprise
     assert "cia_results" in enterprise
-    assert "show the safest upgrade path for project <project_uuid> package lodash" in enterprise_readme
+    assert "show the safest upgrade path for repository <owner>/<repo> package lodash" in enterprise_readme
+    assert "<project_uuid>" not in enterprise_readme
+    assert "![Endor Labs Upgrade Impact Analysis architecture](architecture.svg)" in enterprise_readme
     assert "Managed Agents Enterprise Edition" in managed_enterprise
+    assert (
+        dest / "claude-code" / "upgrade-impact-analysis" / "enterprise-edition" / "architecture.svg"
+    ).is_file()
+    assert (
+        dest
+        / "claude-managed-agents"
+        / "upgrade-impact-analysis"
+        / "enterprise-edition"
+        / "architecture.svg"
+    ).is_file()
     assert (dest / "claude-code" / "upgrade-impact-analysis" / "enterprise-edition" / "endorctl-setup.md").is_file()
     assert (
         dest

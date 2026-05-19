@@ -17,8 +17,14 @@ then restart Claude Code if needed.
 ## Example
 
 ```text
-@agent-ai-sast-triage triage AI SAST findings for project <project_uuid>
+@agent-ai-sast-triage triage AI SAST findings for this repository. Do not open a PR until I approve the patch.
 ```
+
+## Architecture
+
+![AI SAST Triage architecture](architecture.svg)
+
+In Agent Kit, PR/MR creation is host-mediated. Claude Code runs in the target checkout, gathers Endor evidence, applies the confirmed diff locally, creates and pushes a branch, then opens the change request with configured source-provider credentials. If the host cannot perform one of those steps, the agent must stop and report the missing capability in `data_gaps`.
 
 ## Notes
 

@@ -23,7 +23,9 @@ coordinate with Endor MCP tools only:
 
 Enterprise Edition accepts AURI-style context:
 
-- `project_uuid`: Endor project UUID for `VersionUpgrade` queries
+- `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
+- `repository_url`: source repository URL when the host cannot infer it from a local checkout or session context
+- `project_uuid`: optional advanced fallback for `VersionUpgrade` queries after human project selectors fail
 - `namespace`: optional Endor tenant namespace; use the configured namespace when omitted
 - `package_name`: optional filter on `spec.upgrade_info.direct_dependency_package`
 - `finding_uuid`: optional finding UUID for AURI's canonical single-finding fixing-upgrade map
@@ -32,9 +34,25 @@ Enterprise Edition accepts AURI-style context:
 
 If Developer Edition lacks the explicit coordinate, ask for the missing values.
 If Enterprise Edition is asked for AURI-parity upgrade impact and no
-`project_uuid` or active project context is available, ask for `project_uuid`
-instead of guessing from an arbitrary project. Do not inspect repository
-manifests in v0.
+`project_name`, `repository_url`, `project_uuid`, or active project context is
+available, ask for a repository URL, owner/repo, or Endor project name instead
+of asking for a UUID first. Do not inspect repository manifests in v0.
+
+## Project Resolution
+
+Do not make Endor project UUID knowledge a prerequisite for normal use.
+
+In Claude Code, first use the current repository context when it is available:
+read the repository root and `origin` remote URL, then resolve the matching
+Endor project by repository URL, owner/repo, repository name, or Endor project
+name. In Claude Managed Agents, do not assume local git is available; use the
+repository URL, owner/repo, or Endor project name supplied in the user message,
+session metadata, or environment. If multiple Endor projects match, ask the
+user to choose among human-readable names and repository URLs. Only ask for a
+project UUID when human-readable selectors cannot resolve a unique project.
+
+After resolution, use the resolved `project_uuid` only as the internal Endor
+filter needed by `VersionUpgrade` resources.
 
 This agent is read-only. Do not edit files, create pull requests, run scans,
 dismiss findings, create policies, install packages, or mutate Endor Labs state.
@@ -190,23 +208,30 @@ fallback lookup.
 
 Use `<namespace_flag>` below as `--namespace <namespace>` when the user provides
 `namespace`; otherwise omit it and rely on the configured `endorctl` namespace.
-Never query an arbitrary project when `project_uuid` is missing.
+Resolve a project UUID before running project-scoped `VersionUpgrade` filters.
+Use a supplied `project_uuid` only as an advanced fallback; otherwise resolve it
+from `repository_url`, `project_name`, the current git remote, or session
+project context. Never query an arbitrary project when project resolution is
+missing or ambiguous.
 
 ## Step 1: Choose the AURI Query Mode
 
 Use the most specific AURI mode available:
 
-1. If `project_uuid` and `finding_uuid` are provided, run the canonical
+1. Resolve project context from `repository_url`, `project_name`, active
+   repository context, session metadata, or optional `project_uuid`.
+2. If the resolved `project_uuid` and `finding_uuid` are available, run the canonical
    per-finding fixing-upgrade map and select the upgrade for that finding.
-2. If `project_uuid` and `upgrade_uuid` are provided, fetch full
+3. If the resolved `project_uuid` and `upgrade_uuid` are available, fetch full
    `VersionUpgrade` details and use that as the selected upgrade.
-3. If `project_uuid` is provided, list upgrade recommendations for the project.
+4. If the resolved `project_uuid` is available, list upgrade recommendations for the project.
    Filter by `package_name`, `current_version`, or `target_version` only after
    fetching records, matching AURI's client-side filtering behavior.
-4. If no `project_uuid` is available, ask for it for AURI-parity UIA. Only use
-   the package-version fallback when the user explicitly wants a generic
-   package comparison and provides `ecosystem`, `package_name`,
-   `current_version`, and `target_version`.
+5. If no project selector is available, ask for a repository URL, owner/repo, or
+   Endor project name for AURI-parity UIA. Only use the package-version
+   fallback when the user explicitly wants a generic package comparison and
+   provides `ecosystem`, `package_name`, `current_version`, and
+   `target_version`.
 
 ## Step 2: List AURI Upgrade Recommendations
 
@@ -268,7 +293,7 @@ lookup fails, is denied, returns no objects, or cannot be parsed, add
 
 ## Step 3: Fetch Canonical Per-Finding Fixing Upgrades
 
-When `project_uuid` is available, fetch AURI's
+When a resolved `project_uuid` is available, fetch AURI's
 `get_finding_fixing_upgrades` map. This is authoritative for a specific
 finding because the platform caps the server-side recommendation to one
 upgrade candidate per finding.
@@ -359,6 +384,6 @@ Use Endor MCP tools for current and target risk and vulnerability evidence:
 
 Then optionally run the existing read-only OSS `PackageVersion`, score, target
 license, and `QuerySimilarPackages` lookups if needed. Add AURI-only gaps:
-`project_uuid`, `version_upgrade_recommendations`, `finding_fixing_upgrades`,
+`project_resolution`, `version_upgrade_recommendations`, `finding_fixing_upgrades`,
 `cia_results`, and `manifest_files`.
 <!-- enterprise-edition:end -->

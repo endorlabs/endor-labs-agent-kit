@@ -98,6 +98,8 @@ def _publish_claude_code(
 
     written: list[Path] = []
     edition_records: list[dict[str, Any]] = []
+    architecture_source = _architecture_source(recipe_file)
+    has_architecture = architecture_source.is_file()
     for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS):
         edition_dir = agent_root / edition
         edition_dir.mkdir(parents=True, exist_ok=True)
@@ -107,8 +109,16 @@ def _publish_claude_code(
         written.append(artifact)
 
         readme = edition_dir / "README.md"
-        readme.write_text(_claude_code_edition_readme(recipe, edition), encoding="utf-8")
+        readme.write_text(
+            _claude_code_edition_readme(recipe, edition, has_architecture=has_architecture),
+            encoding="utf-8",
+        )
         written.append(readme)
+
+        if has_architecture:
+            architecture = edition_dir / "architecture.svg"
+            shutil.copyfile(architecture_source, architecture)
+            written.append(architecture)
 
         if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
             setup = edition_dir / "endorctl-setup.md"
@@ -130,6 +140,8 @@ def _publish_claude_managed_agents(
 
     written: list[Path] = []
     edition_records: list[dict[str, Any]] = []
+    architecture_source = _architecture_source(recipe_file)
+    has_architecture = architecture_source.is_file()
     for edition in editions_for_host(recipe, CLAUDE_MANAGED_AGENTS_HOST, EDITIONS):
         edition_dir = agent_root / edition
         edition_dir.mkdir(parents=True, exist_ok=True)
@@ -141,8 +153,16 @@ def _publish_claude_managed_agents(
             written.append(artifact)
 
         readme = edition_dir / "README.md"
-        readme.write_text(_managed_agents_edition_readme(recipe, edition), encoding="utf-8")
+        readme.write_text(
+            _managed_agents_edition_readme(recipe, edition, has_architecture=has_architecture),
+            encoding="utf-8",
+        )
         written.append(readme)
+
+        if has_architecture:
+            architecture = edition_dir / "architecture.svg"
+            shutil.copyfile(architecture_source, architecture)
+            written.append(architecture)
 
         if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
             setup = edition_dir / "endorctl-setup.md"
@@ -161,6 +181,10 @@ def _edition_record(destination: Path, recipe: EndorAgentRecipe, edition: str, e
         "artifacts": [_artifact_record(destination, path) for path in files],
         "requires_endorctl": recipe.requires_endorctl if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe) else "",
     }
+
+
+def _architecture_source(recipe_file: Path) -> Path:
+    return recipe_file.parent / "architecture.svg"
 
 
 def _artifact_record(destination: Path, path: Path) -> dict[str, Any]:
@@ -676,18 +700,23 @@ def _agent_summary(agent_id: str) -> str:
 
 def _agent_example(agent_id: str) -> str:
     examples = {
-        "ai-sast-triage": "@agent-ai-sast-triage triage AI SAST findings for project <project_uuid>",
+        "ai-sast-triage": "@agent-ai-sast-triage triage AI SAST findings for this repository",
         "dependency-decision-helper": "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
-        "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for project <project_uuid> package lodash",
+        "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for repository <owner>/<repo> package lodash",
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
-        "remediation-planner": "@agent-remediation-planner preview remediation options for project <project_uuid>",
+        "remediation-planner": "@agent-remediation-planner preview remediation options for this repository",
         "repository-dependency-reviewer": "@agent-repository-dependency-reviewer review this repository's dependency manifests",
         "vulnerability-explainer": "@agent-vulnerability-explainer explain CVE-2021-44228",
     }
     return examples.get(agent_id, f"@agent-{agent_id} help")
 
 
-def _claude_code_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
+def _claude_code_edition_readme(
+    recipe: EndorAgentRecipe,
+    edition: str,
+    *,
+    has_architecture: bool = False,
+) -> str:
     name = _edition_name(edition)
     if recipe.safety_class == "mutating":
         requirements = [
@@ -728,6 +757,7 @@ def _claude_code_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
             "Bash use is limited by prompt to the documented Endor lookup commands.",
         ]
 
+    architecture = _architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
         f"# {recipe.name} {name}",
         "",
@@ -748,6 +778,7 @@ def _claude_code_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
         _example_prompt(recipe, edition),
         "```",
         "",
+        *architecture,
         "## Notes",
         "",
         *[f"- {item}" for item in notes],
@@ -755,7 +786,12 @@ def _claude_code_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
     ])
 
 
-def _managed_agents_edition_readme(recipe: EndorAgentRecipe, edition: str) -> str:
+def _managed_agents_edition_readme(
+    recipe: EndorAgentRecipe,
+    edition: str,
+    *,
+    has_architecture: bool = False,
+) -> str:
     name = _edition_name(edition)
     if edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
         requirements = [
@@ -782,6 +818,7 @@ def _managed_agents_edition_readme(recipe: EndorAgentRecipe, edition: str) -> st
             "Bash use remains limited by prompt to the documented Endor lookup commands.",
         ]
 
+    architecture = _architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
         f"# {recipe.name} {name}",
         "",
@@ -811,11 +848,46 @@ def _managed_agents_edition_readme(recipe: EndorAgentRecipe, edition: str) -> st
         _managed_example_prompt(recipe, edition),
         "```",
         "",
+        *architecture,
         "## Notes",
         "",
         *[f"- {item}" for item in notes],
         "",
     ])
+
+
+def _architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
+    body = {
+        "ai-sast-triage": (
+            "In Agent Kit, PR/MR creation is host-mediated. Claude Code runs in the target "
+            "checkout, gathers Endor evidence, applies the confirmed diff locally, creates "
+            "and pushes a branch, then opens the change request with configured source-provider "
+            "credentials. If the host cannot perform one of those steps, the agent must stop "
+            "and report the missing capability in `data_gaps`."
+        ),
+        "upgrade-impact-analysis": (
+            "This read-only agent resolves a human project selector to the Endor project used "
+            "for VersionUpgrade queries. Claude Managed Agents do not inspect local git by "
+            "default, so sessions should provide a repository URL, owner/repo, or Endor "
+            "project name instead of requiring a project UUID."
+        ),
+        "remediation-planner": (
+            "This dry-run workflow resolves project or finding context, gathers Endor "
+            "remediation evidence, and returns a plan only. It does not edit files, push "
+            "branches, or open PRs/MRs."
+        ),
+    }.get(
+        recipe.id,
+        "This diagram shows the generated agent contract, host responsibilities, and external systems required at runtime.",
+    )
+    return [
+        "## Architecture",
+        "",
+        f"![{recipe.name} architecture](architecture.svg)",
+        "",
+        body,
+        "",
+    ]
 
 
 def _edition_name(edition: str) -> str:
@@ -829,15 +901,15 @@ def _edition_name(edition: str) -> str:
 def _example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition") -> str:
     input_names = {field.name for field in recipe.inputs}
     if recipe.id == "ai-sast-triage":
-        return f"@agent-{recipe.id} triage AI SAST findings for project <project_uuid>"
+        return f"@agent-{recipe.id} triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
     if recipe.id == "remediation-planner":
-        return f"@agent-{recipe.id} preview remediation options for project <project_uuid>"
+        return f"@agent-{recipe.id} preview remediation options for this repository"
     if "vulnerability_id" in input_names:
         return f"@agent-{recipe.id} explain CVE-2021-44228"
     if recipe.id == "upgrade-impact-analysis":
         if edition == "developer-edition":
             return f"@agent-{recipe.id} assess npm lodash from 4.17.20 to 4.17.21"
-        return f"@agent-{recipe.id} show the safest upgrade path for project <project_uuid> package lodash, including CIA and manifest files"
+        return f"@agent-{recipe.id} show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA and manifest files"
     if recipe.id == "package-risk-summary":
         return f"@agent-{recipe.id} summarize npm lodash version 4.17.20"
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
@@ -848,15 +920,15 @@ def _example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition
 def _managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition") -> str:
     input_names = {field.name for field in recipe.inputs}
     if recipe.id == "ai-sast-triage":
-        return "Triage AI SAST findings for project <project_uuid>."
+        return "Triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
     if recipe.id == "remediation-planner":
-        return "Preview remediation options for project <project_uuid>."
+        return "Preview remediation options for repository <owner>/<repo>."
     if "vulnerability_id" in input_names:
         return "Explain CVE-2021-44228."
     if recipe.id == "upgrade-impact-analysis":
         if edition == "developer-edition":
             return "Assess upgrading npm lodash from 4.17.20 to 4.17.21."
-        return "Show the safest upgrade path for project <project_uuid> package lodash, including CIA, findings fixed, manifest files, and breaking changes."
+        return "Show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA, findings fixed, manifest files, and breaking changes."
     if recipe.id == "package-risk-summary":
         return "Summarize npm lodash version 4.17.20."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):

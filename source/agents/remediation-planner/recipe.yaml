@@ -17,10 +17,18 @@ inputs:
   kind: namespace
   required: false
   description: Namespace
+- name: project_name
+  kind: string
+  required: false
+  description: Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL.
+- name: repository_url
+  kind: string
+  required: false
+  description: Optional source repository URL when the host cannot infer it from a local checkout or session context.
 - name: project_uuid
   kind: string
-  required: true
-  description: Endor project UUID
+  required: false
+  description: Optional advanced fallback when project_name or repository_url cannot be resolved uniquely.
 - name: finding_uuid
   kind: string
   required: false

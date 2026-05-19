@@ -3,11 +3,11 @@
   "auri_commit": "0d8b84ca140bc3dc3dbd648bb6ab50ee3e774317",
   "auri_root": "/Users/mattbrown/AURI/endor-labs-auri-agentic-framework",
   "extractor_version": "0.2.0",
-  "generated_at": "2026-05-19T05:23:39.272578+00:00",
+  "generated_at": "2026-05-19T05:52:28+00:00",
   "graph_attr": "ai_sast_triage_graph",
   "module": "auri.agents.appsec.ai_sast_triage",
   "override_file": "/Users/mattbrown/AURI/auri-agent-plucker/config/overrides.yaml",
-  "override_sha256": "c49b5052ef86d9fa69736fec46f71aacf5e2a96b1cfd0c713a30c94189bc0c27",
+  "override_sha256": "ef50bdef2397fe792f04dd62ec3c6fbdfa162425eec43a6ce729d5ee9315f5bf",
   "registry_file": "/Users/mattbrown/AURI/endor-labs-auri-agentic-framework/src/auri/agents/registry.py",
   "registry_sha256": "f70b1c4d12961e4c9a789d30aa26577537a3cb617c56d6b067388b971dc0b11a",
   "signals": [
