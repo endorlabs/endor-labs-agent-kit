@@ -13,7 +13,7 @@ from conftest import repo_root
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "agents" / "repository-dependency-reviewer"
+    src = repo_root() / "source" / "agents" / "repository-dependency-reviewer"
     dst = tmp_path / "repository-dependency-reviewer"
     shutil.copytree(src, dst)
     return dst / "recipe.yaml"
@@ -76,7 +76,6 @@ def test_repository_dependency_reviewer_publish_is_claude_code_only(tmp_path):
         "README.md",
     }
     assert not (dest / "claude-managed-agents" / "repository-dependency-reviewer").exists()
-    assert not (dest / "github-copilot-plugin" / "repository-dependency-reviewer").exists()
     assert (
         "Review local dependency manifests with read-only file inspection and Endor evidence"
         in (dest / "README.md").read_text()
@@ -95,7 +94,7 @@ def test_repository_dependency_reviewer_publish_is_claude_code_only(tmp_path):
 
 def test_repository_dependency_reviewer_eval_cases_cover_v0_outcomes():
     evals = yaml.safe_load(
-        (repo_root() / "agents" / "repository-dependency-reviewer" / "evals" / "cases.yaml").read_text()
+        (repo_root() / "source" / "agents" / "repository-dependency-reviewer" / "evals" / "cases.yaml").read_text()
     )
 
     case_ids = {case["id"] for case in evals["cases"]}

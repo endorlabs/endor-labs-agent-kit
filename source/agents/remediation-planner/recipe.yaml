@@ -1,0 +1,54 @@
+recipe_schema_version: 1
+id: remediation-planner
+name: Remediation Planner
+version: 0.1.0
+description: Preview safe remediation options without opening PRs.
+safety_class: read_only
+endor_tier_minimum: enterprise
+supported_transports:
+- mcp
+host_capabilities_required:
+  run_commands: false
+  read_files: false
+  write_files: false
+  open_pr: false
+inputs:
+- name: namespace
+  kind: namespace
+  required: false
+  description: Namespace
+- name: project_uuid
+  kind: string
+  required: true
+  description: Endor project UUID
+- name: finding_uuid
+  kind: string
+  required: false
+  description: Optional finding UUID
+- name: package_name
+  kind: string
+  required: false
+  description: Optional package name
+outputs:
+- name: summary
+  kind: string
+  required: true
+  description: Concise result summary.
+- name: data_gaps
+  kind: list[string]
+  required: true
+  description: Missing Endor, source, or host signals.
+evals: evals/cases.yaml
+compatible_hosts:
+- claude-code
+host_editions:
+  claude-code:
+  - enterprise-edition
+mutations: []
+required_endor_mcp_tools:
+- get_resource
+endorctl_api_invocations: []
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: Endor MCP server with access to the customer tenant.
+requires_endorctl: ''

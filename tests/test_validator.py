@@ -21,7 +21,7 @@ def test_canonical_recipe_validates():
 
 
 def test_all_agent_recipes_validate():
-    recipe_paths = sorted((repo_root() / "agents").glob("*/recipe.yaml"))
+    recipe_paths = sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
 
     assert recipe_paths
     for path in recipe_paths:
@@ -42,18 +42,31 @@ def test_rejects_bad_slug():
     assert any("id:" in error for error in _errors(data))
 
 
-def test_rejects_mutating_safety_in_v0():
+def test_accepts_mutating_recipe_with_matching_host_capabilities():
     data = _data()
     data["safety_class"] = "mutating"
+    data["mutations"] = ["write_files", "open_pr"]
+    data["host_capabilities_required"]["run_commands"] = True
+    data["host_capabilities_required"]["read_files"] = True
+    data["host_capabilities_required"]["write_files"] = True
+    data["host_capabilities_required"]["open_pr"] = True
 
-    assert any("read_only" in error for error in _errors(data))
+    assert _errors(data) == []
 
 
-def test_rejects_non_empty_mutations_in_v0():
+def test_rejects_non_empty_mutations_for_read_only_recipe():
     data = _data()
     data["mutations"] = ["open_pr"]
 
-    assert any("mutations" in error for error in _errors(data))
+    assert any("read_only recipes" in error for error in _errors(data))
+
+
+def test_rejects_mutating_recipe_without_matching_host_capabilities():
+    data = _data()
+    data["safety_class"] = "mutating"
+    data["mutations"] = ["open_pr"]
+
+    assert any("open_pr" in error for error in _errors(data))
 
 
 def test_rejects_unknown_mcp_tool():
@@ -72,7 +85,7 @@ def test_rejects_forbidden_topology_fields():
 
 def test_rejects_bad_host_edition_override():
     data = _data()
-    data["host_editions"] = {"github-copilot-plugin": ["preview-edition"]}
+    data["host_editions"] = {"claude-code": ["preview-edition"]}
 
     assert any("unsupported edition" in error for error in _errors(data))
 

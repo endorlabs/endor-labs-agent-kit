@@ -69,6 +69,9 @@ def compile_claude_code(
     )
     outputs: list[Path] = []
     _remove_legacy_output_dirs(recipe_file.parent / "dist" / "claude-code")
+    for item in EDITIONS:
+        if item not in editions:
+            shutil.rmtree(recipe_file.parent / "dist" / HOST / item, ignore_errors=True)
     for item in editions:
         out_dir = recipe_file.parent / "dist" / HOST / item
         out_dir.mkdir(parents=True, exist_ok=True)
@@ -95,7 +98,7 @@ def _remove_legacy_output_dirs(out_dir: Path) -> None:
 def _render_subagent(recipe: EndorAgentRecipe, instructions: str, *, edition: str) -> str:
     body = _instructions_for_edition(instructions, edition)
     disallowed_tools = _disallowed_tools(recipe)
-    if edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
+    if edition == "developer-edition" or not recipe.host_capabilities_required.run_commands:
         disallowed_tools = ("Bash",) + disallowed_tools
 
     return (
@@ -118,7 +121,12 @@ def _render_subagent(recipe: EndorAgentRecipe, instructions: str, *, edition: st
 
 
 def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
-    if edition == "developer-edition":
+    if recipe.safety_class == "mutating":
+        transport = (
+            "Enterprise Edition. This artifact may run commands, edit files, "
+            "and open change requests when the workflow explicitly requires it."
+        )
+    elif edition == "developer-edition":
         transport = "Developer Edition. MCP-only; do not use Bash or endorctl in this artifact."
     elif not _allows_read_only_endorctl(recipe):
         transport = "Enterprise Edition. MCP-only; this artifact does not require Bash or endorctl."
@@ -142,12 +150,14 @@ def _allows_read_only_endorctl(recipe: EndorAgentRecipe) -> bool:
 def _disallowed_tools(recipe: EndorAgentRecipe) -> tuple[str, ...]:
     """Map abstract recipe capabilities to Claude Code tool restrictions."""
 
-    if recipe.host_capabilities_required.read_files:
-        return tuple(
-            tool
-            for tool in READ_OR_WRITE_TOOLS
-            if tool not in READ_ONLY_FILE_TOOLS
-        )
+    if recipe.host_capabilities_required.write_files or recipe.host_capabilities_required.open_pr:
+        allowed = READ_ONLY_FILE_TOOLS | {"Write", "Edit", "MultiEdit"}
+    elif recipe.host_capabilities_required.read_files:
+        allowed = READ_ONLY_FILE_TOOLS
+    else:
+        allowed = frozenset()
+    if allowed:
+        return tuple(tool for tool in READ_OR_WRITE_TOOLS if tool not in allowed)
     return READ_OR_WRITE_TOOLS
 
 

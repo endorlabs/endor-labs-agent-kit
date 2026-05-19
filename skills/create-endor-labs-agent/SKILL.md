@@ -15,9 +15,9 @@ current repository.
 
 The repository is source-first:
 
-- contributors edit `agents/<agent>/recipe.yaml`
-- contributors edit `agents/<agent>/instructions.md`
-- contributors edit `agents/<agent>/evals/cases.yaml`
+- contributors edit `source/agents/<agent>/recipe.yaml`
+- contributors edit `source/agents/<agent>/instructions.md`
+- contributors edit `source/agents/<agent>/evals/cases.yaml`
 - generated catalog artifacts stay checked in for users
 - CI rejects stale generated artifacts
 
@@ -27,7 +27,7 @@ Before editing, confirm that the current repository contains:
 
 - `pyproject.toml`
 - `src/endor_agent_kit/`
-- `agents/`
+- `source/agents/`
 - `manifest.json`
 
 If those are missing, ask for the path to `endor-labs-agent-kit`.
@@ -37,8 +37,8 @@ Read these files before designing the agent:
 - `README.md`
 - `src/endor_agent_kit/recipe.py`
 - `src/endor_agent_kit/validator.py`
-- one similar `agents/*/recipe.yaml`
-- one similar `agents/*/instructions.md`
+- one similar `source/agents/*/recipe.yaml`
+- one similar `source/agents/*/instructions.md`
 - one similar `tests/test_*_smoke.py`
 
 ## Pick The Agent Shape
@@ -55,15 +55,14 @@ Choose the smallest safe host set:
   local developer assistant
 - `claude-managed-agents` for Anthropic-hosted agents that do not need local
   repository file access
-- `github-copilot-plugin` for GitHub Copilot or AgentHQ package distribution
 
 Choose capabilities conservatively:
 
 - `read_files: true` only when the agent must inspect local files
 - `run_commands: true` only when the recipe supports `endorctl_api`
-- `write_files: false` for v1 catalog agents
-- `open_pr: false` for v1 catalog agents
-- `mutations: []` for v1 catalog agents
+- `write_files: false` unless the agent is explicitly mutating
+- `open_pr: false` unless the agent is explicitly mutating
+- `mutations: []` for read-only and dry-run agents
 
 Use `supported_transports` this way:
 
@@ -76,15 +75,15 @@ Use `supported_transports` this way:
 Create:
 
 ```text
-agents/<agent-id>/
+source/agents/<agent-id>/
   recipe.yaml
   instructions.md
   evals/cases.yaml
 ```
 
-The exact source files are `agents/<agent-id>/recipe.yaml`,
-`agents/<agent-id>/instructions.md`, and
-`agents/<agent-id>/evals/cases.yaml`.
+The exact source files are `source/agents/<agent-id>/recipe.yaml`,
+`source/agents/<agent-id>/instructions.md`, and
+`source/agents/<agent-id>/evals/cases.yaml`.
 
 Use a lowercase kebab-case `agent-id`.
 
@@ -182,8 +181,8 @@ Run:
 ```bash
 python3 -m pip install -e ".[dev]"
 python3 -m pytest -q
-endor-agent-kit validate agents/<agent-id>/recipe.yaml
-endor-agent-kit publish agents/*/recipe.yaml --dest . --prune
+endor-agent-kit validate source/agents/<agent-id>/recipe.yaml
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
 git diff --check
 ```
 
@@ -191,9 +190,9 @@ Then verify:
 
 ```bash
 python3 -m pytest -q
-for recipe in agents/*/recipe.yaml; do endor-agent-kit validate "$recipe"; done
-endor-agent-kit publish agents/*/recipe.yaml --dest . --prune
-git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents github-copilot-plugin
+for recipe in source/agents/*/recipe.yaml; do endor-agent-kit validate "$recipe"; done
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
+git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
 ```
 
 If generated files changed, review them and keep them committed with the source

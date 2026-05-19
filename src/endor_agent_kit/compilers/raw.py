@@ -5,8 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from endor_agent_kit.compilers.claude_code import _instructions_for_edition
-from endor_agent_kit.recipe import EndorAgentRecipe, load_recipe, read_instructions
+from endor_agent_kit.compilers.claude_code import EDITIONS, HOST as CLAUDE_CODE_HOST, _instructions_for_edition
+from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host, load_recipe, read_instructions
 from endor_agent_kit.validator import validate_recipe_file
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
@@ -26,18 +26,19 @@ def compile_raw(recipe_path: str | Path) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
     _remove_legacy_raw_prompts(out_dir)
 
+    for edition in EDITIONS:
+        stale = out_dir / f"system-prompt-{edition}.md"
+        if stale.exists():
+            stale.unlink()
+
     outputs = [
-        _write(
-            out_dir / "system-prompt-developer-edition.md",
-            _instructions_for_edition(instructions, "developer-edition"),
-        ),
-        _write(
-            out_dir / "system-prompt-enterprise-edition.md",
-            _instructions_for_edition(instructions, "enterprise-edition"),
-        ),
+        _write(out_dir / f"system-prompt-{edition}.md", _instructions_for_edition(instructions, edition))
+        for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)
+    ]
+    outputs.extend([
         _write(out_dir / "mcp-config.json", _mcp_config(recipe)),
         _write(out_dir / "endorctl-setup.md", _endorctl_setup(recipe)),
-    ]
+    ])
     return outputs
 
 
@@ -70,6 +71,25 @@ def _mcp_config(recipe: EndorAgentRecipe) -> str:
 
 def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
     invocations = "\n".join(f"- `{name}`" for name in recipe.endorctl_api_invocations) or "- none"
+    if recipe.safety_class == "mutating":
+        return "\n".join([
+            "# Runtime Setup",
+            "",
+            f"The Enterprise Edition {recipe.name} preserves a mutating workflow.",
+            "Use an authenticated Endor tenant plus local source-provider credentials",
+            "before allowing patch or change-request steps.",
+            "",
+            f"Required endorctl version: `{recipe.requires_endorctl or 'latest recommended'}`",
+            "",
+            "The recipe documents these Endor lookup groups:",
+            "",
+            invocations,
+            "",
+            "The agent may also use git and source-provider CLIs such as `gh` or `glab`",
+            "when the user asks it to apply patches and open a PR/MR. Confirm the",
+            "target repository, base branch, generated diff, and change-request body",
+            "before allowing those mutations.",
+        ])
     if "endorctl_api" not in recipe.supported_transports or not recipe.endorctl_api_invocations:
         return "\n".join([
             "# endorctl Setup",

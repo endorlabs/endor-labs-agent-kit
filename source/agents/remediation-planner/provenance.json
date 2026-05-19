@@ -1,0 +1,17 @@
+{
+  "auri_agent_id": "remediation_planner",
+  "auri_commit": "0d8b84ca140bc3dc3dbd648bb6ab50ee3e774317",
+  "auri_root": "/Users/mattbrown/AURI/endor-labs-auri-agentic-framework",
+  "extractor_version": "0.2.0",
+  "generated_at": "2026-05-19T05:23:39.252825+00:00",
+  "graph_attr": "remediation_planner_graph",
+  "module": "auri.agents.developer.remediation_planner",
+  "override_file": "/Users/mattbrown/AURI/auri-agent-plucker/config/overrides.yaml",
+  "override_sha256": "c49b5052ef86d9fa69736fec46f71aacf5e2a96b1cfd0c713a30c94189bc0c27",
+  "registry_file": "/Users/mattbrown/AURI/endor-labs-auri-agentic-framework/src/auri/agents/registry.py",
+  "registry_sha256": "f70b1c4d12961e4c9a789d30aa26577537a3cb617c56d6b067388b971dc0b11a",
+  "signals": [],
+  "source_file": "/Users/mattbrown/AURI/endor-labs-auri-agentic-framework/src/auri/agents/developer/remediation_planner.py",
+  "source_sha256": "82776a03e659d724022dd6af8a4eb4fac190659ca813381cde35ac999c2b00fd",
+  "target_id": "remediation-planner"
+}

@@ -5,6 +5,40 @@
         {
           "artifacts": [
             {
+              "bytes": 1100,
+              "path": "claude-code/ai-sast-triage/enterprise-edition/README.md",
+              "sha256": "fffec140350ed88f18d1c9bf681f264e9fcff0f1a23649209df7fc6eff0746bd"
+            },
+            {
+              "bytes": 4552,
+              "path": "claude-code/ai-sast-triage/enterprise-edition/ai-sast-triage.md",
+              "sha256": "97ff184da5c8b1c7fad9723905fc64c6852069a75015d0a109146b5ce6aac8e8"
+            },
+            {
+              "bytes": 629,
+              "path": "claude-code/ai-sast-triage/enterprise-edition/endorctl-setup.md",
+              "sha256": "1bfe5505763a4dc66f4f6f9f48b5a9ef6eaf3220d0cb76540c1306d3e9f45556"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "ai-sast-triage",
+      "name": "AI SAST Triage",
+      "source": {
+        "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 948,
               "path": "claude-code/dependency-decision-helper/developer-edition/README.md",
               "sha256": "549e7892e91b06fd1645d8018063304d2a986e51956b9ee85dbc80f2fed18db1"
@@ -46,7 +80,7 @@
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
       "source": {
-        "builder_recipe": "agents/dependency-decision-helper/recipe.yaml",
+        "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -97,10 +131,39 @@
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
       "source": {
-        "builder_recipe": "agents/package-risk-summary/recipe.yaml",
+        "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 707,
+              "path": "claude-code/remediation-planner/enterprise-edition/README.md",
+              "sha256": "ca97edf262a8d578a904f058e65a6e6addbcd0acfbf890cdc42d071adfe9d29a"
+            },
+            {
+              "bytes": 1326,
+              "path": "claude-code/remediation-planner/enterprise-edition/remediation-planner.md",
+              "sha256": "149fe2d39dc28454fb123bd3983be892df77db1d215fc480fdebca44cbe7953a"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "requires_endorctl": ""
+        }
+      ],
+      "host": "claude-code",
+      "id": "remediation-planner",
+      "name": "Remediation Planner",
+      "source": {
+        "builder_recipe": "source/agents/remediation-planner/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
     },
     {
       "editions": [
@@ -143,7 +206,7 @@
       "id": "repository-dependency-reviewer",
       "name": "Endor Labs Repository Dependency Reviewer",
       "source": {
-        "builder_recipe": "agents/repository-dependency-reviewer/recipe.yaml",
+        "builder_recipe": "source/agents/repository-dependency-reviewer/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -194,7 +257,7 @@
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
       "source": {
-        "builder_recipe": "agents/upgrade-impact-analysis/recipe.yaml",
+        "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -240,7 +303,7 @@
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
       "source": {
-        "builder_recipe": "agents/vulnerability-explainer/recipe.yaml",
+        "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -311,7 +374,7 @@
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
       "source": {
-        "builder_recipe": "agents/dependency-decision-helper/recipe.yaml",
+        "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -382,7 +445,7 @@
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
       "source": {
-        "builder_recipe": "agents/package-risk-summary/recipe.yaml",
+        "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -453,7 +516,7 @@
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
       "source": {
-        "builder_recipe": "agents/upgrade-impact-analysis/recipe.yaml",
+        "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
@@ -519,265 +582,7 @@
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
       "source": {
-        "builder_recipe": "agents/vulnerability-explainer/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
-              "bytes": 788,
-              "path": "github-copilot-plugin/dependency-decision-helper/developer-edition/README.md",
-              "sha256": "1f9716297bb23b77b987adb0697f6150b93b5591e95e1fafe148653b9cf0d26e"
-            },
-            {
-              "bytes": 5672,
-              "path": "github-copilot-plugin/dependency-decision-helper/developer-edition/agents/dependency-decision-helper.agent.md",
-              "sha256": "7e47113b5a71b3fe0ee7bd621826a3dd7f4cd4317c605a9e8b71538c87730c34"
-            },
-            {
-              "bytes": 394,
-              "path": "github-copilot-plugin/dependency-decision-helper/developer-edition/plugin.json",
-              "sha256": "2f5f18ace86b75a0fb24ff2710ec1f4fe97af919485a445437f72f734b5c238e"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1032,
-              "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/README.md",
-              "sha256": "538bc1ec3491d1b0f1f0f19fae06572afba4482077ce329f91d46d82399f6de6"
-            },
-            {
-              "bytes": 9904,
-              "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/agents/dependency-decision-helper.agent.md",
-              "sha256": "dcb1ff14f2282c78f9adce3f78cdb3004b161a2c7ce2908b2c6ec8f80d2e8ca1"
-            },
-            {
-              "bytes": 396,
-              "path": "github-copilot-plugin/dependency-decision-helper/enterprise-edition/plugin.json",
-              "sha256": "b1a3ffae21492fc59d03a1e5cd3cb900e05c80fed00cb1a23c42fe2e5a9700c0"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ">=1.0"
-        }
-      ],
-      "host": "github-copilot-plugin",
-      "id": "dependency-decision-helper",
-      "name": "Dependency Decision Helper",
-      "source": {
-        "builder_recipe": "agents/dependency-decision-helper/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
-              "bytes": 969,
-              "path": "github-copilot-plugin/package-risk-summary/developer-edition/README.md",
-              "sha256": "dacaedcaae2002093f7ec7fc15520d5588598ecd7858baa8492ccb1bf7026f6b"
-            },
-            {
-              "bytes": 5733,
-              "path": "github-copilot-plugin/package-risk-summary/developer-edition/agents/package-risk-summary.agent.md",
-              "sha256": "8a289646af9a0cfd770f4468a38b5648d0a0cd8f042fddbf0d8f68c4fd274817"
-            },
-            {
-              "bytes": 393,
-              "path": "github-copilot-plugin/package-risk-summary/developer-edition/plugin.json",
-              "sha256": "2ec0c329a7bc39c28fb85a50584b8dbfb03122b9bf3e8e938dce9bc6d3fb8750"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1213,
-              "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/README.md",
-              "sha256": "cb636640c359099a4d74739774b8c8eec642f14c731e298621f59f458f65eb5f"
-            },
-            {
-              "bytes": 10029,
-              "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/agents/package-risk-summary.agent.md",
-              "sha256": "faa079d16af9406cbef183e4c501578fce7fde54bba4c96c6378a824dcd039a9"
-            },
-            {
-              "bytes": 395,
-              "path": "github-copilot-plugin/package-risk-summary/enterprise-edition/plugin.json",
-              "sha256": "3e49c4dd098e20a30f0e24f09bc19e3fde2f74f41f0b5b66a4c2ae8ed38dda55"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ">=1.0"
-        }
-      ],
-      "host": "github-copilot-plugin",
-      "id": "package-risk-summary",
-      "name": "Endor Labs Package Risk Summary",
-      "source": {
-        "builder_recipe": "agents/package-risk-summary/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
-              "bytes": 1063,
-              "path": "github-copilot-plugin/tenant-findings/enterprise-edition/README.md",
-              "sha256": "1341ff8cff6ec612b287ccd6d30f1635b7f4db138fbb62f60281d11dd89adaec"
-            },
-            {
-              "bytes": 6857,
-              "path": "github-copilot-plugin/tenant-findings/enterprise-edition/agents/tenant-findings.agent.md",
-              "sha256": "67a79b570514c0ba3d044c6544559e1ccb8f9f8e5e215831ce1845db1f2a3aed"
-            },
-            {
-              "bytes": 401,
-              "path": "github-copilot-plugin/tenant-findings/enterprise-edition/plugin.json",
-              "sha256": "d9c4f2f96d0730c8d38c7a6e336d44fd699d12e9e56aed27a132206e70c88305"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ">=1.0"
-        }
-      ],
-      "host": "github-copilot-plugin",
-      "id": "tenant-findings",
-      "name": "Endor Labs Tenant Findings",
-      "source": {
-        "builder_recipe": "agents/tenant-findings/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
-              "bytes": 930,
-              "path": "github-copilot-plugin/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "4917b099a697b9859ab7e1d00bf275ac78fca5d3dd5c3c6aabf0ab38d33d4d64"
-            },
-            {
-              "bytes": 9952,
-              "path": "github-copilot-plugin/upgrade-impact-analysis/developer-edition/agents/upgrade-impact-analysis.agent.md",
-              "sha256": "25809decce679ef1014490cf1bb2612398e164908f23b4aa5c329505e6b976e6"
-            },
-            {
-              "bytes": 399,
-              "path": "github-copilot-plugin/upgrade-impact-analysis/developer-edition/plugin.json",
-              "sha256": "2e8ccc18c1ee3790f80690fc70d880c319eb57bb947d3fb4c82e2bfd0d8924b9"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1174,
-              "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "2626954f80b85d053196df3b816367221f1335449f5ba120ea987f09957e1b54"
-            },
-            {
-              "bytes": 18425,
-              "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/agents/upgrade-impact-analysis.agent.md",
-              "sha256": "fed8b63112750a1fd764530a6df190dee0279c3d653bdab57cf07d0a864ba619"
-            },
-            {
-              "bytes": 401,
-              "path": "github-copilot-plugin/upgrade-impact-analysis/enterprise-edition/plugin.json",
-              "sha256": "1c76dfc7b3c4758a8fb23d0716508b9a2b510a18b2580b2ec56ddcbf48d51861"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ">=1.0"
-        }
-      ],
-      "host": "github-copilot-plugin",
-      "id": "upgrade-impact-analysis",
-      "name": "Endor Labs Upgrade Impact Analysis",
-      "source": {
-        "builder_recipe": "agents/upgrade-impact-analysis/recipe.yaml",
-        "recipe_schema_version": 1
-      },
-      "version": "1.0.0"
-    },
-    {
-      "editions": [
-        {
-          "artifacts": [
-            {
-              "bytes": 880,
-              "path": "github-copilot-plugin/vulnerability-explainer/developer-edition/README.md",
-              "sha256": "5217f191cd8231b82e687ff5321176055ad2fc6dc09541acaddb1cca124090b1"
-            },
-            {
-              "bytes": 5418,
-              "path": "github-copilot-plugin/vulnerability-explainer/developer-edition/agents/vulnerability-explainer.agent.md",
-              "sha256": "03315c3a52996817851cfa33e91a0db5913a446bbe3c6fd8d5f1279a244e0c0e"
-            },
-            {
-              "bytes": 399,
-              "path": "github-copilot-plugin/vulnerability-explainer/developer-edition/plugin.json",
-              "sha256": "61e61328ef1f3d9f3d4d1f4faf53a4692785ef50f85d268057ebcc0708abf6df"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1098,
-              "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/README.md",
-              "sha256": "df2df80cd8c4ec174a57a647cc201621a4e6eb73b55d4377020c484de2b6a1b0"
-            },
-            {
-              "bytes": 5770,
-              "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/agents/vulnerability-explainer.agent.md",
-              "sha256": "990599d2f6fc4f7deb97c9b661f54fad77b3be3bbd3275eec7fbb73c1e483412"
-            },
-            {
-              "bytes": 401,
-              "path": "github-copilot-plugin/vulnerability-explainer/enterprise-edition/plugin.json",
-              "sha256": "50dc5711ef86bba949680b84c1b45b9fe15939feb2717fa2a7fe9f4df790cb8c"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "requires_endorctl": ""
-        }
-      ],
-      "host": "github-copilot-plugin",
-      "id": "vulnerability-explainer",
-      "name": "Endor Labs Vulnerability Explainer",
-      "source": {
-        "builder_recipe": "agents/vulnerability-explainer/recipe.yaml",
+        "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1
       },
       "version": "1.0.0"

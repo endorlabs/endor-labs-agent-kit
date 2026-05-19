@@ -1,0 +1,80 @@
+recipe_schema_version: 1
+id: ai-sast-triage
+name: AI SAST Triage
+version: 0.1.0
+description: Parse Endor AI SAST findings, fetch source at the pinned commit, generate grounded patches for confirmed true positives, and open change requests when requested.
+safety_class: mutating
+endor_tier_minimum: enterprise
+supported_transports:
+- mcp
+- endorctl_api
+host_capabilities_required:
+  run_commands: true
+  read_files: true
+  write_files: true
+  open_pr: true
+inputs:
+- name: project_name
+  kind: string
+  required: false
+  description: Input derived from AURI state field `project_name`.
+- name: finding_limit
+  kind: integer
+  required: false
+  description: Input derived from AURI state field `finding_limit`.
+- name: severity_filter
+  kind: list[string]
+  required: false
+  description: Input derived from AURI state field `severity_filter`.
+- name: cwe_filter
+  kind: list[string]
+  required: false
+  description: Input derived from AURI state field `cwe_filter`.
+- name: finding_uuids
+  kind: list[string]
+  required: false
+  description: Input derived from AURI state field `finding_uuids`.
+- name: namespace
+  kind: string
+  required: false
+  description: Input derived from AURI state field `namespace`.
+outputs:
+- name: summary
+  kind: string
+  required: true
+  description: Triage summary including confirmed TPs, likely FPs, inconclusive findings, patches ready, and PR/MR counters.
+- name: verdicts
+  kind: list[object]
+  required: true
+  description: Per-finding parsed AI SAST classification, scorecard evidence, severity scoring, data-flow anchors, and deterministic skip reason when applicable.
+- name: patches
+  kind: list[object]
+  required: true
+  description: Generated unified diffs with confidence, patch reason, sibling-file references, and source SHA for TRUE_POSITIVE findings with source context.
+- name: change_requests
+  kind: list[object]
+  required: true
+  description: PR/MR URLs, branches, status, and failure reason for any requested change-request creation.
+- name: data_gaps
+  kind: list[string]
+  required: true
+  description: Missing Endor, source, or host signals.
+evals: evals/cases.yaml
+compatible_hosts:
+- claude-code
+host_editions:
+  claude-code:
+  - enterprise-edition
+mutations:
+- write_files
+- open_pr
+required_endor_mcp_tools:
+- get_resource
+endorctl_api_invocations:
+- list_ai_sast_findings
+- get_finding_explanation
+- fetch_project_source_version
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: Endor MCP server with access to the customer tenant.
+requires_endorctl: '>=1.0'

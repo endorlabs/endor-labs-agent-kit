@@ -8,5 +8,5 @@ def repo_root() -> Path:
 
 
 def recipe_path() -> Path:
-    return repo_root() / "agents" / "dependency-decision-helper" / "recipe.yaml"
+    return repo_root() / "source" / "agents" / "dependency-decision-helper" / "recipe.yaml"
 
