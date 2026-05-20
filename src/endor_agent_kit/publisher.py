@@ -100,8 +100,10 @@ def _publish_claude_code(
     edition_records: list[dict[str, Any]] = []
     architecture_source = _architecture_source(recipe_file)
     has_architecture = architecture_source.is_file()
-    for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS):
-        edition_dir = agent_root / edition
+    editions = editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)
+    flat_layout = len(editions) == 1
+    for edition in editions:
+        edition_dir = _published_edition_dir(agent_root, editions, edition)
         edition_dir.mkdir(parents=True, exist_ok=True)
         artifact = edition_dir / f"{recipe.id}.md"
         source_artifact = recipe_file.parent / "dist" / CLAUDE_CODE_HOST / edition / f"{recipe.id}.md"
@@ -110,7 +112,12 @@ def _publish_claude_code(
 
         readme = edition_dir / "README.md"
         readme.write_text(
-            _claude_code_edition_readme(recipe, edition, has_architecture=has_architecture),
+            _claude_code_edition_readme(
+                recipe,
+                edition,
+                has_architecture=has_architecture,
+                show_edition_name=not flat_layout,
+            ),
             encoding="utf-8",
         )
         written.append(readme)
@@ -119,6 +126,12 @@ def _publish_claude_code(
             architecture = edition_dir / "architecture.svg"
             shutil.copyfile(architecture_source, architecture)
             written.append(architecture)
+
+        actions_source = _actions_source(recipe_file, recipe)
+        if actions_source.is_file():
+            actions = edition_dir / "actions.yaml"
+            shutil.copyfile(actions_source, actions)
+            written.append(actions)
 
         if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
             setup = edition_dir / "endorctl-setup.md"
@@ -142,8 +155,10 @@ def _publish_claude_managed_agents(
     edition_records: list[dict[str, Any]] = []
     architecture_source = _architecture_source(recipe_file)
     has_architecture = architecture_source.is_file()
-    for edition in editions_for_host(recipe, CLAUDE_MANAGED_AGENTS_HOST, EDITIONS):
-        edition_dir = agent_root / edition
+    editions = editions_for_host(recipe, CLAUDE_MANAGED_AGENTS_HOST, EDITIONS)
+    flat_layout = len(editions) == 1
+    for edition in editions:
+        edition_dir = _published_edition_dir(agent_root, editions, edition)
         edition_dir.mkdir(parents=True, exist_ok=True)
         source_dir = recipe_file.parent / "dist" / CLAUDE_MANAGED_AGENTS_HOST / edition
 
@@ -154,7 +169,12 @@ def _publish_claude_managed_agents(
 
         readme = edition_dir / "README.md"
         readme.write_text(
-            _managed_agents_edition_readme(recipe, edition, has_architecture=has_architecture),
+            _managed_agents_edition_readme(
+                recipe,
+                edition,
+                has_architecture=has_architecture,
+                show_edition_name=not flat_layout,
+            ),
             encoding="utf-8",
         )
         written.append(readme)
@@ -163,6 +183,12 @@ def _publish_claude_managed_agents(
             architecture = edition_dir / "architecture.svg"
             shutil.copyfile(architecture_source, architecture)
             written.append(architecture)
+
+        actions_source = _actions_source(recipe_file, recipe)
+        if actions_source.is_file():
+            actions = edition_dir / "actions.yaml"
+            shutil.copyfile(actions_source, actions)
+            written.append(actions)
 
         if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
             setup = edition_dir / "endorctl-setup.md"
@@ -173,11 +199,18 @@ def _publish_claude_managed_agents(
     return written, edition_records
 
 
+def _published_edition_dir(agent_root: Path, editions: tuple[str, ...], edition: str) -> Path:
+    if len(editions) == 1:
+        return agent_root
+    return agent_root / edition
+
+
 def _edition_record(destination: Path, recipe: EndorAgentRecipe, edition: str, edition_dir: Path) -> dict[str, Any]:
     files = sorted(path for path in edition_dir.rglob("*") if path.is_file())
     return {
         "id": edition,
         "name": _edition_name(edition),
+        "path": edition_dir.relative_to(destination).as_posix(),
         "artifacts": [_artifact_record(destination, path) for path in files],
         "requires_endorctl": recipe.requires_endorctl if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe) else "",
     }
@@ -185,6 +218,12 @@ def _edition_record(destination: Path, recipe: EndorAgentRecipe, edition: str, e
 
 def _architecture_source(recipe_file: Path) -> Path:
     return recipe_file.parent / "architecture.svg"
+
+
+def _actions_source(recipe_file: Path, recipe: EndorAgentRecipe) -> Path:
+    if not recipe.action_contracts_path:
+        return recipe_file.parent / "__no_actions_yaml__"
+    return recipe_file.parent / recipe.action_contracts_path
 
 
 def _artifact_record(destination: Path, path: Path) -> dict[str, Any]:
@@ -359,8 +398,8 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "| Goal | Start Here | You Do Not Need |",
         "| --- | --- | --- |",
-        "| Install a Claude Code agent | `claude-code/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |",
-        "| Install a Claude Managed Agent | `claude-managed-agents/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |",
+        "| Install a Claude Code agent | `claude-code/<agent>/README.md` or `claude-code/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |",
+        "| Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` or `claude-managed-agents/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |",
         "| Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |",
         "| Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |",
         "",
@@ -372,18 +411,20 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "| Host | Generated path | Typical install target |",
         "| --- | --- | --- |",
-        "| Claude Code | `claude-code/<agent>/<edition>/` | `.claude/agents/` in the target repository |",
-        "| Claude Managed Agents | `claude-managed-agents/<agent>/<edition>/` | Anthropic Console or `ant` CLI agent and environment creation |",
+        "| Claude Code | `claude-code/<agent>/` | `.claude/agents/` in the target repository |",
+        "| Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |",
         "",
         "## Editions",
         "",
-        "Each agent is published in one or more editions. If an edition does not apply",
-        "to a host, the catalog omits that host/edition directory.",
+        "Most users should not need to think about editions. Agents with one supported",
+        "runtime are published directly under `claude-code/<agent>/` or",
+        "`claude-managed-agents/<agent>/`. Agents with multiple support levels keep",
+        "edition subdirectories so you can choose the right tradeoff.",
         "",
         "| Edition | Best for | Signals | Shell access |",
         "| --- | --- | --- | --- |",
-        "| Developer Edition | Fast, low-friction checks | Endor Model Context Protocol (MCP) tools | Not allowed |",
-        "| Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, documented Endor API lookups, and declared host capabilities | Agent-specific; see the recipe safety class |",
+        "| Developer Edition | Fast, low-friction checks | Agent-specific read-only signals, usually Endor MCP when declared | Not allowed |",
+        "| Enterprise Edition | Richer Endor context when the agent supports it | Documented Endor API/endorctl lookups, optional MCP when declared, and declared host capabilities | Agent-specific; see the recipe safety class |",
         "",
         "Use **Developer Edition** when you want the safest default with no Bash",
         "access.",
@@ -396,8 +437,9 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "## Install An Agent",
         "",
-        "Pick an agent from the catalog, then choose the host and edition directory",
-        "that matches your environment.",
+        "Pick an agent from the catalog, then open that host directory's README. If",
+        "the agent has edition subdirectories, choose the one that matches your",
+        "environment; otherwise use the agent directory directly.",
         "",
         "### Ask An LLM To Install It",
         "",
@@ -409,19 +451,17 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "Agent Kit root: /path/to/endor-labs-agent-kit",
         "Host: claude-code",
-        "Agent id: dependency-decision-helper",
-        "Edition: developer-edition",
+        "Agent directory: claude-code/ai-sast-triage",
         "",
         "Please:",
-        "1. Read the install README at <Agent Kit root>/<Host>/<Agent id>/<Edition>/README.md.",
+        "1. Read the install README at <Agent Kit root>/<Agent directory>/README.md.",
         "2. Install the generated agent artifact from that directory into this repository.",
         "3. Preserve the generated agent prompt exactly; do not rewrite or summarize it.",
-        "4. Tell me any Endor MCP, endorctl, repository, or credential setup still required.",
+        "4. Tell me any Endor MCP if declared, endorctl, repository, or credential setup still required.",
         "5. Show me the command or prompt I should use to invoke the agent.",
         "```",
         "",
-        "Replace the host, agent id, and edition with the directory you selected from",
-        "the catalog.",
+        "Replace `Agent directory` with the directory you selected from the catalog.",
         "",
         "### Claude Code",
         "",
@@ -430,14 +470,14 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "```bash",
         "mkdir -p .claude/agents",
-        "cp /path/to/endor-labs-agent-kit/claude-code/dependency-decision-helper/developer-edition/dependency-decision-helper.md \\",
-        "  .claude/agents/dependency-decision-helper.md",
+        "cp /path/to/endor-labs-agent-kit/claude-code/ai-sast-triage/ai-sast-triage.md \\",
+        "  .claude/agents/ai-sast-triage.md",
         "```",
         "",
         "Then invoke it from Claude Code:",
         "",
         "```text",
-        "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
+        "@agent-ai-sast-triage triage AI SAST findings for this repository",
         "```",
         "",
         "### Claude Managed Agents",
@@ -458,9 +498,10 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "| Access path | Used by | Notes |",
         "| --- | --- | --- |",
-        "| Endor MCP | Developer Edition and Enterprise Edition agents | Required for every published agent. Configure it through the target host's MCP mechanism. |",
-        "| Read-only `endorctl api` | Enterprise Edition agents that need tenant or project data beyond public MCP tools | The generated prompts constrain commands to documented read-only lookups. Per-edition README files link to `endorctl-setup.md` when needed. |",
-        "| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required only when the agent is expected to apply patches and open change requests. |",
+        "| Endor MCP | Agents whose generated artifact declares an MCP server | Configure it through the target host's MCP mechanism only when the selected agent requires it. |",
+        "| `endorctl api` or direct Endor API | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to documented lookups and writes. Agent or edition README files link to `endorctl-setup.md` when needed. |",
+        "| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |",
+        "| Endor policy-write access | AI SAST Triage standalone exceptions | Required only when a verified AppSec PR/MR approval should create a scoped Endor exception policy. The agent must show the policy spec and ask for confirmation before writing. |",
         "",
         "## Example Prompts",
         "",
@@ -495,6 +536,7 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "When a read-only agent permits Bash, its prompt limits Bash to documented",
         "read-only Endor lookup commands. Claude Code artifacts deny Bash when it is",
         "not needed.",
+        "",
         "When a recipe declares `host_capabilities_required.read_files: true`,",
         "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS` for",
         "read-only workspace inspection; file mutation, notebook, web, and todo tools",
@@ -578,9 +620,11 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "",
         "## Recipe Reference",
         "",
-        "Recipes are YAML files with schema version `1`. They describe the agent's",
+        "Recipes are YAML files with schema version `1` or `2`. They describe the agent's",
         "prompt, Endor access paths, host capabilities, inputs, outputs, evals, and",
-        "published host editions.",
+        "published host editions. Schema v2 recipes may also point to `actions.yaml`",
+        "for semantic side-effect contracts such as opening change requests or",
+        "requesting exception-policy approval.",
         "",
         "| Field | Purpose |",
         "| --- | --- |",
@@ -588,6 +632,7 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "| `safety_class`, `mutations` | Safety contract. Recipes may be `read_only`, `dry_run`, or explicitly `mutating` with matching host capabilities. |",
         "| `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |",
         "| `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |",
+        "| `action_contracts_path` | Optional schema v2 path to `actions.yaml`, which declares semantic side effects and adapter requirements. |",
         "| `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |",
         "| `compatible_hosts` | Hosts that should receive generated artifacts. |",
         "| `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |",
@@ -606,6 +651,7 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "  agents/",
         "    <agent>/",
         "      recipe.yaml",
+        "      actions.yaml",
         "      instructions.md",
         "      evals/cases.yaml",
         "skills/",
@@ -674,10 +720,14 @@ def _repository_layout(agents: list[dict[str, Any]]) -> list[str]:
             agent_id = str(agent["id"])
             lines.append(f"  {agent_id}/")
             for edition in agent.get("editions", []):
-                edition_id = str(edition.get("id", ""))
-                lines.append(f"    {edition_id}/")
+                edition_path = str(edition.get("path") or "")
+                flat_layout = edition_path == f"{host}/{agent_id}"
+                if not flat_layout:
+                    edition_id = str(edition.get("id", ""))
+                    lines.append(f"    {edition_id}/")
                 for artifact in sorted(edition.get("artifacts", []), key=lambda item: str(item.get("path", ""))):
-                    lines.append(f"      {Path(str(artifact['path'])).name}")
+                    indent = "    " if flat_layout else "      "
+                    lines.append(f"{indent}{Path(str(artifact['path'])).name}")
     return lines
 
 
@@ -687,9 +737,9 @@ def _agent_name(agent: dict[str, Any]) -> str:
 
 def _agent_summary(agent_id: str) -> str:
     summaries = {
-        "ai-sast-triage": "Triage Endor AI SAST findings, generate grounded patches, and open requested change requests",
+        "ai-sast-triage": "Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests",
         "dependency-decision-helper": "Decide whether to add, upgrade to, or keep a specific package version",
-        "upgrade-impact-analysis": "Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
+        "upgrade-impact-analysis": "Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
         "package-risk-summary": "Summarize the risk profile of a specific package version",
         "remediation-planner": "Preview safe dependency remediation options without opening PRs",
         "repository-dependency-reviewer": "Review local dependency manifests with read-only file inspection and Endor evidence",
@@ -716,33 +766,48 @@ def _claude_code_edition_readme(
     edition: str,
     *,
     has_architecture: bool = False,
+    show_edition_name: bool = True,
 ) -> str:
     name = _edition_name(edition)
+    title = f"{recipe.name} {name}" if show_edition_name else recipe.name
+    artifact_label = "edition" if show_edition_name else "agent"
     if recipe.safety_class == "mutating":
         requirements = [
             "Claude Code with the generated subagent file installed.",
-            "Endor tenant access through the configured Endor MCP server and documented Endor API lookups.",
+            "Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.",
             "A local workspace checkout for any repository the agent will patch.",
             "Git and source-provider credentials that can push a branch and open the requested pull request or merge request.",
         ]
+        if recipe.id == "ai-sast-triage":
+            requirements.extend(
+                [
+                    "GitHub or GitLab credentials that can read PR/MR reviews and comments from the target repository.",
+                    "A configured AppSec approver list when the agent is allowed to create Endor exception policies in standalone mode.",
+                    "Endor policy-write access for direct exception-policy creation after verified AppSec approval.",
+                ]
+            )
         notes = [
-            "This edition preserves the AURI workflow capabilities as a mutating agent.",
-            "The agent may fetch source context, prepare patches, edit files, run commands, and open a change request when the workflow requires it.",
-            "Confirm repository and branch targets before allowing write or pull-request actions.",
+            f"This {artifact_label} preserves the AI SAST workflow capabilities as a mutating agent.",
+            "The agent may fetch source context, prepare patches, edit files, run commands, open a change request, verify AppSec approval evidence, and create an Endor exception policy when the workflow requires it.",
+            "Confirm repository and branch targets before allowing write or pull-request actions. Confirm the rendered Endor policy spec before allowing exception-policy creation.",
         ]
+        if recipe.action_contracts_path:
+            notes.append(
+                "`actions.yaml` lists the semantic side effects and any external adapter requirements."
+            )
     elif edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
         requirements = [
             "Claude Code with the generated subagent file installed.",
             "Endor MCP access through the subagent's bundled MCP server config.",
-            "No shell access or authenticated endorctl setup is required for this edition.",
+            f"No shell access or authenticated endorctl setup is required for this {artifact_label}.",
         ]
         if recipe.host_capabilities_required.read_files:
             requirements.insert(2, "Read-only access to dependency manifests in the target workspace.")
         notes = [
             (
-                "This edition uses Endor MCP tools plus Claude Code read-only file inspection."
+                f"This {artifact_label} uses Endor MCP tools plus Claude Code read-only file inspection."
                 if recipe.host_capabilities_required.read_files
-                else "This edition uses Endor MCP tools only."
+                else f"This {artifact_label} uses Endor MCP tools only."
             ),
             "It records unavailable non-MCP signals in data_gaps rather than fabricating evidence.",
         ]
@@ -753,13 +818,13 @@ def _claude_code_edition_readme(
             "Authenticated endorctl for the read-only API lookups documented in endorctl-setup.md.",
         ]
         notes = [
-            "This edition uses MCP first, then read-only endorctl api lookups for richer signals.",
+            f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals.",
             "Bash use is limited by prompt to the documented Endor lookup commands.",
         ]
 
     architecture = _architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
-        f"# {recipe.name} {name}",
+        f"# {title}",
         "",
         recipe.description.strip(),
         "",
@@ -772,12 +837,15 @@ def _claude_code_edition_readme(
         "",
         *[f"- {item}" for item in requirements],
         "",
+        *_claude_code_agent_setup_section(recipe),
         "## Example",
         "",
         "```text",
         _example_prompt(recipe, edition),
         "```",
         "",
+        *_claude_code_example_workflow_section(recipe),
+        *_claude_code_smoke_test_section(recipe),
         *architecture,
         "## Notes",
         "",
@@ -786,22 +854,174 @@ def _claude_code_edition_readme(
     ])
 
 
+def _claude_code_agent_setup_section(
+    recipe: EndorAgentRecipe,
+) -> list[str]:
+    if recipe.id != "ai-sast-triage":
+        return []
+    return [
+        "## Setup Checklist",
+        "",
+        "### 1. Install The Subagent",
+        "",
+        "Run this from the target repository where Claude Code will operate:",
+        "",
+        "```bash",
+        "mkdir -p .claude/agents",
+        "cp /path/to/endor-labs-agent-kit/claude-code/ai-sast-triage/ai-sast-triage.md \\",
+        "  .claude/agents/ai-sast-triage.md",
+        "```",
+        "",
+        "Or ask an LLM with filesystem access to do it:",
+        "",
+        "```text",
+        "Install the Endor Labs AI SAST Triage agent in this repository.",
+        "",
+        "Agent Kit root: /path/to/endor-labs-agent-kit",
+        "Agent artifact: claude-code/ai-sast-triage/ai-sast-triage.md",
+        "Install path: .claude/agents/ai-sast-triage.md",
+        "",
+        "Preserve the generated agent prompt exactly. After installing it, check",
+        "endorctl, git remote, and GitHub/GitLab CLI access, then tell",
+        "me the exact prompt to invoke the agent.",
+        "```",
+        "",
+        "### 2. Verify Local Access",
+        "",
+        "Run the checks that match your source provider:",
+        "",
+        "```bash",
+        "git remote -v",
+        "endorctl --version",
+        "gh auth status        # GitHub repositories",
+        "glab auth status      # GitLab repositories",
+        "```",
+        "",
+        "Claude Code does not need an Endor MCP server for this agent. If `endorctl`,",
+        "direct Endor API credentials, or source-provider credentials are not",
+        "authenticated, the agent should report the missing setup in `data_gaps`.",
+        "",
+        "### 3. Understand Finding Evidence",
+        "",
+        "When Endor AI SAST includes `## Exploit Reproduction`, the agent uses it",
+        "for priority, confidence, and safe local validation planning. It must not",
+        "run exploit steps against live systems or paste weaponized detail into a",
+        "PR/MR body.",
+        "",
+        "When Endor AI SAST includes `## Remediation Guidance`, the agent uses it as",
+        "patch context. It can apply the guidance as-is, adapt it to the codebase,",
+        "or reject it with a reason when the pinned source or tests show a safer fix.",
+        "",
+        "### 4. Configure AppSec Approvers",
+        "",
+        "Standalone exception creation requires an approval artifact in the PR/MR.",
+        "Give the agent the allowed approvers before it creates an Endor exception",
+        "policy. Use GitHub handles, GitLab usernames, or team slugs:",
+        "",
+        "```text",
+        "AppSec approvers: @alice, @bob, @endor-labs/appsec",
+        "```",
+        "",
+        "The developer requesting the exception must not approve their own request.",
+        "",
+        "### 5. Approval Comment Format",
+        "",
+        "When the agent requests an exception, an AppSec approver should comment or",
+        "review with one of these exact forms:",
+        "",
+        "```text",
+        "APPSEC APPROVED: false positive for finding <finding_uuid> - <why this is not exploitable>",
+        "APPSEC APPROVED: accept risk for finding <finding_uuid> until YYYY-MM-DD - <owner, mitigation, and why code will not change now>",
+        "```",
+        "",
+        "The agent verifies the approver, finding UUID, request type, and expiration",
+        "before it renders the Endor policy spec.",
+        "",
+        "### 6. Policy Creation Gate",
+        "",
+        "The agent may create a scoped Endor exception policy only after all of these",
+        "are true:",
+        "",
+        "- AppSec approval evidence is verified from the PR/MR.",
+        "- The policy spec is shown in the Claude Code session.",
+        "- The user explicitly confirms policy creation.",
+        "- Endor returns a policy UUID.",
+        "",
+    ]
+
+
+def _claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
+    if recipe.id != "ai-sast-triage":
+        return []
+    return [
+        "## Example Workflow",
+        "",
+        "Use these copy/paste prompts after the agent is installed. Replace the",
+        "placeholders with the finding UUID, PR/MR URL, date, and AppSec approvers",
+        "from your environment.",
+        "",
+        "### 1. Triage Without Mutating",
+        "",
+        "```text",
+        "@agent-ai-sast-triage triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy. Show confirmed true positives, likely false positives, inconclusive findings, exploit-driven priority, remediation-guidance usage, and data gaps.",
+        "```",
+        "",
+        "### 2. Open One Remediation PR",
+        "",
+        "```text",
+        "@agent-ai-sast-triage remediate finding <finding_uuid> for this repository. Use Endor Exploit Reproduction and Remediation Guidance as context, but verify the fix against the source. Show me the patch, branch name, PR/MR title, and PR/MR body before pushing. After I approve, open exactly one PR/MR.",
+        "```",
+        "",
+        "### 3. Request Exception Approval",
+        "",
+        "```text",
+        "@agent-ai-sast-triage request an AppSec exception review for finding <finding_uuid> on PR/MR <pr_or_mr_url>. Allowed AppSec approvers: @alice, @bob. Do not create an Endor policy yet. Post or update a PR/MR comment with the exact approval phrases the approver can use.",
+        "```",
+        "",
+        "### 4. AppSec Approval Comment",
+        "",
+        "An allowed AppSec approver can use one of these comments or review bodies:",
+        "",
+        "```text",
+        "APPSEC APPROVED: false positive for finding <finding_uuid> - <why this is not exploitable>",
+        "APPSEC APPROVED: accept risk for finding <finding_uuid> until YYYY-MM-DD - <owner, mitigation, and why code will not change now>",
+        "```",
+        "",
+        "The requester, PR author, and agent account must not approve their own",
+        "exception request.",
+        "",
+        "### 5. Create The Scoped Endor Exception Policy",
+        "",
+        "```text",
+        "@agent-ai-sast-triage verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, render the Endor exception policy spec for my confirmation. After I confirm, create the scoped policy and comment on the PR/MR with the policy UUID, approver, expiration, scope, and evidence URL.",
+        "```",
+        "",
+        "Do not combine remediation and exception approval in normal production use.",
+        "If you test both paths for QA, label the exception as temporary validation.",
+        "Redact concrete exploit payloads from PR/MR prose and comments.",
+        "",
+    ]
+
+
 def _managed_agents_edition_readme(
     recipe: EndorAgentRecipe,
     edition: str,
     *,
     has_architecture: bool = False,
+    show_edition_name: bool = True,
 ) -> str:
     name = _edition_name(edition)
+    title = f"{recipe.name} {name}" if show_edition_name else recipe.name
+    artifact_label = "edition" if show_edition_name else "agent"
     if edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
         requirements = [
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
             "A remote Endor MCP server URL configured in agent.yaml.",
             "An Anthropic credential vault referenced from session-template.yaml when MCP auth is required.",
-            "No pre-built Bash or filesystem tools are enabled for this edition.",
+            f"No pre-built Bash or filesystem tools are enabled for this {artifact_label}.",
         ]
         notes = [
-            "This edition uses the Managed Agents MCP connector only.",
+            f"This {artifact_label} uses the Managed Agents MCP connector only.",
             "The generated `agent.yaml` intentionally uses a placeholder MCP URL that must be replaced.",
             "Unavailable MCP, vault, auth, or account-tier signals are reported in data_gaps.",
         ]
@@ -813,14 +1033,14 @@ def _managed_agents_edition_readme(
             "An environment that can install and authenticate endorctl for the read-only API lookups documented in endorctl-setup.md.",
         ]
         notes = [
-            "This edition uses MCP first, then read-only endorctl api lookups for richer signals.",
+            f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals.",
             "The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.",
             "Bash use remains limited by prompt to the documented Endor lookup commands.",
         ]
 
     architecture = _architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
-        f"# {recipe.name} {name}",
+        f"# {title}",
         "",
         recipe.description.strip(),
         "",
@@ -860,10 +1080,11 @@ def _architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
     body = {
         "ai-sast-triage": (
             "In Agent Kit, PR/MR creation is host-mediated. Claude Code runs in the target "
-            "checkout, gathers Endor evidence, applies the confirmed diff locally, creates "
-            "and pushes a branch, then opens the change request with configured source-provider "
-            "credentials. If the host cannot perform one of those steps, the agent must stop "
-            "and report the missing capability in `data_gaps`."
+            "checkout, gathers Endor evidence including exploit reproduction and remediation "
+            "guidance when present, applies the confirmed diff locally, creates and pushes a "
+            "branch, then opens the change request with configured source-provider credentials. "
+            "If the host cannot perform one of those steps, the agent must stop and report the "
+            "missing capability in `data_gaps`."
         ),
         "upgrade-impact-analysis": (
             "This read-only agent resolves a human project selector to the Endor project used "
@@ -886,6 +1107,28 @@ def _architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
         f"![{recipe.name} architecture](architecture.svg)",
         "",
         body,
+        "",
+    ]
+
+
+def _claude_code_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
+    if recipe.id != "ai-sast-triage":
+        return []
+    return [
+        "## QA Smoke Test",
+        "",
+        "When validating this agent, isolate the run from user-level Claude skills so",
+        "the result proves the Agent Kit artifact itself is doing the work.",
+        "",
+        "```bash",
+        "export CLAUDE_CONFIG_DIR=\"$(mktemp -d)\"",
+        "claude -p --agent ai-sast-triage --permission-mode bypassPermissions \\",
+        "  \"Triage AI SAST findings for this repository. Do not open a PR until I approve the patch.\"",
+        "```",
+        "",
+        "The run log should not reference user-level skills such as",
+        "`~/.claude/skills/endor-ai-sast`. If it does, the test is contaminated",
+        "and should be rerun in a clean Claude configuration.",
         "",
     ]
 

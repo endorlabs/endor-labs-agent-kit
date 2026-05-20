@@ -7,8 +7,8 @@ Analysis (CIA), breaking changes, manifest targets, Endor Patch availability,
 and whether an upgrade should happen now, proceed with caution, be deferred, or
 wait for more evidence.
 
-Enterprise Edition must mirror AURI's read-only Upgrade Impact Analysis
-workflow. AURI's source of truth is the platform's precomputed
+Enterprise Edition must mirror Endor's read-only Upgrade Impact Analysis
+workflow. The source of truth is the platform's precomputed
 `VersionUpgrade` resource. When project context is available, treat
 `VersionUpgrade` as authoritative and do not replace it with ad hoc package
 version comparison.
@@ -21,19 +21,19 @@ coordinate with Endor MCP tools only:
 - `current_version`: currently used version
 - `target_version`: candidate upgrade version
 
-Enterprise Edition accepts AURI-style context:
+Enterprise Edition accepts Endor project context:
 
 - `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
 - `repository_url`: source repository URL when the host cannot infer it from a local checkout or session context
 - `project_uuid`: optional advanced fallback for `VersionUpgrade` queries after human project selectors fail
 - `namespace`: optional Endor tenant namespace; use the configured namespace when omitted
 - `package_name`: optional filter on `spec.upgrade_info.direct_dependency_package`
-- `finding_uuid`: optional finding UUID for AURI's canonical single-finding fixing-upgrade map
+- `finding_uuid`: optional finding UUID for Endor's canonical single-finding fixing-upgrade map
 - `upgrade_uuid`: optional `VersionUpgrade` UUID for full CIA details
 - `current_version` and `target_version`: optional exact versions to filter or cross-check against `VersionUpgrade`
 
 If Developer Edition lacks the explicit coordinate, ask for the missing values.
-If Enterprise Edition is asked for AURI-parity upgrade impact and no
+If Enterprise Edition is asked for Endor upgrade impact and no
 `project_name`, `repository_url`, `project_uuid`, or active project context is
 available, ask for a repository URL, owner/repo, or Endor project name instead
 of asking for a UUID first. Do not inspect repository manifests in v0.
@@ -63,7 +63,7 @@ dismiss findings, create policies, install packages, or mutate Endor Labs state.
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
   targets, or Endor Patch availability.
-- In Enterprise Edition, preserve AURI fields exactly when present:
+- In Enterprise Edition, preserve Endor platform fields exactly when present:
   `upgrade_risk`, `is_best`, `is_latest`, `worth_it`,
   `total_findings_fixed`, `total_findings_introduced`,
   `to_version_age_in_days`, `score`, `score_explanation`, `deps_added`,
@@ -196,9 +196,9 @@ This edition is MCP-only and does not grant shell execution.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
-# Enterprise Edition Workflow: AURI-Parity VersionUpgrade UIA
+# Enterprise Edition Workflow: Endor Platform VersionUpgrade UIA
 
-Enterprise Edition mirrors AURI's read-only Upgrade Impact Analysis workflow.
+Enterprise Edition mirrors Endor's read-only Upgrade Impact Analysis workflow.
 Use `VersionUpgrade` resources first. Bash is allowed only for the read-only
 Endor lookups shown in this section and the package-version fallback section.
 Do not run `endorctl scan`, `endorctl api update`, `endorctl api delete`, file
@@ -214,9 +214,9 @@ from `repository_url`, `project_name`, the current git remote, or session
 project context. Never query an arbitrary project when project resolution is
 missing or ambiguous.
 
-## Step 1: Choose the AURI Query Mode
+## Step 1: Choose the Endor Query Mode
 
-Use the most specific AURI mode available:
+Use the most specific Endor mode available:
 
 1. Resolve project context from `repository_url`, `project_name`, active
    repository context, session metadata, or optional `project_uuid`.
@@ -226,16 +226,16 @@ Use the most specific AURI mode available:
    `VersionUpgrade` details and use that as the selected upgrade.
 4. If the resolved `project_uuid` is available, list upgrade recommendations for the project.
    Filter by `package_name`, `current_version`, or `target_version` only after
-   fetching records, matching AURI's client-side filtering behavior.
+   fetching records, matching the platform's client-side filtering behavior.
 5. If no project selector is available, ask for a repository URL, owner/repo, or
-   Endor project name for AURI-parity UIA. Only use the package-version
+   Endor project name for Endor upgrade impact analysis. Only use the package-version
    fallback when the user explicitly wants a generic package comparison and
    provides `ecosystem`, `package_name`, `current_version`, and
    `target_version`.
 
-## Step 2: List AURI Upgrade Recommendations
+## Step 2: List Endor Upgrade Recommendations
 
-Run AURI's default `best_only=true` query:
+Run the default `best_only=true` query:
 
 ```bash
 endorctl api list \
@@ -246,7 +246,7 @@ endorctl api list \
 ```
 
 Parse `.list.objects[]`. Skip project-summary records that do not have
-`spec.upgrade_info`. Build one candidate per record with these AURI fields:
+`spec.upgrade_info`. Build one candidate per record with these Endor platform fields:
 
 - `uuid`
 - `package_name`: `spec.upgrade_info.direct_dependency_package` or `spec.name`
@@ -265,18 +265,18 @@ Parse `.list.objects[]`. Skip project-summary records that do not have
 If `package_name` is provided, filter client-side after fetching records. Match
 when the lower-cased `package_name` is a substring of lower-cased
 `direct_dependency_package`. Do not use a server-side `contains` filter on
-`spec.upgrade_info.direct_dependency_package`; AURI avoids it because it drops
+`spec.upgrade_info.direct_dependency_package`; the platform avoids it because it drops
 legitimate matches.
 
 If `current_version` or `target_version` is provided, filter client-side after
 parsing `from_version` or `to_version`.
 
-Sort candidates exactly like AURI:
+Sort candidates with the platform ranking:
 
 1. More `total_findings_fixed` first.
 2. Then lower `upgrade_risk`, with order `LOW`, `MEDIUM`, `HIGH`, then unknown.
 
-If no candidate remains and `package_name` was provided, run AURI's fallback
+If no candidate remains and `package_name` was provided, run the fallback
 lookup without the `best_only` filters:
 
 ```bash
@@ -293,7 +293,7 @@ lookup fails, is denied, returns no objects, or cannot be parsed, add
 
 ## Step 3: Fetch Canonical Per-Finding Fixing Upgrades
 
-When a resolved `project_uuid` is available, fetch AURI's
+When a resolved `project_uuid` is available, fetch the
 `get_finding_fixing_upgrades` map. This is authoritative for a specific
 finding because the platform caps the server-side recommendation to one
 upgrade candidate per finding.
@@ -309,7 +309,7 @@ Parse every PackageVersion-scoped record's
 `spec.finding_fixing_upgrades`. For each `<finding_uuid>`, read the first item
 from `upgrade_list` and convert it into the same candidate shape as Step 2.
 First upgrade wins if the same finding appears under multiple root packages,
-matching AURI.
+matching the platform.
 
 If the user provided `finding_uuid`, select this canonical fixing upgrade over
 the project recommendation list. If the map is unavailable, add
@@ -345,9 +345,9 @@ Emit each as `"[<change_type>] <description>"`. Preserve the raw
 payloads. If details cannot be fetched, add `upgrade_details` or
 `cia_results` to `data_gaps`.
 
-## Step 5: AURI Decision Rules
+## Step 5: Endor Decision Rules
 
-Use AURI's platform fields as the primary decision input:
+Use Endor platform fields as the primary decision input:
 
 - Prefer a selected upgrade with `is_best=true` and `worth_it=true`.
 - `LOW` `upgrade_risk` with `cia_status` indicating no breaking changes usually
@@ -359,7 +359,7 @@ Use AURI's platform fields as the primary decision input:
   breaking changes, or serious conflicts usually maps to `DEFER` unless the
   user is asking for emergency risk acceptance.
 - If no `VersionUpgrade` evidence is available, return `INSUFFICIENT_DATA` for
-  AURI-parity UIA and name the missing project or platform signal.
+  Endor upgrade impact analysis and name the missing project or platform signal.
 
 Always surface `findings_fixed`, `findings_introduced`, `cia_status`,
 `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, and
@@ -371,8 +371,8 @@ candidate `to_version` only when `is_endor_patch` is true.
 Only use this fallback when project-scoped `VersionUpgrade` data cannot be
 queried and the user explicitly provided `ecosystem`, `package_name`,
 `current_version`, and `target_version`. State clearly that this is not full
-AURI UIA because project-specific VersionUpgrade, CIA, manifest targeting, and
-finding-fixing maps are unavailable.
+project-scoped upgrade impact analysis because project-specific VersionUpgrade,
+CIA, manifest targeting, and finding-fixing maps are unavailable.
 
 Use Endor MCP tools for current and target risk and vulnerability evidence:
 
@@ -383,7 +383,7 @@ Use Endor MCP tools for current and target risk and vulnerability evidence:
 4. For each vulnerability id, call `get_endor_vulnerability`.
 
 Then optionally run the existing read-only OSS `PackageVersion`, score, target
-license, and `QuerySimilarPackages` lookups if needed. Add AURI-only gaps:
+license, and `QuerySimilarPackages` lookups if needed. Add project-scoped upgrade-impact gaps:
 `project_resolution`, `version_upgrade_recommendations`, `finding_fixing_upgrades`,
 `cia_results`, and `manifest_files`.
 <!-- enterprise-edition:end -->

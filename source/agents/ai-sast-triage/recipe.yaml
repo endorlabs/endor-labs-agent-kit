@@ -1,12 +1,11 @@
-recipe_schema_version: 1
+recipe_schema_version: 2
 id: ai-sast-triage
 name: AI SAST Triage
 version: 0.1.0
-description: Parse Endor AI SAST findings, fetch source at the pinned commit, generate grounded patches for confirmed true positives, and open change requests when requested.
+description: Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
 safety_class: mutating
 endor_tier_minimum: enterprise
 supported_transports:
-- mcp
 - endorctl_api
 host_capabilities_required:
   run_commands: true
@@ -42,23 +41,35 @@ inputs:
   kind: string
   required: false
   description: Optional Endor namespace override when the tenant uses child namespaces.
+- name: appsec_approvers
+  kind: list[string]
+  required: false
+  description: Optional GitHub/GitLab handles or team slugs allowed to approve standalone exception-policy creation.
 outputs:
 - name: summary
   kind: string
   required: true
-  description: Triage summary including confirmed TPs, likely FPs, inconclusive findings, patches ready, and PR/MR counters.
+  description: Triage summary including confirmed TPs, likely FPs, inconclusive findings, exploit-driven priority, remediation-guidance usage, patches ready, and PR/MR counters.
 - name: verdicts
   kind: list[object]
   required: true
-  description: Per-finding parsed AI SAST classification, scorecard evidence, severity scoring, data-flow anchors, and deterministic skip reason when applicable.
+  description: Per-finding parsed AI SAST classification, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.
 - name: patches
   kind: list[object]
   required: true
-  description: Generated unified diffs with confidence, patch reason, sibling-file references, and source SHA for TRUE_POSITIVE findings with source context.
+  description: Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, and source SHA for TRUE_POSITIVE findings with source context.
 - name: change_requests
   kind: list[object]
   required: true
   description: PR/MR URLs, branches, status, and failure reason for any requested change-request creation.
+- name: approvals
+  kind: list[object]
+  required: true
+  description: Verified AppSec approval evidence for exception requests, including approver, evidence URL, status, and data gaps.
+- name: exception_policies
+  kind: list[object]
+  required: true
+  description: Endor exception policies created after verified AppSec approval, including policy UUID, scope, expiration, and approval evidence URL.
 - name: data_gaps
   kind: list[string]
   required: true
@@ -69,17 +80,18 @@ compatible_hosts:
 host_editions:
   claude-code:
   - enterprise-edition
+action_contracts_path: actions.yaml
 mutations:
 - write_files
 - open_pr
-required_endor_mcp_tools:
-- get_resource
+required_endor_mcp_tools: []
 endorctl_api_invocations:
 - resolve_project_from_repository
 - list_ai_sast_findings
 - get_finding_explanation
 - fetch_project_source_version
+- create_scoped_exception_policy
 instructions_path: instructions.md
 model: sonnet
-requires_endor_mcp: Endor MCP server with access to the customer tenant.
+requires_endor_mcp: ""
 requires_endorctl: '>=1.0'

@@ -1,4 +1,14 @@
-<!-- shared:start -->
+---
+name: ai-sast-triage
+description: |
+  Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
+disallowedTools: NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+model: sonnet
+---
+
+> Generated from Endor Agent Kit recipe `ai-sast-triage` v0.1.0.
+> This artifact may run commands, edit files, open change requests, and call authenticated Endor API/endorctl workflows when explicitly required.
+
 # AI SAST Triage
 
 Endor's AI SAST writes a rigorous case file into spec.explanation for every finding: Summary, Data Flow, Exploit Reproduction, Remediation Guidance, Verification Scorecard, Severity Scoring, and Security Controls when those sections are available. This agent parses that case file, resolves the project and repository context, fetches source at the pinned commit SHA, triages each finding, and can prepare a PR/MR patch grounded in the actual code plus Endor's exploit and remediation context.
@@ -71,16 +81,96 @@ Resolve the Endor project in this order:
 ## Output
 
 Return concise prose plus a JSON object matching `recipe.yaml` outputs.
-<!-- shared:end -->
 
-<!-- developer-edition:start -->
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require or start an Endor MCP server.
 Use local source-provider credentials, git, and the target workspace to fetch pinned source context, apply generated patches, and open the requested PR/MR.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, source contents, patch application, branch pushes, or change-request URLs.
-<!-- developer-edition:end -->
 
-<!-- enterprise-edition:start -->
-Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require or start an Endor MCP server.
-Use local source-provider credentials, git, and the target workspace to fetch pinned source context, apply generated patches, and open the requested PR/MR.
-Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, source contents, patch application, branch pushes, or change-request URLs.
-<!-- enterprise-edition:end -->
+## Action Contracts
+
+These are the semantic side effects this agent may discuss or request.
+Do not claim an action completed unless the host performed it and returned evidence.
+
+### resolve-endor-project
+
+- kind: `endor.query`
+- safety_class: `read_only`
+- confirmation_required: `false`
+- availability: `available`
+- providers: `endorctl-api`, `endor-api`
+- required_host_capabilities: `run_commands`
+- inputs: `repository_url`, `repo_full_name`, `project_name`, `namespace`
+- outputs: `project_uuid`, `project_name`, `repo_full_name`, `namespace`
+- notes: Resolve the project from repository context first. Do not ask the user for a project UUID unless human selectors are ambiguous or absent.
+
+### fetch-pinned-source
+
+- kind: `scm.source_read`
+- safety_class: `read_only`
+- confirmation_required: `false`
+- availability: `available`
+- providers: `local-git`, `gh-cli`, `glab-cli`, `github`, `gitlab`
+- required_host_capabilities: `run_commands`, `read_files`
+- inputs: `repo`, `source_sha`, `file_path`, `data_flow_anchors`, `exploit_reproduction`, `remediation_guidance`
+- outputs: `source_text`, `source_sha`, `source_url`
+- notes: Fetch source at the Endor finding's pinned SHA before generating a patch, using data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed.
+
+### open-change-request
+
+- kind: `scm.change_request`
+- safety_class: `mutating`
+- confirmation_required: `true`
+- availability: `available`
+- providers: `local-git`, `gh-cli`, `glab-cli`, `github`, `gitlab`
+- required_host_capabilities: `run_commands`, `read_files`, `write_files`, `open_pr`
+- inputs: `repo`, `base_branch`, `patch_diff`, `title`, `body`, `exploit_context`, `remediation_guidance_usage`, `validation_plan`
+- outputs: `url`, `branch`, `status`
+- notes: Prepare the diff and PR/MR body first, include sanitized exploit context and remediation-guidance usage, run available validation, and ask for explicit approval before pushing or opening the change request.
+
+### request-exception-review
+
+- kind: `approval.request`
+- safety_class: `mutating`
+- confirmation_required: `true`
+- availability: `available`
+- providers: `github-pr-comment`, `github-pr-review`, `gitlab-mr-note`, `gitlab-approval`
+- required_host_capabilities: `run_commands`, `open_pr`
+- inputs: `finding_uuid`, `request_type`, `request_comment`, `expiration_time`, `pr_url`, `approver_instructions`
+- outputs: `approval_request_url`, `status`
+- notes: Standalone Agent Kit mode creates or updates a PR/MR comment that asks an AppSec approver to approve the exception. This action only requests approval; it does not create the Endor policy.
+
+### verify-appsec-approval
+
+- kind: `approval.verify`
+- safety_class: `read_only`
+- confirmation_required: `false`
+- availability: `available`
+- providers: `gh-cli`, `glab-cli`, `github-api`, `gitlab-api`
+- required_host_capabilities: `run_commands`
+- inputs: `pr_url`, `finding_uuid`, `request_type`, `allowed_approvers`, `approval_phrase`
+- outputs: `approved`, `approver`, `approval_evidence_url`, `approved_at`
+- notes: Before creating an Endor exception policy, verify a GitHub/GitLab review or comment from a configured AppSec approver. The developer requesting the exception is not sufficient approval evidence.
+
+### write-exception-policy
+
+- kind: `endor.policy_write`
+- safety_class: `mutating`
+- confirmation_required: `true`
+- availability: `available`
+- providers: `endorctl-api`, `endor-api`
+- required_host_capabilities: `run_commands`
+- inputs: `finding_uuid`, `project_uuid`, `exception_reason`, `expiration_time`, `approver`, `approval_evidence_url`
+- outputs: `policy_uuid`, `status`
+- notes: Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, and receiving explicit user confirmation in the Claude Code session.
+
+### post-decision-comment
+
+- kind: `scm.comment`
+- safety_class: `mutating`
+- confirmation_required: `true`
+- availability: `available`
+- providers: `github`, `gitlab`
+- required_host_capabilities: `run_commands`, `open_pr`
+- inputs: `pr_url`, `decision`, `policy_uuid`, `body`
+- outputs: `comment_url`, `status`
+- notes: After the Endor policy is created, post a PR/MR comment with the policy UUID, approver, approval evidence URL, expiration, and scope.

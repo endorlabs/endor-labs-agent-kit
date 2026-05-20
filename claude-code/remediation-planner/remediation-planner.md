@@ -13,7 +13,7 @@ model: sonnet
 ---
 
 > Generated from Endor Agent Kit recipe `remediation-planner` v0.1.0.
-> Enterprise Edition. MCP-only; this artifact does not require Bash or endorctl.
+> This artifact is MCP-only; it does not require Bash or endorctl.
 
 # Remediation Planner
 

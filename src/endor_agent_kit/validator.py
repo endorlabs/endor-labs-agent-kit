@@ -23,6 +23,19 @@ SUPPORTED_TRANSPORTS = frozenset({"mcp", "endorctl_api", "direct_api"})
 SUPPORTED_HOSTS = frozenset({"claude-code", "claude-managed-agents", "raw"})
 SUPPORTED_EDITIONS = frozenset({"developer-edition", "enterprise-edition"})
 SAFETY_CLASSES = frozenset({"read_only", "dry_run", "mutating"})
+ACTION_KINDS = frozenset(
+    {
+        "endor.query",
+        "scm.source_read",
+        "scm.change_request",
+        "scm.comment",
+        "endor.policy_write",
+        "approval.request",
+        "approval.verify",
+    }
+)
+ACTION_AVAILABILITY = frozenset({"available", "requires_adapter", "unavailable"})
+HOST_CAPABILITY_KEYS = frozenset({"run_commands", "read_files", "write_files", "open_pr"})
 FORBIDDEN_V0_FIELDS = frozenset({"graph", "nodes", "edges"})
 REQUIRED_FIELDS = (
     "recipe_schema_version",
@@ -68,8 +81,8 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
         errors.append(f"{field}: graph topology lands in a future schema version; v0 recipes are prompt-focused")
 
     schema_version = data.get("recipe_schema_version")
-    if schema_version != 1:
-        errors.append("recipe_schema_version: only version 1 is supported in v0")
+    if schema_version not in {1, 2}:
+        errors.append("recipe_schema_version: must be 1 or 2")
 
     recipe_id = data.get("id", "")
     if not isinstance(recipe_id, str) or not SLUG_RE.match(recipe_id):
@@ -137,6 +150,12 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
         if host not in SUPPORTED_HOSTS:
             errors.append(f"compatible_hosts: unsupported host {host!r}")
     _validate_host_editions(data.get("host_editions", {}), hosts, errors)
+    _validate_action_contracts(
+        data,
+        capabilities,
+        recipe_path=recipe_path,
+        errors=errors,
+    )
 
     _validate_fields(data.get("inputs"), "inputs", errors)
     _validate_fields(data.get("outputs"), "outputs", errors)
@@ -155,6 +174,91 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
             errors.append("evals: file does not exist relative to recipe")
 
     return errors
+
+
+def _validate_action_contracts(
+    data: dict[str, Any],
+    capabilities: dict[str, Any],
+    *,
+    recipe_path: Path | None,
+    errors: list[str],
+) -> None:
+    schema_version = data.get("recipe_schema_version")
+    action_path = data.get("action_contracts_path", "")
+    safety = data.get("safety_class")
+
+    if not action_path:
+        if schema_version == 2 and safety == "mutating":
+            errors.append("action_contracts_path: required for schema v2 mutating recipes")
+        return
+    if schema_version != 2:
+        errors.append("action_contracts_path: requires recipe_schema_version 2")
+        return
+    if not isinstance(action_path, str) or not action_path.strip():
+        errors.append("action_contracts_path: must be a non-empty string")
+        return
+    if recipe_path is None:
+        return
+
+    actions_file = recipe_path.parent / action_path
+    if not actions_file.is_file():
+        errors.append("action_contracts_path: file does not exist relative to recipe")
+        return
+
+    try:
+        action_data = load_yaml_file(actions_file)
+    except Exception as exc:
+        errors.append(f"action_contracts_path: failed to read YAML: {exc}")
+        return
+
+    actions = action_data.get("actions")
+    if not isinstance(actions, list) or not actions:
+        errors.append("actions.yaml actions: must be a non-empty list")
+        return
+
+    seen: set[str] = set()
+    for index, action in enumerate(actions):
+        prefix = f"actions[{index}]"
+        if not isinstance(action, dict):
+            errors.append(f"{prefix}: must be a mapping")
+            continue
+        action_id = action.get("id")
+        if not isinstance(action_id, str) or not SLUG_RE.match(action_id):
+            errors.append(f"{prefix}.id: must match ^[a-z][a-z0-9-]{{2,63}}$")
+        elif action_id in seen:
+            errors.append(f"{prefix}.id: duplicate action id {action_id!r}")
+        else:
+            seen.add(action_id)
+
+        kind = action.get("kind")
+        availability = action.get("availability", "available")
+        if availability not in ACTION_AVAILABILITY:
+            errors.append(f"{prefix}.availability: must be one of available, requires_adapter, unavailable")
+        if kind not in ACTION_KINDS and availability != "unavailable":
+            errors.append(f"{prefix}.kind: unsupported action kind {kind!r}")
+
+        action_safety = action.get("safety_class")
+        if action_safety not in SAFETY_CLASSES:
+            errors.append(f"{prefix}.safety_class: must be one of read_only, dry_run, mutating")
+        if action_safety == "mutating" and action.get("confirmation_required") is not True:
+            errors.append(f"{prefix}.confirmation_required: mutating actions must require confirmation")
+
+        required_capabilities = _list_of_strings(
+            action.get("required_host_capabilities", []),
+            f"{prefix}.required_host_capabilities",
+            errors,
+        )
+        for capability in required_capabilities:
+            if capability not in HOST_CAPABILITY_KEYS:
+                errors.append(f"{prefix}.required_host_capabilities: unsupported capability {capability!r}")
+            elif action_safety == "mutating" and availability == "available" and not bool(capabilities.get(capability, False)):
+                errors.append(
+                    f"{prefix}.required_host_capabilities.{capability}: "
+                    "must be enabled in host_capabilities_required for available mutating actions"
+                )
+
+        for list_field in ("providers", "inputs", "outputs"):
+            _list_of_strings(action.get(list_field, []), f"{prefix}.{list_field}", errors)
 
 
 def _list_of_strings(value: Any, field: str, errors: list[str]) -> list[str]:

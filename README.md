@@ -36,11 +36,11 @@ You only need `source/agents/` when you are changing or contributing an agent.
 
 | Agent | Use it when you want to... | Claude Code | Claude Managed Agents |
 | --- | --- | --- | --- |
-| AI SAST Triage | Triage Endor AI SAST findings, generate grounded patches, and open requested change requests | `claude-code/ai-sast-triage/` | - |
+| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - |
 | Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` |
 | Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` |
 | Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - |
-| Endor Labs Upgrade Impact Analysis | Analyze AURI-style upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` |
+| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` |
 | Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - |
 
@@ -48,8 +48,8 @@ You only need `source/agents/` when you are changing or contributing an agent.
 
 | Goal | Start Here | You Do Not Need |
 | --- | --- | --- |
-| Install a Claude Code agent | `claude-code/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |
-| Install a Claude Managed Agent | `claude-managed-agents/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |
+| Install a Claude Code agent | `claude-code/<agent>/README.md` or `claude-code/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |
+| Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` or `claude-managed-agents/<agent>/<edition>/README.md` | `source/`, `src/`, `tests/` |
 | Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |
 | Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |
 
@@ -61,18 +61,20 @@ are the generated host directories listed in the catalog.
 
 | Host | Generated path | Typical install target |
 | --- | --- | --- |
-| Claude Code | `claude-code/<agent>/<edition>/` | `.claude/agents/` in the target repository |
-| Claude Managed Agents | `claude-managed-agents/<agent>/<edition>/` | Anthropic Console or `ant` CLI agent and environment creation |
+| Claude Code | `claude-code/<agent>/` | `.claude/agents/` in the target repository |
+| Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
 
 ## Editions
 
-Each agent is published in one or more editions. If an edition does not apply
-to a host, the catalog omits that host/edition directory.
+Most users should not need to think about editions. Agents with one supported
+runtime are published directly under `claude-code/<agent>/` or
+`claude-managed-agents/<agent>/`. Agents with multiple support levels keep
+edition subdirectories so you can choose the right tradeoff.
 
 | Edition | Best for | Signals | Shell access |
 | --- | --- | --- | --- |
-| Developer Edition | Fast, low-friction checks | Endor Model Context Protocol (MCP) tools | Not allowed |
-| Enterprise Edition | Richer Endor context when the agent supports it | Endor MCP tools, documented Endor API lookups, and declared host capabilities | Agent-specific; see the recipe safety class |
+| Developer Edition | Fast, low-friction checks | Agent-specific read-only signals, usually Endor MCP when declared | Not allowed |
+| Enterprise Edition | Richer Endor context when the agent supports it | Documented Endor API/endorctl lookups, optional MCP when declared, and declared host capabilities | Agent-specific; see the recipe safety class |
 
 Use **Developer Edition** when you want the safest default with no Bash
 access.
@@ -85,8 +87,9 @@ or mutating workflow capabilities are required.
 
 ## Install An Agent
 
-Pick an agent from the catalog, then choose the host and edition directory
-that matches your environment.
+Pick an agent from the catalog, then open that host directory's README. If
+the agent has edition subdirectories, choose the one that matches your
+environment; otherwise use the agent directory directly.
 
 ### Ask An LLM To Install It
 
@@ -98,19 +101,17 @@ Install this Endor Labs Agent Kit agent in the current repository.
 
 Agent Kit root: /path/to/endor-labs-agent-kit
 Host: claude-code
-Agent id: dependency-decision-helper
-Edition: developer-edition
+Agent directory: claude-code/ai-sast-triage
 
 Please:
-1. Read the install README at <Agent Kit root>/<Host>/<Agent id>/<Edition>/README.md.
+1. Read the install README at <Agent Kit root>/<Agent directory>/README.md.
 2. Install the generated agent artifact from that directory into this repository.
 3. Preserve the generated agent prompt exactly; do not rewrite or summarize it.
-4. Tell me any Endor MCP, endorctl, repository, or credential setup still required.
+4. Tell me any Endor MCP if declared, endorctl, repository, or credential setup still required.
 5. Show me the command or prompt I should use to invoke the agent.
 ```
 
-Replace the host, agent id, and edition with the directory you selected from
-the catalog.
+Replace `Agent directory` with the directory you selected from the catalog.
 
 ### Claude Code
 
@@ -119,14 +120,14 @@ Code if needed.
 
 ```bash
 mkdir -p .claude/agents
-cp /path/to/endor-labs-agent-kit/claude-code/dependency-decision-helper/developer-edition/dependency-decision-helper.md \
-  .claude/agents/dependency-decision-helper.md
+cp /path/to/endor-labs-agent-kit/claude-code/ai-sast-triage/ai-sast-triage.md \
+  .claude/agents/ai-sast-triage.md
 ```
 
 Then invoke it from Claude Code:
 
 ```text
-@agent-dependency-decision-helper assess npm lodash version 4.17.20
+@agent-ai-sast-triage triage AI SAST findings for this repository
 ```
 
 ### Claude Managed Agents
@@ -147,9 +148,10 @@ Use `session-template.yaml` as the starting point when creating sessions.
 
 | Access path | Used by | Notes |
 | --- | --- | --- |
-| Endor MCP | Developer Edition and Enterprise Edition agents | Required for every published agent. Configure it through the target host's MCP mechanism. |
-| Read-only `endorctl api` | Enterprise Edition agents that need tenant or project data beyond public MCP tools | The generated prompts constrain commands to documented read-only lookups. Per-edition README files link to `endorctl-setup.md` when needed. |
-| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required only when the agent is expected to apply patches and open change requests. |
+| Endor MCP | Agents whose generated artifact declares an MCP server | Configure it through the target host's MCP mechanism only when the selected agent requires it. |
+| `endorctl api` or direct Endor API | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to documented lookups and writes. Agent or edition README files link to `endorctl-setup.md` when needed. |
+| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |
+| Endor policy-write access | AI SAST Triage standalone exceptions | Required only when a verified AppSec PR/MR approval should create a scoped Endor exception policy. The agent must show the policy spec and ask for confirmation before writing. |
 
 ## Example Prompts
 
@@ -225,6 +227,7 @@ repository credentials are available.
 When a read-only agent permits Bash, its prompt limits Bash to documented
 read-only Endor lookup commands. Claude Code artifacts deny Bash when it is
 not needed.
+
 When a recipe declares `host_capabilities_required.read_files: true`,
 Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS` for
 read-only workspace inspection; file mutation, notebook, web, and todo tools
@@ -308,9 +311,11 @@ and `raw`.
 
 ## Recipe Reference
 
-Recipes are YAML files with schema version `1`. They describe the agent's
+Recipes are YAML files with schema version `1` or `2`. They describe the agent's
 prompt, Endor access paths, host capabilities, inputs, outputs, evals, and
-published host editions.
+published host editions. Schema v2 recipes may also point to `actions.yaml`
+for semantic side-effect contracts such as opening change requests or
+requesting exception-policy approval.
 
 | Field | Purpose |
 | --- | --- |
@@ -318,6 +323,7 @@ published host editions.
 | `safety_class`, `mutations` | Safety contract. Recipes may be `read_only`, `dry_run`, or explicitly `mutating` with matching host capabilities. |
 | `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |
 | `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |
+| `action_contracts_path` | Optional schema v2 path to `actions.yaml`, which declares semantic side effects and adapter requirements. |
 | `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |
 | `compatible_hosts` | Hosts that should receive generated artifacts. |
 | `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |
@@ -336,6 +342,7 @@ source/
   agents/
     <agent>/
       recipe.yaml
+      actions.yaml
       instructions.md
       evals/cases.yaml
 skills/
@@ -345,11 +352,11 @@ src/endor_agent_kit/
 tests/
 claude-code/
   ai-sast-triage/
-    enterprise-edition/
-      README.md
-      ai-sast-triage.md
-      architecture.svg
-      endorctl-setup.md
+    README.md
+    actions.yaml
+    ai-sast-triage.md
+    architecture.svg
+    endorctl-setup.md
   dependency-decision-helper/
     developer-edition/
       README.md
@@ -367,10 +374,9 @@ claude-code/
       endorctl-setup.md
       package-risk-summary.md
   remediation-planner/
-    enterprise-edition/
-      README.md
-      architecture.svg
-      remediation-planner.md
+    README.md
+    architecture.svg
+    remediation-planner.md
   repository-dependency-reviewer/
     developer-edition/
       README.md

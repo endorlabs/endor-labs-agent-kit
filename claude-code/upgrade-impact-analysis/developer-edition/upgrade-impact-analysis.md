@@ -4,9 +4,9 @@ description: |
   Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
   safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
   Analysis, breaking changes, manifest targeting, or whether a dependency
-  upgrade should happen now. Enterprise Edition mirrors AURI's read-only UIA
-  workflow by querying precomputed VersionUpgrade resources. Developer Edition
-  is a lighter MCP-only explicit package-version comparator.
+  upgrade should happen now. Enterprise Edition queries Endor's read-only
+  VersionUpgrade workflow. Developer Edition is a lighter MCP-only explicit
+  package-version comparator.
 mcpServers:
   - endor-cli-tools:
       type: stdio
@@ -18,7 +18,7 @@ model: sonnet
 ---
 
 > Generated from Endor Agent Kit recipe `upgrade-impact-analysis` v1.0.0.
-> Developer Edition. MCP-only; do not use Bash or endorctl in this artifact.
+> Developer Edition is MCP-only; do not use Bash or endorctl in this artifact.
 
 # Endor Labs Upgrade Impact Analysis
 
@@ -28,8 +28,8 @@ Analysis (CIA), breaking changes, manifest targets, Endor Patch availability,
 and whether an upgrade should happen now, proceed with caution, be deferred, or
 wait for more evidence.
 
-Enterprise Edition must mirror AURI's read-only Upgrade Impact Analysis
-workflow. AURI's source of truth is the platform's precomputed
+Enterprise Edition must mirror Endor's read-only Upgrade Impact Analysis
+workflow. The source of truth is the platform's precomputed
 `VersionUpgrade` resource. When project context is available, treat
 `VersionUpgrade` as authoritative and do not replace it with ad hoc package
 version comparison.
@@ -42,19 +42,19 @@ coordinate with Endor MCP tools only:
 - `current_version`: currently used version
 - `target_version`: candidate upgrade version
 
-Enterprise Edition accepts AURI-style context:
+Enterprise Edition accepts Endor project context:
 
 - `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
 - `repository_url`: source repository URL when the host cannot infer it from a local checkout or session context
 - `project_uuid`: optional advanced fallback for `VersionUpgrade` queries after human project selectors fail
 - `namespace`: optional Endor tenant namespace; use the configured namespace when omitted
 - `package_name`: optional filter on `spec.upgrade_info.direct_dependency_package`
-- `finding_uuid`: optional finding UUID for AURI's canonical single-finding fixing-upgrade map
+- `finding_uuid`: optional finding UUID for Endor's canonical single-finding fixing-upgrade map
 - `upgrade_uuid`: optional `VersionUpgrade` UUID for full CIA details
 - `current_version` and `target_version`: optional exact versions to filter or cross-check against `VersionUpgrade`
 
 If Developer Edition lacks the explicit coordinate, ask for the missing values.
-If Enterprise Edition is asked for AURI-parity upgrade impact and no
+If Enterprise Edition is asked for Endor upgrade impact and no
 `project_name`, `repository_url`, `project_uuid`, or active project context is
 available, ask for a repository URL, owner/repo, or Endor project name instead
 of asking for a UUID first. Do not inspect repository manifests in v0.
@@ -84,7 +84,7 @@ dismiss findings, create policies, install packages, or mutate Endor Labs state.
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
   targets, or Endor Patch availability.
-- In Enterprise Edition, preserve AURI fields exactly when present:
+- In Enterprise Edition, preserve Endor platform fields exactly when present:
   `upgrade_risk`, `is_best`, `is_latest`, `worth_it`,
   `total_findings_fixed`, `total_findings_introduced`,
   `to_version_age_in_days`, `score`, `score_explanation`, `deps_added`,

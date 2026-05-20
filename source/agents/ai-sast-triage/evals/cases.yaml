@@ -1,18 +1,20 @@
 cases:
 - id: happy-path
   input:
-    auri_agent_id: ai_sast_triage
+    source_agent_id: ai_sast_triage
     user_prompt: triage AI SAST findings for this repository
     git_remote_origin: git@github.com:example/acme-service.git
   expected:
     required_evidence:
     - repository selector resolved from git remote
     - Endor evidence
+    - exploit reproduction parsed when present
+    - remediation guidance used or rejected with reason
     - data_gaps when signals are missing
     data_gaps_allowed: true
 - id: ambiguous-project-resolution
   input:
-    auri_agent_id: ai_sast_triage
+    source_agent_id: ai_sast_triage
     user_prompt: triage AI SAST findings for acme-service
     matching_projects:
     - example/acme-service
@@ -24,7 +26,7 @@ cases:
     data_gaps_allowed: true
 - id: missing-signal
   input:
-    auri_agent_id: ai_sast_triage
+    source_agent_id: ai_sast_triage
     missing_endor_signal: true
   expected:
     required_evidence:
