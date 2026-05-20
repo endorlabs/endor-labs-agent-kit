@@ -16,6 +16,8 @@ current repository.
 The repository is source-first:
 
 - contributors edit `source/agents/<agent>/recipe.yaml`
+- contributors add `source/agents/<agent>/actions.yaml` for schema v2 agents
+  with semantic side effects
 - contributors edit `source/agents/<agent>/instructions.md`
 - contributors edit `source/agents/<agent>/evals/cases.yaml`
 - generated catalog artifacts stay checked in for users
@@ -38,6 +40,8 @@ Read these files before designing the agent:
 - `src/endor_agent_kit/recipe.py`
 - `src/endor_agent_kit/validator.py`
 - one similar `source/agents/*/recipe.yaml`
+- one similar `source/agents/*/actions.yaml` when the new agent is mutating or
+  adapter-backed
 - one similar `source/agents/*/instructions.md`
 - one similar `tests/test_*_smoke.py`
 
@@ -63,6 +67,9 @@ Choose capabilities conservatively:
 - `write_files: false` unless the agent is explicitly mutating
 - `open_pr: false` unless the agent is explicitly mutating
 - `mutations: []` for read-only and dry-run agents
+- use `recipe_schema_version: 2` plus `action_contracts_path: actions.yaml`
+  when the agent opens change requests, writes comments, requests approvals, or
+  depends on an external adapter
 
 Use `supported_transports` this way:
 
@@ -77,11 +84,13 @@ Create:
 ```text
 source/agents/<agent-id>/
   recipe.yaml
+  actions.yaml
   instructions.md
   evals/cases.yaml
 ```
 
 The exact source files are `source/agents/<agent-id>/recipe.yaml`,
+optional `source/agents/<agent-id>/actions.yaml`,
 `source/agents/<agent-id>/instructions.md`, and
 `source/agents/<agent-id>/evals/cases.yaml`.
 
@@ -103,7 +112,15 @@ The recipe must declare:
 - `evals: evals/cases.yaml`
 - `model: sonnet`
 
-If the agent should publish only selected editions, add `host_editions`.
+If the agent should publish only selected editions, add `host_editions`. When a
+host has exactly one selected edition, the generated public layout is flattened
+to `claude-code/<agent>/` or `claude-managed-agents/<agent>/`.
+
+For schema v2 mutating agents, create `actions.yaml` with one action per
+semantic side effect. Mutating actions must set `confirmation_required: true`.
+Use `availability: requires_adapter` when the prompt can describe or request an
+action but cannot complete it without a host service, such as Slack approval or
+Endor policy writeback.
 
 ## Write Instructions
 
@@ -167,6 +184,7 @@ Add or update focused tests under `tests/`.
 For every new agent, test:
 
 - the recipe compiles for intended hosts and editions
+- schema v2 action contracts validate when the agent is mutating or adapter-backed
 - generated artifacts carry load-bearing prompt rules
 - generated tool restrictions match declared capabilities
 - `publish_recipe` writes the expected catalog surface
@@ -205,7 +223,7 @@ Report:
 - new or changed agent id
 - source files created or changed
 - generated catalog paths
-- host and edition support
+- host and edition/layout support
 - safety capabilities
 - tests and validation commands run
 - any remaining data gaps or release blockers

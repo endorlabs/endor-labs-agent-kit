@@ -4,9 +4,12 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .venv/
+.codex-artifacts/
 dist/
 build/
 *.egg-info/
 agents/*/dist/
+source/agents/*/dist/
+source/agents/*/provenance.json
+source/agents/*/pluck-report.md
 HANDOFF.md
-

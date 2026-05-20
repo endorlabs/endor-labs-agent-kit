@@ -30,10 +30,26 @@ class HostCapabilities:
 
 
 @dataclass(frozen=True)
+class ActionContract:
+    """One semantic runtime action declared by a recipe."""
+
+    id: str
+    kind: str
+    safety_class: str
+    confirmation_required: bool = False
+    providers: tuple[str, ...] = ()
+    required_host_capabilities: tuple[str, ...] = ()
+    inputs: tuple[str, ...] = ()
+    outputs: tuple[str, ...] = ()
+    availability: str = "available"
+    notes: str = ""
+
+
+@dataclass(frozen=True)
 class EndorAgentRecipe:
     """Canonical v0 agent recipe.
 
-    This is intentionally smaller than AURI's AgentSpec. It describes a
+    This is intentionally smaller than runtime AgentSpec. It describes a
     workflow prompt, required Endor transports, host capabilities, and IO
     contracts; it does not model graph topology.
     """
@@ -51,6 +67,7 @@ class EndorAgentRecipe:
     evals: str
     compatible_hosts: tuple[str, ...]
     host_editions: dict[str, tuple[str, ...]] = field(default_factory=dict)
+    action_contracts_path: str = ""
     mutations: tuple[str, ...] = ()
     required_endor_mcp_tools: tuple[str, ...] = ()
     endorctl_api_invocations: tuple[str, ...] = ()
@@ -108,6 +125,7 @@ def recipe_from_dict(data: dict[str, Any]) -> EndorAgentRecipe:
         evals=str(data.get("evals", "")),
         compatible_hosts=tuple(str(v) for v in data.get("compatible_hosts", ())),
         host_editions=_host_editions_from_mapping(data.get("host_editions", {})),
+        action_contracts_path=str(data.get("action_contracts_path", "")),
         mutations=tuple(str(v) for v in data.get("mutations", ())),
         required_endor_mcp_tools=tuple(str(v) for v in data.get("required_endor_mcp_tools", ())),
         endorctl_api_invocations=tuple(str(v) for v in data.get("endorctl_api_invocations", ())),
@@ -144,6 +162,7 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
             host: list(editions)
             for host, editions in recipe.host_editions.items()
         },
+        "action_contracts_path": recipe.action_contracts_path,
         "mutations": list(recipe.mutations),
         "required_endor_mcp_tools": list(recipe.required_endor_mcp_tools),
         "endorctl_api_invocations": list(recipe.endorctl_api_invocations),
@@ -161,6 +180,19 @@ def read_instructions(recipe_path: str | Path, recipe: EndorAgentRecipe) -> str:
     path = Path(recipe_path)
     instructions = path.parent / recipe.instructions_path
     return instructions.read_text(encoding="utf-8")
+
+
+def load_action_contracts(recipe_path: str | Path, recipe: EndorAgentRecipe) -> tuple[ActionContract, ...]:
+    """Load the recipe's optional action contracts."""
+
+    if not recipe.action_contracts_path:
+        return ()
+    path = Path(recipe_path)
+    data = load_yaml_file(path.parent / recipe.action_contracts_path)
+    actions = data.get("actions", [])
+    if not isinstance(actions, list):
+        return ()
+    return tuple(_action_from_mapping(action) for action in actions if isinstance(action, dict))
 
 
 def editions_for_host(
@@ -200,6 +232,27 @@ def _host_editions_from_mapping(value: Any) -> dict[str, tuple[str, ...]]:
             continue
         host_editions[str(host)] = tuple(str(edition) for edition in editions)
     return host_editions
+
+
+def _action_from_mapping(item: dict[str, Any]) -> ActionContract:
+    return ActionContract(
+        id=str(item.get("id", "")),
+        kind=str(item.get("kind", "")),
+        safety_class=str(item.get("safety_class", "")),
+        confirmation_required=bool(item.get("confirmation_required", False)),
+        providers=_tuple_of_strings(item.get("providers", ())),
+        required_host_capabilities=_tuple_of_strings(item.get("required_host_capabilities", ())),
+        inputs=_tuple_of_strings(item.get("inputs", ())),
+        outputs=_tuple_of_strings(item.get("outputs", ())),
+        availability=str(item.get("availability", "available")),
+        notes=str(item.get("notes", "")),
+    )
+
+
+def _tuple_of_strings(value: Any) -> tuple[str, ...]:
+    if not isinstance(value, list):
+        return ()
+    return tuple(str(item) for item in value)
 
 
 def _field_to_dict(field: RecipeField) -> dict[str, Any]:

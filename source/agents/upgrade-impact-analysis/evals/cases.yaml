@@ -1,5 +1,5 @@
 cases:
-  - id: auri-project-best-upgrade
+  - id: project-best-upgrade
     input:
       project_uuid: 00000000-0000-0000-0000-000000000000
       package_name: lodash
@@ -9,7 +9,7 @@ cases:
       required_evidence:
         - query VersionUpgrade recommendations for the project before using package-version fallback
         - include upgrade risk, findings fixed, CIA status, manifest files, and score explanation when returned
-        - use AURI ranking of most findings fixed then lowest upgrade risk
+        - use platform ranking of most findings fixed then lowest upgrade risk
       data_gaps_allowed: true
 
   - id: vulnerable-current-clean-target

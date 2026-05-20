@@ -56,7 +56,7 @@
   <g transform="translate(40, 34)">
     <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">Remediation Planner - Dry-Run Agent</text>
     <text x="0" y="53" font-size="13" fill="#9fb4be">Project context to Endor remediation evidence to safe plan preview</text>
-    <text x="0" y="75" font-size="11" fill="#7c93a0">This plucked agent preserves planning behavior. It does not include AURI queue dispatch, file mutation, branch pushes, or change-request creation.</text>
+    <text x="0" y="75" font-size="11" fill="#7c93a0">This portable agent preserves planning behavior. It does not include queue dispatch, file mutation, branch pushes, or change-request creation.</text>
   </g>
 
   <g transform="translate(78, 148)">
@@ -122,11 +122,11 @@
     <g transform="translate(395,0)" filter="url(#cardShadow)">
       <rect width="390" height="170" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
       <rect x="24" y="0" width="342" height="2" fill="url(#hairlineGreen)"/>
-      <text x="24" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.5">AURI CAPABILITY BOUNDARY</text>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.5">RUNTIME BOUNDARY</text>
       <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Preview Preserved</text>
       <text x="24" y="94" font-size="12" fill="#9fb4be">- uses Endor remediation evidence</text>
       <text x="24" y="118" font-size="12" fill="#9fb4be">- reports missing source or account signals</text>
-      <text x="24" y="142" font-size="12" fill="#9fb4be">- does not emulate AURI worker dispatch</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- does not emulate background worker dispatch</text>
     </g>
 
     <g transform="translate(830,0)" filter="url(#cardShadow)">

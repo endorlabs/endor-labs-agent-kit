@@ -13,8 +13,16 @@ from endor_agent_kit.compilers.claude_code import (
     _allows_read_only_endorctl,
     _instructions_for_edition,
     _normalize_edition,
+    _render_action_contracts,
 )
-from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host, load_recipe, read_instructions
+from endor_agent_kit.recipe import (
+    ActionContract,
+    EndorAgentRecipe,
+    editions_for_host,
+    load_action_contracts,
+    load_recipe,
+    read_instructions,
+)
 from endor_agent_kit.validator import validate_recipe_file
 
 HOST = "claude-managed-agents"
@@ -55,6 +63,7 @@ def compile_claude_managed_agents(
 
     recipe = load_recipe(recipe_file)
     instructions = read_instructions(recipe_file, recipe)
+    actions = load_action_contracts(recipe_file, recipe)
     selected_edition = edition if edition is not None else variant
     editions = (
         editions_for_host(recipe, HOST, EDITIONS)
@@ -74,7 +83,7 @@ def compile_claude_managed_agents(
         out_dir.mkdir(parents=True, exist_ok=True)
 
         agent = out_dir / "agent.yaml"
-        agent.write_text(_yaml(_agent_config(recipe, instructions, item)), encoding="utf-8")
+        agent.write_text(_yaml(_agent_config(recipe, instructions, actions, item)), encoding="utf-8")
         outputs.append(agent)
 
         environment = out_dir / "environment.yaml"
@@ -88,12 +97,18 @@ def compile_claude_managed_agents(
     return outputs
 
 
-def _agent_config(recipe: EndorAgentRecipe, instructions: str, edition: str) -> dict:
+def _agent_config(
+    recipe: EndorAgentRecipe,
+    instructions: str,
+    actions: tuple[ActionContract, ...],
+    edition: str,
+) -> dict:
+    single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     config = {
-        "name": f"{recipe.name} {_edition_name(edition)}",
+        "name": recipe.name if single_edition else f"{recipe.name} {_edition_name(edition)}",
         "description": LiteralString(recipe.description.strip() + "\n"),
         "model": _managed_model(recipe.model),
-        "system": LiteralString(_managed_system(recipe, instructions, edition)),
+        "system": LiteralString(_managed_system(recipe, instructions, actions, edition)),
         "mcp_servers": _mcp_servers(recipe),
         "tools": _tools(recipe, edition),
         "skills": [],
@@ -111,22 +126,25 @@ def _managed_model(model: str) -> str:
     return MODEL_ALIASES.get(model, model)
 
 
-def _managed_system(recipe: EndorAgentRecipe, instructions: str, edition: str) -> str:
+def _managed_system(
+    recipe: EndorAgentRecipe,
+    instructions: str,
+    actions: tuple[ActionContract, ...],
+    edition: str,
+) -> str:
     body = _instructions_for_edition(instructions, edition)
+    single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     if edition == "developer-edition":
-        transport = (
-            "Managed Agents Developer Edition. Use Endor MCP tools only. "
-            "Do not use Bash, filesystem, web, or mutating tools."
-        )
+        label = "This Managed Agents artifact" if single_edition else "Managed Agents Developer Edition"
+        transport = f"{label}. Use Endor MCP tools only. Do not use Bash, filesystem, web, or mutating tools."
     elif not _allows_read_only_endorctl(recipe):
-        transport = (
-            "Managed Agents Enterprise Edition. This agent is MCP-only for this recipe. "
-            "Do not use Bash, filesystem, web, or mutating tools."
-        )
+        label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
+        transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
     else:
+        label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
         transport = (
-            "Managed Agents Enterprise Edition. Use Endor MCP first. Bash is available "
-            "only for the documented read-only `endorctl api` lookups in these instructions."
+            f"{label}. Use Endor MCP first. Bash is available only for the documented "
+            "read-only `endorctl api` lookups in these instructions."
         )
     intro = dedent(
         f"""\
@@ -141,7 +159,7 @@ def _managed_system(recipe: EndorAgentRecipe, instructions: str, edition: str) -
         evidence.
         """
     ).strip()
-    return f"{intro}\n\n{body.rstrip()}\n"
+    return f"{intro}\n\n{body.rstrip()}\n{_render_action_contracts(actions)}"
 
 
 def _mcp_servers(recipe: EndorAgentRecipe) -> list[dict]:
