@@ -19,7 +19,7 @@ model: sonnet
 ---
 
 > Generated from Endor Agent Kit recipe `package-risk-summary` v1.0.0.
-> Developer Edition. MCP-only; do not use Bash or endorctl in this artifact.
+> Developer Edition is MCP-only; do not use Bash or endorctl in this artifact.
 
 # Endor Labs Package Risk Summary
 

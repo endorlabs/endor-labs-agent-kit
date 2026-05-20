@@ -52,12 +52,9 @@ def test_remediation_planner_uses_repository_context_not_required_uuid(tmp_path)
 
     data = yaml.safe_load(recipe.read_text())
     project_uuid = next(field for field in data["inputs"] if field["name"] == "project_uuid")
-    readme = (
-        dest / "claude-code" / "remediation-planner" / "enterprise-edition" / "README.md"
-    ).read_text()
-    prompt = (
-        dest / "claude-code" / "remediation-planner" / "enterprise-edition" / "remediation-planner.md"
-    ).read_text()
+    agent_dir = dest / "claude-code" / "remediation-planner"
+    readme = (agent_dir / "README.md").read_text()
+    prompt = (agent_dir / "remediation-planner.md").read_text()
 
     assert project_uuid["required"] is False
     assert "@agent-remediation-planner preview remediation options for this repository" in readme
@@ -65,6 +62,5 @@ def test_remediation_planner_uses_repository_context_not_required_uuid(tmp_path)
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Only ask for a project UUID when human-readable selectors cannot" in prompt
     assert "![Remediation Planner architecture](architecture.svg)" in readme
-    assert (
-        dest / "claude-code" / "remediation-planner" / "enterprise-edition" / "architecture.svg"
-    ).is_file()
+    assert (agent_dir / "architecture.svg").is_file()
+    assert not (agent_dir / "enterprise-edition").exists()

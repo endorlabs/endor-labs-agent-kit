@@ -42,7 +42,7 @@ def test_upgrade_impact_analysis_compiled_artifacts_carry_expected_rules(tmp_pat
 
     assert "disallowedTools: Bash" in developer.split("---", 2)[1]
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
-    assert "AURI-Parity VersionUpgrade UIA" in enterprise
+    assert "Endor Platform VersionUpgrade UIA" in enterprise
     assert "--resource VersionUpgrade" in enterprise
     assert "spec.upgrade_info.is_best==true" in enterprise
     assert "spec.upgrade_info.worth_it==true" in enterprise
@@ -111,7 +111,7 @@ def test_upgrade_impact_analysis_eval_cases_cover_recommendations_and_deltas():
 
     case_ids = {case["id"] for case in evals["cases"]}
     assert case_ids == {
-        "auri-project-best-upgrade",
+        "project-best-upgrade",
         "vulnerable-current-clean-target",
         "target-introduces-risk",
         "critical-current-fixed-target",

@@ -108,7 +108,7 @@ Use Endor MCP tools first. Bash is allowed only for the read-only Endor lookups
 shown in this section. Do not run `endorctl scan`, `endorctl api update`,
 `endorctl api delete`, file edits, package manager installs, or pull-request
 commands. The only allowed `endorctl api create` form is the
-`QuerySimilarPackages` query-service call shown below; AURI uses the same
+`QuerySimilarPackages` query-service call shown below; Endor uses the same
 CreateQuerySimilarPackages service as a read-only lookup and does not persist a
 customer resource.
 

@@ -5,28 +5,34 @@
         {
           "artifacts": [
             {
-              "bytes": 1575,
-              "path": "claude-code/ai-sast-triage/enterprise-edition/README.md",
-              "sha256": "8e0ccd4b9b414d3d46517c0fd5f6f4d0e3121f1cec596b42b127c5f0a080080a"
+              "bytes": 5596,
+              "path": "claude-code/ai-sast-triage/README.md",
+              "sha256": "5c9bed4fb479cce107ea9b328f626e63b6c037720a36f36e6bc37e921e90d5cc"
             },
             {
-              "bytes": 5352,
-              "path": "claude-code/ai-sast-triage/enterprise-edition/ai-sast-triage.md",
-              "sha256": "c6ce98bacbe790683415252f48b8eb41dd60155360d2c2d2696457244f5c5047"
+              "bytes": 4179,
+              "path": "claude-code/ai-sast-triage/actions.yaml",
+              "sha256": "03ce0411552472c40b2db723a7a0d93b17517fd0f13eef10aa1da31e36aaa01b"
             },
             {
-              "bytes": 10622,
-              "path": "claude-code/ai-sast-triage/enterprise-edition/architecture.svg",
-              "sha256": "5dff4bd00f093a434951859c0b1fdad6d7f56ea0f263105cc0181d7f9ccdfca7"
+              "bytes": 18320,
+              "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
+              "sha256": "f4fb4660605c236cc1337b162ad2daa906b618f3743741c8a98999d0a3b37775"
             },
             {
-              "bytes": 665,
-              "path": "claude-code/ai-sast-triage/enterprise-edition/endorctl-setup.md",
-              "sha256": "e9149e3b2fcf1d64a3d78f6d7b2e2eb4178e2a8b77124a4da28800151074a64f"
+              "bytes": 10561,
+              "path": "claude-code/ai-sast-triage/architecture.svg",
+              "sha256": "6ca5817b0d8459846307b7848ef60ce5dc441eaa6ae4d81b5c4f1b322ca981e9"
+            },
+            {
+              "bytes": 993,
+              "path": "claude-code/ai-sast-triage/endorctl-setup.md",
+              "sha256": "a234c867e8fc1a3ec0b24387032e425b6af0fade7266e37024ae9c979abb52fc"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/ai-sast-triage",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -35,7 +41,7 @@
       "name": "AI SAST Triage",
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
-        "recipe_schema_version": 1
+        "recipe_schema_version": 2
       },
       "version": "0.1.0"
     },
@@ -49,13 +55,14 @@
               "sha256": "549e7892e91b06fd1645d8018063304d2a986e51956b9ee85dbc80f2fed18db1"
             },
             {
-              "bytes": 5344,
+              "bytes": 5346,
               "path": "claude-code/dependency-decision-helper/developer-edition/dependency-decision-helper.md",
-              "sha256": "f329064c2fe606a34e9222a9d43487225aba2cb287090c5b083cae8583c1ced0"
+              "sha256": "0255aa765735266cdecfcb9b6bc54218c13f2d58d325b1da7fbede37598dbccc"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-code/dependency-decision-helper/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -66,9 +73,9 @@
               "sha256": "c9d4970fa05b193873e8be30df06b8cfcca392ed49ab20c817186b8b78d81297"
             },
             {
-              "bytes": 9364,
+              "bytes": 9360,
               "path": "claude-code/dependency-decision-helper/enterprise-edition/dependency-decision-helper.md",
-              "sha256": "ca4e948442e60047687b6287c4eec9688bea0fa878cd5ce9d010814640ef64d5"
+              "sha256": "130318710908f0b56b56dd9657ca62b875d9dceba81e16dfc55e494530311c26"
             },
             {
               "bytes": 828,
@@ -78,6 +85,7 @@
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/dependency-decision-helper/enterprise-edition",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -100,13 +108,14 @@
               "sha256": "6b84c49e1392ca2ba1e017748e9c6c20ea3ce8a60a44bfafc59fc7bcc558a438"
             },
             {
-              "bytes": 5406,
+              "bytes": 5408,
               "path": "claude-code/package-risk-summary/developer-edition/package-risk-summary.md",
-              "sha256": "3be0eb9da27bc557c196ac92846ff6aa00bc6c766061a4f7f9e2caf8bcd68939"
+              "sha256": "a7fa0b134b55b3c76c0f99037129db5153e19bf0810cc731d2d23dfc7c0a4737"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-code/package-risk-summary/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -122,13 +131,14 @@
               "sha256": "3944dc4656bc9a231d30580e7d25c4a2d2afa7393ce5960128fb3f7c56910a99"
             },
             {
-              "bytes": 9490,
+              "bytes": 9486,
               "path": "claude-code/package-risk-summary/enterprise-edition/package-risk-summary.md",
-              "sha256": "80204c1aeec2ded099b015d108bc64fd95c4ff74d225ed4f4ee7ad341c1b48d3"
+              "sha256": "6b2c1ceb36851cd91f328c4d9b42b7135b726c074e81ab770aef9721c592e5d9"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/package-risk-summary/enterprise-edition",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -146,23 +156,24 @@
         {
           "artifacts": [
             {
-              "bytes": 949,
-              "path": "claude-code/remediation-planner/enterprise-edition/README.md",
-              "sha256": "67a57f02bf613d78f99c0f53c9715965111c6dcafa7ac26df72e1473d4688eb8"
+              "bytes": 926,
+              "path": "claude-code/remediation-planner/README.md",
+              "sha256": "2d8f6d721e60d3a465e9be3f1c9d625ebbf4924dc2da075cd425c5a1288d05ba"
             },
             {
-              "bytes": 9815,
-              "path": "claude-code/remediation-planner/enterprise-edition/architecture.svg",
-              "sha256": "111df69191335b4248bf9cc1612752c7fab4433191c0a7f298aa089657452941"
+              "bytes": 9809,
+              "path": "claude-code/remediation-planner/architecture.svg",
+              "sha256": "1c86170f624b8ad49f20c908400a54a83ba0413f142aeae9dd887b58449596a5"
             },
             {
-              "bytes": 2200,
-              "path": "claude-code/remediation-planner/enterprise-edition/remediation-planner.md",
-              "sha256": "fac2bb7d8cd6931a433046d452a9ac3ddf44b99a2b088706c440651ccc4686dc"
+              "bytes": 2186,
+              "path": "claude-code/remediation-planner/remediation-planner.md",
+              "sha256": "741d71f0b477dd7d188d009aa524bdeaabca69de29695e45877e03e37ba40446"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/remediation-planner",
           "requires_endorctl": ""
         }
       ],
@@ -185,13 +196,14 @@
               "sha256": "df782c9380a5ac637ac8ef4efef44146425bceaf824c5f585bd03e5c70ab0437"
             },
             {
-              "bytes": 7502,
+              "bytes": 7504,
               "path": "claude-code/repository-dependency-reviewer/developer-edition/repository-dependency-reviewer.md",
-              "sha256": "6bfc9306b02b13286bd77604dee6af653ba1d70f9967a4b887120bca1f5b0d5b"
+              "sha256": "a44009251f28a334ecfcb501e4dd0b4ade153aadaa77ac7394b5dcaad7e38f40"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-code/repository-dependency-reviewer/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -202,13 +214,14 @@
               "sha256": "f4adda73fedd89f189c888f2ae0f71ec2db442c2dfb70e3dcfe85af4637f0e23"
             },
             {
-              "bytes": 7540,
+              "bytes": 7531,
               "path": "claude-code/repository-dependency-reviewer/enterprise-edition/repository-dependency-reviewer.md",
-              "sha256": "5a57c8cc9a0bcf411b1547fb14c3f8b7bede767e118262fd7d952263424ffa7e"
+              "sha256": "9e37c8edbeb6512f1467a92906ca428b80de9f44be90efefb8da01de14db3abe"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/repository-dependency-reviewer/enterprise-edition",
           "requires_endorctl": ""
         }
       ],
@@ -226,9 +239,9 @@
         {
           "artifacts": [
             {
-              "bytes": 1467,
+              "bytes": 1430,
               "path": "claude-code/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "35ea92fc38af8d080669ebeb32053599783d6431017c3418ec256ace4206acbc"
+              "sha256": "2531346f4824bb8b0193dfc79b0c4a778b00203f48f79a5253827992cf69882e"
             },
             {
               "bytes": 9921,
@@ -236,21 +249,22 @@
               "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
             },
             {
-              "bytes": 10786,
+              "bytes": 10757,
               "path": "claude-code/upgrade-impact-analysis/developer-edition/upgrade-impact-analysis.md",
-              "sha256": "8c6764aa9bfe6a2ab224144c5c108d4ce5fd45d8d7f3a245a59dfb2a80d3d790"
+              "sha256": "0fcd4356d74e5c51bbe20c99b378fd6fe9ad980b82ca717f736b2ec96fbd7fb7"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-code/upgrade-impact-analysis/developer-edition",
           "requires_endorctl": ""
         },
         {
           "artifacts": [
             {
-              "bytes": 1572,
+              "bytes": 1535,
               "path": "claude-code/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "e3d6bb2f1b0b81a12c0fb1e85328cb91403a97411ddce28a230a1666bc47ed22"
+              "sha256": "3f48b9523efb6b1bc17e0ec3e30f59cb56144111a752651446829067fd5b6c18"
             },
             {
               "bytes": 9921,
@@ -263,13 +277,14 @@
               "sha256": "a5710b178a26c80385e498e0100b1ec7d3ed0da75302af079735c530f80dfc04"
             },
             {
-              "bytes": 19570,
+              "bytes": 19652,
               "path": "claude-code/upgrade-impact-analysis/enterprise-edition/upgrade-impact-analysis.md",
-              "sha256": "913f8f9f1389014d2bef1eaccf711c3d90f1cc387ca9a7fb99625a875010a18f"
+              "sha256": "1037033d89167febfad962a2bf34a565fe79effdfd5ba7b2792dd6e62fe574f7"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/upgrade-impact-analysis/enterprise-edition",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -292,13 +307,14 @@
               "sha256": "c91b686f34bfc3d385465084d236f52ab5e807702bfa5dd03fc93c0f95e19a8f"
             },
             {
-              "bytes": 5262,
+              "bytes": 5264,
               "path": "claude-code/vulnerability-explainer/developer-edition/vulnerability-explainer.md",
-              "sha256": "5772304e7a8d0e1805535e84b01320e8eadabf00d0b4cc9c9e1d03b9b5196d2d"
+              "sha256": "ed7eb2de235191c194b01301d24300a7d65de68aaee9dcf20faf9d253756d88a"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-code/vulnerability-explainer/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -309,13 +325,14 @@
               "sha256": "5ddc95df21b7d732b6a32d8df4aab70f3cb479ba2440e71f3b0648a6bf30b84a"
             },
             {
-              "bytes": 5440,
+              "bytes": 5431,
               "path": "claude-code/vulnerability-explainer/enterprise-edition/vulnerability-explainer.md",
-              "sha256": "3914cf54bc82c98365820f940c486accf79cff79c063f69df34df5d6e28ba28d"
+              "sha256": "291c6a8b63cbb3469b5f79b30f2a7b4f996aaeac943ccd07ce8d4984e0cdff4f"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-code/vulnerability-explainer/enterprise-edition",
           "requires_endorctl": ""
         }
       ],
@@ -355,6 +372,7 @@
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-managed-agents/dependency-decision-helper/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -365,9 +383,9 @@
               "sha256": "62b3df33b94fb99d7ba6a7eb43ea441709d471a90f0a3ea30156b2e0a60255af"
             },
             {
-              "bytes": 10525,
+              "bytes": 10526,
               "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition/agent.yaml",
-              "sha256": "5be299cb4cddaf2ea4389401524de3d6560b9d8b61b2af2c5778d0a39a771d22"
+              "sha256": "9e3a6acff981b647a423395f5183d9453bbcbf61d233473b3921c0cdda7b861a"
             },
             {
               "bytes": 828,
@@ -387,6 +405,7 @@
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -426,6 +445,7 @@
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-managed-agents/package-risk-summary/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -436,9 +456,9 @@
               "sha256": "30a88485cd4168b2bd6c6ed9b1c3a831eec9e40699ddc6977b95ea53a77c753b"
             },
             {
-              "bytes": 10658,
+              "bytes": 10659,
               "path": "claude-managed-agents/package-risk-summary/enterprise-edition/agent.yaml",
-              "sha256": "1e74a574ce8c64cd0d496f6bef6069387d8e682fd0e797430110847be57a4340"
+              "sha256": "6fa3c46370a6278adc9f6eb41da117b45999771e564e15a6b2c0e3750ee5e27e"
             },
             {
               "bytes": 833,
@@ -458,6 +478,7 @@
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-managed-agents/package-risk-summary/enterprise-edition",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -475,14 +496,14 @@
         {
           "artifacts": [
             {
-              "bytes": 1920,
+              "bytes": 1883,
               "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "380dc131e1286985f99814615e672945aad340b296f7335bf93c5bc4480deb3a"
+              "sha256": "a20ac5a62bb44472f569ce72fa52903e022911fda040194d1014036ca3618eb5"
             },
             {
-              "bytes": 11714,
+              "bytes": 11683,
               "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/agent.yaml",
-              "sha256": "fe803759e4270ab1b867e5724f6146f05cf497e1c0c1fa2e805b2b8786cacfef"
+              "sha256": "b064d6028a79fea89791785b49bdd813fda7deaf293148d5340a2beac00b1eed"
             },
             {
               "bytes": 9921,
@@ -502,19 +523,20 @@
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition",
           "requires_endorctl": ""
         },
         {
           "artifacts": [
             {
-              "bytes": 2122,
+              "bytes": 2085,
               "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "d83a0ac3fa72d4a4383ca4f6e4a21a2de566d3d5dda6a4a445eb6969689ffbc6"
+              "sha256": "8cf21e5f512c01d778ce3916054c0bc2c4af5daedaacf433eb5d2a2f228c89b7"
             },
             {
-              "bytes": 21005,
+              "bytes": 21092,
               "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml",
-              "sha256": "055538528cb6a76cbc6a3c9b68b1830658c284e28730232d66ef03d981831c19"
+              "sha256": "4a5603609f1fd5b71c938f1a80317dbea1ebba70ab82a9253ea5921777efd50c"
             },
             {
               "bytes": 9921,
@@ -539,6 +561,7 @@
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -578,6 +601,7 @@
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
+          "path": "claude-managed-agents/vulnerability-explainer/developer-edition",
           "requires_endorctl": ""
         },
         {
@@ -605,6 +629,7 @@
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
+          "path": "claude-managed-agents/vulnerability-explainer/enterprise-edition",
           "requires_endorctl": ""
         }
       ],
