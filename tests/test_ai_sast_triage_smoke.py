@@ -67,6 +67,15 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Understand Finding Evidence" in agent_readme
     assert "uses it as" in agent_readme
     assert "APPSEC APPROVED: accept risk" in agent_readme
+    assert "Example Workflow" in agent_readme
+    assert "Triage Without Mutating" in agent_readme
+    assert "Open One Remediation PR" in agent_readme
+    assert "Request Exception Approval" in agent_readme
+    assert "Create The Scoped Endor Exception Policy" in agent_readme
+    assert "render the Endor exception policy spec for my confirmation" in agent_readme
+    assert "The requester, PR author, and agent account must not approve their own" in agent_readme
+    assert "exception request" in agent_readme
+    assert "Redact concrete exploit payloads" in agent_readme
     assert "QA Smoke Test" in agent_readme
     assert "CLAUDE_CONFIG_DIR" in agent_readme
     assert "AppSec approver list" in agent_readme

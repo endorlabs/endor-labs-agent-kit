@@ -5,9 +5,9 @@
         {
           "artifacts": [
             {
-              "bytes": 5596,
+              "bytes": 7854,
               "path": "claude-code/ai-sast-triage/README.md",
-              "sha256": "5c9bed4fb479cce107ea9b328f626e63b6c037720a36f36e6bc37e921e90d5cc"
+              "sha256": "a14fc0f109abbddfc474b7b429299179b174ae235a38af5d9b9d55b88e109db9"
             },
             {
               "bytes": 4179,
