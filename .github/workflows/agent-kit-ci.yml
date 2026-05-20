@@ -33,14 +33,14 @@ jobs:
       - name: Validate recipes
         run: |
           . .venv/bin/activate
-          for recipe in agents/*/recipe.yaml; do
+          for recipe in source/agents/*/recipe.yaml; do
             endor-agent-kit validate "$recipe"
           done
 
       - name: Regenerate catalog
         run: |
           . .venv/bin/activate
-          endor-agent-kit publish agents/*/recipe.yaml --dest . --prune
+          endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
 
       - name: Check generated artifacts
         run: |
@@ -48,5 +48,4 @@ jobs:
             README.md \
             manifest.json \
             claude-code \
-            claude-managed-agents \
-            github-copilot-plugin
+            claude-managed-agents
