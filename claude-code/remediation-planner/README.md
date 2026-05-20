@@ -1,4 +1,4 @@
-# Remediation Planner Enterprise Edition
+# Remediation Planner
 
 Preview safe remediation options without opening PRs.
 
@@ -11,7 +11,7 @@ then restart Claude Code if needed.
 
 - Claude Code with the generated subagent file installed.
 - Endor MCP access through the subagent's bundled MCP server config.
-- No shell access or authenticated endorctl setup is required for this edition.
+- No shell access or authenticated endorctl setup is required for this agent.
 
 ## Example
 
@@ -27,5 +27,5 @@ This dry-run workflow resolves project or finding context, gathers Endor remedia
 
 ## Notes
 
-- This edition uses Endor MCP tools only.
+- This agent uses Endor MCP tools only.
 - It records unavailable non-MCP signals in data_gaps rather than fabricating evidence.

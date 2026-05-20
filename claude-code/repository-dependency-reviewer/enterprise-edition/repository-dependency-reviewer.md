@@ -17,7 +17,7 @@ model: sonnet
 ---
 
 > Generated from Endor Agent Kit recipe `repository-dependency-reviewer` v1.0.0.
-> Enterprise Edition. MCP-only; this artifact does not require Bash or endorctl.
+> Enterprise Edition is MCP-only; it does not require Bash or endorctl.
 
 # Endor Labs Repository Dependency Reviewer
 

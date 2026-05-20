@@ -5,8 +5,20 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from endor_agent_kit.compilers.claude_code import EDITIONS, HOST as CLAUDE_CODE_HOST, _instructions_for_edition
-from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host, load_recipe, read_instructions
+from endor_agent_kit.compilers.claude_code import (
+    EDITIONS,
+    HOST as CLAUDE_CODE_HOST,
+    _instructions_for_edition,
+    _render_action_contracts,
+    _uses_mcp,
+)
+from endor_agent_kit.recipe import (
+    EndorAgentRecipe,
+    editions_for_host,
+    load_action_contracts,
+    load_recipe,
+    read_instructions,
+)
 from endor_agent_kit.validator import validate_recipe_file
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
@@ -22,6 +34,7 @@ def compile_raw(recipe_path: str | Path) -> list[Path]:
 
     recipe = load_recipe(recipe_file)
     instructions = read_instructions(recipe_file, recipe)
+    actions = load_action_contracts(recipe_file, recipe)
     out_dir = recipe_file.parent / "dist" / "raw"
     out_dir.mkdir(parents=True, exist_ok=True)
     _remove_legacy_raw_prompts(out_dir)
@@ -32,7 +45,10 @@ def compile_raw(recipe_path: str | Path) -> list[Path]:
             stale.unlink()
 
     outputs = [
-        _write(out_dir / f"system-prompt-{edition}.md", _instructions_for_edition(instructions, edition))
+        _write(
+            out_dir / f"system-prompt-{edition}.md",
+            _instructions_for_edition(instructions, edition) + _render_action_contracts(actions),
+        )
         for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)
     ]
     outputs.extend([
@@ -55,6 +71,17 @@ def _write(path: Path, content: str) -> Path:
 
 
 def _mcp_config(recipe: EndorAgentRecipe) -> str:
+    if not _uses_mcp(recipe):
+        return json.dumps(
+            {
+                "mcpServers": {},
+                "required_tools": [],
+                "requires_endor_mcp": "",
+                "note": "This recipe does not require Endor MCP. Use the documented Endor API or endorctl paths instead.",
+            },
+            indent=2,
+            sort_keys=True,
+        )
     payload = {
         "mcpServers": {
             "endor-cli-tools": {
@@ -72,10 +99,15 @@ def _mcp_config(recipe: EndorAgentRecipe) -> str:
 def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
     invocations = "\n".join(f"- `{name}`" for name in recipe.endorctl_api_invocations) or "- none"
     if recipe.safety_class == "mutating":
+        subject = (
+            f"The {recipe.name} agent"
+            if len(editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)) == 1
+            else f"The Enterprise Edition {recipe.name}"
+        )
         return "\n".join([
             "# Runtime Setup",
             "",
-            f"The Enterprise Edition {recipe.name} preserves a mutating workflow.",
+            f"{subject} preserves a mutating workflow.",
             "Use an authenticated Endor tenant plus local source-provider credentials",
             "before allowing patch or change-request steps.",
             "",
@@ -86,9 +118,15 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             invocations,
             "",
             "The agent may also use git and source-provider CLIs such as `gh` or `glab`",
-            "when the user asks it to apply patches and open a PR/MR. Confirm the",
-            "target repository, base branch, generated diff, and change-request body",
-            "before allowing those mutations.",
+            "when the user asks it to apply patches, open a PR/MR, verify AppSec",
+            "approval evidence, or post PR/MR comments. Confirm the target repository,",
+            "base branch, generated diff, and change-request body before allowing",
+            "those mutations.",
+            "",
+            "For standalone exception policies, the agent must verify a GitHub/GitLab",
+            "approval artifact from a configured AppSec approver, render the Endor",
+            "policy spec, and get explicit confirmation before calling Endor API or",
+            "`endorctl api` to create the policy.",
         ])
     if "endorctl_api" not in recipe.supported_transports or not recipe.endorctl_api_invocations:
         return "\n".join([

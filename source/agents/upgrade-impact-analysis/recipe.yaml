@@ -6,9 +6,9 @@ description: |
   Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
   safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
   Analysis, breaking changes, manifest targeting, or whether a dependency
-  upgrade should happen now. Enterprise Edition mirrors AURI's read-only UIA
-  workflow by querying precomputed VersionUpgrade resources. Developer Edition
-  is a lighter MCP-only explicit package-version comparator.
+  upgrade should happen now. Enterprise Edition queries Endor's read-only
+  VersionUpgrade workflow. Developer Edition is a lighter MCP-only explicit
+  package-version comparator.
 safety_class: read_only
 endor_tier_minimum: free
 supported_transports:
@@ -39,7 +39,7 @@ inputs:
   - name: finding_uuid
     kind: string
     required: false
-    description: Optional finding UUID for the AURI canonical single-finding fixing-upgrade map.
+    description: Optional finding UUID for the Endor canonical single-finding fixing-upgrade map.
   - name: upgrade_uuid
     kind: string
     required: false
@@ -63,7 +63,7 @@ inputs:
   - name: best_only
     kind: boolean
     required: false
-    description: Enterprise Edition defaults to AURI's best_only=true for recommendation lists.
+    description: Enterprise Edition defaults to the platform's best_only=true for recommendation lists.
 outputs:
   - name: upgrade_recommendation
     kind: enum
@@ -96,11 +96,11 @@ outputs:
   - name: upgrade_candidates
     kind: list[object]
     required: false
-    description: Enterprise Edition VersionUpgrade candidates ranked like AURI.
+    description: Enterprise Edition VersionUpgrade candidates ranked by platform priority.
   - name: selected_upgrade
     kind: object
     required: false
-    description: The selected AURI VersionUpgrade candidate, including UUID, package, from/to versions, risk, and recommendation flags.
+    description: The selected Endor platform VersionUpgrade candidate, including UUID, package, from/to versions, risk, and recommendation flags.
   - name: findings_fixed
     kind: integer
     required: false
@@ -112,7 +112,7 @@ outputs:
   - name: cia_status
     kind: string
     required: false
-    description: AURI Code Impact Analysis summary such as no breaking changes or api breaking changes.
+    description: Endor Code Impact Analysis summary such as no breaking changes or api breaking changes.
   - name: breaking_changes
     kind: list[string]
     required: false
