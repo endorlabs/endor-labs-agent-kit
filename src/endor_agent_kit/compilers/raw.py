@@ -99,12 +99,13 @@ def _mcp_config(recipe: EndorAgentRecipe) -> str:
 def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
     invocations = "\n".join(f"- `{name}`" for name in recipe.endorctl_api_invocations) or "- none"
     if recipe.safety_class == "mutating":
+        agent_label = recipe.name if recipe.name.lower().endswith("agent") else f"{recipe.name} agent"
         subject = (
-            f"The {recipe.name} agent"
+            f"The {agent_label}"
             if len(editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)) == 1
             else f"The Enterprise Edition {recipe.name}"
         )
-        return "\n".join([
+        lines = [
             "# Runtime Setup",
             "",
             f"{subject} preserves a mutating workflow.",
@@ -123,11 +124,21 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "base branch, generated diff, and change-request body before allowing",
             "those mutations.",
             "",
-            "For standalone exception policies, the agent must verify a GitHub/GitLab",
-            "approval artifact from a configured AppSec approver, render the Endor",
-            "policy spec, and get explicit confirmation before calling Endor API or",
-            "`endorctl api` to create the policy.",
-        ])
+        ]
+        if recipe.id == "ai-sast-triage":
+            lines.extend([
+                "For standalone exception policies, the agent must verify a GitHub/GitLab",
+                "approval artifact from a configured AppSec approver, render the Endor",
+                "policy spec, and get explicit confirmation before calling Endor API or",
+                "`endorctl api` to create the policy.",
+            ])
+        elif recipe.id == "sca-remediation":
+            lines.extend([
+                "For SCA remediation, the agent must surface VersionUpgrade/UIA evidence",
+                "before recommending a best first fix and must get separate confirmation",
+                "before local file edits and before branch push or PR/MR creation.",
+            ])
+        return "\n".join(lines)
     if "endorctl_api" not in recipe.supported_transports or not recipe.endorctl_api_invocations:
         return "\n".join([
             "# endorctl Setup",

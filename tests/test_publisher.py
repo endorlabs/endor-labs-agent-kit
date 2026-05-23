@@ -411,6 +411,10 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "Review local dependency manifests with read-only file inspection and Endor evidence" in root_readme
     assert "@agent-repository-dependency-reviewer review this repository's dependency manifests" in root_readme
     assert "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune" in root_readme
+    assert "endor-agent-kit validate-sca-output sca-output.json --gate selection-plan" in root_readme
+    assert "endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md" in root_readme
+    assert "endor-agent-kit lint-sca-pr-body pr-body.md" in root_readme
+    assert "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo" in root_readme
     assert "Endor Labs Upgrade Impact Analysis" in root_readme
     assert "Endor Labs Package Risk Summary" in root_readme
     assert "claude-code/upgrade-impact-analysis/" in root_readme

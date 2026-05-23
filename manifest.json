@@ -5,9 +5,9 @@
         {
           "artifacts": [
             {
-              "bytes": 7854,
+              "bytes": 7861,
               "path": "claude-code/ai-sast-triage/README.md",
-              "sha256": "a14fc0f109abbddfc474b7b429299179b174ae235a38af5d9b9d55b88e109db9"
+              "sha256": "539846842858dedda120d08bb0845226aa08f6c143e6277ef3d3314f879329aa"
             },
             {
               "bytes": 4179,
@@ -233,6 +233,51 @@
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 6531,
+              "path": "claude-code/sca-remediation/README.md",
+              "sha256": "bfb56994db50d456ee08a0f3bbb112cd364f35c9bf2f74463886a0c06af52c65"
+            },
+            {
+              "bytes": 5683,
+              "path": "claude-code/sca-remediation/actions.yaml",
+              "sha256": "2daaae951befe1f1714838b9ed0a846331628939ed2620183ff2ab31f38eec28"
+            },
+            {
+              "bytes": 9847,
+              "path": "claude-code/sca-remediation/architecture.svg",
+              "sha256": "70b1f894004dbca5d7e4d8c4263d6721da1e100acf196a8c4fe94dd6f48ee982"
+            },
+            {
+              "bytes": 990,
+              "path": "claude-code/sca-remediation/endorctl-setup.md",
+              "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
+            },
+            {
+              "bytes": 36524,
+              "path": "claude-code/sca-remediation/sca-remediation.md",
+              "sha256": "3a0bd42da083027f618298fcf8e44e40a1fefb27a94ac351bb17a4741a6a91ec"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-code/sca-remediation",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "sca-remediation",
+      "name": "SCA Remediation",
+      "source": {
+        "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
     },
     {
       "editions": [
