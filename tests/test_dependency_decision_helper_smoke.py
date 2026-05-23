@@ -21,27 +21,23 @@ def test_dependency_decision_helper_compiled_artifacts_carry_load_bearing_rules(
     recipe = _copy_agent(tmp_path)
     compile_claude_code(recipe)
 
-    developer = (
-        recipe.parent / "dist" / "claude-code" / "developer-edition" / "dependency-decision-helper.md"
-    ).read_text()
     enterprise = (
         recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-decision-helper.md"
     ).read_text()
 
-    for body in (developer, enterprise):
-        assert "Dependency Decision Helper" in body
-        assert "mcpServers:" in body
-        assert "endor-cli-tools:" in body
-        assert "alwaysLoad: true" in body
-        assert "check_dependency_for_risks" in body
-        assert "check_dependency_for_vulnerabilities" in body
-        assert "get_endor_vulnerability" in body
-        assert "Never fabricate" in body
-        assert "data_gaps" in body
-        assert "https://app.endorlabs.com" in body
-        assert "Malware detected" in body
-        assert "CISA KEV" in body
-
+    assert not (recipe.parent / "dist" / "claude-code" / "developer-edition").exists()
+    assert "Dependency Decision Helper" in enterprise
+    assert "mcpServers:" in enterprise
+    assert "endor-cli-tools:" in enterprise
+    assert "alwaysLoad: true" in enterprise
+    assert "check_dependency_for_risks" in enterprise
+    assert "check_dependency_for_vulnerabilities" in enterprise
+    assert "get_endor_vulnerability" in enterprise
+    assert "Never fabricate" in enterprise
+    assert "data_gaps" in enterprise
+    assert "https://app.endorlabs.com" in enterprise
+    assert "Malware detected" in enterprise
+    assert "CISA KEV" in enterprise
     assert "PackageVersion UUID Lookup" in enterprise
     assert "QuerySimilarPackages" in enterprise
 

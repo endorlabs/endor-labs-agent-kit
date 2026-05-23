@@ -149,13 +149,16 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "If a future edition adds tenant-aware Endor lookups, this file will document",
             "the exact read-only commands that are allowed.",
         ])
-    return "\n".join([
+    subject = (
+        f"The {recipe.name} artifact"
+        if len(editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)) == 1
+        else f"The Enterprise Edition {recipe.name}"
+    )
+    lines = [
         "# endorctl Setup",
         "",
-        f"The Enterprise Edition {recipe.name} uses read-only Endor lookups",
-        "through `endorctl api` for package scores, license classification, and",
-        "similar-package signals. Install and authenticate `endorctl` before",
-        "using the Enterprise Edition artifact.",
+        f"{subject} uses read-only Endor lookups through `endorctl api`.",
+        "Install and authenticate `endorctl` before using this artifact.",
         "",
         f"Required version: `{recipe.requires_endorctl or 'latest recommended'}`",
         "",
@@ -163,10 +166,18 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         "",
         invocations,
         "",
-        "The only allowed `endorctl api create` call is the documented",
-        "QuerySimilarPackages query-service lookup; every other v0 command must",
-        "be a read-only list/get/query operation. If `endorctl` is missing,",
+    ]
+    if "query_similar_packages" in recipe.endorctl_api_invocations:
+        lines.extend([
+            "The only allowed `endorctl api create` call is the documented",
+            "QuerySimilarPackages query-service lookup; every other v0 command must",
+            "be a read-only list/get/query operation.",
+            "",
+        ])
+    lines.extend([
+        "If `endorctl` is missing,",
         "unauthenticated, or lacks access to a resource, the agent must record the",
         "affected signal in `data_gaps` and continue with the evidence it already",
         "gathered.",
     ])
+    return "\n".join(lines)

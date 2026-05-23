@@ -6,8 +6,8 @@ actions:
     providers: ["endorctl-api", "endor-api"]
     required_host_capabilities: ["run_commands"]
     inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
-    outputs: ["project_uuid", "project_name", "repo_full_name", "namespace"]
-    notes: "Resolve the project from repository context first. Do not ask the user for a project UUID unless human selectors are ambiguous or absent."
+    outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
+    notes: "Resolve the project from repository context first. Resolve namespace provenance from the current request, environment, or active endorctl config before using -n. Do not use namespaces from prior sessions or ask the user for a project UUID unless human selectors are ambiguous or absent."
 
   - id: fetch-pinned-source
     kind: scm.source_read
@@ -15,9 +15,9 @@ actions:
     confirmation_required: false
     providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
     required_host_capabilities: ["run_commands", "read_files"]
-    inputs: ["repo", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
-    outputs: ["source_text", "source_sha", "source_url"]
-    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed."
+    inputs: ["repo", "finding_uuid", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
+    outputs: ["source_text", "source_sha", "source_url", "source_location_provenance"]
+    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed."
 
   - id: open-change-request
     kind: scm.change_request
@@ -26,8 +26,8 @@ actions:
     providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
     required_host_capabilities: ["run_commands", "read_files", "write_files", "open_pr"]
     inputs: ["repo", "base_branch", "patch_diff", "title", "body", "exploit_context", "remediation_guidance_usage", "validation_plan"]
-    outputs: ["url", "branch", "status"]
-    notes: "Prepare the diff and PR/MR body first, include sanitized exploit context and remediation-guidance usage, run available validation, and ask for explicit approval before pushing or opening the change request."
+    outputs: ["url", "branch", "status", "title", "body"]
+    notes: "Prepare the diff and AURI-style PR/MR body first, include sanitized evidence, severity indicator emoji, hidden finding/project context metadata, and validation status, then ask for explicit approval before pushing or opening the change request."
 
   - id: request-exception-review
     kind: approval.request

@@ -10,8 +10,7 @@ then restart Claude Code if needed.
 ## Requirements
 
 - Claude Code with the generated subagent file installed.
-- Endor MCP access through the subagent's bundled MCP server config.
-- No shell access or authenticated endorctl setup is required for this agent.
+- Authenticated endorctl for the read-only API lookups documented in endorctl-setup.md.
 
 ## Example
 
@@ -27,5 +26,5 @@ This dry-run workflow resolves project or finding context, gathers Endor remedia
 
 ## Notes
 
-- This agent uses Endor MCP tools only.
-- It records unavailable non-MCP signals in data_gaps rather than fabricating evidence.
+- This agent uses read-only endorctl api lookups and does not require Endor MCP.
+- Bash use is limited by prompt to the documented Endor lookup commands.

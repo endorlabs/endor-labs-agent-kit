@@ -62,10 +62,14 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
 
     root_readme = (dest / "README.md").read_text(encoding="utf-8")
     agent_dir = dest / "claude-code" / "sca-remediation"
+    codex_dir = dest / "codex" / "sca-remediation"
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
     prompt = (agent_dir / "sca-remediation.md").read_text(encoding="utf-8")
+    codex_skill = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
 
     assert "@agent-sca-remediation check this repository for P0 SCA findings" in root_readme
+    assert "codex/sca-remediation" in root_readme
+    assert "Use the sca-remediation skill to check this repository for P0 SCA findings" in root_readme
     assert "MCP-free Claude Code artifact" in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Natural-Language Intake" in prompt
@@ -150,6 +154,14 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert (agent_dir / "actions.yaml").is_file()
     assert (agent_dir / "architecture.svg").is_file()
     assert (agent_dir / "endorctl-setup.md").is_file()
+    assert (codex_dir / "SKILL.md").is_file()
+    assert (codex_dir / "README.md").is_file()
+    assert (codex_dir / "actions.yaml").is_file()
+    assert (codex_dir / "architecture.svg").is_file()
+    assert (codex_dir / "endorctl-setup.md").is_file()
+    assert "## Codex Host Contract" in codex_skill
+    assert "Treat file edits, branch pushes, PR/MR creation" in codex_skill
+    assert "VersionUpgrade/UIA evidence" in codex_skill
     assert not (agent_dir / "enterprise-edition").exists()
     assert "![SCA Remediation architecture](architecture.svg)" in agent_readme
     assert "Claude Code does not need an Endor MCP server for this agent" in agent_readme

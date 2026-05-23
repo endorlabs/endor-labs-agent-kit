@@ -69,7 +69,22 @@ When Endor AI SAST includes `## Remediation Guidance`, the agent uses it as
 patch context. It can apply the guidance as-is, adapt it to the codebase,
 or reject it with a reason when the pinned source or tests show a safer fix.
 
-### 4. Configure AppSec Approvers
+### 4. Match The AURI PR/MR Body
+
+Remediation PR/MR bodies should follow the AURI AI SAST structure:
+
+- `## 🛡️ Endor Labs AURI Security Fix: <finding title>`
+- hidden `<!-- auri:ai-sast-context ... -->` finding/project metadata
+- `### 🔧 What changed`
+- `### 🔎 Evidence provided by AURI`
+- `### ✅ Review checklist`
+- `### 📝 Need an exception instead?` with the `@auri` and `AURI:` request forms
+- folded `📎 Finding details` table
+
+Severity must be visually indicated everywhere it is shown: Critical `🔴`,
+High `🟠`, Medium `🟡`, and Low `🟢`.
+
+### 5. Configure AppSec Approvers
 
 Standalone exception creation requires an approval artifact in the PR/MR.
 Give the agent the allowed approvers before it creates an Endor exception
@@ -81,7 +96,7 @@ AppSec approvers: @alice, @bob, @endor-labs/appsec
 
 The developer requesting the exception must not approve their own request.
 
-### 5. Approval Comment Format
+### 6. Approval Comment Format
 
 When the agent requests an exception, an AppSec approver should comment or
 review with one of these exact forms:
@@ -94,7 +109,7 @@ APPSEC APPROVED: accept risk for finding <finding_uuid> until YYYY-MM-DD - <owne
 The agent verifies the approver, finding UUID, request type, and expiration
 before it renders the Endor policy spec.
 
-### 6. Policy Creation Gate
+### 7. Policy Creation Gate
 
 The agent may create a scoped Endor exception policy only after all of these
 are true:

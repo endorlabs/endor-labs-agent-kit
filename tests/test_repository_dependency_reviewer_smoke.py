@@ -31,15 +31,9 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
         / "developer-edition"
         / "repository-dependency-reviewer.md"
     ).read_text()
-    enterprise = (
-        recipe.parent
-        / "dist"
-        / "claude-code"
-        / "enterprise-edition"
-        / "repository-dependency-reviewer.md"
-    ).read_text()
+    assert not (recipe.parent / "dist" / "claude-code" / "enterprise-edition").exists()
 
-    for body in (developer, enterprise):
+    for body in (developer,):
         header = body.split("---", 2)[1]
         blocked = {
             tool.strip()
@@ -51,7 +45,7 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
         assert {"Bash", "Write", "Edit", "MultiEdit", "NotebookRead", "NotebookEdit"} <= blocked
         assert {"WebFetch", "WebSearch", "TodoWrite"} <= blocked
         assert "Endor Labs Repository Dependency Reviewer" in body
-        assert "Use only Claude Code read-only file tools" in body
+        assert "host read-only file tools" in body
         assert "check_dependency_for_risks" in body
         assert "check_dependency_for_vulnerabilities" in body
         assert "get_endor_vulnerability" in body
@@ -68,10 +62,8 @@ def test_repository_dependency_reviewer_publish_is_claude_code_only(tmp_path):
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
-        "claude-code/repository-dependency-reviewer/developer-edition/repository-dependency-reviewer.md",
-        "claude-code/repository-dependency-reviewer/developer-edition/README.md",
-        "claude-code/repository-dependency-reviewer/enterprise-edition/repository-dependency-reviewer.md",
-        "claude-code/repository-dependency-reviewer/enterprise-edition/README.md",
+        "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
+        "claude-code/repository-dependency-reviewer/README.md",
         "manifest.json",
         "README.md",
     }
@@ -81,7 +73,7 @@ def test_repository_dependency_reviewer_publish_is_claude_code_only(tmp_path):
         in (dest / "README.md").read_text()
     )
     developer_readme = (
-        dest / "claude-code" / "repository-dependency-reviewer" / "developer-edition" / "README.md"
+        dest / "claude-code" / "repository-dependency-reviewer" / "README.md"
     ).read_text()
     assert "Read-only access to dependency manifests in the target workspace." in developer_readme
     assert "Endor MCP tools plus Claude Code read-only file inspection" in developer_readme

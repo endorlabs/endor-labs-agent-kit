@@ -7,7 +7,7 @@ cases:
       upgrade_recommendation: UPGRADE_NOW
       risk_delta: LOWER
       required_evidence:
-        - query VersionUpgrade recommendations for the project before using package-version fallback
+        - query VersionUpgrade recommendations for the project
         - include upgrade risk, findings fixed, CIA status, manifest files, and score explanation when returned
         - use platform ranking of most findings fixed then lowest upgrade risk
       data_gaps_allowed: true
