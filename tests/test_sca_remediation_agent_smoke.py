@@ -12,8 +12,8 @@ from conftest import repo_root
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "source" / "agents" / "sca-remediation-agent"
-    dst = tmp_path / "sca-remediation-agent"
+    src = repo_root() / "source" / "agents" / "sca-remediation"
+    dst = tmp_path / "sca-remediation"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"
 
@@ -42,6 +42,7 @@ def test_sca_remediation_agent_is_mcp_free_and_action_contract_backed(tmp_path):
         "resolve-endor-project",
         "query-sca-findings",
         "query-uia-evidence",
+        "list-low-risk-uia-prs",
         "read-local-manifests",
         "resolve-upgrade-risk",
         "prepare-remediation-diff",
@@ -60,11 +61,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     publish_recipe(recipe, dest)
 
     root_readme = (dest / "README.md").read_text(encoding="utf-8")
-    agent_dir = dest / "claude-code" / "sca-remediation-agent"
+    agent_dir = dest / "claude-code" / "sca-remediation"
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
-    prompt = (agent_dir / "sca-remediation-agent.md").read_text(encoding="utf-8")
+    prompt = (agent_dir / "sca-remediation.md").read_text(encoding="utf-8")
 
-    assert "@agent-sca-remediation-agent check this repository for P0 SCA findings" in root_readme
+    assert "@agent-sca-remediation check this repository for P0 SCA findings" in root_readme
     assert "MCP-free Claude Code artifact" in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Natural-Language Intake" in prompt
@@ -72,6 +73,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Namespace Provenance" in prompt
     assert "Do not invent or reuse a namespace from unrelated examples" in prompt
     assert "Before running an Endor query with `-n <namespace>`" in prompt
+    assert "Do not print or dump an entire Endor config file" in prompt
+    assert "extract only the namespace key" in prompt
     assert "namespace_provenance" in prompt
     assert "Every output gate must include `project_resolution.project_uuid`" in prompt
     assert "project_resolution" in prompt
@@ -86,6 +89,15 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "post-remediation-comment" in prompt
     assert "resolve-upgrade-risk" in prompt
     assert "Risky / Indeterminate Upgrade Solver" in prompt
+    assert "Other Non-Breaking / Low-Risk UIA-Backed PR Lane" in prompt
+    assert "separate from both the strict P0/exploited queue and the Risky / Indeterminate Upgrade Solver" in prompt
+    assert "low_risk_recommendations" in prompt
+    assert "candidate_prs" in prompt
+    assert "ready_to_open" in prompt
+    assert "most_findings_in_one_pr" in prompt
+    assert "p0_duplicates_hidden" in prompt
+    assert "Do not rank a hidden P0/exploited duplicate as `most_findings_in_one_pr`" in prompt
+    assert "Hide recommendations from the main low-risk candidate list" in prompt
     assert "Return exactly one `risk_decision.status`" in prompt
     assert "approved_low_risk" in prompt
     assert "approved_with_validation_required" in prompt
@@ -106,6 +118,14 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "services/imperial-gateway/pom.xml dependency:resolve" not in prompt
     assert "remediation/sca/<normalized-package-name>-<target-version>" in prompt
     assert "Do not use unrelated branch families such as `endor/fix/...`" in prompt
+    assert "complete AURI-style PR/MR body draft" in prompt
+    assert "Do not stop at a PR title or patch plan only" in prompt
+    assert "Do not return an empty `change_requests` array when a PR/MR is part of the requested plan" in prompt
+    assert "The PR/MR body draft must be lint-clean in the response itself" in prompt
+    assert "close any ```diff fenced block immediately after the file-change lines" in prompt
+    assert "render `### 🔎 Advisories This Upgrade Fixes` as an actual heading" in prompt
+    assert "markdown link syntax" in prompt
+    assert "The JSON object must be syntactically valid" in prompt
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
     assert "### At a Glance" in prompt
     assert "### 🔎 Advisories This Upgrade Fixes" in prompt
@@ -131,7 +151,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert (agent_dir / "architecture.svg").is_file()
     assert (agent_dir / "endorctl-setup.md").is_file()
     assert not (agent_dir / "enterprise-edition").exists()
-    assert "![SCA Remediation Agent architecture](architecture.svg)" in agent_readme
+    assert "![SCA Remediation architecture](architecture.svg)" in agent_readme
     assert "Claude Code does not need an Endor MCP server for this agent" in agent_readme
     assert "Rank Without Mutating" in agent_readme
     assert "VersionUpgrade/UIA evidence" in agent_readme
@@ -162,8 +182,11 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "natural-language-p0-intake",
         "uia-required-before-best-first-fix",
         "risky-upgrade-validation-gate",
+        "low-risk-uia-backed-pr-lane",
         "cia-indeterminate-selection-gate",
         "namespace-provenance-before-query",
+        "namespace-provenance-without-config-dump",
         "missing-project-or-auth",
         "approved-pr-with-comment",
+        "pr-plan-includes-full-body",
     }.issubset(ids)

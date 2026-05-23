@@ -54,8 +54,8 @@
   <rect width="1280" height="700" fill="url(#bgGlow2)"/>
 
   <g transform="translate(40, 34)">
-    <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">SCA Remediation Agent</text>
-    <text x="0" y="53" font-size="13" fill="#9fb4be">Natural-language SCA intake to UIA-backed remediation with deterministic risk decisions</text>
+    <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">SCA Remediation</text>
+    <text x="0" y="53" font-size="13" fill="#9fb4be">Natural-language SCA intake to UIA-backed P0 fixes, low-risk PR lanes, and deterministic risk decisions</text>
     <text x="0" y="75" font-size="11" fill="#7c93a0">MCP-free Claude Code artifact. Mutations require explicit user approval and host evidence.</text>
   </g>
 
@@ -65,8 +65,8 @@
       <rect x="18" y="0" width="142" height="2" fill="url(#hairline)"/>
       <text x="18" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">INTAKE</text>
       <text x="18" y="61" font-size="17" font-weight="700" fill="#e5f6f7">Operator Ask</text>
-      <text x="18" y="88" font-size="12" fill="#9fb4be">P0 SCA findings</text>
-      <text x="18" y="109" font-size="12" fill="#9fb4be">this repo, fix first</text>
+      <text x="18" y="88" font-size="12" fill="#9fb4be">P0 or low-risk PRs</text>
+      <text x="18" y="109" font-size="12" fill="#9fb4be">this repo, plan first</text>
     </g>
     <line x1="190" y1="70" x2="238" y2="70" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
 
@@ -84,9 +84,9 @@
       <rect width="178" height="140" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
       <rect x="18" y="0" width="142" height="2" fill="url(#hairlinePurple)"/>
       <text x="18" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.4">FINDINGS</text>
-      <text x="18" y="61" font-size="17" font-weight="700" fill="#e5f6f7">SCA Evidence</text>
+      <text x="18" y="61" font-size="17" font-weight="700" fill="#e5f6f7">Scoped Evidence</text>
       <text x="18" y="88" font-size="12" fill="#9fb4be">reachability</text>
-      <text x="18" y="109" font-size="12" fill="#9fb4be">fix availability</text>
+      <text x="18" y="109" font-size="12" fill="#9fb4be">repo metadata</text>
     </g>
     <line x1="702" y1="70" x2="750" y2="70" stroke="#9f69f7" stroke-width="1.4" marker-end="url(#arrowPurple)"/>
 
@@ -96,7 +96,7 @@
       <text x="18" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">UIA/CIA</text>
       <text x="18" y="61" font-size="17" font-weight="700" fill="#e5f6f7">Risk Evidence</text>
       <text x="18" y="88" font-size="12" fill="#9fb4be">VersionUpgrade</text>
-      <text x="18" y="109" font-size="12" fill="#9fb4be">risk_decision input</text>
+      <text x="18" y="109" font-size="12" fill="#9fb4be">low-risk or solver</text>
     </g>
     <line x1="958" y1="70" x2="1006" y2="70" stroke="#00f078" stroke-width="1.4" marker-end="url(#arrowGreen)"/>
 
@@ -114,11 +114,11 @@
     <g filter="url(#cardShadow)">
       <rect width="350" height="170" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
       <rect x="24" y="0" width="302" height="2" fill="url(#hairline)"/>
-      <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">RANKING</text>
-      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Package-Level First</text>
-      <text x="24" y="94" font-size="12" fill="#9fb4be">- critical/high reachable and fixable findings</text>
-      <text x="24" y="118" font-size="12" fill="#9fb4be">- one package can cover multiple manifests</text>
-      <text x="24" y="142" font-size="12" fill="#9fb4be">- count alone never proves low risk</text>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">LANES</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Separate Queues</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- P0/exploited remediation candidates</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- other non-breaking low-risk UIA PRs</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- risky solver path stays separate</text>
     </g>
 
     <g transform="translate(395,0)" filter="url(#cardShadow)">
@@ -137,7 +137,7 @@
       <text x="24" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.5">MUTATION GATE</text>
       <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Approval And Validation</text>
       <text x="24" y="94" font-size="12" fill="#9fb4be">- show patch plan before editing files</text>
-      <text x="24" y="118" font-size="12" fill="#9fb4be">- run local validation or record blocker</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- run ecosystem validation or record blocker</text>
       <text x="24" y="142" font-size="12" fill="#9fb4be">- ask again before branch push or PR/MR</text>
     </g>
   </g>
@@ -146,6 +146,6 @@
     <rect width="1140" height="78" rx="12" fill="#071012" stroke="#17323a"/>
     <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
     <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">PUBLISHED CONTRACT</text>
-    <text x="30" y="58" font-size="13" fill="#cfe4e8">The public artifact is an MCP-free Endor SCA remediation agent. It requires UIA evidence, risk_decision, validation, and explicit approval before PR/MR mutation.</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">The public artifact is MCP-free and ecosystem-aware. It requires scoped UIA evidence, lane separation, risk_decision, validation, and explicit approval before PR/MR mutation.</text>
   </g>
 </svg>

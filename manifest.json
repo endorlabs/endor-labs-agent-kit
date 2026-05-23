@@ -239,42 +239,42 @@
         {
           "artifacts": [
             {
-              "bytes": 5418,
-              "path": "claude-code/sca-remediation-agent/README.md",
-              "sha256": "d0ac36169646e904341194520992525b9eb04e90560fa564d72a34f13ec30565"
+              "bytes": 6531,
+              "path": "claude-code/sca-remediation/README.md",
+              "sha256": "bfb56994db50d456ee08a0f3bbb112cd364f35c9bf2f74463886a0c06af52c65"
             },
             {
-              "bytes": 4944,
-              "path": "claude-code/sca-remediation-agent/actions.yaml",
-              "sha256": "0fd11124e6e4e5505622cae49ec6ede24997546e94c49255495e37e31dcad4d9"
+              "bytes": 5683,
+              "path": "claude-code/sca-remediation/actions.yaml",
+              "sha256": "2daaae951befe1f1714838b9ed0a846331628939ed2620183ff2ab31f38eec28"
             },
             {
-              "bytes": 9838,
-              "path": "claude-code/sca-remediation-agent/architecture.svg",
-              "sha256": "92cb9045603d995b0a1d43cf8092661f40f69d431da9e53dcdc23ebb9662ff6f"
+              "bytes": 9847,
+              "path": "claude-code/sca-remediation/architecture.svg",
+              "sha256": "70b1f894004dbca5d7e4d8c4263d6721da1e100acf196a8c4fe94dd6f48ee982"
             },
             {
               "bytes": 990,
-              "path": "claude-code/sca-remediation-agent/endorctl-setup.md",
-              "sha256": "4143e0bc73ec90eb3f7ef5c183af28abcc509226c40b6dcc58891a1624384bd9"
+              "path": "claude-code/sca-remediation/endorctl-setup.md",
+              "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
             },
             {
-              "bytes": 30260,
-              "path": "claude-code/sca-remediation-agent/sca-remediation-agent.md",
-              "sha256": "a4c71b3d90dc312c29be47b5aa76bbf6d97cd5fbf6b121a4f2b1a3549599adae"
+              "bytes": 36524,
+              "path": "claude-code/sca-remediation/sca-remediation.md",
+              "sha256": "3a0bd42da083027f618298fcf8e44e40a1fefb27a94ac351bb17a4741a6a91ec"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-code/sca-remediation-agent",
+          "path": "claude-code/sca-remediation",
           "requires_endorctl": ">=1.0"
         }
       ],
       "host": "claude-code",
-      "id": "sca-remediation-agent",
-      "name": "SCA Remediation Agent",
+      "id": "sca-remediation",
+      "name": "SCA Remediation",
       "source": {
-        "builder_recipe": "source/agents/sca-remediation-agent/recipe.yaml",
+        "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
         "recipe_schema_version": 2
       },
       "version": "0.1.0"

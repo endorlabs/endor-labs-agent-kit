@@ -132,7 +132,7 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
                 "policy spec, and get explicit confirmation before calling Endor API or",
                 "`endorctl api` to create the policy.",
             ])
-        elif recipe.id == "sca-remediation-agent":
+        elif recipe.id == "sca-remediation":
             lines.extend([
                 "For SCA remediation, the agent must surface VersionUpgrade/UIA evidence",
                 "before recommending a best first fix and must get separate confirmation",
