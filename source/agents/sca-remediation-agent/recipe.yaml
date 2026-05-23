@@ -1,0 +1,110 @@
+recipe_schema_version: 2
+id: sca-remediation-agent
+name: SCA Remediation Agent
+version: 0.1.0
+description: Remediate reachable and exploitable dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, local validation, and approved PR/MR creation.
+safety_class: mutating
+endor_tier_minimum: enterprise
+supported_transports:
+- endorctl_api
+host_capabilities_required:
+  run_commands: true
+  read_files: true
+  write_files: true
+  open_pr: true
+inputs:
+- name: namespace
+  kind: string
+  required: false
+  description: Optional Endor namespace override when the tenant uses child namespaces.
+- name: project_name
+  kind: string
+  required: false
+  description: Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL. The agent should infer this from the current Git workspace first.
+- name: repository_url
+  kind: string
+  required: false
+  description: Optional source repository URL when the agent is not running inside the target repository. Normally inferred from git remote origin.
+- name: project_uuid
+  kind: string
+  required: false
+  description: Optional advanced fallback when project_name or repository_url cannot resolve a unique project.
+- name: finding_uuids
+  kind: list[string]
+  required: false
+  description: Optional finding UUID allow-list for targeted remediation. Do not require this for normal use.
+- name: severity_filter
+  kind: list[string]
+  required: false
+  description: Optional Endor severity filter such as CRITICAL or HIGH. Natural-language P0 requests should map to critical/high reachable and fixable SCA findings.
+- name: package_name
+  kind: string
+  required: false
+  description: Optional package name to narrow remediation ranking after project resolution.
+- name: finding_limit
+  kind: integer
+  required: false
+  description: Maximum SCA findings to evaluate before ranking package-level remediations.
+outputs:
+- name: summary
+  kind: string
+  required: true
+  description: Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.
+- name: remediation_candidates
+  kind: list[object]
+  required: true
+  description: Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.
+- name: project_resolution
+  kind: object
+  required: true
+  description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- name: selected_remediation
+  kind: object
+  required: true
+  description: Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.
+- name: uia_evidence
+  kind: list[object]
+  required: true
+  description: VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.
+- name: risk_decision
+  kind: object
+  required: true
+  description: Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.
+- name: patch_plan
+  kind: list[object]
+  required: true
+  description: Files to edit, dependency-manager commands considered, companion source edits, branch/title/body draft, and explicit approval status.
+- name: validation
+  kind: list[object]
+  required: true
+  description: Local validation commands considered or run, status, output summary, and blockers.
+- name: change_requests
+  kind: list[object]
+  required: true
+  description: PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.
+- name: data_gaps
+  kind: list[string]
+  required: true
+  description: Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.
+evals: evals/cases.yaml
+compatible_hosts:
+- claude-code
+host_editions:
+  claude-code:
+  - enterprise-edition
+action_contracts_path: actions.yaml
+mutations:
+- write_files
+- open_pr
+required_endor_mcp_tools: []
+endorctl_api_invocations:
+- resolve_project_from_repository
+- list_sca_findings
+- list_version_upgrade_recommendations
+- get_version_upgrade_details
+- get_finding_fixing_upgrades
+- inspect_dependency_metadata
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ''
+requires_endorctl: '>=1.0'

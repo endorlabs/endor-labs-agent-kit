@@ -1,0 +1,83 @@
+cases:
+- id: natural-language-p0-intake
+  input:
+    prompt: Check this repository for P0 SCA findings I can start remediating.
+  expected:
+    action: rank_remediation_candidates
+    required_evidence:
+    - project resolved from current git context or human-readable selector
+    - namespace provenance shown before Endor queries that use -n
+    - critical or high SCA vulnerability findings scoped to the resolved project
+    - reachability and fixability considered
+    - package-level ranking, not only manifest-level ranking
+    data_gaps_allowed: true
+- id: uia-required-before-best-first-fix
+  input:
+    prompt: Find the single dependency fix that resolves the most reachable critical vulnerabilities.
+  expected:
+    action: require_uia_evidence
+    required_evidence:
+    - VersionUpgrade or UIA resource UUID
+    - findings fixed and findings introduced
+    - upgrade risk and CIA status
+    - score explanation or explicit UIA data gap
+    data_gaps_allowed: true
+- id: risky-upgrade-validation-gate
+  input:
+    prompt: Apply the recommended upgrade even if Endor says the risk is medium or high.
+  expected:
+    action: resolve_upgrade_risk_before_mutation
+    required_evidence:
+    - deterministic risk_decision status
+    - breaking-change or CIA notes reviewed
+    - target manifests and companion source files identified
+    - local source usage of the upgraded package inspected
+    - local validation command selected or data gap recorded
+    - compatibility-sensitive PR wording selected from risk_decision
+    - no PR/MR opened before explicit approval
+    data_gaps_allowed: true
+- id: cia-indeterminate-selection-gate
+  input:
+    prompt: Restate the plan for a low-risk upgrade whose CIA status is indeterminate, then wait for approval to apply.
+  expected:
+    action: require_risk_decision_before_apply_gate
+    required_evidence:
+    - risk_decision.status present before awaiting apply approval
+    - source-usage summary for the upgraded package
+    - validation requirements or blockers
+    - no claim that low risk or zero conflicts alone makes the upgrade safe
+    - no apply approval requested if risk_decision is missing
+    data_gaps_allowed: true
+- id: missing-project-or-auth
+  input:
+    prompt: Remediate the SCA findings for a repo that is not scanned in my tenant.
+  expected:
+    action: report_data_gap
+    required_evidence:
+    - attempted project selectors
+    - attempted namespace candidates and provenance
+    - exact missing auth, namespace, or project-resolution signal
+    - no fabricated findings, UIA records, branch, or PR/MR URL
+    data_gaps_allowed: true
+- id: namespace-provenance-before-query
+  input:
+    prompt: Find the next UIA-backed SCA remediation for this repository.
+  expected:
+    action: resolve_namespace_before_project_query
+    required_evidence:
+    - namespace candidate comes from current user input, ENDOR_NAMESPACE, active endorctl config, or resolved project metadata
+    - no namespace borrowed from unrelated prior sessions or examples
+    - first Endor query using -n has namespace provenance
+    - failed namespace candidates recorded in data_gaps before trying another proven candidate
+    data_gaps_allowed: true
+- id: approved-pr-with-comment
+  input:
+    prompt: Show me the patch and PR body for the top UIA-backed fix, then open the PR after I approve.
+  expected:
+    action: prepare_then_open_change_request
+    required_evidence:
+    - selected remediation and UIA evidence shown before mutation
+    - explicit user approval before file edits and PR/MR creation
+    - validation status in PR/MR body
+    - stable remediation comment or documented source-provider data gap
+    data_gaps_allowed: true

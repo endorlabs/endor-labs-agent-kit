@@ -5,9 +5,9 @@
         {
           "artifacts": [
             {
-              "bytes": 7854,
+              "bytes": 7861,
               "path": "claude-code/ai-sast-triage/README.md",
-              "sha256": "a14fc0f109abbddfc474b7b429299179b174ae235a38af5d9b9d55b88e109db9"
+              "sha256": "539846842858dedda120d08bb0845226aa08f6c143e6277ef3d3314f879329aa"
             },
             {
               "bytes": 4179,
@@ -233,6 +233,51 @@
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 5418,
+              "path": "claude-code/sca-remediation-agent/README.md",
+              "sha256": "d0ac36169646e904341194520992525b9eb04e90560fa564d72a34f13ec30565"
+            },
+            {
+              "bytes": 4944,
+              "path": "claude-code/sca-remediation-agent/actions.yaml",
+              "sha256": "0fd11124e6e4e5505622cae49ec6ede24997546e94c49255495e37e31dcad4d9"
+            },
+            {
+              "bytes": 9838,
+              "path": "claude-code/sca-remediation-agent/architecture.svg",
+              "sha256": "92cb9045603d995b0a1d43cf8092661f40f69d431da9e53dcdc23ebb9662ff6f"
+            },
+            {
+              "bytes": 990,
+              "path": "claude-code/sca-remediation-agent/endorctl-setup.md",
+              "sha256": "4143e0bc73ec90eb3f7ef5c183af28abcc509226c40b6dcc58891a1624384bd9"
+            },
+            {
+              "bytes": 28631,
+              "path": "claude-code/sca-remediation-agent/sca-remediation-agent.md",
+              "sha256": "9d8321fa71bd67b2b0a08e81cc16109cf9fb8b64500128ac2cf914a7c63ae176"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-code/sca-remediation-agent",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "sca-remediation-agent",
+      "name": "SCA Remediation Agent",
+      "source": {
+        "builder_recipe": "source/agents/sca-remediation-agent/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
     },
     {
       "editions": [
