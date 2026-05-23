@@ -35,12 +35,18 @@ def _valid_netty_payload() -> dict:
                     "ghsa": "GHSA-cqqj-4p63-rrmm",
                     "severity": "critical",
                     "title": "HTTP Request Smuggling in Netty",
+                    "advisory_source": "Endor VersionUpgrade vuln_finding_info.fixed_findings",
+                    "cve_mapping_source": "GitHub Advisory Database aliases",
+                    "link_source": "GitHub Advisory Database",
                 },
                 {
                     "cve": "CVE-2021-21290",
                     "ghsa": "GHSA-5mcr-gq6c-3hq2",
                     "severity": "medium",
                     "title": "Local Information Disclosure in Netty",
+                    "advisory_source": "Endor VersionUpgrade vuln_finding_info.fixed_findings",
+                    "cve_mapping_source": "GitHub Advisory Database aliases",
+                    "link_source": "GitHub Advisory Database",
                 },
             ],
         },
@@ -142,6 +148,9 @@ def test_sca_pr_renderer_outputs_auri_style_body_and_lints_cleanly():
     assert "<details><summary>Advisories This Upgrade Fixes (2)</summary>" in body
     assert "[CVE-2019-20444](https://github.com/advisories/GHSA-cqqj-4p63-rrmm): HTTP Request Smuggling in Netty (C) 🔴" in body
     assert "[CVE-2021-21290](https://github.com/advisories/GHSA-5mcr-gq6c-3hq2): Local Information Disclosure in Netty (M) 🟡" in body
+    assert "#### Advisory Provenance" in body
+    assert "- CVE-2019-20444: cve=CVE-2019-20444; ghsa=GHSA-cqqj-4p63-rrmm; advisory_source=Endor VersionUpgrade vuln_finding_info.fixed_findings; cve_mapping_source=GitHub Advisory Database aliases; link_source=GitHub Advisory Database" in body
+    assert "Developer Validation" not in body
     assert "**Critical**" not in body
     assert "**High**" not in body
     assert lint_sca_pr_body(body) == []
@@ -164,6 +173,75 @@ def test_sca_pr_linter_rejects_missing_suffix_and_ghsa_visible_text_when_cve_pre
     errors = lint_sca_pr_body(body)
 
     assert any("invalid format" in error for error in errors)
+
+
+def test_sca_pr_linter_rejects_unfolded_or_open_advisory_details():
+    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+### At a Glance
+### 🔎 Advisories This Upgrade Fixes
+<details open>
+<summary>Advisories (1)</summary>
+
+- [CVE-2019-20444](https://github.com/advisories/GHSA-cqqj-4p63-rrmm): HTTP Request Smuggling in Netty (C) 🔴
+
+#### Advisory Provenance
+- CVE-2019-20444: cve=CVE-2019-20444; ghsa=GHSA-cqqj-4p63-rrmm; advisory_source=Endor; cve_mapping_source=GitHub Advisory Database; link_source=GitHub Advisory Database
+
+</details>
+### Validation Plan
+### Rollback
+### Endor Evidence
+"""
+
+    errors = lint_sca_pr_body(body)
+
+    assert any("<details>, not <details open>" in error for error in errors)
+    assert any("Advisories This Upgrade Fixes" in error for error in errors)
+
+
+def test_sca_pr_linter_rejects_unclosed_fenced_blocks_and_developer_validation():
+    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+### At a Glance
+```diff
+- old
++ new
+### 🔎 Advisories This Upgrade Fixes
+<details><summary>Advisories This Upgrade Fixes (1)</summary>
+
+- [CVE-2019-20444](https://github.com/advisories/GHSA-cqqj-4p63-rrmm): HTTP Request Smuggling in Netty (C) 🔴
+
+#### Advisory Provenance
+- CVE-2019-20444: cve=CVE-2019-20444; ghsa=GHSA-cqqj-4p63-rrmm; advisory_source=Endor; cve_mapping_source=GitHub Advisory Database; link_source=GitHub Advisory Database
+
+</details>
+### 🧪 Developer Validation
+### Rollback
+### Endor Evidence
+"""
+
+    errors = lint_sca_pr_body(body)
+
+    assert "unclosed fenced code block" in errors
+    assert any("Developer Validation" in error for error in errors)
+
+
+def test_sca_pr_linter_requires_advisory_provenance():
+    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+### At a Glance
+### 🔎 Advisories This Upgrade Fixes
+<details><summary>Advisories This Upgrade Fixes (1)</summary>
+
+- [CVE-2019-20444](https://github.com/advisories/GHSA-cqqj-4p63-rrmm): HTTP Request Smuggling in Netty (C) 🔴
+
+</details>
+### Validation Plan
+### Rollback
+### Endor Evidence
+"""
+
+    errors = lint_sca_pr_body(body)
+
+    assert "advisory provenance section required" in errors
 
 
 def test_sca_cli_validate_output_and_render_pr_body(tmp_path, capsys):
