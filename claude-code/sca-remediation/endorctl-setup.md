@@ -1,6 +1,6 @@
 # Runtime Setup
 
-The SCA Remediation Agent preserves a mutating workflow.
+The SCA Remediation agent preserves a mutating workflow.
 Use an authenticated Endor tenant plus local source-provider credentials
 before allowing patch or change-request steps.
 

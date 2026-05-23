@@ -143,7 +143,7 @@ def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():
 def test_sca_pr_renderer_outputs_auri_style_body_and_lints_cleanly():
     body = render_sca_pr_body(_valid_netty_payload())
 
-    assert "<!-- endor-agent-kit:sca-remediation-agent -->" in body
+    assert "<!-- endor-agent-kit:sca-remediation -->" in body
     assert "### At a Glance" in body
     assert "<details><summary>Advisories This Upgrade Fixes (2)</summary>" in body
     assert "[CVE-2019-20444](https://github.com/advisories/GHSA-cqqj-4p63-rrmm): HTTP Request Smuggling in Netty (C) 🔴" in body
@@ -157,7 +157,7 @@ def test_sca_pr_renderer_outputs_auri_style_body_and_lints_cleanly():
 
 
 def test_sca_pr_linter_rejects_missing_suffix_and_ghsa_visible_text_when_cve_present():
-    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+    body = """<!-- endor-agent-kit:sca-remediation -->
 ### At a Glance
 ### 🔎 Advisories This Upgrade Fixes
 <details><summary>Advisories This Upgrade Fixes (1)</summary>
@@ -176,7 +176,7 @@ def test_sca_pr_linter_rejects_missing_suffix_and_ghsa_visible_text_when_cve_pre
 
 
 def test_sca_pr_linter_rejects_unfolded_or_open_advisory_details():
-    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+    body = """<!-- endor-agent-kit:sca-remediation -->
 ### At a Glance
 ### 🔎 Advisories This Upgrade Fixes
 <details open>
@@ -200,7 +200,7 @@ def test_sca_pr_linter_rejects_unfolded_or_open_advisory_details():
 
 
 def test_sca_pr_linter_rejects_unclosed_fenced_blocks_and_developer_validation():
-    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+    body = """<!-- endor-agent-kit:sca-remediation -->
 ### At a Glance
 ```diff
 - old
@@ -226,7 +226,7 @@ def test_sca_pr_linter_rejects_unclosed_fenced_blocks_and_developer_validation()
 
 
 def test_sca_pr_linter_requires_advisory_provenance():
-    body = """<!-- endor-agent-kit:sca-remediation-agent -->
+    body = """<!-- endor-agent-kit:sca-remediation -->
 ### At a Glance
 ### 🔎 Advisories This Upgrade Fixes
 <details><summary>Advisories This Upgrade Fixes (1)</summary>
@@ -264,41 +264,41 @@ def test_sca_branch_normalizer_uses_remediation_sca_prefix():
 
 
 def test_check_install_detects_stale_repo_level_agent(tmp_path):
-    catalog_agent = tmp_path / "catalog" / "claude-code" / "sca-remediation-agent"
+    catalog_agent = tmp_path / "catalog" / "claude-code" / "sca-remediation"
     catalog_agent.mkdir(parents=True)
-    (catalog_agent / "sca-remediation-agent.md").write_text("current", encoding="utf-8")
+    (catalog_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
     installed_agent = tmp_path / "repo" / ".claude" / "agents"
     installed_agent.mkdir(parents=True)
-    (installed_agent / "sca-remediation-agent.md").write_text("old", encoding="utf-8")
+    (installed_agent / "sca-remediation.md").write_text("old", encoding="utf-8")
 
     errors = check_claude_code_install(
-        "sca-remediation-agent",
+        "sca-remediation",
         tmp_path / "repo",
         catalog_root=tmp_path / "catalog",
     )
 
     assert any("is stale" in error for error in errors)
 
-    (installed_agent / "sca-remediation-agent.md").write_text("current", encoding="utf-8")
+    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
     assert check_claude_code_install(
-        "sca-remediation-agent",
+        "sca-remediation",
         tmp_path / "repo",
         catalog_root=tmp_path / "catalog",
     ) == []
 
 
 def test_sca_cli_check_install(tmp_path, capsys):
-    catalog_agent = tmp_path / "catalog" / "claude-code" / "sca-remediation-agent"
+    catalog_agent = tmp_path / "catalog" / "claude-code" / "sca-remediation"
     catalog_agent.mkdir(parents=True)
-    (catalog_agent / "sca-remediation-agent.md").write_text("current", encoding="utf-8")
+    (catalog_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
     installed_agent = tmp_path / "repo" / ".claude" / "agents"
     installed_agent.mkdir(parents=True)
-    (installed_agent / "sca-remediation-agent.md").write_text("current", encoding="utf-8")
+    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
 
     assert main([
         "check-install",
         "--agent",
-        "sca-remediation-agent",
+        "sca-remediation",
         "--repo",
         str(tmp_path / "repo"),
         "--catalog-root",

@@ -172,7 +172,7 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
     expectation = _compatibility_line(risk_decision, cia_status)
 
     lines = [
-        "<!-- endor-agent-kit:sca-remediation-agent -->",
+        "<!-- endor-agent-kit:sca-remediation -->",
         "",
         f"## Security Remediation: {findings_fixed} Endor finding instances fixed by dependency upgrade",
         "",
@@ -241,8 +241,8 @@ def lint_sca_pr_body(body: str) -> list[str]:
     errors: list[str] = []
     if body.count("```") % 2:
         errors.append("unclosed fenced code block")
-    if "<!-- endor-agent-kit:sca-remediation-agent -->" not in body:
-        errors.append("missing sca-remediation-agent marker")
+    if "<!-- endor-agent-kit:sca-remediation -->" not in body:
+        errors.append("missing sca-remediation marker")
     if re.search(r"^### .*Developer Validation", body, re.MULTILINE):
         errors.append("use neutral 'Validation' wording, not 'Developer Validation'")
     for heading in (

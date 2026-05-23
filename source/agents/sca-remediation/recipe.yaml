@@ -1,8 +1,8 @@
 recipe_schema_version: 2
-id: sca-remediation-agent
-name: SCA Remediation Agent
+id: sca-remediation
+name: SCA Remediation
 version: 0.1.0
-description: Remediate reachable and exploitable dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, local validation, and approved PR/MR creation.
+description: Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
 safety_class: mutating
 endor_tier_minimum: enterprise
 supported_transports:

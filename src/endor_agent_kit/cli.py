@@ -56,7 +56,7 @@ def main(argv: list[str] | None = None) -> int:
 
     validate_output_parser = subparsers.add_parser(
         "validate-sca-output",
-        help="Validate structured sca-remediation-agent output for a workflow gate",
+        help="Validate structured sca-remediation output for a workflow gate",
     )
     validate_output_parser.add_argument("payload", type=Path)
     validate_output_parser.add_argument(

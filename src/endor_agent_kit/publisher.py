@@ -519,7 +519,7 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "endor-agent-kit validate-sca-output sca-output.json --gate selection-plan",
         "endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md",
         "endor-agent-kit lint-sca-pr-body pr-body.md",
-        "endor-agent-kit check-install --agent sca-remediation-agent --repo /path/to/repo",
+        "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo",
         "```",
         "",
         "`validate-sca-output` rejects Selection / Plan responses that omit",
@@ -638,10 +638,10 @@ def _root_readme(agents: list[dict[str, Any]]) -> str:
         "| `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |",
         "| `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |",
         "| `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |",
-        "| `endor-agent-kit validate-sca-output sca-output.json --gate selection-plan` | Validate structured `sca-remediation-agent` output before advancing a workflow gate. |",
+        "| `endor-agent-kit validate-sca-output sca-output.json --gate selection-plan` | Validate structured `sca-remediation` output before advancing a workflow gate. |",
         "| `endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md` | Render the AURI-style SCA remediation PR/MR body from normalized JSON. |",
         "| `endor-agent-kit lint-sca-pr-body pr-body.md` | Lint a rendered SCA remediation PR/MR body for required sections, advisory formatting, and severity suffixes. |",
-        "| `endor-agent-kit check-install --agent sca-remediation-agent --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |",
+        "| `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |",
         "",
         "Supported compile targets are `claude-code`, `claude-managed-agents`,",
         "and `raw`.",
@@ -772,7 +772,7 @@ def _agent_summary(agent_id: str) -> str:
         "package-risk-summary": "Summarize the risk profile of a specific package version",
         "remediation-planner": "Preview safe dependency remediation options without opening PRs",
         "repository-dependency-reviewer": "Review local dependency manifests with read-only file inspection and Endor evidence",
-        "sca-remediation-agent": "Remediate reachable dependency vulnerabilities with Endor SCA findings, UIA evidence, deterministic risk decisions, validation, and approved PR/MR creation",
+        "sca-remediation": "Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation",
         "vulnerability-explainer": "Understand a specific CVE, GHSA, or Endor vulnerability and what to do next",
     }
     return summaries.get(agent_id, "Use an Endor Labs workflow agent")
@@ -786,7 +786,7 @@ def _agent_example(agent_id: str) -> str:
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
         "remediation-planner": "@agent-remediation-planner preview remediation options for this repository",
         "repository-dependency-reviewer": "@agent-repository-dependency-reviewer review this repository's dependency manifests",
-        "sca-remediation-agent": "@agent-sca-remediation-agent check this repository for P0 SCA findings I can start remediating",
+        "sca-remediation": "@agent-sca-remediation check this repository for P0 SCA findings I can start remediating",
         "vulnerability-explainer": "@agent-vulnerability-explainer explain CVE-2021-44228",
     }
     return examples.get(agent_id, f"@agent-{agent_id} help")
@@ -819,17 +819,17 @@ def _claude_code_edition_readme(
             )
         workflow_label = {
             "ai-sast-triage": "AI SAST triage",
-            "sca-remediation-agent": "SCA remediation",
+            "sca-remediation": "SCA remediation",
         }.get(recipe.id, recipe.name)
         notes = [
             f"This {artifact_label} preserves the {workflow_label} workflow capabilities as a mutating agent.",
             "The agent may fetch source context, prepare patches, edit files, run commands, open a change request, verify AppSec approval evidence, and create an Endor exception policy when the workflow requires it.",
             "Confirm repository and branch targets before allowing write or pull-request actions. Confirm the rendered Endor policy spec before allowing exception-policy creation.",
         ]
-        if recipe.id == "sca-remediation-agent":
+        if recipe.id == "sca-remediation":
             notes = [
                 f"This {artifact_label} preserves the SCA remediation workflow capabilities as a mutating agent.",
-                "The agent may query Endor SCA findings and VersionUpgrade/UIA evidence, inspect local manifests, produce a deterministic risk_decision, prepare dependency changes, run validation, open a change request, and post a remediation comment when approved.",
+                "The agent may query Endor SCA findings and VersionUpgrade/UIA evidence, list separate non-breaking low-risk PR-ready candidates, inspect local manifests, produce a deterministic risk_decision, prepare dependency changes, run validation, open a change request, and post a remediation comment when approved.",
                 "Confirm the selected package, UIA evidence, risk_decision, target files, generated diff, validation status, branch, and PR/MR body before allowing mutations.",
             ]
         if recipe.action_contracts_path:
@@ -898,7 +898,7 @@ def _claude_code_edition_readme(
 def _claude_code_agent_setup_section(
     recipe: EndorAgentRecipe,
 ) -> list[str]:
-    if recipe.id == "sca-remediation-agent":
+    if recipe.id == "sca-remediation":
         return [
             "## Setup Checklist",
             "",
@@ -908,8 +908,8 @@ def _claude_code_agent_setup_section(
             "",
             "```bash",
             "mkdir -p .claude/agents",
-            "cp /path/to/endor-labs-agent-kit/claude-code/sca-remediation-agent/sca-remediation-agent.md \\",
-            "  .claude/agents/sca-remediation-agent.md",
+            "cp /path/to/endor-labs-agent-kit/claude-code/sca-remediation/sca-remediation.md \\",
+            "  .claude/agents/sca-remediation.md",
             "```",
             "",
             "### 2. Verify Local Access",
@@ -934,6 +934,11 @@ def _claude_code_agent_setup_section(
             "The agent shows UIA evidence, risk_decision, target files, diff,",
             "validation plan, branch, and PR/MR body before mutating. Approve file",
             "edits and PR/MR creation as separate steps.",
+            "",
+            "Validation commands are selected from the repository's actual package",
+            "manager and build metadata. The agent should not assume a Maven, npm,",
+            "Python, Go, .NET, Ruby, Rust, or any other ecosystem layout until it",
+            "has inspected the local manifests and documented build instructions.",
             "",
         ]
     if recipe.id != "ai-sast-triage":
@@ -1030,7 +1035,7 @@ def _claude_code_agent_setup_section(
 
 
 def _claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
-    if recipe.id == "sca-remediation-agent":
+    if recipe.id == "sca-remediation":
         return [
             "## Example Workflow",
             "",
@@ -1039,19 +1044,25 @@ def _claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]
             "### 1. Rank Without Mutating",
             "",
             "```text",
-            "@agent-sca-remediation-agent check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR. Rank package-level fixes and show the UIA evidence for the best first fix.",
+            "@agent-sca-remediation check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR. Rank package-level fixes and show the UIA evidence for the best first fix.",
             "```",
             "",
-            "### 2. Prepare One Patch",
+            "### 2. List Other Low-Risk PRs",
             "",
             "```text",
-            "@agent-sca-remediation-agent prepare the top UIA-backed dependency remediation for this repository. Show the selected package, affected manifests, VersionUpgrade/UIA UUID, risk, CIA status, risk_decision, findings fixed, folded advisory/finding list, validation command, branch name, PR/MR title, and body before changing files.",
+            "@agent-sca-remediation show me the other non-breaking low-risk UIA-backed PRs for this repository. Keep this separate from the P0/exploited queue and the risky solver. Do not edit files, create branches, push, or open a PR/MR.",
             "```",
             "",
-            "### 3. Open The PR/MR After Approval",
+            "### 3. Prepare One Patch",
             "",
             "```text",
-            "@agent-sca-remediation-agent apply the approved patch, run local validation, and then ask me before pushing a branch or opening the PR/MR. Use the AURI-style PR/MR body with emoji sections, UIA evidence, validation status, and a folded advisory/finding list.",
+            "@agent-sca-remediation prepare the top UIA-backed dependency remediation for this repository. Show the selected package, affected manifests, VersionUpgrade/UIA UUID, risk, CIA status, risk_decision, findings fixed, folded advisory/finding list, validation command, branch name, PR/MR title, and body before changing files.",
+            "```",
+            "",
+            "### 4. Open The PR/MR After Approval",
+            "",
+            "```text",
+            "@agent-sca-remediation apply the approved patch, run local validation, and then ask me before pushing a branch or opening the PR/MR. Use the AURI-style PR/MR body with emoji sections, UIA evidence, validation status, and a folded advisory/finding list.",
             "```",
             "",
             "Do not call a high-count finding bucket low risk unless the response shows",
@@ -1065,6 +1076,12 @@ def _claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]
             "The selection/plan gate is not complete until that `risk_decision` is",
             "present; low UIA risk, zero conflicts, and a simple manifest edit are",
             "inputs to the verdict, not replacements for it.",
+            "Keep low-risk non-breaking UIA candidates separate from P0/exploited",
+            "findings and from the risky solver. Hidden P0 duplicates should be",
+            "reported separately and excluded from `most_findings_in_one_pr`.",
+            "Choose validation commands from the repository's actual ecosystem and",
+            "manifest layout; do not carry Maven or any other package-manager",
+            "commands across runs unless the current repository proves that layout.",
             "Use the branch convention `remediation/sca/<package>-<target-version>`",
             "unless the user explicitly asks for a different branch name.",
             "",
@@ -1215,12 +1232,14 @@ def _architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "remediation evidence, and returns a plan only. It does not edit files, push "
             "branches, or open PRs/MRs."
         ),
-        "sca-remediation-agent": (
+        "sca-remediation": (
             "This mutating Claude Code agent resolves repository context, queries Endor "
             "SCA findings, requires VersionUpgrade/UIA evidence before recommending a "
-            "best first fix, resolves risky or CIA-indeterminate upgrades into a "
-            "deterministic risk_decision, prepares local dependency changes, runs "
-            "validation when possible, and opens a PR/MR only after explicit approval. "
+            "best first fix, keeps non-breaking low-risk UIA PR candidates separate "
+            "from the P0/exploited queue and risky solver, resolves risky or "
+            "CIA-indeterminate upgrades into a deterministic risk_decision, prepares "
+            "local dependency changes, runs ecosystem-appropriate validation when "
+            "possible, and opens a PR/MR only after explicit approval. "
             "It does not use or require an Endor MCP server."
         ),
     }.get(
@@ -1238,7 +1257,7 @@ def _architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
 
 
 def _claude_code_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
-    if recipe.id == "sca-remediation-agent":
+    if recipe.id == "sca-remediation":
         return [
             "## QA Smoke Test",
             "",
@@ -1247,7 +1266,7 @@ def _claude_code_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
             "",
             "```bash",
             "export CLAUDE_CONFIG_DIR=\"$(mktemp -d)\"",
-            "claude -p --agent sca-remediation-agent --permission-mode bypassPermissions \\",
+            "claude -p --agent sca-remediation --permission-mode bypassPermissions \\",
             "  \"Check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR until I approve.\"",
             "```",
             "",
@@ -1289,7 +1308,7 @@ def _example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition
     input_names = {field.name for field in recipe.inputs}
     if recipe.id == "ai-sast-triage":
         return f"@agent-{recipe.id} triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
-    if recipe.id == "sca-remediation-agent":
+    if recipe.id == "sca-remediation":
         return f"@agent-{recipe.id} check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR until I approve."
     if recipe.id == "remediation-planner":
         return f"@agent-{recipe.id} preview remediation options for this repository"

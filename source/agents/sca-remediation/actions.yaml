@@ -29,6 +29,16 @@ actions:
     outputs: ["version_upgrades", "finding_fixing_upgrades", "cia_results", "selected_upgrade"]
     notes: "Fetch VersionUpgrade/UIA evidence before calling a remediation low-risk or best. Surface the exact resource UUIDs, risk, findings fixed, findings introduced, CIA status, and score explanation."
 
+  - id: list-low-risk-uia-prs
+    kind: endor.query
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api", "local-git"]
+    required_host_capabilities: ["run_commands", "read_files"]
+    inputs: ["project_uuid", "namespace", "repo", "version_upgrades"]
+    outputs: ["low_risk_recommendations", "candidate_prs", "ready_to_open", "most_findings_in_one_pr", "p0_duplicates_hidden", "data_gaps"]
+    notes: "List non-breaking low-risk UIA-backed PR candidates separately from the P0/exploited queue and risky solver. Hide P0 or exploited duplicates from the main low-risk list, report them separately, and require repo metadata plus manifest paths before marking candidates ready to open."
+
   - id: read-local-manifests
     kind: scm.source_read
     safety_class: read_only
