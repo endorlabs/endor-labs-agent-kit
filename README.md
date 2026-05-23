@@ -43,6 +43,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` |
 | Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - |
+| SCA Remediation Agent | Remediate reachable dependency vulnerabilities with Endor SCA findings, UIA evidence, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation-agent/` | - |
 
 ## Which Directory Do I Use?
 
@@ -197,12 +198,36 @@ Remediation Planner:
 @agent-remediation-planner preview remediation options for this repository
 ```
 
+SCA Remediation Agent:
+
+```text
+@agent-sca-remediation-agent check this repository for P0 SCA findings I can start remediating
+```
+
 ## Output Contract
 
 Agents return concise prose plus a JSON block. The exact schema depends on the
 agent. If a signal is unavailable because of setup, authentication, account
 tier, or tooling, agents record that in `data_gaps` instead of inventing
 evidence.
+
+SCA remediation outputs can be checked mechanically before a workflow advances:
+
+```bash
+endor-agent-kit validate-sca-output sca-output.json --gate selection-plan
+endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md
+endor-agent-kit lint-sca-pr-body pr-body.md
+endor-agent-kit check-install --agent sca-remediation-agent --repo /path/to/repo
+```
+
+`validate-sca-output` rejects Selection / Plan responses that omit
+`risk_decision.status`, use nonstandard branch names, or try to advance a
+CIA-indeterminate upgrade without source-usage evidence and validation
+requirements. `render-sca-pr-body` turns normalized advisory data into the
+AURI-style PR/MR body, including the folded advisory list, CVE-visible links
+to GHSA URLs, and severity emoji suffixes.
+`check-install` catches copied Claude Code agents that are stale versus the
+checked-in Agent Kit catalog.
 
 ## Safety Model
 
@@ -246,7 +271,12 @@ regenerate customer-facing artifacts.
 Use the Create Endor Labs Agent skill to make your own Endor Labs agent.
 The skill lives at `skills/create-endor-labs-agent/SKILL.md` and guides an
 assistant through agent design, recipe authoring, prompt sections, evals,
-tests, catalog regeneration, and validation.
+architecture diagrams, tests, catalog regeneration, and validation.
+
+The skill supports two public input styles: a net-new agent brief or a
+generic sanitized agent blueprint. Private tools may generate a blueprint,
+but Agent Kit should only receive customer-safe recipe, action, instruction,
+eval, and architecture source files.
 
 For Claude Code, install it at either the repository or user level:
 
@@ -284,8 +314,9 @@ python -m pip install -e ".[dev]"
 1. Edit `source/agents/<agent>/recipe.yaml`.
 2. Edit `source/agents/<agent>/instructions.md`.
 3. Update `source/agents/<agent>/evals/cases.yaml`.
-4. Add or update tests under `tests/`.
-5. Validate and regenerate the catalog.
+4. Add `source/agents/<agent>/architecture.svg` in the existing diagram format.
+5. Add or update tests under `tests/`.
+6. Validate and regenerate the catalog.
 
 ```bash
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
@@ -305,6 +336,10 @@ CI runs the same validation and generated-artifact drift check.
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |
 | `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |
+| `endor-agent-kit validate-sca-output sca-output.json --gate selection-plan` | Validate structured `sca-remediation-agent` output before advancing a workflow gate. |
+| `endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md` | Render the AURI-style SCA remediation PR/MR body from normalized JSON. |
+| `endor-agent-kit lint-sca-pr-body pr-body.md` | Lint a rendered SCA remediation PR/MR body for required sections, advisory formatting, and severity suffixes. |
+| `endor-agent-kit check-install --agent sca-remediation-agent --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |
 
 Supported compile targets are `claude-code`, `claude-managed-agents`,
 and `raw`.
@@ -329,6 +364,7 @@ requesting exception-policy approval.
 | `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |
 | `required_endor_mcp_tools`, `endorctl_api_invocations` | Endor tools and API lookup groups the prompt may use. |
 | `instructions_path`, `evals` | Source prompt and eval case files relative to the recipe. |
+| `architecture.svg` | Required source diagram copied into generated catalog artifacts when present. |
 
 Generated artifacts must not be edited as the first step. Change the recipe
 or instructions source, publish the catalog, then review the generated diff.
@@ -384,6 +420,12 @@ claude-code/
     enterprise-edition/
       README.md
       repository-dependency-reviewer.md
+  sca-remediation-agent/
+    README.md
+    actions.yaml
+    architecture.svg
+    endorctl-setup.md
+    sca-remediation-agent.md
   upgrade-impact-analysis/
     developer-edition/
       README.md
