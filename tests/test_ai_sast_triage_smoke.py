@@ -23,8 +23,10 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
 
     root_readme = (dest / "README.md").read_text()
     agent_dir = dest / "claude-code" / "ai-sast-triage"
+    codex_dir = dest / "codex" / "ai-sast-triage"
     agent_readme = (agent_dir / "README.md").read_text()
     prompt = (agent_dir / "ai-sast-triage.md").read_text()
+    codex_skill = (codex_dir / "SKILL.md").read_text()
 
     assert "@agent-ai-sast-triage triage AI SAST findings for this repository" in root_readme
     assert "Do not open a PR until I approve the patch" in agent_readme
@@ -37,6 +39,9 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "read the current repository root and `origin` remote URL" in prompt
     assert "ask the user to choose one" in prompt
     assert "Project scoping is mandatory" in prompt
+    assert "Namespace Provenance" in prompt
+    assert "namespace_provenance" in prompt
+    assert "project_resolution.repo_full_name" in prompt
     assert "Exploit Reproduction" in prompt
     assert "Remediation Guidance" in prompt
     assert "Use Exploit Reproduction for prioritization and validation planning" in prompt
@@ -45,7 +50,16 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "remediation_guidance_used" in prompt
     assert "exploit_reproduction_used" in prompt
     assert "safe local validation" in prompt
-    assert "<!-- endor-agent-kit:ai-sast-context " in prompt
+    assert "<!-- auri:ai-sast-context " in prompt
+    assert "<!-- endor-agent-kit:ai-sast-triage -->" in prompt
+    assert "Endor Labs AURI Security Fix" in prompt
+    assert "### 🔧 What changed" in prompt
+    assert "### 🔎 Evidence provided by AURI" in prompt
+    assert "Critical `🔴`, High `🟠`, Medium `🟡`, Low `🟢`" in prompt
+    assert "remediation/ai-sast/<finding-slug>" in prompt
+    assert "endor/fix" in prompt
+    assert "endor-agent-kit validate-ai-sast-output" in prompt
+    assert "endor-agent-kit lint-ai-sast-pr-body" in prompt
     assert "Do not claim that an Endor exception policy was created" in prompt
     assert "## Action Contracts" in prompt
     assert "open-change-request" in prompt
@@ -57,6 +71,13 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "do not guess alternate live write shapes" in prompt
     assert (agent_dir / "architecture.svg").is_file()
     assert (agent_dir / "actions.yaml").is_file()
+    assert (codex_dir / "SKILL.md").is_file()
+    assert (codex_dir / "README.md").is_file()
+    assert (codex_dir / "actions.yaml").is_file()
+    assert "## Codex Host Contract" in codex_skill
+    assert "Treat file edits, branch pushes, PR/MR creation" in codex_skill
+    assert "Never create or update an Endor policy" in codex_skill
+    assert "auri:ai-sast-context" in codex_skill
     assert not (agent_dir / "enterprise-edition").exists()
     assert "![AI SAST Triage architecture](architecture.svg)" in agent_readme
     assert "PR/MR creation is host-mediated" in agent_readme
@@ -65,6 +86,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "does not need an Endor MCP server" in agent_readme
     assert "AppSec approvers: @alice, @bob, @endor-labs/appsec" in agent_readme
     assert "Understand Finding Evidence" in agent_readme
+    assert "Match The AURI PR/MR Body" in agent_readme
+    assert "Severity must be visually indicated" in agent_readme
     assert "uses it as" in agent_readme
     assert "APPSEC APPROVED: accept risk" in agent_readme
     assert "Example Workflow" in agent_readme

@@ -50,14 +50,18 @@ outputs:
   kind: string
   required: true
   description: Triage summary including confirmed TPs, likely FPs, inconclusive findings, exploit-driven priority, remediation-guidance usage, patches ready, and PR/MR counters.
+- name: project_resolution
+  kind: object
+  required: true
+  description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
 - name: verdicts
   kind: list[object]
   required: true
-  description: Per-finding parsed AI SAST classification, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.
+  description: Per-finding parsed AI SAST classification, finding UUID, source-location provenance, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.
 - name: patches
   kind: list[object]
   required: true
-  description: Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, and source SHA for TRUE_POSITIVE findings with source context.
+  description: Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and rendered PR/MR body for TRUE_POSITIVE findings with source context.
 - name: change_requests
   kind: list[object]
   required: true
@@ -77,6 +81,7 @@ outputs:
 evals: evals/cases.yaml
 compatible_hosts:
 - claude-code
+- codex
 host_editions:
   claude-code:
   - enterprise-edition

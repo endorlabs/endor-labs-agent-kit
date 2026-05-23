@@ -5,19 +5,19 @@
         {
           "artifacts": [
             {
-              "bytes": 7861,
+              "bytes": 8432,
               "path": "claude-code/ai-sast-triage/README.md",
-              "sha256": "539846842858dedda120d08bb0845226aa08f6c143e6277ef3d3314f879329aa"
+              "sha256": "fa61749cbffdcb90fcd2c48bf82a72bd6f6233419efdd2050885715a8333e244"
             },
             {
-              "bytes": 4179,
+              "bytes": 4484,
               "path": "claude-code/ai-sast-triage/actions.yaml",
-              "sha256": "03ce0411552472c40b2db723a7a0d93b17517fd0f13eef10aa1da31e36aaa01b"
+              "sha256": "90b240da6475a78c3145b521b22f0e2807db733253cf6a97694b3effeaf56c3d"
             },
             {
-              "bytes": 18320,
+              "bytes": 21563,
               "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "f4fb4660605c236cc1337b162ad2daa906b618f3743741c8a98999d0a3b37775"
+              "sha256": "b37e13dc5cedbbf2e562f73fe21178147c9389b5a4820d70a1228360440155ed"
             },
             {
               "bytes": 10561,
@@ -50,42 +50,24 @@
         {
           "artifacts": [
             {
-              "bytes": 948,
-              "path": "claude-code/dependency-decision-helper/developer-edition/README.md",
-              "sha256": "549e7892e91b06fd1645d8018063304d2a986e51956b9ee85dbc80f2fed18db1"
+              "bytes": 966,
+              "path": "claude-code/dependency-decision-helper/README.md",
+              "sha256": "377726328216adcf72120a4841400eac788f7d7e3be955b9dc14c33568da3cf2"
             },
             {
-              "bytes": 5346,
-              "path": "claude-code/dependency-decision-helper/developer-edition/dependency-decision-helper.md",
-              "sha256": "0255aa765735266cdecfcb9b6bc54218c13f2d58d325b1da7fbede37598dbccc"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "path": "claude-code/dependency-decision-helper/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 987,
-              "path": "claude-code/dependency-decision-helper/enterprise-edition/README.md",
-              "sha256": "c9d4970fa05b193873e8be30df06b8cfcca392ed49ab20c817186b8b78d81297"
+              "bytes": 9336,
+              "path": "claude-code/dependency-decision-helper/dependency-decision-helper.md",
+              "sha256": "8c50de1f5e03d1eab1b9679086fd54cf2fb90bc4de808ac95c46b4b909971347"
             },
             {
-              "bytes": 9360,
-              "path": "claude-code/dependency-decision-helper/enterprise-edition/dependency-decision-helper.md",
-              "sha256": "130318710908f0b56b56dd9657ca62b875d9dceba81e16dfc55e494530311c26"
-            },
-            {
-              "bytes": 828,
-              "path": "claude-code/dependency-decision-helper/enterprise-edition/endorctl-setup.md",
-              "sha256": "37f33aff3efd6bb6171cf194caad2f14d1b7b4b00b886497a0c71df094465c39"
+              "bytes": 729,
+              "path": "claude-code/dependency-decision-helper/endorctl-setup.md",
+              "sha256": "399e5b29a50d8a5bd44f236183f70ecee1a7b5ba4da479e935eafa73bc3daccd"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-code/dependency-decision-helper/enterprise-edition",
+          "path": "claude-code/dependency-decision-helper",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -103,42 +85,24 @@
         {
           "artifacts": [
             {
-              "bytes": 1126,
-              "path": "claude-code/package-risk-summary/developer-edition/README.md",
-              "sha256": "6b84c49e1392ca2ba1e017748e9c6c20ea3ce8a60a44bfafc59fc7bcc558a438"
+              "bytes": 1144,
+              "path": "claude-code/package-risk-summary/README.md",
+              "sha256": "7d8a2d69ce8178acdeb22d97a8dc6cf2be012c58a0bc382403e6791311a50031"
             },
             {
-              "bytes": 5408,
-              "path": "claude-code/package-risk-summary/developer-edition/package-risk-summary.md",
-              "sha256": "a7fa0b134b55b3c76c0f99037129db5153e19bf0810cc731d2d23dfc7c0a4737"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "path": "claude-code/package-risk-summary/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1165,
-              "path": "claude-code/package-risk-summary/enterprise-edition/README.md",
-              "sha256": "43db385a1cb1ea41b39f6ec54ffd5166dc8072ea33e316c392d0a784597b7c18"
+              "bytes": 734,
+              "path": "claude-code/package-risk-summary/endorctl-setup.md",
+              "sha256": "92bc984b44410b214c35d759cee372643f14d560f92e813d48cef68c13a20c62"
             },
             {
-              "bytes": 833,
-              "path": "claude-code/package-risk-summary/enterprise-edition/endorctl-setup.md",
-              "sha256": "3944dc4656bc9a231d30580e7d25c4a2d2afa7393ce5960128fb3f7c56910a99"
-            },
-            {
-              "bytes": 9486,
-              "path": "claude-code/package-risk-summary/enterprise-edition/package-risk-summary.md",
-              "sha256": "6b2c1ceb36851cd91f328c4d9b42b7135b726c074e81ab770aef9721c592e5d9"
+              "bytes": 9462,
+              "path": "claude-code/package-risk-summary/package-risk-summary.md",
+              "sha256": "b4675d4eeba2588b33a04a96a7141bbc89263a7894f892649d0770c688d7f32e"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-code/package-risk-summary/enterprise-edition",
+          "path": "claude-code/package-risk-summary",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -156,9 +120,9 @@
         {
           "artifacts": [
             {
-              "bytes": 926,
+              "bytes": 893,
               "path": "claude-code/remediation-planner/README.md",
-              "sha256": "2d8f6d721e60d3a465e9be3f1c9d625ebbf4924dc2da075cd425c5a1288d05ba"
+              "sha256": "3fcafb8a8b28dc9eb26adc12dc414abbc534b1d210a3cd3e09e27f7b89b57d28"
             },
             {
               "bytes": 9809,
@@ -166,15 +130,20 @@
               "sha256": "1c86170f624b8ad49f20c908400a54a83ba0413f142aeae9dd887b58449596a5"
             },
             {
-              "bytes": 2186,
+              "bytes": 582,
+              "path": "claude-code/remediation-planner/endorctl-setup.md",
+              "sha256": "dd60d1e0a9f16d477524d6104f54ff1b9a0b86b777b2417b9dea2457fa44508c"
+            },
+            {
+              "bytes": 2356,
               "path": "claude-code/remediation-planner/remediation-planner.md",
-              "sha256": "741d71f0b477dd7d188d009aa524bdeaabca69de29695e45877e03e37ba40446"
+              "sha256": "e3bf7714bdf2ea49d0f0166312e8df52b712cd386e330541491be01ac2734539"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/remediation-planner",
-          "requires_endorctl": ""
+          "requires_endorctl": ">=1.0"
         }
       ],
       "host": "claude-code",
@@ -191,37 +160,19 @@
         {
           "artifacts": [
             {
-              "bytes": 1095,
-              "path": "claude-code/repository-dependency-reviewer/developer-edition/README.md",
-              "sha256": "df782c9380a5ac637ac8ef4efef44146425bceaf824c5f585bd03e5c70ab0437"
+              "bytes": 1073,
+              "path": "claude-code/repository-dependency-reviewer/README.md",
+              "sha256": "0f238d5425c2b8ae99b3bd86bb54863eaa6abc32ed543da8fa08279556c447a7"
             },
             {
-              "bytes": 7504,
-              "path": "claude-code/repository-dependency-reviewer/developer-edition/repository-dependency-reviewer.md",
-              "sha256": "a44009251f28a334ecfcb501e4dd0b4ade153aadaa77ac7394b5dcaad7e38f40"
+              "bytes": 7458,
+              "path": "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
+              "sha256": "99cae0b4eeba2640365e18a3023d0326c8037de2a9f871de15cddbc768b45fbb"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
-          "path": "claude-code/repository-dependency-reviewer/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1096,
-              "path": "claude-code/repository-dependency-reviewer/enterprise-edition/README.md",
-              "sha256": "f4adda73fedd89f189c888f2ae0f71ec2db442c2dfb70e3dcfe85af4637f0e23"
-            },
-            {
-              "bytes": 7531,
-              "path": "claude-code/repository-dependency-reviewer/enterprise-edition/repository-dependency-reviewer.md",
-              "sha256": "9e37c8edbeb6512f1467a92906ca428b80de9f44be90efefb8da01de14db3abe"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "path": "claude-code/repository-dependency-reviewer/enterprise-edition",
+          "path": "claude-code/repository-dependency-reviewer",
           "requires_endorctl": ""
         }
       ],
@@ -284,52 +235,29 @@
         {
           "artifacts": [
             {
-              "bytes": 1430,
-              "path": "claude-code/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "2531346f4824bb8b0193dfc79b0c4a778b00203f48f79a5253827992cf69882e"
+              "bytes": 1405,
+              "path": "claude-code/upgrade-impact-analysis/README.md",
+              "sha256": "254a96a6d59eebf32e29aba2cc76929b7022055af3f9e93121688f122d37abb6"
             },
             {
               "bytes": 9921,
-              "path": "claude-code/upgrade-impact-analysis/developer-edition/architecture.svg",
+              "path": "claude-code/upgrade-impact-analysis/architecture.svg",
               "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
             },
             {
-              "bytes": 10757,
-              "path": "claude-code/upgrade-impact-analysis/developer-edition/upgrade-impact-analysis.md",
-              "sha256": "0fcd4356d74e5c51bbe20c99b378fd6fe9ad980b82ca717f736b2ec96fbd7fb7"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "path": "claude-code/upgrade-impact-analysis/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1535,
-              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "3f48b9523efb6b1bc17e0ec3e30f59cb56144111a752651446829067fd5b6c18"
+              "bytes": 597,
+              "path": "claude-code/upgrade-impact-analysis/endorctl-setup.md",
+              "sha256": "e642c94c56f7b501b3c6fee8d53390699339d1a27fa412d3252c9bd664f9a6ed"
             },
             {
-              "bytes": 9921,
-              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/architecture.svg",
-              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
-            },
-            {
-              "bytes": 1069,
-              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/endorctl-setup.md",
-              "sha256": "a5710b178a26c80385e498e0100b1ec7d3ed0da75302af079735c530f80dfc04"
-            },
-            {
-              "bytes": 19652,
-              "path": "claude-code/upgrade-impact-analysis/enterprise-edition/upgrade-impact-analysis.md",
-              "sha256": "1037033d89167febfad962a2bf34a565fe79effdfd5ba7b2792dd6e62fe574f7"
+              "bytes": 18107,
+              "path": "claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md",
+              "sha256": "1a3d7c48c75242fe8aa1f26a52484c0debf46bfc4cdc00df6c31c2e5747f0edc"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-code/upgrade-impact-analysis/enterprise-edition",
+          "path": "claude-code/upgrade-impact-analysis",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -347,37 +275,19 @@
         {
           "artifacts": [
             {
-              "bytes": 1026,
-              "path": "claude-code/vulnerability-explainer/developer-edition/README.md",
-              "sha256": "c91b686f34bfc3d385465084d236f52ab5e807702bfa5dd03fc93c0f95e19a8f"
+              "bytes": 1004,
+              "path": "claude-code/vulnerability-explainer/README.md",
+              "sha256": "361ae3508e5dc3a035b5fdd5dd52b068d06d8c2b92ed131b01af6d14b31ed77a"
             },
             {
-              "bytes": 5264,
-              "path": "claude-code/vulnerability-explainer/developer-edition/vulnerability-explainer.md",
-              "sha256": "ed7eb2de235191c194b01301d24300a7d65de68aaee9dcf20faf9d253756d88a"
+              "bytes": 5225,
+              "path": "claude-code/vulnerability-explainer/vulnerability-explainer.md",
+              "sha256": "17f91da25bca62696372463d8489a03889697033af4bb23d89d498f9c56beb09"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
-          "path": "claude-code/vulnerability-explainer/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1027,
-              "path": "claude-code/vulnerability-explainer/enterprise-edition/README.md",
-              "sha256": "5ddc95df21b7d732b6a32d8df4aab70f3cb479ba2440e71f3b0648a6bf30b84a"
-            },
-            {
-              "bytes": 5431,
-              "path": "claude-code/vulnerability-explainer/enterprise-edition/vulnerability-explainer.md",
-              "sha256": "291c6a8b63cbb3469b5f79b30f2a7b4f996aaeac943ccd07ce8d4984e0cdff4f"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "path": "claude-code/vulnerability-explainer/enterprise-edition",
+          "path": "claude-code/vulnerability-explainer",
           "requires_endorctl": ""
         }
       ],
@@ -395,62 +305,34 @@
         {
           "artifacts": [
             {
-              "bytes": 1385,
-              "path": "claude-managed-agents/dependency-decision-helper/developer-edition/README.md",
-              "sha256": "35ed1ebed8f7a1ae2d0cdb154fa6fef4351376d08b49dd5a52ef279aeb7664ca"
+              "bytes": 1475,
+              "path": "claude-managed-agents/dependency-decision-helper/README.md",
+              "sha256": "833ce069149b5615e6b88d7d9c3df6f71453545f1e424ae0fc0952ebc6e2370b"
             },
             {
-              "bytes": 6094,
-              "path": "claude-managed-agents/dependency-decision-helper/developer-edition/agent.yaml",
-              "sha256": "3a2726ebadc90bb648663ca601133f4a09924378dd2c6fa9ed47d34f5b5d5738"
+              "bytes": 10475,
+              "path": "claude-managed-agents/dependency-decision-helper/agent.yaml",
+              "sha256": "e40dd8e8f46e3f548ffdcdf45cac40023022f3bd56c3ae4db5c219ae17409824"
             },
             {
-              "bytes": 224,
-              "path": "claude-managed-agents/dependency-decision-helper/developer-edition/environment.yaml",
-              "sha256": "891fefb85eac9818a1e61102dc48846acc584af069807452a50534139ccdd6e9"
+              "bytes": 729,
+              "path": "claude-managed-agents/dependency-decision-helper/endorctl-setup.md",
+              "sha256": "399e5b29a50d8a5bd44f236183f70ecee1a7b5ba4da479e935eafa73bc3daccd"
             },
             {
-              "bytes": 85,
-              "path": "claude-managed-agents/dependency-decision-helper/developer-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "path": "claude-managed-agents/dependency-decision-helper/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1496,
-              "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition/README.md",
-              "sha256": "62b3df33b94fb99d7ba6a7eb43ea441709d471a90f0a3ea30156b2e0a60255af"
-            },
-            {
-              "bytes": 10526,
-              "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition/agent.yaml",
-              "sha256": "9e3a6acff981b647a423395f5183d9453bbcbf61d233473b3921c0cdda7b861a"
-            },
-            {
-              "bytes": 828,
-              "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition/endorctl-setup.md",
-              "sha256": "37f33aff3efd6bb6171cf194caad2f14d1b7b4b00b886497a0c71df094465c39"
-            },
-            {
-              "bytes": 260,
-              "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition/environment.yaml",
-              "sha256": "e0dd8d5dd6fb4aa7d26ddb83a5a44763c4a57d7df816e510ab6ada38fe1653a0"
+              "bytes": 241,
+              "path": "claude-managed-agents/dependency-decision-helper/environment.yaml",
+              "sha256": "f0e699bd60ef17650fcdfb6068cfc72394467d35039e810869918429398ac93a"
             },
             {
               "bytes": 85,
-              "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition/session-template.yaml",
+              "path": "claude-managed-agents/dependency-decision-helper/session-template.yaml",
               "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-managed-agents/dependency-decision-helper/enterprise-edition",
+          "path": "claude-managed-agents/dependency-decision-helper",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -468,62 +350,34 @@
         {
           "artifacts": [
             {
-              "bytes": 1575,
-              "path": "claude-managed-agents/package-risk-summary/developer-edition/README.md",
-              "sha256": "d9b2a44beb5d431bec3d4e50cf59b5483b9a2ebcfbd5f94ea5fe28cf9439a74e"
+              "bytes": 1665,
+              "path": "claude-managed-agents/package-risk-summary/README.md",
+              "sha256": "816cbd4ccb579c403cd8e8a2a74469d358e8454b6dcd488b6c272442ec617a69"
             },
             {
-              "bytes": 6161,
-              "path": "claude-managed-agents/package-risk-summary/developer-edition/agent.yaml",
-              "sha256": "a3389a1840f5f1b9af66dd1bf020e1aa64e6f0cbdeb6e5dedead53c248d332a2"
+              "bytes": 10608,
+              "path": "claude-managed-agents/package-risk-summary/agent.yaml",
+              "sha256": "bbadd2a568a5f31f9e1a0eaf749b91b94c9a2b05363053f2199c6010e9a1c45d"
             },
             {
-              "bytes": 218,
-              "path": "claude-managed-agents/package-risk-summary/developer-edition/environment.yaml",
-              "sha256": "ca23e33a65f5bc3c050c0c9f4e9fa8419075cf98ab6b0e198c3554b75d6210c4"
+              "bytes": 734,
+              "path": "claude-managed-agents/package-risk-summary/endorctl-setup.md",
+              "sha256": "92bc984b44410b214c35d759cee372643f14d560f92e813d48cef68c13a20c62"
             },
             {
-              "bytes": 85,
-              "path": "claude-managed-agents/package-risk-summary/developer-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "path": "claude-managed-agents/package-risk-summary/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1686,
-              "path": "claude-managed-agents/package-risk-summary/enterprise-edition/README.md",
-              "sha256": "30a88485cd4168b2bd6c6ed9b1c3a831eec9e40699ddc6977b95ea53a77c753b"
-            },
-            {
-              "bytes": 10659,
-              "path": "claude-managed-agents/package-risk-summary/enterprise-edition/agent.yaml",
-              "sha256": "6fa3c46370a6278adc9f6eb41da117b45999771e564e15a6b2c0e3750ee5e27e"
-            },
-            {
-              "bytes": 833,
-              "path": "claude-managed-agents/package-risk-summary/enterprise-edition/endorctl-setup.md",
-              "sha256": "3944dc4656bc9a231d30580e7d25c4a2d2afa7393ce5960128fb3f7c56910a99"
-            },
-            {
-              "bytes": 254,
-              "path": "claude-managed-agents/package-risk-summary/enterprise-edition/environment.yaml",
-              "sha256": "b31268534293d0252f57d8d85a32ea54866d936617275b47d8b849b5284cafca"
+              "bytes": 235,
+              "path": "claude-managed-agents/package-risk-summary/environment.yaml",
+              "sha256": "7ea33a6b750002412fb590cc299f323975c9551f3254913fcd600e7565335834"
             },
             {
               "bytes": 85,
-              "path": "claude-managed-agents/package-risk-summary/enterprise-edition/session-template.yaml",
+              "path": "claude-managed-agents/package-risk-summary/session-template.yaml",
               "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-managed-agents/package-risk-summary/enterprise-edition",
+          "path": "claude-managed-agents/package-risk-summary",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -541,72 +395,39 @@
         {
           "artifacts": [
             {
-              "bytes": 1883,
-              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/README.md",
-              "sha256": "a20ac5a62bb44472f569ce72fa52903e022911fda040194d1014036ca3618eb5"
+              "bytes": 1869,
+              "path": "claude-managed-agents/upgrade-impact-analysis/README.md",
+              "sha256": "d7d94e4b745708730b14cbb3aecf533318822e102e1184dd797a8bccb9436708"
             },
             {
-              "bytes": 11683,
-              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/agent.yaml",
-              "sha256": "b064d6028a79fea89791785b49bdd813fda7deaf293148d5340a2beac00b1eed"
-            },
-            {
-              "bytes": 9921,
-              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/architecture.svg",
-              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
-            },
-            {
-              "bytes": 221,
-              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/environment.yaml",
-              "sha256": "e8f2262fc8552d90376861aa51946c388d536340c75a37c2f0f0592ba1cd11a0"
-            },
-            {
-              "bytes": 85,
-              "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
-            }
-          ],
-          "id": "developer-edition",
-          "name": "Developer Edition",
-          "path": "claude-managed-agents/upgrade-impact-analysis/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 2085,
-              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/README.md",
-              "sha256": "8cf21e5f512c01d778ce3916054c0bc2c4af5daedaacf433eb5d2a2f228c89b7"
-            },
-            {
-              "bytes": 21092,
-              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml",
-              "sha256": "4a5603609f1fd5b71c938f1a80317dbea1ebba70ab82a9253ea5921777efd50c"
+              "bytes": 19354,
+              "path": "claude-managed-agents/upgrade-impact-analysis/agent.yaml",
+              "sha256": "0aee147b513ddabaf5ee8005bdcc22a2175a9ddc0f41b767d06ad33c677006f4"
             },
             {
               "bytes": 9921,
-              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/architecture.svg",
+              "path": "claude-managed-agents/upgrade-impact-analysis/architecture.svg",
               "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
             },
             {
-              "bytes": 1069,
-              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/endorctl-setup.md",
-              "sha256": "a5710b178a26c80385e498e0100b1ec7d3ed0da75302af079735c530f80dfc04"
+              "bytes": 597,
+              "path": "claude-managed-agents/upgrade-impact-analysis/endorctl-setup.md",
+              "sha256": "e642c94c56f7b501b3c6fee8d53390699339d1a27fa412d3252c9bd664f9a6ed"
             },
             {
-              "bytes": 257,
-              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/environment.yaml",
-              "sha256": "2074fcfb1a6b4f1011f69aa1474a7439a1273c09c73af58c11d9a4b208018702"
+              "bytes": 239,
+              "path": "claude-managed-agents/upgrade-impact-analysis/environment.yaml",
+              "sha256": "8d84ff82f3dc3bc977f474251df581d8bcba505a4584ac04fa01deb8cf97ca39"
             },
             {
-              "bytes": 85,
-              "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
+              "bytes": 51,
+              "path": "claude-managed-agents/upgrade-impact-analysis/session-template.yaml",
+              "sha256": "a8c802876a05c84101970bf28f3c1eb38824a90f74872df81a966e59df8f44b0"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
-          "path": "claude-managed-agents/upgrade-impact-analysis/enterprise-edition",
+          "path": "claude-managed-agents/upgrade-impact-analysis",
           "requires_endorctl": ">=1.0"
         }
       ],
@@ -624,57 +445,29 @@
         {
           "artifacts": [
             {
-              "bytes": 1469,
-              "path": "claude-managed-agents/vulnerability-explainer/developer-edition/README.md",
-              "sha256": "4001dbf4fdb58fdd4b9e16abdb12a629c205ef60e7c5abbe9ac7a0f406df249d"
+              "bytes": 1447,
+              "path": "claude-managed-agents/vulnerability-explainer/README.md",
+              "sha256": "cfdc8e580dbdaa1f3e3084f4d1d975f084824087e6aba058b00b326aff27a1e0"
             },
             {
-              "bytes": 6024,
-              "path": "claude-managed-agents/vulnerability-explainer/developer-edition/agent.yaml",
-              "sha256": "f5228c463cd495909dab745851a685f10d6bff2f21c3ac7b3e0a85dd621c4258"
+              "bytes": 5957,
+              "path": "claude-managed-agents/vulnerability-explainer/agent.yaml",
+              "sha256": "dd109d078442c8aa4c6461919bca7d106c0cffc366af0e1b5721157f4bf50203"
             },
             {
-              "bytes": 221,
-              "path": "claude-managed-agents/vulnerability-explainer/developer-edition/environment.yaml",
-              "sha256": "0a666c04c61542e717653380500ec0469f6a0810f0079f534da5bd505bb85c98"
+              "bytes": 203,
+              "path": "claude-managed-agents/vulnerability-explainer/environment.yaml",
+              "sha256": "3aa38a14be4abee2ef311f73fa29d3e48db0230e9c51c9e02c692c519e71a182"
             },
             {
               "bytes": 85,
-              "path": "claude-managed-agents/vulnerability-explainer/developer-edition/session-template.yaml",
+              "path": "claude-managed-agents/vulnerability-explainer/session-template.yaml",
               "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
             }
           ],
           "id": "developer-edition",
           "name": "Developer Edition",
-          "path": "claude-managed-agents/vulnerability-explainer/developer-edition",
-          "requires_endorctl": ""
-        },
-        {
-          "artifacts": [
-            {
-              "bytes": 1470,
-              "path": "claude-managed-agents/vulnerability-explainer/enterprise-edition/README.md",
-              "sha256": "96c7674d14de0976271bd436f3679c77e3679c173bb1cb71205fbb5311ccde04"
-            },
-            {
-              "bytes": 6221,
-              "path": "claude-managed-agents/vulnerability-explainer/enterprise-edition/agent.yaml",
-              "sha256": "8e43996cdceb7b03b8a841fc9fcf9c99e4641ad7e75903c64761939680225d76"
-            },
-            {
-              "bytes": 222,
-              "path": "claude-managed-agents/vulnerability-explainer/enterprise-edition/environment.yaml",
-              "sha256": "187b02837028182bdad44f7f2dc6a63107cd965d8e8412596224759169db473c"
-            },
-            {
-              "bytes": 85,
-              "path": "claude-managed-agents/vulnerability-explainer/enterprise-edition/session-template.yaml",
-              "sha256": "65258825e1e80871e259362612dd2e6e1a4cfba28a4ad8752c2bb864ac7f4ddd"
-            }
-          ],
-          "id": "enterprise-edition",
-          "name": "Enterprise Edition",
-          "path": "claude-managed-agents/vulnerability-explainer/enterprise-edition",
+          "path": "claude-managed-agents/vulnerability-explainer",
           "requires_endorctl": ""
         }
       ],
@@ -686,6 +479,96 @@
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 3348,
+              "path": "codex/ai-sast-triage/README.md",
+              "sha256": "f5fc439893d701367ff47466988ffa9fca0dceb00135f0ffcd7605ffda2596d7"
+            },
+            {
+              "bytes": 22364,
+              "path": "codex/ai-sast-triage/SKILL.md",
+              "sha256": "eb45ea3325037b20e45d63c0c4b3f6db743fc3cbcf34181d67cc944e33038610"
+            },
+            {
+              "bytes": 4478,
+              "path": "codex/ai-sast-triage/actions.yaml",
+              "sha256": "9a51d15ea53bd577b4d69cda6c27a74e823254654d1268c69b807d6fc13aca95"
+            },
+            {
+              "bytes": 10549,
+              "path": "codex/ai-sast-triage/architecture.svg",
+              "sha256": "97ccf90ee812858388e4089c950149c959fde6c3804d2ce11a13e5b6eac4f3df"
+            },
+            {
+              "bytes": 993,
+              "path": "codex/ai-sast-triage/endorctl-setup.md",
+              "sha256": "a234c867e8fc1a3ec0b24387032e425b6af0fade7266e37024ae9c979abb52fc"
+            }
+          ],
+          "id": "codex-skill",
+          "name": "Codex Skill",
+          "path": "codex/ai-sast-triage",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "codex",
+      "id": "ai-sast-triage",
+      "name": "AI SAST Triage",
+      "source": {
+        "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 2850,
+              "path": "codex/sca-remediation/README.md",
+              "sha256": "54e681f1a8ea9c87a7a100544e6f01ded80299363503e062aa310e22c095fe16"
+            },
+            {
+              "bytes": 37323,
+              "path": "codex/sca-remediation/SKILL.md",
+              "sha256": "e1d5a58310ea7ea1d9b39f8c122d25f52888d5adfc1447b2b4181c545efcd008"
+            },
+            {
+              "bytes": 5683,
+              "path": "codex/sca-remediation/actions.yaml",
+              "sha256": "2daaae951befe1f1714838b9ed0a846331628939ed2620183ff2ab31f38eec28"
+            },
+            {
+              "bytes": 9838,
+              "path": "codex/sca-remediation/architecture.svg",
+              "sha256": "a03f9d164ee0ebb3d7b890b1add888cc6725dd69b609dd8cf99017d1c3cdf871"
+            },
+            {
+              "bytes": 990,
+              "path": "codex/sca-remediation/endorctl-setup.md",
+              "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
+            }
+          ],
+          "id": "codex-skill",
+          "name": "Codex Skill",
+          "path": "codex/sca-remediation",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "codex",
+      "id": "sca-remediation",
+      "name": "SCA Remediation",
+      "source": {
+        "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
     }
   ],
   "generated_by": "endor-agent-kit",

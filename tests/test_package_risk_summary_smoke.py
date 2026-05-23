@@ -21,26 +21,21 @@ def test_package_risk_summary_compiled_artifacts_carry_expected_rules(tmp_path):
     recipe = _copy_agent(tmp_path)
     compile_claude_code(recipe)
 
-    developer = (
-        recipe.parent / "dist" / "claude-code" / "developer-edition" / "package-risk-summary.md"
-    ).read_text()
     enterprise = (
         recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "package-risk-summary.md"
     ).read_text()
 
-    for body in (developer, enterprise):
-        assert "Endor Labs Package Risk Summary" in body
-        assert "mcpServers:" in body
-        assert "endor-cli-tools:" in body
-        assert "alwaysLoad: true" in body
-        assert "check_dependency_for_risks" in body
-        assert "check_dependency_for_vulnerabilities" in body
-        assert "get_endor_vulnerability" in body
-        assert "Never fabricate" in body
-        assert "data_gaps" in body
-        assert "LOW | MODERATE | HIGH | CRITICAL | UNKNOWN" in body
-
-    assert "disallowedTools: Bash" in developer.split("---", 2)[1]
+    assert not (recipe.parent / "dist" / "claude-code" / "developer-edition").exists()
+    assert "Endor Labs Package Risk Summary" in enterprise
+    assert "mcpServers:" in enterprise
+    assert "endor-cli-tools:" in enterprise
+    assert "alwaysLoad: true" in enterprise
+    assert "check_dependency_for_risks" in enterprise
+    assert "check_dependency_for_vulnerabilities" in enterprise
+    assert "get_endor_vulnerability" in enterprise
+    assert "Never fabricate" in enterprise
+    assert "data_gaps" in enterprise
+    assert "LOW | MODERATE | HIGH | CRITICAL | UNKNOWN" in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
     assert "PackageVersion UUID Lookup" in enterprise
     assert "QuerySimilarPackages" in enterprise
@@ -67,5 +62,5 @@ def test_package_risk_summary_setup_doc_uses_agent_name(tmp_path):
     compile_raw(recipe)
 
     setup = (recipe.parent / "dist" / "raw" / "endorctl-setup.md").read_text()
-    assert "The Enterprise Edition Endor Labs Package Risk Summary uses" in setup
+    assert "The Endor Labs Package Risk Summary artifact uses" in setup
     assert "Dependency Decision Helper uses" not in setup

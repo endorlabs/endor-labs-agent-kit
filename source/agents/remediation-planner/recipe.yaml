@@ -6,9 +6,9 @@ description: Preview safe remediation options without opening PRs.
 safety_class: read_only
 endor_tier_minimum: enterprise
 supported_transports:
-- mcp
+- endorctl_api
 host_capabilities_required:
-  run_commands: false
+  run_commands: true
   read_files: false
   write_files: false
   open_pr: false
@@ -53,10 +53,13 @@ host_editions:
   claude-code:
   - enterprise-edition
 mutations: []
-required_endor_mcp_tools:
-- get_resource
-endorctl_api_invocations: []
+required_endor_mcp_tools: []
+endorctl_api_invocations:
+- resolve_project_from_repository
+- list_version_upgrade_recommendations
+- get_version_upgrade_details
+- get_finding_fixing_upgrades
 instructions_path: instructions.md
 model: sonnet
-requires_endor_mcp: Endor MCP server with access to the customer tenant.
-requires_endorctl: ''
+requires_endor_mcp: ''
+requires_endorctl: '>=1.0'
