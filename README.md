@@ -151,7 +151,7 @@ Use `session-template.yaml` as the starting point when creating sessions.
 | --- | --- | --- |
 | Endor MCP | Agents whose generated artifact declares an MCP server | Configure it through the target host's MCP mechanism only when the selected agent requires it. |
 | `endorctl api` or direct Endor API | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to documented lookups and writes. Agent or edition README files link to `endorctl-setup.md` when needed. |
-| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |
+| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage and SCA Remediation | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |
 | Endor policy-write access | AI SAST Triage standalone exceptions | Required only when a verified AppSec PR/MR approval should create a scoped Endor exception policy. The agent must show the policy spec and ask for confirmation before writing. |
 
 ## Example Prompts
@@ -204,6 +204,18 @@ SCA Remediation:
 @agent-sca-remediation check this repository for P0 SCA findings I can start remediating
 ```
 
+Other non-breaking low-risk UIA-backed PRs:
+
+```text
+@agent-sca-remediation show me the other non-breaking low-risk UIA-backed PRs for this repository. Keep this separate from the P0/exploited queue and the risky solver. Do not edit files, create branches, push, or open a PR/MR.
+```
+
+SCA remediation PR plan:
+
+```text
+@agent-sca-remediation prepare the top UIA-backed dependency remediation for this repository. Show the selected package, affected manifests, VersionUpgrade/UIA UUID, risk, CIA status, risk_decision, findings fixed, folded advisory/finding list, validation command, branch name, PR/MR title, and body before changing files.
+```
+
 ## Output Contract
 
 Agents return concise prose plus a JSON block. The exact schema depends on the
@@ -228,6 +240,18 @@ AURI-style PR/MR body, including the folded advisory list, CVE-visible links
 to GHSA URLs, and severity emoji suffixes.
 `check-install` catches copied Claude Code agents that are stale versus the
 checked-in Agent Kit catalog.
+
+For `sca-remediation`, keep the three remediation lanes distinct:
+
+- P0/exploited remediation candidates: rank reachable or exploited critical/high findings and require UIA evidence before naming a best fix.
+- Other non-breaking low-risk UIA-backed PRs: list only low-risk, CIA-clean recommendations with zero introduced findings and enough repo metadata to open a PR/MR.
+- Risky or indeterminate upgrades: use `risk_decision` from Endor evidence plus local source usage before applying or opening a change request.
+
+The low-risk lane reports `low_risk_recommendations`, `candidate_prs`,
+`ready_to_open`, `most_findings_in_one_pr`, and `p0_duplicates_hidden`.
+Validation commands must come from the repository's actual manifest and
+package-manager layout; the agent must not assume Java, Maven, npm, Python,
+Go, .NET, Ruby, Rust, or any other ecosystem from prior runs.
 
 ## Safety Model
 
