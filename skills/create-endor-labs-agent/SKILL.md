@@ -11,7 +11,10 @@ argument-hint: "[agent idea, target host, and required Endor signals]"
 # Create Endor Labs Agent
 
 Use this skill to create a production-ready Endor Labs Agent Kit agent in the
-current repository.
+current repository. Agent Kit owns the public authoring and publishing path for
+new Endor/AURI-style agents. Private extraction tools may generate sanitized
+draft inputs, but this repository must not depend on proprietary source
+inspection or AURI-specific plucking logic.
 
 The repository is source-first:
 
@@ -20,8 +23,23 @@ The repository is source-first:
   with semantic side effects
 - contributors edit `source/agents/<agent>/instructions.md`
 - contributors edit `source/agents/<agent>/evals/cases.yaml`
+- contributors add `source/agents/<agent>/architecture.svg`
 - generated catalog artifacts stay checked in for users
 - CI rejects stale generated artifacts
+
+## Supported Public Inputs
+
+Create agents from either public input shape:
+
+- **Net-new agent brief:** the user describes the workflow, Endor evidence,
+  target host, mutations, outputs, and success criteria.
+- **Generic agent blueprint:** a sanitized YAML/JSON spec with recipe metadata,
+  actions, instruction outline, eval scenarios, and architecture notes.
+
+Blueprints must be generic. They may describe workflow intent, Endor resources,
+I/O, safety class, action contracts, eval cases, and architecture. They must not
+include AURI source paths, private code snippets, proprietary registry hashes,
+or instructions that require Agent Kit to inspect the AURI codebase.
 
 ## Confirm The Target
 
@@ -73,9 +91,16 @@ Choose capabilities conservatively:
 
 Use `supported_transports` this way:
 
-- `mcp` for public Endor MCP tools
-- `endorctl_api` only for documented read-only tenant or OSS lookups
+- prefer `endorctl_api` for customer-tenant Endor evidence
+- use `mcp` only when the requested public host artifact explicitly needs public
+  Endor MCP tools
 - do not add undocumented transports
+
+For new customer-facing agents, default to MCP-free `endorctl_api` when tenant
+data is needed. If a blueprint mentions MCP, treat it as source material and
+remove the MCP dependency unless the agent specifically requires a public MCP
+tool that cannot be expressed through documented Endor API or `endorctl api`
+commands.
 
 ## Create Source Files
 
@@ -87,12 +112,14 @@ source/agents/<agent-id>/
   actions.yaml
   instructions.md
   evals/cases.yaml
+  architecture.svg
 ```
 
 The exact source files are `source/agents/<agent-id>/recipe.yaml`,
 optional `source/agents/<agent-id>/actions.yaml`,
 `source/agents/<agent-id>/instructions.md`, and
-`source/agents/<agent-id>/evals/cases.yaml`.
+`source/agents/<agent-id>/evals/cases.yaml`, plus required
+`source/agents/<agent-id>/architecture.svg`.
 
 Use a lowercase kebab-case `agent-id`.
 
@@ -122,6 +149,20 @@ Use `availability: requires_adapter` when the prompt can describe or request an
 action but cannot complete it without a host service, such as Slack approval or
 Endor policy writeback.
 
+## Write Architecture
+
+Every new agent must include `architecture.svg` in the same visual format as the
+existing source-agent diagrams:
+
+- `viewBox="0 0 1280 700"`
+- dark background with radial glows
+- horizontal workflow cards across the top half
+- lower evidence/safety/host-boundary cards
+- a bottom published-contract band
+
+The diagram should describe the public agent contract, not private AURI runtime
+internals.
+
 ## Write Instructions
 
 `instructions.md` must have these sections:
@@ -144,6 +185,7 @@ The shared section must include:
 
 - the agent role
 - what question or workflow it answers
+- natural-language intake examples that do not require UUID-first payloads
 - read-only safety rules
 - evidence rules
 - data gap rules
@@ -158,6 +200,10 @@ For Claude Code file-reading agents, state that only `Read`, `Glob`, `Grep`, and
 
 For Enterprise Edition agents with `endorctl_api`, include exact command shapes
 and say not to generalize them to mutation commands.
+
+For MCP-free agents, explicitly say that the agent must not require, configure,
+or start an Endor MCP server. Generated artifacts should not mention
+`mcpServers`, `endor-cli-tools`, or `endorctl ai-tools mcp-server`.
 
 ## Write Eval Cases
 
@@ -184,9 +230,11 @@ Add or update focused tests under `tests/`.
 For every new agent, test:
 
 - the recipe compiles for intended hosts and editions
+- `architecture.svg` is published with every generated catalog artifact
 - schema v2 action contracts validate when the agent is mutating or adapter-backed
 - generated artifacts carry load-bearing prompt rules
 - generated tool restrictions match declared capabilities
+- MCP-free agents do not emit MCP frontmatter or Endor MCP setup text
 - `publish_recipe` writes the expected catalog surface
 - eval case ids and output enum coverage match the intended v1 behavior
 

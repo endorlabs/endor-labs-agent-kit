@@ -179,7 +179,7 @@ In Agent Kit, PR/MR creation is host-mediated. Claude Code runs in the target ch
 
 ## Notes
 
-- This agent preserves the AI SAST workflow capabilities as a mutating agent.
+- This agent preserves the AI SAST triage workflow capabilities as a mutating agent.
 - The agent may fetch source context, prepare patches, edit files, run commands, open a change request, verify AppSec approval evidence, and create an Endor exception policy when the workflow requires it.
 - Confirm repository and branch targets before allowing write or pull-request actions. Confirm the rendered Endor policy spec before allowing exception-policy creation.
 - `actions.yaml` lists the semantic side effects and any external adapter requirements.
