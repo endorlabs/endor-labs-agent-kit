@@ -218,11 +218,13 @@ Use the AURI-style remediation PR/MR structure when opening a PR/MR or drafting 
 - `### 🧠 Why This Matters`: explain the package-centered remediation and why one package move addresses the Endor finding group.
 - `### 📦 Upgrade Applied`: package/from/to/risk/findings/manifests table plus exact file changes.
 - `### 🔎 Advisories This Upgrade Fixes`: folded details list. Do not omit this section.
-- `### 🧪 Developer Validation`: checklist of commands run and results.
+- `### Validation Plan`: checklist of commands run or planned and results. Do not use `Developer Validation`; these agents are customer-facing.
 - `### 🛡️ AppSec Validation`: checklist for Endor re-scan and introduced-finding review.
 - `### 📝 Reviewer Notes`: review scope, evidence boundaries, rollback, and data gaps.
 
 For `### 🔎 Advisories This Upgrade Fixes`, prefer advisory IDs from Endor Finding metadata or VersionUpgrade/UIA `vuln_finding_info.fixed_findings`. If Endor returns GHSA IDs, resolve each GHSA to its CVE when a CVE exists. Use the CVE as the visible link text while linking to the GitHub Advisory page. Use the GHSA as visible text only when no CVE mapping is available, and record that gap in `data_gaps`.
+
+Track advisory provenance per advisory. For each advisory row, preserve the Endor source (`Finding` metadata, VersionUpgrade/UIA `fixed_findings`, or another exact resource), the CVE/GHSA mapping source, and the advisory link source. Do not imply a CVE/GHSA mapping was verified unless the current run verified it. If a mapping source is missing, say so in the provenance and add a `data_gaps` entry.
 
 Render advisory severity at the end of each row with this compact suffix:
 
@@ -233,24 +235,35 @@ Render advisory severity at the end of each row with this compact suffix:
 | Medium | `(M) 🟡` |
 | Low | `(L) 🟢` |
 
-Do not use bold severity words in the advisory list. Use a folded list:
+Do not use bold severity words in the advisory list. Use this exact folded list shape. The details tag must be closed, must not use `open`, and the summary count must match the number of advisory rows:
 
 ```markdown
 ### 🔎 Advisories This Upgrade Fixes
 The fix is package-centered, so the PR intentionally does not pretend this is a one-identifier change.
 
-<details open>
-<summary>Advisories (<count>)</summary>
+<details><summary>Advisories This Upgrade Fixes (<count>)</summary>
 
 - [CVE-YYYY-NNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx): <title> (C) 🔴
 - [CVE-YYYY-NNNN](https://nvd.nist.gov/vuln/detail/CVE-YYYY-NNNN): <title> (H) 🟠
 - [CVE-YYYY-NNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx): <title> (M) 🟡
 - [CVE-YYYY-NNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx): <title> (L) 🟢
 
+#### Advisory Provenance
+- CVE-YYYY-NNNN: cve=CVE-YYYY-NNNN; ghsa=GHSA-xxxx-xxxx-xxxx; advisory_source=Endor VersionUpgrade vuln_finding_info.fixed_findings; cve_mapping_source=GitHub Advisory Database aliases; link_source=GitHub Advisory Database
+
 </details>
 ```
 
-If clean advisory IDs are unavailable, still include the folded section as `<summary>Finding instances (<count>)</summary>` and list finding UUID, severity, package, and short title. Add a `data_gaps` entry explaining which advisory identifiers were unavailable. Never fabricate IDs or advisory titles.
+If clean advisory IDs are unavailable, do not fabricate them. Keep the remediation in plan/review status, add a `data_gaps` entry explaining which advisory identifiers were unavailable, and list finding UUID, severity, package, and short title outside the final PR body until the advisory mapping is resolved or the user explicitly approves a fallback format.
+
+Before opening a PR/MR, make sure the body passes the equivalent of `endor-agent-kit lint-sca-pr-body`. If the local CLI is available, prefer producing normalized PR-body data and rendering it with `endor-agent-kit render-sca-pr-body` instead of hand-writing Markdown. At minimum, verify:
+
+- all fenced code blocks have closing fences;
+- the advisory section uses the exact folded details block above;
+- every advisory line ends with `(C) 🔴`, `(H) 🟠`, `(M) 🟡`, or `(L) 🟢`;
+- CVEs are visible link text when a CVE exists, even when the link target is a GHSA URL;
+- the body says `Validation Plan`, not `Developer Validation`;
+- the advisory provenance section has one row for every advisory row.
 
 Use a stable comment marker when posting a remediation comment:
 

@@ -259,9 +259,9 @@
               "sha256": "4143e0bc73ec90eb3f7ef5c183af28abcc509226c40b6dcc58891a1624384bd9"
             },
             {
-              "bytes": 28631,
+              "bytes": 30260,
               "path": "claude-code/sca-remediation-agent/sca-remediation-agent.md",
-              "sha256": "9d8321fa71bd67b2b0a08e81cc16109cf9fb8b64500128ac2cf914a7c63ae176"
+              "sha256": "a4c71b3d90dc312c29be47b5aa76bbf6d97cd5fbf6b121a4f2b1a3549599adae"
             }
           ],
           "id": "enterprise-edition",

@@ -25,6 +25,13 @@ SEVERITY_SUFFIXES = {
 }
 
 BRANCH_RE = re.compile(r"^remediation/sca/[A-Za-z0-9._-]+-[A-Za-z0-9][A-Za-z0-9._-]*$")
+ADVISORY_DETAILS_RE = re.compile(
+    r"<details>\s*"
+    r"<summary>Advisories This Upgrade Fixes \((\d+)\)</summary>"
+    r"(?P<body>.*?)"
+    r"</details>",
+    re.DOTALL | re.IGNORECASE,
+)
 ADVISORY_LINE_RE = re.compile(r"^- \[([^\]]+)\]\(([^)]+)\): .+ \(([CHML])\) [🔴🟠🟡🟢]$")
 
 
@@ -169,6 +176,13 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
         "",
         f"## Security Remediation: {findings_fixed} Endor finding instances fixed by dependency upgrade",
         "",
+        (
+            f"Upgrades `{package}` from `{from_version}` to `{to_version}` across "
+            f"{_format_manifest_cell(manifests)}. Endor UIA reports risk `{upgrade_risk}`, "
+            f"CIA `{cia_status}`, `{findings_fixed}` findings fixed, and "
+            f"`{findings_introduced}` findings introduced."
+        ),
+        "",
         "### At a Glance",
         "",
         "| | |",
@@ -191,6 +205,8 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
 
     if advisories:
         lines.extend(_render_advisory(advisory) for advisory in advisories)
+        lines.extend(["", "#### Advisory Provenance"])
+        lines.extend(_render_advisory_provenance(advisory) for advisory in advisories)
     else:
         lines.append("- No advisory list was provided by the agent output.")
 
@@ -223,8 +239,12 @@ def lint_sca_pr_body(body: str) -> list[str]:
     """Lint an AURI-style SCA remediation PR body."""
 
     errors: list[str] = []
+    if body.count("```") % 2:
+        errors.append("unclosed fenced code block")
     if "<!-- endor-agent-kit:sca-remediation-agent -->" not in body:
         errors.append("missing sca-remediation-agent marker")
+    if re.search(r"^### .*Developer Validation", body, re.MULTILINE):
+        errors.append("use neutral 'Validation' wording, not 'Developer Validation'")
     for heading in (
         "### At a Glance",
         "### 🔎 Advisories This Upgrade Fixes",
@@ -235,10 +255,17 @@ def lint_sca_pr_body(body: str) -> list[str]:
         if heading not in body:
             errors.append(f"missing section {heading!r}")
 
-    advisory_block = _details_block(body)
-    if advisory_block is None:
-        errors.append("missing folded advisories <details> block")
+    if "<details open" in body.lower():
+        errors.append("advisory block must use <details>, not <details open>")
+
+    details_match = ADVISORY_DETAILS_RE.search(body)
+    if details_match is None:
+        errors.append(
+            "missing folded advisories <details><summary>Advisories This Upgrade Fixes (<count>)</summary> block"
+        )
         return errors
+    expected_count = _int(details_match.group(1))
+    advisory_block = details_match.group("body")
 
     if re.search(r"\*\*(Critical|High|Medium|Low)\*\*", advisory_block, re.IGNORECASE):
         errors.append("advisory list must not use bold severity words")
@@ -250,12 +277,22 @@ def lint_sca_pr_body(body: str) -> list[str]:
     ]
     if not advisory_lines:
         errors.append("advisory list must include at least one linked advisory")
+    elif expected_count != len(advisory_lines):
+        errors.append(
+            f"advisory summary count {expected_count} does not match {len(advisory_lines)} advisory lines"
+        )
+
+    provenance_block = _advisory_provenance_block(advisory_block)
+    if advisory_lines and provenance_block is None:
+        errors.append("advisory provenance section required")
     for line in advisory_lines:
         match = ADVISORY_LINE_RE.match(line)
         if not match:
             errors.append(f"advisory line has invalid format: {line}")
             continue
         label, url, _severity_code = match.groups()
+        if provenance_block is not None and label not in provenance_block:
+            errors.append(f"missing advisory provenance for {label}")
         if label.startswith("GHSA-") and "CVE-" in line:
             errors.append("advisory line uses GHSA visible text even though a CVE appears on the line")
         if label.startswith("CVE-") and "github.com/advisories/GHSA-" in url:
@@ -290,17 +327,52 @@ def _compatibility_line(risk_decision: dict[str, Any], cia_status: str) -> str:
 
 
 def _render_advisory(advisory: dict[str, Any]) -> str:
-    cve = _text(advisory.get("cve") or advisory.get("cve_id"))
-    ghsa = _text(advisory.get("ghsa") or advisory.get("ghsa_id"))
-    label = cve or ghsa or _text(advisory.get("id") or "unknown-advisory")
+    cve, ghsa, label = _advisory_ids(advisory)
     url = _text(advisory.get("url") or advisory.get("advisory_url") or advisory.get("ghsa_url"))
     if not url and ghsa:
         url = f"https://github.com/advisories/{ghsa}"
     elif not url and cve:
         url = f"https://nvd.nist.gov/vuln/detail/{cve}"
-    title = _text(advisory.get("title") or advisory.get("summary") or "Advisory fixed by this upgrade")
+    title = _one_line(
+        advisory.get("title") or advisory.get("summary") or "Advisory fixed by this upgrade"
+    )
     suffix = SEVERITY_SUFFIXES.get(_text(advisory.get("severity")).lower(), "(M) 🟡")
     return f"- [{label}]({url}): {title} {suffix}"
+
+
+def _render_advisory_provenance(advisory: dict[str, Any]) -> str:
+    cve, ghsa, label = _advisory_ids(advisory)
+    advisory_source = _one_line(
+        _first_present(
+            advisory,
+            "advisory_source",
+            "source",
+            "finding_source",
+            "endor_source",
+            "source_resource",
+        )
+        or "not provided"
+    )
+    cve_mapping_source = _one_line(
+        _first_present(advisory, "cve_mapping_source", "cve_source", "alias_source")
+        or ("not applicable; no CVE provided" if not cve else "not provided")
+    )
+    link_source = _one_line(
+        _first_present(advisory, "link_source", "url_source", "ghsa_source")
+        or ("derived from GHSA ID" if ghsa else "not provided")
+    )
+    finding_uuid = _text(advisory.get("finding_uuid") or advisory.get("uuid"))
+    suffix = f"; finding_uuid={finding_uuid}" if finding_uuid else ""
+    ids = []
+    if cve:
+        ids.append(f"cve={cve}")
+    if ghsa:
+        ids.append(f"ghsa={ghsa}")
+    id_text = "; ".join(ids) if ids else "ids=not provided"
+    return (
+        f"- {label}: {id_text}; advisory_source={advisory_source}; "
+        f"cve_mapping_source={cve_mapping_source}; link_source={link_source}{suffix}"
+    )
 
 
 def _render_validation(validation: list[Any]) -> list[str]:
@@ -327,9 +399,18 @@ def _render_evidence(
     risk_decision: dict[str, Any],
 ) -> list[str]:
     evidence = _list(payload.get("uia_evidence"))
+    project_resolution = _dict(payload.get("project_resolution"))
     uia_uuid = _text(selected.get("uia_uuid") or selected.get("version_upgrade_uuid"))
-    project_uuid = _text(selected.get("project_uuid") or payload.get("project_uuid"))
-    namespace = _text(selected.get("namespace") or payload.get("namespace"))
+    project_uuid = _text(
+        selected.get("project_uuid")
+        or payload.get("project_uuid")
+        or project_resolution.get("project_uuid")
+    )
+    namespace = _text(
+        selected.get("namespace")
+        or payload.get("namespace")
+        or project_resolution.get("namespace")
+    )
     reachability = selected.get("reachability_tags") or selected.get("reachability")
     lines = [
         f"- VersionUpgrade/UIA UUID: `{uia_uuid or 'not provided'}`",
@@ -356,11 +437,17 @@ def _advisories(payload: dict[str, Any]) -> list[dict[str, Any]]:
     return [item for item in candidates if isinstance(item, dict)]
 
 
-def _details_block(body: str) -> str | None:
-    match = re.search(r"<details[^>]*>.*?</summary>(.*?)</details>", body, re.DOTALL | re.IGNORECASE)
-    if not match:
+def _advisory_provenance_block(advisory_block: str) -> str | None:
+    if "#### Advisory Provenance" not in advisory_block:
         return None
-    return match.group(1)
+    return advisory_block.split("#### Advisory Provenance", 1)[1]
+
+
+def _advisory_ids(advisory: dict[str, Any]) -> tuple[str, str, str]:
+    cve = _text(advisory.get("cve") or advisory.get("cve_id"))
+    ghsa = _text(advisory.get("ghsa") or advisory.get("ghsa_id"))
+    label = cve or ghsa or _text(advisory.get("id") or "unknown-advisory")
+    return cve, ghsa, label
 
 
 def _collect_branch_names(value: Any) -> list[str]:
@@ -440,6 +527,10 @@ def _text(value: Any) -> str:
     if isinstance(value, (list, dict)):
         return json.dumps(value, sort_keys=True)
     return str(value).strip()
+
+
+def _one_line(value: Any) -> str:
+    return re.sub(r"\s+", " ", _text(value)).strip()
 
 
 def _int(value: Any) -> int:

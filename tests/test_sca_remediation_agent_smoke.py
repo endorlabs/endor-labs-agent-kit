@@ -109,7 +109,12 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
     assert "### At a Glance" in prompt
     assert "### 🔎 Advisories This Upgrade Fixes" in prompt
-    assert "<details open>" in prompt
+    assert "<details><summary>Advisories This Upgrade Fixes (<count>)</summary>" in prompt
+    assert "<details open>" not in prompt
+    assert "### Validation Plan" in prompt
+    assert "### 🧪 Developer Validation" not in prompt
+    assert "Advisory Provenance" in prompt
+    assert "endor-agent-kit lint-sca-pr-body" in prompt
     assert "Do not omit this section" in prompt
     assert "Use the CVE as the visible link text while linking to the GitHub Advisory page" in prompt
     assert "(C) 🔴" in prompt
