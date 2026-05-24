@@ -11,7 +11,7 @@ mcpServers:
       command: npx
       args: ["-y", "endorctl", "ai-tools", "mcp-server"]
       alwaysLoad: true
-disallowedTools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+disallowedTools: Task, Agent, Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---
 

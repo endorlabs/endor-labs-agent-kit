@@ -5,24 +5,24 @@
         {
           "artifacts": [
             {
-              "bytes": 8432,
+              "bytes": 11064,
               "path": "claude-code/ai-sast-triage/README.md",
-              "sha256": "fa61749cbffdcb90fcd2c48bf82a72bd6f6233419efdd2050885715a8333e244"
+              "sha256": "41978bdfa09dc4c7e98799860ac50ed37272572e50e0156c9ce4f96e7cc048d5"
             },
             {
-              "bytes": 4484,
+              "bytes": 4953,
               "path": "claude-code/ai-sast-triage/actions.yaml",
-              "sha256": "90b240da6475a78c3145b521b22f0e2807db733253cf6a97694b3effeaf56c3d"
+              "sha256": "7b4cda99dd85dd3106d573a9a873c97066a4f9a8c16dacb5670b52fa39cf21cb"
             },
             {
-              "bytes": 21563,
+              "bytes": 31616,
               "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "b37e13dc5cedbbf2e562f73fe21178147c9389b5a4820d70a1228360440155ed"
+              "sha256": "e6b0e368283fa1afa786d41d87ecd398201d8dfdadded0a00cfb81b1995b7bf5"
             },
             {
-              "bytes": 10561,
+              "bytes": 10617,
               "path": "claude-code/ai-sast-triage/architecture.svg",
-              "sha256": "6ca5817b0d8459846307b7848ef60ce5dc441eaa6ae4d81b5c4f1b322ca981e9"
+              "sha256": "91717f628d2b602506999ade751787e536e24a59281265decf4707d5ae3255f3"
             },
             {
               "bytes": 993,
@@ -55,9 +55,9 @@
               "sha256": "377726328216adcf72120a4841400eac788f7d7e3be955b9dc14c33568da3cf2"
             },
             {
-              "bytes": 9336,
+              "bytes": 9349,
               "path": "claude-code/dependency-decision-helper/dependency-decision-helper.md",
-              "sha256": "8c50de1f5e03d1eab1b9679086fd54cf2fb90bc4de808ac95c46b4b909971347"
+              "sha256": "dc0ef5961373a75a7125cfaa8a3d1ebc416a196bc1b4594c9f51dbbba57cea28"
             },
             {
               "bytes": 729,
@@ -95,9 +95,9 @@
               "sha256": "92bc984b44410b214c35d759cee372643f14d560f92e813d48cef68c13a20c62"
             },
             {
-              "bytes": 9462,
+              "bytes": 9475,
               "path": "claude-code/package-risk-summary/package-risk-summary.md",
-              "sha256": "b4675d4eeba2588b33a04a96a7141bbc89263a7894f892649d0770c688d7f32e"
+              "sha256": "39995da7bf9daba7b4bf05acfc9fe0b88d9b947aa9a4410c70d622283b82a4b9"
             }
           ],
           "id": "enterprise-edition",
@@ -135,9 +135,9 @@
               "sha256": "dd60d1e0a9f16d477524d6104f54ff1b9a0b86b777b2417b9dea2457fa44508c"
             },
             {
-              "bytes": 2356,
+              "bytes": 2369,
               "path": "claude-code/remediation-planner/remediation-planner.md",
-              "sha256": "e3bf7714bdf2ea49d0f0166312e8df52b712cd386e330541491be01ac2734539"
+              "sha256": "e739c9a6d5c4e9c18ba0624a3e93db2558b16ef62854ca59317bdb16712a3e5e"
             }
           ],
           "id": "enterprise-edition",
@@ -165,9 +165,9 @@
               "sha256": "0f238d5425c2b8ae99b3bd86bb54863eaa6abc32ed543da8fa08279556c447a7"
             },
             {
-              "bytes": 7458,
+              "bytes": 7471,
               "path": "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
-              "sha256": "99cae0b4eeba2640365e18a3023d0326c8037de2a9f871de15cddbc768b45fbb"
+              "sha256": "0144ed2cf2a0cc4fa2ef4688f847c56d74cdd031bd805159ddb05c9269cbc2c1"
             }
           ],
           "id": "developer-edition",
@@ -210,9 +210,9 @@
               "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
             },
             {
-              "bytes": 36524,
+              "bytes": 36537,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "3a0bd42da083027f618298fcf8e44e40a1fefb27a94ac351bb17a4741a6a91ec"
+              "sha256": "33b93f6be5a2337a82e0a6e3350c1d87f9e815a7f43079cdae3d3783ac7ace48"
             }
           ],
           "id": "enterprise-edition",
@@ -250,9 +250,9 @@
               "sha256": "e642c94c56f7b501b3c6fee8d53390699339d1a27fa412d3252c9bd664f9a6ed"
             },
             {
-              "bytes": 18107,
+              "bytes": 18120,
               "path": "claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md",
-              "sha256": "1a3d7c48c75242fe8aa1f26a52484c0debf46bfc4cdc00df6c31c2e5747f0edc"
+              "sha256": "c9819a26de963b0946567d855f5580b89a7a057466daaff790f3025550bf9974"
             }
           ],
           "id": "enterprise-edition",
@@ -280,9 +280,9 @@
               "sha256": "361ae3508e5dc3a035b5fdd5dd52b068d06d8c2b92ed131b01af6d14b31ed77a"
             },
             {
-              "bytes": 5225,
+              "bytes": 5238,
               "path": "claude-code/vulnerability-explainer/vulnerability-explainer.md",
-              "sha256": "17f91da25bca62696372463d8489a03889697033af4bb23d89d498f9c56beb09"
+              "sha256": "7501a1a3090f469fd622d677e16ee9349c291aa9650e84a5abd51ff169170caf"
             }
           ],
           "id": "developer-edition",
@@ -485,24 +485,24 @@
         {
           "artifacts": [
             {
-              "bytes": 3348,
+              "bytes": 3566,
               "path": "codex/ai-sast-triage/README.md",
-              "sha256": "f5fc439893d701367ff47466988ffa9fca0dceb00135f0ffcd7605ffda2596d7"
+              "sha256": "4f65aa3fc45fe1667bcf0596a9c413e249335af8719b0423e21dba50da1b3376"
             },
             {
-              "bytes": 22364,
+              "bytes": 32404,
               "path": "codex/ai-sast-triage/SKILL.md",
-              "sha256": "eb45ea3325037b20e45d63c0c4b3f6db743fc3cbcf34181d67cc944e33038610"
+              "sha256": "0ba934653022f26da0c0328a4522dd9cac5e2e3ba7641270c6580a290c53e37c"
             },
             {
-              "bytes": 4478,
+              "bytes": 4947,
               "path": "codex/ai-sast-triage/actions.yaml",
-              "sha256": "9a51d15ea53bd577b4d69cda6c27a74e823254654d1268c69b807d6fc13aca95"
+              "sha256": "4728ff23f7cf25f90ff1c16085da16e65b6c1c5aefb649bcf6e42f3c7debef9d"
             },
             {
-              "bytes": 10549,
+              "bytes": 10611,
               "path": "codex/ai-sast-triage/architecture.svg",
-              "sha256": "97ccf90ee812858388e4089c950149c959fde6c3804d2ce11a13e5b6eac4f3df"
+              "sha256": "ffcd92ff80d9817738f9ec9d8634e01217f55eb02b55603a9bcc549ee025ac07"
             },
             {
               "bytes": 993,

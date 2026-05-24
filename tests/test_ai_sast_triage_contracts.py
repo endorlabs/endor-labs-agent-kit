@@ -4,9 +4,11 @@ import json
 
 from endor_agent_kit.ai_sast_triage import (
     lint_ai_sast_approval_comment,
+    lint_ai_sast_exception_policy_comment,
     lint_ai_sast_pr_body,
     normalize_ai_sast_branch,
     render_ai_sast_approval_comment,
+    render_ai_sast_exception_policy_comment,
     render_ai_sast_pr_body,
     validate_ai_sast_gate_payload,
 )
@@ -81,7 +83,7 @@ def _valid_payload() -> dict:
             {
                 "status": "not_created",
                 "branch_name": "remediation/ai-sast/unsafe-redirect-finding-12345678",
-                "title": "Fix unsafe redirect target handling",
+                "title": "🟠 High: Fix unsafe redirect target handling",
                 "body": "",
             }
         ],
@@ -107,8 +109,15 @@ def _valid_payload() -> dict:
         "exception_policies": [
             {
                 "status": "created",
+                "policy_name": "ai-sast-exception-finding-12345678",
                 "policy_uuid": "policy-123",
                 "user_confirmation": "approved",
+                "idempotency_check": {
+                    "status": "none_found",
+                    "lookup_method": "endorctl api list -r Policy -n tenant-a filtered by generated policy name and finding UUID",
+                    "finding_uuid": "finding-12345678",
+                    "project_uuid": "proj-123",
+                },
                 "policy_spec": {
                     "policy_type": "POLICY_TYPE_EXCEPTION",
                     "exception": {"reason": "EXCEPTION_REASON_FALSE_POSITIVE"},
@@ -117,13 +126,39 @@ def _valid_payload() -> dict:
                         "data.endor_agent_kit_ai_sast_exception.match_finding"
                     ],
                     "project_selector": ["$uuid=proj-123"],
-                    "rule": "package endor_agent_kit_ai_sast_exception\nmatch_finding[result] { result := {\"Endor\": {\"Finding\": \"finding-12345678\"}} }",
+                    "rule": (
+                        "package endor_agent_kit_ai_sast_exception\n"
+                        "match_finding[result] {\n"
+                        "  data.resources.Finding[i].uuid == \"finding-12345678\"\n"
+                        "  data.resources.Finding[i].spec.project_uuid == \"proj-123\"\n"
+                        "  result := {\"Endor\": {\"Finding\": data.resources.Finding[i].uuid}}\n"
+                        "}"
+                    ),
                 },
             }
         ],
         "data_gaps": [],
     }
+    payload["exception_policies"][0]["decision_comment"] = (
+        render_ai_sast_exception_policy_comment(payload)
+    )
     payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+    return payload
+
+
+def _accepted_risk_payload() -> dict:
+    payload = _valid_payload()
+    payload["approval_request"]["request_type"] = "accepted_risk"
+    payload["approval_request"]["expiration_time"] = "2026-06-30"
+    payload["approvals"][0]["request_type"] = "accepted_risk"
+    payload["approvals"][0]["expiration_time"] = "2026-06-30"
+    payload["exception_policies"][0]["policy_spec"]["exception"] = {
+        "reason": "EXCEPTION_REASON_RISK_ACCEPTED",
+        "expiration_time": "2026-06-30T23:59:59Z",
+    }
+    payload["exception_policies"][0]["decision_comment"] = (
+        render_ai_sast_exception_policy_comment(payload)
+    )
     return payload
 
 
@@ -153,12 +188,66 @@ def test_ai_sast_pr_renderer_outputs_lint_clean_body():
     assert "### 🔎 Evidence provided by AURI" in body
     assert "### ✅ Review checklist" in body
     assert "### 📝 Need an exception instead?" in body
-    assert "@auri false positive for finding finding-12345678" in body
-    assert "AURI: accept risk for finding finding-12345678 until YYYY-MM-DD" in body
+    assert "@agent-ai-sast-triage request an AppSec exception review for finding finding-12345678" in body
+    assert "Request type: false positive" in body
+    assert "Request type: accept risk until YYYY-MM-DD" in body
+    assert "Allowed AppSec approvers: <@appsec-reviewer>" in body
+    assert "Do not create an Endor policy yet" in body
+    assert "@auri false positive" not in body
+    assert "AURI: accept risk" not in body
+    assert "The standalone agent will create or update an approval-request comment" in body
+    assert "must not approve their own exception request" in body
     assert "<summary>📎 Finding details</summary>" in body
     assert "| Severity | 🟠 `HIGH` |" in body
     assert "APPSEC APPROVED:" not in body
     assert lint_ai_sast_pr_body(body) == []
+
+
+def test_ai_sast_pr_linter_rejects_legacy_auri_body_without_severity_emoji():
+    body = """## 🛡️ Endor Labs AURI Security Fix: Prevent Server-Side Request Forgery
+<!-- endor-agent-kit:ai-sast-triage -->
+<!-- auri:ai-sast-context {"file_path":"src/service.ext","finding_uuid":"finding-12345678","namespace":"tenant-a","project_uuid":"proj-123","repo_full_name":"example/app"} -->
+
+AURI confirmed this AI SAST finding as **True Positive** with **CRITICAL** severity. This PR applies the generated remediation for review.
+
+### 🔧 What changed
+
+- Updated `src/service.ext`.
+
+### 🔎 Evidence provided by AURI
+
+- **Source:** `src/service.ext#L10` - Request input reaches a server-side request sink.
+
+### ✅ Review checklist
+
+- [ ] Confirm the data flow and affected component match the service behavior.
+
+### 📝 Need an exception instead?
+
+```text
+@auri false positive for finding finding-12345678 - <why this is not exploitable>
+@auri accept risk for finding finding-12345678 until YYYY-MM-DD - <owner, mitigation, and why code will not change now>
+AURI: false positive for finding finding-12345678 - <why this is not exploitable>
+AURI: accept risk for finding finding-12345678 until YYYY-MM-DD - <owner, mitigation, and why code will not change now>
+```
+
+<details>
+<summary>📎 Finding details</summary>
+
+| Field | Value |
+| --- | --- |
+| Endor finding | `finding-12345678` |
+| Severity | `CRITICAL` |
+
+</details>
+"""
+
+    errors = lint_ai_sast_pr_body(body)
+
+    assert "CRITICAL severity must be prefixed with 🔴" in errors
+    assert "CRITICAL severity detail must be prefixed with 🔴" in errors
+    assert any("not AURI request forms" in error for error in errors)
+    assert any("missing standalone exception request form" in error for error in errors)
 
 
 def test_ai_sast_gate_validator_rejects_bad_branch_and_missing_body_context():
@@ -172,6 +261,23 @@ def test_ai_sast_gate_validator_rejects_bad_branch_and_missing_body_context():
     assert any("endor/fix" in error for error in errors)
     assert any("missing ai-sast-triage marker" in error for error in errors)
     assert any("missing auri:ai-sast-context" in error for error in errors)
+
+
+def test_ai_sast_gate_validator_rejects_title_without_severity_indicator():
+    payload = _valid_payload()
+    payload["change_requests"][0]["title"] = "[High] Fix unsafe redirect target handling"
+
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+
+    assert any("title: must start with severity indicator" in error for error in errors)
+
+
+def test_ai_sast_pr_linter_requires_namespace_in_hidden_context():
+    body = render_ai_sast_pr_body(_valid_payload()).replace('"namespace":"tenant-a",', "")
+
+    errors = lint_ai_sast_pr_body(body)
+
+    assert "auri:ai-sast-context.namespace: required" in errors
 
 
 def test_ai_sast_pr_renderer_uses_requested_severity_emoji_mapping():
@@ -204,12 +310,207 @@ def test_ai_sast_exception_gate_rejects_self_approval_and_bad_policy_shape():
     assert any("rego" in error for error in errors)
 
 
+def test_ai_sast_exception_gate_requires_idempotency_check_before_create():
+    payload = _valid_payload()
+    payload["exception_policies"][0].pop("idempotency_check")
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert "exception_policies[0].idempotency_check: required before Endor policy write" in errors
+
+
+def test_ai_sast_exception_gate_rejects_duplicate_policy_write():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["idempotency_check"] = {
+        "status": "existing_reused",
+        "lookup_method": "endorctl api list -r Policy -n tenant-a filtered by generated policy name and finding UUID",
+        "finding_uuid": "finding-12345678",
+        "project_uuid": "proj-123",
+        "existing_policy_uuid": "policy-123",
+        "existing_policy_name": "ai-sast-exception-finding-12345678",
+    }
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert any("must be none_found before creating a new policy" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_accepts_reused_existing_policy_without_new_write():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["status"] = "existing"
+    payload["exception_policies"][0]["user_confirmation"] = "not_required_existing_policy"
+    payload["exception_policies"][0]["idempotency_check"] = {
+        "status": "existing_reused",
+        "lookup_method": "endorctl api list -r Policy -n tenant-a filtered by generated policy name and finding UUID",
+        "finding_uuid": "finding-12345678",
+        "project_uuid": "proj-123",
+        "existing_policy_uuid": "policy-123",
+        "existing_policy_name": "ai-sast-exception-finding-12345678",
+    }
+    payload["exception_policies"][0]["decision_comment"] = (
+        render_ai_sast_exception_policy_comment(payload)
+    )
+
+    assert validate_ai_sast_gate_payload(payload, gate="exception") == []
+
+
+def test_ai_sast_exception_gate_accepts_risk_accepted_with_rfc3339_expiration():
+    assert validate_ai_sast_gate_payload(_accepted_risk_payload(), gate="exception") == []
+
+
+def test_ai_sast_exception_gate_requires_accepted_risk_approval_expiration():
+    payload = _accepted_risk_payload()
+    payload["approvals"][0].pop("expiration_time")
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert "approvals[0].expiration_time: required for accepted risk approval" in errors
+
+
+def test_ai_sast_exception_gate_rejects_policy_reason_without_matching_approval():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["policy_spec"]["exception"] = {
+        "reason": "EXCEPTION_REASON_RISK_ACCEPTED",
+        "expiration_time": "2026-06-30T23:59:59Z",
+    }
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert any("no verified approval for accepted_risk" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_rejects_policy_scope_that_does_not_match_approval():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["policy_spec"]["project_selector"] = ["$uuid=other-project"]
+    payload["exception_policies"][0]["policy_spec"]["rule"] = (
+        "package endor_agent_kit_ai_sast_exception\n"
+        "match_finding[result] { result := {\"Endor\": {\"Finding\": \"other-finding\"}} }"
+    )
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert any("must include '$uuid=proj-123'" in error for error in errors)
+    assert any("must match the approved finding UUID" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_rejects_policy_rule_without_project_scope():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["policy_spec"]["rule"] = (
+        "package endor_agent_kit_ai_sast_exception\n"
+        "match_finding[result] {\n"
+        "  data.resources.Finding[i].uuid == \"finding-12345678\"\n"
+        "  data.resources.Finding[i].meta.parent_uuid == \"proj-123\"\n"
+        "  result := {\"Endor\": {\"Finding\": data.resources.Finding[i].uuid}}\n"
+        "}"
+    )
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert any("must scope findings with spec.project_uuid" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_rejects_contract_aliases_from_render_only_output():
+    payload = _accepted_risk_payload()
+    payload["approvals"][0]["expiration"] = payload["approvals"][0].pop("expiration_time")
+    payload["approvals"][0].pop("approved")
+    payload["exception_policies"][0]["rendered_policy"] = payload["exception_policies"][0].pop(
+        "policy_spec"
+    )
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert "approvals[0].expiration_time: required for accepted risk approval" in errors
+    assert "approvals[0].approved: must be true before policy creation" in errors
+    assert any("do not use rendered_policy alias" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_rejects_policy_rule_with_parent_uuid_scope():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["policy_spec"]["rule"] = (
+        "package endor_agent_kit_ai_sast_exception\n"
+        "match_finding[result] {\n"
+        "  data.resources.Finding[i].uuid == \"finding-12345678\"\n"
+        "  data.resources.Finding[i].spec.project_uuid == \"proj-123\"\n"
+        "  data.resources.Finding[i].meta.parent_uuid == \"proj-123\"\n"
+        "  result := {\"Endor\": {\"Finding\": data.resources.Finding[i].uuid}}\n"
+        "}"
+    )
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert any("must not use meta.parent_uuid" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_accepts_full_policy_resource_shape():
+    payload = _accepted_risk_payload()
+    policy_spec = payload["exception_policies"][0]["policy_spec"]
+    payload["exception_policies"][0]["policy_spec"] = {
+        "meta": {
+            "name": "ai-sast-exception-finding-12345678",
+            "description": "Exception for finding finding-12345678.",
+            "tags": ["endor-agent-kit", "ai-sast", "exception"],
+        },
+        "spec": policy_spec,
+    }
+    payload["exception_policies"][0].pop("policy_name")
+
+    assert validate_ai_sast_gate_payload(payload, gate="exception") == []
+
+
 def test_ai_sast_approval_comment_renderer_outputs_lint_clean_request():
     comment = render_ai_sast_approval_comment(_valid_payload())
 
     assert "## AppSec Approval Request" in comment
     assert "APPSEC APPROVED: false positive for finding finding-12345678" in comment
     assert lint_ai_sast_approval_comment(comment) == []
+
+
+def test_ai_sast_approval_comment_renderer_outputs_accepted_risk_expiration():
+    comment = render_ai_sast_approval_comment(_accepted_risk_payload())
+
+    assert (
+        "APPSEC APPROVED: accept risk for finding finding-12345678 "
+        "until 2026-06-30"
+    ) in comment
+    assert lint_ai_sast_approval_comment(comment) == []
+
+
+def test_ai_sast_exception_policy_comment_renderer_outputs_human_scope():
+    comment = render_ai_sast_exception_policy_comment(_accepted_risk_payload())
+
+    assert "## Endor Exception Policy Created" in comment
+    assert "- Policy: `ai-sast-exception-finding-12345678`" in comment
+    assert "- Policy UUID: `policy-123`" in comment
+    assert "- Endor project: `example-app (proj-123)`" in comment
+    assert "- Reason: `Accepted risk`" in comment
+    assert "$uuid=" not in comment
+    assert "Scope:" not in comment
+    assert lint_ai_sast_exception_policy_comment(comment) == []
+
+
+def test_ai_sast_exception_policy_comment_linter_rejects_raw_uuid_scope():
+    comment = render_ai_sast_exception_policy_comment(_valid_payload()).replace(
+        "- Endor project: `example-app (proj-123)`",
+        "- Scope: `$uuid=proj-123`",
+    )
+
+    errors = lint_ai_sast_exception_policy_comment(comment)
+
+    assert "policy decision comment must not expose raw '$uuid=' project selector" in errors
+    assert "policy decision comment must use 'Endor project', not raw scope" in errors
+
+
+def test_ai_sast_lints_reject_unsafe_exploit_and_bad_approval_phrase():
+    body = render_ai_sast_pr_body(_valid_payload()) + "\nexact exploit payload should not appear.\n"
+    bad_comment = render_ai_sast_approval_comment(_accepted_risk_payload()).replace(
+        " until 2026-06-30",
+        "",
+    )
+
+    assert any("exploit context must be sanitized" in error for error in lint_ai_sast_pr_body(body))
+    assert "accepted risk approval phrase must include until YYYY-MM-DD" in lint_ai_sast_approval_comment(
+        bad_comment
+    )
 
 
 def test_ai_sast_cli_validate_render_and_lint(tmp_path, capsys):
@@ -234,6 +535,14 @@ def test_ai_sast_cli_validate_render_and_lint(tmp_path, capsys):
 
     assert main(["lint-ai-sast-approval-comment", str(comment_path)]) == 0
     assert f"OK: {comment_path}" in capsys.readouterr().out
+
+    assert main(["render-ai-sast-exception-policy-comment", str(payload_path)]) == 0
+    policy_comment = capsys.readouterr().out
+    policy_comment_path = tmp_path / "policy-comment.md"
+    policy_comment_path.write_text(policy_comment, encoding="utf-8")
+
+    assert main(["lint-ai-sast-exception-policy-comment", str(policy_comment_path)]) == 0
+    assert f"OK: {policy_comment_path}" in capsys.readouterr().out
 
 
 def test_ai_sast_branch_normalizer_uses_remediation_ai_sast_prefix():

@@ -56,7 +56,7 @@
   <g transform="translate(40, 34)">
     <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">AI SAST Triage - Agent Kit Runtime</text>
     <text x="0" y="53" font-size="13" fill="#9fb4be">Repository context to exploit evidence and remediation guidance to grounded patch</text>
-    <text x="0" y="75" font-size="11" fill="#7c93a0">The portable Claude Code agent verifies GitHub/GitLab approval evidence before writing Endor exception policies.</text>
+    <text x="0" y="75" font-size="11" fill="#7c93a0">Optional exception lane: PR/MR comments are approval evidence; an invoked agent still verifies, deduplicates, and asks before Endor policy writes.</text>
   </g>
 
   <g transform="translate(40, 142)">
@@ -142,11 +142,11 @@
     <g transform="translate(830,0)" filter="url(#cardShadow)">
       <rect width="350" height="180" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
       <rect x="24" y="0" width="302" height="2" fill="url(#hairlinePurple)"/>
-      <text x="24" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.5">APPSEC APPROVAL</text>
-      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Standalone Gate</text>
-      <text x="24" y="94" font-size="12" fill="#9fb4be">- PR/MR review or comment from approver</text>
-      <text x="24" y="118" font-size="12" fill="#9fb4be">- verify handle, finding, reason, expiration</text>
-      <text x="24" y="142" font-size="12" fill="#9fb4be">- create Endor policy after confirmation</text>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.5">OPTIONAL APPSEC LANE</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Exception Gate</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- PR/MR comment is evidence, not trigger</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- AppSec invokes agent to verify approval</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- dedupe policy before confirmed Endor write</text>
     </g>
   </g>
 
@@ -154,6 +154,6 @@
     <rect width="1140" height="82" rx="12" fill="#071012" stroke="#17323a"/>
     <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
     <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">PORTABILITY CONTRACT</text>
-    <text x="30" y="58" font-size="13" fill="#cfe4e8">Agent Kit publishes a self-sufficient agent. Approval evidence lives in the PR/MR, and Endor policy writes happen only after verified AppSec approval plus explicit confirmation.</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">Agent Kit publishes a self-sufficient agent. Remediation works without the optional exception lane; policy writes require invoked-agent approval verification, dedupe, and explicit confirmation.</text>
   </g>
 </svg>

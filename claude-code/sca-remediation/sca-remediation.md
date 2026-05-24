@@ -2,7 +2,7 @@
 name: sca-remediation
 description: |
   Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
-disallowedTools: NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+disallowedTools: Task, Agent, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---
 

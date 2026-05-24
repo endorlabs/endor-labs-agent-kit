@@ -12,7 +12,16 @@ EXCEPTION_REASONS = frozenset(
     {"EXCEPTION_REASON_FALSE_POSITIVE", "EXCEPTION_REASON_RISK_ACCEPTED"}
 )
 APPROVAL_REQUEST_TYPES = frozenset({"false_positive", "accepted_risk"})
+EXCEPTION_POLICY_IDEMPOTENCY_STATUSES = frozenset(
+    {
+        "none_found",
+        "existing_reused",
+        "blocked_duplicate",
+        "expired_existing_needs_review",
+    }
+)
 BRANCH_RE = re.compile(r"^remediation/ai-sast/[A-Za-z0-9._-]+$")
+SEVERITY_TITLE_RE = re.compile(r"^(🔴 Critical|🟠 High|🟡 Medium|🟢 Low)\b")
 APPROVAL_PHRASE_RE = re.compile(
     r"^APPSEC APPROVED: "
     r"(?P<type>false positive|accept risk) "
@@ -20,8 +29,12 @@ APPROVAL_PHRASE_RE = re.compile(
     r"(?P<until> until \d{4}-\d{2}-\d{2})?"
     r" - .+"
 )
+RFC3339_UTC_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$")
 AURI_CONTEXT_MARKER_RE = re.compile(
     r"<!--\s*auri:ai-sast-context\s+(?P<payload>\{.*?\})\s*-->"
+)
+EXCEPTION_POLICY_MARKER_RE = re.compile(
+    r"<!--\s*endor-agent-kit:ai-sast-exception-policy\s+(?P<payload>\{.*?\})\s*-->"
 )
 SEVERITY_EMOJI = {
     "CRITICAL": "🔴",
@@ -88,6 +101,15 @@ def render_ai_sast_pr_body(payload: dict[str, Any]) -> str:
     repo_full_name = _text(project.get("repo_full_name") or payload.get("repo_full_name"))
     project_uuid = _text(project.get("project_uuid") or payload.get("project_uuid"))
     namespace = _text(project.get("namespace") or payload.get("namespace"))
+    change_request = _selected_change_request(payload)
+    change_request_url = _text(
+        change_request.get("url")
+        or change_request.get("html_url")
+        or change_request.get("pr_url")
+        or payload.get("pr_url")
+        or payload.get("change_request_url")
+        or "<pr_or_mr_url>"
+    )
     classification = _text(verdict.get("classification") or "TRUE_POSITIVE")
     severity = _text(verdict.get("severity") or "not provided")
     cwe = _format_inline_list(
@@ -147,28 +169,39 @@ def render_ai_sast_pr_body(payload: dict[str, Any]) -> str:
         "### 📝 Need an exception instead?",
         "",
         (
-            "If you believe this is a false positive or the team needs to accept "
-            "the risk, comment on this PR with one of these exact forms:"
+            "If this finding should be excepted instead of fixed in code, copy "
+            "one of these prompts into your standalone Agent Kit session:"
         ),
         "",
         "```text",
-        f"@auri false positive for finding {finding_uuid or '<finding_uuid>'} - <why this is not exploitable>",
-        f"@auri accept risk for finding {finding_uuid or '<finding_uuid>'} until YYYY-MM-DD - <owner, mitigation, and why code will not change now>",
-        f"AURI: false positive for finding {finding_uuid or '<finding_uuid>'} - <why this is not exploitable>",
-        f"AURI: accept risk for finding {finding_uuid or '<finding_uuid>'} until YYYY-MM-DD - <owner, mitigation, and why code will not change now>",
+        (
+            "@agent-ai-sast-triage request an AppSec exception review for "
+            f"finding {finding_uuid or '<finding_uuid>'} on PR/MR {change_request_url}. "
+            "Request type: false positive. Reason: <why this is not exploitable>. "
+            "Allowed AppSec approvers: <@appsec-reviewer>. Do not create an Endor "
+            "policy yet. Post or update a PR/MR comment with the exact approval "
+            "phrase the approver can use."
+        ),
+        (
+            "@agent-ai-sast-triage request an AppSec exception review for "
+            f"finding {finding_uuid or '<finding_uuid>'} on PR/MR {change_request_url}. "
+            "Request type: accept risk until YYYY-MM-DD. Reason: <owner, mitigation, "
+            "and why code will not change now>. Allowed AppSec approvers: "
+            "<@appsec-reviewer>. Do not create an Endor policy yet. Post or update "
+            "a PR/MR comment with the exact approval phrase the approver can use."
+        ),
         "```",
         "",
         (
-            "AURI will create a pending request in **AI SAST Command Center -> "
-            "Exception inbox**. Security approval creates a scoped Endor Labs "
-            "exception policy for this finding in this repository/project, with "
-            "reviewer-selected reason, expiration, and tags."
+            "The standalone agent will create or update an approval-request "
+            "comment for an allowed AppSec approver. The requester, PR/MR author, "
+            "and agent account must not approve their own exception request."
         ),
         "",
         (
-            "In standalone Agent Kit mode, the agent must still verify AppSec "
-            "approval evidence on the PR/MR, render the scoped Endor policy spec, "
-            "and receive explicit confirmation before writing any policy."
+            "The agent must verify AppSec approval evidence on the PR/MR, render "
+            "the scoped Endor policy spec, and receive explicit confirmation "
+            "before writing any Endor policy."
         ),
         "",
         "<details>",
@@ -215,7 +248,7 @@ def lint_ai_sast_pr_body(body: str) -> list[str]:
         except json.JSONDecodeError:
             errors.append("auri:ai-sast-context marker is not valid JSON")
         else:
-            for field in ("finding_uuid", "project_uuid", "repo_full_name", "file_path"):
+            for field in ("finding_uuid", "namespace", "project_uuid", "repo_full_name", "file_path"):
                 if not _text(_dict(context_payload).get(field)):
                     errors.append(f"auri:ai-sast-context.{field}: required")
 
@@ -231,16 +264,19 @@ def lint_ai_sast_pr_body(body: str) -> list[str]:
             errors.append(f"missing section {heading!r}")
 
     for request_prefix in (
-        "@auri false positive for finding",
-        "@auri accept risk for finding",
-        "AURI: false positive for finding",
-        "AURI: accept risk for finding",
+        "@agent-ai-sast-triage request an AppSec exception review for finding",
+        "Request type: false positive",
+        "Request type: accept risk until YYYY-MM-DD",
+        "Allowed AppSec approvers:",
+        "Do not create an Endor policy yet",
     ):
         if request_prefix not in body:
-            errors.append(f"missing exception request form {request_prefix!r}")
+            errors.append(f"missing standalone exception request form {request_prefix!r}")
 
     if "APPSEC APPROVED:" in body:
         errors.append("PR/MR body must request approval separately, not embed an approval phrase")
+    if re.search(r"(?m)^\s*(?:@auri|AURI:)\b", body):
+        errors.append("PR/MR body must use standalone Agent Kit exception request prompts, not AURI request forms")
     if re.search(r"(?i)(weaponized payload|exact exploit payload|copy/paste exploit)", body):
         errors.append("exploit context must be sanitized and must not publish exact payload detail")
     errors.extend(_lint_severity_emoji(body))
@@ -328,6 +364,144 @@ def lint_ai_sast_approval_comment(body: str) -> list[str]:
             errors.append("accepted risk approval phrase must include until YYYY-MM-DD")
     if "must not approve" not in body:
         errors.append("missing self-approval warning")
+    return errors
+
+
+def render_ai_sast_exception_policy_comment(payload: dict[str, Any]) -> str:
+    """Render a reviewer-facing comment after an Endor exception policy decision."""
+
+    policy = _selected_exception_policy(payload)
+    spec = _policy_spec_payload(policy.get("policy_spec") or policy.get("spec"))
+    project = _dict(payload.get("project_resolution"))
+    verdict = _selected_verdict(payload)
+    approval = _selected_policy_approval(payload, spec)
+
+    finding_uuid = _text(
+        policy.get("finding_uuid")
+        or approval.get("finding_uuid")
+        or verdict.get("finding_uuid")
+        or payload.get("finding_uuid")
+    )
+    finding_name = _one_line(
+        policy.get("finding_name")
+        or verdict.get("finding_name")
+        or verdict.get("title")
+        or f"Finding {finding_uuid}"
+    )
+    policy_name = _policy_name(policy) or "not provided"
+    policy_uuid = _text(policy.get("policy_uuid") or policy.get("uuid")) or "not provided"
+    namespace = _text(project.get("namespace") or payload.get("namespace"))
+    project_uuid = _text(project.get("project_uuid") or payload.get("project_uuid"))
+    project_name = _text(
+        project.get("project_name")
+        or policy.get("project_name")
+        or project.get("repo_full_name")
+        or payload.get("repo_full_name")
+    )
+    project_label = project_name or "not provided"
+    if project_uuid:
+        project_label = f"{project_label} ({project_uuid})"
+
+    exception = _dict(spec.get("exception"))
+    reason = _display_exception_reason(_text(exception.get("reason")))
+    expiration = _text(exception.get("expiration_time") or approval.get("expiration_time"))
+    request_type = _text(approval.get("request_type")) or _request_type_for_exception_reason(
+        _text(exception.get("reason"))
+    )
+    status = _text(policy.get("status")).lower()
+    heading = (
+        "## Endor Exception Policy Reused"
+        if status in {"existing", "reused", "existing_reused"}
+        else "## Endor Exception Policy Created"
+    )
+
+    marker = {
+        "finding_uuid": finding_uuid,
+        "namespace": namespace,
+        "project_uuid": project_uuid,
+        "policy_name": policy_name,
+        "policy_uuid": policy_uuid,
+        "request_type": request_type,
+    }
+    marker_json = json.dumps(
+        {key: value for key, value in marker.items() if value and value != "not provided"},
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+
+    evidence_url = _text(approval.get("approval_evidence_url"))
+    evidence_value = evidence_url if evidence_url else "`not provided`"
+
+    return "\n".join(
+        [
+            "<!-- endor-agent-kit:ai-sast-exception-policy " + marker_json + " -->",
+            heading,
+            "",
+            f"- Policy: `{policy_name}`",
+            f"- Policy UUID: `{policy_uuid}`",
+            f"- Finding: {finding_name} (`{finding_uuid or 'not provided'}`)",
+            f"- Endor project: `{project_label}`",
+            f"- Namespace: `{namespace or 'not provided'}`",
+            f"- Reason: {reason}",
+            f"- Expires: `{expiration or 'not applicable'}`",
+            f"- Approved by: `{_text(approval.get('approver')) or 'not provided'}`",
+            f"- Approval evidence: {evidence_value}",
+            "",
+            (
+                "The policy is scoped to the Endor project and exact finding above. "
+                "The API policy payload remains the source of truth for enforcement."
+            ),
+        ]
+    ).rstrip() + "\n"
+
+
+def lint_ai_sast_exception_policy_comment(body: str) -> list[str]:
+    """Lint a reviewer-facing Endor exception policy decision comment."""
+
+    errors: list[str] = []
+    marker = EXCEPTION_POLICY_MARKER_RE.search(body)
+    if marker is None:
+        errors.append("missing ai-sast exception policy marker")
+    else:
+        try:
+            marker_payload = json.loads(marker.group("payload"))
+        except json.JSONDecodeError:
+            errors.append("ai-sast exception policy marker is not valid JSON")
+        else:
+            for field in (
+                "finding_uuid",
+                "namespace",
+                "project_uuid",
+                "policy_name",
+                "policy_uuid",
+                "request_type",
+            ):
+                if not _text(_dict(marker_payload).get(field)):
+                    errors.append(f"ai-sast exception policy marker.{field}: required")
+
+    for heading in ("Endor Exception Policy Created", "Endor Exception Policy Reused"):
+        if heading in body:
+            break
+    else:
+        errors.append("missing Endor exception policy decision heading")
+
+    for label in (
+        "- Policy:",
+        "- Policy UUID:",
+        "- Finding:",
+        "- Endor project:",
+        "- Reason:",
+        "- Expires:",
+        "- Approved by:",
+        "- Approval evidence:",
+    ):
+        if label not in body:
+            errors.append(f"missing policy decision field {label!r}")
+
+    if "$uuid=" in body:
+        errors.append("policy decision comment must not expose raw '$uuid=' project selector")
+    if re.search(r"(?im)^\s*-?\s*(?:project\s+)?scope:\s*", body):
+        errors.append("policy decision comment must use 'Endor project', not raw scope")
     return errors
 
 
@@ -428,6 +602,12 @@ def _validate_change_requests(payload: dict[str, Any], errors: list[str]) -> Non
         for field in ("title", "body"):
             if not _text(request.get(field)):
                 errors.append(f"{prefix}.{field}: required")
+        title = _text(request.get("title"))
+        if title and SEVERITY_TITLE_RE.match(title) is None:
+            errors.append(
+                f"{prefix}.title: must start with severity indicator "
+                "🔴 Critical, 🟠 High, 🟡 Medium, or 🟢 Low"
+            )
         branch = _text(_first_present(request, "branch_name", "branch", "proposed_branch"))
         if not branch:
             errors.append(f"{prefix}.branch_name: required")
@@ -462,6 +642,10 @@ def _validate_approvals(payload: dict[str, Any], errors: list[str]) -> None:
         request_type = _text(approval.get("request_type"))
         if request_type and request_type not in APPROVAL_REQUEST_TYPES:
             errors.append(f"{prefix}.request_type: unsupported request type {request_type!r}")
+        if request_type == "accepted_risk" and not _text(
+            approval.get("expiration_time") or approval.get("until")
+        ):
+            errors.append(f"{prefix}.expiration_time: required for accepted risk approval")
         if approval.get("approved") is not True and _text(approval.get("status")).lower() != "approved":
             errors.append(f"{prefix}.approved: must be true before policy creation")
         approver = _identity(approval.get("approver"))
@@ -482,33 +666,187 @@ def _validate_exception_policies(payload: dict[str, Any], errors: list[str]) -> 
     if not policies:
         errors.append("exception_policies: required for exception gate")
         return
+    project = _dict(payload.get("project_resolution"))
+    project_uuid = _text(payload.get("project_uuid") or project.get("project_uuid"))
+    approvals_by_request_type: dict[str, list[dict[str, Any]]] = {}
+    for approval in _list(payload.get("approvals")):
+        if not isinstance(approval, dict):
+            continue
+        request_type = _text(approval.get("request_type"))
+        if request_type:
+            approvals_by_request_type.setdefault(request_type, []).append(approval)
+    approved_finding_uuids = {
+        _text(approval.get("finding_uuid"))
+        for approval in _list(payload.get("approvals"))
+        if isinstance(approval, dict) and _text(approval.get("finding_uuid"))
+    }
     for index, policy in enumerate(policies):
         if not isinstance(policy, dict):
             errors.append(f"exception_policies[{index}]: must be an object")
             continue
         prefix = f"exception_policies[{index}]"
-        if _text(policy.get("status")).lower() in {"created", "written"}:
-            if not _text(policy.get("policy_uuid")):
+        status = _text(policy.get("status")).lower()
+        policy_name = _policy_name(policy)
+        policy_uuid = _text(policy.get("policy_uuid") or policy.get("uuid"))
+        if not policy_name:
+            errors.append(f"{prefix}.policy_name: required for human-readable policy evidence")
+        if status in {"created", "written"}:
+            if not policy_uuid:
                 errors.append(f"{prefix}.policy_uuid: required when policy is created")
-        if _text(policy.get("user_confirmation")).lower() not in {"approved", "confirmed", "true"}:
+            if _text(policy.get("user_confirmation")).lower() not in {
+                "approved",
+                "confirmed",
+                "true",
+            }:
+                errors.append(f"{prefix}.user_confirmation: required before Endor policy write")
+        elif status in {"existing", "reused", "existing_reused"}:
+            if not policy_uuid:
+                errors.append(f"{prefix}.policy_uuid: required when reusing an existing policy")
+        elif _text(policy.get("user_confirmation")).lower() not in {
+            "approved",
+            "confirmed",
+            "true",
+        }:
             errors.append(f"{prefix}.user_confirmation: required before Endor policy write")
-        spec = _dict(policy.get("policy_spec") or policy.get("spec"))
-        _validate_policy_spec(spec, prefix, errors)
+        if "rendered_policy" in policy and not policy.get("policy_spec"):
+            errors.append(f"{prefix}.policy_spec: required; do not use rendered_policy alias")
+        _validate_policy_idempotency(
+            policy,
+            prefix,
+            errors,
+            project_uuid=project_uuid,
+            approved_finding_uuids=approved_finding_uuids,
+        )
+        spec = _policy_spec_payload(policy.get("policy_spec") or policy.get("spec"))
+        _validate_policy_name(policy, prefix, errors)
+        decision_comment = _text(
+            policy.get("decision_comment")
+            or policy.get("post_decision_comment")
+            or policy.get("comment_body")
+        )
+        if status in {"created", "written", "existing", "reused", "existing_reused"}:
+            if not decision_comment:
+                errors.append(f"{prefix}.decision_comment: required after policy decision")
+            else:
+                errors.extend(
+                    f"{prefix}.decision_comment: {error}"
+                    for error in lint_ai_sast_exception_policy_comment(decision_comment)
+                )
+                if policy_name and f"`{policy_name}`" not in decision_comment:
+                    errors.append(f"{prefix}.decision_comment: must include policy_name")
+                if policy_uuid and f"`{policy_uuid}`" not in decision_comment:
+                    errors.append(f"{prefix}.decision_comment: must include policy_uuid")
+        _validate_policy_spec(
+            spec,
+            prefix,
+            errors,
+            project_uuid=project_uuid,
+            approvals_by_request_type=approvals_by_request_type,
+        )
 
 
-def _validate_policy_spec(spec: dict[str, Any], prefix: str, errors: list[str]) -> None:
+def _validate_policy_idempotency(
+    policy: dict[str, Any],
+    prefix: str,
+    errors: list[str],
+    *,
+    project_uuid: str,
+    approved_finding_uuids: set[str],
+) -> None:
+    check = _dict(policy.get("idempotency_check") or policy.get("existing_policy_lookup"))
+    if not check:
+        errors.append(f"{prefix}.idempotency_check: required before Endor policy write")
+        return
+
+    status = _text(check.get("status")).lower()
+    if not status:
+        errors.append(f"{prefix}.idempotency_check.status: required")
+    elif status not in EXCEPTION_POLICY_IDEMPOTENCY_STATUSES:
+        errors.append(
+            f"{prefix}.idempotency_check.status: must be one of "
+            f"{', '.join(sorted(EXCEPTION_POLICY_IDEMPOTENCY_STATUSES))}"
+        )
+
+    lookup_method = _text(check.get("lookup_method") or check.get("method"))
+    if not lookup_method:
+        errors.append(f"{prefix}.idempotency_check.lookup_method: required")
+    elif "not checked" in lookup_method.lower():
+        errors.append(f"{prefix}.idempotency_check.lookup_method: cannot be 'not checked'")
+
+    check_finding_uuid = _text(check.get("finding_uuid"))
+    if not check_finding_uuid:
+        errors.append(f"{prefix}.idempotency_check.finding_uuid: required")
+    elif approved_finding_uuids and check_finding_uuid not in approved_finding_uuids:
+        errors.append(f"{prefix}.idempotency_check.finding_uuid: must match approved finding")
+
+    check_project_uuid = _text(check.get("project_uuid"))
+    if not check_project_uuid:
+        errors.append(f"{prefix}.idempotency_check.project_uuid: required")
+    elif project_uuid and check_project_uuid != project_uuid:
+        errors.append(f"{prefix}.idempotency_check.project_uuid: must match resolved project UUID")
+
+    policy_status = _text(policy.get("status")).lower()
+    if policy_status in {"created", "written"} and status != "none_found":
+        errors.append(
+            f"{prefix}.idempotency_check.status: must be none_found before creating a new policy"
+        )
+    if policy_status in {"existing", "reused", "existing_reused"} and status != "existing_reused":
+        errors.append(
+            f"{prefix}.idempotency_check.status: must be existing_reused when reusing a policy"
+        )
+    if status == "existing_reused":
+        existing_uuid = _text(check.get("existing_policy_uuid") or check.get("policy_uuid"))
+        existing_name = _text(check.get("existing_policy_name") or check.get("policy_name"))
+        if not existing_uuid:
+            errors.append(f"{prefix}.idempotency_check.existing_policy_uuid: required")
+        if not existing_name:
+            errors.append(f"{prefix}.idempotency_check.existing_policy_name: required")
+        policy_uuid = _text(policy.get("policy_uuid") or policy.get("uuid"))
+        if existing_uuid and policy_uuid and existing_uuid != policy_uuid:
+            errors.append(f"{prefix}.idempotency_check.existing_policy_uuid: must match policy_uuid")
+    if status in {"blocked_duplicate", "expired_existing_needs_review"}:
+        errors.append(
+            f"{prefix}.idempotency_check.status: {status} must stop before policy creation"
+        )
+
+
+def _validate_policy_name(policy: dict[str, Any], prefix: str, errors: list[str]) -> None:
+    policy_name = _text(policy.get("policy_name"))
+    resource = _dict(policy.get("policy_spec") or policy.get("spec"))
+    meta_name = _text(_dict(resource.get("meta")).get("name"))
+    if meta_name and policy_name and meta_name != policy_name:
+        errors.append(f"{prefix}.policy_name: must match policy_spec.meta.name")
+
+
+def _validate_policy_spec(
+    spec: dict[str, Any],
+    prefix: str,
+    errors: list[str],
+    *,
+    project_uuid: str = "",
+    approvals_by_request_type: dict[str, list[dict[str, Any]]] | None = None,
+) -> None:
     if not spec:
         errors.append(f"{prefix}.policy_spec: required")
         return
     policy_type = _text(spec.get("policy_type"))
-    if policy_type and policy_type != "POLICY_TYPE_EXCEPTION":
+    if not policy_type:
+        errors.append(f"{prefix}.policy_spec.policy_type: required")
+    elif policy_type != "POLICY_TYPE_EXCEPTION":
         errors.append(f"{prefix}.policy_spec.policy_type: must be POLICY_TYPE_EXCEPTION")
     exception = _dict(spec.get("exception"))
     reason = _text(exception.get("reason"))
-    if reason and reason not in EXCEPTION_REASONS:
+    if not reason:
+        errors.append(f"{prefix}.policy_spec.exception.reason: required")
+    elif reason not in EXCEPTION_REASONS:
         errors.append(f"{prefix}.policy_spec.exception.reason: unsupported reason {reason!r}")
-    if reason == "EXCEPTION_REASON_RISK_ACCEPTED" and not _text(exception.get("expiration_time")):
-        errors.append(f"{prefix}.policy_spec.exception.expiration_time: required for accepted risk")
+    request_type = _request_type_for_exception_reason(reason)
+    expiration_time = _text(exception.get("expiration_time"))
+    if reason == "EXCEPTION_REASON_RISK_ACCEPTED":
+        if not expiration_time:
+            errors.append(f"{prefix}.policy_spec.exception.expiration_time: required for accepted risk")
+        elif RFC3339_UTC_RE.match(expiration_time) is None:
+            errors.append(f"{prefix}.policy_spec.exception.expiration_time: must be RFC3339 UTC")
     if spec.get("resource_kinds") != ["Finding"]:
         errors.append(f"{prefix}.policy_spec.resource_kinds: must be ['Finding']")
     statements = _list(spec.get("query_statements"))
@@ -516,13 +854,68 @@ def _validate_policy_spec(spec: dict[str, Any], prefix: str, errors: list[str]) 
         errors.append(f"{prefix}.policy_spec.query_statements: missing AI SAST exception query")
     if "rego" in spec:
         errors.append(f"{prefix}.policy_spec.rego: do not use rego field; use rule")
-    if not _text(spec.get("rule")):
+    rule = _text(spec.get("rule"))
+    if not rule:
         errors.append(f"{prefix}.policy_spec.rule: required")
     project_selector = spec.get("project_selector")
     if not isinstance(project_selector, list) or not all(
         isinstance(item, str) and item.startswith("$uuid=") for item in project_selector
     ):
         errors.append(f"{prefix}.policy_spec.project_selector: must be list of '$uuid=PROJECT_UUID'")
+    elif project_uuid and f"$uuid={project_uuid}" not in project_selector:
+        errors.append(f"{prefix}.policy_spec.project_selector: must include '$uuid={project_uuid}'")
+    if project_uuid and rule:
+        if project_uuid not in rule:
+            errors.append(f"{prefix}.policy_spec.rule: must match the approved project UUID")
+        if "data.resources.Finding[i].spec.project_uuid" not in rule:
+            errors.append(
+                f"{prefix}.policy_spec.rule: must scope findings with spec.project_uuid, not meta.parent_uuid"
+            )
+        if "data.resources.Finding[i].meta.parent_uuid" in rule:
+            errors.append(f"{prefix}.policy_spec.rule: must not use meta.parent_uuid for project scope")
+
+    approvals_by_request_type = approvals_by_request_type or {}
+    if request_type:
+        approvals = approvals_by_request_type.get(request_type, [])
+        if not approvals:
+            errors.append(
+                f"{prefix}.policy_spec.exception.reason: no verified approval for {request_type}"
+            )
+        elif rule:
+            approved_finding_uuids = [
+                _text(approval.get("finding_uuid"))
+                for approval in approvals
+                if _text(approval.get("finding_uuid"))
+            ]
+            if approved_finding_uuids and not any(
+                finding_uuid in rule for finding_uuid in approved_finding_uuids
+            ):
+                errors.append(
+                    f"{prefix}.policy_spec.rule: must match the approved finding UUID"
+                )
+
+
+def _policy_spec_payload(value: Any) -> dict[str, Any]:
+    spec = _dict(value)
+    if "policy_type" in spec:
+        return spec
+    nested = _dict(spec.get("spec"))
+    return nested if nested else spec
+
+
+def _policy_name(policy: dict[str, Any]) -> str:
+    explicit = _text(policy.get("policy_name") or policy.get("name"))
+    if explicit:
+        return explicit
+    resource = _dict(policy.get("policy_spec") or policy.get("spec"))
+    return _text(_dict(resource.get("meta")).get("name"))
+
+
+def _request_type_for_exception_reason(reason: str) -> str:
+    return {
+        "EXCEPTION_REASON_FALSE_POSITIVE": "false_positive",
+        "EXCEPTION_REASON_RISK_ACCEPTED": "accepted_risk",
+    }.get(reason, "")
 
 
 def _validate_branch(branch: str, field: str, errors: list[str]) -> None:
@@ -542,6 +935,41 @@ def _selected_verdict(payload: dict[str, Any]) -> dict[str, Any]:
     for verdict in verdicts:
         if isinstance(verdict, dict):
             return verdict
+    return {}
+
+
+def _selected_change_request(payload: dict[str, Any]) -> dict[str, Any]:
+    change_requests = _list(payload.get("change_requests"))
+    for request in change_requests:
+        if isinstance(request, dict):
+            return request
+    return {}
+
+
+def _selected_exception_policy(payload: dict[str, Any]) -> dict[str, Any]:
+    policies = _list(payload.get("exception_policies"))
+    for policy in policies:
+        if isinstance(policy, dict):
+            return policy
+    return {}
+
+
+def _selected_policy_approval(
+    payload: dict[str, Any],
+    policy_spec: dict[str, Any],
+) -> dict[str, Any]:
+    reason = _text(_dict(policy_spec.get("exception")).get("reason"))
+    request_type = _request_type_for_exception_reason(reason)
+    approvals = _list(payload.get("approvals"))
+    for approval in approvals:
+        if not isinstance(approval, dict):
+            continue
+        if request_type and _text(approval.get("request_type")) != request_type:
+            continue
+        return approval
+    for approval in approvals:
+        if isinstance(approval, dict):
+            return approval
     return {}
 
 
@@ -575,6 +1003,13 @@ def _display_severity_code(severity: Any) -> str:
         return "`not provided`"
     emoji = SEVERITY_EMOJI.get(value)
     return f"{emoji} `{value}`" if emoji else f"`{value}`"
+
+
+def _display_exception_reason(reason: str) -> str:
+    return {
+        "EXCEPTION_REASON_FALSE_POSITIVE": "`False positive`",
+        "EXCEPTION_REASON_RISK_ACCEPTED": "`Accepted risk`",
+    }.get(reason, f"`{reason or 'not provided'}`")
 
 
 def _render_changed_files(changed_files: list[str]) -> list[str]:

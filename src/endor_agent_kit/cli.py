@@ -14,9 +14,11 @@ from endor_agent_kit.compilers import (
 from endor_agent_kit.compilers.claude_code import EDITION_CHOICES
 from endor_agent_kit.ai_sast_triage import (
     lint_ai_sast_approval_comment,
+    lint_ai_sast_exception_policy_comment,
     lint_ai_sast_pr_body,
     load_json_payload as load_ai_sast_json_payload,
     render_ai_sast_approval_comment,
+    render_ai_sast_exception_policy_comment,
     render_ai_sast_pr_body,
     validate_ai_sast_gate_payload,
 )
@@ -120,6 +122,18 @@ def main(argv: list[str] | None = None) -> int:
         help="Lint an AI SAST AppSec approval request comment",
     )
     lint_ai_sast_approval_parser.add_argument("body", type=Path)
+
+    render_ai_sast_policy_comment_parser = subparsers.add_parser(
+        "render-ai-sast-exception-policy-comment",
+        help="Render an AI SAST Endor exception policy decision comment from normalized JSON",
+    )
+    render_ai_sast_policy_comment_parser.add_argument("payload", type=Path)
+
+    lint_ai_sast_policy_comment_parser = subparsers.add_parser(
+        "lint-ai-sast-exception-policy-comment",
+        help="Lint an AI SAST Endor exception policy decision comment",
+    )
+    lint_ai_sast_policy_comment_parser.add_argument("body", type=Path)
 
     check_install_parser = subparsers.add_parser(
         "check-install",
@@ -269,6 +283,29 @@ def main(argv: list[str] | None = None) -> int:
             print(f"ERROR: {exc}")
             return 1
         errors = lint_ai_sast_approval_comment(body)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.body}")
+        return 0
+
+    if args.command == "render-ai-sast-exception-policy-comment":
+        try:
+            payload = load_ai_sast_json_payload(args.payload)
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(render_ai_sast_exception_policy_comment(payload), end="")
+        return 0
+
+    if args.command == "lint-ai-sast-exception-policy-comment":
+        try:
+            body = args.body.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        errors = lint_ai_sast_exception_policy_comment(body)
         if errors:
             for error in errors:
                 print(f"ERROR: {error}")

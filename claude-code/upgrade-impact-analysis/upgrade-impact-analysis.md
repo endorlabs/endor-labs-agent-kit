@@ -6,7 +6,7 @@ description: |
   Analysis, breaking changes, manifest targeting, or whether a dependency
   upgrade should happen now. The artifact queries Endor's read-only
   VersionUpgrade workflow through documented Endor API or endorctl paths.
-disallowedTools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+disallowedTools: Task, Agent, Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---
 

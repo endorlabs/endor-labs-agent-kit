@@ -56,10 +56,10 @@ actions:
     confirmation_required: true
     providers: ["endorctl-api", "endor-api"]
     required_host_capabilities: ["run_commands"]
-    inputs: ["finding_uuid", "project_uuid", "exception_reason", "expiration_time", "approver", "approval_evidence_url"]
-    outputs: ["policy_uuid", "status"]
+    inputs: ["finding_uuid", "project_uuid", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
+    outputs: ["policy_name", "policy_uuid", "status", "idempotency_status"]
     availability: available
-    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, and receiving explicit user confirmation in the Claude Code session."
+    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and finding UUID, and receiving explicit user confirmation in the Claude Code session. If an active matching policy already exists for the same finding, project, and reason, reuse it and do not create another policy."
 
   - id: post-decision-comment
     kind: scm.comment
@@ -67,7 +67,7 @@ actions:
     confirmation_required: true
     providers: ["github", "gitlab"]
     required_host_capabilities: ["run_commands", "open_pr"]
-    inputs: ["pr_url", "decision", "policy_uuid", "body"]
+    inputs: ["pr_url", "decision", "policy_name", "policy_uuid", "body"]
     outputs: ["comment_url", "status"]
     availability: available
-    notes: "After the Endor policy is created, post a PR/MR comment with the policy UUID, approver, approval evidence URL, expiration, and scope."
+    notes: "After the Endor policy is created or an existing active policy is reused, post a PR/MR comment with the policy name, policy UUID, human-readable Endor project label, finding UUID, approver, approval evidence URL, and expiration. Do not show raw '$uuid=...' project_selector syntax as the review-facing scope."
