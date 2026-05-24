@@ -82,6 +82,7 @@ class CodexHostAdapter:
                 artifact_bundle_record(
                     destination,
                     recipe,
+                    HOST,
                     "codex-skill",
                     "Codex Skill",
                     agent_root,

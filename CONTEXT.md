@@ -24,6 +24,10 @@ _Avoid_: tuple, path list, manifest blob
 The repository-level `manifest.json` that records published agents, hosts, bundle metadata, artifact paths, sizes, checksums, and source recipe pointers. The Host Artifact Publication coordinator writes the Catalog Manifest from Bundle Records.
 _Avoid_: host manifest, adapter manifest
 
+**Catalog Manifest Schema Record**:
+The typed in-code representation of Catalog Manifest agents, Host Artifact Bundles, artifact checksums, and source recipe pointers. Host Artifact Publication writes Catalog Manifest Schema Records and Catalog Manifest Lookup reads the same records, converting to or from JSON only at the Catalog Manifest boundary.
+_Avoid_: publication manifest dict, read-side duplicate model
+
 **Catalog Manifest Lookup**:
 The read-side module that loads the Catalog Manifest and returns Host Artifact Bundle records plus artifact checksums for install drift checks and future install surfaces. Callers ask Catalog Manifest Lookup for bundle and artifact records instead of reconstructing generated catalog paths.
 _Avoid_: path probe, source file scan
@@ -122,3 +126,7 @@ Domain expert: "No. Use Catalog Manifest Lookup as the install drift interface. 
 Dev: "Should Host Adapters decide from raw recipe fields whether an artifact uses MCP or endorctl?"
 
 Domain expert: "No. They should consume Source Recipe Safety Posture and keep only Host-specific wording, tools, setup-file placement, and artifact layout local."
+
+Dev: "Should publication and install drift lookup keep separate manifest record shapes?"
+
+Domain expert: "No. Use Catalog Manifest Schema Records for both write-side publication and read-side Catalog Manifest Lookup so future bundle fields only need one schema change."
