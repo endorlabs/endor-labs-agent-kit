@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import shutil
 from pathlib import Path
-from typing import Any
 
+from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.compilers.claude_code import (
     EDITIONS,
     HOST,
@@ -45,7 +45,7 @@ class ClaudeCodeHostAdapter:
             shutil.rmtree(agent_root)
 
         written: list[Path] = []
-        manifest_records: list[dict[str, Any]] = []
+        manifest_records: list[CatalogBundle] = []
         architecture = architecture_source(recipe_file)
         has_architecture = architecture.is_file()
         editions = editions_for_host(recipe, HOST, EDITIONS)
@@ -91,6 +91,7 @@ class ClaudeCodeHostAdapter:
                 artifact_bundle_record(
                     destination,
                     recipe,
+                    HOST,
                     edition,
                     edition_name(edition),
                     edition_dir,
