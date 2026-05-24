@@ -56,7 +56,13 @@ def _valid_payload() -> dict:
                 "finding_uuid": "finding-12345678",
                 "source_sha": "abc123",
                 "file_path": "src/web/redirect_handler.ext",
-                "patch_diff": "--- a/src/web/redirect_handler.ext\n+++ b/src/web/redirect_handler.ext\n",
+                "patch_diff": (
+                    "--- a/src/web/redirect_handler.ext\n"
+                    "+++ b/src/web/redirect_handler.ext\n"
+                    "@@ -1,1 +1,1 @@\n"
+                    "-unsafe redirect\n"
+                    "+validated redirect\n"
+                ),
                 "patch_confidence": 88,
                 "patch_reason": "Validate redirect targets before use.",
                 "remediation_guidance_used": "Applied as an allow-list check.",
@@ -85,6 +91,13 @@ def _valid_payload() -> dict:
                 "branch_name": "remediation/ai-sast/unsafe-redirect-finding-12345678",
                 "title": "🟠 High: Fix unsafe redirect target handling",
                 "body": "",
+                "existing_change_request_check": {
+                    "status": "none_found",
+                    "lookup_method": "fixture: searched PRs/MRs and remote branches by finding UUID and proposed branch",
+                    "finding_uuid": "finding-12345678",
+                    "repo": "example/app",
+                    "branch": "remediation/ai-sast/unsafe-redirect-finding-12345678",
+                },
             }
         ],
         "approval_request": {
@@ -201,6 +214,135 @@ def test_ai_sast_pr_renderer_outputs_lint_clean_body():
     assert "| Severity | 🟠 `HIGH` |" in body
     assert "APPSEC APPROVED:" not in body
     assert lint_ai_sast_pr_body(body) == []
+
+
+def test_ai_sast_pr_renderer_uses_modified_files_from_patch():
+    payload = json.loads(json.dumps(_valid_payload()))
+    patch = payload["patches"][0]
+    patch.pop("changed_files")
+    patch["modified_files"] = ["src/controller.ext", "src/service.ext"]
+
+    body = render_ai_sast_pr_body(payload)
+    payload["change_requests"][0]["body"] = body
+
+    assert "- Updated `src/controller.ext`." in body
+    assert "- Updated `src/service.ext`." in body
+    assert "| Modified files | `src/controller.ext`<br>`src/service.ext` |" in body
+    assert validate_ai_sast_gate_payload(payload, gate="remediation") == []
+
+
+def test_ai_sast_gate_validator_rejects_corrupt_patch_diff():
+    payload = _valid_payload()
+    payload["patches"][0]["patch_diff"] = (
+        "--- a/src/service.ext\n"
+        "+++ b/src/service.ext\n"
+        "@@ -1,2 +1,1 @@\n"
+        " line one\n"
+        "-line two\n"
+        "+replacement\n"
+    )
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+
+    assert any("patches[0].patch_diff: hunk starting line 3" in error for error in errors)
+
+
+def test_ai_sast_gate_validator_accepts_git_diff_metadata_headers():
+    payload = _valid_payload()
+    payload["patches"][0]["patch_diff"] = (
+        "diff --git a/src/web/redirect_handler.ext b/src/web/redirect_handler.ext\n"
+        "index 1111111..2222222 100644\n"
+        "--- a/src/web/redirect_handler.ext\n"
+        "+++ b/src/web/redirect_handler.ext\n"
+        "@@ -1,1 +1,1 @@\n"
+        "-unsafe redirect\n"
+        "+validated redirect\n"
+    )
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    assert validate_ai_sast_gate_payload(payload, gate="remediation") == []
+
+
+def test_ai_sast_gate_validator_requires_body_to_list_modified_files():
+    payload = _valid_payload()
+    payload["patches"][0]["modified_files"] = ["src/web/redirect_handler.ext", "src/web/routes.ext"]
+    payload["patches"][0].pop("changed_files")
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(_valid_payload())
+
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+
+    assert any(
+        "change_requests[0].body: missing modified file 'src/web/routes.ext'" in error
+        for error in errors
+    )
+
+
+def test_ai_sast_gate_validator_requires_existing_change_request_check():
+    payload = _valid_payload()
+    payload["change_requests"][0].pop("existing_change_request_check")
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+
+    assert (
+        "change_requests[0].existing_change_request_check: required before claiming no existing PR/MR or branch"
+        in errors
+    )
+
+
+def test_ai_sast_gate_validator_accepts_existing_change_request_evidence():
+    payload = _valid_payload()
+    payload["change_requests"][0]["existing_change_request_check"] = {
+        "status": "existing_found",
+        "lookup_method": "gh pr list --state all --search finding-12345678",
+        "finding_uuid": "finding-12345678",
+        "repo": "example/app",
+        "branch": "remediation/ai-sast/unsafe-redirect-finding-12345678",
+        "existing_url": "https://example.invalid/pr/7",
+        "existing_branch": "remediation/ai-sast/unsafe-redirect-finding-12345678",
+    }
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    assert validate_ai_sast_gate_payload(payload, gate="remediation") == []
+
+
+def test_ai_sast_gate_validator_requires_lookup_branch_evidence():
+    payload = _valid_payload()
+    payload["change_requests"][0]["existing_change_request_check"].pop("branch")
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+
+    assert "change_requests[0].existing_change_request_check.branch: required" in errors
+
+
+def test_ai_sast_gate_validator_rejects_false_none_found_when_lookup_failed():
+    payload = _valid_payload()
+    payload["data_gaps"] = ["PR lookup unavailable because gh auth failed"]
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+
+    assert (
+        "change_requests[0].existing_change_request_check.status: cannot be none_found when data_gaps report lookup failure"
+        in errors
+    )
+
+
+def test_ai_sast_gate_validator_accepts_lookup_unavailable_with_data_gap():
+    payload = _valid_payload()
+    payload["data_gaps"] = ["PR lookup unavailable because gh auth failed"]
+    payload["change_requests"][0]["existing_change_request_check"] = {
+        "status": "lookup_unavailable",
+        "lookup_method": "gh pr list failed: authentication required",
+        "finding_uuid": "finding-12345678",
+        "repo": "example/app",
+        "branch": "remediation/ai-sast/unsafe-redirect-finding-12345678",
+    }
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+
+    assert validate_ai_sast_gate_payload(payload, gate="remediation") == []
 
 
 def test_ai_sast_pr_linter_rejects_legacy_auri_body_without_severity_emoji():

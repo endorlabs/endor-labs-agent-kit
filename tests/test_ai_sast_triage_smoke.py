@@ -77,11 +77,19 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Do not invent `file_path`, `source_location`, component names, or source files" in prompt
     assert "remediation/ai-sast/<finding-slug>" in prompt
     assert "endor/fix" in prompt
+    assert "existing_change_request_check" in prompt
+    assert "gh pr list --head <branch> --state all" in prompt
+    assert "git ls-remote --heads origin <branch>" in prompt
+    assert 'status: "none_found"' in prompt
+    assert '`"lookup_unavailable"` plus a matching `data_gaps` entry' in prompt
+    assert 'Do not write "No existing PR/branch discovered"' in prompt
     assert "endor-agent-kit validate-ai-sast-output" in prompt
     assert "endor-agent-kit lint-ai-sast-pr-body" in prompt
     assert "Every `patches[]` object for a generated remediation patch must include" in prompt
+    assert "Every `change_requests[]` object for a generated remediation patch must include" in prompt
     assert "source_sha" in prompt
     assert "Use a host-allowed scratch path" in prompt
+    assert "run `git apply --check`" in prompt
     assert "leave `change_requests[].body` unset or mark it as renderer-required" in prompt
     assert "inject the lint-clean rendered body into `change_requests[].body`" in prompt
     assert "Do not run a known-incomplete remediation payload through the validator" in prompt

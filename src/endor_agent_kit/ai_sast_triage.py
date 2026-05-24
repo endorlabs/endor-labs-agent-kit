@@ -20,6 +20,14 @@ EXCEPTION_POLICY_IDEMPOTENCY_STATUSES = frozenset(
         "expired_existing_needs_review",
     }
 )
+CHANGE_REQUEST_LOOKUP_STATUSES = frozenset(
+    {
+        "none_found",
+        "existing_found",
+        "branch_found",
+        "lookup_unavailable",
+    }
+)
 BRANCH_RE = re.compile(r"^remediation/ai-sast/[A-Za-z0-9._-]+$")
 SEVERITY_TITLE_RE = re.compile(r"^(🔴 Critical|🟠 High|🟡 Medium|🟢 Low)\b")
 APPROVAL_PHRASE_RE = re.compile(
@@ -123,7 +131,19 @@ def render_ai_sast_pr_body(payload: dict[str, Any]) -> str:
     finding_url = _text(verdict.get("finding_url") or payload.get("finding_url"))
     if not finding_url and namespace and finding_uuid:
         finding_url = f"https://app.endorlabs.com/t/{namespace}/findings/{finding_uuid}"
-    changed_files = _string_list(patch.get("changed_files") or patch.get("files") or file_path)
+    explicit_changed_files = _unique_strings(
+        _string_list(
+            patch.get("changed_files")
+            or patch.get("modified_files")
+            or patch.get("files")
+        )
+        + _string_list(
+            change_request.get("changed_files")
+            or change_request.get("modified_files")
+            or change_request.get("files")
+        )
+    )
+    changed_files = explicit_changed_files or _string_list(file_path)
 
     context = {
         "finding_uuid": finding_uuid,
@@ -578,6 +598,9 @@ def _validate_patches(payload: dict[str, Any], errors: list[str]) -> None:
         for field in ("finding_uuid", "source_sha", "patch_diff", "validation_plan"):
             if _is_empty(patch.get(field)):
                 errors.append(f"{prefix}.{field}: required")
+        patch_diff = _text(patch.get("patch_diff"))
+        if patch_diff:
+            errors.extend(f"{prefix}.patch_diff: {error}" for error in _lint_unified_diff(patch_diff))
         if _is_empty(patch.get("remediation_guidance_used")) and _is_empty(
             patch.get("remediation_guidance_rejected")
         ):
@@ -613,9 +636,22 @@ def _validate_change_requests(payload: dict[str, Any], errors: list[str]) -> Non
             errors.append(f"{prefix}.branch_name: required")
         else:
             _validate_branch(branch, f"{prefix}.branch_name", errors)
+        _validate_change_request_lookup(
+            payload,
+            request,
+            branch,
+            f"{prefix}.existing_change_request_check",
+            errors,
+        )
         body = _text(request.get("body"))
         if body:
             errors.extend(f"{prefix}.body: {error}" for error in lint_ai_sast_pr_body(body))
+            expected_files = _expected_change_request_files(payload, request)
+            for file_path in expected_files:
+                if file_path not in body:
+                    errors.append(
+                        f"{prefix}.body: missing modified file {file_path!r}"
+                    )
         approval = request.get("user_approval") or request.get("approval_status")
         status = _text(request.get("status")).lower()
         if status in {"opened", "created", "pushed"} and _text(approval).lower() not in {
@@ -624,6 +660,90 @@ def _validate_change_requests(payload: dict[str, Any], errors: list[str]) -> Non
             "true",
         }:
             errors.append(f"{prefix}.user_approval: required before push or PR/MR creation")
+
+
+def _validate_change_request_lookup(
+    payload: dict[str, Any],
+    request: dict[str, Any],
+    branch: str,
+    prefix: str,
+    errors: list[str],
+) -> None:
+    check = _dict(
+        request.get("existing_change_request_check")
+        or request.get("change_request_lookup")
+        or request.get("idempotency_check")
+    )
+    if not check:
+        errors.append(f"{prefix}: required before claiming no existing PR/MR or branch")
+        return
+
+    status = _text(check.get("status"))
+    if not status:
+        errors.append(f"{prefix}.status: required")
+    elif status not in CHANGE_REQUEST_LOOKUP_STATUSES:
+        errors.append(
+            f"{prefix}.status: must be one of "
+            f"{', '.join(sorted(CHANGE_REQUEST_LOOKUP_STATUSES))}"
+        )
+
+    lookup_method = _text(check.get("lookup_method"))
+    if not lookup_method:
+        errors.append(f"{prefix}.lookup_method: required")
+    elif lookup_method.lower() in {"not checked", "not_checked", "none", "n/a"}:
+        errors.append(f"{prefix}.lookup_method: cannot be {lookup_method!r}")
+
+    finding_uuid = _text(check.get("finding_uuid"))
+    expected_finding_uuid = _text(
+        request.get("finding_uuid")
+        or _selected_verdict(payload).get("finding_uuid")
+        or _selected_patch(payload).get("finding_uuid")
+    )
+    if not finding_uuid:
+        errors.append(f"{prefix}.finding_uuid: required")
+    elif expected_finding_uuid and finding_uuid != expected_finding_uuid:
+        errors.append(f"{prefix}.finding_uuid: must match change request finding")
+
+    repo = _text(check.get("repo") or check.get("repo_full_name"))
+    expected_repo = _text(_dict(payload.get("project_resolution")).get("repo_full_name"))
+    if not repo:
+        errors.append(f"{prefix}.repo: required")
+    elif expected_repo and repo != expected_repo:
+        errors.append(f"{prefix}.repo: must match resolved repository")
+
+    checked_branch = _text(
+        check.get("branch")
+        or check.get("branch_name")
+        or check.get("proposed_branch")
+    )
+    if not checked_branch:
+        errors.append(f"{prefix}.branch: required")
+    elif branch and checked_branch != branch:
+        errors.append(f"{prefix}.branch: must match proposed change request branch")
+
+    if status in {"existing_found", "branch_found"}:
+        candidates = _list(check.get("candidates") or check.get("matches"))
+        existing_url = _text(
+            check.get("existing_url")
+            or check.get("existing_pr_url")
+            or check.get("existing_mr_url")
+            or check.get("url")
+        )
+        existing_branch = _text(
+            check.get("existing_branch")
+            or check.get("existing_head_ref")
+            or check.get("head_ref")
+        )
+        if not (existing_url or existing_branch or candidates):
+            errors.append(
+                f"{prefix}: existing-found statuses require existing_url, "
+                "existing_branch, or candidates"
+            )
+
+    if status == "none_found" and _lookup_gap_mentions_change_request(payload):
+        errors.append(f"{prefix}.status: cannot be none_found when data_gaps report lookup failure")
+    if status == "lookup_unavailable" and not _lookup_gap_mentions_change_request(payload):
+        errors.append(f"{prefix}.status: lookup_unavailable requires a matching data_gaps entry")
 
 
 def _validate_approvals(payload: dict[str, Any], errors: list[str]) -> None:
@@ -1012,6 +1132,157 @@ def _display_exception_reason(reason: str) -> str:
     }.get(reason, f"`{reason or 'not provided'}`")
 
 
+HUNK_RE = re.compile(r"^@@ -\d+(?:,(\d+))? \+\d+(?:,(\d+))? @@")
+
+
+def _lint_unified_diff(diff: str) -> list[str]:
+    """Validate unified-diff structure without needing a target checkout."""
+
+    lines = diff.splitlines()
+    if not lines:
+        return ["must not be empty"]
+
+    errors: list[str] = []
+    saw_hunk = False
+    index = 0
+    while index < len(lines):
+        while index < len(lines) and _is_diff_metadata_line(lines[index]):
+            index += 1
+        if index >= len(lines):
+            break
+        line = lines[index]
+        if not line.startswith("--- "):
+            errors.append(f"line {index + 1}: expected file header '--- '")
+            break
+        if index + 1 >= len(lines) or not lines[index + 1].startswith("+++ "):
+            errors.append(f"line {index + 1}: missing matching '+++' file header")
+            break
+        index += 2
+        file_hunks = 0
+
+        while index < len(lines):
+            if _is_diff_metadata_line(lines[index]):
+                break
+            if lines[index].startswith("--- ") and (
+                index + 1 < len(lines) and lines[index + 1].startswith("+++ ")
+            ):
+                break
+            hunk_match = HUNK_RE.match(lines[index])
+            if hunk_match is None:
+                errors.append(f"line {index + 1}: expected hunk header '@@ ... @@'")
+                return errors
+
+            saw_hunk = True
+            file_hunks += 1
+            hunk_line = index + 1
+            old_expected = int(hunk_match.group(1) or "1")
+            new_expected = int(hunk_match.group(2) or "1")
+            old_actual = 0
+            new_actual = 0
+            index += 1
+
+            while index < len(lines):
+                current = lines[index]
+                if HUNK_RE.match(current):
+                    break
+                if _is_diff_metadata_line(current):
+                    break
+                if current.startswith("--- ") and (
+                    index + 1 < len(lines) and lines[index + 1].startswith("+++ ")
+                ):
+                    break
+                if current.startswith("\\"):
+                    index += 1
+                    continue
+                if not current:
+                    old_actual += 1
+                    new_actual += 1
+                elif current[0] == " ":
+                    old_actual += 1
+                    new_actual += 1
+                elif current[0] == "-":
+                    old_actual += 1
+                elif current[0] == "+":
+                    new_actual += 1
+                else:
+                    errors.append(f"line {index + 1}: invalid hunk line prefix")
+                    return errors
+                index += 1
+
+            if old_actual > old_expected or new_actual > new_expected:
+                errors.append(
+                    f"hunk starting line {hunk_line}: header counts "
+                    f"old={old_expected}, new={new_expected} but body exceeds them with "
+                    f"old={old_actual}, new={new_actual}"
+                )
+
+        if file_hunks == 0:
+            errors.append(f"line {index + 1}: file diff has no hunks")
+
+    if not saw_hunk:
+        errors.append("must include at least one hunk")
+    return errors
+
+
+def _is_diff_metadata_line(line: str) -> bool:
+    return line.startswith(
+        (
+            "diff --git ",
+            "index ",
+            "new file mode ",
+            "deleted file mode ",
+            "old mode ",
+            "new mode ",
+            "similarity index ",
+            "dissimilarity index ",
+            "rename from ",
+            "rename to ",
+            "copy from ",
+            "copy to ",
+        )
+    )
+
+
+def _expected_change_request_files(
+    payload: dict[str, Any],
+    request: dict[str, Any],
+) -> list[str]:
+    finding_uuid = _text(request.get("finding_uuid"))
+    files = _string_list(
+        request.get("changed_files") or request.get("modified_files") or request.get("files")
+    )
+    for patch in _list(payload.get("patches")):
+        if not isinstance(patch, dict):
+            continue
+        patch_finding = _text(patch.get("finding_uuid"))
+        if finding_uuid and patch_finding and patch_finding != finding_uuid:
+            continue
+        files.extend(
+            _string_list(
+                patch.get("changed_files")
+                or patch.get("modified_files")
+                or patch.get("files")
+                or patch.get("file_path")
+            )
+        )
+    return _unique_strings(files)
+
+
+def _lookup_gap_mentions_change_request(payload: dict[str, Any]) -> bool:
+    for gap in _string_list(payload.get("data_gaps")):
+        mentions_change_request = re.search(
+            r"(?i)\b(PR|MR|pull request|merge request|branch|change request)\b",
+            gap,
+        )
+        mentions_lookup_failure = re.search(
+            r"(?i)\blookup|search|discover|unavailable|credential|permission|auth|failed|cannot\b",
+            gap,
+        )
+        if mentions_change_request and mentions_lookup_failure:
+            return True
+    return False
+
+
 def _render_changed_files(changed_files: list[str]) -> list[str]:
     if not changed_files:
         return ["- Updated `not provided`."]
@@ -1143,6 +1414,18 @@ def _string_list(value: Any) -> list[str]:
     if isinstance(value, str) and value.strip():
         return [value.strip()]
     return []
+
+
+def _unique_strings(values: list[str]) -> list[str]:
+    result: list[str] = []
+    seen: set[str] = set()
+    for value in values:
+        text = _text(value)
+        if not text or text in seen:
+            continue
+        seen.add(text)
+        result.append(text)
+    return result
 
 
 def _text(value: Any) -> str:

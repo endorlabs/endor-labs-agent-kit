@@ -65,7 +65,7 @@ outputs:
 - name: change_requests
   kind: list[object]
   required: true
-  description: PR/MR URLs, branches, status, and failure reason for any requested change-request creation.
+  description: PR/MR URLs, branches, status, failure reason, and existing_change_request_check evidence for any requested change-request creation.
 - name: approvals
   kind: list[object]
   required: true

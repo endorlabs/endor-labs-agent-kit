@@ -25,9 +25,9 @@ actions:
     confirmation_required: true
     providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
     required_host_capabilities: ["run_commands", "read_files", "write_files", "open_pr"]
-    inputs: ["repo", "base_branch", "patch_diff", "title", "body", "exploit_context", "remediation_guidance_usage", "validation_plan"]
-    outputs: ["url", "branch", "status", "title", "body"]
-    notes: "Prepare the diff and AURI-style PR/MR body first, include sanitized evidence, severity indicator emoji, hidden finding/project context metadata, and validation status, then ask for explicit approval before pushing or opening the change request."
+    inputs: ["repo", "base_branch", "patch_diff", "title", "body", "exploit_context", "remediation_guidance_usage", "validation_plan", "existing_change_request_check"]
+    outputs: ["url", "branch", "status", "title", "body", "existing_change_request_check"]
+    notes: "Prepare the diff and AURI-style PR/MR body first, include sanitized evidence, severity indicator emoji, hidden finding/project context metadata, validation status, and read-only existing PR/MR/branch lookup evidence. Use none_found only after checking the proposed branch, finding UUID, and remote branch; use lookup_unavailable plus data_gaps when credentials or tooling block the lookup. Ask for explicit approval before pushing or opening the change request."
 
   - id: request-exception-review
     kind: approval.request
