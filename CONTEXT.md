@@ -64,6 +64,14 @@ _Avoid_: whole bundle check, source artifact
 The process that turns a Source Recipe into Host Artifact Bundles plus catalog metadata. Host Artifact Publication lives in a dedicated publication package, coordinates one Host Adapter per Host, and keeps `publisher.py` as the Publication Interface compatibility shell; the Root Catalog README is a separate catalog aggregate fed by published bundle metadata.
 _Avoid_: copy step, dist sync
 
+**Workflow Gate**:
+A named checkpoint in a generated agent workflow, such as AI SAST triage, AI SAST remediation, AI SAST exception policy, SCA Selection / Plan, SCA apply, SCA validation, or SCA PR/MR publication. Each Workflow Gate owns the structured output requirements and rendered artifact checks needed before that workflow can advance.
+_Avoid_: phase string, mode flag
+
+**Workflow Output Contract**:
+The mechanical validation, rendering, and linting rules for one Endor workflow agent's output at a Workflow Gate. Workflow Output Contracts live behind gate-local modules so CLI commands and tests exercise the same gate Interface instead of reconstructing JSON and PR/MR body rules directly.
+_Avoid_: output helper, validation util
+
 **Publication Interface**:
 The current caller-facing functions `publish_recipe()` and `publish_recipes()`. The Publication Interface should stay stable while Host Artifact Publication is deepened underneath it.
 _Avoid_: new public entrypoint, replacement command
@@ -138,3 +146,7 @@ Domain expert: "No. Use Catalog Manifest Schema Records for both write-side publ
 Dev: "Should every Host Adapter and compiler reload the recipe from disk?"
 
 Domain expert: "No. Publication should create a Prepared Source Recipe once, then pass it through compiler rendering, Host Artifact Publication, and Catalog Aggregate work."
+
+Dev: "Should the AI SAST and SCA output validators stay as broad workflow modules?"
+
+Domain expert: "No. Keep compatibility wrappers for existing imports and CLI commands, but organize Workflow Output Contracts by Workflow Gate so remediation, exception policy, PR/MR, and validation rules each have local ownership."

@@ -12,7 +12,7 @@ from endor_agent_kit.compilers import (
     compile_raw,
 )
 from endor_agent_kit.compilers.claude_code import EDITION_CHOICES
-from endor_agent_kit.ai_sast_triage import (
+from endor_agent_kit.workflow_output_contracts.ai_sast import (
     lint_ai_sast_approval_comment,
     lint_ai_sast_exception_policy_comment,
     lint_ai_sast_pr_body,
@@ -24,7 +24,7 @@ from endor_agent_kit.ai_sast_triage import (
 )
 from endor_agent_kit.install import check_claude_code_install, check_codex_install
 from endor_agent_kit.publisher import publish_recipes
-from endor_agent_kit.sca_remediation import (
+from endor_agent_kit.workflow_output_contracts.sca import (
     lint_sca_pr_body,
     load_json_payload as load_sca_json_payload,
     render_sca_pr_body,
