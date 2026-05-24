@@ -24,6 +24,10 @@ _Avoid_: tuple, path list, manifest blob
 The repository-level `manifest.json` that records published agents, hosts, bundle metadata, artifact paths, sizes, checksums, and source recipe pointers. The Host Artifact Publication coordinator writes the Catalog Manifest from Bundle Records.
 _Avoid_: host manifest, adapter manifest
 
+**Catalog Manifest Lookup**:
+The read-side module that loads the Catalog Manifest and returns Host Artifact Bundle records plus artifact checksums for install drift checks and future install surfaces. Callers ask Catalog Manifest Lookup for bundle and artifact records instead of reconstructing generated catalog paths.
+_Avoid_: path probe, source file scan
+
 **Host Adapter**:
 The Host-specific publication implementation used by Host Artifact Publication. One Host Adapter owns compiler invocation, file layout, Generated Agent README content, supporting-file rules, and Bundle Record creation for exactly one Host.
 _Avoid_: host branch, special case
@@ -39,6 +43,10 @@ _Avoid_: generated agent README
 **Catalog Aggregate**:
 A repository-level catalog view rendered from Catalog Manifest state after Host Artifact Publication has produced Host Artifact Bundles. The Root Catalog README is the first Catalog Aggregate. Catalog Aggregates stay separate from Host Adapters because they summarize across Hosts instead of publishing one Host Artifact Bundle.
 _Avoid_: host readme, manifest writer
+
+**Primary Installed Artifact**:
+The single installed file that `check-install` compares for current CLI compatibility, such as `.claude/agents/<agent>.md` for Claude Code or `skills/<agent>/SKILL.md` for Codex. A Primary Installed Artifact is a compatibility view of a fuller Host Artifact Bundle, not the whole install surface.
+_Avoid_: whole bundle check, source artifact
 
 **Host Artifact Publication**:
 The process that turns a Source Recipe into Host Artifact Bundles plus catalog metadata. Host Artifact Publication lives in a dedicated publication package, coordinates one Host Adapter per Host, and keeps `publisher.py` as the Publication Interface compatibility shell; the Root Catalog README is a separate catalog aggregate fed by published bundle metadata.
@@ -102,3 +110,7 @@ Domain expert: "No. Host Adapters supply Bundle Records. The Host Artifact Publi
 Dev: "What about the root README?"
 
 Domain expert: "That is the Root Catalog README. Keep it as a separate catalog aggregate that consumes the same catalog state produced by the Host Artifact Publication coordinator instead of owning host-specific publication details."
+
+Dev: "Should install drift checks read generated catalog files directly?"
+
+Domain expert: "No. Use Catalog Manifest Lookup as the install drift interface. Keep current `check-install` compatibility focused on the Primary Installed Artifact, but let the lookup module return the full Host Artifact Bundle record so plugin and managed-agent installs can deepen later."
