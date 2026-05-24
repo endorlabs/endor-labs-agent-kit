@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import hashlib
 from pathlib import Path
-from typing import Any
 
+from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 
@@ -16,7 +15,7 @@ class BundleRecord:
 
     host: str
     written: tuple[Path, ...]
-    manifest_records: tuple[dict[str, Any], ...]
+    manifest_records: tuple[CatalogBundle, ...]
 
 
 @dataclass(frozen=True)
@@ -30,33 +29,24 @@ class PublicationRecord:
 def artifact_bundle_record(
     destination: Path,
     recipe: EndorAgentRecipe,
+    host: str,
     bundle_id: str,
     bundle_name: str,
     bundle_dir: Path,
     *,
     requires_endorctl: str = "",
-) -> dict[str, Any]:
+) -> CatalogBundle:
     """Return manifest metadata for one published artifact bundle."""
 
-    files = sorted(path for path in bundle_dir.rglob("*") if path.is_file())
-    return {
-        "id": bundle_id,
-        "name": bundle_name,
-        "path": bundle_dir.relative_to(destination).as_posix(),
-        "artifacts": [artifact_record(destination, path) for path in files],
-        "requires_endorctl": requires_endorctl,
-    }
-
-
-def artifact_record(destination: Path, path: Path) -> dict[str, Any]:
-    """Return manifest metadata for one published artifact file."""
-
-    data = path.read_bytes()
-    return {
-        "path": path.relative_to(destination).as_posix(),
-        "sha256": hashlib.sha256(data).hexdigest(),
-        "bytes": len(data),
-    }
+    return CatalogBundle.from_published_bundle(
+        destination,
+        recipe,
+        host,
+        bundle_id,
+        bundle_name,
+        bundle_dir,
+        requires_endorctl=requires_endorctl,
+    )
 
 
 def architecture_source(recipe_file: Path) -> Path:

@@ -7,12 +7,18 @@ import shutil
 from pathlib import Path
 from typing import Any, Protocol
 
+from endor_agent_kit.catalog_schema import (
+    GENERATOR_NAME,
+    MANIFEST_PATH,
+    CatalogAgent,
+    CatalogBundle,
+    catalog_agent_sort_key,
+    catalog_agents_from_manifest_payload,
+    catalog_manifest_payload,
+)
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 from .records import BundleRecord, PublicationRecord
-
-MANIFEST_PATH = "manifest.json"
-GENERATOR_NAME = "endor-agent-kit"
 
 
 class HostAdapter(Protocol):
@@ -61,7 +67,7 @@ class HostArtifactPublication:
             destination,
             recipe,
             host,
-            list(bundle.manifest_records),
+            bundle.manifest_records,
         )
         return PublicationRecord(bundle=bundle, catalog_manifest=catalog_manifest)
 
@@ -76,34 +82,35 @@ class HostArtifactPublication:
         if not path.exists():
             return None
 
-        agents = self.catalog_agents(destination)
+        agents = self._existing_agents(path)
         kept_agents = [
             agent
             for agent in agents
-            if (str(agent.get("host", "")), str(agent.get("id", ""))) in active_host_agents
+            if (agent.host, agent.id) in active_host_agents
         ]
         stale_agents = [
             agent
             for agent in agents
-            if (str(agent.get("host", "")), str(agent.get("id", ""))) not in active_host_agents
+            if (agent.host, agent.id) not in active_host_agents
         ]
         if not stale_agents:
             return None
 
         for agent in stale_agents:
-            host = str(agent.get("host", ""))
-            agent_id = str(agent.get("id", ""))
-            if host not in self._adapters or not agent_id:
+            if agent.host not in self._adapters or not agent.id:
                 continue
-            shutil.rmtree(destination / host / agent_id, ignore_errors=True)
+            shutil.rmtree(destination / agent.host / agent.id, ignore_errors=True)
 
-        kept_agents.sort(key=lambda agent: (str(agent.get("host", "")), str(agent.get("id", ""))))
+        kept_agents.sort(key=catalog_agent_sort_key)
         return self._write_agents(destination, kept_agents)
 
     def catalog_agents(self, destination: Path) -> list[dict[str, Any]]:
         """Return agents currently recorded in the Catalog Manifest."""
 
-        return self._existing_agents(self.catalog_manifest_path(destination))
+        return [
+            agent.to_manifest_record()
+            for agent in self._existing_agents(self.catalog_manifest_path(destination))
+        ]
 
     def catalog_manifest_path(self, destination: Path) -> Path:
         """Return the Catalog Manifest path for a destination."""
@@ -115,46 +122,27 @@ class HostArtifactPublication:
         destination: Path,
         recipe: EndorAgentRecipe,
         host: str,
-        edition_records: list[dict[str, Any]],
+        edition_records: tuple[CatalogBundle, ...],
     ) -> Path:
         path = self.catalog_manifest_path(destination)
         agents = self._existing_agents(path)
         agents = [
             agent
             for agent in agents
-            if not (agent.get("id") == recipe.id and agent.get("host") == host)
+            if not (agent.id == recipe.id and agent.host == host)
         ]
-        agents.append({
-            "id": recipe.id,
-            "name": recipe.name,
-            "version": recipe.version,
-            "host": host,
-            "source": {
-                "recipe_schema_version": recipe.recipe_schema_version,
-                "builder_recipe": f"source/agents/{recipe.id}/recipe.yaml",
-            },
-            "editions": edition_records,
-        })
-        agents.sort(key=lambda agent: (str(agent.get("host", "")), str(agent.get("id", ""))))
+        agents.append(CatalogAgent.from_recipe(recipe, host, edition_records))
+        agents.sort(key=catalog_agent_sort_key)
         return self._write_agents(destination, agents)
 
-    def _write_agents(self, destination: Path, agents: list[dict[str, Any]]) -> Path:
+    def _write_agents(self, destination: Path, agents: list[CatalogAgent]) -> Path:
         path = self.catalog_manifest_path(destination)
-        payload = {
-            "schema_version": 1,
-            "generated_by": self._generator_name,
-            "agents": agents,
-        }
+        payload = catalog_manifest_payload(tuple(agents), generator_name=self._generator_name)
         path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return path
 
-    def _existing_agents(self, path: Path) -> list[dict[str, Any]]:
+    def _existing_agents(self, path: Path) -> list[CatalogAgent]:
         if not path.exists():
             return []
         data = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(data, dict):
-            raise ValueError(f"{self._manifest_path}: expected a JSON object")
-        agents = data.get("agents", [])
-        if not isinstance(agents, list) or not all(isinstance(agent, dict) for agent in agents):
-            raise ValueError(f"{self._manifest_path}: expected agents to be a list of objects")
-        return agents
+        return list(catalog_agents_from_manifest_payload(data, manifest_path=self._manifest_path))
