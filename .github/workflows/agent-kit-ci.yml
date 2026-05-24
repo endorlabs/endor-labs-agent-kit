@@ -37,6 +37,13 @@ jobs:
             endor-agent-kit validate "$recipe"
           done
 
+      - name: Check source authoring
+        run: |
+          . .venv/bin/activate
+          for recipe in source/agents/*/recipe.yaml; do
+            endor-agent-kit authoring-check "$recipe"
+          done
+
       - name: Regenerate catalog
         run: |
           . .venv/bin/activate

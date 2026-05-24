@@ -143,12 +143,20 @@ def test_sca_pr_renderer_outputs_auri_style_body_and_lints_cleanly():
     body = render_sca_pr_body(_valid_netty_payload())
 
     assert "<!-- endor-agent-kit:sca-remediation -->" in body
+    assert "⚠️ Compatibility requires validation:" in body
     assert "### At a Glance" in body
+    assert "📦 What changed?" in body
+    assert "### 🧠 Why This Matters" in body
+    assert "### 📦 Upgrade Applied" in body
     assert "<details><summary>Advisories This Upgrade Fixes (2)</summary>" in body
     assert "[CVE-2019-20444](https://github.com/advisories/GHSA-cqqj-4p63-rrmm): HTTP Request Smuggling in Netty (C) 🔴" in body
     assert "[CVE-2021-21290](https://github.com/advisories/GHSA-5mcr-gq6c-3hq2): Local Information Disclosure in Netty (M) 🟡" in body
     assert "#### Advisory Provenance" in body
     assert "- CVE-2019-20444: cve=CVE-2019-20444; ghsa=GHSA-cqqj-4p63-rrmm; advisory_source=Endor VersionUpgrade vuln_finding_info.fixed_findings; cve_mapping_source=GitHub Advisory Database aliases; link_source=GitHub Advisory Database" in body
+    assert "### 🛡️ AppSec Validation" in body
+    assert "### 📝 Reviewer Notes" in body
+    assert "### Rollback" not in body
+    assert "### Endor Evidence" not in body
     assert "Developer Validation" not in body
     assert "**Critical**" not in body
     assert "**High**" not in body

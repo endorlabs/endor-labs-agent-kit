@@ -18,13 +18,15 @@ def _write_catalog_manifest(
     *,
     agent_id: str = "sca-remediation",
     host: str = "claude-code",
+    bundle_path: str | None = None,
     primary_artifact_name: str = "sca-remediation.md",
     primary_content: str = "current",
     primary_artifact_path: str | None = None,
     extra_artifacts: list[dict] | None = None,
 ) -> None:
     catalog_root.mkdir(parents=True, exist_ok=True)
-    primary_artifact_path = primary_artifact_path or f"{host}/{agent_id}/{primary_artifact_name}"
+    bundle_path = bundle_path or f"{host}/{agent_id}"
+    primary_artifact_path = primary_artifact_path or f"{bundle_path}/{primary_artifact_name}"
     artifacts = [
         {
             "path": primary_artifact_path,
@@ -52,7 +54,7 @@ def _write_catalog_manifest(
                             {
                                 "id": "enterprise-edition",
                                 "name": "Enterprise Edition",
-                                "path": f"{host}/{agent_id}",
+                                "path": bundle_path,
                                 "artifacts": artifacts,
                                 "requires_endorctl": ">=1.0",
                             }
@@ -122,19 +124,52 @@ def test_catalog_manifest_lookup_returns_full_bundle_record(tmp_path):
     ).sha256 == _sha256_text("current")
 
 
-def test_check_codex_install_uses_manifest_primary_artifact(tmp_path):
+def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(
         catalog,
         host="codex",
+        bundle_path="future-plugin-package/skills/sca-remediation",
         primary_artifact_name="SKILL.md",
         primary_artifact_path="future-plugin-package/skills/sca-remediation/SKILL.md",
+        extra_artifacts=[
+            {
+                "path": "future-plugin-package/skills/sca-remediation/README.md",
+                "sha256": _sha256_text("readme"),
+                "bytes": len("readme"),
+            },
+            {
+                "path": "future-plugin-package/skills/sca-remediation/actions.yaml",
+                "sha256": _sha256_text("actions"),
+                "bytes": len("actions"),
+            },
+        ],
     )
     assert not (catalog / "codex" / "sca-remediation" / "SKILL.md").exists()
 
     installed_skill = tmp_path / "codex-home" / "skills" / "sca-remediation"
     installed_skill.mkdir(parents=True)
     (installed_skill / "SKILL.md").write_text("current", encoding="utf-8")
+
+    missing_errors = check_codex_install(
+        "sca-remediation",
+        tmp_path / "codex-home",
+        catalog_root=catalog,
+    )
+    assert any("README.md" in error for error in missing_errors)
+    assert any("actions.yaml" in error for error in missing_errors)
+
+    (installed_skill / "README.md").write_text("readme", encoding="utf-8")
+    (installed_skill / "actions.yaml").write_text("old", encoding="utf-8")
+
+    stale_errors = check_codex_install(
+        "sca-remediation",
+        tmp_path / "codex-home",
+        catalog_root=catalog,
+    )
+    assert any("actions.yaml" in error and "is stale" in error for error in stale_errors)
+
+    (installed_skill / "actions.yaml").write_text("actions", encoding="utf-8")
 
     assert check_codex_install(
         "sca-remediation",

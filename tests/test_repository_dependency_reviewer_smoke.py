@@ -10,6 +10,7 @@ from endor_agent_kit.compilers import compile_claude_code
 from endor_agent_kit.publisher import publish_recipe
 
 from conftest import repo_root
+from host_artifact_bundle_contract import assert_host_bundle_files
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -61,6 +62,10 @@ def test_repository_dependency_reviewer_publish_is_claude_code_only(tmp_path):
     written = publish_recipe(recipe, dest)
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
+    assert_host_bundle_files(
+        dest / "claude-code" / "repository-dependency-reviewer",
+        {"repository-dependency-reviewer.md", "README.md"},
+    )
     assert written_paths == {
         "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
         "claude-code/repository-dependency-reviewer/README.md",

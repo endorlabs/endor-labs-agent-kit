@@ -6,6 +6,12 @@ from pathlib import Path
 from endor_agent_kit.publisher import publish_recipe
 
 from conftest import repo_root
+from host_artifact_bundle_contract import (
+    assert_codex_skill_bundle,
+    assert_host_bundle_files,
+    assert_mcp_free_generated_artifact,
+    assert_no_nested_edition_dirs,
+)
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -26,7 +32,6 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     codex_dir = dest / "codex" / "ai-sast-triage"
     agent_readme = (agent_dir / "README.md").read_text()
     prompt = (agent_dir / "ai-sast-triage.md").read_text()
-    codex_skill = (codex_dir / "SKILL.md").read_text()
     architecture = (agent_dir / "architecture.svg").read_text()
 
     assert "@agent-ai-sast-triage triage AI SAST findings for this repository" in root_readme
@@ -34,7 +39,7 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "<project_uuid>" not in agent_readme
     assert "<project_uuid>" not in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
-    assert "mcpServers:" not in prompt
+    assert_mcp_free_generated_artifact(prompt)
     assert "ai-tools" not in prompt
     assert "Do not require or start an Endor MCP server" in prompt
     assert "read the current repository root and `origin` remote URL" in prompt
@@ -125,16 +130,20 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "friendly aliases such as `expiration`, `rendered_policy`, or `finding_title`" in prompt
     assert '`"$uuid=PROJECT_UUID"`' in prompt
     assert "do not guess alternate live write shapes" in prompt
-    assert (agent_dir / "architecture.svg").is_file()
-    assert (agent_dir / "actions.yaml").is_file()
-    assert (codex_dir / "SKILL.md").is_file()
-    assert (codex_dir / "README.md").is_file()
-    assert (codex_dir / "actions.yaml").is_file()
-    assert "## Codex Host Contract" in codex_skill
-    assert "Treat file edits, branch pushes, PR/MR creation" in codex_skill
-    assert "Never create or update an Endor policy" in codex_skill
-    assert "auri:ai-sast-context" in codex_skill
-    assert not (agent_dir / "enterprise-edition").exists()
+    assert_host_bundle_files(
+        agent_dir,
+        {"ai-sast-triage.md", "README.md", "actions.yaml", "architecture.svg", "endorctl-setup.md"},
+    )
+    assert_codex_skill_bundle(
+        codex_dir,
+        expected_files={"SKILL.md", "README.md", "actions.yaml", "architecture.svg", "endorctl-setup.md"},
+        skill_markers=(
+            "Treat file edits, branch pushes, PR/MR creation",
+            "Never create or update an Endor policy",
+            "auri:ai-sast-context",
+        ),
+    )
+    assert_no_nested_edition_dirs(agent_dir)
     assert "![AI SAST Triage architecture](architecture.svg)" in agent_readme
     assert "PR/MR creation is host-mediated" in agent_readme
     assert "Setup Checklist" in agent_readme

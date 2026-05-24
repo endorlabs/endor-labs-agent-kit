@@ -6,17 +6,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from endor_agent_kit.instruction_sections import parse_instruction_sections
 from endor_agent_kit.recipe import load_action_contracts, load_recipe, load_yaml_file
 from endor_agent_kit.validator import validate_recipe_file
 
-INSTRUCTION_MARKERS = (
-    "<!-- shared:start -->",
-    "<!-- shared:end -->",
-    "<!-- developer-edition:start -->",
-    "<!-- developer-edition:end -->",
-    "<!-- enterprise-edition:start -->",
-    "<!-- enterprise-edition:end -->",
-)
 NEW_AGENT_MIN_EVAL_CASES = 4
 
 
@@ -140,15 +133,16 @@ def _check_instructions(
     if not instructions_path.is_file():
         return
     instructions = instructions_path.read_text(encoding="utf-8")
-    for marker in INSTRUCTION_MARKERS:
-        if marker not in instructions:
-            errors.append(
-                SourceAuthoringIssue(
-                    "instructions.marker",
-                    f"instructions.md must include {marker}",
-                    instructions_path,
-                )
+    try:
+        parse_instruction_sections(instructions)
+    except ValueError as exc:
+        errors.append(
+            SourceAuthoringIssue(
+                "instructions.section",
+                str(exc),
+                instructions_path,
             )
+        )
 
 
 def _check_eval_cases(

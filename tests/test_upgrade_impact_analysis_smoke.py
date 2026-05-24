@@ -8,6 +8,7 @@ import yaml
 from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
 
 from conftest import repo_root
+from host_artifact_bundle_contract import assert_host_bundle_files
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -21,6 +22,10 @@ def test_upgrade_impact_analysis_compiled_artifacts_carry_expected_rules(tmp_pat
     recipe = _copy_agent(tmp_path)
     compile_claude_code(recipe)
 
+    assert_host_bundle_files(
+        recipe.parent / "dist" / "claude-code" / "enterprise-edition",
+        {"upgrade-impact-analysis.md"},
+    )
     enterprise = (
         recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "upgrade-impact-analysis.md"
     ).read_text()
@@ -57,6 +62,10 @@ def test_upgrade_impact_analysis_managed_agents_artifacts_carry_expected_rules(t
     recipe = _copy_agent(tmp_path)
     compile_claude_managed_agents(recipe)
 
+    assert_host_bundle_files(
+        recipe.parent / "dist" / "claude-managed-agents" / "enterprise-edition",
+        {"agent.yaml", "environment.yaml", "session-template.yaml"},
+    )
     enterprise = yaml.safe_load(
         (recipe.parent / "dist" / "claude-managed-agents" / "enterprise-edition" / "agent.yaml").read_text()
     )
