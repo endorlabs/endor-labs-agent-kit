@@ -8,6 +8,10 @@ Endor Labs Agent Kit is a source-first catalog for portable Endor workflow agent
 The maintainer-authored definition for one agent under `source/agents/<agent>/recipe.yaml`, together with its nearby source files such as instructions, eval cases, actions, and architecture diagram. One Source Recipe can publish zero or more Host Artifact Bundles.
 _Avoid_: generated recipe, catalog recipe
 
+**Prepared Source Recipe**:
+The validated, loaded Source Recipe plus the render inputs and source paths needed by compilers and Host Adapters: recipe object, instructions, action contracts, architecture path, and action-contract path. Publication prepares each Source Recipe once and passes the Prepared Source Recipe through compiler and Host Adapter work instead of letting each layer reload from disk.
+_Avoid_: recipe tuple, compiler reload state
+
 **Host**:
 An AI coding environment that can receive generated agent artifacts, such as Claude Code, Claude Managed Agents, or Codex. A Host determines artifact shape, install path, tool permissions, and README setup language.
 _Avoid_: runtime, provider, platform
@@ -130,3 +134,7 @@ Domain expert: "No. They should consume Source Recipe Safety Posture and keep on
 Dev: "Should publication and install drift lookup keep separate manifest record shapes?"
 
 Domain expert: "No. Use Catalog Manifest Schema Records for both write-side publication and read-side Catalog Manifest Lookup so future bundle fields only need one schema change."
+
+Dev: "Should every Host Adapter and compiler reload the recipe from disk?"
+
+Domain expert: "No. Publication should create a Prepared Source Recipe once, then pass it through compiler rendering, Host Artifact Publication, and Catalog Aggregate work."

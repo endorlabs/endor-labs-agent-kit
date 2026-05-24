@@ -10,12 +10,9 @@ from endor_agent_kit.recipe import (
     ActionContract,
     EndorAgentRecipe,
     editions_for_host,
-    load_action_contracts,
-    load_recipe,
-    read_instructions,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
-from endor_agent_kit.validator import validate_recipe_file
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 EDITIONS = ("developer-edition", "enterprise-edition")
 HOST = "claude-code"
@@ -64,14 +61,26 @@ def compile_claude_code(
     if edition is not None and variant is not None:
         raise ValueError("Use only one of edition or variant")
 
-    recipe_file = Path(recipe_path)
-    errors = validate_recipe_file(recipe_file)
-    if errors:
-        raise ValueError("\n".join(errors))
+    return compile_claude_code_prepared(
+        prepare_source_recipe(recipe_path),
+        edition=edition,
+        variant=variant,
+    )
 
-    recipe = load_recipe(recipe_file)
-    instructions = read_instructions(recipe_file, recipe)
-    actions = load_action_contracts(recipe_file, recipe)
+
+def compile_claude_code_prepared(
+    prepared: PreparedSourceRecipe,
+    *,
+    edition: str | None = None,
+    variant: str | None = None,
+) -> list[Path]:
+    """Compile a prepared Source Recipe to Claude Code subagent markdown."""
+
+    if edition is not None and variant is not None:
+        raise ValueError("Use only one of edition or variant")
+
+    recipe_file = prepared.path
+    recipe = prepared.recipe
     selected_edition = edition if edition is not None else variant
     editions = (
         editions_for_host(recipe, HOST, EDITIONS)
@@ -87,7 +96,10 @@ def compile_claude_code(
         out_dir = recipe_file.parent / "dist" / HOST / item
         out_dir.mkdir(parents=True, exist_ok=True)
         out_path = out_dir / f"{recipe.id}.md"
-        out_path.write_text(_render_subagent(recipe, instructions, actions, edition=item), encoding="utf-8")
+        out_path.write_text(
+            _render_subagent(recipe, prepared.instructions, prepared.actions, edition=item),
+            encoding="utf-8",
+        )
         outputs.append(out_path)
     return outputs
 

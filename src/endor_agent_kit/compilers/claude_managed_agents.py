@@ -18,12 +18,9 @@ from endor_agent_kit.recipe import (
     ActionContract,
     EndorAgentRecipe,
     editions_for_host,
-    load_action_contracts,
-    load_recipe,
-    read_instructions,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
-from endor_agent_kit.validator import validate_recipe_file
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 HOST = "claude-managed-agents"
 ENDOR_MCP_SERVER_NAME = "endor"
@@ -56,14 +53,26 @@ def compile_claude_managed_agents(
     if edition is not None and variant is not None:
         raise ValueError("Use only one of edition or variant")
 
-    recipe_file = Path(recipe_path)
-    errors = validate_recipe_file(recipe_file)
-    if errors:
-        raise ValueError("\n".join(errors))
+    return compile_claude_managed_agents_prepared(
+        prepare_source_recipe(recipe_path),
+        edition=edition,
+        variant=variant,
+    )
 
-    recipe = load_recipe(recipe_file)
-    instructions = read_instructions(recipe_file, recipe)
-    actions = load_action_contracts(recipe_file, recipe)
+
+def compile_claude_managed_agents_prepared(
+    prepared: PreparedSourceRecipe,
+    *,
+    edition: str | None = None,
+    variant: str | None = None,
+) -> list[Path]:
+    """Compile a prepared Source Recipe to Claude Managed Agents templates."""
+
+    if edition is not None and variant is not None:
+        raise ValueError("Use only one of edition or variant")
+
+    recipe_file = prepared.path
+    recipe = prepared.recipe
     selected_edition = edition if edition is not None else variant
     editions = (
         editions_for_host(recipe, HOST, EDITIONS)
@@ -83,7 +92,10 @@ def compile_claude_managed_agents(
         out_dir.mkdir(parents=True, exist_ok=True)
 
         agent = out_dir / "agent.yaml"
-        agent.write_text(_yaml(_agent_config(recipe, instructions, actions, item)), encoding="utf-8")
+        agent.write_text(
+            _yaml(_agent_config(recipe, prepared.instructions, prepared.actions, item)),
+            encoding="utf-8",
+        )
         outputs.append(agent)
 
         environment = out_dir / "environment.yaml"

@@ -16,7 +16,7 @@ from endor_agent_kit.catalog_schema import (
     catalog_agents_from_manifest_payload,
     catalog_manifest_payload,
 )
-from endor_agent_kit.recipe import EndorAgentRecipe
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 
 from .records import BundleRecord, PublicationRecord
 
@@ -28,8 +28,7 @@ class HostAdapter(Protocol):
 
     def publish(
         self,
-        recipe_file: Path,
-        recipe: EndorAgentRecipe,
+        prepared: PreparedSourceRecipe,
         destination: Path,
     ) -> BundleRecord:
         """Publish one host artifact bundle."""
@@ -52,8 +51,7 @@ class HostArtifactPublication:
     def publish(
         self,
         host: str,
-        recipe_file: Path,
-        recipe: EndorAgentRecipe,
+        prepared: PreparedSourceRecipe,
         destination: Path,
     ) -> PublicationRecord:
         """Publish one host artifact bundle."""
@@ -62,10 +60,10 @@ class HostArtifactPublication:
             adapter = self._adapters[host]
         except KeyError as exc:
             raise ValueError(f"Unsupported publication host {host!r}") from exc
-        bundle = adapter.publish(recipe_file, recipe, destination)
+        bundle = adapter.publish(prepared, destination)
         catalog_manifest = self._write_manifest(
             destination,
-            recipe,
+            prepared,
             host,
             bundle.manifest_records,
         )
@@ -120,11 +118,12 @@ class HostArtifactPublication:
     def _write_manifest(
         self,
         destination: Path,
-        recipe: EndorAgentRecipe,
+        prepared: PreparedSourceRecipe,
         host: str,
         edition_records: tuple[CatalogBundle, ...],
     ) -> Path:
         path = self.catalog_manifest_path(destination)
+        recipe = prepared.recipe
         agents = self._existing_agents(path)
         agents = [
             agent
