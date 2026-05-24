@@ -57,7 +57,7 @@ The repository-level `README.md` generated from catalog state and source-first p
 _Avoid_: generated agent README
 
 **Catalog Aggregate**:
-A repository-level catalog view rendered from Catalog Manifest state after Host Artifact Publication has produced Host Artifact Bundles. The Root Catalog README is the first Catalog Aggregate. Catalog Aggregates stay separate from Host Adapters because they summarize across Hosts instead of publishing one Host Artifact Bundle.
+A repository-level catalog view rendered from Catalog Manifest Schema Records after Host Artifact Publication has produced Host Artifact Bundles. The Root Catalog README is the first Catalog Aggregate. Catalog Aggregates stay separate from Host Adapters because they summarize across Hosts instead of publishing one Host Artifact Bundle, and they should consume typed catalog records instead of raw manifest dictionaries.
 _Avoid_: host readme, manifest writer
 
 **Primary Installed Artifact**:
@@ -150,6 +150,10 @@ Domain expert: "No. Use Catalog Manifest Schema Records for both write-side publ
 Dev: "Should every Host Adapter and compiler reload the recipe from disk?"
 
 Domain expert: "No. Publication should create a Prepared Source Recipe once, then pass it through compiler rendering, Host Artifact Publication, and Catalog Aggregate work."
+
+Dev: "Should Catalog Aggregates read raw manifest dictionaries?"
+
+Domain expert: "No. Catalog Aggregates consume Catalog Manifest Schema Records. JSON conversion belongs at the Catalog Manifest boundary."
 
 Dev: "Should the AI SAST and SCA output validators stay as broad workflow modules?"
 
