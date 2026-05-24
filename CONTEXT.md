@@ -65,8 +65,12 @@ A repository-level catalog view rendered from Catalog Manifest Schema Records af
 _Avoid_: host readme, manifest writer
 
 **Primary Installed Artifact**:
-The single installed file that `check-install` compares for current CLI compatibility, such as `.claude/agents/<agent>.md` for Claude Code or `skills/<agent>/SKILL.md` for Codex. A Primary Installed Artifact is a compatibility view of a fuller Host Artifact Bundle, not the whole install surface.
-_Avoid_: whole bundle check, source artifact
+The single installed file that Claude Code `check-install` still compares for current CLI compatibility, such as `.claude/agents/<agent>.md`. A Primary Installed Artifact is a compatibility view of a fuller Host Artifact Bundle, not the whole install surface.
+_Avoid_: source artifact
+
+**Install Drift Adapter**:
+Host-specific install verification that maps Catalog Manifest bundle records to installed files. Claude Code currently keeps the Primary Installed Artifact compatibility check, while Codex verifies the full installed skill directory against its Host Artifact Bundle.
+_Avoid_: install helper, checksum script
 
 **Host Artifact Publication**:
 The process that turns a Source Recipe into Host Artifact Bundles plus catalog metadata. Host Artifact Publication lives in a dedicated publication package, coordinates one Host Adapter per Host, and keeps `publisher.py` as the Publication Interface compatibility shell; the Root Catalog README is a separate catalog aggregate fed by published bundle metadata.

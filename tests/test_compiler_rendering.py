@@ -39,6 +39,22 @@ def test_shared_compiler_rendering_extracts_instruction_sections():
     )
 
 
+def test_shared_compiler_rendering_reports_missing_instruction_sections():
+    with pytest.raises(ValueError, match="enterprise-edition"):
+        instructions_for_edition(
+            """\
+<!-- shared:start -->
+Shared rules.
+<!-- shared:end -->
+
+<!-- developer-edition:start -->
+Developer rules.
+<!-- developer-edition:end -->
+""",
+            "enterprise-edition",
+        )
+
+
 def test_shared_compiler_rendering_normalizes_legacy_edition_aliases():
     assert normalize_edition("standard") == "developer-edition"
     assert normalize_edition("extended") == "enterprise-edition"
@@ -96,4 +112,3 @@ def test_non_claude_code_compilers_do_not_import_private_claude_code_rendering_h
         assert "_render_action_contracts" not in content
         assert "_normalize_edition" not in content
         assert "_indent" not in content
-

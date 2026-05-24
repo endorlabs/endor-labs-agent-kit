@@ -170,6 +170,7 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
     validation = _list(payload.get("validation"))
 
     expectation = _compatibility_line(risk_decision, cia_status)
+    validation_summary = _validation_summary(validation)
 
     lines = [
         "<!-- endor-agent-kit:sca-remediation -->",
@@ -183,19 +184,42 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
             f"`{findings_introduced}` findings introduced."
         ),
         "",
+        f"**{expectation}**",
+        "",
         "### At a Glance",
         "",
         "| | |",
         "|---|---|",
-        f"| 📦 Package | `{package}` |",
-        f"| ⬆️ Upgrade | `{from_version}` → `{to_version}` |",
-        f"| 🎯 Risk | {upgrade_risk} |",
-        f"| 🛡️ Findings fixed | {findings_fixed} |",
-        f"| 🆕 Findings introduced | {findings_introduced} |",
-        f"| 🔍 CIA | {cia_status} |",
-        f"| 🗂️ Manifests | {_format_manifest_cell(manifests)} |",
+        f"| 📦 What changed? | `{package}` `{from_version}` → `{to_version}` |",
+        f"| 🛡️ Security impact | `{findings_fixed}` Endor finding instances fixed; `{findings_introduced}` introduced |",
+        f"| 🎯 Remediation scope | {_format_manifest_cell(manifests)} |",
+        f"| ✅ Breaking-change expectation | {expectation} |",
+        f"| 📉 Endor UIA risk | Risk `{upgrade_risk}`; CIA `{cia_status}` |",
+        f"| 🧾 Dependency manifest(s) | {_format_manifest_cell(manifests)} |",
+        f"| 🧪 Local validation | {validation_summary} |",
         "",
-        expectation,
+        "### 🧠 Why This Matters",
+        "",
+        (
+            f"Endor grouped these findings around `{package}`. Moving the package from "
+            f"`{from_version}` to `{to_version}` addresses the reported advisory set while "
+            "keeping the remediation scoped to the affected dependency declaration."
+        ),
+        "",
+        "### 📦 Upgrade Applied",
+        "",
+        "| Field | Value |",
+        "|---|---|",
+        f"| Package | `{package}` |",
+        f"| From | `{from_version}` |",
+        f"| To | `{to_version}` |",
+        f"| Endor UIA risk | `{upgrade_risk}` |",
+        f"| Endor CIA | `{cia_status}` |",
+        f"| Findings fixed | `{findings_fixed}` |",
+        f"| Findings introduced | `{findings_introduced}` |",
+        f"| Dependency manifest(s) | {_format_manifest_cell(manifests)} |",
+        "",
+        "File changes are limited to the dependency manifests listed above unless the patch plan says otherwise.",
         "",
         "### 🔎 Advisories This Upgrade Fixes",
         "",
@@ -223,15 +247,26 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "### Rollback",
-            "",
-            "Revert the branch or restore the dependency version to its previous value in the affected manifest files.",
-            "",
-            "### Endor Evidence",
+            "### 🛡️ AppSec Validation",
             "",
         ]
     )
-    lines.extend(_render_evidence(payload, selected, risk_decision))
+    lines.extend(_render_appsec_validation(payload, selected, risk_decision))
+    lines.extend(
+        [
+            "",
+            "### 📝 Reviewer Notes",
+            "",
+            "- Review scope: dependency manifest changes and the advisory set listed above.",
+            "- Evidence boundary: compatibility claims are scoped to Endor UIA/CIA evidence and validation listed in this body.",
+            "- Rollback: revert the branch or restore the dependency version to its previous value in the affected manifest files.",
+        ]
+    )
+    data_gaps = _string_list(payload.get("data_gaps"))
+    if data_gaps:
+        lines.append(f"- Data gaps: {'; '.join(data_gaps)}")
+    else:
+        lines.append("- Data gaps: none recorded in the structured output.")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -243,17 +278,34 @@ def lint_sca_pr_body(body: str) -> list[str]:
         errors.append("unclosed fenced code block")
     if "<!-- endor-agent-kit:sca-remediation -->" not in body:
         errors.append("missing sca-remediation marker")
+    if not re.search(r"^## Security Remediation: .+ Endor finding instances fixed", body, re.MULTILINE):
+        errors.append("missing Security Remediation title")
+    if "✅ Not expected to break:" not in body and "⚠️ Compatibility requires validation:" not in body:
+        errors.append("missing compatibility expectation line")
     if re.search(r"^### .*Developer Validation", body, re.MULTILINE):
         errors.append("use neutral 'Validation' wording, not 'Developer Validation'")
     for heading in (
         "### At a Glance",
+        "### 🧠 Why This Matters",
+        "### 📦 Upgrade Applied",
         "### 🔎 Advisories This Upgrade Fixes",
         "### Validation Plan",
-        "### Rollback",
-        "### Endor Evidence",
+        "### 🛡️ AppSec Validation",
+        "### 📝 Reviewer Notes",
     ):
         if heading not in body:
             errors.append(f"missing section {heading!r}")
+    for label in (
+        "📦 What changed?",
+        "🛡️ Security impact",
+        "🎯 Remediation scope",
+        "✅ Breaking-change expectation",
+        "📉 Endor UIA risk",
+        "🧾 Dependency manifest(s)",
+        "🧪 Local validation",
+    ):
+        if label not in body:
+            errors.append(f"missing At a Glance row {label!r}")
 
     if "<details open" in body.lower():
         errors.append("advisory block must use <details>, not <details open>")
@@ -317,12 +369,14 @@ def normalize_sca_branch(package: str, target_version: str) -> str:
 
 def _compatibility_line(risk_decision: dict[str, Any], cia_status: str) -> str:
     status = _text(risk_decision.get("status"))
-    cia = cia_status.lower()
-    if status == "approved_low_risk" and "no breaking" in cia:
+    if status == "approved_low_risk":
         return "✅ Not expected to break: Endor UIA/CIA reports LOW upgrade risk and no breaking changes."
     reason = _text(risk_decision.get("summary") or risk_decision.get("reason"))
     if reason:
         return f"⚠️ Compatibility requires validation: {reason}"
+    cia = cia_status.lower()
+    if cia:
+        return f"⚠️ Compatibility requires validation: Endor CIA is {cia}; see risk decision and validation plan."
     return "⚠️ Compatibility requires validation: see risk decision and validation plan."
 
 
@@ -393,7 +447,14 @@ def _render_validation(validation: list[Any]) -> list[str]:
     return lines
 
 
-def _render_evidence(
+def _validation_summary(validation: list[Any]) -> str:
+    if not validation:
+        return "not provided"
+    rendered = _render_validation(validation)
+    return "<br>".join(item.removeprefix("- ") for item in rendered)
+
+
+def _render_appsec_validation(
     payload: dict[str, Any],
     selected: dict[str, Any],
     risk_decision: dict[str, Any],
@@ -413,9 +474,10 @@ def _render_evidence(
     )
     reachability = selected.get("reachability_tags") or selected.get("reachability")
     lines = [
+        f"- [ ] Re-run Endor SCA scan for project `{project_uuid or 'not provided'}` in namespace `{namespace or 'not provided'}`.",
+        "- [ ] Confirm fixed finding instances are no longer reported.",
+        "- [ ] Confirm introduced findings remain zero or are explicitly reviewed.",
         f"- VersionUpgrade/UIA UUID: `{uia_uuid or 'not provided'}`",
-        f"- Project UUID: `{project_uuid or 'not provided'}`",
-        f"- Namespace: `{namespace or 'not provided'}`",
         f"- Reachability: `{_text(reachability) or 'not provided'}`",
         f"- Risk decision: `{_text(risk_decision.get('status')) or 'not provided'}`",
     ]
