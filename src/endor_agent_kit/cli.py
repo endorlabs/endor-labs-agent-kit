@@ -12,24 +12,12 @@ from endor_agent_kit.compilers import (
     compile_raw,
 )
 from endor_agent_kit.compilers.rendering import EDITION_CHOICES
-from endor_agent_kit.workflow_output_contracts.ai_sast import (
-    lint_ai_sast_approval_comment,
-    lint_ai_sast_exception_policy_comment,
-    lint_ai_sast_pr_body,
-    load_json_payload as load_ai_sast_json_payload,
-    render_ai_sast_approval_comment,
-    render_ai_sast_exception_policy_comment,
-    render_ai_sast_pr_body,
-    validate_ai_sast_gate_payload,
-)
 from endor_agent_kit.install import check_claude_code_install, check_codex_install
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
-from endor_agent_kit.workflow_output_contracts.sca import (
-    lint_sca_pr_body,
-    load_json_payload as load_sca_json_payload,
-    render_sca_pr_body,
-    validate_sca_gate_payload,
+from endor_agent_kit.workflow_output_contracts.commands import (
+    add_workflow_command_parsers,
+    run_workflow_command,
 )
 from endor_agent_kit.validator import validate_recipe_file
 
@@ -77,75 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         help="Remove previously published agents that are not in the recipe set",
     )
 
-    validate_output_parser = subparsers.add_parser(
-        "validate-sca-output",
-        help="Validate structured sca-remediation output for a workflow gate",
-    )
-    validate_output_parser.add_argument("payload", type=Path)
-    validate_output_parser.add_argument(
-        "--gate",
-        choices=("selection-plan", "apply", "validate", "pr"),
-        default="selection-plan",
-    )
-
-    render_pr_parser = subparsers.add_parser(
-        "render-sca-pr-body",
-        help="Render an AURI-style SCA remediation PR body from normalized JSON",
-    )
-    render_pr_parser.add_argument("payload", type=Path)
-
-    lint_pr_parser = subparsers.add_parser(
-        "lint-sca-pr-body",
-        help="Lint an AURI-style SCA remediation PR body",
-    )
-    lint_pr_parser.add_argument("body", type=Path)
-
-    validate_ai_sast_parser = subparsers.add_parser(
-        "validate-ai-sast-output",
-        help="Validate structured ai-sast-triage output for a workflow gate",
-    )
-    validate_ai_sast_parser.add_argument("payload", type=Path)
-    validate_ai_sast_parser.add_argument(
-        "--gate",
-        choices=("triage", "remediation", "pr", "exception"),
-        default="triage",
-    )
-
-    render_ai_sast_pr_parser = subparsers.add_parser(
-        "render-ai-sast-pr-body",
-        help="Render an AURI-style AI SAST remediation PR/MR body from normalized JSON",
-    )
-    render_ai_sast_pr_parser.add_argument("payload", type=Path)
-
-    lint_ai_sast_pr_parser = subparsers.add_parser(
-        "lint-ai-sast-pr-body",
-        help="Lint an AURI-style AI SAST remediation PR/MR body",
-    )
-    lint_ai_sast_pr_parser.add_argument("body", type=Path)
-
-    render_ai_sast_approval_parser = subparsers.add_parser(
-        "render-ai-sast-approval-comment",
-        help="Render an AI SAST AppSec approval request comment from normalized JSON",
-    )
-    render_ai_sast_approval_parser.add_argument("payload", type=Path)
-
-    lint_ai_sast_approval_parser = subparsers.add_parser(
-        "lint-ai-sast-approval-comment",
-        help="Lint an AI SAST AppSec approval request comment",
-    )
-    lint_ai_sast_approval_parser.add_argument("body", type=Path)
-
-    render_ai_sast_policy_comment_parser = subparsers.add_parser(
-        "render-ai-sast-exception-policy-comment",
-        help="Render an AI SAST Endor exception policy decision comment from normalized JSON",
-    )
-    render_ai_sast_policy_comment_parser.add_argument("payload", type=Path)
-
-    lint_ai_sast_policy_comment_parser = subparsers.add_parser(
-        "lint-ai-sast-exception-policy-comment",
-        help="Lint an AI SAST Endor exception policy decision comment",
-    )
-    lint_ai_sast_policy_comment_parser.add_argument("body", type=Path)
+    add_workflow_command_parsers(subparsers)
 
     check_install_parser = subparsers.add_parser(
         "check-install",
@@ -216,125 +136,9 @@ def main(argv: list[str] | None = None) -> int:
             print(output)
         return 0
 
-    if args.command == "validate-sca-output":
-        try:
-            payload = load_sca_json_payload(args.payload)
-        except (OSError, ValueError) as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = validate_sca_gate_payload(payload, gate=args.gate)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.payload}")
-        return 0
-
-    if args.command == "render-sca-pr-body":
-        try:
-            payload = load_sca_json_payload(args.payload)
-        except (OSError, ValueError) as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        print(render_sca_pr_body(payload), end="")
-        return 0
-
-    if args.command == "lint-sca-pr-body":
-        try:
-            body = args.body.read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = lint_sca_pr_body(body)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.body}")
-        return 0
-
-    if args.command == "validate-ai-sast-output":
-        try:
-            payload = load_ai_sast_json_payload(args.payload)
-        except (OSError, ValueError) as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = validate_ai_sast_gate_payload(payload, gate=args.gate)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.payload}")
-        return 0
-
-    if args.command == "render-ai-sast-pr-body":
-        try:
-            payload = load_ai_sast_json_payload(args.payload)
-        except (OSError, ValueError) as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        print(render_ai_sast_pr_body(payload), end="")
-        return 0
-
-    if args.command == "lint-ai-sast-pr-body":
-        try:
-            body = args.body.read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = lint_ai_sast_pr_body(body)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.body}")
-        return 0
-
-    if args.command == "render-ai-sast-approval-comment":
-        try:
-            payload = load_ai_sast_json_payload(args.payload)
-        except (OSError, ValueError) as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        print(render_ai_sast_approval_comment(payload), end="")
-        return 0
-
-    if args.command == "lint-ai-sast-approval-comment":
-        try:
-            body = args.body.read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = lint_ai_sast_approval_comment(body)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.body}")
-        return 0
-
-    if args.command == "render-ai-sast-exception-policy-comment":
-        try:
-            payload = load_ai_sast_json_payload(args.payload)
-        except (OSError, ValueError) as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        print(render_ai_sast_exception_policy_comment(payload), end="")
-        return 0
-
-    if args.command == "lint-ai-sast-exception-policy-comment":
-        try:
-            body = args.body.read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = lint_ai_sast_exception_policy_comment(body)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.body}")
-        return 0
+    workflow_result = run_workflow_command(args)
+    if workflow_result is not None:
+        return workflow_result
 
     if args.command == "check-install":
         if args.host == "codex":

@@ -2,35 +2,24 @@
 
 from __future__ import annotations
 
+from endor_agent_kit.instruction_sections import (
+    EDITIONS,
+    LEGACY_EDITION_ALIASES,
+    normalize_edition,
+    parse_instruction_sections,
+)
 from endor_agent_kit.recipe import ActionContract
 
-EDITIONS = ("developer-edition", "enterprise-edition")
-LEGACY_EDITION_ALIASES = {
-    "standard": "developer-edition",
-    "extended": "enterprise-edition",
-}
-LEGACY_SECTION_NAMES = {
-    "developer-edition": "standard",
-    "enterprise-edition": "extended",
-}
 EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
-
-
-def normalize_edition(value: str) -> str:
-    """Normalize a public or legacy edition name."""
-
-    edition = LEGACY_EDITION_ALIASES.get(value, value)
-    if edition not in EDITIONS:
-        raise ValueError(f"Unknown Claude Code edition {value!r}; allowed: {', '.join(EDITIONS)}")
-    return edition
 
 
 def instructions_for_edition(instructions: str, edition: str) -> str:
     """Render the shared and edition-specific instruction sections."""
 
     edition = normalize_edition(edition)
-    shared = _section(instructions, "shared")
-    mode = _edition_section(instructions, edition)
+    sections = parse_instruction_sections(instructions)
+    shared = sections.shared
+    mode = sections.for_edition(edition)
     return f"{shared.rstrip()}\n\n{mode.rstrip()}\n"
 
 
@@ -84,24 +73,3 @@ def indent(text: str, spaces: int) -> str:
 
     pad = " " * spaces
     return "\n".join(f"{pad}{line}" if line else pad for line in text.splitlines())
-
-
-def _edition_section(text: str, edition: str) -> str:
-    try:
-        return _section(text, edition)
-    except ValueError:
-        legacy_name = LEGACY_SECTION_NAMES.get(edition)
-        if legacy_name is not None:
-            return _section(text, legacy_name)
-        raise
-
-
-def _section(text: str, name: str) -> str:
-    start = f"<!-- {name}:start -->"
-    end = f"<!-- {name}:end -->"
-    try:
-        after_start = text.split(start, 1)[1]
-        return after_start.split(end, 1)[0].strip()
-    except IndexError as exc:
-        raise ValueError(f"instructions.md missing section markers for {name!r}") from exc
-

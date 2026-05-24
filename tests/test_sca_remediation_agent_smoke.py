@@ -9,6 +9,12 @@ from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.validator import validate_recipe_file
 
 from conftest import repo_root
+from host_artifact_bundle_contract import (
+    assert_codex_skill_bundle,
+    assert_host_bundle_files,
+    assert_mcp_free_generated_artifact,
+    assert_no_nested_edition_dirs,
+)
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -65,7 +71,6 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     codex_dir = dest / "codex" / "sca-remediation"
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
     prompt = (agent_dir / "sca-remediation.md").read_text(encoding="utf-8")
-    codex_skill = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
 
     assert "@agent-sca-remediation check this repository for P0 SCA findings" in root_readme
     assert "codex/sca-remediation" in root_readme
@@ -148,21 +153,20 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Do not use bold severity words in the advisory list" in prompt
     assert "Do not claim companion artifacts" in prompt
     assert "Scope compatibility claims to Endor UIA/CIA evidence" in prompt
-    assert "mcpServers:" not in prompt
-    assert "endor-cli-tools" not in prompt
-    assert "endorctl ai-tools mcp-server" not in prompt
-    assert (agent_dir / "actions.yaml").is_file()
-    assert (agent_dir / "architecture.svg").is_file()
-    assert (agent_dir / "endorctl-setup.md").is_file()
-    assert (codex_dir / "SKILL.md").is_file()
-    assert (codex_dir / "README.md").is_file()
-    assert (codex_dir / "actions.yaml").is_file()
-    assert (codex_dir / "architecture.svg").is_file()
-    assert (codex_dir / "endorctl-setup.md").is_file()
-    assert "## Codex Host Contract" in codex_skill
-    assert "Treat file edits, branch pushes, PR/MR creation" in codex_skill
-    assert "VersionUpgrade/UIA evidence" in codex_skill
-    assert not (agent_dir / "enterprise-edition").exists()
+    assert_mcp_free_generated_artifact(prompt)
+    assert_host_bundle_files(
+        agent_dir,
+        {"sca-remediation.md", "README.md", "actions.yaml", "architecture.svg", "endorctl-setup.md"},
+    )
+    assert_codex_skill_bundle(
+        codex_dir,
+        expected_files={"SKILL.md", "README.md", "actions.yaml", "architecture.svg", "endorctl-setup.md"},
+        skill_markers=(
+            "Treat file edits, branch pushes, PR/MR creation",
+            "VersionUpgrade/UIA evidence",
+        ),
+    )
+    assert_no_nested_edition_dirs(agent_dir)
     assert "![SCA Remediation architecture](architecture.svg)" in agent_readme
     assert "Claude Code does not need an Endor MCP server for this agent" in agent_readme
     assert "Rank Without Mutating" in agent_readme
