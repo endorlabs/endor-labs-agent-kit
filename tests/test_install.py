@@ -1,0 +1,162 @@
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
+
+from endor_agent_kit.catalog_manifest import CatalogManifest
+from endor_agent_kit.cli import main
+from endor_agent_kit.install import check_claude_code_install, check_codex_install
+
+
+def _sha256_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _write_catalog_manifest(
+    catalog_root: Path,
+    *,
+    agent_id: str = "sca-remediation",
+    host: str = "claude-code",
+    primary_artifact_name: str = "sca-remediation.md",
+    primary_content: str = "current",
+    primary_artifact_path: str | None = None,
+    extra_artifacts: list[dict] | None = None,
+) -> None:
+    catalog_root.mkdir(parents=True, exist_ok=True)
+    primary_artifact_path = primary_artifact_path or f"{host}/{agent_id}/{primary_artifact_name}"
+    artifacts = [
+        {
+            "path": primary_artifact_path,
+            "sha256": _sha256_text(primary_content),
+            "bytes": len(primary_content.encode("utf-8")),
+        }
+    ]
+    artifacts.extend(extra_artifacts or [])
+    (catalog_root / "manifest.json").write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "generated_by": "endor-agent-kit",
+                "agents": [
+                    {
+                        "id": agent_id,
+                        "name": "SCA Remediation",
+                        "version": "1.0.0",
+                        "host": host,
+                        "source": {
+                            "recipe_schema_version": 2,
+                            "builder_recipe": f"source/agents/{agent_id}/recipe.yaml",
+                        },
+                        "editions": [
+                            {
+                                "id": "enterprise-edition",
+                                "name": "Enterprise Edition",
+                                "path": f"{host}/{agent_id}",
+                                "artifacts": artifacts,
+                                "requires_endorctl": ">=1.0",
+                            }
+                        ],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def test_check_install_detects_stale_repo_level_agent_from_manifest(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        primary_artifact_path="catalog-layout/not-hardcoded/sca-remediation.md",
+    )
+    assert not (catalog / "claude-code" / "sca-remediation" / "sca-remediation.md").exists()
+
+    installed_agent = tmp_path / "repo" / ".claude" / "agents"
+    installed_agent.mkdir(parents=True)
+    (installed_agent / "sca-remediation.md").write_text("old", encoding="utf-8")
+
+    errors = check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    )
+
+    assert any("is stale" in error for error in errors)
+
+    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
+    assert check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    ) == []
+
+
+def test_catalog_manifest_lookup_returns_full_bundle_record(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        extra_artifacts=[
+            {
+                "path": "claude-code/sca-remediation/README.md",
+                "sha256": _sha256_text("readme"),
+                "bytes": len("readme"),
+            }
+        ],
+    )
+
+    manifest = CatalogManifest.load(catalog)
+    bundles = manifest.find_bundles("sca-remediation", "claude-code")
+
+    assert len(bundles) == 1
+    assert bundles[0].bundle_id == "enterprise-edition"
+    assert [artifact.name for artifact in bundles[0].artifacts] == [
+        "sca-remediation.md",
+        "README.md",
+    ]
+    assert manifest.primary_artifact(
+        "sca-remediation",
+        "claude-code",
+        "sca-remediation.md",
+    ).sha256 == _sha256_text("current")
+
+
+def test_check_codex_install_uses_manifest_primary_artifact(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        host="codex",
+        primary_artifact_name="SKILL.md",
+        primary_artifact_path="future-plugin-package/skills/sca-remediation/SKILL.md",
+    )
+    assert not (catalog / "codex" / "sca-remediation" / "SKILL.md").exists()
+
+    installed_skill = tmp_path / "codex-home" / "skills" / "sca-remediation"
+    installed_skill.mkdir(parents=True)
+    (installed_skill / "SKILL.md").write_text("current", encoding="utf-8")
+
+    assert check_codex_install(
+        "sca-remediation",
+        tmp_path / "codex-home",
+        catalog_root=catalog,
+    ) == []
+
+
+def test_cli_check_install_uses_manifest_checksum(tmp_path, capsys):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(catalog)
+    installed_agent = tmp_path / "repo" / ".claude" / "agents"
+    installed_agent.mkdir(parents=True)
+    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
+
+    assert main([
+        "check-install",
+        "--agent",
+        "sca-remediation",
+        "--repo",
+        str(tmp_path / "repo"),
+        "--catalog-root",
+        str(catalog),
+    ]) == 0
+    assert "OK:" in capsys.readouterr().out
