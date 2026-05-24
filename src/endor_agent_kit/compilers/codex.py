@@ -6,10 +6,10 @@ import shutil
 from pathlib import Path
 from textwrap import dedent
 
-from endor_agent_kit.compilers.claude_code import (
-    _indent,
-    _instructions_for_edition,
-    _render_action_contracts,
+from endor_agent_kit.compilers.rendering import (
+    indent,
+    instructions_for_edition,
+    render_action_contracts,
 )
 from endor_agent_kit.recipe import (
     EndorAgentRecipe,
@@ -43,17 +43,17 @@ def compile_codex_prepared(prepared: PreparedSourceRecipe) -> list[Path]:
 
 
 def _render_skill(recipe: EndorAgentRecipe, instructions: str, actions: tuple = ()) -> str:
-    body = _codex_instruction_text(_instructions_for_edition(instructions, CODEX_SECTION_EDITION))
+    body = _codex_instruction_text(instructions_for_edition(instructions, CODEX_SECTION_EDITION))
     return (
         "---\n"
         f"name: {recipe.id}\n"
         "description: |\n"
-        f"{_indent(recipe.description.strip(), 2)}\n"
+        f"{indent(recipe.description.strip(), 2)}\n"
         "---\n\n"
         f"{_codex_notice(recipe)}\n\n"
         f"{_codex_host_contract(recipe)}\n\n"
         f"{body.rstrip()}\n"
-        f"{_codex_instruction_text(_render_action_contracts(actions))}"
+        f"{_codex_instruction_text(render_action_contracts(actions))}"
     )
 
 

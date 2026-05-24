@@ -12,6 +12,10 @@ _Avoid_: generated recipe, catalog recipe
 The validated, loaded Source Recipe plus the render inputs and source paths needed by compilers and Host Adapters: recipe object, instructions, action contracts, architecture path, and action-contract path. Publication prepares each Source Recipe once and passes the Prepared Source Recipe through compiler and Host Adapter work instead of letting each layer reload from disk.
 _Avoid_: recipe tuple, compiler reload state
 
+**Compiler Rendering**:
+The host-independent prompt rendering rules shared by Host compilers, including edition selection, instruction section extraction, action-contract text, and frontmatter indentation. Compiler Rendering is not owned by the Claude Code compiler; Host compilers add host-specific artifact shape, frontmatter/YAML, tool restrictions, and setup text around the shared rendered prompt.
+_Avoid_: Claude helper, prompt util
+
 **Host**:
 An AI coding environment that can receive generated agent artifacts, such as Claude Code, Claude Managed Agents, or Codex. A Host determines artifact shape, install path, tool permissions, and README setup language.
 _Avoid_: runtime, provider, platform
@@ -150,3 +154,7 @@ Domain expert: "No. Publication should create a Prepared Source Recipe once, the
 Dev: "Should the AI SAST and SCA output validators stay as broad workflow modules?"
 
 Domain expert: "No. Keep compatibility wrappers for existing imports and CLI commands, but organize Workflow Output Contracts by Workflow Gate so remediation, exception policy, PR/MR, and validation rules each have local ownership."
+
+Dev: "Should Codex, Raw, and Claude Managed Agents import private prompt helpers from the Claude Code compiler?"
+
+Domain expert: "No. Put host-independent prompt rendering in Compiler Rendering, and leave Host compilers to own only Host-specific artifact shape, permissions, and setup text."
