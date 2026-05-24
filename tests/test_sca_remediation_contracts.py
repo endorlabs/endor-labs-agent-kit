@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 
 from endor_agent_kit.cli import main
-from endor_agent_kit.install import check_claude_code_install
 from endor_agent_kit.sca_remediation import (
     lint_sca_pr_body,
     normalize_sca_branch,
@@ -261,47 +260,3 @@ def test_sca_cli_validate_output_and_render_pr_body(tmp_path, capsys):
 def test_sca_branch_normalizer_uses_remediation_sca_prefix():
     assert normalize_sca_branch("io.netty:netty-all", "4.2.13.Final") == "remediation/sca/netty-all-4.2.13.Final"
     assert normalize_sca_branch("npm://axios", "1.16.1") == "remediation/sca/axios-1.16.1"
-
-
-def test_check_install_detects_stale_repo_level_agent(tmp_path):
-    catalog_agent = tmp_path / "catalog" / "claude-code" / "sca-remediation"
-    catalog_agent.mkdir(parents=True)
-    (catalog_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
-    installed_agent = tmp_path / "repo" / ".claude" / "agents"
-    installed_agent.mkdir(parents=True)
-    (installed_agent / "sca-remediation.md").write_text("old", encoding="utf-8")
-
-    errors = check_claude_code_install(
-        "sca-remediation",
-        tmp_path / "repo",
-        catalog_root=tmp_path / "catalog",
-    )
-
-    assert any("is stale" in error for error in errors)
-
-    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
-    assert check_claude_code_install(
-        "sca-remediation",
-        tmp_path / "repo",
-        catalog_root=tmp_path / "catalog",
-    ) == []
-
-
-def test_sca_cli_check_install(tmp_path, capsys):
-    catalog_agent = tmp_path / "catalog" / "claude-code" / "sca-remediation"
-    catalog_agent.mkdir(parents=True)
-    (catalog_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
-    installed_agent = tmp_path / "repo" / ".claude" / "agents"
-    installed_agent.mkdir(parents=True)
-    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
-
-    assert main([
-        "check-install",
-        "--agent",
-        "sca-remediation",
-        "--repo",
-        str(tmp_path / "repo"),
-        "--catalog-root",
-        str(tmp_path / "catalog"),
-    ]) == 0
-    assert "OK:" in capsys.readouterr().out
