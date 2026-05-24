@@ -5,7 +5,9 @@ import json
 import shutil
 from pathlib import Path
 
+from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.cli import main
+from endor_agent_kit.publication import HostArtifactPublication, RootCatalogAggregate
 from endor_agent_kit.publisher import publish_recipe, publish_recipes
 
 from conftest import repo_root
@@ -237,6 +239,22 @@ def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
                 data = path.read_bytes()
                 assert artifact["sha256"] == hashlib.sha256(data).hexdigest()
                 assert artifact["bytes"] == len(data)
+
+
+def test_catalog_agents_return_schema_records_for_root_aggregate(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    agents = HostArtifactPublication({}).catalog_agents(dest)
+    manifest = json.loads((dest / "manifest.json").read_text())
+
+    assert agents
+    assert all(isinstance(agent, CatalogAgent) for agent in agents)
+    assert not any(isinstance(agent, dict) for agent in agents)
+    assert [agent.to_manifest_record() for agent in agents] == manifest["agents"]
+    assert RootCatalogAggregate().render_readme(agents) == (dest / "README.md").read_text()
 
 
 def test_publish_recipe_is_idempotent_and_preserves_other_manifest_agents(tmp_path):

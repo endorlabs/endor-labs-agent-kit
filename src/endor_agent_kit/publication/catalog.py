@@ -2,14 +2,24 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
+from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.compilers.claude_code import HOST as CLAUDE_CODE_HOST
 from endor_agent_kit.compilers.claude_managed_agents import HOST as CLAUDE_MANAGED_AGENTS_HOST
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST
 
 DEFAULT_PUBLISHED_HOSTS = (CLAUDE_CODE_HOST, CLAUDE_MANAGED_AGENTS_HOST, CODEX_HOST)
+
+
+@dataclass(frozen=True)
+class _AgentCatalogEntry:
+    """One agent row in the Root Catalog README."""
+
+    id: str
+    name: str
+    hosts: frozenset[str]
 
 
 class RootCatalogAggregate:
@@ -18,21 +28,21 @@ class RootCatalogAggregate:
     def __init__(self, published_hosts: tuple[str, ...] = DEFAULT_PUBLISHED_HOSTS):
         self._published_hosts = published_hosts
 
-    def write_readme(self, destination: Path, agents: list[dict[str, Any]]) -> Path:
+    def write_readme(self, destination: Path, agents: list[CatalogAgent]) -> Path:
         """Write the Root Catalog README for the current catalog agents."""
 
         path = destination / "README.md"
         path.write_text(self.render_readme(agents), encoding="utf-8")
         return path
 
-    def render_readme(self, agents: list[dict[str, Any]]) -> str:
+    def render_readme(self, agents: list[CatalogAgent]) -> str:
         """Render the Root Catalog README for the current catalog agents."""
 
         return root_catalog_readme(agents, published_hosts=self._published_hosts)
 
 
 def root_catalog_readme(
-    agents: list[dict[str, Any]],
+    agents: list[CatalogAgent],
     *,
     published_hosts: tuple[str, ...] = DEFAULT_PUBLISHED_HOSTS,
 ) -> str:
@@ -41,25 +51,25 @@ def root_catalog_readme(
     catalog = _agent_catalog(agents)
     agent_rows = []
     for item in catalog:
-        agent_id = str(item["id"])
-        claude_code_path = f"`{CLAUDE_CODE_HOST}/{agent_id}/`" if CLAUDE_CODE_HOST in item["hosts"] else "-"
+        agent_id = item.id
+        claude_code_path = f"`{CLAUDE_CODE_HOST}/{agent_id}/`" if CLAUDE_CODE_HOST in item.hosts else "-"
         managed_path = (
             f"`{CLAUDE_MANAGED_AGENTS_HOST}/{agent_id}/`"
-            if CLAUDE_MANAGED_AGENTS_HOST in item["hosts"]
+            if CLAUDE_MANAGED_AGENTS_HOST in item.hosts
             else "-"
         )
-        codex_path = f"`{CODEX_HOST}/{agent_id}/`" if CODEX_HOST in item["hosts"] else "-"
+        codex_path = f"`{CODEX_HOST}/{agent_id}/`" if CODEX_HOST in item.hosts else "-"
         agent_rows.append(
-            f"| {item['name']} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {codex_path} |"
+            f"| {item.name} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {codex_path} |"
         )
 
     layout_agents = _repository_layout(agents, published_hosts=published_hosts)
 
     examples = []
     for item in catalog:
-        agent_id = str(item["id"])
+        agent_id = item.id
         examples.extend([
-            f"{item['name']}:",
+            f"{item.name}:",
             "",
             "```text",
             _agent_example(agent_id),
@@ -548,50 +558,46 @@ def root_catalog_readme(
     ])
 
 
-def _agent_catalog(agents: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    catalog: dict[str, dict[str, Any]] = {}
+def _agent_catalog(agents: list[CatalogAgent]) -> list[_AgentCatalogEntry]:
+    catalog: dict[str, tuple[str, set[str]]] = {}
     for agent in agents:
-        agent_id = str(agent.get("id") or "")
+        agent_id = agent.id
         if not agent_id:
             continue
-        entry = catalog.setdefault(
-            agent_id,
-            {
-                "id": agent_id,
-                "name": _agent_name(agent),
-                "hosts": set(),
-            },
-        )
-        entry["hosts"].add(str(agent.get("host") or ""))
-        if not entry.get("name"):
-            entry["name"] = _agent_name(agent)
-    return sorted(catalog.values(), key=lambda item: str(item["name"]).lower())
+        name, hosts = catalog.setdefault(agent_id, (_agent_name(agent), set()))
+        hosts.add(agent.host)
+        if not name:
+            catalog[agent_id] = (_agent_name(agent), hosts)
+    entries = [
+        _AgentCatalogEntry(id=agent_id, name=name, hosts=frozenset(hosts))
+        for agent_id, (name, hosts) in catalog.items()
+    ]
+    return sorted(entries, key=lambda item: item.name.lower())
 
 
-def _repository_layout(agents: list[dict[str, Any]], *, published_hosts: tuple[str, ...]) -> list[str]:
+def _repository_layout(agents: list[CatalogAgent], *, published_hosts: tuple[str, ...]) -> list[str]:
     lines: list[str] = []
     for host in published_hosts:
-        host_agents = [agent for agent in agents if agent.get("host") == host]
+        host_agents = [agent for agent in agents if agent.host == host]
         if not host_agents:
             continue
         lines.append(f"{host}/")
-        for agent in sorted(host_agents, key=lambda item: str(item.get("id", ""))):
-            agent_id = str(agent["id"])
+        for agent in sorted(host_agents, key=lambda item: item.id):
+            agent_id = agent.id
             lines.append(f"  {agent_id}/")
-            for edition in agent.get("editions", []):
-                edition_path = str(edition.get("path") or "")
+            for edition in agent.editions:
+                edition_path = edition.path
                 flat_layout = edition_path == f"{host}/{agent_id}"
                 if not flat_layout:
-                    edition_id = str(edition.get("id", ""))
-                    lines.append(f"    {edition_id}/")
-                for artifact in sorted(edition.get("artifacts", []), key=lambda item: str(item.get("path", ""))):
+                    lines.append(f"    {edition.bundle_id}/")
+                for artifact in sorted(edition.artifacts, key=lambda item: item.path):
                     indent = "    " if flat_layout else "      "
-                    lines.append(f"{indent}{Path(str(artifact['path'])).name}")
+                    lines.append(f"{indent}{artifact.name}")
     return lines
 
 
-def _agent_name(agent: dict[str, Any]) -> str:
-    return str(agent.get("name") or agent.get("id") or "Endor Labs Agent")
+def _agent_name(agent: CatalogAgent) -> str:
+    return agent.name or agent.id or "Endor Labs Agent"
 
 
 def _agent_summary(agent_id: str) -> str:
