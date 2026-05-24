@@ -422,6 +422,7 @@ python -m pip install -e ".[dev]"
 
 ```bash
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
+endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
 python -m pytest -q
 git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
@@ -435,6 +436,7 @@ CI runs the same validation and generated-artifact drift check.
 | Command | Purpose |
 | --- | --- |
 | `endor-agent-kit validate source/agents/<agent>/recipe.yaml` | Validate one recipe. |
+| `endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent` | Check source-first authoring rules for a new public agent. |
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |
 | `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |

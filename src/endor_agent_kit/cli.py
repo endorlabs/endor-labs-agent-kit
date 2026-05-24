@@ -24,6 +24,7 @@ from endor_agent_kit.workflow_output_contracts.ai_sast import (
 )
 from endor_agent_kit.install import check_claude_code_install, check_codex_install
 from endor_agent_kit.publisher import publish_recipes
+from endor_agent_kit.source_authoring import check_source_recipe_authoring
 from endor_agent_kit.workflow_output_contracts.sca import (
     lint_sca_pr_body,
     load_json_payload as load_sca_json_payload,
@@ -39,6 +40,17 @@ def main(argv: list[str] | None = None) -> int:
 
     validate_parser = subparsers.add_parser("validate", help="Validate a recipe")
     validate_parser.add_argument("recipe", type=Path)
+
+    authoring_parser = subparsers.add_parser(
+        "authoring-check",
+        help="Check source-first authoring invariants for a recipe",
+    )
+    authoring_parser.add_argument("recipe", type=Path)
+    authoring_parser.add_argument(
+        "--new-agent",
+        action="store_true",
+        help="Require the stricter file set and eval coverage expected for new agents",
+    )
 
     compile_parser = subparsers.add_parser("compile", help="Compile a recipe")
     compile_parser.add_argument("recipe", type=Path)
@@ -151,6 +163,17 @@ def main(argv: list[str] | None = None) -> int:
         if errors:
             for error in errors:
                 print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.recipe}")
+        return 0
+
+    if args.command == "authoring-check":
+        report = check_source_recipe_authoring(args.recipe, new_agent=args.new_agent)
+        for warning in report.warnings:
+            print(f"WARNING: {warning.code}: {warning.message}")
+        if report.errors:
+            for error in report.errors:
+                print(f"ERROR: {error.code}: {error.message}")
             return 1
         print(f"OK: {args.recipe}")
         return 0
