@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 760" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Geist, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 840" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Geist, sans-serif">
   <defs>
     <radialGradient id="bgGlow" cx="50%" cy="0%" r="80%">
       <stop offset="0%" stop-color="#0a3d2c" stop-opacity="0.48"/>
@@ -49,9 +49,9 @@
     </marker>
   </defs>
 
-  <rect width="1280" height="760" fill="#000503"/>
-  <rect width="1280" height="760" fill="url(#bgGlow)"/>
-  <rect width="1280" height="760" fill="url(#bgGlow2)"/>
+  <rect width="1280" height="840" fill="#000503"/>
+  <rect width="1280" height="840" fill="url(#bgGlow)"/>
+  <rect width="1280" height="840" fill="url(#bgGlow2)"/>
 
   <g transform="translate(40, 34)">
     <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">AI SAST Triage - Agent Kit Runtime</text>
@@ -61,60 +61,62 @@
 
   <g transform="translate(40, 142)">
     <g transform="translate(0,0)" filter="url(#cardShadow)">
-      <rect width="178" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
-      <rect x="18" y="0" width="142" height="2" fill="url(#hairline)"/>
+      <rect width="170" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="18" y="0" width="134" height="2" fill="url(#hairline)"/>
       <text x="18" y="32" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">ENTRY</text>
       <text x="18" y="58" font-size="18" font-weight="700" fill="#e5f6f7">User Prompt</text>
       <text x="18" y="82" font-size="12" fill="#9fb4be">"this repository"</text>
       <text x="18" y="101" font-size="12" fill="#9fb4be">filters, limits, approval</text>
     </g>
-    <line x1="190" y1="66" x2="224" y2="66" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+    <line x1="182" y1="66" x2="210" y2="66" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
 
-    <g transform="translate(236,0)" filter="url(#cardShadow)">
-      <rect width="178" height="132" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
-      <rect x="18" y="0" width="142" height="2" fill="url(#hairlineGreen)"/>
+    <g transform="translate(212,0)" filter="url(#cardShadow)">
+      <rect width="170" height="132" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
+      <rect x="18" y="0" width="134" height="2" fill="url(#hairlineGreen)"/>
       <text x="18" y="32" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">RESOLVE</text>
       <text x="18" y="58" font-size="18" font-weight="700" fill="#e5f6f7">Project</text>
       <text x="18" y="82" font-size="12" fill="#9fb4be">git remote origin</text>
       <text x="18" y="101" font-size="12" fill="#9fb4be">repo URL or name</text>
     </g>
-    <line x1="426" y1="66" x2="460" y2="66" stroke="#00f078" stroke-width="1.4" marker-end="url(#arrowGreen)"/>
+    <line x1="394" y1="66" x2="412" y2="66" stroke="#00f078" stroke-width="1.4" marker-end="url(#arrowGreen)"/>
 
-    <g transform="translate(472,0)" filter="url(#cardShadow)">
-      <rect width="178" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
-      <rect x="18" y="0" width="142" height="2" fill="url(#hairline)"/>
+    <g transform="translate(424,0)" filter="url(#cardShadow)">
+      <rect width="170" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="18" y="0" width="134" height="2" fill="url(#hairline)"/>
       <text x="18" y="32" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">EVIDENCE</text>
       <text x="18" y="58" font-size="18" font-weight="700" fill="#e5f6f7">Endor AI SAST</text>
       <text x="18" y="82" font-size="12" fill="#9fb4be">exploit reproduction</text>
       <text x="18" y="101" font-size="12" fill="#9fb4be">remediation guidance</text>
     </g>
-    <line x1="662" y1="66" x2="696" y2="66" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+    <line x1="606" y1="66" x2="624" y2="66" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
 
-    <g transform="translate(708,0)" filter="url(#cardShadow)">
-      <rect width="178" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
-      <rect x="18" y="0" width="142" height="2" fill="url(#hairlinePurple)"/>
+    <g transform="translate(636,0)" filter="url(#cardShadow)">
+      <rect width="170" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="18" y="0" width="134" height="2" fill="url(#hairlinePurple)"/>
       <text x="18" y="32" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.4">SOURCE</text>
       <text x="18" y="58" font-size="18" font-weight="700" fill="#e5f6f7">Pinned Code</text>
       <text x="18" y="82" font-size="12" fill="#9fb4be">commit SHA context</text>
       <text x="18" y="101" font-size="12" fill="#9fb4be">files and sibling code</text>
     </g>
-    <line x1="898" y1="66" x2="932" y2="66" stroke="#9f69f7" stroke-width="1.4" marker-end="url(#arrowPurple)"/>
+    <line x1="818" y1="66" x2="836" y2="66" stroke="#9f69f7" stroke-width="1.4" marker-end="url(#arrowPurple)"/>
 
-    <g transform="translate(944,0)" filter="url(#cardShadow)">
-      <rect width="178" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
-      <rect x="18" y="0" width="142" height="2" fill="url(#hairline)"/>
+    <g transform="translate(848,0)" filter="url(#cardShadow)">
+      <rect width="170" height="132" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="18" y="0" width="134" height="2" fill="url(#hairline)"/>
       <text x="18" y="32" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">PATCH</text>
       <text x="18" y="58" font-size="18" font-weight="700" fill="#e5f6f7">Grounded Diff</text>
       <text x="18" y="82" font-size="12" fill="#9fb4be">unified diff preview</text>
       <text x="18" y="101" font-size="12" fill="#9fb4be">guidance and tests</text>
     </g>
-    <line x1="1134" y1="66" x2="1168" y2="66" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+    <line x1="1030" y1="66" x2="1062" y2="66" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
 
-    <g transform="translate(1180,0)" filter="url(#cardShadow)">
-      <rect width="60" height="132" rx="12" fill="url(#cardGlassActive)" stroke="#1f6540"/>
-      <text x="30" y="48" font-size="10" font-weight="700" fill="#00f078" text-anchor="middle">PR</text>
-      <text x="30" y="67" font-size="10" font-weight="700" fill="#00f078" text-anchor="middle">OR</text>
-      <text x="30" y="86" font-size="10" font-weight="700" fill="#00f078" text-anchor="middle">MR</text>
+    <g transform="translate(1074,0)" filter="url(#cardShadow)">
+      <rect width="126" height="132" rx="12" fill="url(#cardGlassActive)" stroke="#1f6540"/>
+      <rect x="18" y="0" width="90" height="2" fill="url(#hairlineGreen)"/>
+      <text x="18" y="32" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">REVIEW</text>
+      <text x="18" y="58" font-size="15" font-weight="700" fill="#e5f6f7">Change</text>
+      <text x="18" y="78" font-size="15" font-weight="700" fill="#e5f6f7">Request</text>
+      <text x="18" y="104" font-size="12" fill="#9fb4be">PR/MR gate</text>
     </g>
   </g>
 
@@ -150,10 +152,11 @@
     </g>
   </g>
 
-  <g transform="translate(70, 590)">
-    <rect width="1140" height="82" rx="12" fill="#071012" stroke="#17323a"/>
+  <g transform="translate(70, 620)">
+    <rect width="1140" height="108" rx="12" fill="#071012" stroke="#17323a"/>
     <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
     <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">PORTABILITY CONTRACT</text>
-    <text x="30" y="58" font-size="13" fill="#cfe4e8">Agent Kit publishes a self-sufficient agent. Remediation works without the optional exception lane; policy writes require invoked-agent approval verification, dedupe, and explicit confirmation.</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">Agent Kit publishes a self-sufficient agent. Remediation works without the optional exception lane.</text>
+    <text x="30" y="80" font-size="13" fill="#cfe4e8">Policy writes require invoked-agent approval verification, dedupe, and explicit confirmation.</text>
   </g>
 </svg>

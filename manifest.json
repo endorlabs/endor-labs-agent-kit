@@ -20,9 +20,9 @@
               "sha256": "94ebfeaf7df315df907c85b2f325bfa41ce989542cceadf01326caedec531dcc"
             },
             {
-              "bytes": 10617,
+              "bytes": 10802,
               "path": "claude-code/ai-sast-triage/architecture.svg",
-              "sha256": "91717f628d2b602506999ade751787e536e24a59281265decf4707d5ae3255f3"
+              "sha256": "3c7a2ee900c43d4f2c1b4520ea9d1f2576d7100f43ac7b76f7bda00aad3cf534"
             },
             {
               "bytes": 993,
@@ -125,9 +125,9 @@
               "sha256": "3fcafb8a8b28dc9eb26adc12dc414abbc534b1d210a3cd3e09e27f7b89b57d28"
             },
             {
-              "bytes": 9809,
+              "bytes": 9921,
               "path": "claude-code/remediation-planner/architecture.svg",
-              "sha256": "1c86170f624b8ad49f20c908400a54a83ba0413f142aeae9dd887b58449596a5"
+              "sha256": "01e625a8fcef120f887c4526baafdc9e98227e3c0546ea44452544ee114c8484"
             },
             {
               "bytes": 582,
@@ -242,7 +242,7 @@
             {
               "bytes": 9921,
               "path": "claude-code/upgrade-impact-analysis/architecture.svg",
-              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
+              "sha256": "26c1e392170ea2ccb39f5b4e21b2e8aa217fa538ca9933ae342572a2696466bb"
             },
             {
               "bytes": 597,
@@ -407,7 +407,7 @@
             {
               "bytes": 9921,
               "path": "claude-managed-agents/upgrade-impact-analysis/architecture.svg",
-              "sha256": "b7c873a2ce48359c795cedfa69d871e031efbc9cf5b32cf0da9dfd3cc496b6fa"
+              "sha256": "26c1e392170ea2ccb39f5b4e21b2e8aa217fa538ca9933ae342572a2696466bb"
             },
             {
               "bytes": 597,
@@ -500,9 +500,9 @@
               "sha256": "f7488f4b0251f37590e0a9e27524d43929d5ff11c1686eb86132a563e560318d"
             },
             {
-              "bytes": 10611,
+              "bytes": 10796,
               "path": "codex/ai-sast-triage/architecture.svg",
-              "sha256": "ffcd92ff80d9817738f9ec9d8634e01217f55eb02b55603a9bcc549ee025ac07"
+              "sha256": "3983995f4e60ea980e62600eebd7b5c97cda05cb786afbffce0dc51a4ac6762b"
             },
             {
               "bytes": 993,
