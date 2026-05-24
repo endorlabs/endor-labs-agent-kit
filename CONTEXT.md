@@ -12,6 +12,10 @@ _Avoid_: generated recipe, catalog recipe
 The validated, loaded Source Recipe plus the render inputs and source paths needed by compilers and Host Adapters: recipe object, instructions, action contracts, architecture path, and action-contract path. Publication prepares each Source Recipe once and passes the Prepared Source Recipe through compiler and Host Adapter work instead of letting each layer reload from disk.
 _Avoid_: recipe tuple, compiler reload state
 
+**Source Recipe Authoring**:
+The public, source-first workflow for creating or checking a new Agent Kit agent from a net-new brief or sanitized generic blueprint. Source Recipe Authoring owns repeatable file-set, instruction marker, eval coverage, architecture diagram, MCP-free default, and action-contract checks before Publication turns the Source Recipe into Host Artifact Bundles.
+_Avoid_: private plucker, prose-only checklist
+
 **Compiler Rendering**:
 The host-independent prompt rendering rules shared by Host compilers, including edition selection, instruction section extraction, action-contract text, and frontmatter indentation. Compiler Rendering is not owned by the Claude Code compiler; Host compilers add host-specific artifact shape, frontmatter/YAML, tool restrictions, and setup text around the shared rendered prompt.
 _Avoid_: Claude helper, prompt util
@@ -162,3 +166,7 @@ Domain expert: "No. Keep compatibility wrappers for existing imports and CLI com
 Dev: "Should Codex, Raw, and Claude Managed Agents import private prompt helpers from the Claude Code compiler?"
 
 Domain expert: "No. Put host-independent prompt rendering in Compiler Rendering, and leave Host compilers to own only Host-specific artifact shape, permissions, and setup text."
+
+Dev: "Should creating a new public agent rely only on the Create Endor Labs Agent skill checklist?"
+
+Domain expert: "No. Keep the skill as the human-facing guide, but put repeatable source file, eval, architecture, transport, and action-contract checks in Source Recipe Authoring so new agents can be mechanically checked before publication."

@@ -248,6 +248,7 @@ Run:
 python3 -m pip install -e ".[dev]"
 python3 -m pytest -q
 endor-agent-kit validate source/agents/<agent-id>/recipe.yaml
+endor-agent-kit authoring-check source/agents/<agent-id>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
 git diff --check
 ```
@@ -257,6 +258,7 @@ Then verify:
 ```bash
 python3 -m pytest -q
 for recipe in source/agents/*/recipe.yaml; do endor-agent-kit validate "$recipe"; done
+endor-agent-kit authoring-check source/agents/<agent-id>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
 git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
 ```
