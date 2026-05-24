@@ -14,8 +14,7 @@ from endor_agent_kit.publication import (
     HostArtifactPublication,
     RootCatalogAggregate,
 )
-from endor_agent_kit.recipe import load_recipe
-from endor_agent_kit.validator import validate_recipe_file
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
     CLAUDE_CODE_HOST: ClaudeCodeHostAdapter(),
@@ -28,12 +27,13 @@ _ROOT_CATALOG_AGGREGATE = RootCatalogAggregate()
 def publish_recipe(recipe_path: str | Path, dest: str | Path) -> list[Path]:
     """Publish one recipe's customer-facing artifacts into ``dest``."""
 
-    recipe_file = Path(recipe_path)
-    errors = validate_recipe_file(recipe_file)
-    if errors:
-        raise ValueError("\n".join(errors))
+    return _publish_prepared_recipe(prepare_source_recipe(recipe_path), dest)
 
-    recipe = load_recipe(recipe_file)
+
+def _publish_prepared_recipe(prepared: PreparedSourceRecipe, dest: str | Path) -> list[Path]:
+    """Publish one prepared Source Recipe into ``dest``."""
+
+    recipe = prepared.recipe
     destination = Path(dest)
     destination.mkdir(parents=True, exist_ok=True)
 
@@ -41,17 +41,17 @@ def publish_recipe(recipe_path: str | Path, dest: str | Path) -> list[Path]:
     manifest: Path | None = None
 
     if CLAUDE_CODE_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(CLAUDE_CODE_HOST, recipe_file, recipe, destination)
+        publication = _HOST_ARTIFACT_PUBLICATION.publish(CLAUDE_CODE_HOST, prepared, destination)
         written.extend(publication.bundle.written)
         manifest = publication.catalog_manifest
 
     if CLAUDE_MANAGED_AGENTS_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(CLAUDE_MANAGED_AGENTS_HOST, recipe_file, recipe, destination)
+        publication = _HOST_ARTIFACT_PUBLICATION.publish(CLAUDE_MANAGED_AGENTS_HOST, prepared, destination)
         written.extend(publication.bundle.written)
         manifest = publication.catalog_manifest
 
     if CODEX_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(CODEX_HOST, recipe_file, recipe, destination)
+        publication = _HOST_ARTIFACT_PUBLICATION.publish(CODEX_HOST, prepared, destination)
         written.extend(publication.bundle.written)
         manifest = publication.catalog_manifest
 
@@ -66,19 +66,16 @@ def publish_recipes(recipe_paths: list[str | Path], dest: str | Path, *, prune: 
     """Publish recipes, optionally removing previously published stale agents."""
 
     destination = Path(dest)
-    recipe_files = [Path(recipe_path) for recipe_path in recipe_paths]
+    prepared_recipes = [prepare_source_recipe(recipe_path) for recipe_path in recipe_paths]
     active_host_agents: set[tuple[str, str]] = set()
-    for recipe_file in recipe_files:
-        errors = validate_recipe_file(recipe_file)
-        if errors:
-            raise ValueError("\n".join(errors))
-        recipe = load_recipe(recipe_file)
+    for prepared in prepared_recipes:
+        recipe = prepared.recipe
         for host in recipe.compatible_hosts:
             active_host_agents.add((host, recipe.id))
 
     written: list[Path] = []
-    for recipe_file in recipe_files:
-        written.extend(publish_recipe(recipe_file, destination))
+    for prepared in prepared_recipes:
+        written.extend(_publish_prepared_recipe(prepared, destination))
 
     if prune:
         manifest = _HOST_ARTIFACT_PUBLICATION.prune_stale_agents(destination, active_host_agents)

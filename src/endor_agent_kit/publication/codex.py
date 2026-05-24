@@ -5,17 +5,18 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from endor_agent_kit.compilers.codex import HOST, compile_codex
-from endor_agent_kit.compilers.raw import compile_raw
+from endor_agent_kit.compilers.codex import HOST, compile_codex_prepared
+from endor_agent_kit.compilers.raw import compile_raw_prepared
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 from .readme import architecture_readme_section
 from .records import (
     BundleRecord,
-    actions_source,
-    architecture_source,
     artifact_bundle_record,
+    prepared_actions_source,
+    prepared_architecture_source,
 )
 
 
@@ -26,15 +27,16 @@ class CodexHostAdapter:
 
     def publish(
         self,
-        recipe_file: Path,
-        recipe: EndorAgentRecipe,
+        prepared: PreparedSourceRecipe,
         destination: Path,
     ) -> BundleRecord:
         """Publish one Codex Host Artifact Bundle."""
 
-        compile_raw(recipe_file)
-        compile_codex(recipe_file)
+        compile_raw_prepared(prepared)
+        compile_codex_prepared(prepared)
 
+        recipe_file = prepared.path
+        recipe = prepared.recipe
         agent_root = destination / HOST / recipe.id
         if agent_root.exists():
             shutil.rmtree(agent_root)
@@ -46,7 +48,7 @@ class CodexHostAdapter:
         shutil.copyfile(source_dir / "SKILL.md", skill)
         written.append(skill)
 
-        architecture = architecture_source(recipe_file)
+        architecture = prepared_architecture_source(prepared)
         has_architecture = architecture.is_file()
 
         readme = agent_root / "README.md"
@@ -61,7 +63,7 @@ class CodexHostAdapter:
             )
             written.append(published_architecture)
 
-        actions = actions_source(recipe_file, recipe)
+        actions = prepared_actions_source(prepared)
         if actions.is_file():
             published_actions = agent_root / "actions.yaml"
             published_actions.write_text(
