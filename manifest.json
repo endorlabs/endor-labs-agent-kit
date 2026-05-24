@@ -10,14 +10,14 @@
               "sha256": "41978bdfa09dc4c7e98799860ac50ed37272572e50e0156c9ce4f96e7cc048d5"
             },
             {
-              "bytes": 4953,
+              "bytes": 5236,
               "path": "claude-code/ai-sast-triage/actions.yaml",
-              "sha256": "7b4cda99dd85dd3106d573a9a873c97066a4f9a8c16dacb5670b52fa39cf21cb"
+              "sha256": "0d608b70d2034c4a74ba872446d7ac7d36b647e5e9d772bbda1ab5f4a106388b"
             },
             {
-              "bytes": 32852,
+              "bytes": 34909,
               "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "12208defa5b502db61a9eec266106d5a0026dc317d49e6c665150b277ce9d959"
+              "sha256": "94ebfeaf7df315df907c85b2f325bfa41ce989542cceadf01326caedec531dcc"
             },
             {
               "bytes": 10617,
@@ -490,14 +490,14 @@
               "sha256": "4f65aa3fc45fe1667bcf0596a9c413e249335af8719b0423e21dba50da1b3376"
             },
             {
-              "bytes": 33640,
+              "bytes": 35697,
               "path": "codex/ai-sast-triage/SKILL.md",
-              "sha256": "63b2d77a888b5b2d60b71b1d17fb3354392360035183204b249426caade1a754"
+              "sha256": "53c70ddeb7d2edf85ff8470667f5e378347eaf886fbbd8ae865a4013f60adaa0"
             },
             {
-              "bytes": 4947,
+              "bytes": 5230,
               "path": "codex/ai-sast-triage/actions.yaml",
-              "sha256": "4728ff23f7cf25f90ff1c16085da16e65b6c1c5aefb649bcf6e42f3c7debef9d"
+              "sha256": "f7488f4b0251f37590e0a9e27524d43929d5ff11c1686eb86132a563e560318d"
             },
             {
               "bytes": 10611,
