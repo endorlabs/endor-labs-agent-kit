@@ -9,12 +9,11 @@ from typing import Any
 from endor_agent_kit.compilers.claude_code import (
     EDITIONS,
     HOST,
-    _allows_read_only_endorctl,
-    _uses_mcp,
     compile_claude_code,
 )
 from endor_agent_kit.compilers.raw import compile_raw
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 from .readme import architecture_readme_section
 from .records import (
@@ -51,6 +50,7 @@ class ClaudeCodeHostAdapter:
         has_architecture = architecture.is_file()
         editions = editions_for_host(recipe, HOST, EDITIONS)
         flat_layout = len(editions) == 1
+        posture = source_recipe_safety_posture(recipe)
         for edition in editions:
             edition_dir = _published_edition_dir(agent_root, editions, edition)
             edition_dir.mkdir(parents=True, exist_ok=True)
@@ -82,7 +82,7 @@ class ClaudeCodeHostAdapter:
                 shutil.copyfile(actions, published_actions)
                 written.append(published_actions)
 
-            if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
+            if edition == "enterprise-edition" and posture.uses_endorctl_api:
                 setup = edition_dir / "endorctl-setup.md"
                 shutil.copyfile(recipe_file.parent / "dist" / "raw" / "endorctl-setup.md", setup)
                 written.append(setup)
@@ -95,7 +95,7 @@ class ClaudeCodeHostAdapter:
                     edition_name(edition),
                     edition_dir,
                     requires_endorctl=recipe.requires_endorctl
-                    if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe)
+                    if edition == "enterprise-edition" and posture.uses_endorctl_api
                     else "",
                 )
             )
@@ -118,7 +118,8 @@ def claude_code_edition_readme(
     name = edition_name(edition)
     title = f"{recipe.name} {name}" if show_edition_name else recipe.name
     artifact_label = "edition" if show_edition_name else "agent"
-    if recipe.safety_class == "mutating":
+    posture = source_recipe_safety_posture(recipe)
+    if posture.is_mutating:
         requirements = [
             "Claude Code with the generated subagent file installed.",
             "Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.",
@@ -152,18 +153,18 @@ def claude_code_edition_readme(
             notes.append(
                 "`actions.yaml` lists the semantic side effects and any external adapter requirements."
             )
-    elif edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
+    elif edition == "developer-edition" or not posture.uses_endorctl_api:
         requirements = [
             "Claude Code with the generated subagent file installed.",
             "Endor MCP access through the subagent's bundled MCP server config.",
             f"No shell access or authenticated endorctl setup is required for this {artifact_label}.",
         ]
-        if recipe.host_capabilities_required.read_files:
+        if posture.can_read_files:
             requirements.insert(2, "Read-only access to dependency manifests in the target workspace.")
         notes = [
             (
                 f"This {artifact_label} uses Endor MCP tools plus Claude Code read-only file inspection."
-                if recipe.host_capabilities_required.read_files
+                if posture.can_read_files
                 else f"This {artifact_label} uses Endor MCP tools only."
             ),
             "It records unavailable non-MCP signals in data_gaps rather than fabricating evidence.",
@@ -173,7 +174,7 @@ def claude_code_edition_readme(
             "Claude Code with the generated subagent file installed.",
             "Authenticated endorctl for the read-only API lookups documented in endorctl-setup.md.",
         ]
-        if _uses_mcp(recipe):
+        if posture.uses_mcp:
             requirements.insert(
                 1,
                 "Endor MCP access through the subagent's bundled MCP server config.",
@@ -181,7 +182,7 @@ def claude_code_edition_readme(
         notes = [
             (
                 f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals."
-                if _uses_mcp(recipe)
+                if posture.uses_mcp
                 else f"This {artifact_label} uses read-only endorctl api lookups and does not require Endor MCP."
             ),
             "Bash use is limited by prompt to the documented Endor lookup commands.",
