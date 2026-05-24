@@ -70,15 +70,22 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "give standalone Agent Kit copy/paste prompts, not AURI bot commands" in prompt
     assert "This section is optional guidance" in prompt
     assert "normal remediation PR/MR use does not require configuring exception approvals" in prompt
+    assert "@agent-ai-sast-triage request an AppSec exception review for finding" in prompt
     assert "Do not create an Endor policy yet" in prompt
+    assert "Do not embed any literal `APPSEC APPROVED:` approval phrase" in prompt
     assert "do not present `@auri`, `AURI:`, AURI Command Center" in prompt
     assert "Do not invent `file_path`, `source_location`, component names, or source files" in prompt
     assert "remediation/ai-sast/<finding-slug>" in prompt
     assert "endor/fix" in prompt
     assert "endor-agent-kit validate-ai-sast-output" in prompt
     assert "endor-agent-kit lint-ai-sast-pr-body" in prompt
+    assert "Every `patches[]` object for a generated remediation patch must include" in prompt
+    assert "source_sha" in prompt
+    assert "Use a host-allowed scratch path" in prompt
+    assert "leave `change_requests[].body` unset or mark it as renderer-required" in prompt
     assert "inject the lint-clean rendered body into `change_requests[].body`" in prompt
     assert "Do not run a known-incomplete remediation payload through the validator" in prompt
+    assert "Do not hand-render these review-facing artifacts" in prompt
     assert "Do not delegate this workflow to another subagent" in prompt
     assert "Never use bracket-only titles" in prompt
     header = prompt.split("---", 2)[1]

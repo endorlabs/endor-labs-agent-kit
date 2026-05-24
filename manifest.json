@@ -15,9 +15,9 @@
               "sha256": "7b4cda99dd85dd3106d573a9a873c97066a4f9a8c16dacb5670b52fa39cf21cb"
             },
             {
-              "bytes": 31616,
+              "bytes": 32852,
               "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "e6b0e368283fa1afa786d41d87ecd398201d8dfdadded0a00cfb81b1995b7bf5"
+              "sha256": "12208defa5b502db61a9eec266106d5a0026dc317d49e6c665150b277ce9d959"
             },
             {
               "bytes": 10617,
@@ -490,9 +490,9 @@
               "sha256": "4f65aa3fc45fe1667bcf0596a9c413e249335af8719b0423e21dba50da1b3376"
             },
             {
-              "bytes": 32404,
+              "bytes": 33640,
               "path": "codex/ai-sast-triage/SKILL.md",
-              "sha256": "0ba934653022f26da0c0328a4522dd9cac5e2e3ba7641270c6580a290c53e37c"
+              "sha256": "63b2d77a888b5b2d60b71b1d17fb3354392360035183204b249426caade1a754"
             },
             {
               "bytes": 4947,
