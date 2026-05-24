@@ -7,8 +7,8 @@ from pathlib import Path
 
 from endor_agent_kit.compilers.codex import HOST, compile_codex
 from endor_agent_kit.compilers.raw import compile_raw
-from endor_agent_kit.compilers.claude_code import _allows_read_only_endorctl
 from endor_agent_kit.recipe import EndorAgentRecipe
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 from .readme import architecture_readme_section
 from .records import (
@@ -96,7 +96,8 @@ class CodexHostAdapter:
 def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) -> str:
     """Render the Codex Generated Agent README."""
 
-    if recipe.safety_class == "mutating":
+    posture = source_recipe_safety_posture(recipe)
+    if posture.is_mutating:
         requirements = [
             "Codex with filesystem and terminal access to the target repository.",
             "Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.",
@@ -240,4 +241,5 @@ def codex_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
 
 
 def _needs_endorctl_setup(recipe: EndorAgentRecipe) -> bool:
-    return _allows_read_only_endorctl(recipe) or recipe.safety_class == "mutating"
+    posture = source_recipe_safety_posture(recipe)
+    return posture.requires_endorctl_setup

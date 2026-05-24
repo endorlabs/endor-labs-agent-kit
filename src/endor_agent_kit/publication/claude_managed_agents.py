@@ -6,14 +6,11 @@ import shutil
 from pathlib import Path
 from typing import Any
 
-from endor_agent_kit.compilers.claude_code import (
-    EDITIONS,
-    _allows_read_only_endorctl,
-    _uses_mcp,
-)
+from endor_agent_kit.compilers.claude_code import EDITIONS
 from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude_managed_agents
 from endor_agent_kit.compilers.raw import compile_raw
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 from .readme import architecture_readme_section
 from .records import (
@@ -50,6 +47,7 @@ class ClaudeManagedAgentsHostAdapter:
         has_architecture = architecture.is_file()
         editions = editions_for_host(recipe, HOST, EDITIONS)
         flat_layout = len(editions) == 1
+        posture = source_recipe_safety_posture(recipe)
         for edition in editions:
             edition_dir = _published_edition_dir(agent_root, editions, edition)
             edition_dir.mkdir(parents=True, exist_ok=True)
@@ -83,7 +81,7 @@ class ClaudeManagedAgentsHostAdapter:
                 shutil.copyfile(actions, published_actions)
                 written.append(published_actions)
 
-            if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
+            if edition == "enterprise-edition" and posture.uses_endorctl_api:
                 setup = edition_dir / "endorctl-setup.md"
                 shutil.copyfile(recipe_file.parent / "dist" / "raw" / "endorctl-setup.md", setup)
                 written.append(setup)
@@ -96,7 +94,7 @@ class ClaudeManagedAgentsHostAdapter:
                     edition_name(edition),
                     edition_dir,
                     requires_endorctl=recipe.requires_endorctl
-                    if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe)
+                    if edition == "enterprise-edition" and posture.uses_endorctl_api
                     else "",
                 )
             )
@@ -119,7 +117,8 @@ def managed_agents_edition_readme(
     name = edition_name(edition)
     title = f"{recipe.name} {name}" if show_edition_name else recipe.name
     artifact_label = "edition" if show_edition_name else "agent"
-    if edition == "developer-edition" or not _allows_read_only_endorctl(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if edition == "developer-edition" or not posture.uses_endorctl_api:
         requirements = [
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
             "A remote Endor MCP server URL configured in agent.yaml.",
@@ -136,7 +135,7 @@ def managed_agents_edition_readme(
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
             "An environment that can install and authenticate endorctl for the read-only API lookups documented in endorctl-setup.md.",
         ]
-        if _uses_mcp(recipe):
+        if posture.uses_mcp:
             requirements[1:1] = [
                 "A remote Endor MCP server URL configured in agent.yaml.",
                 "An Anthropic credential vault referenced from session-template.yaml when MCP auth is required.",
@@ -144,7 +143,7 @@ def managed_agents_edition_readme(
         notes = [
             (
                 f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals."
-                if _uses_mcp(recipe)
+                if posture.uses_mcp
                 else f"This {artifact_label} uses read-only endorctl api lookups and does not require Endor MCP."
             ),
             "The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.",

@@ -28,6 +28,10 @@ _Avoid_: host manifest, adapter manifest
 The read-side module that loads the Catalog Manifest and returns Host Artifact Bundle records plus artifact checksums for install drift checks and future install surfaces. Callers ask Catalog Manifest Lookup for bundle and artifact records instead of reconstructing generated catalog paths.
 _Avoid_: path probe, source file scan
 
+**Source Recipe Safety Posture**:
+The derived safety and transport view of a Source Recipe, including whether it uses MCP, uses documented `endorctl api` invocations, can run commands, can read or write files, can open change requests, and needs Endor setup guidance. Compilers and Host Adapters consume Source Recipe Safety Posture instead of recomputing those facts from raw recipe fields.
+_Avoid_: compiler safety helper, host policy blob
+
 **Host Adapter**:
 The Host-specific publication implementation used by Host Artifact Publication. One Host Adapter owns compiler invocation, file layout, Generated Agent README content, supporting-file rules, and Bundle Record creation for exactly one Host.
 _Avoid_: host branch, special case
@@ -114,3 +118,7 @@ Domain expert: "That is the Root Catalog README. Keep it as a separate catalog a
 Dev: "Should install drift checks read generated catalog files directly?"
 
 Domain expert: "No. Use Catalog Manifest Lookup as the install drift interface. Keep current `check-install` compatibility focused on the Primary Installed Artifact, but let the lookup module return the full Host Artifact Bundle record so plugin and managed-agent installs can deepen later."
+
+Dev: "Should Host Adapters decide from raw recipe fields whether an artifact uses MCP or endorctl?"
+
+Domain expert: "No. They should consume Source Recipe Safety Posture and keep only Host-specific wording, tools, setup-file placement, and artifact layout local."

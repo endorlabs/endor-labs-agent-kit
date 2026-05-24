@@ -10,11 +10,9 @@ import yaml
 
 from endor_agent_kit.compilers.claude_code import (
     EDITIONS,
-    _allows_read_only_endorctl,
     _instructions_for_edition,
     _normalize_edition,
     _render_action_contracts,
-    _uses_mcp,
 )
 from endor_agent_kit.recipe import (
     ActionContract,
@@ -24,6 +22,7 @@ from endor_agent_kit.recipe import (
     load_recipe,
     read_instructions,
 )
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 from endor_agent_kit.validator import validate_recipe_file
 
 HOST = "claude-managed-agents"
@@ -135,15 +134,16 @@ def _managed_system(
 ) -> str:
     body = _instructions_for_edition(instructions, edition)
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
+    posture = source_recipe_safety_posture(recipe)
     if edition == "developer-edition":
         label = "This Managed Agents artifact" if single_edition else "Managed Agents Developer Edition"
         transport = f"{label}. Use Endor MCP tools only. Do not use Bash, filesystem, web, or mutating tools."
-    elif not _allows_read_only_endorctl(recipe):
+    elif not posture.uses_endorctl_api:
         label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
         transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
     else:
         label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
-        if _uses_mcp(recipe):
+        if posture.uses_mcp:
             transport = (
                 f"{label}. Use Endor MCP first. Bash is available only for the documented "
                 "read-only `endorctl api` lookups in these instructions."
@@ -156,14 +156,14 @@ def _managed_system(
     setup = (
         "MCP servers must be remote URL servers declared in `mcp_servers`; credentials "
         "must be supplied at session creation through an Anthropic credential vault."
-        if _uses_mcp(recipe)
+        if posture.uses_mcp
         else "This generated agent does not declare MCP servers or require an MCP credential vault."
     )
     missing_signal = (
         "If an expected MCP server, vault, credential, account tier, or command is "
         "unavailable, record the missing signal in `data_gaps` instead of inventing "
         "evidence."
-        if _uses_mcp(recipe)
+        if posture.uses_mcp
         else "If an expected credential, account tier, or command is unavailable, "
         "record the missing signal in `data_gaps` instead of inventing evidence."
     )
@@ -180,7 +180,8 @@ def _managed_system(
 
 
 def _mcp_servers(recipe: EndorAgentRecipe) -> list[dict]:
-    if not _uses_mcp(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if not posture.uses_mcp:
         return []
     return [
         {
@@ -193,7 +194,8 @@ def _mcp_servers(recipe: EndorAgentRecipe) -> list[dict]:
 
 def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
     tools: list[dict] = []
-    if _uses_mcp(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if posture.uses_mcp:
         tools.append({
             "type": "mcp_toolset",
             "mcp_server_name": ENDOR_MCP_SERVER_NAME,
@@ -204,7 +206,7 @@ def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
             },
         })
 
-    if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
+    if edition == "enterprise-edition" and posture.uses_endorctl_api:
         tools.append({
             "type": "agent_toolset_20260401",
             "default_config": {
@@ -228,6 +230,7 @@ def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
 
 def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
+    posture = source_recipe_safety_posture(recipe)
     config = {
         "name": f"endor-{recipe.id}" if single_edition else f"endor-{recipe.id}-{edition}",
         "config": {
@@ -235,12 +238,12 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
             "networking": {
                 "type": "limited",
                 "allowed_hosts": ["https://api.endorlabs.com"],
-                "allow_mcp_servers": _uses_mcp(recipe),
+                "allow_mcp_servers": posture.uses_mcp,
                 "allow_package_managers": False,
             },
         },
     }
-    if edition == "enterprise-edition" and _allows_read_only_endorctl(recipe):
+    if edition == "enterprise-edition" and posture.uses_endorctl_api:
         config["config"]["packages"] = {"npm": ["endorctl"]}
         config["config"]["networking"]["allow_package_managers"] = True
     return config
@@ -251,7 +254,8 @@ def _session_template(recipe: EndorAgentRecipe) -> dict:
         "agent": "<AGENT_ID>",
         "environment_id": "<ENVIRONMENT_ID>",
     }
-    if _uses_mcp(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if posture.uses_mcp:
         template["vault_ids"] = ["<ENDOR_MCP_VAULT_ID>"]
     return template
 
