@@ -9,18 +9,19 @@ from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.compilers.claude_code import (
     EDITIONS,
     HOST,
-    compile_claude_code,
+    compile_claude_code_prepared,
 )
-from endor_agent_kit.compilers.raw import compile_raw
+from endor_agent_kit.compilers.raw import compile_raw_prepared
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 from .readme import architecture_readme_section
 from .records import (
     BundleRecord,
-    actions_source,
-    architecture_source,
     artifact_bundle_record,
+    prepared_actions_source,
+    prepared_architecture_source,
 )
 
 
@@ -31,22 +32,23 @@ class ClaudeCodeHostAdapter:
 
     def publish(
         self,
-        recipe_file: Path,
-        recipe: EndorAgentRecipe,
+        prepared: PreparedSourceRecipe,
         destination: Path,
     ) -> BundleRecord:
         """Publish one Claude Code Host Artifact Bundle."""
 
-        compile_raw(recipe_file)
-        compile_claude_code(recipe_file)
+        compile_raw_prepared(prepared)
+        compile_claude_code_prepared(prepared)
 
+        recipe_file = prepared.path
+        recipe = prepared.recipe
         agent_root = destination / HOST / recipe.id
         if agent_root.exists():
             shutil.rmtree(agent_root)
 
         written: list[Path] = []
         manifest_records: list[CatalogBundle] = []
-        architecture = architecture_source(recipe_file)
+        architecture = prepared_architecture_source(prepared)
         has_architecture = architecture.is_file()
         editions = editions_for_host(recipe, HOST, EDITIONS)
         flat_layout = len(editions) == 1
@@ -76,7 +78,7 @@ class ClaudeCodeHostAdapter:
                 shutil.copyfile(architecture, published_architecture)
                 written.append(published_architecture)
 
-            actions = actions_source(recipe_file, recipe)
+            actions = prepared_actions_source(prepared)
             if actions.is_file():
                 published_actions = edition_dir / "actions.yaml"
                 shutil.copyfile(actions, published_actions)

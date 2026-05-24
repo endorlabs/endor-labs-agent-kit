@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.cli import main
-from endor_agent_kit.publisher import publish_recipe
+from endor_agent_kit.publisher import publish_recipe, publish_recipes
 
 from conftest import repo_root
 
@@ -68,6 +68,63 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
     assert "endorctl api list" in artifact
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+
+
+def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_path, monkeypatch):
+    import endor_agent_kit.compilers.claude_code as claude_code_compiler
+    import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
+    import endor_agent_kit.compilers.raw as raw_compiler
+    import endor_agent_kit.publisher as publisher
+
+    recipe = _copy_agent(tmp_path)
+    dest = tmp_path / "endor-labs-agent-kit"
+    prepare_calls: list[Path] = []
+    real_prepare = publisher.prepare_source_recipe
+
+    def prepare_once(recipe_path: str | Path):
+        prepare_calls.append(Path(recipe_path))
+        return real_prepare(recipe_path)
+
+    def fail_if_compiler_reprepares(*_args, **_kwargs):
+        raise AssertionError("publication should pass prepared recipes to compilers")
+
+    monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
+    monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+
+    publish_recipe(recipe, dest)
+
+    assert prepare_calls == [recipe]
+
+
+def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch):
+    import endor_agent_kit.compilers.claude_code as claude_code_compiler
+    import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
+    import endor_agent_kit.compilers.raw as raw_compiler
+    import endor_agent_kit.publisher as publisher
+
+    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-decision-helper")
+    vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
+    dest = tmp_path / "endor-labs-agent-kit"
+    prepare_calls: list[Path] = []
+    real_prepare = publisher.prepare_source_recipe
+
+    def prepare_once(recipe_path: str | Path):
+        prepare_calls.append(Path(recipe_path))
+        return real_prepare(recipe_path)
+
+    def fail_if_compiler_reprepares(*_args, **_kwargs):
+        raise AssertionError("publication should pass prepared recipes to compilers")
+
+    monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
+    monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+
+    publish_recipes([dependency_recipe, vulnerability_recipe], dest, prune=True)
+
+    assert prepare_calls == [dependency_recipe, vulnerability_recipe]
 
 
 def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):

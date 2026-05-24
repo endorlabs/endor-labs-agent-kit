@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogBundle
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 
@@ -61,3 +62,15 @@ def actions_source(recipe_file: Path, recipe: EndorAgentRecipe) -> Path:
     if not recipe.action_contracts_path:
         return recipe_file.parent / "__no_actions_yaml__"
     return recipe_file.parent / recipe.action_contracts_path
+
+
+def prepared_architecture_source(prepared: PreparedSourceRecipe) -> Path:
+    """Return the optional source architecture diagram path for a prepared recipe."""
+
+    return prepared.architecture_path
+
+
+def prepared_actions_source(prepared: PreparedSourceRecipe) -> Path:
+    """Return the optional source action contract path for a prepared recipe."""
+
+    return prepared.action_contracts_path
