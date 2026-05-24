@@ -7,21 +7,13 @@ Analysis (CIA), breaking changes, manifest targets, Endor Patch availability,
 and whether an upgrade should happen now, proceed with caution, be deferred, or
 wait for more evidence.
 
-Enterprise Edition must mirror Endor's read-only Upgrade Impact Analysis
-workflow. The source of truth is the platform's precomputed
-`VersionUpgrade` resource. When project context is available, treat
-`VersionUpgrade` as authoritative and do not replace it with ad hoc package
-version comparison.
+The artifact must mirror Endor's read-only Upgrade Impact Analysis workflow.
+The source of truth is the platform's precomputed `VersionUpgrade` resource.
+When project context is available, treat `VersionUpgrade` as authoritative and
+do not replace it with ad hoc package version comparison. This artifact does
+not require, configure, or start an Endor MCP server.
 
-Developer Edition is intentionally lighter. It evaluates an explicit package
-coordinate with Endor MCP tools only:
-
-- `ecosystem`: package ecosystem such as `npm`, `pypi`, `maven`, `go`, `cargo`, `gem`, `nuget`, or `packagist`
-- `package_name`: exact package name
-- `current_version`: currently used version
-- `target_version`: candidate upgrade version
-
-Enterprise Edition accepts Endor project context:
+The artifact accepts Endor project context:
 
 - `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
 - `repository_url`: source repository URL when the host cannot infer it from a local checkout or session context
@@ -32,11 +24,10 @@ Enterprise Edition accepts Endor project context:
 - `upgrade_uuid`: optional `VersionUpgrade` UUID for full CIA details
 - `current_version` and `target_version`: optional exact versions to filter or cross-check against `VersionUpgrade`
 
-If Developer Edition lacks the explicit coordinate, ask for the missing values.
-If Enterprise Edition is asked for Endor upgrade impact and no
-`project_name`, `repository_url`, `project_uuid`, or active project context is
-available, ask for a repository URL, owner/repo, or Endor project name instead
-of asking for a UUID first. Do not inspect repository manifests in v0.
+If the user asks for Endor upgrade impact and no `project_name`,
+`repository_url`, `project_uuid`, or active project context is available, ask
+for a repository URL, owner/repo, or Endor project name instead of asking for a
+UUID first. Do not inspect repository manifests in v0.
 
 ## Project Resolution
 
@@ -63,7 +54,7 @@ dismiss findings, create policies, install packages, or mutate Endor Labs state.
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
   targets, or Endor Patch availability.
-- In Enterprise Edition, preserve Endor platform fields exactly when present:
+- Preserve Endor platform fields exactly when present:
   `upgrade_risk`, `is_best`, `is_latest`, `worth_it`,
   `total_findings_fixed`, `total_findings_introduced`,
   `to_version_age_in_days`, `score`, `score_explanation`, `deps_added`,
@@ -173,38 +164,22 @@ https://app.endorlabs.com for the full assessment.
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
-# Developer Edition Workflow: MCP Only
+# Legacy Developer Edition Section
 
-Use only Endor MCP tools. Do not use Bash or `endorctl` in this Developer
-Edition artifact.
-
-1. Call `check_dependency_for_risks` for the current version with `ecosystem`,
-   `dependency_name`, and `version`.
-2. Call `check_dependency_for_risks` for the target version with the same
-   coordinate fields, replacing `version` with `target_version`.
-3. If either risk result does not include vulnerability ids, call
-   `check_dependency_for_vulnerabilities` for that version.
-4. For each vulnerability id, call `get_endor_vulnerability`. Capture CVSS,
-   EPSS, CISA KEV, CWE ids, fixed versions, and summaries when present.
-5. Add unavailable non-MCP signals to `data_gaps`: `current_scores`,
-   `target_scores`, `target_license`, `compatibility_notes`,
-   `target_typosquat_similarity`, and `upgrade_changelog`, unless an MCP result
-   already provided that signal.
-6. Apply the upgrade ladder to gathered evidence only.
-
-This edition is MCP-only and does not grant shell execution.
+This recipe now publishes one customer-facing artifact. Use the
+`enterprise-edition` section below for the complete read-only Endor
+VersionUpgrade workflow. Do not require, configure, or start an Endor MCP
+server.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
-# Enterprise Edition Workflow: Endor Platform VersionUpgrade UIA
+# Workflow: Endor Platform VersionUpgrade UIA
 
-Enterprise Edition mirrors Endor's read-only Upgrade Impact Analysis workflow.
-Use `VersionUpgrade` resources first. Bash is allowed only for the read-only
-Endor lookups shown in this section and the package-version fallback section.
-Do not run `endorctl scan`, `endorctl api update`, `endorctl api delete`, file
-edits, package manager installs, or pull-request commands. The only allowed
-`endorctl api create` form remains the documented `QuerySimilarPackages`
-fallback lookup.
+This artifact mirrors Endor's read-only Upgrade Impact Analysis workflow. Use
+`VersionUpgrade` resources first. Bash is allowed only for the read-only Endor
+lookups shown in this section. Do not run `endorctl scan`,
+`endorctl api update`, `endorctl api delete`, file edits, package manager
+installs, pull-request commands, or Endor MCP tooling.
 
 Use `<namespace_flag>` below as `--namespace <namespace>` when the user provides
 `namespace`; otherwise omit it and rely on the configured `endorctl` namespace.
@@ -228,10 +203,8 @@ Use the most specific Endor mode available:
    Filter by `package_name`, `current_version`, or `target_version` only after
    fetching records, matching the platform's client-side filtering behavior.
 5. If no project selector is available, ask for a repository URL, owner/repo, or
-   Endor project name for Endor upgrade impact analysis. Only use the package-version
-   fallback when the user explicitly wants a generic package comparison and
-   provides `ecosystem`, `package_name`, `current_version`, and
-   `target_version`.
+   Endor project name for Endor upgrade impact analysis. Do not fall back to MCP
+   package-version comparison.
 
 ## Step 2: List Endor Upgrade Recommendations
 
@@ -366,24 +339,12 @@ Always surface `findings_fixed`, `findings_introduced`, `cia_status`,
 `score_explanation` when the platform returned them. For `endor_patch`, use the
 candidate `to_version` only when `is_endor_patch` is true.
 
-## Step 6: Package-Version Fallback for Non-Project Requests
+## Step 6: Missing Project Context
 
-Only use this fallback when project-scoped `VersionUpgrade` data cannot be
-queried and the user explicitly provided `ecosystem`, `package_name`,
-`current_version`, and `target_version`. State clearly that this is not full
-project-scoped upgrade impact analysis because project-specific VersionUpgrade,
-CIA, manifest targeting, and finding-fixing maps are unavailable.
-
-Use Endor MCP tools for current and target risk and vulnerability evidence:
-
-1. Call `check_dependency_for_risks` for the current version.
-2. Call `check_dependency_for_risks` for the target version.
-3. If either result lacks vulnerability ids, call
-   `check_dependency_for_vulnerabilities` for that version.
-4. For each vulnerability id, call `get_endor_vulnerability`.
-
-Then optionally run the existing read-only OSS `PackageVersion`, score, target
-license, and `QuerySimilarPackages` lookups if needed. Add project-scoped upgrade-impact gaps:
-`project_resolution`, `version_upgrade_recommendations`, `finding_fixing_upgrades`,
-`cia_results`, and `manifest_files`.
+If project-scoped `VersionUpgrade` data cannot be queried, return
+`INSUFFICIENT_DATA` for Endor upgrade impact analysis. Add project-scoped
+upgrade-impact gaps such as `project_resolution`,
+`version_upgrade_recommendations`, `finding_fixing_upgrades`, `cia_results`,
+and `manifest_files`. Ask for a repository URL, owner/repo, Endor project name,
+or other human-readable selector that can resolve the project.
 <!-- enterprise-edition:end -->

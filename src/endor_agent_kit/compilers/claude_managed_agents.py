@@ -14,6 +14,7 @@ from endor_agent_kit.compilers.claude_code import (
     _instructions_for_edition,
     _normalize_edition,
     _render_action_contracts,
+    _uses_mcp,
 )
 from endor_agent_kit.recipe import (
     ActionContract,
@@ -142,28 +143,44 @@ def _managed_system(
         transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
     else:
         label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
-        transport = (
-            f"{label}. Use Endor MCP first. Bash is available only for the documented "
-            "read-only `endorctl api` lookups in these instructions."
-        )
+        if _uses_mcp(recipe):
+            transport = (
+                f"{label}. Use Endor MCP first. Bash is available only for the documented "
+                "read-only `endorctl api` lookups in these instructions."
+            )
+        else:
+            transport = (
+                f"{label}. Use Bash only for the documented read-only `endorctl api` "
+                "lookups in these instructions. Do not require Endor MCP."
+            )
+    setup = (
+        "MCP servers must be remote URL servers declared in `mcp_servers`; credentials "
+        "must be supplied at session creation through an Anthropic credential vault."
+        if _uses_mcp(recipe)
+        else "This generated agent does not declare MCP servers or require an MCP credential vault."
+    )
+    missing_signal = (
+        "If an expected MCP server, vault, credential, account tier, or command is "
+        "unavailable, record the missing signal in `data_gaps` instead of inventing "
+        "evidence."
+        if _uses_mcp(recipe)
+        else "If an expected credential, account tier, or command is unavailable, "
+        "record the missing signal in `data_gaps` instead of inventing evidence."
+    )
     intro = dedent(
         f"""\
         Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version}.
         {transport}
 
-        The Managed Agents host runs in an Anthropic-managed environment. MCP
-        servers must be remote URL servers declared in `mcp_servers`; credentials
-        must be supplied at session creation through an Anthropic credential vault.
-        If an expected MCP server, vault, credential, account tier, or command is
-        unavailable, record the missing signal in `data_gaps` instead of inventing
-        evidence.
+        The Managed Agents host runs in an Anthropic-managed environment. {setup}
+        {missing_signal}
         """
     ).strip()
     return f"{intro}\n\n{body.rstrip()}\n{_render_action_contracts(actions)}"
 
 
 def _mcp_servers(recipe: EndorAgentRecipe) -> list[dict]:
-    if "mcp" not in recipe.supported_transports:
+    if not _uses_mcp(recipe):
         return []
     return [
         {
@@ -176,7 +193,7 @@ def _mcp_servers(recipe: EndorAgentRecipe) -> list[dict]:
 
 def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
     tools: list[dict] = []
-    if "mcp" in recipe.supported_transports:
+    if _uses_mcp(recipe):
         tools.append({
             "type": "mcp_toolset",
             "mcp_server_name": ENDOR_MCP_SERVER_NAME,
@@ -210,14 +227,15 @@ def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
 
 
 def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
+    single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     config = {
-        "name": f"endor-{recipe.id}-{edition}",
+        "name": f"endor-{recipe.id}" if single_edition else f"endor-{recipe.id}-{edition}",
         "config": {
             "type": "cloud",
             "networking": {
                 "type": "limited",
                 "allowed_hosts": ["https://api.endorlabs.com"],
-                "allow_mcp_servers": True,
+                "allow_mcp_servers": _uses_mcp(recipe),
                 "allow_package_managers": False,
             },
         },
@@ -233,7 +251,7 @@ def _session_template(recipe: EndorAgentRecipe) -> dict:
         "agent": "<AGENT_ID>",
         "environment_id": "<ENVIRONMENT_ID>",
     }
-    if "mcp" in recipe.supported_transports:
+    if _uses_mcp(recipe):
         template["vault_ids"] = ["<ENDOR_MCP_VAULT_ID>"]
     return template
 

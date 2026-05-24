@@ -20,29 +20,23 @@ def _copy_agent(tmp_path: Path, agent_id: str = "dependency-decision-helper") ->
 
 def _claude_code_paths(agent_id: str, *, has_setup: bool) -> set[str]:
     paths = {
-        f"claude-code/{agent_id}/developer-edition/{agent_id}.md",
-        f"claude-code/{agent_id}/developer-edition/README.md",
-        f"claude-code/{agent_id}/enterprise-edition/{agent_id}.md",
-        f"claude-code/{agent_id}/enterprise-edition/README.md",
+        f"claude-code/{agent_id}/{agent_id}.md",
+        f"claude-code/{agent_id}/README.md",
     }
     if has_setup:
-        paths.add(f"claude-code/{agent_id}/enterprise-edition/endorctl-setup.md")
+        paths.add(f"claude-code/{agent_id}/endorctl-setup.md")
     return paths
 
 
 def _managed_agent_paths(agent_id: str, *, has_setup: bool) -> set[str]:
     paths = {
-        f"claude-managed-agents/{agent_id}/developer-edition/agent.yaml",
-        f"claude-managed-agents/{agent_id}/developer-edition/environment.yaml",
-        f"claude-managed-agents/{agent_id}/developer-edition/session-template.yaml",
-        f"claude-managed-agents/{agent_id}/developer-edition/README.md",
-        f"claude-managed-agents/{agent_id}/enterprise-edition/agent.yaml",
-        f"claude-managed-agents/{agent_id}/enterprise-edition/environment.yaml",
-        f"claude-managed-agents/{agent_id}/enterprise-edition/session-template.yaml",
-        f"claude-managed-agents/{agent_id}/enterprise-edition/README.md",
+        f"claude-managed-agents/{agent_id}/agent.yaml",
+        f"claude-managed-agents/{agent_id}/environment.yaml",
+        f"claude-managed-agents/{agent_id}/session-template.yaml",
+        f"claude-managed-agents/{agent_id}/README.md",
     }
     if has_setup:
-        paths.add(f"claude-managed-agents/{agent_id}/enterprise-edition/endorctl-setup.md")
+        paths.add(f"claude-managed-agents/{agent_id}/endorctl-setup.md")
     return paths
 
 
@@ -64,16 +58,15 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert not list(dest.rglob("cases.yaml"))
     assert not list(dest.rglob("system-prompt-*.md"))
 
-    developer = (
-        dest / "claude-code" / "dependency-decision-helper" / "developer-edition" / "dependency-decision-helper.md"
-    ).read_text()
-    enterprise = (
-        dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition" / "dependency-decision-helper.md"
-    ).read_text()
-    assert "Developer Edition" in developer
-    assert "disallowedTools: Bash" in developer
-    assert "Enterprise Edition" in enterprise
-    assert "endorctl api list" in enterprise
+    artifact = (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").read_text()
+    assert "This artifact" in artifact
+    assert "mcpServers:" in artifact
+    assert "disallowedTools: Bash" not in artifact.split("---", 2)[1]
+    assert "Developer Edition" not in artifact
+    assert "Enterprise Edition" not in artifact
+    assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
+    assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
+    assert "endorctl api list" in artifact
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
@@ -84,26 +77,26 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
     written = publish_recipe(recipe, dest)
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
-    assert written_paths == (
-        _claude_code_paths("vulnerability-explainer", has_setup=False)
-        | _managed_agent_paths("vulnerability-explainer", has_setup=False)
-        | {"manifest.json", "README.md"}
-    )
-    enterprise = (
-        dest / "claude-code" / "vulnerability-explainer" / "enterprise-edition" / "vulnerability-explainer.md"
-    ).read_text()
-    enterprise_readme = (
-        dest / "claude-code" / "vulnerability-explainer" / "enterprise-edition" / "README.md"
-    ).read_text()
-    assert "disallowedTools: Bash" in enterprise
-    assert "MCP-only" in enterprise
-    assert "endorctl-setup.md" not in enterprise_readme
-    assert "explain CVE-2021-44228" in enterprise_readme
+    assert written_paths == {
+        "claude-code/vulnerability-explainer/README.md",
+        "claude-code/vulnerability-explainer/vulnerability-explainer.md",
+        "claude-managed-agents/vulnerability-explainer/README.md",
+        "claude-managed-agents/vulnerability-explainer/agent.yaml",
+        "claude-managed-agents/vulnerability-explainer/environment.yaml",
+        "claude-managed-agents/vulnerability-explainer/session-template.yaml",
+        "manifest.json",
+        "README.md",
+    }
+    artifact = (dest / "claude-code" / "vulnerability-explainer" / "vulnerability-explainer.md").read_text()
+    readme = (dest / "claude-code" / "vulnerability-explainer" / "README.md").read_text()
+    assert "disallowedTools: Bash" in artifact
+    assert "MCP-only" in artifact
+    assert "endorctl-setup.md" not in readme
+    assert "explain CVE-2021-44228" in readme
     assert not (
         dest
         / "claude-managed-agents"
         / "vulnerability-explainer"
-        / "enterprise-edition"
         / "endorctl-setup.md"
     ).exists()
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
@@ -115,22 +108,15 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
 
     publish_recipe(recipe, dest)
 
-    developer = (
-        dest / "claude-code" / "package-risk-summary" / "developer-edition" / "package-risk-summary.md"
-    ).read_text()
-    enterprise = (
-        dest / "claude-code" / "package-risk-summary" / "enterprise-edition" / "package-risk-summary.md"
-    ).read_text()
-    enterprise_readme = (
-        dest / "claude-code" / "package-risk-summary" / "enterprise-edition" / "README.md"
-    ).read_text()
-    assert "Endor Labs Package Risk Summary" in developer
-    assert "disallowedTools: Bash" in developer
+    enterprise = (dest / "claude-code" / "package-risk-summary" / "package-risk-summary.md").read_text()
+    enterprise_readme = (dest / "claude-code" / "package-risk-summary" / "README.md").read_text()
+    assert "Endor Labs Package Risk Summary" in enterprise
+    assert "mcpServers:" in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
     assert "endorctl api list" in enterprise
     assert "QuerySimilarPackages" in enterprise
     assert "summarize npm lodash version 4.17.20" in enterprise_readme
-    assert (dest / "claude-code" / "package-risk-summary" / "enterprise-edition" / "endorctl-setup.md").is_file()
+    assert (dest / "claude-code" / "package-risk-summary" / "endorctl-setup.md").is_file()
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
@@ -140,34 +126,18 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
 
     publish_recipe(recipe, dest)
 
-    developer = (
-        dest
-        / "claude-code"
-        / "upgrade-impact-analysis"
-        / "developer-edition"
-        / "upgrade-impact-analysis.md"
-    ).read_text()
-    enterprise = (
-        dest
-        / "claude-code"
-        / "upgrade-impact-analysis"
-        / "enterprise-edition"
-        / "upgrade-impact-analysis.md"
-    ).read_text()
+    enterprise = (dest / "claude-code" / "upgrade-impact-analysis" / "upgrade-impact-analysis.md").read_text()
     managed_enterprise = (
         dest
         / "claude-managed-agents"
         / "upgrade-impact-analysis"
-        / "enterprise-edition"
         / "agent.yaml"
     ).read_text()
-    enterprise_readme = (
-        dest / "claude-code" / "upgrade-impact-analysis" / "enterprise-edition" / "README.md"
-    ).read_text()
-    assert "Endor Labs Upgrade Impact Analysis" in developer
-    assert "current_version" in developer
-    assert "target_version" in developer
-    assert "disallowedTools: Bash" in developer
+    enterprise_readme = (dest / "claude-code" / "upgrade-impact-analysis" / "README.md").read_text()
+    assert "Endor Labs Upgrade Impact Analysis" in enterprise
+    assert "current_version" in enterprise
+    assert "target_version" in enterprise
+    assert "mcpServers:" not in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
     assert "endorctl api list" in enterprise
     assert "--resource VersionUpgrade" in enterprise
@@ -177,25 +147,12 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
     assert "show the safest upgrade path for repository <owner>/<repo> package lodash" in enterprise_readme
     assert "<project_uuid>" not in enterprise_readme
     assert "![Endor Labs Upgrade Impact Analysis architecture](architecture.svg)" in enterprise_readme
-    assert "Managed Agents Enterprise Edition" in managed_enterprise
-    assert (
-        dest / "claude-code" / "upgrade-impact-analysis" / "enterprise-edition" / "architecture.svg"
-    ).is_file()
-    assert (
-        dest
-        / "claude-managed-agents"
-        / "upgrade-impact-analysis"
-        / "enterprise-edition"
-        / "architecture.svg"
-    ).is_file()
-    assert (dest / "claude-code" / "upgrade-impact-analysis" / "enterprise-edition" / "endorctl-setup.md").is_file()
-    assert (
-        dest
-        / "claude-managed-agents"
-        / "upgrade-impact-analysis"
-        / "enterprise-edition"
-        / "endorctl-setup.md"
-    ).is_file()
+    assert "This Managed Agents artifact" in managed_enterprise
+    assert "mcp_toolset" not in managed_enterprise
+    assert (dest / "claude-code" / "upgrade-impact-analysis" / "architecture.svg").is_file()
+    assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "architecture.svg").is_file()
+    assert (dest / "claude-code" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
+    assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
@@ -213,7 +170,8 @@ def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
         ("claude-managed-agents", "dependency-decision-helper"),
     ]
     agent = manifest["agents"][0]
-    assert [edition["id"] for edition in agent["editions"]] == ["developer-edition", "enterprise-edition"]
+    assert [edition["id"] for edition in agent["editions"]] == ["enterprise-edition"]
+    assert agent["editions"][0]["path"] == "claude-code/dependency-decision-helper"
 
     for agent in manifest["agents"]:
         for edition in agent["editions"]:
@@ -320,9 +278,11 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         for agent in manifest["agents"]
         if agent["host"] == "claude-code" and agent["id"] == "vulnerability-explainer"
     )
-    enterprise = [edition for edition in vulnerability["editions"] if edition["id"] == "enterprise-edition"][0]
-    assert enterprise["requires_endorctl"] == ""
-    assert {artifact["path"].split("/")[-1] for artifact in enterprise["artifacts"]} == {
+    vulnerability_artifact = vulnerability["editions"][0]
+    assert vulnerability_artifact["id"] == "developer-edition"
+    assert vulnerability_artifact["path"] == "claude-code/vulnerability-explainer"
+    assert vulnerability_artifact["requires_endorctl"] == ""
+    assert {artifact["path"].split("/")[-1] for artifact in vulnerability_artifact["artifacts"]} == {
         "README.md",
         "vulnerability-explainer.md",
     }
@@ -339,8 +299,9 @@ def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
     publish_recipe(recipe, dest)
 
     assert not stale.exists()
-    assert (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").is_dir()
-    assert (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").is_dir()
+    assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
+    assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
+    assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
@@ -354,9 +315,7 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert status == 0
     assert "manifest.json" in output
     assert (dest / "manifest.json").is_file()
-    assert (
-        dest / "claude-code" / "dependency-decision-helper" / "developer-edition" / "dependency-decision-helper.md"
-    ).is_file()
+    assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
 
 
@@ -386,8 +345,8 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "package-risk-summary.md" in output
     assert "repository-dependency-reviewer.md" in output
     assert "vulnerability-explainer.md" in output
-    assert "claude-managed-agents/upgrade-impact-analysis/enterprise-edition/agent.yaml" in output
-    assert "claude-managed-agents/package-risk-summary/enterprise-edition/agent.yaml" in output
+    assert "claude-managed-agents/upgrade-impact-analysis/agent.yaml" in output
+    assert "claude-managed-agents/package-risk-summary/agent.yaml" in output
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),

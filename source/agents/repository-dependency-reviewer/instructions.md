@@ -142,10 +142,10 @@ signals and explain what setup, lockfile, or Endor access would improve.
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
-# Developer Edition Workflow: MCP + Read-Only File Inspection
+# Workflow: MCP + Read-Only File Inspection
 
-Use only Endor MCP tools and Claude Code read-only file tools. Do not use Bash
-or `endorctl` in this Developer Edition artifact.
+Use only Endor MCP tools and host read-only file tools. Do not use Bash or
+`endorctl` in this artifact.
 
 1. Identify the repository root from `repository_path` or the current Claude
    Code workspace.
@@ -161,7 +161,7 @@ or `endorctl` in this Developer Edition artifact.
    EPSS, CISA KEV, CWE ids, fix versions, and summaries when present.
 7. Apply the summary ladder to gathered evidence only.
 
-This edition is intentionally local-file-read and MCP-only. It may miss tenant
+This artifact is intentionally local-file-read and MCP-only. It may miss tenant
 context, reachability, policy exceptions, private package metadata, or package
 score/license signals that require a fuller Endor tenant scan.
 <!-- developer-edition:end -->

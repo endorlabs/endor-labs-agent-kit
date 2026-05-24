@@ -7,15 +7,19 @@ from pathlib import Path
 import yaml
 
 from endor_agent_kit.cli import main
-from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
+from endor_agent_kit.compilers import (
+    compile_claude_code,
+    compile_claude_managed_agents,
+    compile_codex,
+    compile_raw,
+)
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
 from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 
 from conftest import repo_root
 
 
-DEVELOPER_EDITION_SHA256 = "0255aa765735266cdecfcb9b6bc54218c13f2d58d325b1da7fbede37598dbccc"
-ENTERPRISE_EDITION_SHA256 = "130318710908f0b56b56dd9657ca62b875d9dceba81e16dfc55e494530311c26"
+ENTERPRISE_EDITION_SHA256 = "dc0ef5961373a75a7125cfaa8a3d1ebc416a196bc1b4594c9f51dbbba57cea28"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -46,39 +50,27 @@ def _minimal_recipe(*, read_files: bool) -> EndorAgentRecipe:
     )
 
 
-def test_claude_code_compiler_emits_developer_and_enterprise_editions(tmp_path):
+def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     recipe = _copy_agent(tmp_path)
 
     outputs = compile_claude_code(recipe)
 
     assert [path.name for path in outputs] == [
         "dependency-decision-helper.md",
-        "dependency-decision-helper.md",
     ]
-    developer = (
-        recipe.parent / "dist" / "claude-code" / "developer-edition" / "dependency-decision-helper.md"
-    ).read_text()
     enterprise = (
         recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-decision-helper.md"
     ).read_text()
 
-    developer_header = developer.split("---", 2)[1]
     enterprise_header = enterprise.split("---", 2)[1]
-    assert "\ntools:" not in developer_header
     assert "\ntools:" not in enterprise_header
-    assert "mcpServers:" in developer_header
+    assert not (recipe.parent / "dist" / "claude-code" / "developer-edition").exists()
     assert "mcpServers:" in enterprise_header
-    assert "endor-cli-tools:" in developer_header
     assert "endor-cli-tools:" in enterprise_header
-    assert "alwaysLoad: true" in developer_header
     assert "alwaysLoad: true" in enterprise_header
-    assert "disallowedTools: Bash" in developer_header
     assert "disallowedTools: Bash" not in enterprise_header
-    assert "model: sonnet" in developer_header
     assert "model: sonnet" in enterprise_header
-    assert "endorctl api list" not in developer
     assert "endorctl api list" in enterprise
-    assert "data_gaps" in developer
     assert "data_gaps" in enterprise
 
 
@@ -108,7 +100,7 @@ def test_claude_code_compiler_edition_filter(tmp_path):
     assert not (recipe.parent / "dist" / "claude-code" / "enterprise-edition").exists()
 
 
-def test_claude_managed_agents_compiler_emits_developer_and_enterprise_editions(tmp_path):
+def test_claude_managed_agents_compiler_emits_selected_customer_artifact(tmp_path):
     recipe = _copy_agent(tmp_path)
 
     outputs = compile_claude_managed_agents(recipe)
@@ -117,13 +109,7 @@ def test_claude_managed_agents_compiler_emits_developer_and_enterprise_editions(
         "agent.yaml",
         "environment.yaml",
         "session-template.yaml",
-        "agent.yaml",
-        "environment.yaml",
-        "session-template.yaml",
     ]
-    developer = yaml.safe_load(
-        (recipe.parent / "dist" / "claude-managed-agents" / "developer-edition" / "agent.yaml").read_text()
-    )
     enterprise = yaml.safe_load(
         (recipe.parent / "dist" / "claude-managed-agents" / "enterprise-edition" / "agent.yaml").read_text()
     )
@@ -137,19 +123,11 @@ def test_claude_managed_agents_compiler_emits_developer_and_enterprise_editions(
         ).read_text()
     )
 
-    assert developer["model"] == "claude-sonnet-4-6"
-    assert developer["mcp_servers"][0]["type"] == "url"
-    assert developer["mcp_servers"][0]["name"] == "endor"
-    assert developer["tools"] == [
-        {
-            "type": "mcp_toolset",
-            "mcp_server_name": "endor",
-            "default_config": {"permission_policy": {"type": "always_ask"}},
-        }
-    ]
-    assert "Managed Agents Developer Edition" in developer["system"]
-    assert "Bash" not in {config.get("name") for tool in developer["tools"] for config in tool.get("configs", [])}
+    assert not (recipe.parent / "dist" / "claude-managed-agents" / "developer-edition").exists()
 
+    assert enterprise["model"] == "claude-sonnet-4-6"
+    assert enterprise["mcp_servers"][0]["type"] == "url"
+    assert enterprise["mcp_servers"][0]["name"] == "endor"
     enterprise_tools = {tool["type"]: tool for tool in enterprise["tools"]}
     assert "mcp_toolset" in enterprise_tools
     assert enterprise_tools["agent_toolset_20260401"]["default_config"]["enabled"] is False
@@ -161,6 +139,7 @@ def test_claude_managed_agents_compiler_emits_developer_and_enterprise_editions(
         }
     ]
     assert "endorctl api list" in enterprise["system"]
+    assert enterprise_environment["name"] == "endor-dependency-decision-helper"
     assert enterprise_environment["config"]["packages"] == {"npm": ["endorctl"]}
 
 
@@ -234,7 +213,7 @@ def test_claude_code_compiler_removes_legacy_output_dirs(tmp_path):
 
     assert not legacy_standard.exists()
     assert not legacy_extended.exists()
-    assert (recipe.parent / "dist" / "claude-code" / "developer-edition").is_dir()
+    assert not (recipe.parent / "dist" / "claude-code" / "developer-edition").exists()
     assert (recipe.parent / "dist" / "claude-code" / "enterprise-edition").is_dir()
 
 
@@ -283,13 +262,29 @@ def test_raw_compiler_emits_setup_bundle(tmp_path):
 
     names = {path.name for path in outputs}
     assert names == {
-        "system-prompt-developer-edition.md",
         "system-prompt-enterprise-edition.md",
         "mcp-config.json",
         "endorctl-setup.md",
     }
     assert "endor-cli-tools" in (recipe.parent / "dist" / "raw" / "mcp-config.json").read_text()
     assert "read-only Endor lookups" in (recipe.parent / "dist" / "raw" / "endorctl-setup.md").read_text()
+
+
+def test_codex_compiler_emits_skill_artifact(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    data = recipe.read_text(encoding="utf-8")
+    data = data.replace("  - claude-managed-agents\n", "  - claude-managed-agents\n  - codex\n")
+    recipe.write_text(data, encoding="utf-8")
+
+    outputs = compile_codex(recipe)
+
+    assert [path.name for path in outputs] == ["SKILL.md"]
+    skill = (recipe.parent / "dist" / "codex" / "dependency-decision-helper" / "SKILL.md").read_text()
+    assert "name: dependency-decision-helper" in skill
+    assert "Generated from Endor Agent Kit recipe `dependency-decision-helper`" in skill
+    assert "## Codex Host Contract" in skill
+    assert "Shell commands, when used, must stay read-only" in skill
+    assert "endorctl api list" in skill
 
 
 def test_raw_compiler_removes_legacy_prompt_names(tmp_path):
@@ -305,17 +300,15 @@ def test_raw_compiler_removes_legacy_prompt_names(tmp_path):
 
     assert not legacy_standard.exists()
     assert not legacy_extended.exists()
-    assert (raw_dir / "system-prompt-developer-edition.md").is_file()
+    assert not (raw_dir / "system-prompt-developer-edition.md").exists()
     assert (raw_dir / "system-prompt-enterprise-edition.md").is_file()
 
 
 def test_claude_code_compiler_golden_hashes(tmp_path):
     recipe = _copy_agent(tmp_path)
     compile_claude_code(recipe)
-    developer = recipe.parent / "dist" / "claude-code" / "developer-edition" / "dependency-decision-helper.md"
     enterprise = recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-decision-helper.md"
 
-    assert _sha256(developer) == DEVELOPER_EDITION_SHA256
     assert _sha256(enterprise) == ENTERPRISE_EDITION_SHA256
 
 

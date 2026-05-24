@@ -1,4 +1,0 @@
-agent: <AGENT_ID>
-environment_id: <ENVIRONMENT_ID>
-vault_ids:
-- <ENDOR_MCP_VAULT_ID>

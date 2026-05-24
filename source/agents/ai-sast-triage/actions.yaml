@@ -6,8 +6,8 @@ actions:
     providers: ["endorctl-api", "endor-api"]
     required_host_capabilities: ["run_commands"]
     inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
-    outputs: ["project_uuid", "project_name", "repo_full_name", "namespace"]
-    notes: "Resolve the project from repository context first. Do not ask the user for a project UUID unless human selectors are ambiguous or absent."
+    outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
+    notes: "Resolve the project from repository context first. Resolve namespace provenance from the current request, environment, or active endorctl config before using -n. Do not use namespaces from prior sessions or ask the user for a project UUID unless human selectors are ambiguous or absent."
 
   - id: fetch-pinned-source
     kind: scm.source_read
@@ -15,9 +15,9 @@ actions:
     confirmation_required: false
     providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
     required_host_capabilities: ["run_commands", "read_files"]
-    inputs: ["repo", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
-    outputs: ["source_text", "source_sha", "source_url"]
-    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed."
+    inputs: ["repo", "finding_uuid", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
+    outputs: ["source_text", "source_sha", "source_url", "source_location_provenance"]
+    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed."
 
   - id: open-change-request
     kind: scm.change_request
@@ -26,8 +26,8 @@ actions:
     providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
     required_host_capabilities: ["run_commands", "read_files", "write_files", "open_pr"]
     inputs: ["repo", "base_branch", "patch_diff", "title", "body", "exploit_context", "remediation_guidance_usage", "validation_plan"]
-    outputs: ["url", "branch", "status"]
-    notes: "Prepare the diff and PR/MR body first, include sanitized exploit context and remediation-guidance usage, run available validation, and ask for explicit approval before pushing or opening the change request."
+    outputs: ["url", "branch", "status", "title", "body"]
+    notes: "Prepare the diff and AURI-style PR/MR body first, include sanitized evidence, severity indicator emoji, hidden finding/project context metadata, and validation status, then ask for explicit approval before pushing or opening the change request."
 
   - id: request-exception-review
     kind: approval.request
@@ -56,10 +56,10 @@ actions:
     confirmation_required: true
     providers: ["endorctl-api", "endor-api"]
     required_host_capabilities: ["run_commands"]
-    inputs: ["finding_uuid", "project_uuid", "exception_reason", "expiration_time", "approver", "approval_evidence_url"]
-    outputs: ["policy_uuid", "status"]
+    inputs: ["finding_uuid", "project_uuid", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
+    outputs: ["policy_name", "policy_uuid", "status", "idempotency_status"]
     availability: available
-    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, and receiving explicit user confirmation in the Claude Code session."
+    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and finding UUID, and receiving explicit user confirmation in the Claude Code session. If an active matching policy already exists for the same finding, project, and reason, reuse it and do not create another policy."
 
   - id: post-decision-comment
     kind: scm.comment
@@ -67,7 +67,7 @@ actions:
     confirmation_required: true
     providers: ["github", "gitlab"]
     required_host_capabilities: ["run_commands", "open_pr"]
-    inputs: ["pr_url", "decision", "policy_uuid", "body"]
+    inputs: ["pr_url", "decision", "policy_name", "policy_uuid", "body"]
     outputs: ["comment_url", "status"]
     availability: available
-    notes: "After the Endor policy is created, post a PR/MR comment with the policy UUID, approver, approval evidence URL, expiration, and scope."
+    notes: "After the Endor policy is created or an existing active policy is reused, post a PR/MR comment with the policy name, policy UUID, human-readable Endor project label, finding UUID, approver, approval evidence URL, and expiration. Do not show raw '$uuid=...' project_selector syntax as the review-facing scope."
