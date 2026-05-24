@@ -13,12 +13,9 @@ from endor_agent_kit.compilers.claude_code import (
 )
 from endor_agent_kit.recipe import (
     EndorAgentRecipe,
-    load_action_contracts,
-    load_recipe,
-    read_instructions,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
-from endor_agent_kit.validator import validate_recipe_file
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 HOST = "codex"
 CODEX_SECTION_EDITION = "enterprise-edition"
@@ -27,21 +24,21 @@ CODEX_SECTION_EDITION = "enterprise-edition"
 def compile_codex(recipe_path: str | Path) -> list[Path]:
     """Compile a recipe to a Codex skill artifact."""
 
-    recipe_file = Path(recipe_path)
-    errors = validate_recipe_file(recipe_file)
-    if errors:
-        raise ValueError("\n".join(errors))
+    return compile_codex_prepared(prepare_source_recipe(recipe_path))
 
-    recipe = load_recipe(recipe_file)
-    instructions = read_instructions(recipe_file, recipe)
-    actions = load_action_contracts(recipe_file, recipe)
+
+def compile_codex_prepared(prepared: PreparedSourceRecipe) -> list[Path]:
+    """Compile a prepared Source Recipe to a Codex skill artifact."""
+
+    recipe_file = prepared.path
+    recipe = prepared.recipe
     out_dir = recipe_file.parent / "dist" / HOST / recipe.id
     if out_dir.exists():
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     skill = out_dir / "SKILL.md"
-    skill.write_text(_render_skill(recipe, instructions, actions), encoding="utf-8")
+    skill.write_text(_render_skill(recipe, prepared.instructions, prepared.actions), encoding="utf-8")
     return [skill]
 
 

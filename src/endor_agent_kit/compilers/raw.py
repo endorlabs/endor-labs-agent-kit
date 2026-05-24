@@ -14,12 +14,9 @@ from endor_agent_kit.compilers.claude_code import (
 from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
-    load_action_contracts,
-    load_recipe,
-    read_instructions,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
-from endor_agent_kit.validator import validate_recipe_file
+from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
 
@@ -27,14 +24,14 @@ LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
 def compile_raw(recipe_path: str | Path) -> list[Path]:
     """Compile a recipe to raw prompt/setup artifacts."""
 
-    recipe_file = Path(recipe_path)
-    errors = validate_recipe_file(recipe_file)
-    if errors:
-        raise ValueError("\n".join(errors))
+    return compile_raw_prepared(prepare_source_recipe(recipe_path))
 
-    recipe = load_recipe(recipe_file)
-    instructions = read_instructions(recipe_file, recipe)
-    actions = load_action_contracts(recipe_file, recipe)
+
+def compile_raw_prepared(prepared: PreparedSourceRecipe) -> list[Path]:
+    """Compile a prepared Source Recipe to raw prompt/setup artifacts."""
+
+    recipe_file = prepared.path
+    recipe = prepared.recipe
     out_dir = recipe_file.parent / "dist" / "raw"
     out_dir.mkdir(parents=True, exist_ok=True)
     _remove_legacy_raw_prompts(out_dir)
@@ -47,7 +44,8 @@ def compile_raw(recipe_path: str | Path) -> list[Path]:
     outputs = [
         _write(
             out_dir / f"system-prompt-{edition}.md",
-            _instructions_for_edition(instructions, edition) + _render_action_contracts(actions),
+            _instructions_for_edition(prepared.instructions, edition)
+            + _render_action_contracts(prepared.actions),
         )
         for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)
     ]
