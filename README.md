@@ -289,6 +289,8 @@ endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md
 endor-agent-kit lint-ai-sast-pr-body pr-body.md
 endor-agent-kit render-ai-sast-approval-comment ai-sast-output.json > approval-comment.md
 endor-agent-kit lint-ai-sast-approval-comment approval-comment.md
+endor-agent-kit render-ai-sast-exception-policy-comment ai-sast-output.json > policy-comment.md
+endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md
 ```
 
 `validate-sca-output` rejects Selection / Plan responses that omit
@@ -304,12 +306,18 @@ AI SAST triage outputs can be checked before remediation, PR/MR, or
 exception-policy gates advance. `validate-ai-sast-output` requires
 project and namespace provenance, finding/source-location provenance,
 approval evidence before exception policies, and a rendered PR/MR body
-when a remediation change request is part of the plan. The AI SAST
+when a remediation change request is part of the plan. For exception
+policies it also checks accepted-risk expiration, approval reason
+matching, approved finding scope, project selector scope, policy names,
+idempotency checks, and human-readable decision comments. The AI SAST
 PR/MR renderer follows the AURI AI SAST remediation structure with
 `auri:ai-sast-context` metadata, severity indicator emojis, sanitized
-AURI evidence, an exception-request comment block, folded finding details,
+AURI evidence, a standalone exception-request prompt block, folded finding details,
 and standalone Agent Kit policy-write gates that still require independent
-AppSec approval before any Endor policy write.
+AppSec approval before any Endor policy write. Standalone Agent Kit is not
+a webhook listener: PR/MR comments are approval evidence, and a user or
+external automation must invoke the installed agent before any policy can
+be created or reused.
 
 For `sca-remediation`, keep the three remediation lanes distinct:
 
@@ -438,6 +446,8 @@ CI runs the same validation and generated-artifact drift check.
 | `endor-agent-kit lint-ai-sast-pr-body pr-body.md` | Lint an AURI-style AI SAST remediation PR/MR body for required sections, hidden context metadata, and severity indicators. |
 | `endor-agent-kit render-ai-sast-approval-comment ai-sast-output.json > approval-comment.md` | Render a standalone AppSec approval request comment. |
 | `endor-agent-kit lint-ai-sast-approval-comment approval-comment.md` | Lint the approval request comment and exact approval phrase. |
+| `endor-agent-kit render-ai-sast-exception-policy-comment ai-sast-output.json > policy-comment.md` | Render a human-readable Endor exception policy decision comment. |
+| `endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md` | Lint the policy decision comment for policy name/UUID, project label, evidence, and raw selector leakage. |
 | `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |
 | `endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex` | Check whether an installed Codex skill matches the generated catalog artifact. |
 

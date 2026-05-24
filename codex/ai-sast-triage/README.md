@@ -38,8 +38,11 @@ Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do 
 Use the ai-sast-triage skill to remediate finding <finding_uuid> for this repository. Use Endor Exploit Reproduction and Remediation Guidance as context, but verify the fix against the source. Show me the patch, branch name, PR/MR title, and PR/MR body before pushing. After I approve, open exactly one PR/MR.
 ```
 
+Use the exception workflow only when a finding should be excepted instead
+of remediated in code.
+
 ```text
-Use the ai-sast-triage skill to verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, render the Endor exception policy spec for my confirmation. After I confirm, create the scoped policy and comment on the PR/MR with the policy UUID, approver, expiration, scope, and evidence URL.
+Use the ai-sast-triage skill to verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, check for an existing active Endor exception policy for this finding/project/reason, then render the Endor exception policy spec for my confirmation. After I confirm, create or reuse the scoped policy and comment on the PR/MR with the policy name, policy UUID, Endor project, approver, expiration, and evidence URL.
 ```
 
 ## QA Smoke Test

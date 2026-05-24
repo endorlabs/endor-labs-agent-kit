@@ -29,6 +29,8 @@ LEGACY_SECTION_NAMES = {
 LEGACY_OUTPUT_DIRS = tuple(LEGACY_EDITION_ALIASES)
 EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
 READ_OR_WRITE_TOOLS = (
+    "Task",
+    "Agent",
     "Read",
     "Write",
     "Edit",

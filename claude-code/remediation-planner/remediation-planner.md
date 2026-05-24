@@ -2,7 +2,7 @@
 name: remediation-planner
 description: |
   Preview safe remediation options without opening PRs.
-disallowedTools: Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+disallowedTools: Task, Agent, Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---
 

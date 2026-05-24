@@ -78,17 +78,33 @@ Remediation PR/MR bodies should follow the AURI AI SAST structure:
 - `### 🔧 What changed`
 - `### 🔎 Evidence provided by AURI`
 - `### ✅ Review checklist`
-- `### 📝 Need an exception instead?` with the `@auri` and `AURI:` request forms
+- `### 📝 Need an exception instead?` with standalone Agent Kit request prompts
 - folded `📎 Finding details` table
 
 Severity must be visually indicated everywhere it is shown: Critical `🔴`,
 High `🟠`, Medium `🟡`, and Low `🟢`.
+Default to one remediation PR/MR per AI SAST finding so review, validation,
+rollback, and exception handling stay traceable. Group findings only when
+one small, cohesive source change fixes the same root cause in the same
+repository/component or when the user explicitly asks for grouping.
+The PR/MR title should start with the visual indicator and highest severity
+represented, such as `🟡 Medium: Fix ...` for one finding or
+`🟠 High: Fix 3 AI SAST findings` for a tightly grouped fix. Bracket-only
+titles like `[Medium] Fix ...` should be treated as invalid.
 
-### 5. Configure AppSec Approvers
+When `endor-agent-kit` is available and temporary file writes are allowed,
+use it as the source of truth for generated bodies: validate the normalized
+AI SAST JSON, render the PR/MR body, and lint the rendered body before
+opening the change request.
 
-Standalone exception creation requires an approval artifact in the PR/MR.
-Give the agent the allowed approvers before it creates an Endor exception
-policy. Use GitHub handles, GitLab usernames, or team slugs:
+### 5. Configure Optional AppSec Approvers
+
+The exception workflow is optional. You can use the agent for triage and
+remediation PR/MRs without configuring AppSec approvers or Endor policy-write
+access. If your team wants PR/MR-driven exceptions, standalone exception
+creation requires an approval artifact in the PR/MR. Give the agent the
+allowed approvers before it creates an Endor exception policy. Use GitHub
+handles, GitLab usernames, or team slugs:
 
 ```text
 AppSec approvers: @alice, @bob, @endor-labs/appsec
@@ -107,17 +123,26 @@ APPSEC APPROVED: accept risk for finding <finding_uuid> until YYYY-MM-DD - <owne
 ```
 
 The agent verifies the approver, finding UUID, request type, and expiration
-before it renders the Endor policy spec.
+before it renders the Endor policy spec. In standalone Agent Kit, PR/MR comments are approval evidence only; they do not automatically trigger a
+policy write unless a user or external automation invokes the installed
+agent.
 
-### 7. Policy Creation Gate
+### 7. Optional Policy Creation Gate
 
 The agent may create a scoped Endor exception policy only after all of these
 are true:
 
 - AppSec approval evidence is verified from the PR/MR.
+- Existing Endor policies are checked by generated policy name and finding UUID.
 - The policy spec is shown in the Claude Code session.
 - The user explicitly confirms policy creation.
 - Endor returns a policy UUID.
+
+If an active matching exception policy already exists for the same finding,
+project, and reason, the agent should reuse that policy and should not
+create a duplicate. The PR/MR decision comment should show the policy name
+first, keep the policy UUID for API traceability, and display a human-readable
+Endor project label instead of raw `$uuid=...` selector syntax.
 
 ## Example
 
@@ -143,10 +168,18 @@ from your environment.
 @agent-ai-sast-triage remediate finding <finding_uuid> for this repository. Use Endor Exploit Reproduction and Remediation Guidance as context, but verify the fix against the source. Show me the patch, branch name, PR/MR title, and PR/MR body before pushing. After I approve, open exactly one PR/MR.
 ```
 
-### 3. Request Exception Approval
+Use one PR/MR per finding by default. If a single cohesive source change
+fixes several findings with the same root cause, use the highest severity
+in the title, for example `🟠 High: Fix 3 AI SAST findings`, and list each
+finding separately in the body.
+
+### 3. Request Optional Exception Approval
+
+This workflow is optional; use it only when the finding should be excepted
+instead of remediated in code.
 
 ```text
-@agent-ai-sast-triage request an AppSec exception review for finding <finding_uuid> on PR/MR <pr_or_mr_url>. Allowed AppSec approvers: @alice, @bob. Do not create an Endor policy yet. Post or update a PR/MR comment with the exact approval phrases the approver can use.
+@agent-ai-sast-triage request an AppSec exception review for finding <finding_uuid> on PR/MR <pr_or_mr_url>. Request type: accept risk until YYYY-MM-DD. Reason: <owner, mitigation, and why code will not change now>. Allowed AppSec approvers: @alice, @bob. Do not create an Endor policy yet. Post or update a PR/MR comment with the exact approval phrase the approver can use.
 ```
 
 ### 4. AppSec Approval Comment
@@ -161,11 +194,17 @@ APPSEC APPROVED: accept risk for finding <finding_uuid> until YYYY-MM-DD - <owne
 The requester, PR author, and agent account must not approve their own
 exception request.
 
-### 5. Create The Scoped Endor Exception Policy
+### 5. Optional Scoped Endor Exception Policy
 
 ```text
-@agent-ai-sast-triage verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, render the Endor exception policy spec for my confirmation. After I confirm, create the scoped policy and comment on the PR/MR with the policy UUID, approver, expiration, scope, and evidence URL.
+@agent-ai-sast-triage verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, check for an existing active Endor exception policy for this finding/project/reason, then render the Endor exception policy spec for my confirmation. After I confirm, create or reuse the scoped policy and comment on the PR/MR with the policy name, policy UUID, Endor project, approver, expiration, and evidence URL.
 ```
+
+For render-only exception checks, the agent should emit validator-ready
+JSON with `approvals[].approved: true`, `approvals[].expiration_time`,
+`exception_policies[].policy_name`, `exception_policies[].idempotency_check`,
+and `exception_policies[].policy_spec`. A pending policy should fail only
+the explicit-confirmation gate until the user approves the Endor write.
 
 Do not combine remediation and exception approval in normal production use.
 If you test both paths for QA, label the exception as temporary validation.

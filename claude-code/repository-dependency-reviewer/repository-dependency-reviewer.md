@@ -12,7 +12,7 @@ mcpServers:
       command: npx
       args: ["-y", "endorctl", "ai-tools", "mcp-server"]
       alwaysLoad: true
-disallowedTools: Bash, Write, Edit, MultiEdit, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+disallowedTools: Bash, Task, Agent, Write, Edit, MultiEdit, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---
 
