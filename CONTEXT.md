@@ -36,6 +36,10 @@ _Avoid_: root README, catalog README
 The repository-level `README.md` generated from catalog state and source-first project rules. It summarizes available agents, hosts, contributor workflow, and repository layout, but it is not the README for one installable agent. Root Catalog README generation stays separate from Host Artifact Publication while consuming the same catalog state produced by the coordinator.
 _Avoid_: generated agent README
 
+**Catalog Aggregate**:
+A repository-level catalog view rendered from Catalog Manifest state after Host Artifact Publication has produced Host Artifact Bundles. The Root Catalog README is the first Catalog Aggregate. Catalog Aggregates stay separate from Host Adapters because they summarize across Hosts instead of publishing one Host Artifact Bundle.
+_Avoid_: host readme, manifest writer
+
 **Host Artifact Publication**:
 The process that turns a Source Recipe into Host Artifact Bundles plus catalog metadata. Host Artifact Publication lives in a dedicated publication package, coordinates one Host Adapter per Host, and keeps `publisher.py` as the Publication Interface compatibility shell; the Root Catalog README is a separate catalog aggregate fed by published bundle metadata.
 _Avoid_: copy step, dist sync
@@ -45,7 +49,7 @@ The current caller-facing functions `publish_recipe()` and `publish_recipes()`. 
 _Avoid_: new public entrypoint, replacement command
 
 **Publication Migration**:
-The incremental refactor path for deepening Host Artifact Publication. Publication Migration introduced the publication package, Bundle Record, coordinator, and Host Adapter seam first, moved the Codex, Claude Code, and Claude Managed Agents Host Adapters, and then moved Catalog Manifest writing into Host Artifact Publication while preserving generated output.
+The incremental refactor path for deepening Host Artifact Publication. Publication Migration introduced the publication package, Bundle Record, coordinator, and Host Adapter seam first, moved the Codex, Claude Code, and Claude Managed Agents Host Adapters, moved Catalog Manifest writing into Host Artifact Publication, and moved Root Catalog README generation into a Catalog Aggregate while preserving generated output.
 _Avoid_: big-bang rewrite
 
 ## Flagged Ambiguities
@@ -85,7 +89,7 @@ Domain expert: "Move Codex first. It is the smallest Host Adapter and proves the
 
 Dev: "What is the current Host Adapter migration state?"
 
-Domain expert: "Codex, Claude Code, and Claude Managed Agents now publish through Host Adapters. Host Artifact Publication owns normal publish and prune-time Catalog Manifest writes. The Publication Interface shell still flattens paths and writes the separate Root Catalog README."
+Domain expert: "Codex, Claude Code, and Claude Managed Agents now publish through Host Adapters. Host Artifact Publication owns normal publish and prune-time Catalog Manifest writes. A Catalog Aggregate owns Root Catalog README generation. The Publication Interface shell flattens paths and coordinates those deeper modules."
 
 Dev: "Should Host Adapters return paths or richer records?"
 
