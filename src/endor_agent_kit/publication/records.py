@@ -19,6 +19,14 @@ class BundleRecord:
     manifest_records: tuple[dict[str, Any], ...]
 
 
+@dataclass(frozen=True)
+class PublicationRecord:
+    """Internal result of publishing one bundle into the Catalog Manifest."""
+
+    bundle: BundleRecord
+    catalog_manifest: Path
+
+
 def artifact_bundle_record(
     destination: Path,
     recipe: EndorAgentRecipe,
