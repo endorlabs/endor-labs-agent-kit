@@ -45,7 +45,7 @@ The current caller-facing functions `publish_recipe()` and `publish_recipes()`. 
 _Avoid_: new public entrypoint, replacement command
 
 **Publication Migration**:
-The incremental refactor path for deepening Host Artifact Publication. Publication Migration should introduce the publication package, Bundle Record, coordinator, and Host Adapter seam first, then move the Codex Host Adapter before Claude Code or Claude Managed Agents while preserving generated output.
+The incremental refactor path for deepening Host Artifact Publication. Publication Migration introduced the publication package, Bundle Record, coordinator, and Host Adapter seam first, moved the Codex, Claude Code, and Claude Managed Agents Host Adapters, and then moved Catalog Manifest writing into Host Artifact Publication while preserving generated output.
 _Avoid_: big-bang rewrite
 
 ## Flagged Ambiguities
@@ -82,6 +82,10 @@ Domain expert: "No. Publication Migration should add the package and seam first,
 Dev: "Which Host Adapter moves first?"
 
 Domain expert: "Move Codex first. It is the smallest Host Adapter and proves the seam before edition-heavy Hosts move."
+
+Dev: "What is the current Host Adapter migration state?"
+
+Domain expert: "Codex, Claude Code, and Claude Managed Agents now publish through Host Adapters. Host Artifact Publication owns normal publish and prune-time Catalog Manifest writes. The Publication Interface shell still flattens paths and writes the separate Root Catalog README."
 
 Dev: "Should Host Adapters return paths or richer records?"
 
