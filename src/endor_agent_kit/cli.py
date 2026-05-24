@@ -8,14 +8,25 @@ from pathlib import Path
 from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
+    compile_codex,
     compile_raw,
 )
 from endor_agent_kit.compilers.claude_code import EDITION_CHOICES
-from endor_agent_kit.install import check_claude_code_install
+from endor_agent_kit.ai_sast_triage import (
+    lint_ai_sast_approval_comment,
+    lint_ai_sast_exception_policy_comment,
+    lint_ai_sast_pr_body,
+    load_json_payload as load_ai_sast_json_payload,
+    render_ai_sast_approval_comment,
+    render_ai_sast_exception_policy_comment,
+    render_ai_sast_pr_body,
+    validate_ai_sast_gate_payload,
+)
+from endor_agent_kit.install import check_claude_code_install, check_codex_install
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.sca_remediation import (
     lint_sca_pr_body,
-    load_json_payload,
+    load_json_payload as load_sca_json_payload,
     render_sca_pr_body,
     validate_sca_gate_payload,
 )
@@ -33,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
     compile_parser.add_argument("recipe", type=Path)
     compile_parser.add_argument(
         "--target",
-        choices=("claude-code", "claude-managed-agents", "raw"),
+        choices=("claude-code", "claude-managed-agents", "codex", "raw"),
         required=True,
     )
     compile_parser.add_argument(
@@ -77,12 +88,61 @@ def main(argv: list[str] | None = None) -> int:
     )
     lint_pr_parser.add_argument("body", type=Path)
 
+    validate_ai_sast_parser = subparsers.add_parser(
+        "validate-ai-sast-output",
+        help="Validate structured ai-sast-triage output for a workflow gate",
+    )
+    validate_ai_sast_parser.add_argument("payload", type=Path)
+    validate_ai_sast_parser.add_argument(
+        "--gate",
+        choices=("triage", "remediation", "pr", "exception"),
+        default="triage",
+    )
+
+    render_ai_sast_pr_parser = subparsers.add_parser(
+        "render-ai-sast-pr-body",
+        help="Render an AURI-style AI SAST remediation PR/MR body from normalized JSON",
+    )
+    render_ai_sast_pr_parser.add_argument("payload", type=Path)
+
+    lint_ai_sast_pr_parser = subparsers.add_parser(
+        "lint-ai-sast-pr-body",
+        help="Lint an AURI-style AI SAST remediation PR/MR body",
+    )
+    lint_ai_sast_pr_parser.add_argument("body", type=Path)
+
+    render_ai_sast_approval_parser = subparsers.add_parser(
+        "render-ai-sast-approval-comment",
+        help="Render an AI SAST AppSec approval request comment from normalized JSON",
+    )
+    render_ai_sast_approval_parser.add_argument("payload", type=Path)
+
+    lint_ai_sast_approval_parser = subparsers.add_parser(
+        "lint-ai-sast-approval-comment",
+        help="Lint an AI SAST AppSec approval request comment",
+    )
+    lint_ai_sast_approval_parser.add_argument("body", type=Path)
+
+    render_ai_sast_policy_comment_parser = subparsers.add_parser(
+        "render-ai-sast-exception-policy-comment",
+        help="Render an AI SAST Endor exception policy decision comment from normalized JSON",
+    )
+    render_ai_sast_policy_comment_parser.add_argument("payload", type=Path)
+
+    lint_ai_sast_policy_comment_parser = subparsers.add_parser(
+        "lint-ai-sast-exception-policy-comment",
+        help="Lint an AI SAST Endor exception policy decision comment",
+    )
+    lint_ai_sast_policy_comment_parser.add_argument("body", type=Path)
+
     check_install_parser = subparsers.add_parser(
         "check-install",
-        help="Check whether a repo-level Claude Code agent install matches the catalog",
+        help="Check whether an installed host artifact matches the catalog",
     )
     check_install_parser.add_argument("--agent", required=True)
-    check_install_parser.add_argument("--repo", required=True, type=Path)
+    check_install_parser.add_argument("--host", choices=("claude-code", "codex"), default="claude-code")
+    check_install_parser.add_argument("--repo", type=Path)
+    check_install_parser.add_argument("--codex-home", type=Path)
     check_install_parser.add_argument("--catalog-root", default=Path("."), type=Path)
 
     args = parser.parse_args(argv)
@@ -106,6 +166,11 @@ def main(argv: list[str] | None = None) -> int:
                 outputs = compile_claude_code(args.recipe, edition=args.edition)
             elif args.target == "claude-managed-agents":
                 outputs = compile_claude_managed_agents(args.recipe, edition=args.edition)
+            elif args.target == "codex":
+                if args.edition is not None:
+                    print("ERROR: --edition/--variant is not valid for Codex skill artifacts")
+                    return 1
+                outputs = compile_codex(args.recipe)
             else:
                 if args.edition is not None:
                     print("ERROR: --edition/--variant is only valid for Claude provider targets")
@@ -130,7 +195,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "validate-sca-output":
         try:
-            payload = load_json_payload(args.payload)
+            payload = load_sca_json_payload(args.payload)
         except (OSError, ValueError) as exc:
             print(f"ERROR: {exc}")
             return 1
@@ -144,7 +209,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "render-sca-pr-body":
         try:
-            payload = load_json_payload(args.payload)
+            payload = load_sca_json_payload(args.payload)
         except (OSError, ValueError) as exc:
             print(f"ERROR: {exc}")
             return 1
@@ -165,17 +230,112 @@ def main(argv: list[str] | None = None) -> int:
         print(f"OK: {args.body}")
         return 0
 
-    if args.command == "check-install":
-        errors = check_claude_code_install(
-            args.agent,
-            args.repo,
-            catalog_root=args.catalog_root,
-        )
+    if args.command == "validate-ai-sast-output":
+        try:
+            payload = load_ai_sast_json_payload(args.payload)
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        errors = validate_ai_sast_gate_payload(payload, gate=args.gate)
         if errors:
             for error in errors:
                 print(f"ERROR: {error}")
             return 1
-        install_path = args.repo / ".claude" / "agents" / f"{args.agent}.md"
+        print(f"OK: {args.payload}")
+        return 0
+
+    if args.command == "render-ai-sast-pr-body":
+        try:
+            payload = load_ai_sast_json_payload(args.payload)
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(render_ai_sast_pr_body(payload), end="")
+        return 0
+
+    if args.command == "lint-ai-sast-pr-body":
+        try:
+            body = args.body.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        errors = lint_ai_sast_pr_body(body)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.body}")
+        return 0
+
+    if args.command == "render-ai-sast-approval-comment":
+        try:
+            payload = load_ai_sast_json_payload(args.payload)
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(render_ai_sast_approval_comment(payload), end="")
+        return 0
+
+    if args.command == "lint-ai-sast-approval-comment":
+        try:
+            body = args.body.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        errors = lint_ai_sast_approval_comment(body)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.body}")
+        return 0
+
+    if args.command == "render-ai-sast-exception-policy-comment":
+        try:
+            payload = load_ai_sast_json_payload(args.payload)
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(render_ai_sast_exception_policy_comment(payload), end="")
+        return 0
+
+    if args.command == "lint-ai-sast-exception-policy-comment":
+        try:
+            body = args.body.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        errors = lint_ai_sast_exception_policy_comment(body)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.body}")
+        return 0
+
+    if args.command == "check-install":
+        if args.host == "codex":
+            codex_home = args.codex_home or Path.home() / ".codex"
+            errors = check_codex_install(
+                args.agent,
+                codex_home,
+                catalog_root=args.catalog_root,
+            )
+            install_path = codex_home / "skills" / args.agent / "SKILL.md"
+        else:
+            if args.repo is None:
+                print("ERROR: --repo is required for --host claude-code")
+                return 1
+            errors = check_claude_code_install(
+                args.agent,
+                args.repo,
+                catalog_root=args.catalog_root,
+            )
+            install_path = args.repo / ".claude" / "agents" / f"{args.agent}.md"
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
         print(f"OK: {install_path}")
         return 0
 

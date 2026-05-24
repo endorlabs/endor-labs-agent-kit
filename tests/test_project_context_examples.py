@@ -27,7 +27,6 @@ def test_upgrade_impact_managed_readme_uses_project_selector_not_uuid(tmp_path):
         dest
         / "claude-managed-agents"
         / "upgrade-impact-analysis"
-        / "enterprise-edition"
         / "README.md"
     ).read_text()
 
@@ -39,7 +38,6 @@ def test_upgrade_impact_managed_readme_uses_project_selector_not_uuid(tmp_path):
         dest
         / "claude-managed-agents"
         / "upgrade-impact-analysis"
-        / "enterprise-edition"
         / "architecture.svg"
     ).is_file()
 

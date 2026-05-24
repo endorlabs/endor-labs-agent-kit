@@ -35,6 +35,35 @@ def check_claude_code_install(
     return errors
 
 
+def check_codex_install(
+    agent_id: str,
+    codex_home: str | Path,
+    *,
+    catalog_root: str | Path = ".",
+) -> list[str]:
+    """Check whether a Codex skill install matches the catalog."""
+
+    errors: list[str] = []
+    source = Path(catalog_root) / "codex" / agent_id / "SKILL.md"
+    target = Path(codex_home) / "skills" / agent_id / "SKILL.md"
+
+    if not source.is_file():
+        errors.append(f"catalog: could not find Codex skill artifact for {agent_id!r}")
+        return errors
+    if not target.is_file():
+        errors.append(f"install: missing {target}")
+        return errors
+
+    source_hash = _sha256(source)
+    target_hash = _sha256(target)
+    if source_hash != target_hash:
+        errors.append(
+            f"install: {target} is stale for {agent_id!r}; "
+            f"catalog sha256={source_hash}, installed sha256={target_hash}"
+        )
+    return errors
+
+
 def _catalog_agent_artifact(catalog_root: Path, agent_id: str) -> Path | None:
     root = catalog_root / "claude-code" / agent_id
     candidates = [

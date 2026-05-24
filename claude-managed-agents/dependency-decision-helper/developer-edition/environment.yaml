@@ -1,9 +1,0 @@
-name: endor-dependency-decision-helper-developer-edition
-config:
-  type: cloud
-  networking:
-    type: limited
-    allowed_hosts:
-    - https://api.endorlabs.com
-    allow_mcp_servers: true
-    allow_package_managers: false

@@ -13,7 +13,10 @@ def test_recipe_yaml_round_trips_core_fields():
     assert recipe.safety_class == "read_only"
     assert recipe.supported_transports == ("mcp", "endorctl_api")
     assert recipe.host_capabilities_required.run_commands is True
-    assert recipe.host_editions == {}
+    assert recipe.host_editions == {
+        "claude-code": ("enterprise-edition",),
+        "claude-managed-agents": ("enterprise-edition",),
+    }
     assert [field.name for field in recipe.inputs] == ["ecosystem", "package_name", "version"]
     assert "data_gaps" in [field.name for field in recipe.outputs]
 
