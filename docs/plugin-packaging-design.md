@@ -33,8 +33,9 @@ on local terminal/source-provider state plus explicit approval gates.
 Adding first-class plugin publishing would touch:
 
 - `src/endor_agent_kit/validator.py` for a plugin host or package target.
-- `src/endor_agent_kit/publisher.py` for generated plugin directories,
-  manifest records, pruning, README rows, and artifact checksums.
+- `src/endor_agent_kit/publisher.py` and `src/endor_agent_kit/publication/`
+  for generated plugin directories, Host Adapters, manifest records, pruning,
+  README rows, and artifact checksums.
 - `src/endor_agent_kit/install.py` for drift checks against plugin-installed
   skills.
 - `manifest.json` schema expectations, because a plugin package is not the
@@ -58,3 +59,35 @@ Create a small prototype plugin package outside the published catalog first,
 using `codex/ai-sast-triage/` and `codex/sca-remediation/` as inputs. Validate
 it through Codex plugin installation and skill invocation before adding a
 general `publish-plugin` command or changing the manifest schema.
+
+## Prototype Result - 2026-05-24
+
+The first prototype package used this local marketplace shape:
+
+- `marketplace.json`
+- `plugins/endor-agent-kit-security-agents/.codex-plugin/plugin.json`
+- `plugins/endor-agent-kit-security-agents/skills/ai-sast-triage/`
+- `plugins/endor-agent-kit-security-agents/skills/sca-remediation/`
+
+The package copied the generated Codex skill directories byte-for-byte from
+`codex/ai-sast-triage/` and `codex/sca-remediation/`, including each
+`SKILL.md`, `README.md`, `actions.yaml`, `architecture.svg`, and
+`endorctl-setup.md`.
+
+Validation covered:
+
+- plugin manifest JSON parsing and required metadata fields.
+- marketplace path resolution to the local plugin directory.
+- Codex skill YAML frontmatter parsing for both packaged skills.
+- recursive directory diffs against the generated catalog skill directories.
+- absence of plugin-level MCP or app declarations.
+
+Still unproven:
+
+- Codex UI installation from the local marketplace deeplink.
+- skill discovery and invocation after plugin installation.
+- whether the plugin host expects a single bundled plugin, one plugin per
+  agent, or a repo-owned marketplace with multiple entries.
+
+Do not promote this to `publish-plugin` until the unproven host behavior is
+validated in Codex without weakening the existing approval gates.
