@@ -14,6 +14,7 @@ from endor_agent_kit.recipe import (
     load_recipe,
     read_instructions,
 )
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 from endor_agent_kit.validator import validate_recipe_file
 
 EDITIONS = ("developer-edition", "enterprise-edition")
@@ -115,7 +116,8 @@ def _render_subagent(
     body = _instructions_for_edition(instructions, edition)
     action_contracts = _render_action_contracts(actions)
     disallowed_tools = _disallowed_tools(recipe)
-    if edition == "developer-edition" or not recipe.host_capabilities_required.run_commands:
+    posture = source_recipe_safety_posture(recipe)
+    if edition == "developer-edition" or not posture.can_run_commands:
         disallowed_tools = ("Bash",) + disallowed_tools
 
     return (
@@ -134,7 +136,8 @@ def _render_subagent(
 
 
 def _mcp_server_frontmatter(recipe: EndorAgentRecipe) -> str:
-    if not _uses_mcp(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if not posture.uses_mcp:
         return ""
     return (
         "mcpServers:\n"
@@ -148,21 +151,22 @@ def _mcp_server_frontmatter(recipe: EndorAgentRecipe) -> str:
 
 def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
-    if recipe.safety_class == "mutating":
+    posture = source_recipe_safety_posture(recipe)
+    if posture.is_mutating:
         label = "This artifact" if single_edition else "Enterprise Edition"
         transport = (
             f"{label} may run commands, edit files, open change requests, and call "
             "authenticated Endor API/endorctl workflows when explicitly required."
         )
     elif edition == "developer-edition":
-        if _uses_mcp(recipe):
+        if posture.uses_mcp:
             label = "This artifact" if single_edition else "Developer Edition"
             transport = f"{label} is MCP-only; do not use Bash or endorctl in this artifact."
         else:
             label = "This artifact" if single_edition else "Developer Edition"
             transport = f"{label} must not use Bash or authenticated endorctl."
-    elif not _allows_read_only_endorctl(recipe):
-        if _uses_mcp(recipe):
+    elif not posture.uses_endorctl_api:
+        if posture.uses_mcp:
             label = "This artifact" if single_edition else "Enterprise Edition"
             transport = f"{label} is MCP-only; it does not require Bash or endorctl."
         else:
@@ -182,24 +186,13 @@ def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
     ).strip()
 
 
-def _allows_read_only_endorctl(recipe: EndorAgentRecipe) -> bool:
-    return "endorctl_api" in recipe.supported_transports and bool(recipe.endorctl_api_invocations)
-
-
-def _uses_mcp(recipe: EndorAgentRecipe) -> bool:
-    return (
-        "mcp" in recipe.supported_transports
-        or bool(recipe.required_endor_mcp_tools)
-        or bool(recipe.requires_endor_mcp)
-    )
-
-
 def _disallowed_tools(recipe: EndorAgentRecipe) -> tuple[str, ...]:
     """Map abstract recipe capabilities to Claude Code tool restrictions."""
 
-    if recipe.host_capabilities_required.write_files or recipe.host_capabilities_required.open_pr:
+    posture = source_recipe_safety_posture(recipe)
+    if posture.can_write_files or posture.can_open_change_requests:
         allowed = READ_ONLY_FILE_TOOLS | {"Write", "Edit", "MultiEdit"}
-    elif recipe.host_capabilities_required.read_files:
+    elif posture.can_read_files:
         allowed = READ_ONLY_FILE_TOOLS
     else:
         allowed = frozenset()
