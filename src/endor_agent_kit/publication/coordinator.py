@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import shutil
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Protocol
 
 from endor_agent_kit.catalog_schema import (
     GENERATOR_NAME,
@@ -102,13 +102,10 @@ class HostArtifactPublication:
         kept_agents.sort(key=catalog_agent_sort_key)
         return self._write_agents(destination, kept_agents)
 
-    def catalog_agents(self, destination: Path) -> list[dict[str, Any]]:
+    def catalog_agents(self, destination: Path) -> list[CatalogAgent]:
         """Return agents currently recorded in the Catalog Manifest."""
 
-        return [
-            agent.to_manifest_record()
-            for agent in self._existing_agents(self.catalog_manifest_path(destination))
-        ]
+        return self._existing_agents(self.catalog_manifest_path(destination))
 
     def catalog_manifest_path(self, destination: Path) -> Path:
         """Return the Catalog Manifest path for a destination."""
