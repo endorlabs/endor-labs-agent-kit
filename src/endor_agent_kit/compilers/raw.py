@@ -6,10 +6,12 @@ import json
 from pathlib import Path
 
 from endor_agent_kit.compilers.claude_code import (
-    EDITIONS,
     HOST as CLAUDE_CODE_HOST,
-    _instructions_for_edition,
-    _render_action_contracts,
+)
+from endor_agent_kit.compilers.rendering import (
+    EDITIONS,
+    instructions_for_edition,
+    render_action_contracts,
 )
 from endor_agent_kit.recipe import (
     EndorAgentRecipe,
@@ -44,8 +46,8 @@ def compile_raw_prepared(prepared: PreparedSourceRecipe) -> list[Path]:
     outputs = [
         _write(
             out_dir / f"system-prompt-{edition}.md",
-            _instructions_for_edition(prepared.instructions, edition)
-            + _render_action_contracts(prepared.actions),
+            instructions_for_edition(prepared.instructions, edition)
+            + render_action_contracts(prepared.actions),
         )
         for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)
     ]

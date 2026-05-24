@@ -11,7 +11,7 @@ from endor_agent_kit.compilers import (
     compile_codex,
     compile_raw,
 )
-from endor_agent_kit.compilers.claude_code import EDITION_CHOICES
+from endor_agent_kit.compilers.rendering import EDITION_CHOICES
 from endor_agent_kit.workflow_output_contracts.ai_sast import (
     lint_ai_sast_approval_comment,
     lint_ai_sast_exception_policy_comment,
