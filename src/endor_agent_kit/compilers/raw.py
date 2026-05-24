@@ -10,7 +10,6 @@ from endor_agent_kit.compilers.claude_code import (
     HOST as CLAUDE_CODE_HOST,
     _instructions_for_edition,
     _render_action_contracts,
-    _uses_mcp,
 )
 from endor_agent_kit.recipe import (
     EndorAgentRecipe,
@@ -19,6 +18,7 @@ from endor_agent_kit.recipe import (
     load_recipe,
     read_instructions,
 )
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 from endor_agent_kit.validator import validate_recipe_file
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
@@ -71,7 +71,8 @@ def _write(path: Path, content: str) -> Path:
 
 
 def _mcp_config(recipe: EndorAgentRecipe) -> str:
-    if not _uses_mcp(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if not posture.uses_mcp:
         return json.dumps(
             {
                 "mcpServers": {},
@@ -98,7 +99,8 @@ def _mcp_config(recipe: EndorAgentRecipe) -> str:
 
 def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
     invocations = "\n".join(f"- `{name}`" for name in recipe.endorctl_api_invocations) or "- none"
-    if recipe.safety_class == "mutating":
+    posture = source_recipe_safety_posture(recipe)
+    if posture.is_mutating:
         agent_label = recipe.name if recipe.name.lower().endswith("agent") else f"{recipe.name} agent"
         subject = (
             f"The {agent_label}"
@@ -139,7 +141,7 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
                 "before local file edits and before branch push or PR/MR creation.",
             ])
         return "\n".join(lines)
-    if "endorctl_api" not in recipe.supported_transports or not recipe.endorctl_api_invocations:
+    if not posture.uses_endorctl_api:
         return "\n".join([
             "# endorctl Setup",
             "",

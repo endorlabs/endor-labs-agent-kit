@@ -17,6 +17,7 @@ from endor_agent_kit.recipe import (
     load_recipe,
     read_instructions,
 )
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 from endor_agent_kit.validator import validate_recipe_file
 
 HOST = "codex"
@@ -72,7 +73,7 @@ def _codex_notice(recipe: EndorAgentRecipe) -> str:
 
 
 def _codex_host_contract(recipe: EndorAgentRecipe) -> str:
-    capabilities = recipe.host_capabilities_required
+    posture = source_recipe_safety_posture(recipe)
     lines = [
         "## Codex Host Contract",
         "",
@@ -81,7 +82,7 @@ def _codex_host_contract(recipe: EndorAgentRecipe) -> str:
         "or Endor policy write happened unless Codex performed it and captured evidence.",
         "",
     ]
-    if recipe.safety_class == "mutating":
+    if posture.is_mutating:
         lines.extend(
             [
                 "- Confirm the target repository, base branch, generated diff, validation plan, and PR/MR body before editing files, pushing branches, or opening change requests.",
@@ -97,13 +98,13 @@ def _codex_host_contract(recipe: EndorAgentRecipe) -> str:
                 "- If a read-only lookup is unavailable, record the missing signal in `data_gaps` and continue with verified evidence only.",
             ]
         )
-    if not capabilities.run_commands:
+    if not posture.can_run_commands:
         lines.append("- Do not run shell commands unless the user separately asks for local setup or installation work.")
-    elif recipe.safety_class != "mutating":
+    elif not posture.is_mutating:
         lines.append("- Shell commands, when used, must stay read-only and match documented Endor lookup shapes.")
-    if not capabilities.write_files:
+    if not posture.can_write_files:
         lines.append("- Do not write source files as part of this agent workflow.")
-    if not capabilities.open_pr:
+    if not posture.can_open_change_requests:
         lines.append("- Do not create branches, commits, pushes, PRs, or MRs as part of this agent workflow.")
     return "\n".join(lines)
 
