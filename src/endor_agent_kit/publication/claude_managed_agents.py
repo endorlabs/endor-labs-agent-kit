@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogBundle
-from endor_agent_kit.compilers.claude_code import EDITIONS
+from endor_agent_kit.compilers.rendering import EDITIONS
 from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude_managed_agents_prepared
 from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe

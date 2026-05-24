@@ -8,11 +8,11 @@ from textwrap import dedent
 
 import yaml
 
-from endor_agent_kit.compilers.claude_code import (
+from endor_agent_kit.compilers.rendering import (
     EDITIONS,
-    _instructions_for_edition,
-    _normalize_edition,
-    _render_action_contracts,
+    instructions_for_edition,
+    normalize_edition,
+    render_action_contracts,
 )
 from endor_agent_kit.recipe import (
     ActionContract,
@@ -77,7 +77,7 @@ def compile_claude_managed_agents_prepared(
     editions = (
         editions_for_host(recipe, HOST, EDITIONS)
         if selected_edition is None
-        else (_normalize_edition(selected_edition),)
+        else (normalize_edition(selected_edition),)
     )
 
     out_root = recipe_file.parent / "dist" / HOST
@@ -144,7 +144,7 @@ def _managed_system(
     actions: tuple[ActionContract, ...],
     edition: str,
 ) -> str:
-    body = _instructions_for_edition(instructions, edition)
+    body = instructions_for_edition(instructions, edition)
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     posture = source_recipe_safety_posture(recipe)
     if edition == "developer-edition":
@@ -188,7 +188,7 @@ def _managed_system(
         {missing_signal}
         """
     ).strip()
-    return f"{intro}\n\n{body.rstrip()}\n{_render_action_contracts(actions)}"
+    return f"{intro}\n\n{body.rstrip()}\n{render_action_contracts(actions)}"
 
 
 def _mcp_servers(recipe: EndorAgentRecipe) -> list[dict]:

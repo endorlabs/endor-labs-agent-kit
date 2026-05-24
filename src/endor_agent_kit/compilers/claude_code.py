@@ -6,6 +6,16 @@ import shutil
 from pathlib import Path
 from textwrap import dedent
 
+from endor_agent_kit.compilers.rendering import (
+    EDITIONS,
+    EDITION_CHOICES,
+    LEGACY_EDITION_ALIASES,
+    indent as _indent,
+    instructions_for_edition as _instructions_for_edition,
+    instructions_for_variant as _instructions_for_variant,
+    normalize_edition as _normalize_edition,
+    render_action_contracts as _render_action_contracts,
+)
 from endor_agent_kit.recipe import (
     ActionContract,
     EndorAgentRecipe,
@@ -14,18 +24,8 @@ from endor_agent_kit.recipe import (
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
-EDITIONS = ("developer-edition", "enterprise-edition")
 HOST = "claude-code"
-LEGACY_EDITION_ALIASES = {
-    "standard": "developer-edition",
-    "extended": "enterprise-edition",
-}
-LEGACY_SECTION_NAMES = {
-    "developer-edition": "standard",
-    "enterprise-edition": "extended",
-}
 LEGACY_OUTPUT_DIRS = tuple(LEGACY_EDITION_ALIASES)
-EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
 READ_OR_WRITE_TOOLS = (
     "Task",
     "Agent",
@@ -102,13 +102,6 @@ def compile_claude_code_prepared(
         )
         outputs.append(out_path)
     return outputs
-
-
-def _normalize_edition(value: str) -> str:
-    edition = LEGACY_EDITION_ALIASES.get(value, value)
-    if edition not in EDITIONS:
-        raise ValueError(f"Unknown Claude Code edition {value!r}; allowed: {', '.join(EDITIONS)}")
-    return edition
 
 
 def _remove_legacy_output_dirs(out_dir: Path) -> None:
@@ -211,78 +204,3 @@ def _disallowed_tools(recipe: EndorAgentRecipe) -> tuple[str, ...]:
     if allowed:
         return tuple(tool for tool in READ_OR_WRITE_TOOLS if tool not in allowed)
     return READ_OR_WRITE_TOOLS
-
-
-def _instructions_for_edition(instructions: str, edition: str) -> str:
-    edition = _normalize_edition(edition)
-    shared = _section(instructions, "shared")
-    mode = _edition_section(instructions, edition)
-    return f"{shared.rstrip()}\n\n{mode.rstrip()}\n"
-
-
-def _instructions_for_variant(instructions: str, variant: str) -> str:
-    """Compatibility wrapper for raw compiler/tests using old variant names."""
-
-    return _instructions_for_edition(instructions, variant)
-
-
-def _render_action_contracts(actions: tuple[ActionContract, ...]) -> str:
-    if not actions:
-        return ""
-    lines = [
-        "",
-        "## Action Contracts",
-        "",
-        "These are the semantic side effects this agent may discuss or request.",
-        "Do not claim an action completed unless the host performed it and returned evidence.",
-        "",
-    ]
-    for action in actions:
-        lines.extend([
-            f"### {action.id}",
-            "",
-            f"- kind: `{action.kind}`",
-            f"- safety_class: `{action.safety_class}`",
-            f"- confirmation_required: `{str(action.confirmation_required).lower()}`",
-            f"- availability: `{action.availability}`",
-        ])
-        if action.providers:
-            lines.append(f"- providers: {', '.join(f'`{provider}`' for provider in action.providers)}")
-        if action.required_host_capabilities:
-            lines.append(
-                "- required_host_capabilities: "
-                + ", ".join(f"`{capability}`" for capability in action.required_host_capabilities)
-            )
-        if action.inputs:
-            lines.append(f"- inputs: {', '.join(f'`{item}`' for item in action.inputs)}")
-        if action.outputs:
-            lines.append(f"- outputs: {', '.join(f'`{item}`' for item in action.outputs)}")
-        if action.notes:
-            lines.append(f"- notes: {action.notes}")
-        lines.append("")
-    return "\n".join(lines)
-
-
-def _edition_section(text: str, edition: str) -> str:
-    try:
-        return _section(text, edition)
-    except ValueError:
-        legacy_name = LEGACY_SECTION_NAMES.get(edition)
-        if legacy_name is not None:
-            return _section(text, legacy_name)
-        raise
-
-
-def _section(text: str, name: str) -> str:
-    start = f"<!-- {name}:start -->"
-    end = f"<!-- {name}:end -->"
-    try:
-        after_start = text.split(start, 1)[1]
-        return after_start.split(end, 1)[0].strip()
-    except IndexError as exc:
-        raise ValueError(f"instructions.md missing section markers for {name!r}") from exc
-
-
-def _indent(text: str, spaces: int) -> str:
-    pad = " " * spaces
-    return "\n".join(f"{pad}{line}" if line else pad for line in text.splitlines())
