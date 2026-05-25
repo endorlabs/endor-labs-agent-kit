@@ -63,11 +63,19 @@ inputs:
     kind: boolean
     required: false
     description: Defaults to false. Archived repositories are excluded by default and are never coverage blockers unless explicitly included.
+  - name: report_mode
+    kind: enum
+    required: false
+    description: full or executive. Defaults to full. Executive mode keeps the prose and first JSON section compact while preserving drill-down JSON keys.
 outputs:
   - name: onboarding_verdict
     kind: enum
     required: true
     description: READY_TO_ONBOARD, PARTIAL_COVERAGE, NOT_ONBOARDED, or INSUFFICIENT_DATA.
+  - name: executive_report
+    kind: object
+    required: true
+    description: Compact rollup with verdict, top counts, top 5 actions, top blockers, and drill-down pointers for large orgs.
   - name: report_scope
     kind: object
     required: true
