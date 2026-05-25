@@ -11,6 +11,7 @@ from endor_agent_kit.validator import validate_recipe_file
 
 from conftest import repo_root
 from host_artifact_bundle_contract import (
+    assert_codex_skill_bundle,
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
@@ -46,7 +47,7 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
-    assert data["compatible_hosts"] == ["claude-code"]
+    assert data["compatible_hosts"] == ["claude-code", "codex"]
     assert data["host_editions"] == {"claude-code": ["enterprise-edition"]}
     assert data["host_capabilities_required"] == {
         "run_commands": True,
@@ -62,6 +63,8 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
         "sampling_mode",
         "report_mode",
     }.issubset(input_names)
+    report_mode = next(item for item in data["inputs"] if item["name"] == "report_mode")
+    assert "complete drill-down JSON arrays" in report_mode["description"]
     output_names = {item["name"] for item in data["outputs"]}
     assert {
         "executive_report",
@@ -130,6 +133,38 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "--resource PackageManager" in artifact
     assert "--resource PackageVersion" in artifact
     assert "--resource Installation" in artifact
+    assert "spec.git.ssh_clone_url" not in artifact
+    assert "spec.disable_code_snippet_storage" not in artifact
+    assert '--field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec"' in artifact
+    assert '--field-mask "uuid,meta.name,meta.tags,spec"' in artifact
+    assert 'meta.parent_uuid=="<project_uuid>"' in artifact
+    assert "call_graph_project_scope_unavailable" in artifact
+    assert "Live Command Budget" in artifact
+    assert "All live Endor and GitHub commands MUST be projected" in artifact
+    assert "set -o pipefail" in artifact
+    assert "Never pipe stderr into a JSON projection" in artifact
+    assert "Do not use `2>&1 | jq`" in artifact
+    assert "Optional evidence queries must fail" in artifact
+    assert "they must not cancel package-version" in artifact
+    assert "Do not treat temp-file capture" in artifact
+    assert "retry at most once" in artifact
+    assert "Do not print the full `gh repo list` JSON array" in artifact
+    assert "Use root-tree summaries for org-wide first pass" in artifact
+    assert "Do not run recursive GitHub tree calls across every repository" in artifact
+    assert "do not spend live command budget reading the installed `SKILL.md`" in artifact
+    assert "Run at most one all-project `PackageVersion` summary query" in artifact
+    assert "Required lane arrays are not example arrays" in artifact
+    assert "`not_onboarded_repositories`" in artifact
+    assert "In single-repo or subset mode, do not print every Endor project" in artifact
+    assert "Never expose complete PackageVersion JSON" in artifact
+    assert "Do not expose `Installation.spec.user`" in artifact
+    assert "Do not expose package manager credential material" in artifact
+    assert "Do not expose full scan profile toolchain URLs" in artifact
+    assert "Do not expose complete PackageVersion objects" in artifact
+    assert "are not V1 monitored-branch coverage blockers" in artifact
+    assert "Do not paste raw multi-megabyte Endor or GitHub JSON" in artifact
+    assert 'spec.project_uuid=="<project_uuid>"' in artifact
+    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' in artifact
     assert "spec.resolution_errors" in artifact
     assert "confirmation_required: true" in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
@@ -143,7 +178,7 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert_mcp_free_generated_artifact(artifact)
 
 
-def test_probe_droid_publish_writes_claude_code_catalog_surface(tmp_path):
+def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
 
@@ -155,31 +190,56 @@ def test_probe_droid_publish_writes_claude_code_catalog_surface(tmp_path):
         "claude-code/probe-droid/README.md",
         "claude-code/probe-droid/architecture.svg",
         "claude-code/probe-droid/endorctl-setup.md",
+        "codex/probe-droid/SKILL.md",
+        "codex/probe-droid/README.md",
+        "codex/probe-droid/architecture.svg",
+        "codex/probe-droid/endorctl-setup.md",
         "manifest.json",
         "README.md",
     }
     agent_dir = dest / "claude-code" / "probe-droid"
+    codex_dir = dest / "codex" / "probe-droid"
     assert_host_bundle_files(
         agent_dir,
         {"probe-droid.md", "README.md", "architecture.svg", "endorctl-setup.md"},
     )
+    assert_codex_skill_bundle(
+        codex_dir,
+        expected_files={"SKILL.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+        skill_markers=(
+            "Keep the workflow read-only",
+            "Live Command Budget",
+            "Do not run `endorctl scan`",
+            "All live Endor and GitHub commands MUST be projected",
+        ),
+    )
     assert_no_nested_edition_dirs(agent_dir)
     assert not (dest / "claude-managed-agents" / "probe-droid").exists()
-    assert not (dest / "codex" / "probe-droid").exists()
 
     root_readme = (dest / "README.md").read_text(encoding="utf-8")
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
     prompt = (agent_dir / "probe-droid.md").read_text(encoding="utf-8")
+    codex_skill = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
+    codex_readme = (codex_dir / "README.md").read_text(encoding="utf-8")
     setup = (agent_dir / "endorctl-setup.md").read_text(encoding="utf-8")
     architecture = (agent_dir / "architecture.svg").read_text(encoding="utf-8")
 
     assert "Probe Droid" in root_readme
     assert "claude-code/probe-droid/" in root_readme
+    assert "codex/probe-droid/" in root_readme
+    assert "cp -R /path/to/endor-labs-agent-kit/codex/probe-droid" in root_readme
+    assert "Use the probe-droid skill to probe GitHub org <org>" in root_readme
     assert "@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps" in root_readme
     assert "GitHub read-only inventory credentials" in root_readme
     assert "![Probe Droid architecture](architecture.svg)" in agent_readme
     assert "Probe Droid does not need an Endor MCP server" in agent_readme
     assert "GitHub.com repository inventory" in agent_readme
+    assert "Probe Droid Codex Skill" in codex_readme
+    assert "No mutating repository, source-provider, or Endor writes for this skill." in codex_readme
+    assert "Use the probe-droid skill to probe GitHub org <org>" in codex_readme
+    assert "GitHub App selection gaps" in codex_readme
+    assert "## Codex Host Contract" in codex_skill
+    assert "Do not write source files as part of this agent workflow." in codex_skill
     assert "GitLab" not in agent_readme
     assert "Azure DevOps" not in agent_readme
     assert "Bitbucket" not in agent_readme
@@ -187,6 +247,7 @@ def test_probe_droid_publish_writes_claude_code_catalog_surface(tmp_path):
     assert "PUBLISHED CONTRACT" in architecture
     assert "GitHub commands must list repositories" in setup
     assert_mcp_free_generated_artifact(prompt)
+    assert_mcp_free_generated_artifact(codex_skill)
 
 
 def test_probe_droid_raw_setup_documents_github_inventory_boundary(tmp_path):

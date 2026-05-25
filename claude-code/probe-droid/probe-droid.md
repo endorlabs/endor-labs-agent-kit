@@ -47,8 +47,8 @@ Use `github_org`, `repository_urls`, `github_inventory_json`,
 `endor_project_selector`, `namespace`, and `report_mode` when supplied.
 Org-wide mode is the default. Single-repo and subset mode use
 `repository_urls`. `report_mode` is `full` by default; `executive` mode keeps
-the prose and first JSON section compact while preserving the drill-down JSON
-keys. The workflow must support both repositories that have not yet been
+the prose and first JSON section compact while preserving complete drill-down
+JSON arrays. The workflow must support both repositories that have not yet been
 onboarded into Endor and repositories already onboarded but still unhealthy.
 
 If no GitHub scope, repository list, exported inventory, or Endor selector is
@@ -157,15 +157,21 @@ For explicit repositories:
 gh repo view <owner>/<repo> --json nameWithOwner,url,defaultBranchRef,isArchived,isPrivate,primaryLanguage,pushedAt,updatedAt,isFork,visibility
 ```
 
-For bounded tree inspection, get the default branch SHA and fetch the tree:
+For org-wide first-pass tree inspection, get the default branch SHA and fetch
+the root tree without recursion:
 
 ```bash
-gh api repos/<owner>/<repo>/git/trees/<tree_sha>?recursive=1
+gh api repos/<owner>/<repo>/git/trees/<tree_sha>
 ```
 
-Then fetch only known files needed for evidence, such as manifests, lockfiles,
-GitHub Actions workflows, `.endorctl` setup, package manager config, and
-language/runtime version files.
+Use root-tree summaries for org-wide first pass.
+Do not run recursive GitHub tree calls across every repository.
+Fetch recursive trees or file contents only
+for representative repositories needed to support a prescription, such as the
+highest-impact blocker repositories or a user-requested single-repo/subset
+drill-down. Then fetch only known files needed for evidence, such as manifests,
+lockfiles, GitHub Actions workflows, `.endorctl` setup, package manager config,
+and language/runtime version files.
 
 Default org-wide inventory is capped at 1000 repositories. If the org has more
 repositories or pagination is incomplete, report truncation explicitly in
@@ -274,7 +280,7 @@ endorctl api list \
   --resource Project \
   <namespace_flag> \
   --list-all \
-  --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec"
+  --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec.git.http_clone_url,spec.git.full_name,spec.internal_reference_key,spec.platform_source,spec.scan_profile_uuid,spec.is_archived"
 ```
 
 Try repository and repository-version resources when available. If unavailable,
@@ -306,6 +312,12 @@ endorctl api list \
   --list-all \
   --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec"
 ```
+
+Some tenants reject nested `Installation.spec.*` field masks even when those
+keys exist in the returned `spec`. Use the stable `spec` mask and immediately
+project it with `jq`, keeping only app status, selected project/repository
+counts, selected project UUIDs needed for strict mapping, enabled feature
+names, invalid status, and sync errors. Never expose `Installation.spec.user`.
 
 Classify GitHub App coverage with these V1 monitored-branch statuses when
 evidence supports them:
@@ -340,17 +352,24 @@ List scan results and scan workflows:
 endorctl api list \
   --resource ScanResult \
   <namespace_flag> \
-  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context,spec"
+  --filter 'context.type==CONTEXT_TYPE_MAIN and meta.parent_uuid=="<project_uuid>"' \
+  --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context,spec.status,spec.refs,spec.versions"
 ```
 
 ```bash
 endorctl api list \
   --resource ScanWorkflow \
   <namespace_flag> \
-  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context,spec"
+  --list-all \
+  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,spec"
 ```
+
+Some Endor resources expose project scope through `meta.parent_uuid` rather than
+`spec.project_uuid`; `ScanResult` is one common example. Some resources, such as
+`ScanWorkflow`, may not accept `context.type` filters. If a documented field
+mask or filter is rejected, retry with the narrower valid field mask above,
+record the rejected query in `evidence_queries[]`, and add a precise data gap.
+Do not treat a query-shape retry as evidence that the repository is unhealthy.
 
 List package versions in the main context:
 
@@ -359,7 +378,7 @@ endorctl api list \
   --resource PackageVersion \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context,spec"
+  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context,spec.ecosystem,spec.project_uuid,spec.resolution_errors"
 ```
 
 Use targeted package-version filters for known resolution error categories when
@@ -394,14 +413,21 @@ endorctl api list \
   --field-mask "uuid,meta.name,meta.tags,spec"
 ```
 
+Some tenants reject nested `ScanProfile.spec.*` and `PackageManager.spec.*`
+field masks. Use the stable `spec` mask for these resources, then immediately
+project to safe summaries: profile name/UUID, assigned status, language and
+toolchain presence, path filters, package manager type, registry host or scope,
+priority, and auth/test state when those fields exist. Do not expose complete
+profile, package-manager, credential, or toolchain objects.
+
 List call graph and dependency metadata when available:
 
 ```bash
 endorctl api list \
   --resource CallGraphData \
   <namespace_flag> \
-  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context,spec"
+  --filter 'context.type==CONTEXT_TYPE_MAIN' \
+  --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context"
 ```
 
 ```bash
@@ -411,6 +437,12 @@ endorctl api list \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
   --field-mask "uuid,meta.name,meta.create_time,meta.update_time,context,spec"
 ```
+
+`CallGraphData` may use the package-version UUID as its own UUID and may not
+expose `spec` or project UUID fields. When project scope is missing, correlate
+call graph rows back to `PackageVersion` rows by UUID or package coordinate and
+record `call_graph_project_scope_unavailable` in `data_gaps` if correlation is
+incomplete.
 
 Package manager integrations can be required when authentication to private
 package repositories is outside the repository or when GitHub App scans need
@@ -424,6 +456,120 @@ Scan profiles define scan parameters and toolchains. Prescribe scan profile
 intent and assignment only. Do not emit final scan profile YAML or Endor API
 payloads.
 
+## Live Command Budget
+
+For org-wide live runs, complete a bounded first pass before any deep drill-down:
+
+1. Verify `gh auth status` and `endorctl --version`.
+2. List GitHub repositories once with `gh repo list <org> --limit 1000 --json ...`.
+   Do not print the full `gh repo list` JSON array in org-wide mode; project it
+   to counts, capped examples, language/visibility/fork/archive/inactivity
+   summaries, and a retained strict-match key set.
+3. List Endor projects, installations, scan profiles, package manager
+   integrations, and main-context package versions with field masks.
+4. Use `jq` or equivalent structured filtering to summarize counts, strict
+   matches, selected GitHub App repositories, top error categories, and top
+   affected repositories before reading long error descriptions.
+5. Fetch bounded GitHub trees or file contents only for representative
+   repositories needed to support a prescription.
+
+In `report_mode: executive`, target a first-pass live run of roughly 10 to 12
+read-only commands. After the GitHub inventory, Endor projects, installation,
+scan profiles, package managers, package-version error summaries, scan-result
+summaries, and a capped root-tree/file-signal pass have been attempted, stop and
+report. Put any deeper repository file walk, recursive tree inspection, or
+cross-resource correlation that would exceed the budget in `data_gaps` or
+`requires_full_inventory_validation[]`.
+
+When invoked as an installed host skill, do not spend live command budget reading the installed `SKILL.md`.
+Do not spend live command budget reading the generated agent artifact; the
+current instructions are authoritative.
+Run at most one all-project `PackageVersion` summary query.
+Use one targeted retry for a rejected field mask or obviously
+wrong empty-error interpretation. Do not run multiple all-project
+`PackageVersion` variants to refine categories in executive mode; record the
+remaining uncertainty in `data_gaps` and stop.
+
+All live Endor and GitHub commands MUST be projected before the model consumes
+the output. Use `jq` or an equivalent structured projection to reduce API
+responses to the fields needed for matching, counts, reason-code
+classification, prescriptions, and `evidence_queries[]`. If a host cannot
+project command output, request a smaller field mask or fewer resources instead
+of pasting raw objects.
+
+Preserve nonzero command status with `set -o pipefail` or the host shell's
+equivalent whenever a JSON-producing command is piped to `jq`.
+Never pipe stderr into a JSON projection. Do not use `2>&1 | jq` with
+`endorctl api list`, `endorctl api get`, `gh repo list`, `gh repo view`, or
+`gh api` commands because CLI version notices, permission errors, and resource
+errors are non-JSON and will corrupt the parser. Keep stderr separate, let `jq`
+read JSON stdout only, and record nonzero exit status or stderr text as a
+FAILED/PARTIAL `evidence_queries[]` entry. Optional evidence queries must fail
+closed to `data_gaps`; they must not cancel package-version, project-matching,
+or GitHub App coverage queries that are still useful.
+
+Do not treat temp-file capture, shell variables, or in-model reading of raw
+JSON as a projection. Endor Project and PackageVersion live commands must pipe
+stdout directly through `jq` or an equivalent structured projector before the
+agent reads the data. If a Project field mask is rejected, retry at most once
+with the stable minimal mask shown above, then record a data gap instead of
+continuing to probe field-mask variants.
+
+Do not paste raw multi-megabyte Endor or GitHub JSON into the final answer or
+intermediate analysis. Cap example arrays and raw evidence excerpts, and put
+full-count summaries in `coverage_summary`, `github_inventory_summary`,
+`github_app_coverage`, and `evidence_queries`. If the user asks for a deeper
+drill-down, run it as a separate confirmed read-only follow-up.
+
+In single-repo or subset mode, do not print every Endor project in the
+namespace. Project the Endor Project list down to total project count, requested
+repository candidate matches, ambiguous candidates, and unmatched requested
+repositories. In org-wide mode, keep complete matching evidence internally, but
+cap displayed project arrays and emit counts plus lane summaries instead of a
+full namespace project dump.
+
+When collecting PackageVersion evidence, the command output must be a projected
+summary with package coordinate, ecosystem, project UUID, error bucket counts,
+and capped error examples only. Never expose complete PackageVersion JSON to the
+model and never use raw PackageVersion output as "functionally equivalent" to a
+projection.
+
+Live output must not expose unnecessary tenant, user, credential, or large
+toolchain metadata. In particular:
+
+- Do not expose `Installation.spec.user`, user profile records, or complete
+  installation objects. Keep only app status, selected project/repository
+  counts, selected repository names, enabled feature names, sync errors, and
+  UUIDs needed for strict mapping.
+- Do not expose package manager credential material, usernames, passwords,
+  tokens, or complete PackageManager objects. Summarize ecosystem, integration
+  type, registry host or scope when safe, priority, and auth/test state.
+- Do not expose full scan profile toolchain URLs, checksums, or complete
+  ScanProfile objects. Summarize profile name/UUID, assigned status, languages,
+  call graph languages, path filters, and required runtime versions.
+- Do not expose complete PackageVersion objects. Summarize package coordinate,
+  ecosystem, project UUID, dependency-resolution status, best-match error
+  category, status error, rule name, and a short sanitized error excerpt only
+  when it directly supports a prescription.
+
+Good live-host command shapes pipe to `jq` immediately, for example:
+
+```bash
+set -o pipefail; endorctl api list --resource Installation <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec" | jq '{count:(.list.objects|length), installations:(.list.objects|map({uuid,name:.meta.name, selected_project_count:((.spec.project_uuids // [])|length), selected_project_uuids:(.spec.project_uuids // []), enabled_features:(.spec.enabled_features // []), invalid:.spec.invalid, sync_errors:(.spec.sync_errors // [])}))}'
+```
+
+```bash
+set -o pipefail; endorctl api list --resource ScanProfile <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,spec" | jq '{count:(.list.objects|length), profiles:(.list.objects|map({uuid,name:.meta.name, tags:.meta.tags, spec_keys:(.spec|keys), toolchain_present:(.spec.toolchain_profile? != null or .spec.tool_chain_profile? != null), automated_scan_present:(.spec.automated_scan_parameters? != null)}))[0:20]}'
+```
+
+```bash
+set -o pipefail; endorctl api list --resource PackageManager <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,spec" | jq '{count:(.list.objects|length), package_managers:(.list.objects|map({uuid,name:.meta.name, tags:.meta.tags, spec_keys:(.spec|keys), status:(.spec.package_manager_status // null), registry_hosts:([.spec[]? | objects | .url? // .registry_url? // empty] | unique)}))[0:20]}'
+```
+
+```bash
+set -o pipefail; endorctl api list --resource PackageVersion <namespace_flag> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' --field-mask "uuid,meta.name,context,spec.ecosystem,spec.project_uuid,spec.resolution_errors" | jq '{count:(.list.objects|length), resolution_error_count:([.list.objects[] | select(.spec.resolution_errors != null)] | length), examples:[.list.objects[] | select(.spec.resolution_errors != null) | {package:.meta.name, ecosystem:.spec.ecosystem, project_uuid:.spec.project_uuid, best_category:.spec.resolution_errors.resolved.error_analysis_best_match.error_category, status_error:.spec.resolution_errors.resolved.status_error, rule:.spec.resolution_errors.resolved.rule}][0:10]}'
+```
+
 ## Branch And Scan Scope
 
 V1 covers the monitored branch only. Treat the GitHub default branch as the
@@ -434,6 +580,12 @@ evidence shows a different monitored branch, report the mismatch in
 Do not diagnose pull request scan quick-vs-full coverage in V1. Put PR scan
 coverage, PR comments, and quick-vs-full reachability diagnostics in
 `future_scope`.
+
+GitHub App installation flags such as `enable_full_scan`, `enable_pr_scans`,
+and `enable_pr_comments` are not V1 monitored-branch coverage blockers. If
+they appear in installation evidence, do not prescribe changes for them in V1;
+record them only as supporting metadata or `future_scope` for a later PR/scan
+mode workflow.
 
 ## Classification
 
@@ -617,6 +769,16 @@ an executive rollup and the highest-gain actions. In `report_mode: executive`,
 keep prose to the verdict, the top counts, and the top 5 actions; leave detailed
 repository rows in the JSON drill-down arrays. The JSON block must use this
 shape:
+
+Required lane arrays are not example arrays. `not_onboarded_repositories`,
+`onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`,
+`ambiguous_matches`, and `excluded_repositories` must contain one row per
+repository in that lane, even in `report_mode: executive`. In executive mode,
+keep each row minimal and put capped examples in explicitly named fields such as
+`example_not_onboarded_repositories` only when needed. If an array is
+intentionally incomplete because inventory is sampled or truncated, mark the
+run `PARTIAL` or `INSUFFICIENT_DATA`, add a `data_gaps` entry, and do not let
+the count imply exact complete lane membership.
 
 ```json
 {

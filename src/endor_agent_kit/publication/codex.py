@@ -165,6 +165,8 @@ def codex_example_prompt(recipe: EndorAgentRecipe) -> str:
 
     if recipe.id == "ai-sast-triage":
         return "Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
+    if recipe.id == "probe-droid":
+        return "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
     if recipe.id == "sca-remediation":
         return "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve."
     return f"Use the {recipe.id} skill to help with this Endor Labs workflow."
@@ -204,6 +206,19 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
+    if recipe.id == "probe-droid":
+        return [
+            "## Example Workflow",
+            "",
+            "```text",
+            "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only, do not run scans, do not clone repositories, and separate not-onboarded repositories from already-onboarded repositories with dependency resolution or reachability gaps.",
+            "```",
+            "",
+            "```text",
+            "Use the probe-droid skill to compare these GitHub repositories with Endor namespace <namespace>: <owner/repo>, <owner/repo>. Report the top setup actions for missing package manager integrations, scan profile/toolchain gaps, dependency resolution blockers, reachability blockers, and GitHub App selection gaps.",
+            "```",
+            "",
+        ]
     if recipe.id != "ai-sast-triage":
         return []
     return [
@@ -230,7 +245,7 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
 def codex_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return Codex smoke test README content."""
 
-    if recipe.id not in {"ai-sast-triage", "sca-remediation"}:
+    if recipe.id not in {"ai-sast-triage", "probe-droid", "sca-remediation"}:
         return []
     return [
         "## QA Smoke Test",

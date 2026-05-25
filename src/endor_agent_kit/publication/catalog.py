@@ -92,6 +92,10 @@ def root_catalog_readme(
                 "",
             ])
 
+    codex_catalog = [item for item in catalog if CODEX_HOST in item.hosts]
+    codex_install_commands = _codex_install_commands(codex_catalog)
+    codex_invoke_prompts = _codex_invoke_prompts(codex_catalog)
+
     return "\n".join([
         "# Endor Labs Agent Kit",
         "",
@@ -272,18 +276,13 @@ def root_catalog_readme(
         "start a new Codex session so the skill loader can see it.",
         "",
         "```bash",
-        "mkdir -p \"${CODEX_HOME:-$HOME/.codex}/skills\"",
-        "cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \\",
-        "  \"${CODEX_HOME:-$HOME/.codex}/skills/ai-sast-triage\"",
-        "cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \\",
-        "  \"${CODEX_HOME:-$HOME/.codex}/skills/sca-remediation\"",
+        *codex_install_commands,
         "```",
         "",
         "Then invoke it from Codex:",
         "",
         "```text",
-        "Use the ai-sast-triage skill to triage AI SAST findings for this repository.",
-        "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.",
+        *codex_invoke_prompts,
         "```",
         "",
         "## Configure Endor Access",
@@ -632,3 +631,24 @@ def _agent_example(agent_id: str) -> str:
         "vulnerability-explainer": "@agent-vulnerability-explainer explain CVE-2021-44228",
     }
     return examples.get(agent_id, f"@agent-{agent_id} help")
+
+
+def _codex_install_commands(catalog: list[_AgentCatalogEntry]) -> list[str]:
+    if not catalog:
+        return ["# No Codex skills are currently published."]
+    lines = ["mkdir -p \"${CODEX_HOME:-$HOME/.codex}/skills\""]
+    for item in sorted(catalog, key=lambda value: value.name.lower()):
+        lines.extend([
+            f"cp -R /path/to/endor-labs-agent-kit/codex/{item.id} \\",
+            f"  \"${{CODEX_HOME:-$HOME/.codex}}/skills/{item.id}\"",
+        ])
+    return lines
+
+
+def _codex_invoke_prompts(catalog: list[_AgentCatalogEntry]) -> list[str]:
+    prompts = {
+        "ai-sast-triage": "Use the ai-sast-triage skill to triage AI SAST findings for this repository.",
+        "probe-droid": "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.",
+        "sca-remediation": "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.",
+    }
+    return [prompts.get(item.id, f"Use the {item.id} skill to help with this Endor Labs workflow.") for item in sorted(catalog, key=lambda value: value.name.lower())]

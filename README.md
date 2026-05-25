@@ -44,7 +44,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - |
 | Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - |
-| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | - | - |
+| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | - | `codex/probe-droid/` |
 | Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - |
 | SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` |
 
@@ -188,6 +188,8 @@ start a new Codex session so the skill loader can see it.
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \
   "${CODEX_HOME:-$HOME/.codex}/skills/ai-sast-triage"
+cp -R /path/to/endor-labs-agent-kit/codex/probe-droid \
+  "${CODEX_HOME:-$HOME/.codex}/skills/probe-droid"
 cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \
   "${CODEX_HOME:-$HOME/.codex}/skills/sca-remediation"
 ```
@@ -196,6 +198,7 @@ Then invoke it from Codex:
 
 ```text
 Use the ai-sast-triage skill to triage AI SAST findings for this repository.
+Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.
 Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.
 ```
 
@@ -581,6 +584,11 @@ codex/
     README.md
     SKILL.md
     actions.yaml
+    architecture.svg
+    endorctl-setup.md
+  probe-droid/
+    README.md
+    SKILL.md
     architecture.svg
     endorctl-setup.md
   sca-remediation/
