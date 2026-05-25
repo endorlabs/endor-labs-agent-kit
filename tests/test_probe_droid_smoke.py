@@ -368,7 +368,7 @@ def test_probe_droid_sanitized_fixture_covers_selected_repo_lanes():
     assert len(fixture["github_app_coverage"]["selected_repositories"]) == 22
     assert len(fixture["not_onboarded_repositories"]) == 50
     assert fixture["extra_endor_github_projects_outside_org"] == [
-        "partner-architecture/java-example"
+        "external-example/java-service"
     ]
 
     assert expected["onboarding_verdict"] == "PARTIAL_COVERAGE"

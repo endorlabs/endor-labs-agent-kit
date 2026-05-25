@@ -102,7 +102,7 @@ not_onboarded_repositories:
   - acme-labs/not-onboarded-50
 
 extra_endor_github_projects_outside_org:
-  - partner-architecture/java-example
+  - external-example/java-service
 
 expected_output:
   onboarding_verdict: PARTIAL_COVERAGE
