@@ -23,6 +23,14 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "default, so sessions should provide a repository URL, owner/repo, or Endor "
             "project name instead of requiring a project UUID."
         ),
+        "probe-droid": (
+            "This read-only agent compares GitHub.com repository inventory with Endor "
+            "project, GitHub App, monitored-branch scan, package, scan profile, "
+            "toolchain, and package-manager evidence. It returns onboarding lanes, "
+            "reason codes, evidence queries, and setup prescriptions, but does not run "
+            "scans, create profiles, edit repositories, change GitHub settings, or "
+            "mutate Endor state."
+        ),
         "remediation-planner": (
             "This dry-run workflow resolves project or finding context, gathers Endor "
             "remediation evidence, and returns a plan only. It does not edit files, push "

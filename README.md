@@ -44,6 +44,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - |
 | Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - |
+| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | - | - |
 | Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - |
 | SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` |
 
@@ -72,8 +73,9 @@ are the generated host directories listed in the catalog.
 ## MCP Usage
 
 MCP is not used by the mutating remediation workflows. AI SAST Triage, SCA
-Remediation, Remediation Planner, Upgrade Impact Analysis, and the Codex
-skills use documented Endor API or `endorctl api` paths instead.
+Remediation, Remediation Planner, Upgrade Impact Analysis, Probe Droid,
+and the Codex skills use documented Endor API or `endorctl api` paths
+instead.
 
 MCP remains in the catalog only where the current public recipe still depends
 on Endor package/vulnerability lookup tools that do not yet have an
@@ -203,6 +205,7 @@ Use the sca-remediation skill to check this repository for P0 SCA findings I can
 | --- | --- | --- |
 | Endor MCP | Agents whose generated artifact declares an MCP server | Configure it through the target host's MCP mechanism only when the selected agent requires it. |
 | `endorctl api` or direct Endor API | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to documented lookups and writes. Agent or edition README files link to `endorctl-setup.md` when needed. |
+| GitHub read-only inventory credentials | Probe Droid | Required when the agent compares GitHub.com repository inventory with Endor projects without cloning or mutating repositories. |
 | Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage and SCA Remediation | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |
 | Codex terminal and file-editing tools | Codex skills for mutating agents such as AI SAST Triage and SCA Remediation | The skill keeps file edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes behind separate approval gates. |
 | Endor policy-write access | AI SAST Triage standalone exceptions | Required only when a verified AppSec PR/MR approval should create a scoped Endor exception policy. The agent must show the policy spec and ask for confirmation before writing. |
@@ -243,6 +246,12 @@ Endor Labs Vulnerability Explainer:
 
 ```text
 @agent-vulnerability-explainer explain CVE-2021-44228
+```
+
+Probe Droid:
+
+```text
+@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions
 ```
 
 Remediation Planner:
@@ -515,6 +524,11 @@ claude-code/
     README.md
     endorctl-setup.md
     package-risk-summary.md
+  probe-droid/
+    README.md
+    architecture.svg
+    endorctl-setup.md
+    probe-droid.md
   remediation-planner/
     README.md
     architecture.svg

@@ -182,4 +182,13 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         "affected signal in `data_gaps` and continue with the evidence it already",
         "gathered.",
     ])
+    if recipe.id == "probe-droid":
+        lines.extend([
+            "",
+            "Probe Droid also needs read-only GitHub.com inventory access when",
+            "the user asks it to compare GitHub repositories with Endor projects.",
+            "GitHub commands must list repositories or fetch specific manifest,",
+            "CI, or Endor setup files only; they must not clone repositories or",
+            "mutate GitHub settings.",
+        ])
     return "\n".join(lines)
