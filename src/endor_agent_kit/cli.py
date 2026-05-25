@@ -12,7 +12,11 @@ from endor_agent_kit.compilers import (
     compile_raw,
 )
 from endor_agent_kit.compilers.rendering import EDITION_CHOICES
-from endor_agent_kit.install import check_claude_code_install, check_codex_install
+from endor_agent_kit.install import (
+    check_claude_code_install,
+    check_claude_managed_agents_install,
+    check_codex_install,
+)
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
 from endor_agent_kit.workflow_output_contracts.commands import (
@@ -72,9 +76,14 @@ def main(argv: list[str] | None = None) -> int:
         help="Check whether an installed host artifact matches the catalog",
     )
     check_install_parser.add_argument("--agent", required=True)
-    check_install_parser.add_argument("--host", choices=("claude-code", "codex"), default="claude-code")
+    check_install_parser.add_argument(
+        "--host",
+        choices=("claude-code", "claude-managed-agents", "codex"),
+        default="claude-code",
+    )
     check_install_parser.add_argument("--repo", type=Path)
     check_install_parser.add_argument("--codex-home", type=Path)
+    check_install_parser.add_argument("--managed-agent-dir", type=Path)
     check_install_parser.add_argument("--catalog-root", default=Path("."), type=Path)
 
     args = parser.parse_args(argv)
@@ -149,6 +158,17 @@ def main(argv: list[str] | None = None) -> int:
                 catalog_root=args.catalog_root,
             )
             install_path = codex_home / "skills" / args.agent / "SKILL.md"
+        elif args.host == "claude-managed-agents":
+            managed_agent_dir = (
+                args.managed_agent_dir
+                or args.catalog_root / "claude-managed-agents" / args.agent
+            )
+            errors = check_claude_managed_agents_install(
+                args.agent,
+                managed_agent_dir,
+                catalog_root=args.catalog_root,
+            )
+            install_path = managed_agent_dir
         else:
             if args.repo is None:
                 print("ERROR: --repo is required for --host claude-code")

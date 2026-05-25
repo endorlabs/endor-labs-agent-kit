@@ -6,7 +6,11 @@ from pathlib import Path
 
 from endor_agent_kit.catalog_manifest import CatalogManifest
 from endor_agent_kit.cli import main
-from endor_agent_kit.install import check_claude_code_install, check_codex_install
+from endor_agent_kit.install import (
+    check_claude_code_install,
+    check_claude_managed_agents_install,
+    check_codex_install,
+)
 
 
 def _sha256_text(value: str) -> str:
@@ -178,6 +182,67 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
     ) == []
 
 
+def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        agent_id="probe-droid",
+        host="claude-managed-agents",
+        bundle_path="managed-export/probe-droid",
+        primary_artifact_name="agent.yaml",
+        primary_artifact_path="managed-export/probe-droid/agent.yaml",
+        primary_content="agent",
+        extra_artifacts=[
+            {
+                "path": "managed-export/probe-droid/environment.yaml",
+                "sha256": _sha256_text("environment"),
+                "bytes": len("environment"),
+            },
+            {
+                "path": "managed-export/probe-droid/session-template.yaml",
+                "sha256": _sha256_text("session"),
+                "bytes": len("session"),
+            },
+            {
+                "path": "managed-export/probe-droid/README.md",
+                "sha256": _sha256_text("readme"),
+                "bytes": len("readme"),
+            },
+        ],
+    )
+
+    managed_agent_dir = tmp_path / "copied-managed-agent"
+    managed_agent_dir.mkdir()
+    (managed_agent_dir / "agent.yaml").write_text("agent", encoding="utf-8")
+
+    missing_errors = check_claude_managed_agents_install(
+        "probe-droid",
+        managed_agent_dir,
+        catalog_root=catalog,
+    )
+    assert any("environment.yaml" in error for error in missing_errors)
+    assert any("session-template.yaml" in error for error in missing_errors)
+    assert any("README.md" in error for error in missing_errors)
+
+    (managed_agent_dir / "environment.yaml").write_text("old", encoding="utf-8")
+    (managed_agent_dir / "session-template.yaml").write_text("session", encoding="utf-8")
+    (managed_agent_dir / "README.md").write_text("readme", encoding="utf-8")
+
+    stale_errors = check_claude_managed_agents_install(
+        "probe-droid",
+        managed_agent_dir,
+        catalog_root=catalog,
+    )
+    assert any("environment.yaml" in error and "is stale" in error for error in stale_errors)
+
+    (managed_agent_dir / "environment.yaml").write_text("environment", encoding="utf-8")
+    assert check_claude_managed_agents_install(
+        "probe-droid",
+        managed_agent_dir,
+        catalog_root=catalog,
+    ) == []
+
+
 def test_cli_check_install_uses_manifest_checksum(tmp_path, capsys):
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(catalog)
@@ -195,3 +260,40 @@ def test_cli_check_install_uses_manifest_checksum(tmp_path, capsys):
         str(catalog),
     ]) == 0
     assert "OK:" in capsys.readouterr().out
+
+
+def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_path, capsys):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        agent_id="probe-droid",
+        host="claude-managed-agents",
+        bundle_path="claude-managed-agents/probe-droid",
+        primary_artifact_name="agent.yaml",
+        primary_artifact_path="claude-managed-agents/probe-droid/agent.yaml",
+        primary_content="agent",
+        extra_artifacts=[
+            {
+                "path": "claude-managed-agents/probe-droid/environment.yaml",
+                "sha256": _sha256_text("environment"),
+                "bytes": len("environment"),
+            }
+        ],
+    )
+    managed_agent_dir = catalog / "claude-managed-agents" / "probe-droid"
+    managed_agent_dir.mkdir(parents=True)
+    (managed_agent_dir / "agent.yaml").write_text("agent", encoding="utf-8")
+    (managed_agent_dir / "environment.yaml").write_text("environment", encoding="utf-8")
+
+    assert main([
+        "check-install",
+        "--host",
+        "claude-managed-agents",
+        "--agent",
+        "probe-droid",
+        "--catalog-root",
+        str(catalog),
+    ]) == 0
+    output = capsys.readouterr().out
+    assert "OK:" in output
+    assert str(managed_agent_dir) in output

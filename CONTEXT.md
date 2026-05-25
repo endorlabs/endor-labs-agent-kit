@@ -14,7 +14,7 @@ _Avoid_: recipe tuple, compiler reload state
 
 **Source Recipe Authoring**:
 The public, source-first workflow for creating or checking a new Agent Kit agent from a net-new brief or sanitized generic blueprint. Source Recipe Authoring owns repeatable file-set, instruction marker, eval coverage, architecture diagram, MCP-free default, and action-contract checks before Publication turns the Source Recipe into Host Artifact Bundles.
-_Avoid_: private plucker, prose-only checklist
+_Avoid_: private extractor, prose-only checklist
 
 **Compiler Rendering**:
 The host-independent prompt rendering rules shared by Host compilers, including edition selection, instruction section extraction, action-contract text, and frontmatter indentation. Compiler Rendering is not owned by the Claude Code compiler; Host compilers add host-specific artifact shape, frontmatter/YAML, tool restrictions, and setup text around the shared rendered prompt.

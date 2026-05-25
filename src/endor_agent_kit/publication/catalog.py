@@ -92,6 +92,10 @@ def root_catalog_readme(
                 "",
             ])
 
+    codex_catalog = [item for item in catalog if CODEX_HOST in item.hosts]
+    codex_install_commands = _codex_install_commands(codex_catalog)
+    codex_invoke_prompts = _codex_invoke_prompts(codex_catalog)
+
     return "\n".join([
         "# Endor Labs Agent Kit",
         "",
@@ -160,8 +164,9 @@ def root_catalog_readme(
         "## MCP Usage",
         "",
         "MCP is not used by the mutating remediation workflows. AI SAST Triage, SCA",
-        "Remediation, Remediation Planner, Upgrade Impact Analysis, and the Codex",
-        "skills use documented Endor API or `endorctl api` paths instead.",
+        "Remediation, Remediation Planner, Upgrade Impact Analysis, Probe Droid,",
+        "and the Codex skills use documented Endor API or `endorctl api` paths",
+        "instead.",
         "",
         "MCP remains in the catalog only where the current public recipe still depends",
         "on Endor package/vulnerability lookup tools that do not yet have an",
@@ -271,18 +276,13 @@ def root_catalog_readme(
         "start a new Codex session so the skill loader can see it.",
         "",
         "```bash",
-        "mkdir -p \"${CODEX_HOME:-$HOME/.codex}/skills\"",
-        "cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \\",
-        "  \"${CODEX_HOME:-$HOME/.codex}/skills/ai-sast-triage\"",
-        "cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \\",
-        "  \"${CODEX_HOME:-$HOME/.codex}/skills/sca-remediation\"",
+        *codex_install_commands,
         "```",
         "",
         "Then invoke it from Codex:",
         "",
         "```text",
-        "Use the ai-sast-triage skill to triage AI SAST findings for this repository.",
-        "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.",
+        *codex_invoke_prompts,
         "```",
         "",
         "## Configure Endor Access",
@@ -291,6 +291,7 @@ def root_catalog_readme(
         "| --- | --- | --- |",
         "| Endor MCP | Agents whose generated artifact declares an MCP server | Configure it through the target host's MCP mechanism only when the selected agent requires it. |",
         "| `endorctl api` or direct Endor API | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to documented lookups and writes. Agent or edition README files link to `endorctl-setup.md` when needed. |",
+        "| GitHub read-only inventory credentials | Probe Droid | Required when the agent compares GitHub.com repository inventory with Endor projects without cloning or mutating repositories. |",
         "| Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage and SCA Remediation | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |",
         "| Codex terminal and file-editing tools | Codex skills for mutating agents such as AI SAST Triage and SCA Remediation | The skill keeps file edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes behind separate approval gates. |",
         "| Endor policy-write access | AI SAST Triage standalone exceptions | Required only when a verified AppSec PR/MR approval should create a scoped Endor exception policy. The agent must show the policy spec and ask for confirmation before writing. |",
@@ -312,6 +313,7 @@ def root_catalog_readme(
         "endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md",
         "endor-agent-kit lint-sca-pr-body pr-body.md",
         "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo",
+        "endor-agent-kit check-install --host claude-managed-agents --agent probe-droid",
         "endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex",
         "endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation",
         "endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md",
@@ -328,8 +330,9 @@ def root_catalog_readme(
         "requirements. `render-sca-pr-body` turns normalized advisory data into the",
         "AURI-style PR/MR body, including the folded advisory list, CVE-visible links",
         "to GHSA URLs, and severity emoji suffixes.",
-        "`check-install` catches copied Claude Code primary artifacts and installed",
-        "Codex skill bundles that are stale versus the checked-in Agent Kit catalog.",
+        "`check-install` catches copied Claude Code primary artifacts, staged",
+        "Claude Managed Agents bundles, and installed Codex skill bundles that are",
+        "stale versus the checked-in Agent Kit catalog.",
         "",
         "AI SAST triage outputs can be checked before remediation, PR/MR, or",
         "exception-policy gates advance. `validate-ai-sast-output` requires",
@@ -480,6 +483,7 @@ def root_catalog_readme(
         "| `endor-agent-kit render-ai-sast-exception-policy-comment ai-sast-output.json > policy-comment.md` | Render a human-readable Endor exception policy decision comment. |",
         "| `endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md` | Lint the policy decision comment for policy name/UUID, project label, evidence, and raw selector leakage. |",
         "| `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |",
+        "| `endor-agent-kit check-install --host claude-managed-agents --agent probe-droid` | Check whether a staged Claude Managed Agents bundle matches the generated catalog bundle. |",
         "| `endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex` | Check whether an installed Codex skill directory matches the generated catalog bundle. |",
         "",
         "Supported compile targets are `claude-code`, `claude-managed-agents`,",
@@ -608,6 +612,7 @@ def _agent_summary(agent_id: str) -> str:
         "dependency-decision-helper": "Decide whether to add, upgrade to, or keep a specific package version",
         "upgrade-impact-analysis": "Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
         "package-risk-summary": "Summarize the risk profile of a specific package version",
+        "probe-droid": "Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup",
         "remediation-planner": "Preview safe dependency remediation options without opening PRs",
         "repository-dependency-reviewer": "Review local dependency manifests with read-only file inspection and Endor evidence",
         "sca-remediation": "Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation",
@@ -622,9 +627,31 @@ def _agent_example(agent_id: str) -> str:
         "dependency-decision-helper": "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
         "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for repository <owner>/<repo> package lodash",
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
+        "probe-droid": "@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions",
         "remediation-planner": "@agent-remediation-planner preview remediation options for this repository",
         "repository-dependency-reviewer": "@agent-repository-dependency-reviewer review this repository's dependency manifests",
         "sca-remediation": "@agent-sca-remediation check this repository for P0 SCA findings I can start remediating",
         "vulnerability-explainer": "@agent-vulnerability-explainer explain CVE-2021-44228",
     }
     return examples.get(agent_id, f"@agent-{agent_id} help")
+
+
+def _codex_install_commands(catalog: list[_AgentCatalogEntry]) -> list[str]:
+    if not catalog:
+        return ["# No Codex skills are currently published."]
+    lines = ["mkdir -p \"${CODEX_HOME:-$HOME/.codex}/skills\""]
+    for item in sorted(catalog, key=lambda value: value.name.lower()):
+        lines.extend([
+            f"cp -R /path/to/endor-labs-agent-kit/codex/{item.id} \\",
+            f"  \"${{CODEX_HOME:-$HOME/.codex}}/skills/{item.id}\"",
+        ])
+    return lines
+
+
+def _codex_invoke_prompts(catalog: list[_AgentCatalogEntry]) -> list[str]:
+    prompts = {
+        "ai-sast-triage": "Use the ai-sast-triage skill to triage AI SAST findings for this repository.",
+        "probe-droid": "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.",
+        "sca-remediation": "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.",
+    }
+    return [prompts.get(item.id, f"Use the {item.id} skill to help with this Endor Labs workflow.") for item in sorted(catalog, key=lambda value: value.name.lower())]

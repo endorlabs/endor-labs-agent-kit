@@ -123,8 +123,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert ".csproj" in prompt
     assert "Cargo.toml" in prompt
     assert "use `-pl` only after confirming a root aggregator POM exists" in prompt
-    assert "death-star layout" not in prompt
-    assert "services/imperial-gateway/pom.xml dependency:resolve" not in prompt
+    assert "project-specific layout" not in prompt
+    assert "services/api-gateway/pom.xml dependency:resolve" not in prompt
     assert "remediation/sca/<normalized-package-name>-<target-version>" in prompt
     assert "Do not use unrelated branch families such as `endor/fix/...`" in prompt
     assert "complete AURI-style PR/MR body draft" in prompt

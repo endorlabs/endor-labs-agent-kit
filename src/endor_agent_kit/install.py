@@ -9,6 +9,7 @@ from pathlib import Path
 from endor_agent_kit.catalog_schema import CatalogArtifact, CatalogBundle
 from endor_agent_kit.catalog_manifest import CatalogManifest, MANIFEST_PATH
 from endor_agent_kit.compilers.claude_code import HOST as CLAUDE_CODE_HOST
+from endor_agent_kit.compilers.claude_managed_agents import HOST as CLAUDE_MANAGED_AGENTS_HOST
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST
 
 
@@ -50,6 +51,22 @@ def check_codex_install(
         agent_id,
         CODEX_HOST,
         Path(codex_home) / "skills" / agent_id,
+        catalog_root=catalog_root,
+    )
+
+
+def check_claude_managed_agents_install(
+    agent_id: str,
+    managed_agent_dir: str | Path,
+    *,
+    catalog_root: str | Path = ".",
+) -> list[str]:
+    """Check whether a Claude Managed Agents bundle matches the catalog."""
+
+    return _check_bundle_artifact_install(
+        agent_id,
+        CLAUDE_MANAGED_AGENTS_HOST,
+        Path(managed_agent_dir),
         catalog_root=catalog_root,
     )
 

@@ -190,6 +190,15 @@ def claude_code_edition_readme(
             ),
             "Bash use is limited by prompt to the documented Endor lookup commands.",
         ]
+        if recipe.id == "probe-droid":
+            requirements.append(
+                "Read-only GitHub.com credentials through `gh` or exported GitHub repository inventory JSON."
+            )
+            notes = [
+                f"This {artifact_label} compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.",
+                "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
+                "It must not run scans, clone repositories, create scan profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
+            ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
@@ -228,6 +237,44 @@ def claude_code_agent_setup_section(
 ) -> list[str]:
     """Return Claude Code setup README content."""
 
+    if recipe.id == "probe-droid":
+        return [
+            "## Setup Checklist",
+            "",
+            "### 1. Install The Subagent",
+            "",
+            "Run this from the target repository or admin workspace where Claude Code",
+            "will perform the read-only inventory:",
+            "",
+            "```bash",
+            "mkdir -p .claude/agents",
+            "cp /path/to/endor-labs-agent-kit/claude-code/probe-droid/probe-droid.md \\",
+            "  .claude/agents/probe-droid.md",
+            "```",
+            "",
+            "### 2. Verify Read-Only Access",
+            "",
+            "Run these read-only checks when live GitHub inventory is available:",
+            "",
+            "```bash",
+            "endorctl --version",
+            "gh auth status        # GitHub inventory",
+            "```",
+            "",
+            "Probe Droid does not need an Endor MCP server. If Endor access, GitHub",
+            "read permissions, scan profile data, package manager integration data, or",
+            "repository contents are unavailable, the agent should report the missing",
+            "setup in `data_gaps`.",
+            "",
+            "### 3. Keep The Probe Read-Only",
+            "",
+            "The agent may list GitHub repositories, fetch specific manifest or CI files,",
+            "and query Endor projects, GitHub App evidence, monitored-branch scans, packages,",
+            "scan profiles, and package manager integrations. It should not run scans,",
+            "clone repositories, edit files, change GitHub settings, create profiles,",
+            "update integrations, or open PRs/MRs.",
+            "",
+        ]
     if recipe.id == "sca-remediation":
         return [
             "## Setup Checklist",
@@ -407,6 +454,25 @@ def claude_code_agent_setup_section(
 def claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return Claude Code example workflow README content."""
 
+    if recipe.id == "probe-droid":
+        return [
+            "## Example Workflow",
+            "",
+            "Use these copy/paste prompts after the agent is installed.",
+            "",
+            "```text",
+            "@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps. Compare GitHub.com repositories with Endor projects, GitHub App coverage, dependency resolution, reachability, scan profiles, toolchains, and package manager integrations. Do not run scans or mutate anything.",
+            "```",
+            "",
+            "```text",
+            "@agent-probe-droid compare these GitHub repositories with Endor and prescribe the scan profiles, toolchains, private package integrations, and call graph setup needed for clean monitored-branch onboarding: <repo-url-1>, <repo-url-2>",
+            "```",
+            "",
+            "The result should prioritize shared setup that unblocks the most repositories",
+            "first, while separating not-yet-onboarded repositories from onboarded-but-gapped",
+            "repositories and keeping PR scan coverage in future scope.",
+            "",
+        ]
     if recipe.id == "sca-remediation":
         return [
             "## Example Workflow",
@@ -586,6 +652,8 @@ def example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition"
         return f"@agent-{recipe.id} check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR until I approve."
     if recipe.id == "remediation-planner":
         return f"@agent-{recipe.id} preview remediation options for this repository"
+    if recipe.id == "probe-droid":
+        return f"@agent-{recipe.id} probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions"
     if "vulnerability_id" in input_names:
         return f"@agent-{recipe.id} explain CVE-2021-44228"
     if recipe.id == "upgrade-impact-analysis":

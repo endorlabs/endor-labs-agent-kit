@@ -179,10 +179,16 @@ def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
             transport = f"{label} does not require Bash or endorctl."
     else:
         label = "This artifact" if single_edition else "Enterprise Edition"
-        transport = (
-            f"{label} allows Bash only for read-only Endor lookups "
-            "through `endorctl api`."
-        )
+        if recipe.id == "probe-droid":
+            transport = (
+                f"{label} allows Bash only for documented read-only Endor "
+                "and GitHub inventory lookups."
+            )
+        else:
+            transport = (
+                f"{label} allows Bash only for read-only Endor lookups "
+                "through `endorctl api`."
+            )
     return dedent(
         f"""\
         > Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version}.

@@ -23,10 +23,10 @@ def _valid_netty_payload() -> dict:
             "findings_fixed": 25,
             "findings_introduced": 0,
             "conflicts": 0,
-            "uia_uuid": "69fcb3fb719017e91f35c5ff",
-            "project_uuid": "69d31cfb4d93d8d6a8408210",
-            "namespace": "auri",
-            "manifests": ["services/imperial-gateway/pom.xml"],
+            "uia_uuid": "version-upgrade-fixture-001",
+            "project_uuid": "project-fixture-webapp-001",
+            "namespace": "tenant-a",
+            "manifests": ["services/api-gateway/pom.xml"],
             "reachability_tags": ["REACHABLE_DEPENDENCY", "REACHABLE_FUNCTION"],
             "advisories": [
                 {
@@ -50,10 +50,10 @@ def _valid_netty_payload() -> dict:
             ],
         },
         "project_resolution": {
-            "project_uuid": "69d31cfb4d93d8d6a8408210",
-            "namespace": "auri",
+            "project_uuid": "project-fixture-webapp-001",
+            "namespace": "tenant-a",
             "namespace_provenance": "~/.endorctl/config.yaml ENDOR_NAMESPACE",
-            "repo_full_name": "endor-matt/death-star",
+            "repo_full_name": "example/webapp",
         },
         "risk_decision": {
             "status": "approved_with_validation_required",
@@ -66,7 +66,7 @@ def _valid_netty_payload() -> dict:
         },
         "patch_plan": [
             {
-                "file": "services/imperial-gateway/pom.xml",
+                "file": "services/api-gateway/pom.xml",
                 "branch_name": "remediation/sca/netty-all-4.2.13.Final",
             }
         ],

@@ -1,0 +1,179 @@
+metadata:
+  fixture_id: probe-droid-selected-repos-sanitized-regression
+  source: sanitized-read-only-live-run-shape
+  github_org: acme-labs
+  endor_namespace: demo-namespace
+  notes:
+    - Counts and blocker categories preserve the regression shape.
+    - Organization, namespace, repository names, Endor UUIDs, installation IDs, and raw scan logs are anonymized.
+    - Credentials, tokens, and tenant-specific identifiers are not included.
+
+observed_counts:
+  github_repositories_in_scope: 72
+  archived_repositories: 0
+  inactive_repositories_threshold_365_days: 28
+  endor_projects_in_namespace: 28
+  github_projects_in_namespace: 23
+  strict_github_org_matches: 22
+  not_onboarded_repositories: 50
+  extra_endor_github_projects_outside_org: 1
+
+github_app_coverage:
+  status: APP_INSTALLED_SELECTED_REPOS
+  login: acme-labs
+  archived_repositories_included: false
+  selected_project_count: 22
+  selected_repositories:
+    - acme-labs/service-01
+    - acme-labs/service-02
+    - acme-labs/service-03
+    - acme-labs/service-04
+    - acme-labs/service-05
+    - acme-labs/service-06
+    - acme-labs/service-07
+    - acme-labs/service-08
+    - acme-labs/service-09
+    - acme-labs/service-10
+    - acme-labs/service-11
+    - acme-labs/service-12
+    - acme-labs/service-13
+    - acme-labs/service-14
+    - acme-labs/service-15
+    - acme-labs/service-16
+    - acme-labs/service-17
+    - acme-labs/service-18
+    - acme-labs/service-19
+    - acme-labs/service-20
+    - acme-labs/service-21
+    - acme-labs/service-22
+  data_gaps:
+    - github_app_installations_api_unavailable
+
+not_onboarded_repositories:
+  - acme-labs/not-onboarded-01
+  - acme-labs/not-onboarded-02
+  - acme-labs/not-onboarded-03
+  - acme-labs/not-onboarded-04
+  - acme-labs/not-onboarded-05
+  - acme-labs/not-onboarded-06
+  - acme-labs/not-onboarded-07
+  - acme-labs/not-onboarded-08
+  - acme-labs/not-onboarded-09
+  - acme-labs/not-onboarded-10
+  - acme-labs/not-onboarded-11
+  - acme-labs/not-onboarded-12
+  - acme-labs/not-onboarded-13
+  - acme-labs/not-onboarded-14
+  - acme-labs/not-onboarded-15
+  - acme-labs/not-onboarded-16
+  - acme-labs/not-onboarded-17
+  - acme-labs/not-onboarded-18
+  - acme-labs/not-onboarded-19
+  - acme-labs/not-onboarded-20
+  - acme-labs/not-onboarded-21
+  - acme-labs/not-onboarded-22
+  - acme-labs/not-onboarded-23
+  - acme-labs/not-onboarded-24
+  - acme-labs/not-onboarded-25
+  - acme-labs/not-onboarded-26
+  - acme-labs/not-onboarded-27
+  - acme-labs/not-onboarded-28
+  - acme-labs/not-onboarded-29
+  - acme-labs/not-onboarded-30
+  - acme-labs/not-onboarded-31
+  - acme-labs/not-onboarded-32
+  - acme-labs/not-onboarded-33
+  - acme-labs/not-onboarded-34
+  - acme-labs/not-onboarded-35
+  - acme-labs/not-onboarded-36
+  - acme-labs/not-onboarded-37
+  - acme-labs/not-onboarded-38
+  - acme-labs/not-onboarded-39
+  - acme-labs/not-onboarded-40
+  - acme-labs/not-onboarded-41
+  - acme-labs/not-onboarded-42
+  - acme-labs/not-onboarded-43
+  - acme-labs/not-onboarded-44
+  - acme-labs/not-onboarded-45
+  - acme-labs/not-onboarded-46
+  - acme-labs/not-onboarded-47
+  - acme-labs/not-onboarded-48
+  - acme-labs/not-onboarded-49
+  - acme-labs/not-onboarded-50
+
+extra_endor_github_projects_outside_org:
+  - external-example/java-service
+
+expected_output:
+  onboarding_verdict: PARTIAL_COVERAGE
+  executive_report:
+    headline: 22 repositories are onboarded, 50 are not selected in the GitHub App, and 3 onboarded repositories have reachability blockers.
+    top_counts:
+      github_repositories_in_scope: 72
+      endor_projects_matched: 22
+      repositories_not_onboarded: 50
+      repositories_with_dependency_resolution_gaps: 1
+      repositories_with_reachability_gaps: 3
+    top_blockers:
+      - GitHub App selected-repository coverage does not include 50 in-scope repositories.
+      - One npm package is blocked by private-registry authentication.
+      - Two Python packages are blocked by missing PostgreSQL build prerequisites.
+  github_app_coverage:
+    status: APP_INSTALLED_SELECTED_REPOS
+    selected_repo_count: 22
+    repositories_not_selected_count: 50
+  onboarded_repositories_with_gaps:
+    - repository: acme-labs/platform-ui
+      statuses:
+        - REACHABILITY_GAP
+        - PACKAGE_MANAGER_GAP
+      dependency_resolution_reason_codes:
+        - DEPENDENCY_RESOLUTION_PRIVATE_REGISTRY
+      package_manager_reason_codes:
+        - PACKAGE_MANAGER_AUTH_FAILED
+      reachability_reason_codes:
+        - REACHABILITY_DEPENDENCY_RESOLUTION_BLOCKED
+      package_evidence:
+        package: npm://frontend@0.0.0
+        ecosystem: ECOSYSTEM_NPM
+        error_category: ERROR_CATEGORY_PRIVATE_REGISTRY
+        error_summary: npm install failed with E401; dependencies were not downloaded before call graph generation.
+      owner_role: endor_admin
+      confidence: HIGH
+    - repository: acme-labs/python-webapp
+      statuses:
+        - REACHABILITY_GAP
+        - TOOLCHAIN_GAP
+      dependency_resolution_reason_codes:
+        - DEPENDENCY_RESOLUTION_TOOLCHAIN_MISSING
+      reachability_reason_codes:
+        - REACHABILITY_BUILD_TOOLCHAIN_FAILED
+      package_evidence:
+        package: pypi://python-webapp@main
+        ecosystem: ECOSYSTEM_PYPI
+        error_summary: Python virtual environment creation failed while building psycopg2 because pg_config executable was not found.
+      owner_role: platform_team
+      confidence: HIGH
+    - repository: acme-labs/python-training-app
+      statuses:
+        - REACHABILITY_GAP
+        - TOOLCHAIN_GAP
+      dependency_resolution_reason_codes:
+        - DEPENDENCY_RESOLUTION_TOOLCHAIN_MISSING
+      reachability_reason_codes:
+        - REACHABILITY_BUILD_TOOLCHAIN_FAILED
+      package_evidence:
+        package: pypi://python-training-app@1.2.0
+        ecosystem: ECOSYSTEM_PYPI
+        error_summary: Python setup and requirements installation both failed because psycopg2 needs pg_config.
+      owner_role: platform_team
+      confidence: HIGH
+  recommended_actions:
+    - action: Configure npm private registry authentication for monitored-branch dependency resolution.
+      owner_role: endor_admin
+      confirmation_required: true
+      confidence: HIGH
+    - action: Provide PostgreSQL build prerequisites in the Python scan environment used by affected Python repositories, or have repo owners adjust psycopg2 dependency packaging.
+      owner_role: platform_team
+      confirmation_required: true
+      confidence: HIGH
