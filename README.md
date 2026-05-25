@@ -295,6 +295,7 @@ endor-agent-kit validate-sca-output sca-output.json --gate selection-plan
 endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md
 endor-agent-kit lint-sca-pr-body pr-body.md
 endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo
+endor-agent-kit check-install --host claude-managed-agents --agent probe-droid
 endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex
 endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation
 endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md
@@ -311,8 +312,9 @@ CIA-indeterminate upgrade without source-usage evidence and validation
 requirements. `render-sca-pr-body` turns normalized advisory data into the
 AURI-style PR/MR body, including the folded advisory list, CVE-visible links
 to GHSA URLs, and severity emoji suffixes.
-`check-install` catches copied Claude Code primary artifacts and installed
-Codex skill bundles that are stale versus the checked-in Agent Kit catalog.
+`check-install` catches copied Claude Code primary artifacts, staged
+Claude Managed Agents bundles, and installed Codex skill bundles that are
+stale versus the checked-in Agent Kit catalog.
 
 AI SAST triage outputs can be checked before remediation, PR/MR, or
 exception-policy gates advance. `validate-ai-sast-output` requires
@@ -463,6 +465,7 @@ CI runs the same validation and generated-artifact drift check.
 | `endor-agent-kit render-ai-sast-exception-policy-comment ai-sast-output.json > policy-comment.md` | Render a human-readable Endor exception policy decision comment. |
 | `endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md` | Lint the policy decision comment for policy name/UUID, project label, evidence, and raw selector leakage. |
 | `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |
+| `endor-agent-kit check-install --host claude-managed-agents --agent probe-droid` | Check whether a staged Claude Managed Agents bundle matches the generated catalog bundle. |
 | `endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex` | Check whether an installed Codex skill directory matches the generated catalog bundle. |
 
 Supported compile targets are `claude-code`, `claude-managed-agents`,
