@@ -154,6 +154,12 @@ Use authenticated `gh` CLI first. If live GitHub inventory is unavailable, use
 `github_inventory_json` when supplied and clearly label the evidence as
 exported input.
 
+In Claude Managed Agents, `gh` may be unavailable even when Bash is available.
+If so, use read-only GitHub.com REST API calls against `api.github.com` with
+credentials supplied to the managed session, or fall back to
+`github_inventory_json`. If neither live GitHub API access nor exported
+inventory is available, record `github_inventory_unavailable` in `data_gaps`.
+
 Acceptable read-only checks include:
 
 ```bash
@@ -175,6 +181,18 @@ the root tree without recursion:
 
 ```bash
 gh api repos/<owner>/<repo>/git/trees/<tree_sha>
+```
+
+When `gh` is unavailable but a read-only GitHub token is supplied to the
+managed session, use REST API calls against `api.github.com` and project the
+response before consuming it. Keep credentials out of logs and final output.
+
+```bash
+curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/orgs/<org>/repos?per_page=100&type=all"
+```
+
+```bash
+curl -fsSL -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/<owner>/<repo>/git/trees/<tree_sha>"
 ```
 
 Use root-tree summaries for org-wide first pass.
@@ -989,7 +1007,9 @@ Run `gh auth status` when using live GitHub inventory. Then list the requested
 org or repositories with read-only `gh` commands. Fetch only bounded trees and
 known files for manifest/config evidence. If GitHub access is missing, report
 `github_inventory_unavailable` and continue only if exported inventory or Endor
-evidence is sufficient to provide a partial answer.
+evidence is sufficient to provide a partial answer. In Claude Managed Agents,
+use read-only GitHub REST API calls or exported inventory when `gh` is not
+available in the cloud environment.
 
 ## Step 3: Inventory Endor Projects And GitHub App Coverage
 

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from endor_agent_kit.compilers import compile_claude_code, compile_raw
+from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
 from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.validator import validate_recipe_file
 
@@ -47,8 +47,11 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
-    assert data["compatible_hosts"] == ["claude-code", "codex"]
-    assert data["host_editions"] == {"claude-code": ["enterprise-edition"]}
+    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex"]
+    assert data["host_editions"] == {
+        "claude-code": ["enterprise-edition"],
+        "claude-managed-agents": ["enterprise-edition"],
+    }
     assert data["host_capabilities_required"] == {
         "run_commands": True,
         "read_files": False,
@@ -128,6 +131,8 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "gh auth status" in artifact
     assert "gh repo list" in artifact
     assert "gh repo view" in artifact
+    assert "https://api.github.com/orgs/<org>/repos" in artifact
+    assert "Keep credentials out of logs and final output" in artifact
     assert "isDisabled" not in artifact
     assert "--resource ScanProfile" in artifact
     assert "--resource PackageManager" in artifact
@@ -178,7 +183,48 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert_mcp_free_generated_artifact(artifact)
 
 
-def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_path):
+def test_probe_droid_managed_agents_artifacts_carry_github_boundary(tmp_path):
+    recipe = _copy_agent(tmp_path)
+
+    compile_claude_managed_agents(recipe)
+
+    out_dir = recipe.parent / "dist" / "claude-managed-agents" / "enterprise-edition"
+    assert_host_bundle_files(
+        out_dir,
+        {"agent.yaml", "environment.yaml", "session-template.yaml"},
+    )
+    managed = yaml.safe_load((out_dir / "agent.yaml").read_text(encoding="utf-8"))
+    environment = yaml.safe_load((out_dir / "environment.yaml").read_text(encoding="utf-8"))
+    session = yaml.safe_load((out_dir / "session-template.yaml").read_text(encoding="utf-8"))
+
+    assert not (recipe.parent / "dist" / "claude-managed-agents" / "developer-edition").exists()
+    assert managed["name"] == "Probe Droid"
+    assert managed["model"] == "claude-sonnet-4-6"
+    assert managed["metadata"]["endor_agent_kit_recipe_id"] == "probe-droid"
+    assert managed["mcp_servers"] == []
+    assert "vault_ids" not in session
+    assert environment["name"] == "endor-probe-droid"
+    assert environment["config"]["networking"]["allowed_hosts"] == [
+        "https://api.endorlabs.com",
+        "https://api.github.com",
+        "https://github.com",
+    ]
+    assert environment["config"]["networking"]["allow_mcp_servers"] is False
+
+    tools = {tool["type"]: tool for tool in managed["tools"]}
+    assert "mcp_toolset" not in tools
+    assert tools["agent_toolset_20260401"]["configs"][0]["name"] == "bash"
+    assert "This Managed Agents artifact" in managed["system"]
+    assert "GitHub.com inventory/file lookups" in managed["system"]
+    assert "Do not require Endor MCP" in managed["system"]
+    assert "api.github.com" in managed["system"]
+    assert "https://api.github.com/orgs/<org>/repos" in managed["system"]
+    assert "github_inventory_json" in managed["system"]
+    assert "Do not run recursive GitHub tree calls across every repository" in managed["system"]
+    assert "Run at most one all-project `PackageVersion` summary query" in managed["system"]
+
+
+def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
 
@@ -190,6 +236,12 @@ def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_p
         "claude-code/probe-droid/README.md",
         "claude-code/probe-droid/architecture.svg",
         "claude-code/probe-droid/endorctl-setup.md",
+        "claude-managed-agents/probe-droid/agent.yaml",
+        "claude-managed-agents/probe-droid/environment.yaml",
+        "claude-managed-agents/probe-droid/session-template.yaml",
+        "claude-managed-agents/probe-droid/README.md",
+        "claude-managed-agents/probe-droid/architecture.svg",
+        "claude-managed-agents/probe-droid/endorctl-setup.md",
         "codex/probe-droid/SKILL.md",
         "codex/probe-droid/README.md",
         "codex/probe-droid/architecture.svg",
@@ -198,10 +250,15 @@ def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_p
         "README.md",
     }
     agent_dir = dest / "claude-code" / "probe-droid"
+    managed_dir = dest / "claude-managed-agents" / "probe-droid"
     codex_dir = dest / "codex" / "probe-droid"
     assert_host_bundle_files(
         agent_dir,
         {"probe-droid.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
+    assert_host_bundle_files(
+        managed_dir,
+        {"agent.yaml", "environment.yaml", "session-template.yaml", "README.md", "architecture.svg", "endorctl-setup.md"},
     )
     assert_codex_skill_bundle(
         codex_dir,
@@ -214,10 +271,13 @@ def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_p
         ),
     )
     assert_no_nested_edition_dirs(agent_dir)
-    assert not (dest / "claude-managed-agents" / "probe-droid").exists()
+    assert_no_nested_edition_dirs(managed_dir)
 
     root_readme = (dest / "README.md").read_text(encoding="utf-8")
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
+    managed_readme = (managed_dir / "README.md").read_text(encoding="utf-8")
+    managed_agent = (managed_dir / "agent.yaml").read_text(encoding="utf-8")
+    managed_environment = yaml.safe_load((managed_dir / "environment.yaml").read_text(encoding="utf-8"))
     prompt = (agent_dir / "probe-droid.md").read_text(encoding="utf-8")
     codex_skill = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
     codex_readme = (codex_dir / "README.md").read_text(encoding="utf-8")
@@ -226,6 +286,7 @@ def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_p
 
     assert "Probe Droid" in root_readme
     assert "claude-code/probe-droid/" in root_readme
+    assert "claude-managed-agents/probe-droid/" in root_readme
     assert "codex/probe-droid/" in root_readme
     assert "cp -R /path/to/endor-labs-agent-kit/codex/probe-droid" in root_readme
     assert "Use the probe-droid skill to probe GitHub org <org>" in root_readme
@@ -234,6 +295,16 @@ def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_p
     assert "![Probe Droid architecture](architecture.svg)" in agent_readme
     assert "Probe Droid does not need an Endor MCP server" in agent_readme
     assert "GitHub.com repository inventory" in agent_readme
+    assert "Read-only GitHub.com credentials available to the managed session" in managed_readme
+    assert "Probe GitHub org <org> for Endor monitored-branch onboarding gaps" in managed_readme
+    assert "This Managed Agents artifact" in managed_agent
+    assert "GitHub.com inventory/file lookups" in managed_agent
+    assert "mcp_toolset" not in managed_agent
+    assert managed_environment["config"]["networking"]["allowed_hosts"] == [
+        "https://api.endorlabs.com",
+        "https://api.github.com",
+        "https://github.com",
+    ]
     assert "Probe Droid Codex Skill" in codex_readme
     assert "No mutating repository, source-provider, or Endor writes for this skill." in codex_readme
     assert "Use the probe-droid skill to probe GitHub org <org>" in codex_readme
@@ -247,6 +318,7 @@ def test_probe_droid_publish_writes_claude_code_and_codex_catalog_surfaces(tmp_p
     assert "PUBLISHED CONTRACT" in architecture
     assert "GitHub commands must list repositories" in setup
     assert_mcp_free_generated_artifact(prompt)
+    assert_mcp_free_generated_artifact(managed_agent)
     assert_mcp_free_generated_artifact(codex_skill)
 
 

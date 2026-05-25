@@ -135,9 +135,9 @@
               "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
             },
             {
-              "bytes": 46528,
+              "bytes": 47604,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "8702e3bc7427af7ed4959fdb35f9ead8e0bb48b915bf1ef993656a7bfa678724"
+              "sha256": "9d2c1b52dcc0ed2efd88d57dc8558b0690ad9f74dc25bbbcc41df7c1810633a3"
             }
           ],
           "id": "enterprise-edition",
@@ -435,6 +435,56 @@
         {
           "artifacts": [
             {
+              "bytes": 2363,
+              "path": "claude-managed-agents/probe-droid/README.md",
+              "sha256": "23cc47c32475562c92016410d5ab42d62ea6b16d31f9d23fce2aea76a9085319"
+            },
+            {
+              "bytes": 50038,
+              "path": "claude-managed-agents/probe-droid/agent.yaml",
+              "sha256": "4b8683f4a73d1a9452108a018dfba92cfb59a70330dd846b6aea1d4c70655adb"
+            },
+            {
+              "bytes": 9818,
+              "path": "claude-managed-agents/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "claude-managed-agents/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            },
+            {
+              "bytes": 281,
+              "path": "claude-managed-agents/probe-droid/environment.yaml",
+              "sha256": "4e37963d915badaa1ead2cdf798e9013b13f75eeebf1f6922dc5c179e320443f"
+            },
+            {
+              "bytes": 51,
+              "path": "claude-managed-agents/probe-droid/session-template.yaml",
+              "sha256": "a8c802876a05c84101970bf28f3c1eb38824a90f74872df81a966e59df8f44b0"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-managed-agents/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-managed-agents",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 1869,
               "path": "claude-managed-agents/upgrade-impact-analysis/README.md",
               "sha256": "d7d94e4b745708730b14cbb3aecf533318822e102e1184dd797a8bccb9436708"
@@ -575,9 +625,9 @@
               "sha256": "cc19b9f9c44ebdac10e3c92a3520a1b9ed58862c7fab6e37b86142cf90020513"
             },
             {
-              "bytes": 47214,
+              "bytes": 48290,
               "path": "codex/probe-droid/SKILL.md",
-              "sha256": "2e3e8e6deb7529ef65bc3810f60e42c3f1ee5c71d5f8897660350c9f839c06da"
+              "sha256": "fbbe443a881b2ef5d045d0a17a53a8ca095c744d980c6b6018c04ab09a800084"
             },
             {
               "bytes": 9818,

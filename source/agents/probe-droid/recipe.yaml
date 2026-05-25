@@ -147,9 +147,12 @@ outputs:
 evals: evals/cases.yaml
 compatible_hosts:
   - claude-code
+  - claude-managed-agents
   - codex
 host_editions:
   claude-code:
+    - enterprise-edition
+  claude-managed-agents:
     - enterprise-edition
 mutations: []
 required_endor_mcp_tools: []
