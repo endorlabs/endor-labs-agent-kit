@@ -120,6 +120,46 @@
         {
           "artifacts": [
             {
+              "bytes": 3827,
+              "path": "claude-code/probe-droid/README.md",
+              "sha256": "48bdb696a48959bc19d6e751fb59c5bda8a0111e2e0bcb469bce0974688c9e0d"
+            },
+            {
+              "bytes": 9818,
+              "path": "claude-code/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "claude-code/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            },
+            {
+              "bytes": 30328,
+              "path": "claude-code/probe-droid/probe-droid.md",
+              "sha256": "f024ba684f5c25f8cb2c6e165a26f5775e4610608c4287ed6752bc568c616d5b"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-code/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 893,
               "path": "claude-code/remediation-planner/README.md",
               "sha256": "3fcafb8a8b28dc9eb26adc12dc414abbc534b1d210a3cd3e09e27f7b89b57d28"

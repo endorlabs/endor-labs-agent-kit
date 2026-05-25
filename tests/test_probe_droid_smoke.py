@@ -1,0 +1,193 @@
+from __future__ import annotations
+
+import shutil
+from pathlib import Path
+
+import yaml
+
+from endor_agent_kit.compilers import compile_claude_code, compile_raw
+from endor_agent_kit.publisher import publish_recipe
+from endor_agent_kit.validator import validate_recipe_file
+
+from conftest import repo_root
+from host_artifact_bundle_contract import (
+    assert_host_bundle_files,
+    assert_mcp_free_generated_artifact,
+    assert_no_nested_edition_dirs,
+)
+
+
+def _copy_agent(tmp_path: Path) -> Path:
+    src = repo_root() / "source" / "agents" / "probe-droid"
+    dst = tmp_path / "probe-droid"
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
+    return dst / "recipe.yaml"
+
+
+def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    data = yaml.safe_load(recipe.read_text(encoding="utf-8"))
+
+    assert validate_recipe_file(recipe) == []
+    assert data["id"] == "probe-droid"
+    assert data["safety_class"] == "read_only"
+    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["required_endor_mcp_tools"] == []
+    assert data["requires_endor_mcp"] == ""
+    assert data["mutations"] == []
+    assert data["compatible_hosts"] == ["claude-code"]
+    assert data["host_editions"] == {"claude-code": ["enterprise-edition"]}
+    assert data["host_capabilities_required"] == {
+        "run_commands": True,
+        "read_files": False,
+        "write_files": False,
+        "open_pr": False,
+    }
+    input_names = {item["name"] for item in data["inputs"]}
+    assert {"github_org", "repository_urls", "github_inventory_json", "sampling_mode"}.issubset(input_names)
+    output_names = {item["name"] for item in data["outputs"]}
+    assert {
+        "github_app_coverage",
+        "not_onboarded_repositories",
+        "onboarded_repositories_with_gaps",
+        "confirmed_org_wide_actions",
+        "sampled_prescription_hypotheses",
+        "requires_full_inventory_validation",
+        "evidence_queries",
+        "future_scope",
+    }.issubset(output_names)
+
+
+def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
+    recipe = _copy_agent(tmp_path)
+
+    compile_claude_code(recipe)
+
+    artifact = (
+        recipe.parent
+        / "dist"
+        / "claude-code"
+        / "enterprise-edition"
+        / "probe-droid.md"
+    ).read_text(encoding="utf-8")
+    header = artifact.split("---", 2)[1]
+
+    assert "Probe Droid" in artifact
+    assert "GitHub Monitored-Branch Coverage Probe" in artifact
+    assert "onboarding_verdict" in artifact
+    assert "report_scope" in artifact
+    assert "coverage_summary" in artifact
+    assert "github_inventory_summary" in artifact
+    assert "github_app_coverage" in artifact
+    assert "not_onboarded_repositories" in artifact
+    assert "onboarded_repositories_with_gaps" in artifact
+    assert "confirmed_org_wide_actions" in artifact
+    assert "sampled_prescription_hypotheses" in artifact
+    assert "requires_full_inventory_validation" in artifact
+    assert "evidence_queries" in artifact
+    assert "future_scope" in artifact
+    assert "DEPENDENCY_RESOLUTION_PRIVATE_REGISTRY" in artifact
+    assert "PACKAGE_MANAGER_INTEGRATION_MISSING" in artifact
+    assert "REACHABILITY_DEPENDENCY_RESOLUTION_BLOCKED" in artifact
+    assert "REPO_NOT_SELECTED_IN_APP" in artifact
+    assert "Do not run `endorctl scan`" in artifact
+    assert "Do not clone repositories" in artifact
+    assert "GitHub.com only" in artifact
+    assert "gh auth status" in artifact
+    assert "gh repo list" in artifact
+    assert "gh repo view" in artifact
+    assert "isDisabled" not in artifact
+    assert "--resource ScanProfile" in artifact
+    assert "--resource PackageManager" in artifact
+    assert "--resource PackageVersion" in artifact
+    assert "--resource Installation" in artifact
+    assert "spec.resolution_errors" in artifact
+    assert "confirmation_required: true" in artifact
+    assert "does not require, configure, or start an Endor MCP server" in artifact
+    assert "documented read-only Endor and GitHub inventory lookups" in artifact
+    assert "glab repo list" not in artifact
+    assert "az repos list" not in artifact
+    assert "Bitbucket repository inventory" not in artifact
+    assert "endorctl toolchains detect" not in artifact
+    assert "PR_QUICK_SCAN_ONLY" not in artifact
+    assert "disallowedTools: Bash" not in header
+    assert_mcp_free_generated_artifact(artifact)
+
+
+def test_probe_droid_publish_writes_claude_code_catalog_surface(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    written = publish_recipe(recipe, dest)
+
+    written_paths = {path.relative_to(dest).as_posix() for path in written}
+    assert written_paths == {
+        "claude-code/probe-droid/probe-droid.md",
+        "claude-code/probe-droid/README.md",
+        "claude-code/probe-droid/architecture.svg",
+        "claude-code/probe-droid/endorctl-setup.md",
+        "manifest.json",
+        "README.md",
+    }
+    agent_dir = dest / "claude-code" / "probe-droid"
+    assert_host_bundle_files(
+        agent_dir,
+        {"probe-droid.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
+    assert_no_nested_edition_dirs(agent_dir)
+    assert not (dest / "claude-managed-agents" / "probe-droid").exists()
+    assert not (dest / "codex" / "probe-droid").exists()
+
+    root_readme = (dest / "README.md").read_text(encoding="utf-8")
+    agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
+    prompt = (agent_dir / "probe-droid.md").read_text(encoding="utf-8")
+    setup = (agent_dir / "endorctl-setup.md").read_text(encoding="utf-8")
+    architecture = (agent_dir / "architecture.svg").read_text(encoding="utf-8")
+
+    assert "Probe Droid" in root_readme
+    assert "claude-code/probe-droid/" in root_readme
+    assert "@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps" in root_readme
+    assert "GitHub read-only inventory credentials" in root_readme
+    assert "![Probe Droid architecture](architecture.svg)" in agent_readme
+    assert "Probe Droid does not need an Endor MCP server" in agent_readme
+    assert "GitHub.com repository inventory" in agent_readme
+    assert "GitLab" not in agent_readme
+    assert "Azure DevOps" not in agent_readme
+    assert "Bitbucket" not in agent_readme
+    assert "No scans, profile writes" in architecture
+    assert "PUBLISHED CONTRACT" in architecture
+    assert "GitHub commands must list repositories" in setup
+    assert_mcp_free_generated_artifact(prompt)
+
+
+def test_probe_droid_raw_setup_documents_github_inventory_boundary(tmp_path):
+    recipe = _copy_agent(tmp_path)
+
+    compile_raw(recipe)
+
+    setup = (recipe.parent / "dist" / "raw" / "endorctl-setup.md").read_text(encoding="utf-8")
+    assert "Probe Droid also needs read-only GitHub.com inventory access" in setup
+    assert "must not clone repositories" in setup
+    assert "mutate GitHub settings" in setup
+
+
+def test_probe_droid_eval_cases_cover_onboarding_outcomes():
+    evals = yaml.safe_load(
+        (repo_root() / "source" / "agents" / "probe-droid" / "evals" / "cases.yaml").read_text()
+    )
+
+    case_ids = {case["id"] for case in evals["cases"]}
+    assert case_ids == {
+        "github-org-selected-repos-partial-coverage",
+        "private-registry-resolution-error",
+        "reachability-blocked-by-resolution-or-toolchain",
+        "single-repo-before-onboarding",
+        "large-org-stratified-sampling",
+        "inactive-and-archived-repository-classification",
+        "missing-github-access",
+    }
+    verdicts = {case["expected"]["onboarding_verdict"] for case in evals["cases"]}
+    assert verdicts == {"PARTIAL_COVERAGE", "NOT_ONBOARDED", "INSUFFICIENT_DATA"}
+    for case in evals["cases"]:
+        assert case["expected"]["required_evidence"]
+        assert isinstance(case["expected"]["data_gaps_allowed"], bool)
