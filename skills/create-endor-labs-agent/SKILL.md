@@ -14,7 +14,7 @@ Use this skill to create a production-ready Endor Labs Agent Kit agent in the
 current repository. Agent Kit owns the public authoring and publishing path for
 new Endor/AURI-style agents. Private extraction tools may generate sanitized
 draft inputs, but this repository must not depend on proprietary source
-inspection or AURI-specific plucking logic.
+inspection or private extractor logic.
 
 The repository is source-first:
 
@@ -38,8 +38,8 @@ Create agents from either public input shape:
 
 Blueprints must be generic. They may describe workflow intent, Endor resources,
 I/O, safety class, action contracts, eval cases, and architecture. They must not
-include AURI source paths, private code snippets, proprietary registry hashes,
-or instructions that require Agent Kit to inspect the AURI codebase.
+include private source paths, private code snippets, proprietary registry hashes,
+or instructions that require Agent Kit to inspect a private codebase.
 
 ## Confirm The Target
 
@@ -160,7 +160,7 @@ existing source-agent diagrams:
 - lower evidence/safety/host-boundary cards
 - a bottom published-contract band
 
-The diagram should describe the public agent contract, not private AURI runtime
+The diagram should describe the public agent contract, not private runtime
 internals.
 
 ## Write Instructions

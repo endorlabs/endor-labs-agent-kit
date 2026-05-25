@@ -120,6 +120,46 @@
         {
           "artifacts": [
             {
+              "bytes": 3827,
+              "path": "claude-code/probe-droid/README.md",
+              "sha256": "48bdb696a48959bc19d6e751fb59c5bda8a0111e2e0bcb469bce0974688c9e0d"
+            },
+            {
+              "bytes": 9818,
+              "path": "claude-code/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "claude-code/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            },
+            {
+              "bytes": 47604,
+              "path": "claude-code/probe-droid/probe-droid.md",
+              "sha256": "9d2c1b52dcc0ed2efd88d57dc8558b0690ad9f74dc25bbbcc41df7c1810633a3"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-code/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 893,
               "path": "claude-code/remediation-planner/README.md",
               "sha256": "3fcafb8a8b28dc9eb26adc12dc414abbc534b1d210a3cd3e09e27f7b89b57d28"
@@ -210,9 +250,9 @@
               "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
             },
             {
-              "bytes": 36537,
+              "bytes": 36541,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "33b93f6be5a2337a82e0a6e3350c1d87f9e815a7f43079cdae3d3783ac7ace48"
+              "sha256": "45efb5f56aef968f844e6925e4ed4382bf09be77c58a042efa4a3ecf69a44da9"
             }
           ],
           "id": "enterprise-edition",
@@ -395,6 +435,56 @@
         {
           "artifacts": [
             {
+              "bytes": 2363,
+              "path": "claude-managed-agents/probe-droid/README.md",
+              "sha256": "23cc47c32475562c92016410d5ab42d62ea6b16d31f9d23fce2aea76a9085319"
+            },
+            {
+              "bytes": 50038,
+              "path": "claude-managed-agents/probe-droid/agent.yaml",
+              "sha256": "4b8683f4a73d1a9452108a018dfba92cfb59a70330dd846b6aea1d4c70655adb"
+            },
+            {
+              "bytes": 9818,
+              "path": "claude-managed-agents/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "claude-managed-agents/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            },
+            {
+              "bytes": 281,
+              "path": "claude-managed-agents/probe-droid/environment.yaml",
+              "sha256": "4e37963d915badaa1ead2cdf798e9013b13f75eeebf1f6922dc5c179e320443f"
+            },
+            {
+              "bytes": 51,
+              "path": "claude-managed-agents/probe-droid/session-template.yaml",
+              "sha256": "a8c802876a05c84101970bf28f3c1eb38824a90f74872df81a966e59df8f44b0"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-managed-agents/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-managed-agents",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 1869,
               "path": "claude-managed-agents/upgrade-impact-analysis/README.md",
               "sha256": "d7d94e4b745708730b14cbb3aecf533318822e102e1184dd797a8bccb9436708"
@@ -530,14 +620,54 @@
         {
           "artifacts": [
             {
+              "bytes": 2869,
+              "path": "codex/probe-droid/README.md",
+              "sha256": "cc19b9f9c44ebdac10e3c92a3520a1b9ed58862c7fab6e37b86142cf90020513"
+            },
+            {
+              "bytes": 48290,
+              "path": "codex/probe-droid/SKILL.md",
+              "sha256": "fbbe443a881b2ef5d045d0a17a53a8ca095c744d980c6b6018c04ab09a800084"
+            },
+            {
+              "bytes": 9818,
+              "path": "codex/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "codex/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            }
+          ],
+          "id": "codex-skill",
+          "name": "Codex Skill",
+          "path": "codex/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "codex",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 2850,
               "path": "codex/sca-remediation/README.md",
               "sha256": "54e681f1a8ea9c87a7a100544e6f01ded80299363503e062aa310e22c095fe16"
             },
             {
-              "bytes": 37323,
+              "bytes": 37327,
               "path": "codex/sca-remediation/SKILL.md",
-              "sha256": "e1d5a58310ea7ea1d9b39f8c122d25f52888d5adfc1447b2b4181c545efcd008"
+              "sha256": "0b9cce2ff0532fad420dc4d9ebebc0a57414e50bf870075766ef974a5e9c220d"
             },
             {
               "bytes": 5683,

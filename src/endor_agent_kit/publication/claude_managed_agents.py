@@ -152,6 +152,15 @@ def managed_agents_edition_readme(
             "The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.",
             "Bash use remains limited by prompt to the documented Endor lookup commands.",
         ]
+        if recipe.id == "probe-droid":
+            requirements.append(
+                "Read-only GitHub.com credentials available to the managed session, or exported GitHub inventory JSON supplied in the prompt."
+            )
+            notes = [
+                f"This {artifact_label} compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.",
+                "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
+                "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
+            ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
@@ -217,6 +226,8 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
         return "Show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA, findings fixed, manifest files, and breaking changes."
     if recipe.id == "package-risk-summary":
         return "Summarize npm lodash version 4.17.20."
+    if recipe.id == "probe-droid":
+        return "Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
         return "Assess npm lodash version 4.17.20."
     return "Help me use this Endor Labs agent."

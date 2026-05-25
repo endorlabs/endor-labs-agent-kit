@@ -449,6 +449,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md" in root_readme
     assert "endor-agent-kit lint-sca-pr-body pr-body.md" in root_readme
     assert "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo" in root_readme
+    assert "endor-agent-kit check-install --host claude-managed-agents --agent probe-droid" in root_readme
     assert "Endor Labs Upgrade Impact Analysis" in root_readme
     assert "Endor Labs Package Risk Summary" in root_readme
     assert "claude-code/upgrade-impact-analysis/" in root_readme

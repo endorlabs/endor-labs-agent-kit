@@ -155,7 +155,13 @@ def _managed_system(
         transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
     else:
         label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
-        if posture.uses_mcp:
+        if recipe.id == "probe-droid":
+            transport = (
+                f"{label}. Use Bash only for the documented read-only `endorctl api` "
+                "lookups and GitHub.com inventory/file lookups in these instructions. "
+                "Do not require Endor MCP."
+            )
+        elif posture.uses_mcp:
             transport = (
                 f"{label}. Use Endor MCP first. Bash is available only for the documented "
                 "read-only `endorctl api` lookups in these instructions."
@@ -249,7 +255,7 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
             "type": "cloud",
             "networking": {
                 "type": "limited",
-                "allowed_hosts": ["https://api.endorlabs.com"],
+                "allowed_hosts": _allowed_hosts(recipe),
                 "allow_mcp_servers": posture.uses_mcp,
                 "allow_package_managers": False,
             },
@@ -259,6 +265,16 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
         config["config"]["packages"] = {"npm": ["endorctl"]}
         config["config"]["networking"]["allow_package_managers"] = True
     return config
+
+
+def _allowed_hosts(recipe: EndorAgentRecipe) -> list[str]:
+    hosts = ["https://api.endorlabs.com"]
+    if recipe.id == "probe-droid":
+        hosts.extend([
+            "https://api.github.com",
+            "https://github.com",
+        ])
+    return hosts
 
 
 def _session_template(recipe: EndorAgentRecipe) -> dict:

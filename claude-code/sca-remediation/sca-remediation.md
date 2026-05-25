@@ -54,7 +54,7 @@ Resolve namespace candidates in this order:
 3. `ENDOR_NAMESPACE` in the active endorctl config, usually `~/.endorctl/config.yaml` or the directory named by `--config-path`.
 4. A namespace discovered from an already-resolved Endor project record.
 
-Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=auri from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, first try a project lookup without `-n` so endorctl can use its active configuration, or ask the user for the namespace. If a namespace candidate returns no matching project, record that candidate and provenance in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
+Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, first try a project lookup without `-n` so endorctl can use its active configuration, or ask the user for the namespace. If a namespace candidate returns no matching project, record that candidate and provenance in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
 
 Do not print or dump an entire Endor config file. It can contain auth and tenant details outside the namespace signal needed for this workflow. To read namespace provenance from config, extract only the namespace key with a narrow command or parser and do not echo tokens, API keys, session data, or unrelated config contents.
 
