@@ -44,10 +44,12 @@ Examples:
 - "Show the private registry, scan profile, and toolchain setup needed before onboarding."
 
 Use `github_org`, `repository_urls`, `github_inventory_json`,
-`endor_project_selector`, and `namespace` when supplied. Org-wide mode is the
-default. Single-repo and subset mode use `repository_urls`. The workflow must
-support both repositories that have not yet been onboarded into Endor and
-repositories already onboarded but still unhealthy.
+`endor_project_selector`, `namespace`, and `report_mode` when supplied.
+Org-wide mode is the default. Single-repo and subset mode use
+`repository_urls`. `report_mode` is `full` by default; `executive` mode keeps
+the prose and first JSON section compact while preserving the drill-down JSON
+keys. The workflow must support both repositories that have not yet been
+onboarded into Endor and repositories already onboarded but still unhealthy.
 
 If no GitHub scope, repository list, exported inventory, or Endor selector is
 available, ask for a GitHub.com organization, GitHub.com repository URL list,
@@ -317,6 +319,21 @@ evidence supports them:
 - `ARCHIVED_REPO_EXCLUDED`
 - `GITHUB_APP_COVERAGE_UNKNOWN`
 
+When Endor `Installation.spec.project_uuids` is present, map each UUID back to
+strictly matched Endor projects, then to GitHub `owner/repo` names. Report:
+
+- `selected_project_uuids`: the project UUIDs returned by the installation
+- `selected_repositories`: the matched GitHub repositories selected in the app
+- `repositories_not_selected`: GitHub inventory entries with no selected Endor
+  project, each with `github_app_status: REPO_NOT_SELECTED_IN_APP`
+- `selection_mapping_gaps`: project UUIDs that cannot be mapped back to a
+  GitHub repository, and GitHub repositories whose Endor match is ambiguous
+
+If GitHub's own app-installation API is unavailable but Endor installation
+evidence is present, classify from Endor and add a data gap such as
+`github_app_installations_api_unavailable`. Do not downgrade authoritative
+Endor-side GitHub App evidence because the GitHub API is unavailable.
+
 List scan results and scan workflows:
 
 ```bash
@@ -536,15 +553,96 @@ pull requests, scan profiles, package manager integrations, policies, or any
 Endor state must include `confirmation_required: true` and must be phrased as
 proposed work, not completed work.
 
+Prescription wording must be specific enough for the owner to act without
+copying YAML or API payloads. Include the failed package, ecosystem, reason
+codes, evidence excerpt, owner role, confidence, and the read-only validation
+check to run later.
+
+Example private registry prescription:
+
+```json
+{
+  "repository": "owner/frontend-service",
+  "statuses": ["REACHABILITY_GAP", "PACKAGE_MANAGER_GAP"],
+  "dependency_resolution_reason_codes": ["DEPENDENCY_RESOLUTION_PRIVATE_REGISTRY"],
+  "package_manager_reason_codes": ["PACKAGE_MANAGER_AUTH_FAILED"],
+  "reachability_reason_codes": ["REACHABILITY_DEPENDENCY_RESOLUTION_BLOCKED"],
+  "package_evidence": {
+    "package": "npm://frontend@0.0.0",
+    "ecosystem": "ECOSYSTEM_NPM",
+    "error_category": "ERROR_CATEGORY_PRIVATE_REGISTRY",
+    "error_summary": "npm install failed with E401; dependencies were not downloaded before call graph generation"
+  },
+  "prescription": [
+    "Configure npm registry credentials for the dependency resolution path used by Endor monitored-branch scans.",
+    "If this repository uses a private npm registry, add or assign an Endor npm package manager integration for that registry.",
+    "After humans apply the change, verify the next monitored-branch scan no longer reports private-registry dependency download failures for npm://frontend@0.0.0."
+  ],
+  "owner_role": "endor_admin",
+  "confirmation_required": true,
+  "confidence": "HIGH",
+  "confidence_reason": "Endor PackageVersion evidence includes ERROR_CATEGORY_PRIVATE_REGISTRY and npm E401 authentication failure."
+}
+```
+
+Example Python toolchain prescription:
+
+```json
+{
+  "repository": "owner/python-service",
+  "statuses": ["REACHABILITY_GAP", "TOOLCHAIN_GAP"],
+  "dependency_resolution_reason_codes": ["DEPENDENCY_RESOLUTION_TOOLCHAIN_MISSING"],
+  "reachability_reason_codes": ["REACHABILITY_BUILD_TOOLCHAIN_FAILED"],
+  "package_evidence": {
+    "package": "pypi://python-service@main",
+    "ecosystem": "ECOSYSTEM_PYPI",
+    "error_summary": "Python virtual environment creation failed while building psycopg2 because pg_config executable was not found."
+  },
+  "prescription": [
+    "Provide PostgreSQL client development prerequisites in the Python scan environment used for monitored-branch reachability.",
+    "If changing the scan environment is not preferred, ask the repo owner to evaluate whether psycopg2-binary or a lockfile/package update is appropriate for this project.",
+    "After humans apply the change, verify the next monitored-branch scan no longer fails virtual environment creation for psycopg2."
+  ],
+  "owner_role": "platform_team",
+  "confirmation_required": true,
+  "confidence": "HIGH",
+  "confidence_reason": "Endor PackageVersion call graph evidence explicitly reports pg_config executable not found."
+}
+```
+
 ## Output Shape
 
 Respond with concise prose plus one strict JSON block. The prose should include
-an executive rollup and the highest-gain actions. The JSON block must use this
+an executive rollup and the highest-gain actions. In `report_mode: executive`,
+keep prose to the verdict, the top counts, and the top 5 actions; leave detailed
+repository rows in the JSON drill-down arrays. The JSON block must use this
 shape:
 
 ```json
 {
   "onboarding_verdict": "READY_TO_ONBOARD | PARTIAL_COVERAGE | NOT_ONBOARDED | INSUFFICIENT_DATA",
+  "executive_report": {
+    "verdict": "PARTIAL_COVERAGE",
+    "headline": "22 repositories are onboarded, 50 are not selected in the GitHub App, and 3 onboarded repositories have reachability blockers.",
+    "top_counts": {
+      "github_repositories_in_scope": 72,
+      "endor_projects_matched": 22,
+      "repositories_not_onboarded": 50,
+      "repositories_with_dependency_resolution_gaps": 1,
+      "repositories_with_reachability_gaps": 3
+    },
+    "top_blockers": [
+      "GitHub App selected-repository coverage does not include 50 in-scope repositories.",
+      "One npm package is blocked by private-registry authentication.",
+      "Two Python packages are blocked by missing PostgreSQL build prerequisites."
+    ],
+    "top_actions": [],
+    "drill_down_sections": [
+      "not_onboarded_repositories",
+      "onboarded_repositories_with_gaps",
+      "evidence_queries"
+    ]
+  },
   "report_scope": {
     "github_org": "acme",
     "repositories_requested": ["owner/repo"],
@@ -582,6 +680,10 @@ shape:
   "github_app_coverage": {
     "status": "APP_INSTALLED_ALL_REPOS | APP_INSTALLED_SELECTED_REPOS | APP_INSTALL_PENDING_OR_UNAVAILABLE | GITHUB_APP_COVERAGE_UNKNOWN",
     "selected_repo_count": 0,
+    "selected_project_uuids": [],
+    "selected_repositories": [],
+    "repositories_not_selected": [],
+    "selection_mapping_gaps": [],
     "scanner_status": "enabled | disabled | unknown",
     "sync_errors": [],
     "evidence": []
@@ -763,8 +865,10 @@ Separate fully supported recommendations from sampled hypotheses:
 
 ## Step 7: Report And Stop
 
-Return the strict JSON shape plus concise prose. Do not perform scans, create
-profiles, change GitHub App repository selection, write package manager
-integrations, edit files, or open PRs/MRs. Stop at the prescription and
-validation plan unless the user explicitly starts a separate confirmed mutation
-workflow.
+Return the strict JSON shape plus concise prose. In executive mode, put only the
+verdict, top counts, top blockers, and top 5 actions in the prose and
+`executive_report`, while keeping complete drill-down arrays in the JSON. Do not
+perform scans, create profiles, change GitHub App repository selection, write
+package manager integrations, edit files, or open PRs/MRs. Stop at the
+prescription and validation plan unless the user explicitly starts a separate
+confirmed mutation workflow.

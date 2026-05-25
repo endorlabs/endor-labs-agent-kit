@@ -24,6 +24,17 @@ def _copy_agent(tmp_path: Path) -> Path:
     return dst / "recipe.yaml"
 
 
+def _fixture() -> dict:
+    return yaml.safe_load(
+        (
+            repo_root()
+            / "tests"
+            / "fixtures"
+            / "probe_droid_selected_repos_regression.yaml"
+        ).read_text(encoding="utf-8")
+    )
+
+
 def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
     recipe = _copy_agent(tmp_path)
     data = yaml.safe_load(recipe.read_text(encoding="utf-8"))
@@ -44,9 +55,16 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
         "open_pr": False,
     }
     input_names = {item["name"] for item in data["inputs"]}
-    assert {"github_org", "repository_urls", "github_inventory_json", "sampling_mode"}.issubset(input_names)
+    assert {
+        "github_org",
+        "repository_urls",
+        "github_inventory_json",
+        "sampling_mode",
+        "report_mode",
+    }.issubset(input_names)
     output_names = {item["name"] for item in data["outputs"]}
     assert {
+        "executive_report",
         "github_app_coverage",
         "not_onboarded_repositories",
         "onboarded_repositories_with_gaps",
@@ -75,10 +93,15 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "Probe Droid" in artifact
     assert "GitHub Monitored-Branch Coverage Probe" in artifact
     assert "onboarding_verdict" in artifact
+    assert "executive_report" in artifact
+    assert "report_mode" in artifact
     assert "report_scope" in artifact
     assert "coverage_summary" in artifact
     assert "github_inventory_summary" in artifact
     assert "github_app_coverage" in artifact
+    assert "selected_project_uuids" in artifact
+    assert "repositories_not_selected" in artifact
+    assert "selection_mapping_gaps" in artifact
     assert "not_onboarded_repositories" in artifact
     assert "onboarded_repositories_with_gaps" in artifact
     assert "confirmed_org_wide_actions" in artifact
@@ -90,6 +113,12 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "PACKAGE_MANAGER_INTEGRATION_MISSING" in artifact
     assert "REACHABILITY_DEPENDENCY_RESOLUTION_BLOCKED" in artifact
     assert "REPO_NOT_SELECTED_IN_APP" in artifact
+    assert "github_app_installations_api_unavailable" in artifact
+    assert "dependencies were not downloaded" in artifact
+    assert "pg_config executable was not found" in artifact
+    assert "PostgreSQL client development prerequisites" in artifact
+    assert "psycopg2-binary" in artifact
+    assert "top 5 actions" in artifact
     assert "Do not run `endorctl scan`" in artifact
     assert "Do not clone repositories" in artifact
     assert "GitHub.com only" in artifact
@@ -185,9 +214,76 @@ def test_probe_droid_eval_cases_cover_onboarding_outcomes():
         "large-org-stratified-sampling",
         "inactive-and-archived-repository-classification",
         "missing-github-access",
+        "selected-repos-sanitized-regression",
     }
     verdicts = {case["expected"]["onboarding_verdict"] for case in evals["cases"]}
     assert verdicts == {"PARTIAL_COVERAGE", "NOT_ONBOARDED", "INSUFFICIENT_DATA"}
     for case in evals["cases"]:
         assert case["expected"]["required_evidence"]
         assert isinstance(case["expected"]["data_gaps_allowed"], bool)
+
+
+def test_probe_droid_sanitized_fixture_covers_selected_repo_lanes():
+    fixture = _fixture()
+    counts = fixture["observed_counts"]
+    expected = fixture["expected_output"]
+
+    assert counts["github_repositories_in_scope"] == 72
+    assert counts["strict_github_org_matches"] == 22
+    assert counts["not_onboarded_repositories"] == 50
+    assert counts["inactive_repositories_threshold_365_days"] == 28
+    assert len(fixture["github_app_coverage"]["selected_repositories"]) == 22
+    assert len(fixture["not_onboarded_repositories"]) == 50
+    assert fixture["extra_endor_github_projects_outside_org"] == [
+        "partner-architecture/java-example"
+    ]
+
+    assert expected["onboarding_verdict"] == "PARTIAL_COVERAGE"
+    assert expected["executive_report"]["top_counts"] == {
+        "github_repositories_in_scope": 72,
+        "endor_projects_matched": 22,
+        "repositories_not_onboarded": 50,
+        "repositories_with_dependency_resolution_gaps": 1,
+        "repositories_with_reachability_gaps": 3,
+    }
+    assert expected["github_app_coverage"] == {
+        "status": "APP_INSTALLED_SELECTED_REPOS",
+        "selected_repo_count": 22,
+        "repositories_not_selected_count": 50,
+    }
+
+    gap_by_repo = {
+        item["repository"]: item
+        for item in expected["onboarded_repositories_with_gaps"]
+    }
+    npm_gap = gap_by_repo["acme-labs/platform-ui"]
+    assert npm_gap["dependency_resolution_reason_codes"] == [
+        "DEPENDENCY_RESOLUTION_PRIVATE_REGISTRY"
+    ]
+    assert npm_gap["package_manager_reason_codes"] == [
+        "PACKAGE_MANAGER_AUTH_FAILED"
+    ]
+    assert npm_gap["reachability_reason_codes"] == [
+        "REACHABILITY_DEPENDENCY_RESOLUTION_BLOCKED"
+    ]
+    assert npm_gap["package_evidence"]["error_category"] == (
+        "ERROR_CATEGORY_PRIVATE_REGISTRY"
+    )
+    assert "dependencies were not downloaded" in npm_gap["package_evidence"]["error_summary"]
+
+    for repo in ("acme-labs/python-webapp", "acme-labs/python-training-app"):
+        gap = gap_by_repo[repo]
+        assert gap["dependency_resolution_reason_codes"] == [
+            "DEPENDENCY_RESOLUTION_TOOLCHAIN_MISSING"
+        ]
+        assert gap["reachability_reason_codes"] == [
+            "REACHABILITY_BUILD_TOOLCHAIN_FAILED"
+        ]
+        assert "pg_config" in gap["package_evidence"]["error_summary"]
+        assert gap["owner_role"] == "platform_team"
+        assert gap["confidence"] == "HIGH"
+
+    for action in expected["recommended_actions"]:
+        assert action["confirmation_required"] is True
+        assert action["owner_role"] in {"endor_admin", "platform_team"}
+        assert action["confidence"] == "HIGH"

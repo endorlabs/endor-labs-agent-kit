@@ -135,9 +135,9 @@
               "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
             },
             {
-              "bytes": 30328,
+              "bytes": 35536,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "f024ba684f5c25f8cb2c6e165a26f5775e4610608c4287ed6752bc568c616d5b"
+              "sha256": "d43eaf6575c60052d11b28722a867ea6b14befea1e7425558420d251ba20a9b7"
             }
           ],
           "id": "enterprise-edition",
@@ -250,9 +250,9 @@
               "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
             },
             {
-              "bytes": 36537,
+              "bytes": 36541,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "33b93f6be5a2337a82e0a6e3350c1d87f9e815a7f43079cdae3d3783ac7ace48"
+              "sha256": "45efb5f56aef968f844e6925e4ed4382bf09be77c58a042efa4a3ecf69a44da9"
             }
           ],
           "id": "enterprise-edition",
@@ -575,9 +575,9 @@
               "sha256": "54e681f1a8ea9c87a7a100544e6f01ded80299363503e062aa310e22c095fe16"
             },
             {
-              "bytes": 37323,
+              "bytes": 37327,
               "path": "codex/sca-remediation/SKILL.md",
-              "sha256": "e1d5a58310ea7ea1d9b39f8c122d25f52888d5adfc1447b2b4181c545efcd008"
+              "sha256": "0b9cce2ff0532fad420dc4d9ebebc0a57414e50bf870075766ef974a5e9c220d"
             },
             {
               "bytes": 5683,
