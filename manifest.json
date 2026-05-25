@@ -135,9 +135,9 @@
               "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
             },
             {
-              "bytes": 35536,
+              "bytes": 46528,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "d43eaf6575c60052d11b28722a867ea6b14befea1e7425558420d251ba20a9b7"
+              "sha256": "8702e3bc7427af7ed4959fdb35f9ead8e0bb48b915bf1ef993656a7bfa678724"
             }
           ],
           "id": "enterprise-edition",
@@ -562,6 +562,46 @@
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 2869,
+              "path": "codex/probe-droid/README.md",
+              "sha256": "cc19b9f9c44ebdac10e3c92a3520a1b9ed58862c7fab6e37b86142cf90020513"
+            },
+            {
+              "bytes": 47214,
+              "path": "codex/probe-droid/SKILL.md",
+              "sha256": "2e3e8e6deb7529ef65bc3810f60e42c3f1ee5c71d5f8897660350c9f839c06da"
+            },
+            {
+              "bytes": 9818,
+              "path": "codex/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "codex/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            }
+          ],
+          "id": "codex-skill",
+          "name": "Codex Skill",
+          "path": "codex/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "codex",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
       },
       "version": "0.1.0"
     },
