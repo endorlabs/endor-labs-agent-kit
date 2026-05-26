@@ -191,4 +191,13 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "CI, or Endor setup files only; they must not clone repositories or",
             "mutate GitHub settings.",
         ])
+    elif recipe.id == "endor-troubleshooter":
+        lines.extend([
+            "",
+            "Endor Troubleshooter uses only read-only Endor lookups and redacted",
+            "user-provided issue text. It must not run scans, create scan log",
+            "requests, change credentials, edit scan profiles, update integrations,",
+            "post comments, open PRs/MRs, or mutate Endor state. Any such step",
+            "belongs in `future_action_contracts` for explicit follow-up approval.",
+        ])
     return "\n".join(lines)

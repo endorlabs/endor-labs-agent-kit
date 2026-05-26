@@ -199,6 +199,12 @@ def claude_code_edition_readme(
                 "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
                 "It must not run scans, clone repositories, create scan profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
             ]
+        elif recipe.id == "endor-troubleshooter":
+            notes = [
+                f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
+                "It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.",
+                "It must not run scans, create scan log requests, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.",
+            ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
@@ -273,6 +279,42 @@ def claude_code_agent_setup_section(
             "scan profiles, and package manager integrations. It should not run scans,",
             "clone repositories, edit files, change GitHub settings, create profiles,",
             "update integrations, or open PRs/MRs.",
+            "",
+        ]
+    if recipe.id == "endor-troubleshooter":
+        return [
+            "## Setup Checklist",
+            "",
+            "### 1. Install The Subagent",
+            "",
+            "Run this from the workspace where Claude Code will perform the",
+            "read-only Endor troubleshooting:",
+            "",
+            "```bash",
+            "mkdir -p .claude/agents",
+            "cp /path/to/endor-labs-agent-kit/claude-code/endor-troubleshooter/endor-troubleshooter.md \\",
+            "  .claude/agents/endor-troubleshooter.md",
+            "```",
+            "",
+            "### 2. Verify Read-Only Endor Access",
+            "",
+            "```bash",
+            "endorctl --version",
+            "```",
+            "",
+            "Endor Troubleshooter does not need an Endor MCP server. It uses only",
+            "documented read-only `endorctl api` lookups and user-provided redacted",
+            "error text. If Endor access, project selectors, scan evidence, workflow",
+            "evidence, or integration evidence are unavailable, the agent should report",
+            "the missing setup in `data_gaps`.",
+            "",
+            "### 3. Keep Troubleshooting Read-Only",
+            "",
+            "The agent may inspect scan, workflow, integration, package manager, SSO,",
+            "policy, finding, reachability, and container evidence through read-only",
+            "Endor lookups. It should not run scans, create scan log requests, change",
+            "credentials, edit scan profiles, update integrations, post comments, open",
+            "PRs/MRs, or mutate Endor state.",
             "",
         ]
     if recipe.id == "sca-remediation":
@@ -473,6 +515,30 @@ def claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "repositories and keeping PR scan coverage in future scope.",
             "",
         ]
+    if recipe.id == "endor-troubleshooter":
+        return [
+            "## Example Workflow",
+            "",
+            "Use these copy/paste prompts after the agent is installed.",
+            "",
+            "```text",
+            "@agent-endor-troubleshooter diagnose this Endor scan failure. Namespace: <namespace>. Project: <project>. Error: <redacted error text>. Keep the workflow read-only and tell me the lowest-friction fix.",
+            "```",
+            "",
+            "```text",
+            "@agent-endor-troubleshooter our PR scans take too long in a large monorepo. Check whether incremental PR scans, baselines, scan profile settings, or workflow configuration would improve performance. Do not change the profile or rerun scans.",
+            "```",
+            "",
+            "```text",
+            "@agent-endor-troubleshooter users cannot log in through SSO for namespace <namespace>. Inspect read-only identity provider evidence and tell me what to verify without printing secrets.",
+            "```",
+            "",
+            "The result should explain the likely cause, cite the evidence gathered,",
+            "rank repair steps by friction, and place any scan rerun, profile edit,",
+            "integration update, credential change, comment, or support-ticket step",
+            "in `future_action_contracts`.",
+            "",
+        ]
     if recipe.id == "sca-remediation":
         return [
             "## Example Workflow",
@@ -593,6 +659,24 @@ def claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
 def claude_code_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return Claude Code smoke test README content."""
 
+    if recipe.id == "endor-troubleshooter":
+        return [
+            "## QA Smoke Test",
+            "",
+            "When validating this agent, isolate the run from user-level Claude skills so",
+            "the result proves the Agent Kit artifact itself is doing the work.",
+            "",
+            "```bash",
+            "export CLAUDE_CONFIG_DIR=\"$(mktemp -d)\"",
+            "claude -p --agent endor-troubleshooter \\",
+            "  \"Diagnose this Endor issue from redacted text only: endorctl scan exited with code 13 because dependencies were not downloaded. Keep it read-only.\"",
+            "```",
+            "",
+            "The run log should not reference user-level skills or Endor MCP tooling,",
+            "and it should not claim scan reruns, configuration changes, comments,",
+            "branches, PRs/MRs, or Endor writes.",
+            "",
+        ]
     if recipe.id == "sca-remediation":
         return [
             "## QA Smoke Test",
@@ -654,6 +738,8 @@ def example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition"
         return f"@agent-{recipe.id} preview remediation options for this repository"
     if recipe.id == "probe-droid":
         return f"@agent-{recipe.id} probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions"
+    if recipe.id == "endor-troubleshooter":
+        return f"@agent-{recipe.id} diagnose this Endor scan failure from redacted error text and read-only tenant evidence"
     if "vulnerability_id" in input_names:
         return f"@agent-{recipe.id} explain CVE-2021-44228"
     if recipe.id == "upgrade-impact-analysis":
