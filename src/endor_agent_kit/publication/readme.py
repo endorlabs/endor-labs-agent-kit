@@ -31,6 +31,15 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "scans, create profiles, edit repositories, change GitHub settings, or "
             "mutate Endor state."
         ),
+        "endor-troubleshooter": (
+            "This read-only agent diagnoses Endor Labs errors, warnings, scan failures, "
+            "slow scans, missing integrations, and unhealthy configuration from "
+            "user-provided issue text plus read-only Endor evidence. It returns a "
+            "troubleshooting verdict, issue lanes, evidence queries, root-cause "
+            "hypotheses, low-friction repair guidance, validation steps, and gated "
+            "future action contracts for anything that would mutate Endor, source-provider, "
+            "registry, CI, or repository state."
+        ),
         "remediation-planner": (
             "This dry-run workflow resolves project or finding context, gathers Endor "
             "remediation evidence, and returns a plan only. It does not edit files, push "

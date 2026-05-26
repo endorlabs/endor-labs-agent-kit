@@ -1,0 +1,85 @@
+cases:
+  - id: failed-scan-exit-code-dependency-resolution
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme/payments-api
+      error_text: "endorctl scan exited with code 13: dependencies were not downloaded from the private npm registry"
+      issue_area_hint: scan
+    expected:
+      troubleshooting_verdict: ACTIONABLE_FIX_IDENTIFIED
+      required_evidence:
+        - classify SCAN_EXECUTION_FAILURE and DEPENDENCY_RESOLUTION_AND_PACKAGE_MANAGERS from exit code 13 and the private registry error text
+        - inspect ScanResult evidence when a matching scan result is available and PackageManager evidence when tenant access permits it
+        - recommend package manager integration or private registry auth repair without creating or updating integrations
+        - include a validation plan that verifies the next scan after a human applies the registry fix
+      data_gaps_allowed: true
+
+  - id: slow-pr-scan-large-monorepo
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme-platform
+      issue_summary: "PR scans take too long in a large monorepo and look like full scans"
+      issue_area_hint: pr_scan
+    expected:
+      troubleshooting_verdict: LIKELY_ROOT_CAUSE_IDENTIFIED
+      required_evidence:
+        - classify PR_SCAN_AND_BASELINE and SCAN_CONFIGURATION_AND_SCOPE
+        - inspect ScanWorkflow, ScanProfile, ScanResult, or workflow result evidence when available for automated PR scan and incremental PR scan settings
+        - recommend incremental PR scans with a stable PR baseline when evidence indicates full PR fallback or missing baseline
+        - keep scan profile edits and scan reruns in future_action_contracts with confirmation_required true
+      data_gaps_allowed: true
+
+  - id: sso-login-loop
+    input:
+      namespace: demo-namespace
+      issue_summary: "Users cannot log in through SSO after an identity provider change"
+      issue_area_hint: sso
+    expected:
+      troubleshooting_verdict: PARTIAL_DIAGNOSIS
+      required_evidence:
+        - classify IDENTITY_PROVIDER_AND_SSO and AUTHENTICATION_AND_NAMESPACE
+        - inspect IdentityProvider evidence with read-only list or get commands when tenant access permits it
+        - distinguish OIDC and SAML checks and ask for the smallest missing issuer, metadata, discovery URL, claim, certificate, or tenant-selection signal
+        - never ask the user to paste secrets or print local Endor config files
+      data_gaps_allowed: true
+
+  - id: container-registry-digest-errors
+    input:
+      namespace: demo-namespace
+      issue_summary: "Container registry scan plan has digest lookup errors for some images"
+      issue_area_hint: container
+    expected:
+      troubleshooting_verdict: LIKELY_ROOT_CAUSE_IDENTIFIED
+      required_evidence:
+        - classify CONTAINER_IMAGE_AND_REGISTRY_SCANNING
+        - inspect scan result or integration evidence when a project, scan, or integration selector is available
+        - recommend checking registry auth, supported registry settings, image paths, and dedicated endorctl container scan usage
+        - put registry credential changes or scan reruns behind future_action_contracts
+      data_gaps_allowed: true
+
+  - id: missing-pr-comments-after-app-scan
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme/web
+      issue_summary: "Endor scans the PR but does not leave comments"
+      issue_area_hint: integration
+    expected:
+      troubleshooting_verdict: PARTIAL_DIAGNOSIS
+      required_evidence:
+        - classify SCM_APP_AND_INTEGRATION_HEALTH and POLICY_FINDINGS_AND_PR_COMMENTS
+        - inspect Installation, PRCommentConfig, ScanProfile, ScanWorkflowResult, and ScanResult evidence when available
+        - distinguish missing PR comments from a scan that produced no comment-worthy results
+        - keep source-provider app permission changes and comment posting out of V1 mutations
+      data_gaps_allowed: true
+
+  - id: sparse-warning-insufficient-data
+    input:
+      issue_summary: "Endor is showing a warning and something seems broken"
+    expected:
+      troubleshooting_verdict: INSUFFICIENT_DATA
+      required_evidence:
+        - classify UNKNOWN_OR_INSUFFICIENT_DATA
+        - ask for the smallest missing signal such as namespace, redacted error text, project selector, scan result UUID, workflow result UUID, or integration selector
+        - provide safe generic guidance without claiming tenant evidence
+        - include evidence_queries entries for user_input signals that were present or missing
+      data_gaps_allowed: true

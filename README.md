@@ -44,6 +44,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - |
 | Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - |
+| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` |
 | Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` |
 | Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - |
 | SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` |
@@ -188,6 +189,8 @@ start a new Codex session so the skill loader can see it.
 mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \
   "${CODEX_HOME:-$HOME/.codex}/skills/ai-sast-triage"
+cp -R /path/to/endor-labs-agent-kit/codex/endor-troubleshooter \
+  "${CODEX_HOME:-$HOME/.codex}/skills/endor-troubleshooter"
 cp -R /path/to/endor-labs-agent-kit/codex/probe-droid \
   "${CODEX_HOME:-$HOME/.codex}/skills/probe-droid"
 cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \
@@ -198,6 +201,7 @@ Then invoke it from Codex:
 
 ```text
 Use the ai-sast-triage skill to triage AI SAST findings for this repository.
+Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence.
 Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.
 Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.
 ```
@@ -249,6 +253,12 @@ Endor Labs Vulnerability Explainer:
 
 ```text
 @agent-vulnerability-explainer explain CVE-2021-44228
+```
+
+Endor Troubleshooter:
+
+```text
+@agent-endor-troubleshooter diagnose this Endor scan failure from redacted error text and read-only tenant evidence
 ```
 
 Probe Droid:
@@ -526,6 +536,11 @@ claude-code/
     README.md
     dependency-decision-helper.md
     endorctl-setup.md
+  endor-troubleshooter/
+    README.md
+    architecture.svg
+    endor-troubleshooter.md
+    endorctl-setup.md
   package-risk-summary/
     README.md
     endorctl-setup.md
@@ -564,6 +579,13 @@ claude-managed-agents/
     endorctl-setup.md
     environment.yaml
     session-template.yaml
+  endor-troubleshooter/
+    README.md
+    agent.yaml
+    architecture.svg
+    endorctl-setup.md
+    environment.yaml
+    session-template.yaml
   package-risk-summary/
     README.md
     agent.yaml
@@ -594,6 +616,11 @@ codex/
     README.md
     SKILL.md
     actions.yaml
+    architecture.svg
+    endorctl-setup.md
+  endor-troubleshooter/
+    README.md
+    SKILL.md
     architecture.svg
     endorctl-setup.md
   probe-droid/
