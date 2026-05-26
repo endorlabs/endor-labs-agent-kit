@@ -332,17 +332,17 @@ system: "Generated from Endor Agent Kit recipe `endor-troubleshooter` v0.1.0.\nT
   \ (for example AI SAST) that is not enabled for the tenant.\n  Recommend reaching\
   \ out to the Endor account contact to add the\n  entitlement rather than editing\
   \ license-finding policies.\n- `16 ENDORCTL_RC_LINTER_ERROR` and `35 ENDORCTL_RC_SAST_ERROR`.\
-  \ The bundled\n  SAST linter (currently OpenGrep) can crash with an opengrep-side\
-  \ exit\n  code that propagates out as one of these codes. Capture the linter\n \
-  \ command line and linter version from the log, recommend upgrading\n  `endorctl`\
-  \ to pick up a newer bundled linter, and escalate with the\n  redacted command and\
-  \ exit code if it persists.\n- `38 ENDORCTL_RC_TOOLCHAIN_ERROR` and `39 ENDORCTL_RC_SANDBOX_ERROR`.\
-  \ Both\n  can appear inside the same \"sandbox execution failed\" log envelope as\
-  \ code\n  20. Use `ScanResult.spec.exit_code` and the adjacent logs to discriminate.\n\
-  \  If the log names a missing host toolchain or user-controlled setup issue,\n \
-  \ recommend fixing that environment first. If no user-side fix is visible,\n  recommend\
-  \ a single retry on the latest `endorctl`, then escalate to Endor\n  Support if\
-  \ the failure persists.\n- `128 ENDORCTL_RC_POLICY_VIOLATION`. A blocking admission\
+  \ The bundled\n  SAST linter can fail with a linter-side exit code that propagates\
+  \ out\n  as one of these codes. Capture the linter command line and linter\n  version\
+  \ from the log, recommend upgrading `endorctl` to pick up current\n  bundled analyzer\
+  \ fixes, and escalate with the redacted command and exit\n  code if it persists.\n\
+  - `38 ENDORCTL_RC_TOOLCHAIN_ERROR` and `39 ENDORCTL_RC_SANDBOX_ERROR`. Both\n  can\
+  \ appear inside the same \"sandbox execution failed\" log envelope as code\n  20.\
+  \ Use `ScanResult.spec.exit_code` and the adjacent logs to discriminate.\n  If the\
+  \ log names a missing host toolchain or user-controlled setup issue,\n  recommend\
+  \ fixing that environment first. If no user-side fix is visible,\n  recommend a\
+  \ single retry on the latest `endorctl`, then escalate to Endor\n  Support if the\
+  \ failure persists.\n- `128 ENDORCTL_RC_POLICY_VIOLATION`. A blocking admission\
   \ policy fired.\n  Surface which specific policy matched, what category it belongs\
   \ to, and\n  which findings caused the match. In IDE/MCP-style dry-run contexts\
   \ the\n  user may see only a generic \"Policy Violation\" with an unworkable\n \

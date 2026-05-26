@@ -613,11 +613,11 @@ Use these hints to refine the lane and recommended action.
   Recommend reaching out to the Endor account contact to add the
   entitlement rather than editing license-finding policies.
 - `16 ENDORCTL_RC_LINTER_ERROR` and `35 ENDORCTL_RC_SAST_ERROR`. The bundled
-  SAST linter (currently OpenGrep) can crash with an opengrep-side exit
-  code that propagates out as one of these codes. Capture the linter
-  command line and linter version from the log, recommend upgrading
-  `endorctl` to pick up a newer bundled linter, and escalate with the
-  redacted command and exit code if it persists.
+  SAST linter can fail with a linter-side exit code that propagates out
+  as one of these codes. Capture the linter command line and linter
+  version from the log, recommend upgrading `endorctl` to pick up current
+  bundled analyzer fixes, and escalate with the redacted command and exit
+  code if it persists.
 - `38 ENDORCTL_RC_TOOLCHAIN_ERROR` and `39 ENDORCTL_RC_SANDBOX_ERROR`. Both
   can appear inside the same "sandbox execution failed" log envelope as code
   20. Use `ScanResult.spec.exit_code` and the adjacent logs to discriminate.
