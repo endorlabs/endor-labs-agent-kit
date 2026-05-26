@@ -85,6 +85,46 @@
         {
           "artifacts": [
             {
+              "bytes": 4683,
+              "path": "claude-code/endor-troubleshooter/README.md",
+              "sha256": "96215e3fe11dac25b06f897ffad7a0bbe151b7e8edb6032d99b52d00e0e8f61d"
+            },
+            {
+              "bytes": 9834,
+              "path": "claude-code/endor-troubleshooter/architecture.svg",
+              "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
+            },
+            {
+              "bytes": 49793,
+              "path": "claude-code/endor-troubleshooter/endor-troubleshooter.md",
+              "sha256": "4a794f12e960ce4b153aade523cb29bd49334d8e9fb770a0d0157f7b7b96e873"
+            },
+            {
+              "bytes": 1288,
+              "path": "claude-code/endor-troubleshooter/endorctl-setup.md",
+              "sha256": "446ce11adb5d3ef4b824c63370e0f2c09c2052a7308009432a3c51103942426b"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-code/endor-troubleshooter",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "endor-troubleshooter",
+      "name": "Endor Troubleshooter",
+      "source": {
+        "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 1144,
               "path": "claude-code/package-risk-summary/README.md",
               "sha256": "7d8a2d69ce8178acdeb22d97a8dc6cf2be012c58a0bc382403e6791311a50031"
@@ -390,6 +430,56 @@
         {
           "artifacts": [
             {
+              "bytes": 2450,
+              "path": "claude-managed-agents/endor-troubleshooter/README.md",
+              "sha256": "78eadfc6fcc7330af32b21f9b50eb97a613be2ca97c0a88b620b634962780e52"
+            },
+            {
+              "bytes": 52267,
+              "path": "claude-managed-agents/endor-troubleshooter/agent.yaml",
+              "sha256": "3ba76bd3507ebe3602a93651526484bc950a0a8caa0f97a90c24de413d0ecb6f"
+            },
+            {
+              "bytes": 9834,
+              "path": "claude-managed-agents/endor-troubleshooter/architecture.svg",
+              "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
+            },
+            {
+              "bytes": 1288,
+              "path": "claude-managed-agents/endor-troubleshooter/endorctl-setup.md",
+              "sha256": "446ce11adb5d3ef4b824c63370e0f2c09c2052a7308009432a3c51103942426b"
+            },
+            {
+              "bytes": 236,
+              "path": "claude-managed-agents/endor-troubleshooter/environment.yaml",
+              "sha256": "0065bca395196515b878c4222e0f0477e2f47d8cf22e139928b283bead34d051"
+            },
+            {
+              "bytes": 51,
+              "path": "claude-managed-agents/endor-troubleshooter/session-template.yaml",
+              "sha256": "a8c802876a05c84101970bf28f3c1eb38824a90f74872df81a966e59df8f44b0"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-managed-agents/endor-troubleshooter",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-managed-agents",
+      "id": "endor-troubleshooter",
+      "name": "Endor Troubleshooter",
+      "source": {
+        "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 1665,
               "path": "claude-managed-agents/package-risk-summary/README.md",
               "sha256": "816cbd4ccb579c403cd8e8a2a74469d358e8454b6dcd488b6c272442ec617a69"
@@ -620,9 +710,49 @@
         {
           "artifacts": [
             {
-              "bytes": 2869,
+              "bytes": 3126,
+              "path": "codex/endor-troubleshooter/README.md",
+              "sha256": "44f7a01aaa82b21e77afa0741d235b2883663249ffdd88a89e5b1c1aff395dd3"
+            },
+            {
+              "bytes": 50497,
+              "path": "codex/endor-troubleshooter/SKILL.md",
+              "sha256": "bac302e0f2cd3b616eb5f706ca83f6c0cc4fe9d427e2451c6e7365a4eb9ae146"
+            },
+            {
+              "bytes": 9834,
+              "path": "codex/endor-troubleshooter/architecture.svg",
+              "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
+            },
+            {
+              "bytes": 1288,
+              "path": "codex/endor-troubleshooter/endorctl-setup.md",
+              "sha256": "446ce11adb5d3ef4b824c63370e0f2c09c2052a7308009432a3c51103942426b"
+            }
+          ],
+          "id": "codex-skill",
+          "name": "Codex Skill",
+          "path": "codex/endor-troubleshooter",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "codex",
+      "id": "endor-troubleshooter",
+      "name": "Endor Troubleshooter",
+      "source": {
+        "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 2911,
               "path": "codex/probe-droid/README.md",
-              "sha256": "cc19b9f9c44ebdac10e3c92a3520a1b9ed58862c7fab6e37b86142cf90020513"
+              "sha256": "e2907f20baecb3f2ff245c5b77c7da493c6c57ba93802dcf990e521dc46e4b70"
             },
             {
               "bytes": 48290,
