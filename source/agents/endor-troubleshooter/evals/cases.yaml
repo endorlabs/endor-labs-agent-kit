@@ -83,3 +83,119 @@ cases:
         - provide safe generic guidance without claiming tenant evidence
         - include evidence_queries entries for user_input signals that were present or missing
       data_gaps_allowed: true
+
+  - id: stuck-scan-running-housekeeping-escalation
+    input:
+      namespace: demo-namespace
+      scan_result_uuid: 00000000-0000-0000-0000-000000000000
+      issue_summary: "A scan has been STATUS_RUNNING for many hours with no terminal exit code and only one log entry"
+      issue_area_hint: scan
+    expected:
+      troubleshooting_verdict: SUPPORT_ESCALATION_RECOMMENDED
+      required_evidence:
+        - classify SCAN_EXECUTION_FAILURE with a stuck STATUS_RUNNING reason code and surface that the scan process likely failed before writing terminal status
+        - inspect ScanResult evidence including spec.status, spec.exit_code, stale update_time, and the first few log entries
+        - recommend waiting for housekeeping to transition the record to STATUS_FAILURE rather than racing a rerun, and assemble a redacted escalation packet
+        - keep ScanLogRequest creation and any cancel-running mutation in future_action_contracts with confirmation_required true
+      data_gaps_allowed: true
+
+  - id: pr-shallow-clone-diff-failure
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme/web
+      error_text: "PR scan failed to compute diff between commits; the merge-base is not present in the shallow clone"
+      issue_area_hint: pr_scan
+    expected:
+      troubleshooting_verdict: ACTIONABLE_FIX_IDENTIFIED
+      required_evidence:
+        - classify PR_SCAN_AND_BASELINE and SCM_AND_PRIVATE_SOURCE_ACCESS with a shallow-clone reason code
+        - inspect ScanResult and ScanWorkflowResult logs for the diff or merge-base error when available
+        - recommend deepening the CI clone or explicitly fetching the baseline branch so the merge-base is reachable, without mutating CI configuration directly
+        - include a validation plan that re-runs the PR scan after the clone change and confirms incremental PR scan completes
+      data_gaps_allowed: true
+
+  - id: notification-delivery-failure-with-target-mismatch
+    input:
+      namespace: demo-namespace
+      integration_selector: jira-notification-target
+      issue_summary: "Findings are not arriving in Jira; target setup looks fine in the UI"
+      issue_area_hint: exporter
+    expected:
+      troubleshooting_verdict: LIKELY_ROOT_CAUSE_IDENTIFIED
+      required_evidence:
+        - classify EXPORTERS_NOTIFICATIONS_AND_EXTERNAL_SYSTEMS with reason codes covering destination required-field mismatch, child-namespace propagation, and malformed webhook URLs
+        - inspect notification target evidence and ScanResult.spec.stats.notifications_num_errors when available
+        - recommend aligning destination issue type or required fields on the destination side rather than rotating credentials, and verify propagation when the affected namespace is nested
+        - never print webhook URLs, Jira API tokens, or other secure target fields in any output
+      data_gaps_allowed: true
+
+  - id: sbom-import-format-mismatch
+    input:
+      namespace: demo-namespace
+      error_text: "endorctl sbom import failed because the file uses an unsupported CycloneDX schema version"
+      issue_area_hint: sbom
+    expected:
+      troubleshooting_verdict: ACTIONABLE_FIX_IDENTIFIED
+      required_evidence:
+        - classify SBOM_ARTIFACT_AND_SIGNING with a format-version reason code
+        - reference current public SBOM import guidance without claiming tenant evidence beyond what was provided
+        - recommend re-exporting the SBOM in a supported import format and clarify that imported SBOMs land in the SBOM hub and do not merge into project findings
+        - keep any product roadmap requests or schema-extension requests in future_action_contracts
+      data_gaps_allowed: true
+
+  - id: host-check-missing-toolchain
+    input:
+      error_text: "host-check-failure: Cannot access the \"pnpm\" command. This command must be installed on the host and accessible via a path in the $PATH environment variable for endorctl to run successfully."
+      issue_area_hint: scan
+    expected:
+      troubleshooting_verdict: ACTIONABLE_FIX_IDENTIFIED
+      required_evidence:
+        - classify HOST_CHECK_SANDBOX_AND_RUNTIME and TOOLCHAIN_AND_BUILD_ENVIRONMENT with an exit-code 27 reason code
+        - inspect the provided error text first and avoid querying tenant evidence that does not exist when the user has not supplied a selector
+        - recommend installing the missing toolchain on the scanning host or scanning on a CI image that provides it, and mention pinning the matching toolchain version in the scan profile when relevant
+        - include a validation plan that re-runs endorctl host-check and confirms it passes before another scan attempt
+      data_gaps_allowed: true
+
+  - id: license-error-product-entitlement-vs-software-license
+    input:
+      namespace: demo-namespace
+      error_text: "License check failed: additional license required for: ai-sast"
+      issue_area_hint: scan
+    expected:
+      troubleshooting_verdict: ACTIONABLE_FIX_IDENTIFIED
+      required_evidence:
+        - classify the failure under AUTHENTICATION_AND_NAMESPACE with an exit-code 33 ENDORCTL_RC_LICENSE_ERROR reason code
+        - explicitly disambiguate that this is an Endor product entitlement signal and not a software-license finding from the license scanner
+        - recommend that the user reach out to the Endor account contact to enable the required entitlement rather than editing license-finding policies or scan profiles
+        - include a validation plan that re-runs the same scan command after the entitlement is enabled and confirms the license check passes
+      data_gaps_allowed: true
+
+  - id: policy-violation-gha-unpinned-on-unrelated-pr
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme/web
+      issue_summary: "Endor blocked a PR with a GitHub Actions unpinned-dependency policy violation, but the PR did not touch any workflow files"
+      issue_area_hint: policy
+    expected:
+      troubleshooting_verdict: LIKELY_ROOT_CAUSE_IDENTIFIED
+      required_evidence:
+        - classify POLICY_FINDINGS_AND_PR_COMMENTS with exit-code 30 ENDORCTL_RC_GH_ACTION_WORKFLOW_SCAN_FAILURE and exit-code 128 ENDORCTL_RC_POLICY_VIOLATION reason codes
+        - explain that GitHub Actions security scans evaluate the whole repository's workflows rather than only PR-introduced changes, so an action policy can match findings that pre-exist the PR
+        - recommend scoping or filtering the action policy to the GitHub Actions ecosystem and pinning third-party actions to a full 40-character commit SHA
+        - keep policy edits and action policy scope changes behind future_action_contracts with confirmation_required true
+      data_gaps_allowed: true
+
+  - id: deadline-exceeded-scheduler-contention
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme/platform
+      error_text: "ERROR deadline-exceeded: A timeout occurred."
+      issue_area_hint: scan
+    expected:
+      troubleshooting_verdict: LIKELY_ROOT_CAUSE_IDENTIFIED
+      required_evidence:
+        - classify SCAN_EXECUTION_FAILURE with an exit-code 21 ENDORCTL_RC_DEADLINE_EXCEEDED reason code and surface parallel-scan contention as a candidate sub-class
+        - distinguish a true deadline from a context-cancellation, and consider AI SAST scan budget and build-tool heap exhaustion as alternate sub-classes
+        - inspect ScanResult and ScanWorkflowResult evidence for overlapping scans on the same project and for resource-exhaustion signals in logs when available
+        - recommend staggering scheduled scans and confirming the scanning host has sufficient memory before requesting product changes
+      data_gaps_allowed: true
