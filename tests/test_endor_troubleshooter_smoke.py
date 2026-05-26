@@ -100,12 +100,14 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "Endor Troubleshooter" in artifact
     assert "troubleshooting_verdict" in artifact
     assert "ACTIONABLE_FIX_IDENTIFIED" in artifact
+    assert "SUPPORT_ESCALATION_RECOMMENDED" in artifact
     assert "future_action_contracts" in artifact
     assert "SCAN_EXECUTION_FAILURE" in artifact
     assert "PR_SCAN_AND_BASELINE" in artifact
     assert "IDENTITY_PROVIDER_AND_SSO" in artifact
     assert "CONTAINER_IMAGE_AND_REGISTRY_SCANNING" in artifact
     assert "EXPORTERS_NOTIFICATIONS_AND_EXTERNAL_SYSTEMS" in artifact
+    assert "HOST_CHECK_SANDBOX_AND_RUNTIME" in artifact
     assert "This agent is read-only and prescriptive" in artifact
     assert "run `endorctl scan`" in artifact
     assert "create scan log requests" in artifact
@@ -122,8 +124,34 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "--resource SCMCredential" in artifact
     assert "--resource IdentityProvider" in artifact
     assert "--resource PRCommentConfig" in artifact
+    assert "--resource NotificationTarget" in artifact
+    assert "--resource Exporter" in artifact
     assert "Do not generalize them into create, update, delete, scan" in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
+    assert "Scan Lifecycle And Stuck States" in artifact
+    assert "Stuck `STATUS_RUNNING`" in artifact
+    assert "merge-base" in artifact
+    assert "Approximate Scans And Reachability Modes" in artifact
+    assert "Toolchain And Host-Check" in artifact
+    assert "Endorctl Version Hygiene" in artifact
+    assert "SCM Installation Drift And Sync Logs" in artifact
+    assert "Notifications And Exporters" in artifact
+    assert "SBOM Import And Format Support" in artifact
+    assert "authentication (the SSO handshake itself) from authorization" in artifact
+    assert "ENDORCTL_RC_INTERNAL_ERROR" in artifact
+    assert "ENDORCTL_RC_DEADLINE_EXCEEDED" in artifact
+    assert "ENDORCTL_RC_HOST_CHECK_FAILURE" in artifact
+    assert "ENDORCTL_RC_LICENSE_ERROR" in artifact
+    assert "ENDORCTL_RC_POLICY_VIOLATION" in artifact
+    assert "ENDORCTL_RC_GH_ACTION_WORKFLOW_SCAN_FAILURE" in artifact
+    assert "ENDORCTL_RC_DEPENDENCY_SETUP_WARNING" in artifact
+    assert "ScanResult.spec.exit_code" in artifact
+    assert "Endor product license entitlement" in artifact
+    assert "Code-specific diagnosis hints" in artifact
+    assert "When to recommend support escalation" in artifact
+    assert "scanner likely panicked" not in artifact
+    assert "Bazel-driven toolchain" not in artifact
+    assert "scanner's internal runner generation" not in artifact
     assert "mcpServers" not in artifact
     assert "endorctl ai-tools mcp-server" not in artifact
     assert "disallowedTools: Bash" not in header
@@ -259,6 +287,14 @@ def test_endor_troubleshooter_eval_cases_cover_troubleshooting_lanes():
         "container-registry-digest-errors",
         "missing-pr-comments-after-app-scan",
         "sparse-warning-insufficient-data",
+        "stuck-scan-running-housekeeping-escalation",
+        "pr-shallow-clone-diff-failure",
+        "notification-delivery-failure-with-target-mismatch",
+        "sbom-import-format-mismatch",
+        "host-check-missing-toolchain",
+        "license-error-product-entitlement-vs-software-license",
+        "policy-violation-gha-unpinned-on-unrelated-pr",
+        "deadline-exceeded-scheduler-contention",
     }
     verdicts = {case["expected"]["troubleshooting_verdict"] for case in evals["cases"]}
     assert verdicts == {
@@ -266,6 +302,7 @@ def test_endor_troubleshooter_eval_cases_cover_troubleshooting_lanes():
         "LIKELY_ROOT_CAUSE_IDENTIFIED",
         "PARTIAL_DIAGNOSIS",
         "INSUFFICIENT_DATA",
+        "SUPPORT_ESCALATION_RECOMMENDED",
     }
     for case in evals["cases"]:
         assert case["expected"]["required_evidence"]
