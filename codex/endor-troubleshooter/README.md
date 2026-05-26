@@ -62,5 +62,5 @@ This read-only agent diagnoses Endor Labs errors, warnings, scan failures, slow 
 ## Notes
 
 - `SKILL.md` is generated from the source recipe and should not be hand-edited in installed copies.
-- `actions.yaml` records semantic side-effect contracts when the recipe declares mutating actions.
+- This read-only skill does not include `actions.yaml`; future mutating workflows must declare explicit action contracts before publication.
 - Keep host-specific approval gates intact: local edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes are separate decisions.

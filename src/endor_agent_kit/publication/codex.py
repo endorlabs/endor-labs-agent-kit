@@ -119,6 +119,20 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
             "The Endor access path declared by the recipe.",
             "No mutating repository, source-provider, or Endor writes for this skill.",
         ]
+    notes = [
+        "- `SKILL.md` is generated from the source recipe and should not be hand-edited in installed copies.",
+    ]
+    if posture.is_mutating:
+        notes.append(
+            "- `actions.yaml` records semantic side-effect contracts when the recipe declares mutating actions."
+        )
+    else:
+        notes.append(
+            "- This read-only skill does not include `actions.yaml`; future mutating workflows must declare explicit action contracts before publication."
+        )
+    notes.append(
+        "- Keep host-specific approval gates intact: local edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes are separate decisions."
+    )
     return "\n".join(
         [
             f"# {recipe.name} Codex Skill",
@@ -152,9 +166,7 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
             *(codex_architecture_readme_section(recipe) if has_architecture else []),
             "## Notes",
             "",
-            "- `SKILL.md` is generated from the source recipe and should not be hand-edited in installed copies.",
-            "- `actions.yaml` records semantic side-effect contracts when the recipe declares mutating actions.",
-            "- Keep host-specific approval gates intact: local edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes are separate decisions.",
+            *notes,
             "",
         ]
     )

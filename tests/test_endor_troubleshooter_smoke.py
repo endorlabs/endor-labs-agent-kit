@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 
@@ -26,16 +27,15 @@ def _copy_agent(tmp_path: Path) -> Path:
 
 
 def _assert_no_private_source_references(text: str) -> None:
-    forbidden = (
-        "/Users/mattbrown",
-        "AURI In The Product",
-        "endorlabs/monorepo",
-        "spec/internal",
-        "src/hugo",
-        "skills-ideas",
-    )
-    for needle in forbidden:
-        assert needle not in text
+    forbidden_patterns = {
+        "absolute local home path": r"(?<![\w/-])/(?:Users|home)/[\w.-]+(?:/|$)",
+        "repository monorepo slug": r"(?i)\b[\w.-]+/[\w.-]*monorepo[\w.-]*\b",
+        "repo-internal source path": r"(?<![\w/-])(?:spec/internal|src/internal|src/hugo)(?![\w/-])",
+        "Slack archive URL": r"https?://[\w.-]*slack\.com/archives/",
+        "internal feature flag": r"\bENDOR_(?:SCAN|AISAST)_[A-Z0-9_]+\b",
+    }
+    for label, pattern in forbidden_patterns.items():
+        assert not re.search(pattern, text), label
 
 
 def test_endor_troubleshooter_recipe_is_read_only_and_mcp_free(tmp_path):
@@ -152,6 +152,8 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "scanner likely panicked" not in artifact
     assert "Bazel-driven toolchain" not in artifact
     assert "scanner's internal runner generation" not in artifact
+    assert "OpenGrep" not in artifact
+    assert "opengrep" not in artifact.lower()
     assert "mcpServers" not in artifact
     assert "endorctl ai-tools mcp-server" not in artifact
     assert "disallowedTools: Bash" not in header
