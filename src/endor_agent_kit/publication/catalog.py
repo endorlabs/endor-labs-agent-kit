@@ -610,6 +610,7 @@ def _agent_summary(agent_id: str) -> str:
     summaries = {
         "ai-sast-triage": "Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests",
         "dependency-decision-helper": "Decide whether to add, upgrade to, or keep a specific package version",
+        "endor-troubleshooter": "Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues",
         "upgrade-impact-analysis": "Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
         "package-risk-summary": "Summarize the risk profile of a specific package version",
         "probe-droid": "Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup",
@@ -625,6 +626,7 @@ def _agent_example(agent_id: str) -> str:
     examples = {
         "ai-sast-triage": "@agent-ai-sast-triage triage AI SAST findings for this repository",
         "dependency-decision-helper": "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
+        "endor-troubleshooter": "@agent-endor-troubleshooter diagnose this Endor scan failure from redacted error text and read-only tenant evidence",
         "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for repository <owner>/<repo> package lodash",
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
         "probe-droid": "@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions",
@@ -651,6 +653,7 @@ def _codex_install_commands(catalog: list[_AgentCatalogEntry]) -> list[str]:
 def _codex_invoke_prompts(catalog: list[_AgentCatalogEntry]) -> list[str]:
     prompts = {
         "ai-sast-triage": "Use the ai-sast-triage skill to triage AI SAST findings for this repository.",
+        "endor-troubleshooter": "Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence.",
         "probe-droid": "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.",
         "sca-remediation": "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.",
     }

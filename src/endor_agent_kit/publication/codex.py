@@ -167,6 +167,8 @@ def codex_example_prompt(recipe: EndorAgentRecipe) -> str:
         return "Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
     if recipe.id == "probe-droid":
         return "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
+    if recipe.id == "endor-troubleshooter":
+        return "Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if recipe.id == "sca-remediation":
         return "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve."
     return f"Use the {recipe.id} skill to help with this Endor Labs workflow."
@@ -219,6 +221,23 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
+    if recipe.id == "endor-troubleshooter":
+        return [
+            "## Example Workflow",
+            "",
+            "```text",
+            "Use the endor-troubleshooter skill to diagnose this Endor scan failure. Namespace: <namespace>. Project: <project>. Error: <redacted error text>. Keep the workflow read-only and tell me the lowest-friction fix.",
+            "```",
+            "",
+            "```text",
+            "Use the endor-troubleshooter skill to troubleshoot slow PR scans in a large monorepo. Check whether incremental PR scans, baselines, scan profile settings, or workflow configuration would improve performance. Do not change the profile or rerun scans.",
+            "```",
+            "",
+            "```text",
+            "Use the endor-troubleshooter skill to diagnose why users cannot log in through SSO for namespace <namespace>. Inspect read-only identity provider evidence and do not print secrets.",
+            "```",
+            "",
+        ]
     if recipe.id != "ai-sast-triage":
         return []
     return [
@@ -245,7 +264,7 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
 def codex_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return Codex smoke test README content."""
 
-    if recipe.id not in {"ai-sast-triage", "probe-droid", "sca-remediation"}:
+    if recipe.id not in {"ai-sast-triage", "probe-droid", "sca-remediation", "endor-troubleshooter"}:
         return []
     return [
         "## QA Smoke Test",

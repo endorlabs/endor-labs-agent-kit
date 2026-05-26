@@ -161,6 +161,12 @@ def managed_agents_edition_readme(
                 "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
                 "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
             ]
+        elif recipe.id == "endor-troubleshooter":
+            notes = [
+                f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
+                "It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.",
+                "The generated environment allows api.endorlabs.com for read-only Endor lookups. It still must not run scans, create scan log requests, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.",
+            ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
     return "\n".join([
@@ -228,6 +234,8 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
         return "Summarize npm lodash version 4.17.20."
     if recipe.id == "probe-droid":
         return "Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
+    if recipe.id == "endor-troubleshooter":
+        return "Diagnose this Endor scan failure from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
         return "Assess npm lodash version 4.17.20."
     return "Help me use this Endor Labs agent."
