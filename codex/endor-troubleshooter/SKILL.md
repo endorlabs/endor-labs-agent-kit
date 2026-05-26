@@ -501,7 +501,7 @@ If multiple surfaces are available, prefer the structured Endor evidence
 and the `ENDORCTL_RC_*` name in `evidence_summary`. The public reference is
 `https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes/`.
 
-Canonical exit-code table (numeric value → `ENDORCTL_RC_*` name → product
+Canonical exit-code table (numeric value -> `ENDORCTL_RC_*` name -> product
 meaning):
 
 - `0`: success.
