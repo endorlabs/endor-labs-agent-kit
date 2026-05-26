@@ -668,7 +668,7 @@ def claude_code_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
             "",
             "```bash",
             "export CLAUDE_CONFIG_DIR=\"$(mktemp -d)\"",
-            "claude -p --agent endor-troubleshooter --permission-mode bypassPermissions \\",
+            "claude -p --agent endor-troubleshooter \\",
             "  \"Diagnose this Endor issue from redacted text only: endorctl scan exited with code 13 because dependencies were not downloaded. Keep it read-only.\"",
             "```",
             "",

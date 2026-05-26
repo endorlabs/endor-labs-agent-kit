@@ -85,9 +85,9 @@
         {
           "artifacts": [
             {
-              "bytes": 4719,
+              "bytes": 4683,
               "path": "claude-code/endor-troubleshooter/README.md",
-              "sha256": "782afe04c52586c24638bbc1fc6d3a330b400e6e2234929d5ecb0ab5bb223193"
+              "sha256": "96215e3fe11dac25b06f897ffad7a0bbe151b7e8edb6032d99b52d00e0e8f61d"
             },
             {
               "bytes": 9834,
