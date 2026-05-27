@@ -49,7 +49,7 @@ def test_endor_troubleshooter_recipe_is_read_only_and_mcp_free(tmp_path):
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
-    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex"]
+    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex", "portable"]
     assert data["host_editions"] == {
         "claude-code": ["enterprise-edition"],
         "claude-managed-agents": ["enterprise-edition"],
@@ -220,12 +220,19 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
         "codex/endor-troubleshooter/README.md",
         "codex/endor-troubleshooter/architecture.svg",
         "codex/endor-troubleshooter/endorctl-setup.md",
+        "portable/endor-troubleshooter/README.md",
+        "portable/endor-troubleshooter/agent.md",
+        "portable/endor-troubleshooter/agent.manifest.json",
+        "portable/endor-troubleshooter/output-contract.md",
+        "portable/endor-troubleshooter/architecture.svg",
+        "portable/endor-troubleshooter/endorctl-setup.md",
         "manifest.json",
         "README.md",
     }
     agent_dir = dest / "claude-code" / "endor-troubleshooter"
     managed_dir = dest / "claude-managed-agents" / "endor-troubleshooter"
     codex_dir = dest / "codex" / "endor-troubleshooter"
+    portable_dir = dest / "portable" / "endor-troubleshooter"
     assert_host_bundle_files(
         agent_dir,
         {"endor-troubleshooter.md", "README.md", "architecture.svg", "endorctl-setup.md"},
@@ -244,6 +251,10 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
             "Do not write source files as part of this agent workflow.",
         ),
     )
+    assert_host_bundle_files(
+        portable_dir,
+        {"README.md", "agent.md", "agent.manifest.json", "output-contract.md", "architecture.svg", "endorctl-setup.md"},
+    )
     assert_no_nested_edition_dirs(agent_dir)
     assert_no_nested_edition_dirs(managed_dir)
 
@@ -260,6 +271,7 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
     assert "claude-code/endor-troubleshooter/" in root_readme
     assert "claude-managed-agents/endor-troubleshooter/" in root_readme
     assert "codex/endor-troubleshooter/" in root_readme
+    assert "portable/endor-troubleshooter/" in root_readme
     assert "@agent-endor-troubleshooter diagnose this Endor scan failure from redacted error text" in root_readme
     assert "@agent-endor-troubleshooter diagnose this Endor scan failure" in agent_readme
     assert "large monorepo" in agent_readme

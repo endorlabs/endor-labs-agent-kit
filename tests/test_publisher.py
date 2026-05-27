@@ -42,6 +42,28 @@ def _managed_agent_paths(agent_id: str, *, has_setup: bool) -> set[str]:
     return paths
 
 
+def _portable_paths(
+    agent_id: str,
+    *,
+    has_setup: bool,
+    has_architecture: bool = False,
+    has_actions: bool = False,
+) -> set[str]:
+    paths = {
+        f"portable/{agent_id}/README.md",
+        f"portable/{agent_id}/agent.md",
+        f"portable/{agent_id}/agent.manifest.json",
+        f"portable/{agent_id}/output-contract.md",
+    }
+    if has_setup:
+        paths.add(f"portable/{agent_id}/endorctl-setup.md")
+    if has_architecture:
+        paths.add(f"portable/{agent_id}/architecture.svg")
+    if has_actions:
+        paths.add(f"portable/{agent_id}/actions.yaml")
+    return paths
+
+
 def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -52,6 +74,7 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert written_paths == (
         _claude_code_paths("dependency-decision-helper", has_setup=True)
         | _managed_agent_paths("dependency-decision-helper", has_setup=True)
+        | _portable_paths("dependency-decision-helper", has_setup=True)
         | {"manifest.json", "README.md"}
     )
     assert not (dest / "claude-code" / "dependency-decision-helper" / "standard").exists()
@@ -69,12 +92,13 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
     assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
     assert "endorctl api list" in artifact
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_path, monkeypatch):
     import endor_agent_kit.compilers.claude_code as claude_code_compiler
     import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
+    import endor_agent_kit.compilers.portable as portable_compiler
     import endor_agent_kit.compilers.raw as raw_compiler
     import endor_agent_kit.publisher as publisher
 
@@ -93,6 +117,7 @@ def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_
     monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
     monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(portable_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
 
     publish_recipe(recipe, dest)
@@ -103,6 +128,7 @@ def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_
 def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch):
     import endor_agent_kit.compilers.claude_code as claude_code_compiler
     import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
+    import endor_agent_kit.compilers.portable as portable_compiler
     import endor_agent_kit.compilers.raw as raw_compiler
     import endor_agent_kit.publisher as publisher
 
@@ -122,6 +148,7 @@ def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch)
     monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
     monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(portable_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
 
     publish_recipes([dependency_recipe, vulnerability_recipe], dest, prune=True)
@@ -145,7 +172,7 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
         "claude-managed-agents/vulnerability-explainer/session-template.yaml",
         "manifest.json",
         "README.md",
-    }
+    } | _portable_paths("vulnerability-explainer", has_setup=False)
     artifact = (dest / "claude-code" / "vulnerability-explainer" / "vulnerability-explainer.md").read_text()
     readme = (dest / "claude-code" / "vulnerability-explainer" / "README.md").read_text()
     assert "disallowedTools: Bash" in artifact
@@ -158,7 +185,7 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
         / "vulnerability-explainer"
         / "endorctl-setup.md"
     ).exists()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
@@ -176,7 +203,7 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
     assert "QuerySimilarPackages" in enterprise
     assert "summarize npm lodash version 4.17.20" in enterprise_readme
     assert (dest / "claude-code" / "package-risk-summary" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
@@ -212,7 +239,7 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
     assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "architecture.svg").is_file()
     assert (dest / "claude-code" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
     assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
@@ -227,6 +254,7 @@ def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-managed-agents", "dependency-decision-helper"),
+        ("portable", "dependency-decision-helper"),
     ]
     agent = manifest["agents"][0]
     assert [edition["id"] for edition in agent["editions"]] == ["enterprise-edition"]
@@ -281,6 +309,7 @@ def test_publish_recipe_is_idempotent_and_preserves_other_manifest_agents(tmp_pa
         ("claude-code", "dependency-decision-helper"),
         ("claude-code", "other-agent"),
         ("claude-managed-agents", "dependency-decision-helper"),
+        ("portable", "dependency-decision-helper"),
     ]
 
 
@@ -313,6 +342,7 @@ def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-managed-agents", "dependency-decision-helper"),
+        ("portable", "dependency-decision-helper"),
     ]
     assert "dependency-upgrade-advisor" not in (dest / "README.md").read_text()
 
@@ -339,6 +369,10 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         ("claude-managed-agents", "package-risk-summary"),
         ("claude-managed-agents", "upgrade-impact-analysis"),
         ("claude-managed-agents", "vulnerability-explainer"),
+        ("portable", "dependency-decision-helper"),
+        ("portable", "package-risk-summary"),
+        ("portable", "upgrade-impact-analysis"),
+        ("portable", "vulnerability-explainer"),
     ]
     package = next(
         agent
@@ -361,7 +395,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         "README.md",
         "vulnerability-explainer.md",
     }
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
@@ -377,7 +411,7 @@ def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
     assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
     assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
     assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_cli_publish_writes_distribution(tmp_path, capsys):
@@ -391,7 +425,8 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert "manifest.json" in output
     assert (dest / "manifest.json").is_file()
     assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json"}
+    assert (dest / "portable" / "dependency-decision-helper" / "agent.md").is_file()
+    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
 def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
@@ -433,6 +468,11 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         ("claude-managed-agents", "package-risk-summary"),
         ("claude-managed-agents", "upgrade-impact-analysis"),
         ("claude-managed-agents", "vulnerability-explainer"),
+        ("portable", "dependency-decision-helper"),
+        ("portable", "package-risk-summary"),
+        ("portable", "repository-dependency-reviewer"),
+        ("portable", "upgrade-impact-analysis"),
+        ("portable", "vulnerability-explainer"),
     ]
     root_readme = (dest / "README.md").read_text()
     assert "## Table Of Contents" in root_readme
@@ -457,6 +497,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "claude-code/package-risk-summary/" in root_readme
     assert "claude-managed-agents/package-risk-summary/" in root_readme
     assert "claude-code/repository-dependency-reviewer/" in root_readme
+    assert "portable/repository-dependency-reviewer/" in root_readme
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:

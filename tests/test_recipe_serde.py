@@ -13,6 +13,7 @@ def test_recipe_yaml_round_trips_core_fields():
     assert recipe.safety_class == "read_only"
     assert recipe.supported_transports == ("mcp", "endorctl_api")
     assert recipe.host_capabilities_required.run_commands is True
+    assert recipe.compatible_hosts == ("claude-code", "claude-managed-agents", "portable")
     assert recipe.host_editions == {
         "claude-code": ("enterprise-edition",),
         "claude-managed-agents": ("enterprise-edition",),

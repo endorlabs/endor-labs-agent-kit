@@ -20,7 +20,7 @@ PUBLIC_MCP_TOOLS = frozenset(
 )
 
 SUPPORTED_TRANSPORTS = frozenset({"mcp", "endorctl_api", "direct_api"})
-SUPPORTED_HOSTS = frozenset({"claude-code", "claude-managed-agents", "codex", "raw"})
+SUPPORTED_HOSTS = frozenset({"claude-code", "claude-managed-agents", "codex", "portable", "raw"})
 SUPPORTED_EDITIONS = frozenset({"developer-edition", "enterprise-edition"})
 SAFETY_CLASSES = frozenset({"read_only", "dry_run", "mutating"})
 ACTION_KINDS = frozenset(
@@ -32,6 +32,7 @@ ACTION_KINDS = frozenset(
         "endor.policy_write",
         "approval.request",
         "approval.verify",
+        "ticket.create",
     }
 )
 ACTION_AVAILABILITY = frozenset({"available", "requires_adapter", "unavailable"})
