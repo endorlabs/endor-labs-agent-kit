@@ -10,6 +10,7 @@ from endor_agent_kit.install import (
     check_claude_code_install,
     check_claude_managed_agents_install,
     check_codex_install,
+    check_portable_install,
 )
 
 
@@ -243,6 +244,57 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
     ) == []
 
 
+def test_check_portable_install_compares_manifest_bundle_artifacts(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        host="portable",
+        bundle_path="portable/sca-remediation",
+        primary_artifact_name="agent.md",
+        primary_artifact_path="portable/sca-remediation/agent.md",
+        primary_content="agent",
+        extra_artifacts=[
+            {
+                "path": "portable/sca-remediation/agent.manifest.json",
+                "sha256": _sha256_text("manifest"),
+                "bytes": len("manifest"),
+            },
+            {
+                "path": "portable/sca-remediation/output-contract.md",
+                "sha256": _sha256_text("contract"),
+                "bytes": len("contract"),
+            },
+        ],
+    )
+
+    portable_dir = tmp_path / "runtime" / "agents" / "sca-remediation"
+    portable_dir.mkdir(parents=True)
+    (portable_dir / "agent.md").write_text("agent", encoding="utf-8")
+    (portable_dir / "agent.manifest.json").write_text("manifest", encoding="utf-8")
+
+    missing_errors = check_portable_install(
+        "sca-remediation",
+        portable_dir,
+        catalog_root=catalog,
+    )
+    assert any("output-contract.md" in error for error in missing_errors)
+
+    (portable_dir / "output-contract.md").write_text("old", encoding="utf-8")
+    stale_errors = check_portable_install(
+        "sca-remediation",
+        portable_dir,
+        catalog_root=catalog,
+    )
+    assert any("output-contract.md" in error and "is stale" in error for error in stale_errors)
+
+    (portable_dir / "output-contract.md").write_text("contract", encoding="utf-8")
+    assert check_portable_install(
+        "sca-remediation",
+        portable_dir,
+        catalog_root=catalog,
+    ) == []
+
+
 def test_cli_check_install_uses_manifest_checksum(tmp_path, capsys):
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(catalog)
@@ -297,3 +349,25 @@ def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_pa
     output = capsys.readouterr().out
     assert "OK:" in output
     assert str(managed_agent_dir) in output
+
+
+def test_cli_check_install_requires_portable_dir(tmp_path, capsys):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        host="portable",
+        bundle_path="portable/sca-remediation",
+        primary_artifact_name="agent.md",
+        primary_artifact_path="portable/sca-remediation/agent.md",
+    )
+
+    assert main([
+        "check-install",
+        "--host",
+        "portable",
+        "--agent",
+        "sca-remediation",
+        "--catalog-root",
+        str(catalog),
+    ]) == 1
+    assert "--portable-dir is required" in capsys.readouterr().out

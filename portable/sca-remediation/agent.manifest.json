@@ -1,0 +1,536 @@
+{
+  "action_contracts_path": "actions.yaml",
+  "artifacts": {
+    "actions": "actions.yaml",
+    "agent": "agent.md",
+    "architecture": "architecture.svg",
+    "output_contract": "output-contract.md",
+    "runtime_contract": "agent.manifest.json",
+    "runtime_setup": "endorctl-setup.md"
+  },
+  "data_gap_policy": "Record unavailable transport, credential, adapter, runtime, or evidence signals in data_gaps instead of fabricating evidence.",
+  "declared_actions": [
+    {
+      "availability": "available",
+      "confirmation_required": false,
+      "id": "resolve-endor-project",
+      "inputs": [
+        "repository_url",
+        "repo_full_name",
+        "project_name",
+        "namespace"
+      ],
+      "kind": "endor.query",
+      "outputs": [
+        "project_uuid",
+        "project_name",
+        "repo_full_name",
+        "namespace",
+        "namespace_provenance"
+      ],
+      "portable_kind": "endor.query",
+      "safety_class": "read_only",
+      "source_provider_examples": [
+        "endorctl-api",
+        "endor-api",
+        "local-git"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": false,
+      "id": "query-sca-findings",
+      "inputs": [
+        "project_uuid",
+        "namespace",
+        "severity_filter",
+        "finding_uuids",
+        "package_name",
+        "finding_limit"
+      ],
+      "kind": "endor.query",
+      "outputs": [
+        "findings",
+        "finding_counts",
+        "affected_packages",
+        "affected_manifests"
+      ],
+      "portable_kind": "endor.query",
+      "safety_class": "read_only",
+      "source_provider_examples": [
+        "endorctl-api",
+        "endor-api"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": false,
+      "id": "query-uia-evidence",
+      "inputs": [
+        "project_uuid",
+        "namespace",
+        "package_name",
+        "finding_uuids"
+      ],
+      "kind": "endor.query",
+      "outputs": [
+        "version_upgrades",
+        "finding_fixing_upgrades",
+        "cia_results",
+        "selected_upgrade"
+      ],
+      "portable_kind": "endor.query",
+      "safety_class": "read_only",
+      "source_provider_examples": [
+        "endorctl-api",
+        "endor-api"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": false,
+      "id": "list-low-risk-uia-prs",
+      "inputs": [
+        "project_uuid",
+        "namespace",
+        "repo",
+        "version_upgrades"
+      ],
+      "kind": "endor.query",
+      "outputs": [
+        "low_risk_recommendations",
+        "candidate_prs",
+        "ready_to_open",
+        "most_findings_in_one_pr",
+        "p0_duplicates_hidden",
+        "data_gaps"
+      ],
+      "portable_kind": "endor.query",
+      "safety_class": "read_only",
+      "source_provider_examples": [
+        "endorctl-api",
+        "endor-api",
+        "local-git"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": false,
+      "id": "read-local-manifests",
+      "inputs": [
+        "repo",
+        "manifest_files",
+        "package_name",
+        "selected_upgrade"
+      ],
+      "kind": "scm.source_read",
+      "outputs": [
+        "manifest_text",
+        "lockfile_text",
+        "dependency_declaration",
+        "source_context"
+      ],
+      "portable_kind": "repository.read",
+      "safety_class": "read_only",
+      "source_provider_examples": [
+        "local-files",
+        "local-git"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": false,
+      "id": "resolve-upgrade-risk",
+      "inputs": [
+        "selected_upgrade",
+        "cia_results",
+        "manifest_text",
+        "lockfile_text",
+        "source_context",
+        "validation_plan"
+      ],
+      "kind": "scm.source_read",
+      "outputs": [
+        "risk_decision",
+        "compatibility_evidence",
+        "required_companion_edits",
+        "validation_requirements"
+      ],
+      "portable_kind": "repository.read",
+      "safety_class": "read_only",
+      "source_provider_examples": [
+        "endorctl-api",
+        "endor-api",
+        "local-files",
+        "local-git",
+        "package-manager"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": true,
+      "id": "prepare-remediation-diff",
+      "inputs": [
+        "repo",
+        "selected_upgrade",
+        "manifest_files",
+        "companion_edits",
+        "validation_plan"
+      ],
+      "kind": "scm.change_request",
+      "outputs": [
+        "patch_diff",
+        "changed_files",
+        "branch_name",
+        "validation_status"
+      ],
+      "portable_kind": "repository.patch.prepare",
+      "safety_class": "mutating",
+      "source_provider_examples": [
+        "local-git",
+        "package-manager"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": true,
+      "id": "open-change-request",
+      "inputs": [
+        "repo",
+        "base_branch",
+        "branch_name",
+        "patch_diff",
+        "title",
+        "body",
+        "validation_status"
+      ],
+      "kind": "scm.change_request",
+      "outputs": [
+        "url",
+        "branch",
+        "status",
+        "failure_reason"
+      ],
+      "portable_kind": "source.change_request.create",
+      "safety_class": "mutating",
+      "source_provider_examples": [
+        "local-git",
+        "gh-cli",
+        "glab-cli",
+        "github",
+        "gitlab"
+      ]
+    },
+    {
+      "availability": "available",
+      "confirmation_required": true,
+      "id": "post-remediation-comment",
+      "inputs": [
+        "pr_url",
+        "selected_remediation",
+        "uia_evidence",
+        "validation_status",
+        "body"
+      ],
+      "kind": "scm.comment",
+      "outputs": [
+        "comment_url",
+        "status"
+      ],
+      "portable_kind": "source.comment.create",
+      "safety_class": "mutating",
+      "source_provider_examples": [
+        "github",
+        "gitlab",
+        "gh-cli",
+        "glab-cli"
+      ]
+    }
+  ],
+  "degradation": {
+    "missing_capability_behavior": "record_data_gap",
+    "mutation_without_adapter": "forbidden",
+    "supports_plan_only": true
+  },
+  "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
+  "endorctl_api_invocations": [
+    "resolve_project_from_repository",
+    "list_sca_findings",
+    "list_version_upgrade_recommendations",
+    "get_version_upgrade_details",
+    "get_finding_fixing_upgrades",
+    "inspect_dependency_metadata"
+  ],
+  "generated_files_are_editable": false,
+  "id": "sca-remediation",
+  "inputs": [
+    {
+      "description": "Optional Endor namespace override when the tenant uses child namespaces.",
+      "kind": "string",
+      "name": "namespace",
+      "required": false
+    },
+    {
+      "description": "Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL. The agent should infer this from the current Git workspace first.",
+      "kind": "string",
+      "name": "project_name",
+      "required": false
+    },
+    {
+      "description": "Optional source repository URL when the agent is not running inside the target repository. Normally inferred from git remote origin.",
+      "kind": "string",
+      "name": "repository_url",
+      "required": false
+    },
+    {
+      "description": "Optional advanced fallback when project_name or repository_url cannot resolve a unique project.",
+      "kind": "string",
+      "name": "project_uuid",
+      "required": false
+    },
+    {
+      "description": "Optional finding UUID allow-list for targeted remediation. Do not require this for normal use.",
+      "kind": "list[string]",
+      "name": "finding_uuids",
+      "required": false
+    },
+    {
+      "description": "Optional Endor severity filter such as CRITICAL or HIGH. Natural-language P0 requests should map to critical/high reachable and fixable SCA findings.",
+      "kind": "list[string]",
+      "name": "severity_filter",
+      "required": false
+    },
+    {
+      "description": "Optional package name to narrow remediation ranking after project resolution.",
+      "kind": "string",
+      "name": "package_name",
+      "required": false
+    },
+    {
+      "description": "Maximum SCA findings to evaluate before ranking package-level remediations.",
+      "kind": "integer",
+      "name": "finding_limit",
+      "required": false
+    }
+  ],
+  "name": "SCA Remediation",
+  "outputs": [
+    {
+      "description": "Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.",
+      "kind": "string",
+      "name": "summary",
+      "required": true
+    },
+    {
+      "description": "Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.",
+      "kind": "list[object]",
+      "name": "remediation_candidates",
+      "required": true
+    },
+    {
+      "description": "Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.",
+      "kind": "object",
+      "name": "project_resolution",
+      "required": true
+    },
+    {
+      "description": "Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.",
+      "kind": "object",
+      "name": "selected_remediation",
+      "required": true
+    },
+    {
+      "description": "VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.",
+      "kind": "list[object]",
+      "name": "uia_evidence",
+      "required": true
+    },
+    {
+      "description": "Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.",
+      "kind": "object",
+      "name": "risk_decision",
+      "required": true
+    },
+    {
+      "description": "Files to edit, dependency-manager commands considered, companion source edits, branch/title/body draft, and explicit approval status.",
+      "kind": "list[object]",
+      "name": "patch_plan",
+      "required": true
+    },
+    {
+      "description": "Local validation commands considered or run, status, output summary, and blockers.",
+      "kind": "list[object]",
+      "name": "validation",
+      "required": true
+    },
+    {
+      "description": "PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.",
+      "kind": "list[object]",
+      "name": "change_requests",
+      "required": true
+    },
+    {
+      "description": "Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.",
+      "kind": "list[string]",
+      "name": "data_gaps",
+      "required": true
+    }
+  ],
+  "portable_schema_version": 1,
+  "recipe_schema_version": 2,
+  "required_capabilities": [
+    "endor.query",
+    "repository.patch.prepare",
+    "repository.read",
+    "source.change_request.create",
+    "source.change_request.lookup",
+    "source.comment.create"
+  ],
+  "required_endor_mcp_tools": [],
+  "required_transports": [
+    "endorctl_api"
+  ],
+  "requires_endor_mcp": "",
+  "requires_endorctl": ">=1.0",
+  "runtime_action_vocabulary": [
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
+      "kind": "endor.query",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api",
+        "approved-endor-mcp-adapter"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Read repository files, manifests, lockfiles, or pinned source context.",
+      "kind": "repository.read",
+      "provider_examples": [
+        "repository-service",
+        "source-index",
+        "local-checkout"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": true,
+      "description": "Prepare or apply a repository patch after explicit approval.",
+      "kind": "repository.patch.prepare",
+      "provider_examples": [
+        "patch-service",
+        "dependency-update-service",
+        "local-checkout"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Look up existing branches, pull requests, merge requests, or internal change records.",
+      "kind": "source.change_request.lookup",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": true,
+      "description": "Create or update a source-provider change request after explicit approval.",
+      "kind": "source.change_request.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": true,
+      "description": "Post or update a source-provider comment after explicit approval.",
+      "kind": "source.comment.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Request approval through the runtime's approved review workflow.",
+      "kind": "approval.request",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Verify approval evidence before a gated action proceeds.",
+      "kind": "approval.verify",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "kind": "endor.policy.write",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "description": "Create a ticket from final agent output through a runtime wrapper or declared action.",
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "runtime_wrappers": [
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "safety_class": "mutating",
+  "version": "0.1.0"
+}

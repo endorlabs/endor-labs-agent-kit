@@ -1,0 +1,341 @@
+{
+  "action_contracts_path": null,
+  "artifacts": {
+    "actions": null,
+    "agent": "agent.md",
+    "architecture": "architecture.svg",
+    "output_contract": "output-contract.md",
+    "runtime_contract": "agent.manifest.json",
+    "runtime_setup": "endorctl-setup.md"
+  },
+  "data_gap_policy": "Record unavailable transport, credential, adapter, runtime, or evidence signals in data_gaps instead of fabricating evidence.",
+  "declared_actions": [],
+  "degradation": {
+    "missing_capability_behavior": "record_data_gap",
+    "mutation_without_adapter": "forbidden",
+    "supports_plan_only": true
+  },
+  "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
+  "endorctl_api_invocations": [
+    "resolve_project_or_resource_selector",
+    "list_scan_results",
+    "get_scan_result",
+    "list_scan_workflow_results",
+    "get_scan_workflow_result",
+    "list_scan_workflows",
+    "list_scan_profiles",
+    "list_package_versions",
+    "list_package_manager_integrations",
+    "list_scm_credentials",
+    "list_installations",
+    "list_identity_providers",
+    "list_pr_comment_configs",
+    "list_findings_and_policies",
+    "list_call_graph_data",
+    "inspect_container_registry_scan_evidence",
+    "inspect_exporter_or_notification_evidence"
+  ],
+  "generated_files_are_editable": false,
+  "id": "endor-troubleshooter",
+  "inputs": [
+    {
+      "description": "Optional Endor namespace. The artifact uses the configured namespace when omitted.",
+      "kind": "string",
+      "name": "namespace",
+      "required": false
+    },
+    {
+      "description": "Natural-language description of the error, warning, missing integration, slow scan, or unhealthy behavior.",
+      "kind": "string",
+      "name": "issue_summary",
+      "required": false
+    },
+    {
+      "description": "Optional pasted command, UI, API, CI, or integration error output with secrets removed.",
+      "kind": "string",
+      "name": "error_text",
+      "required": false
+    },
+    {
+      "description": "Optional Endor project name, repository URL, owner/repo, tag, or UUID used to scope troubleshooting.",
+      "kind": "string",
+      "name": "endor_project_selector",
+      "required": false
+    },
+    {
+      "description": "Optional repository URL associated with the issue.",
+      "kind": "string",
+      "name": "repository_url",
+      "required": false
+    },
+    {
+      "description": "Optional ScanResult UUID from a failed, partial, slow, or unexpected scan.",
+      "kind": "string",
+      "name": "scan_result_uuid",
+      "required": false
+    },
+    {
+      "description": "Optional ScanWorkflowResult UUID or execution identifier from an automated workflow run.",
+      "kind": "string",
+      "name": "scan_workflow_result_uuid",
+      "required": false
+    },
+    {
+      "description": "Optional Installation, PackageManager, SCMCredential, IdentityProvider, PRCommentConfig, exporter, or external integration selector.",
+      "kind": "string",
+      "name": "integration_selector",
+      "required": false
+    },
+    {
+      "description": "Optional hint such as scan, pr_scan, dependency_resolution, auth, sso, integration, container, reachability, policy, sbom, exporter, or unknown.",
+      "kind": "enum",
+      "name": "issue_area_hint",
+      "required": false
+    },
+    {
+      "description": "concise or full. Defaults to concise; full includes deeper evidence tables and alternate hypotheses.",
+      "kind": "enum",
+      "name": "report_mode",
+      "required": false
+    }
+  ],
+  "name": "Endor Troubleshooter",
+  "outputs": [
+    {
+      "description": "ACTIONABLE_FIX_IDENTIFIED, LIKELY_ROOT_CAUSE_IDENTIFIED, PARTIAL_DIAGNOSIS, INSUFFICIENT_DATA, SUPPORT_ESCALATION_RECOMMENDED, or NO_ISSUE_FOUND.",
+      "kind": "enum",
+      "name": "troubleshooting_verdict",
+      "required": true
+    },
+    {
+      "description": "Compact user-facing summary with issue title, likely owner, impact, confidence, next best action, and whether any confirmation is required.",
+      "kind": "object",
+      "name": "executive_summary",
+      "required": true
+    },
+    {
+      "description": "Parsed issue summary, issue lanes, affected Endor objects, affected product area, and any inferred ecosystem or integration type.",
+      "kind": "object",
+      "name": "intake_classification",
+      "required": true
+    },
+    {
+      "description": "Classified troubleshooting lanes with status, confidence, evidence used, reason codes, and lane-specific next steps.",
+      "kind": "list[object]",
+      "name": "issue_lanes",
+      "required": true
+    },
+    {
+      "description": "Endor resources, repository selectors, scan IDs, workflow IDs, integrations, and external systems relevant to the diagnosis.",
+      "kind": "list[object]",
+      "name": "affected_resources",
+      "required": true
+    },
+    {
+      "description": "Exact read-only Endor queries attempted, purpose, status, returned counts, fields used, and data gaps.",
+      "kind": "list[object]",
+      "name": "evidence_queries",
+      "required": true
+    },
+    {
+      "description": "Normalized facts from logs, statuses, exit codes, workflow errors, scan profiles, integrations, package managers, reachability, policy, or container evidence.",
+      "kind": "object",
+      "name": "evidence_summary",
+      "required": true
+    },
+    {
+      "description": "Ranked possible causes with confidence, supporting evidence, contradicting evidence, and the next observation that would confirm or falsify each one.",
+      "kind": "list[object]",
+      "name": "root_cause_hypotheses",
+      "required": true
+    },
+    {
+      "description": "Prioritized human-readable repair steps with owner role, reason, friction level, validation step, confidence, and confirmation requirement.",
+      "kind": "list[object]",
+      "name": "recommended_actions",
+      "required": true
+    },
+    {
+      "description": "Read-only checks or safe rerun instructions a human can use after applying recommendations.",
+      "kind": "list[object]",
+      "name": "validation_plan",
+      "required": true
+    },
+    {
+      "description": "Redacted evidence bundle to send to Endor Support when the issue cannot be resolved from tenant-visible evidence.",
+      "kind": "object",
+      "name": "support_escalation_packet",
+      "required": true
+    },
+    {
+      "description": "Missing namespace, project, scan, workflow, log, integration, package manager, policy, container, or auth evidence.",
+      "kind": "list[string]",
+      "name": "data_gaps",
+      "required": true
+    },
+    {
+      "description": "Mutating, scan-rerun, credential, configuration-write, comment, or create-style log-request steps that V1 must not perform without a future explicit user approval gate.",
+      "kind": "list[object]",
+      "name": "future_action_contracts",
+      "required": true
+    },
+    {
+      "description": "Explicitly out-of-scope V2 automation such as applying fixes, creating integrations, editing scan profiles, rerunning scans, posting comments, or creating support tickets.",
+      "kind": "list[string]",
+      "name": "future_scope",
+      "required": true
+    }
+  ],
+  "portable_schema_version": 1,
+  "recipe_schema_version": 1,
+  "required_capabilities": [
+    "endor.query"
+  ],
+  "required_endor_mcp_tools": [],
+  "required_transports": [
+    "endorctl_api"
+  ],
+  "requires_endor_mcp": "",
+  "requires_endorctl": ">=1.0",
+  "runtime_action_vocabulary": [
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
+      "kind": "endor.query",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api",
+        "approved-endor-mcp-adapter"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Read repository files, manifests, lockfiles, or pinned source context.",
+      "kind": "repository.read",
+      "provider_examples": [
+        "repository-service",
+        "source-index",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Prepare or apply a repository patch after explicit approval.",
+      "kind": "repository.patch.prepare",
+      "provider_examples": [
+        "patch-service",
+        "dependency-update-service",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Look up existing branches, pull requests, merge requests, or internal change records.",
+      "kind": "source.change_request.lookup",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or update a source-provider change request after explicit approval.",
+      "kind": "source.change_request.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Post or update a source-provider comment after explicit approval.",
+      "kind": "source.comment.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Request approval through the runtime's approved review workflow.",
+      "kind": "approval.request",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Verify approval evidence before a gated action proceeds.",
+      "kind": "approval.verify",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "kind": "endor.policy.write",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "description": "Create a ticket from final agent output through a runtime wrapper or declared action.",
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "runtime_wrappers": [
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "safety_class": "read_only",
+  "version": "0.1.0"
+}

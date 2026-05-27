@@ -1,0 +1,237 @@
+{
+  "action_contracts_path": null,
+  "artifacts": {
+    "actions": null,
+    "agent": "agent.md",
+    "architecture": null,
+    "output_contract": "output-contract.md",
+    "runtime_contract": "agent.manifest.json",
+    "runtime_setup": "endorctl-setup.md"
+  },
+  "data_gap_policy": "Record unavailable transport, credential, adapter, runtime, or evidence signals in data_gaps instead of fabricating evidence.",
+  "declared_actions": [],
+  "degradation": {
+    "missing_capability_behavior": "record_data_gap",
+    "mutation_without_adapter": "forbidden",
+    "supports_plan_only": true
+  },
+  "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
+  "endorctl_api_invocations": [
+    "lookup_package_version_uuid",
+    "get_package_scores",
+    "get_package_license",
+    "query_similar_packages"
+  ],
+  "generated_files_are_editable": false,
+  "id": "dependency-decision-helper",
+  "inputs": [
+    {
+      "description": "Package ecosystem, such as npm, pypi, maven, go, cargo, gem, nuget, or packagist.",
+      "kind": "string",
+      "name": "ecosystem",
+      "required": true
+    },
+    {
+      "description": "Exact package name as it appears in a manifest.",
+      "kind": "string",
+      "name": "package_name",
+      "required": true
+    },
+    {
+      "description": "Exact package version to assess.",
+      "kind": "string",
+      "name": "version",
+      "required": true
+    }
+  ],
+  "name": "Dependency Decision Helper",
+  "outputs": [
+    {
+      "description": "SAFE, SAFE_WITH_CONDITIONS, NOT_RECOMMENDED, or BLOCKED.",
+      "kind": "enum",
+      "name": "verdict",
+      "required": true
+    },
+    {
+      "description": "Evidence-backed conditions that explain the verdict.",
+      "kind": "list[string]",
+      "name": "conditions",
+      "required": true
+    },
+    {
+      "description": "Safer package names or versions when available.",
+      "kind": "list[string]",
+      "name": "alternatives",
+      "required": true
+    },
+    {
+      "description": "One-paragraph human-readable assessment.",
+      "kind": "string",
+      "name": "summary",
+      "required": true
+    },
+    {
+      "description": "Signals that were unavailable because setup, auth, edition, or tooling was missing.",
+      "kind": "list[string]",
+      "name": "data_gaps",
+      "required": true
+    }
+  ],
+  "portable_schema_version": 1,
+  "recipe_schema_version": 1,
+  "required_capabilities": [
+    "endor.query"
+  ],
+  "required_endor_mcp_tools": [
+    "check_dependency_for_risks",
+    "check_dependency_for_vulnerabilities",
+    "get_endor_vulnerability"
+  ],
+  "required_transports": [
+    "mcp",
+    "endorctl_api"
+  ],
+  "requires_endor_mcp": ">=2.4",
+  "requires_endorctl": ">=1.0",
+  "runtime_action_vocabulary": [
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
+      "kind": "endor.query",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api",
+        "approved-endor-mcp-adapter"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Read repository files, manifests, lockfiles, or pinned source context.",
+      "kind": "repository.read",
+      "provider_examples": [
+        "repository-service",
+        "source-index",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Prepare or apply a repository patch after explicit approval.",
+      "kind": "repository.patch.prepare",
+      "provider_examples": [
+        "patch-service",
+        "dependency-update-service",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Look up existing branches, pull requests, merge requests, or internal change records.",
+      "kind": "source.change_request.lookup",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or update a source-provider change request after explicit approval.",
+      "kind": "source.change_request.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Post or update a source-provider comment after explicit approval.",
+      "kind": "source.comment.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Request approval through the runtime's approved review workflow.",
+      "kind": "approval.request",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Verify approval evidence before a gated action proceeds.",
+      "kind": "approval.verify",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "kind": "endor.policy.write",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "description": "Create a ticket from final agent output through a runtime wrapper or declared action.",
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "runtime_wrappers": [
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "safety_class": "read_only",
+  "version": "1.0.0"
+}

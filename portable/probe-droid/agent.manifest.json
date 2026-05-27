@@ -1,0 +1,378 @@
+{
+  "action_contracts_path": null,
+  "artifacts": {
+    "actions": null,
+    "agent": "agent.md",
+    "architecture": "architecture.svg",
+    "output_contract": "output-contract.md",
+    "runtime_contract": "agent.manifest.json",
+    "runtime_setup": "endorctl-setup.md"
+  },
+  "data_gap_policy": "Record unavailable transport, credential, adapter, runtime, or evidence signals in data_gaps instead of fabricating evidence.",
+  "declared_actions": [],
+  "degradation": {
+    "missing_capability_behavior": "record_data_gap",
+    "mutation_without_adapter": "forbidden",
+    "supports_plan_only": true
+  },
+  "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
+  "endorctl_api_invocations": [
+    "list_endor_projects",
+    "list_endor_repositories",
+    "list_repository_versions",
+    "list_github_app_installations",
+    "list_project_scan_results",
+    "list_project_scan_workflows",
+    "list_project_package_versions",
+    "list_scan_profiles",
+    "list_package_manager_integrations",
+    "list_call_graph_data",
+    "list_dependency_metadata",
+    "inspect_resolution_errors_and_reachability_status"
+  ],
+  "generated_files_are_editable": false,
+  "id": "probe-droid",
+  "inputs": [
+    {
+      "description": "Optional Endor namespace. The artifact uses the configured namespace when omitted.",
+      "kind": "string",
+      "name": "namespace",
+      "required": false
+    },
+    {
+      "description": "GitHub.com organization to inventory. This is the default org-wide workflow.",
+      "kind": "string",
+      "name": "github_org",
+      "required": false
+    },
+    {
+      "description": "Optional explicit GitHub.com repository URLs or owner/repo selectors for targeted single-repo or subset analysis.",
+      "kind": "list[string]",
+      "name": "repository_urls",
+      "required": false
+    },
+    {
+      "description": "Optional exported GitHub inventory JSON fallback when gh CLI live inventory is unavailable.",
+      "kind": "object",
+      "name": "github_inventory_json",
+      "required": false
+    },
+    {
+      "description": "Optional Endor project name, repository URL, tag, or UUID used to scope the Endor comparison.",
+      "kind": "string",
+      "name": "endor_project_selector",
+      "required": false
+    },
+    {
+      "description": "none, random, or stratified. Defaults to none; stratified is recommended for organizations with more than 1000 repositories.",
+      "kind": "enum",
+      "name": "sampling_mode",
+      "required": false
+    },
+    {
+      "description": "Repository sample size for sampling mode. Recommended range is 500 to 1000 for very large organizations.",
+      "kind": "integer",
+      "name": "sample_size",
+      "required": false
+    },
+    {
+      "description": "Optional stable seed for reproducible random or stratified sampling.",
+      "kind": "string",
+      "name": "sample_seed",
+      "required": false
+    },
+    {
+      "description": "Defaults to 365. Repositories with no recent push or default-branch commit are flagged for scope decision.",
+      "kind": "integer",
+      "name": "inactive_threshold_days",
+      "required": false
+    },
+    {
+      "description": "Defaults to false. When true, inactive repositories are excluded from the coverage denominator.",
+      "kind": "boolean",
+      "name": "exclude_inactive_repositories",
+      "required": false
+    },
+    {
+      "description": "Defaults to false. Archived repositories are excluded by default and are never coverage blockers unless explicitly included.",
+      "kind": "boolean",
+      "name": "include_archived_repositories",
+      "required": false
+    },
+    {
+      "description": "full or executive. Defaults to full. Executive mode keeps prose and the first JSON section compact while preserving complete drill-down JSON arrays.",
+      "kind": "enum",
+      "name": "report_mode",
+      "required": false
+    }
+  ],
+  "name": "Probe Droid",
+  "outputs": [
+    {
+      "description": "READY_TO_ONBOARD, PARTIAL_COVERAGE, NOT_ONBOARDED, or INSUFFICIENT_DATA.",
+      "kind": "enum",
+      "name": "onboarding_verdict",
+      "required": true
+    },
+    {
+      "description": "Compact rollup with verdict, top counts, top 5 actions, top blockers, and drill-down pointers for large orgs.",
+      "kind": "object",
+      "name": "executive_report",
+      "required": true
+    },
+    {
+      "description": "GitHub org, repository subset, sampling mode, sample size, sample seed, monitored branch policy, and explicit V1 exclusions.",
+      "kind": "object",
+      "name": "report_scope",
+      "required": true
+    },
+    {
+      "description": "Executive rollup of repos in scope, excluded repos, matched Endor projects, onboarded healthy repos, onboarding gaps, dependency resolution gaps, reachability gaps, and repeated blockers.",
+      "kind": "object",
+      "name": "coverage_summary",
+      "required": true
+    },
+    {
+      "description": "GitHub.com inventory source, permission limits, pagination or sampling status, archived/inactive counts, and manifest discovery summary.",
+      "kind": "object",
+      "name": "github_inventory_summary",
+      "required": true
+    },
+    {
+      "description": "Endor-side GitHub App evidence for installation, selected repos, scanner enablement, sync errors, and archived repo behavior when available.",
+      "kind": "object",
+      "name": "github_app_coverage",
+      "required": true
+    },
+    {
+      "description": "GitHub repos with no strict Endor project or scan match, plus inferred setup prescriptions from GitHub evidence.",
+      "kind": "list[object]",
+      "name": "not_onboarded_repositories",
+      "required": true
+    },
+    {
+      "description": "Strictly matched Endor projects with dependency resolution, reachability, scan profile, package manager, GitHub App, branch, stale scan, or evidence gaps.",
+      "kind": "list[object]",
+      "name": "onboarded_repositories_with_gaps",
+      "required": true
+    },
+    {
+      "description": "Strictly matched repos with successful monitored-branch scan, dependency resolution, and reachability evidence for supported ecosystems.",
+      "kind": "list[object]",
+      "name": "onboarded_healthy_repositories",
+      "required": true
+    },
+    {
+      "description": "GitHub repos that match multiple Endor projects or cannot be matched without human disambiguation.",
+      "kind": "list[object]",
+      "name": "ambiguous_matches",
+      "required": true
+    },
+    {
+      "description": "Archived, disabled, explicitly excluded, or optionally inactive repos kept out of the main denominator.",
+      "kind": "list[object]",
+      "name": "excluded_repositories",
+      "required": true
+    },
+    {
+      "description": "Prioritized human-readable setup actions with owner role, confidence, evidence, confirmation requirement, and expected coverage gain.",
+      "kind": "list[object]",
+      "name": "recommended_actions",
+      "required": true
+    },
+    {
+      "description": "Setup actions backed by complete in-scope inventory rather than sample-only evidence.",
+      "kind": "list[object]",
+      "name": "confirmed_org_wide_actions",
+      "required": true
+    },
+    {
+      "description": "Large-org sampled findings that must not be treated as confirmed org-wide blockers until validated.",
+      "kind": "list[object]",
+      "name": "sampled_prescription_hypotheses",
+      "required": true
+    },
+    {
+      "description": "Follow-up read-only checks needed before treating sampled hypotheses or truncated inventory as confirmed org-wide findings.",
+      "kind": "list[object]",
+      "name": "requires_full_inventory_validation",
+      "required": true
+    },
+    {
+      "description": "Read-only checks humans can run after applying recommendations to verify onboarding health.",
+      "kind": "list[object]",
+      "name": "validation_plan",
+      "required": true
+    },
+    {
+      "description": "Exact GitHub and Endor read-only queries attempted, purpose, status, returned counts, fields used, and data gaps.",
+      "kind": "list[object]",
+      "name": "evidence_queries",
+      "required": true
+    },
+    {
+      "description": "Missing GitHub, GitHub App, Endor, scan, package manager, dependency resolution, or reachability evidence.",
+      "kind": "list[string]",
+      "name": "data_gaps",
+      "required": true
+    },
+    {
+      "description": "Explicitly out-of-scope V2 items, especially PR scan coverage and quick-vs-full reachability diagnostics.",
+      "kind": "list[string]",
+      "name": "future_scope",
+      "required": true
+    }
+  ],
+  "portable_schema_version": 1,
+  "recipe_schema_version": 1,
+  "required_capabilities": [
+    "endor.query"
+  ],
+  "required_endor_mcp_tools": [],
+  "required_transports": [
+    "endorctl_api"
+  ],
+  "requires_endor_mcp": "",
+  "requires_endorctl": ">=1.0",
+  "runtime_action_vocabulary": [
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
+      "kind": "endor.query",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api",
+        "approved-endor-mcp-adapter"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Read repository files, manifests, lockfiles, or pinned source context.",
+      "kind": "repository.read",
+      "provider_examples": [
+        "repository-service",
+        "source-index",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Prepare or apply a repository patch after explicit approval.",
+      "kind": "repository.patch.prepare",
+      "provider_examples": [
+        "patch-service",
+        "dependency-update-service",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Look up existing branches, pull requests, merge requests, or internal change records.",
+      "kind": "source.change_request.lookup",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or update a source-provider change request after explicit approval.",
+      "kind": "source.change_request.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Post or update a source-provider comment after explicit approval.",
+      "kind": "source.comment.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Request approval through the runtime's approved review workflow.",
+      "kind": "approval.request",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Verify approval evidence before a gated action proceeds.",
+      "kind": "approval.verify",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "kind": "endor.policy.write",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "description": "Create a ticket from final agent output through a runtime wrapper or declared action.",
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "runtime_wrappers": [
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "safety_class": "read_only",
+  "version": "0.1.0"
+}
