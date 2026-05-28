@@ -38,7 +38,7 @@
       "required": false
     },
     {
-      "description": "Optional source repository URL when the host cannot infer it from a local checkout or session context.",
+      "description": "Optional source repository URL when the runtime cannot infer it from repository context or session context.",
       "kind": "string",
       "name": "repository_url",
       "required": false
@@ -71,7 +71,7 @@
       "required": true
     },
     {
-      "description": "Missing Endor, source, or host signals.",
+      "description": "Missing Endor, source, or runtime signals.",
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true

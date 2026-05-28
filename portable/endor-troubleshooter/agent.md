@@ -1046,7 +1046,7 @@ the user provided the doc text in the current run.
 
 ## Enterprise Edition Tools
 
-Use Bash only for the documented read-only `endorctl api` lookups in these
+Use runtime command execution only for the documented read-only `endorctl api` lookups in these
 instructions. Do not generalize them into create, update, delete, scan,
 integration-write, policy-write, comment, or source-provider mutation commands.
 

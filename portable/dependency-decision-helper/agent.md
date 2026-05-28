@@ -95,7 +95,7 @@ https://app.endorlabs.com for the full assessment.
 
 # Workflow: MCP + Read-Only endorctl api
 
-Use Endor MCP tools first. Bash is allowed only for the read-only Endor lookups
+Use Endor MCP tools first. Runtime command execution is allowed only for the read-only Endor lookups
 shown in this section. Do not run `endorctl scan`, `endorctl api update`,
 `endorctl api delete`, file edits, package manager installs, or pull-request
 commands. The only allowed `endorctl api create` form is the

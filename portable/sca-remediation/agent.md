@@ -83,7 +83,7 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 9. Ask for explicit approval before editing files. After approval, apply the minimal manifest, lockfile, or companion source edits needed for the selected UIA-backed fix.
 10. Run local validation when a safe command is discoverable from package-manager files, README, build metadata, or project conventions. If validation cannot run because dependencies, credentials, private artifacts, or CI-only services are missing, record the exact blocker in `validation` and `data_gaps`.
 11. Ask for explicit approval before pushing a branch or opening a PR/MR. Re-runs may update the same agent-owned branch when a change request already exists.
-12. Post or update one stable PR/MR comment when requested or when the host returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
+12. Post or update one stable PR/MR comment when requested or when the runtime returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
 13. Return concise prose plus the required JSON object.
 
 Every output gate must include `project_resolution.project_uuid`, `project_resolution.namespace`, and `project_resolution.namespace_provenance`. If any of those are unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
@@ -182,13 +182,13 @@ The solver must inspect:
 1. Detailed VersionUpgrade/UIA fields, including `cia_results`, conflicts, dependency additions/removals, score explanation, introduced findings, direct dependency package, and manifest files.
 2. Local declaration shape: direct dependency, property, BOM, lockfile, transitive parent, or package-manager override.
 3. Local source usage of the upgraded package. Search imports, require statements, package-qualified symbols, config files, generated code references, and framework adapters in the affected module. Capture exact file paths and a short usage summary.
-4. Compatibility-sensitive API surfaces named by Endor CIA, source usage, or dependency metadata. If Endor reports an affected API, search for that API in local source before deciding.
+4. Compatibility-sensitive API surfaces named by Endor CIA, source usage, or dependency metadata. If Endor reports an affected API, search for that API in runtime-provided source before deciding.
 5. Validation commands that specifically exercise dependency resolution, compile/type-check, and tests for the affected module. Run them only when the approval scope allows execution; otherwise list them as required validation.
 
 Return exactly one `risk_decision.status`:
 
-- `approved_low_risk`: UIA/CIA and local source/validation evidence support opening the PR with "not expected to break" wording.
-- `approved_with_validation_required`: the patch is reasonable, but the PR must say compatibility requires validation. Use this when local source usage appears compatible but validation has not run or CIA is still indeterminate.
+- `approved_low_risk`: UIA/CIA and runtime-provided source/validation evidence support opening the PR with "not expected to break" wording.
+- `approved_with_validation_required`: the patch is reasonable, but the PR must say compatibility requires validation. Use this when runtime-provided source usage appears compatible but validation has not run or CIA is still indeterminate.
 - `blocked_needs_compatibility_analysis`: do not apply or open a PR yet. Use this when source usage, conflicts, introduced findings, or CIA data require more analysis.
 - `rejected`: do not recommend this candidate because the evidence shows unacceptable introduced findings, conflicts, breaking changes, or required companion edits outside the requested scope.
 
@@ -377,7 +377,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `read_only`
 - confirmation_required: `false`
 - availability: `available`
-- source_provider_examples: `endorctl-api`, `endor-api`, `local-git`
+- source_provider_examples: `endorctl-api`, `endor-api`, `repository-adapter`
 - inputs: `repository_url`, `repo_full_name`, `project_name`, `namespace`
 - outputs: `project_uuid`, `project_name`, `repo_full_name`, `namespace`, `namespace_provenance`
 - notes: Resolve from the current repository and human-readable selectors first. Resolve namespace provenance from the current request, environment, or active endorctl config before using -n. Do not use namespaces from prior sessions or ask for a project UUID unless selectors are missing or ambiguous.
@@ -413,7 +413,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `read_only`
 - confirmation_required: `false`
 - availability: `available`
-- source_provider_examples: `endorctl-api`, `endor-api`, `local-git`
+- source_provider_examples: `endorctl-api`, `endor-api`, `repository-adapter`
 - inputs: `project_uuid`, `namespace`, `repo`, `version_upgrades`
 - outputs: `low_risk_recommendations`, `candidate_prs`, `ready_to_open`, `most_findings_in_one_pr`, `p0_duplicates_hidden`, `data_gaps`
 - notes: List non-breaking low-risk UIA-backed PR candidates separately from the P0/exploited queue and risky solver. Hide P0 or exploited duplicates from the main low-risk list, report them separately, and require repo metadata plus manifest paths before marking candidates ready to open.
@@ -425,7 +425,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `read_only`
 - confirmation_required: `false`
 - availability: `available`
-- source_provider_examples: `local-files`, `local-git`
+- source_provider_examples: `repository-files-adapter`, `repository-adapter`
 - inputs: `repo`, `manifest_files`, `package_name`, `selected_upgrade`
 - outputs: `manifest_text`, `lockfile_text`, `dependency_declaration`, `source_context`
 - notes: Read only the target manifests, lockfiles, and UIA/CIA-indicated source files needed to plan the remediation.
@@ -437,10 +437,10 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `read_only`
 - confirmation_required: `false`
 - availability: `available`
-- source_provider_examples: `endorctl-api`, `endor-api`, `local-files`, `local-git`, `package-manager`
+- source_provider_examples: `endorctl-api`, `endor-api`, `repository-files-adapter`, `repository-adapter`, `dependency-manager-adapter`
 - inputs: `selected_upgrade`, `cia_results`, `manifest_text`, `lockfile_text`, `source_context`, `validation_plan`
 - outputs: `risk_decision`, `compatibility_evidence`, `required_companion_edits`, `validation_requirements`
-- notes: For medium/high/unknown risk, indeterminate CIA, introduced findings, conflicts, major/minor compatibility-sensitive bumps, or material dependency-footprint changes, produce a deterministic approve/block/reject verdict from Endor evidence plus local source usage. Do not hand-wave with release-note suggestions.
+- notes: For medium/high/unknown risk, indeterminate CIA, introduced findings, conflicts, major/minor compatibility-sensitive bumps, or material dependency-footprint changes, produce a deterministic approve/block/reject verdict from Endor evidence plus runtime-provided source usage. Do not hand-wave with release-note suggestions.
 
 ### prepare-remediation-diff
 
@@ -449,7 +449,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `mutating`
 - confirmation_required: `true`
 - availability: `available`
-- source_provider_examples: `local-git`, `package-manager`
+- source_provider_examples: `repository-adapter`, `dependency-manager-adapter`
 - inputs: `repo`, `selected_upgrade`, `manifest_files`, `companion_edits`, `validation_plan`
 - outputs: `patch_diff`, `changed_files`, `branch_name`, `validation_status`
 - notes: Show the selected UIA evidence, target files, and intended diff first. Apply local manifest or companion edits only after explicit approval; this action does not push or open a PR/MR.
@@ -461,7 +461,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `mutating`
 - confirmation_required: `true`
 - availability: `available`
-- source_provider_examples: `local-git`, `gh-cli`, `glab-cli`, `github`, `gitlab`
+- source_provider_examples: `repository-adapter`, `source-provider-adapter`, `github`, `gitlab`
 - inputs: `repo`, `base_branch`, `branch_name`, `patch_diff`, `title`, `body`, `validation_status`
 - outputs: `url`, `branch`, `status`, `failure_reason`
 - notes: Open or update a PR/MR only after local validation has passed or the validation blocker is explicitly documented and the user approves opening anyway.
@@ -473,7 +473,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - safety_class: `mutating`
 - confirmation_required: `true`
 - availability: `available`
-- source_provider_examples: `github`, `gitlab`, `gh-cli`, `glab-cli`
+- source_provider_examples: `github`, `gitlab`, `source-provider-adapter`
 - inputs: `pr_url`, `selected_remediation`, `uia_evidence`, `validation_status`, `body`
 - outputs: `comment_url`, `status`
 - notes: Post or update one stable remediation summary comment that includes UIA evidence, validation, findings fixed, and remaining data gaps.

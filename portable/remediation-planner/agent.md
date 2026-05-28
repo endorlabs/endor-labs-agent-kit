@@ -23,9 +23,7 @@ Find the safest dependency remediation path from Endor upgrade recommendations, 
 Do not require the user to know an Endor project UUID for normal use.
 
 Accept project context as "this repository", an owner/repo string, repository
-URL, Endor project name, finding UUID, or optional project UUID. In the runtime,
-use the current repository and `origin` remote when available. If the host
-cannot inspect runtime repository adapter, ask for a repository URL, owner/repo, or Endor
+URL, Endor project name, finding UUID, or optional project UUID. When runtime repository context is available, use the current repository and `origin` remote. If a repository adapter is unavailable, ask for a repository URL, owner/repo, or Endor
 project name. Only ask for a project UUID when human-readable selectors cannot
 resolve a unique project.
 
@@ -49,8 +47,8 @@ names and repository URLs. If project context cannot be resolved, return
 Return concise prose plus a JSON object matching `recipe.yaml` outputs.
 
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
-If a signal is not available through the host, include it in `data_gaps`.
+Use runtime command execution only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+If a signal is not available through the runtime, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
 
 

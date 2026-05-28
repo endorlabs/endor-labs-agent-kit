@@ -31,7 +31,7 @@ not require, configure, or start an Endor MCP server.
 The artifact accepts Endor project context:
 
 - `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
-- `repository_url`: source repository URL when the host cannot infer it from a local checkout or session context
+- `repository_url`: source repository URL when the runtime cannot infer it from repository context or session context
 - `project_uuid`: optional advanced fallback for `VersionUpgrade` queries after human project selectors fail
 - `namespace`: optional Endor tenant namespace; use the configured namespace when omitted
 - `package_name`: optional filter on `spec.upgrade_info.direct_dependency_package`
@@ -48,10 +48,10 @@ UUID first. Do not inspect repository manifests in v0.
 
 Do not make Endor project UUID knowledge a prerequisite for normal use.
 
-In the runtime, first use the current repository context when it is available:
+When runtime repository context is available, use it first:
 read the repository root and `origin` remote URL, then resolve the matching
 Endor project by repository URL, owner/repo, repository name, or Endor project
-name. In customer-managed runtime, do not assume runtime repository adapter is available; use the
+name. If a repository adapter is unavailable, use the
 repository URL, owner/repo, or Endor project name supplied in the user message,
 session metadata, or environment. If multiple Endor projects match, ask the
 user to choose among human-readable names and repository URLs. Only ask for a
@@ -180,8 +180,7 @@ https://app.endorlabs.com for the full assessment.
 # Workflow: Endor Platform VersionUpgrade UIA
 
 This artifact mirrors Endor's read-only Upgrade Impact Analysis workflow. Use
-`VersionUpgrade` resources first. Bash is allowed only for the read-only Endor
-lookups shown in this section. Do not run `endorctl scan`,
+`VersionUpgrade` resources first. Runtime command execution is allowed only for the read-only Endor lookups shown in this section. Do not run `endorctl scan`,
 `endorctl api update`, `endorctl api delete`, file edits, package manager
 installs, pull-request commands, or Endor MCP tooling.
 

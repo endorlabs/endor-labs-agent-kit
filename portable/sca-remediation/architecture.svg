@@ -56,7 +56,7 @@
   <g transform="translate(40, 34)">
     <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">SCA Remediation</text>
     <text x="0" y="53" font-size="13" fill="#9fb4be">Natural-language SCA intake to UIA-backed P0 fixes, low-risk PR lanes, and deterministic risk decisions</text>
-    <text x="0" y="75" font-size="11" fill="#7c93a0">MCP-free Claude Code artifact. Mutations require explicit user approval and host evidence.</text>
+    <text x="0" y="75" font-size="11" fill="#7c93a0">MCP-free portable agent bundle. Mutations require explicit user approval and runtime evidence.</text>
   </g>
 
   <g transform="translate(66, 145)">

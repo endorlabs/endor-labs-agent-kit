@@ -66,7 +66,7 @@ Do not clone repositories.
 Do not:
 
 - clone repositories
-- create local repository checkouts
+- create runtime repository checkouts
 - run package manager install, build, test, or toolchain detection commands
 - edit files
 - create branches, commits, pull requests, or merge requests
@@ -77,9 +77,9 @@ Do not:
 - mutate Endor Labs state
 - perform live Endor writes without explicit confirmation
 
-Use bounded read-only GitHub API or `gh` CLI calls. Fetch repository trees and
+Use bounded read-only source-provider API calls. Fetch repository trees and
 specific known manifest, lockfile, build, Endor setup, and GitHub Actions files
-only. Do not infer toolchains by running commands in a local checkout.
+only. Do not infer toolchains by running commands in a runtime-provided checkout.
 
 If a user asks for a scan profile file, PR/MR, branch, GitHub setting change,
 Endor package manager integration, Endor policy, or any Endor configuration
@@ -110,7 +110,7 @@ Required evidence categories:
   fork status, language metadata, pushed/updated timestamps, and
   manifest/config files discovered through read-only tree/file calls. If an
   exported inventory includes disabled-state metadata, preserve it as evidence;
-  do not require live `gh` inventory to provide that field.
+  do not require live source-provider inventory to provide that field.
 - Endor project inventory: project UUID, project name, repository URL or
   normalized selector, namespace, tags, monitored branch evidence when
   available, and last scan evidence.
@@ -137,41 +137,41 @@ continue with the usable fields and add a precise `data_gaps` entry.
 
 ## GitHub Inventory
 
-Use authenticated `gh` CLI first. If live GitHub inventory is unavailable, use
+Use an authenticated source-provider inventory adapter first. If live GitHub inventory is unavailable, use
 `github_inventory_json` when supplied and clearly label the evidence as
 exported input.
 
-In customer-managed runtime, `gh` may be unavailable even when Bash is available.
+In customer-managed runtime, the source-provider inventory adapter may be unavailable even when command execution is available.
 If so, use read-only GitHub.com REST API calls against `api.github.com` with
-credentials supplied to the managed session, or fall back to
+credentials supplied to the runtime session, or fall back to
 `github_inventory_json`. If neither live GitHub API access nor exported
 inventory is available, record `github_inventory_unavailable` in `data_gaps`.
 
 Acceptable read-only checks include:
 
 ```bash
-gh auth status
+source-provider.auth_check
 ```
 
 ```bash
-gh repo list <org> --limit 1000 --json nameWithOwner,url,defaultBranchRef,isArchived,isPrivate,primaryLanguage,pushedAt,updatedAt,isFork,visibility
+source-provider.repository_list <org>
 ```
 
 For explicit repositories:
 
 ```bash
-gh repo view <owner>/<repo> --json nameWithOwner,url,defaultBranchRef,isArchived,isPrivate,primaryLanguage,pushedAt,updatedAt,isFork,visibility
+source-provider.repository_get <owner>/<repo>
 ```
 
 For org-wide first-pass tree inspection, get the default branch SHA and fetch
 the root tree without recursion:
 
 ```bash
-gh api repos/<owner>/<repo>/git/trees/<tree_sha>
+source-provider.repository_tree <owner>/<repo> <tree_sha>
 ```
 
-When `gh` is unavailable but a read-only GitHub token is supplied to the
-managed session, use REST API calls against `api.github.com` and project the
+When the source-provider inventory adapter is unavailable but a read-only GitHub token is supplied to the
+runtime session, use REST API calls against `api.github.com` and project the
 response before consuming it. Keep credentials out of logs and final output.
 
 ```bash
@@ -478,9 +478,9 @@ payloads.
 
 For org-wide live runs, complete a bounded first pass before any deep drill-down:
 
-1. Verify `gh auth status` and `endorctl --version`.
-2. List GitHub repositories once with `gh repo list <org> --limit 1000 --json ...`.
-   Do not print the full `gh repo list` JSON array in org-wide mode; project it
+1. Verify source-provider adapter authentication and `endorctl --version`.
+2. List GitHub repositories once with the source-provider repository-list adapter.
+   Do not print the full repository-list JSON array in org-wide mode; project it
    to counts, capped examples, language/visibility/fork/archive/inactivity
    summaries, and a retained strict-match key set.
 3. List Endor projects, installations, scan profiles, package manager
@@ -499,7 +499,7 @@ report. Put any deeper repository file walk, recursive tree inspection, or
 cross-resource correlation that would exceed the budget in `data_gaps` or
 `requires_full_inventory_validation[]`.
 
-When invoked as an installed host skill, do not spend live command budget reading the installed `agent.md`.
+When invoked as an installed portable agent, do not spend live command budget reading the installed `agent.md`.
 Do not spend live command budget reading the generated agent artifact; the
 current instructions are authoritative.
 Run at most one all-project `PackageVersion` summary query.
@@ -511,15 +511,15 @@ remaining uncertainty in `data_gaps` and stop.
 All live Endor and GitHub commands MUST be projected before the model consumes
 the output. Use `jq` or an equivalent structured projection to reduce API
 responses to the fields needed for matching, counts, reason-code
-classification, prescriptions, and `evidence_queries[]`. If a host cannot
+classification, prescriptions, and `evidence_queries[]`. If the runtime cannot
 project command output, request a smaller field mask or fewer resources instead
 of pasting raw objects.
 
-Preserve nonzero command status with `set -o pipefail` or the host shell's
+Preserve nonzero command status with `set -o pipefail` or the runtime shell's
 equivalent whenever a JSON-producing command is piped to `jq`.
 Never pipe stderr into a JSON projection. Do not use `2>&1 | jq` with
-`endorctl api list`, `endorctl api get`, `gh repo list`, `gh repo view`, or
-`gh api` commands because CLI version notices, permission errors, and resource
+`endorctl api list`, `endorctl api get`, the source-provider repository-list adapter, the source-provider repository-detail adapter, or
+source-provider API calls because CLI version notices, permission errors, and resource
 errors are non-JSON and will corrupt the parser. Keep stderr separate, let `jq`
 read JSON stdout only, and record nonzero exit status or stderr text as a
 FAILED/PARTIAL `evidence_queries[]` entry. Optional evidence queries must fail
@@ -968,7 +968,7 @@ configuration snippets, YAML, API payloads, or write commands.
 
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
-Use Bash only for documented read-only GitHub inventory/file calls,
+Use runtime command execution only for documented read-only source-provider inventory/file calls,
 `endorctl api list`, `endorctl api get`, and `endorctl --version`. Do not run
 `endorctl scan`, `endorctl api create`, `endorctl api update`, `endorctl api
 delete`, package manager install/build/test commands, `git clone`, `git push`,
@@ -983,19 +983,19 @@ Record:
 
 - GitHub organization or repository subset
 - Endor namespace provenance
-- whether GitHub inventory came from `gh` or exported JSON
+- whether GitHub inventory came from live source-provider inventory or exported JSON
 - sampling mode, sample size, sample seed, and truncation status
 - archived and inactive handling
 - V1 exclusions, especially PR scan coverage and GitHub Enterprise Server
 
 ## Step 2: Inventory GitHub Repositories
 
-Run `gh auth status` when using live GitHub inventory. Then list the requested
-org or repositories with read-only `gh` commands. Fetch only bounded trees and
+Use the runtime source-provider auth check when using live source-provider inventory. Then list the requested
+org or repositories with read-only source-provider API calls. Fetch only bounded trees and
 known files for manifest/config evidence. If GitHub access is missing, report
 `github_inventory_unavailable` and continue only if exported inventory or Endor
 evidence is sufficient to provide a partial answer. In customer-managed runtime,
-use read-only GitHub REST API calls or exported inventory when `gh` is not
+use read-only GitHub REST API calls or exported inventory when live source-provider inventory is not
 available in the cloud environment.
 
 ## Step 3: Inventory Endor Projects And GitHub App Coverage

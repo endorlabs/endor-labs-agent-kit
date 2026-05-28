@@ -5,7 +5,13 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-from endor_agent_kit.compilers.portable import HOST, compile_portable_prepared
+from endor_agent_kit.compilers.portable import (
+    HOST,
+    assert_portable_text,
+    compile_portable_prepared,
+    portable_text,
+    render_portable_actions_yaml,
+)
 from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
@@ -56,18 +62,27 @@ class PortableHostAdapter:
 
         if has_architecture:
             published_architecture = agent_root / "architecture.svg"
-            shutil.copyfile(architecture, published_architecture)
+            architecture_content = portable_text(architecture.read_text(encoding="utf-8"))
+            assert_portable_text("architecture.svg", architecture_content)
+            published_architecture.write_text(architecture_content, encoding="utf-8")
             written.append(published_architecture)
 
         actions = prepared_actions_source(prepared)
         if actions.is_file():
             published_actions = agent_root / "actions.yaml"
-            shutil.copyfile(actions, published_actions)
+            actions_content = render_portable_actions_yaml(prepared.actions)
+            published_actions.write_text(actions_content, encoding="utf-8")
             written.append(published_actions)
 
         if _needs_endorctl_setup(recipe):
             setup = agent_root / "endorctl-setup.md"
-            shutil.copyfile(recipe_file.parent / "dist" / "raw" / "endorctl-setup.md", setup)
+            setup_content = portable_text(
+                (recipe_file.parent / "dist" / "raw" / "endorctl-setup.md").read_text(
+                    encoding="utf-8"
+                )
+            )
+            assert_portable_text("endorctl-setup.md", setup_content)
+            setup.write_text(setup_content, encoding="utf-8")
             written.append(setup)
 
         return BundleRecord(
@@ -98,7 +113,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
         "`output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.",
     ]
     if recipe.action_contracts_path:
-        setup_files.append("`actions.yaml`: source action contracts copied for adapter implementers.")
+        setup_files.append("`actions.yaml`: portable action contracts for adapter implementers.")
     if _needs_endorctl_setup(recipe):
         setup_files.append("`endorctl-setup.md`: Endor runtime setup notes.")
     if has_architecture:
@@ -109,7 +124,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
         [
             f"# {recipe.name} Portable Agent Bundle",
             "",
-            _portable_readme_text(recipe.description).strip(),
+            portable_text(recipe.description).strip(),
             "",
             "## Use This When",
             "",
@@ -191,14 +206,3 @@ def _portable_architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]
         "The diagram is included for human review of workflow boundaries, adapter responsibilities, and external systems. Runtime ingestion can ignore this file when only text and JSON contracts are supported.",
         "",
     ]
-
-
-def _portable_readme_text(text: str) -> str:
-    return (
-        text.replace("Claude Code", "the runtime")
-        .replace("Codex", "the runtime")
-        .replace("Claude Managed Agents", "customer-managed runtime")
-        .replace("Managed Agents", "customer-managed runtime")
-        .replace("subagent", "agent")
-        .replace("SKILL.md", "agent.md")
-    )

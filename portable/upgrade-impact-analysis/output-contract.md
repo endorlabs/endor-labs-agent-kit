@@ -13,7 +13,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 
 - `namespace` (string, optional): Endor tenant namespace. The artifact uses the configured namespace when omitted.
 - `project_name` (string, optional): Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL.
-- `repository_url` (string, optional): Optional source repository URL when the host cannot infer it from a local checkout or session context.
+- `repository_url` (string, optional): Optional source repository URL when the runtime cannot infer it from repository context or session context.
 - `project_uuid` (string, optional): Optional advanced fallback when project_name or repository_url cannot be resolved uniquely.
 - `finding_uuid` (string, optional): Optional finding UUID for the Endor canonical single-finding fixing-upgrade map.
 - `upgrade_uuid` (string, optional): Optional VersionUpgrade UUID for detailed CIA and breaking-change expansion.

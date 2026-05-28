@@ -56,7 +56,7 @@
   <g transform="translate(40, 34)">
     <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">Upgrade Impact Analysis - Read-Only Agent</text>
     <text x="0" y="53" font-size="13" fill="#9fb4be">Human project selector to VersionUpgrade evidence to recommendation</text>
-    <text x="0" y="75" font-size="11" fill="#7c93a0">Claude Code can use local repository context. Claude Managed Agents need the session or user message to provide repository URL, owner/repo, or Endor project name.</text>
+    <text x="0" y="75" font-size="11" fill="#7c93a0">Portable runtimes can provide repository context directly or accept a repository URL, owner/repo, or Endor project name from the session.</text>
   </g>
 
   <g transform="translate(20, 146)">

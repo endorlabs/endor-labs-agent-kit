@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.cli import main
-from endor_agent_kit.compilers.portable import FORBIDDEN_PORTABLE_TOKENS, compile_portable
+from endor_agent_kit.compilers.portable import assert_portable_text, compile_portable
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -39,6 +39,8 @@ def test_portable_compiler_emits_runtime_neutral_bundle(tmp_path):
     ticket = _vocabulary_item(manifest, "ticket.create")
     assert ticket["status"] == "wrapper_available"
     assert ticket["confirmation_required"] is True
+    assert "source-provider-adapter" in json.dumps(manifest)
+    assert "gh-cli" not in json.dumps(manifest)
     assert "selection-plan" in contract
     assert "endor-agent-kit validate-sca-output" in contract
     _assert_portable_text_files(out_dir)
@@ -127,10 +129,16 @@ def _vocabulary_item(manifest: dict, kind: str) -> dict:
 
 
 def _assert_portable_text_files(bundle: Path) -> None:
-    for filename in ("agent.md", "agent.manifest.json", "output-contract.md", "README.md"):
+    for filename in (
+        "agent.md",
+        "agent.manifest.json",
+        "output-contract.md",
+        "README.md",
+        "actions.yaml",
+        "architecture.svg",
+        "endorctl-setup.md",
+    ):
         path = bundle / filename
         if not path.exists():
             continue
-        content = path.read_text(encoding="utf-8")
-        for token in FORBIDDEN_PORTABLE_TOKENS:
-            assert token not in content, f"{path}: forbidden token {token!r}"
+        assert_portable_text(path.name, path.read_text(encoding="utf-8"))

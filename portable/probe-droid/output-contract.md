@@ -14,7 +14,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `namespace` (string, optional): Optional Endor namespace. The artifact uses the configured namespace when omitted.
 - `github_org` (string, optional): GitHub.com organization to inventory. This is the default org-wide workflow.
 - `repository_urls` (list[string], optional): Optional explicit GitHub.com repository URLs or owner/repo selectors for targeted single-repo or subset analysis.
-- `github_inventory_json` (object, optional): Optional exported GitHub inventory JSON fallback when gh CLI live inventory is unavailable.
+- `github_inventory_json` (object, optional): Optional exported GitHub inventory JSON fallback when live source-provider inventory is unavailable.
 - `endor_project_selector` (string, optional): Optional Endor project name, repository URL, tag, or UUID used to scope the Endor comparison.
 - `sampling_mode` (enum, optional): none, random, or stratified. Defaults to none; stratified is recommended for organizations with more than 1000 repositories.
 - `sample_size` (integer, optional): Repository sample size for sampling mode. Recommended range is 500 to 1000 for very large organizations.
