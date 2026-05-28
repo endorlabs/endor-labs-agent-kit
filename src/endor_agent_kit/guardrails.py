@@ -18,6 +18,8 @@ from endor_agent_kit.safety_posture import (
     SourceRecipeSafetyPosture,
     source_recipe_safety_posture,
 )
+from endor_agent_kit.dlp_scan import scan_catalog_credential_findings
+from endor_agent_kit.provenance import verify_catalog_provenance
 from endor_agent_kit.validator import validate_recipe_file
 
 CLAUDE_CODE_ALWAYS_DENIED = frozenset(
@@ -60,7 +62,19 @@ def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     _check_managed_agents(root, errors)
     _check_codex(root, errors)
     _check_portable(root, errors)
+    _check_credentials(root, errors)
+    _check_provenance(root, errors)
     return errors
+
+
+def _check_credentials(root: Path, errors: list[str]) -> None:
+    errors.extend(scan_catalog_credential_findings(root))
+
+
+def _check_provenance(root: Path, errors: list[str]) -> None:
+    if not (root / "manifest.json").is_file():
+        return
+    errors.extend(verify_catalog_provenance(root))
 
 
 def _check_manifest(root: Path, errors: list[str]) -> None:

@@ -187,8 +187,23 @@ Install checks compare copied artifacts with the catalog manifest. Generated
 files should not be edited directly; maintainers edit Source Recipes and
 regenerate the catalog.
 
-Current integrity controls are checksum based. Signed release provenance is a
-future hardening option.
+## Release Provenance
+
+`manifest.json` is the integrity record and the signable subject: it commits to
+every artifact's SHA-256, so signing the manifest digest anchors the whole
+catalog. Two mechanical controls build on it:
+
+- `endor-agent-kit verify-provenance` recomputes every recorded artifact digest
+  from disk and confirms it matches the manifest, so a downloaded or installed
+  catalog can be verified offline. The catalog guardrails run this check.
+- `endor-agent-kit provenance-statement` emits a deterministic SLSA-style in-toto
+  statement whose subject is `manifest.json`; it carries no timestamp so it is
+  reproducible from catalog content alone.
+
+Cryptographic signing stays a release-pipeline concern: CI signs the statement
+(for example with cosign, the SLSA generator, or `gh attestation`) over the
+manifest digest. Agent Kit produces and verifies the attestable subject; it does
+not hold signing keys.
 
 ## Remaining Gaps
 
@@ -197,10 +212,10 @@ production agent platform:
 
 - no central runtime policy engine across all hosts
 - no universal pre-tool and post-tool tripwire framework
-- no built-in DLP or secret scanning service
+- credential/secret scanning is mechanical and pattern-based in the catalog guardrails, not a full DLP service with entropy analysis or allowlist management
 - no centralized audit log store
-- no signed artifact or SLSA-style release attestation
-- no complete adversarial eval suite for prompt injection, fake evidence, or tool-output poisoning
+- the in-toto provenance statement and offline verification exist, but release signing over the manifest digest is still a CI step
+- adversarial eval coverage is seeded and mechanically validated for the mutating agents, but is not yet complete across all agents or executed against a live runtime
 - no runtime sandbox for portable bundles, because portable intentionally delegates runtime execution
 
 ## Alignment References

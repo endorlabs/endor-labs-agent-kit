@@ -22,6 +22,7 @@ from endor_agent_kit.install import (
     check_portable_install,
 )
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
+from endor_agent_kit.provenance import build_provenance_statement, verify_catalog_provenance
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
 from endor_agent_kit.workflow_output_contracts.commands import (
@@ -85,6 +86,18 @@ def main(argv: list[str] | None = None) -> int:
         help="Check a portable runtime adapter response against the Portable Evidence Schema",
     )
     validate_adapter_response_parser.add_argument("response", type=Path)
+
+    verify_provenance_parser = subparsers.add_parser(
+        "verify-provenance",
+        help="Verify generated catalog artifacts against the manifest checksums",
+    )
+    verify_provenance_parser.add_argument("--catalog-root", default=Path("."), type=Path)
+
+    provenance_statement_parser = subparsers.add_parser(
+        "provenance-statement",
+        help="Print the SLSA-style in-toto provenance statement for the catalog",
+    )
+    provenance_statement_parser.add_argument("--catalog-root", default=Path("."), type=Path)
 
     add_workflow_command_parsers(subparsers)
 
@@ -195,6 +208,24 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.response}")
+        return 0
+
+    if args.command == "verify-provenance":
+        errors = verify_catalog_provenance(args.catalog_root)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.catalog_root}")
+        return 0
+
+    if args.command == "provenance-statement":
+        try:
+            statement = build_provenance_statement(args.catalog_root)
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(json.dumps(statement, indent=2, sort_keys=True))
         return 0
 
     workflow_result = run_workflow_command(args)
