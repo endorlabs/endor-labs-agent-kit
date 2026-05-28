@@ -82,6 +82,10 @@ outputs:
   kind: list[object]
   required: true
   description: PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.
+- name: tickets
+  kind: list[object]
+  required: true
+  description: Ticket IDs, URLs, status, and failure reasons for requested ticket creation.
 - name: data_gaps
   kind: list[string]
   required: true

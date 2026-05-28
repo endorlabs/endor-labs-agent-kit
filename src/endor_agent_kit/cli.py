@@ -13,6 +13,7 @@ from endor_agent_kit.compilers import (
     compile_raw,
 )
 from endor_agent_kit.compilers.rendering import EDITION_CHOICES
+from endor_agent_kit.guardrails import check_catalog_guardrails
 from endor_agent_kit.install import (
     check_claude_code_install,
     check_claude_managed_agents_install,
@@ -70,6 +71,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Remove previously published agents that are not in the recipe set",
     )
+
+    check_guardrails_parser = subparsers.add_parser(
+        "check-guardrails",
+        help="Check generated catalog artifacts against guardrail policies",
+    )
+    check_guardrails_parser.add_argument("--catalog-root", default=Path("."), type=Path)
 
     add_workflow_command_parsers(subparsers)
 
@@ -151,6 +158,15 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         for output in outputs:
             print(output)
+        return 0
+
+    if args.command == "check-guardrails":
+        errors = check_catalog_guardrails(args.catalog_root)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.catalog_root}")
         return 0
 
     workflow_result = run_workflow_command(args)

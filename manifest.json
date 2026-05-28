@@ -10,14 +10,14 @@
               "sha256": "41978bdfa09dc4c7e98799860ac50ed37272572e50e0156c9ce4f96e7cc048d5"
             },
             {
-              "bytes": 5236,
+              "bytes": 6163,
               "path": "claude-code/ai-sast-triage/actions.yaml",
-              "sha256": "0d608b70d2034c4a74ba872446d7ac7d36b647e5e9d772bbda1ab5f4a106388b"
+              "sha256": "5a76e5a81712b20c2c777a9403c7710ba3ac78b2e74068a0775c6f88ac2ddcb8"
             },
             {
-              "bytes": 34909,
+              "bytes": 37174,
               "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "94ebfeaf7df315df907c85b2f325bfa41ce989542cceadf01326caedec531dcc"
+              "sha256": "780c78b9dc99fb720fe5b12521b4fcd1eb55b6241f5f459f43dc7e21220a035e"
             },
             {
               "bytes": 10802,
@@ -55,9 +55,9 @@
               "sha256": "377726328216adcf72120a4841400eac788f7d7e3be955b9dc14c33568da3cf2"
             },
             {
-              "bytes": 9349,
+              "bytes": 9489,
               "path": "claude-code/dependency-decision-helper/dependency-decision-helper.md",
-              "sha256": "dc0ef5961373a75a7125cfaa8a3d1ebc416a196bc1b4594c9f51dbbba57cea28"
+              "sha256": "b1d8a4c78b75471f5db0d60ed341661a4f78c376716dde9a27684a2a54d8b13f"
             },
             {
               "bytes": 729,
@@ -95,9 +95,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 49793,
+              "bytes": 49933,
               "path": "claude-code/endor-troubleshooter/endor-troubleshooter.md",
-              "sha256": "4a794f12e960ce4b153aade523cb29bd49334d8e9fb770a0d0157f7b7b96e873"
+              "sha256": "b3ea93a02aeb57db5982d85991127b914d09edd5f7ebd1ca06e7c8f036bde22e"
             },
             {
               "bytes": 1288,
@@ -135,9 +135,9 @@
               "sha256": "92bc984b44410b214c35d759cee372643f14d560f92e813d48cef68c13a20c62"
             },
             {
-              "bytes": 9475,
+              "bytes": 9615,
               "path": "claude-code/package-risk-summary/package-risk-summary.md",
-              "sha256": "39995da7bf9daba7b4bf05acfc9fe0b88d9b947aa9a4410c70d622283b82a4b9"
+              "sha256": "78b24b01fde59e16b28af5be438e7ad505e69a25b6fcb7399603649795f92763"
             }
           ],
           "id": "enterprise-edition",
@@ -175,9 +175,9 @@
               "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
             },
             {
-              "bytes": 47604,
+              "bytes": 47744,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "9d2c1b52dcc0ed2efd88d57dc8558b0690ad9f74dc25bbbcc41df7c1810633a3"
+              "sha256": "3390be6c4338ed8156193eef717591e9f562a959ec82c3c0abac8a86eb4db6f0"
             }
           ],
           "id": "enterprise-edition",
@@ -215,9 +215,9 @@
               "sha256": "dd60d1e0a9f16d477524d6104f54ff1b9a0b86b777b2417b9dea2457fa44508c"
             },
             {
-              "bytes": 2369,
+              "bytes": 2509,
               "path": "claude-code/remediation-planner/remediation-planner.md",
-              "sha256": "e739c9a6d5c4e9c18ba0624a3e93db2558b16ef62854ca59317bdb16712a3e5e"
+              "sha256": "cb6e537de8f639e664edfb6491c45b4bfc15c1bec6339fa5b02113add7dbfdea"
             }
           ],
           "id": "enterprise-edition",
@@ -245,9 +245,9 @@
               "sha256": "0f238d5425c2b8ae99b3bd86bb54863eaa6abc32ed543da8fa08279556c447a7"
             },
             {
-              "bytes": 7471,
+              "bytes": 7611,
               "path": "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
-              "sha256": "0144ed2cf2a0cc4fa2ef4688f847c56d74cdd031bd805159ddb05c9269cbc2c1"
+              "sha256": "2d11fe26ebe30044ff1f52d33063cdd2b0f58858cd2a48313acffb00d2290cba"
             }
           ],
           "id": "developer-edition",
@@ -275,9 +275,9 @@
               "sha256": "bfb56994db50d456ee08a0f3bbb112cd364f35c9bf2f74463886a0c06af52c65"
             },
             {
-              "bytes": 5683,
+              "bytes": 6556,
               "path": "claude-code/sca-remediation/actions.yaml",
-              "sha256": "2daaae951befe1f1714838b9ed0a846331628939ed2620183ff2ab31f38eec28"
+              "sha256": "ef1e154cf39e2c0fbd4867e848e41a89fddfc03bdb3ff75caef7f97482aa00eb"
             },
             {
               "bytes": 9847,
@@ -290,9 +290,9 @@
               "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
             },
             {
-              "bytes": 36541,
+              "bytes": 38272,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "45efb5f56aef968f844e6925e4ed4382bf09be77c58a042efa4a3ecf69a44da9"
+              "sha256": "2c6b621e63706dc005bff133d1c972763d624a64a7888a488c083467658a2659"
             }
           ],
           "id": "enterprise-edition",
@@ -330,9 +330,9 @@
               "sha256": "e642c94c56f7b501b3c6fee8d53390699339d1a27fa412d3252c9bd664f9a6ed"
             },
             {
-              "bytes": 18120,
+              "bytes": 18260,
               "path": "claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md",
-              "sha256": "c9819a26de963b0946567d855f5580b89a7a057466daaff790f3025550bf9974"
+              "sha256": "80c4676764a57226ad82b92c3e971d205c17400e623dd6478244d0bf86e57294"
             }
           ],
           "id": "enterprise-edition",
@@ -360,9 +360,9 @@
               "sha256": "361ae3508e5dc3a035b5fdd5dd52b068d06d8c2b92ed131b01af6d14b31ed77a"
             },
             {
-              "bytes": 5238,
+              "bytes": 5378,
               "path": "claude-code/vulnerability-explainer/vulnerability-explainer.md",
-              "sha256": "7501a1a3090f469fd622d677e16ee9349c291aa9650e84a5abd51ff169170caf"
+              "sha256": "fbe46b1dfa115b78be387e9d119bf460d73fd199ab26a7989684e49488af96b5"
             }
           ],
           "id": "developer-edition",
@@ -390,9 +390,9 @@
               "sha256": "833ce069149b5615e6b88d7d9c3df6f71453545f1e424ae0fc0952ebc6e2370b"
             },
             {
-              "bytes": 10475,
+              "bytes": 10615,
               "path": "claude-managed-agents/dependency-decision-helper/agent.yaml",
-              "sha256": "e40dd8e8f46e3f548ffdcdf45cac40023022f3bd56c3ae4db5c219ae17409824"
+              "sha256": "c66926f4fce5209d226a8fe8e8b00f99d201182815fa3717252e44e346c68eea"
             },
             {
               "bytes": 729,
@@ -435,9 +435,9 @@
               "sha256": "78eadfc6fcc7330af32b21f9b50eb97a613be2ca97c0a88b620b634962780e52"
             },
             {
-              "bytes": 52267,
+              "bytes": 52407,
               "path": "claude-managed-agents/endor-troubleshooter/agent.yaml",
-              "sha256": "3ba76bd3507ebe3602a93651526484bc950a0a8caa0f97a90c24de413d0ecb6f"
+              "sha256": "65af8a1018fc680de5391a9aea5dfd27958afeb5f2b4119f3b5fd91ef703bd5d"
             },
             {
               "bytes": 9834,
@@ -485,9 +485,9 @@
               "sha256": "816cbd4ccb579c403cd8e8a2a74469d358e8454b6dcd488b6c272442ec617a69"
             },
             {
-              "bytes": 10608,
+              "bytes": 10748,
               "path": "claude-managed-agents/package-risk-summary/agent.yaml",
-              "sha256": "bbadd2a568a5f31f9e1a0eaf749b91b94c9a2b05363053f2199c6010e9a1c45d"
+              "sha256": "3120e7e9bc28e818f0d439ae8a4288b996e3a8ec191b45074f4196dd30ad62b0"
             },
             {
               "bytes": 734,
@@ -530,9 +530,9 @@
               "sha256": "23cc47c32475562c92016410d5ab42d62ea6b16d31f9d23fce2aea76a9085319"
             },
             {
-              "bytes": 50038,
+              "bytes": 50178,
               "path": "claude-managed-agents/probe-droid/agent.yaml",
-              "sha256": "4b8683f4a73d1a9452108a018dfba92cfb59a70330dd846b6aea1d4c70655adb"
+              "sha256": "68cb36e86e07b2386a2b35944394f65d0d8a695f9a080bfbf800fe7524ce5482"
             },
             {
               "bytes": 9818,
@@ -580,9 +580,9 @@
               "sha256": "d7d94e4b745708730b14cbb3aecf533318822e102e1184dd797a8bccb9436708"
             },
             {
-              "bytes": 19354,
+              "bytes": 19494,
               "path": "claude-managed-agents/upgrade-impact-analysis/agent.yaml",
-              "sha256": "0aee147b513ddabaf5ee8005bdcc22a2175a9ddc0f41b767d06ad33c677006f4"
+              "sha256": "848a10c546c23b25001b3853e5f74678e9e7b7641e721891a02281c390dc28fa"
             },
             {
               "bytes": 9921,
@@ -630,9 +630,9 @@
               "sha256": "cfdc8e580dbdaa1f3e3084f4d1d975f084824087e6aba058b00b326aff27a1e0"
             },
             {
-              "bytes": 5957,
+              "bytes": 6097,
               "path": "claude-managed-agents/vulnerability-explainer/agent.yaml",
-              "sha256": "dd109d078442c8aa4c6461919bca7d106c0cffc366af0e1b5721157f4bf50203"
+              "sha256": "ed0f08193c2db3b04e26c8d26c5c664ca17e819cfe5e95eb02c1c0327687e75b"
             },
             {
               "bytes": 203,
@@ -670,14 +670,14 @@
               "sha256": "4f65aa3fc45fe1667bcf0596a9c413e249335af8719b0423e21dba50da1b3376"
             },
             {
-              "bytes": 35697,
+              "bytes": 37960,
               "path": "codex/ai-sast-triage/SKILL.md",
-              "sha256": "53c70ddeb7d2edf85ff8470667f5e378347eaf886fbbd8ae865a4013f60adaa0"
+              "sha256": "48d2732fea1d641c9e0b767f861e771ad8b80f74f3fa99d1d2d3103d24269d07"
             },
             {
-              "bytes": 5230,
+              "bytes": 6157,
               "path": "codex/ai-sast-triage/actions.yaml",
-              "sha256": "f7488f4b0251f37590e0a9e27524d43929d5ff11c1686eb86132a563e560318d"
+              "sha256": "27c7a7eef657551d82b5ed673f4c7fb3fc0fc205a60a2f54f432730a4168f613"
             },
             {
               "bytes": 10796,
@@ -715,9 +715,9 @@
               "sha256": "44f7a01aaa82b21e77afa0741d235b2883663249ffdd88a89e5b1c1aff395dd3"
             },
             {
-              "bytes": 50497,
+              "bytes": 50635,
               "path": "codex/endor-troubleshooter/SKILL.md",
-              "sha256": "bac302e0f2cd3b616eb5f706ca83f6c0cc4fe9d427e2451c6e7365a4eb9ae146"
+              "sha256": "d2e1666e985a8995dc076d126641adc27db766d9838de4c09bd64288b6de3bdf"
             },
             {
               "bytes": 9834,
@@ -755,9 +755,9 @@
               "sha256": "e2907f20baecb3f2ff245c5b77c7da493c6c57ba93802dcf990e521dc46e4b70"
             },
             {
-              "bytes": 48290,
+              "bytes": 48428,
               "path": "codex/probe-droid/SKILL.md",
-              "sha256": "fbbe443a881b2ef5d045d0a17a53a8ca095c744d980c6b6018c04ab09a800084"
+              "sha256": "1f7e411f64e8d58a28c4305d459eaf47ebc976c91f313826ae191ac670073b09"
             },
             {
               "bytes": 9818,
@@ -795,14 +795,14 @@
               "sha256": "54e681f1a8ea9c87a7a100544e6f01ded80299363503e062aa310e22c095fe16"
             },
             {
-              "bytes": 37327,
+              "bytes": 39056,
               "path": "codex/sca-remediation/SKILL.md",
-              "sha256": "0b9cce2ff0532fad420dc4d9ebebc0a57414e50bf870075766ef974a5e9c220d"
+              "sha256": "dbb84ed6d4f58addbcf6e89b6396eadb535604e7fbd024448b9243bb6f900172"
             },
             {
-              "bytes": 5683,
+              "bytes": 6556,
               "path": "codex/sca-remediation/actions.yaml",
-              "sha256": "2daaae951befe1f1714838b9ed0a846331628939ed2620183ff2ab31f38eec28"
+              "sha256": "ef1e154cf39e2c0fbd4867e848e41a89fddfc03bdb3ff75caef7f97482aa00eb"
             },
             {
               "bytes": 9838,
@@ -835,24 +835,24 @@
         {
           "artifacts": [
             {
-              "bytes": 4211,
+              "bytes": 4580,
               "path": "portable/ai-sast-triage/README.md",
-              "sha256": "573224ccacb4dac9e6d47012e78dbdb24034c02265e24ccb13c48fe251bbc224"
+              "sha256": "7c2aa2a82703351de0f279d65e3dddd4df58ba15f60629872375b090b8e14f1d"
             },
             {
-              "bytes": 5645,
+              "bytes": 6617,
               "path": "portable/ai-sast-triage/actions.yaml",
-              "sha256": "1881e021488d7af6966dd32295b1db30f40209a2d73a45d9a751ef3eec28f727"
+              "sha256": "2e92c5c5b5a812c31dbe2e96da29ec8cb8dc0c3e04d2b9842aedd079161feb69"
             },
             {
-              "bytes": 14243,
+              "bytes": 17300,
               "path": "portable/ai-sast-triage/agent.manifest.json",
-              "sha256": "49df0fc74a8e5ce0ea99ff54ba66569d81ac05f9d4f3c718a9613c7fc084c5c0"
+              "sha256": "1ed94cfeed2776ced9308272b9a30e7e24087d238c65c63d8684d547fb3e4713"
             },
             {
-              "bytes": 35547,
+              "bytes": 37978,
               "path": "portable/ai-sast-triage/agent.md",
-              "sha256": "e5e39936a568497d45db56de6933e27a68ead03a9e1a561e12434906ec969144"
+              "sha256": "4473ab6ca191869295cd8b6aaa42083223845a7fca3cdfce052655d86a0581c9"
             },
             {
               "bytes": 10814,
@@ -865,9 +865,9 @@
               "sha256": "865d07e1103bb557f7f59c4e320b5ea45cf16220ae384009c3560e02fbeae0b7"
             },
             {
-              "bytes": 6085,
+              "bytes": 7983,
               "path": "portable/ai-sast-triage/output-contract.md",
-              "sha256": "9339c28938095078154463eb4353b89875c737c926f9d08bf5d9e5791411f5cf"
+              "sha256": "bccd6f813e070bff0015e7306ef69c8d86804394f8fb003c40f8c276cbdabb59"
             }
           ],
           "id": "portable-agent",
@@ -890,19 +890,19 @@
         {
           "artifacts": [
             {
-              "bytes": 3975,
+              "bytes": 4344,
               "path": "portable/dependency-decision-helper/README.md",
-              "sha256": "fb1dbaeb9d59659281066f8c6570a31502ea8f0087dea7a26aa823319cfb1dd2"
+              "sha256": "67cc9d844fa5fc113dea6f08de70fdf36b991d08d094227f6d2bd8a574b6c84a"
             },
             {
-              "bytes": 7068,
+              "bytes": 9425,
               "path": "portable/dependency-decision-helper/agent.manifest.json",
-              "sha256": "2bed3ef95104fd25e6595706a1d96d6dfae4268493225b27b9fe0defe5387381"
+              "sha256": "6e3d4f39a9b9a2a46dc8eede448280af3ed79aa6344ca405dd18abf714a17ad1"
             },
             {
-              "bytes": 9634,
+              "bytes": 9892,
               "path": "portable/dependency-decision-helper/agent.md",
-              "sha256": "e1f8b639701c0974e2962e7be9d890a77de666501dfe597c55a40a43c70ccfa2"
+              "sha256": "d2ae3cf168aa659bd36ba88d2622a7d0a3c2239772b60e31d89e51ef48d58b82"
             },
             {
               "bytes": 729,
@@ -910,9 +910,9 @@
               "sha256": "399e5b29a50d8a5bd44f236183f70ecee1a7b5ba4da479e935eafa73bc3daccd"
             },
             {
-              "bytes": 1703,
+              "bytes": 3105,
               "path": "portable/dependency-decision-helper/output-contract.md",
-              "sha256": "78f5eae0772fc72bb8db0c10317a7487146cbd539bf9017c5b13097cc3b97404"
+              "sha256": "4b8140fa48181ab9d5e0117cf3174e707679a9ab952d200a7b0eb88cee8f37ab"
             }
           ],
           "id": "portable-agent",
@@ -935,19 +935,19 @@
         {
           "artifacts": [
             {
-              "bytes": 4477,
+              "bytes": 4846,
               "path": "portable/endor-troubleshooter/README.md",
-              "sha256": "9cb1e3a6184acf1931b19340a1146714cac077e6431d67bd581c360566dd277c"
+              "sha256": "133be76af9027d8917aed4554927ef6c7f64562dc9c8a606f869a9dde04ac0d6"
             },
             {
-              "bytes": 11970,
+              "bytes": 14327,
               "path": "portable/endor-troubleshooter/agent.manifest.json",
-              "sha256": "524d53dbdcfea7fbf12a4cadbc581ca1cbcd8814c7d4dc7a4cd8d4cd32d7493e"
+              "sha256": "b432bcc930a39064e92ddb0e1feb40e5ce18e2446e5300f75c8368a76a0a6d75"
             },
             {
-              "bytes": 50034,
+              "bytes": 50292,
               "path": "portable/endor-troubleshooter/agent.md",
-              "sha256": "17df7eb395fe8fbac969dd11c0e02aca8d9f154cd6b06c595daeeace8ae0fd0b"
+              "sha256": "f076c10bbfb114c0fa5036d93d83ed4c46e04bc23f176d0d5b4a4ecdd3b69383"
             },
             {
               "bytes": 9834,
@@ -960,9 +960,9 @@
               "sha256": "446ce11adb5d3ef4b824c63370e0f2c09c2052a7308009432a3c51103942426b"
             },
             {
-              "bytes": 5147,
+              "bytes": 6549,
               "path": "portable/endor-troubleshooter/output-contract.md",
-              "sha256": "7dde33840ffa2090e37854d296a498076c3b87df33c5130d517417e51d35ca37"
+              "sha256": "d676896a8900f516da8bc1099b4ce4ea85b87ff2d9f8b68d2907e64300203744"
             }
           ],
           "id": "portable-agent",
@@ -985,19 +985,19 @@
         {
           "artifacts": [
             {
-              "bytes": 4150,
+              "bytes": 4519,
               "path": "portable/package-risk-summary/README.md",
-              "sha256": "a9ec43c2b7e4e35829a3ec9f5f7571ac7ed01588c6541e182ea1de8d3f58bfe6"
+              "sha256": "4fe7b61f5410fb04dea54d32e51801237edd72169ffd4ef1bc0e4f9e7ce54a43"
             },
             {
-              "bytes": 7488,
+              "bytes": 9845,
               "path": "portable/package-risk-summary/agent.manifest.json",
-              "sha256": "dd669fb58b2ac14a6b8ef025ae3eb73fb975a70f0fa7d47bcf24998462be5b3d"
+              "sha256": "655ce076e0f08b318bffe917b42b4b813d1011c03e1e6d12d075597b602a7a53"
             },
             {
-              "bytes": 9583,
+              "bytes": 9841,
               "path": "portable/package-risk-summary/agent.md",
-              "sha256": "50393756736568538728604b2f52c4cf9da8227cbbb2364f23736d7bf53c03bb"
+              "sha256": "802e4b185cb7335b6dbdb8a51125b163065b894bba231f1507c30b903dc76f82"
             },
             {
               "bytes": 734,
@@ -1005,9 +1005,9 @@
               "sha256": "92bc984b44410b214c35d759cee372643f14d560f92e813d48cef68c13a20c62"
             },
             {
-              "bytes": 1867,
+              "bytes": 3269,
               "path": "portable/package-risk-summary/output-contract.md",
-              "sha256": "4c4b2498833386cbf1808a66b45669ecf2efc65c384d335d8720f0115bf2d06d"
+              "sha256": "a2e580ba4a7867957a98b747a6161570e29fb3e359283139564aefbad8231b92"
             }
           ],
           "id": "portable-agent",
@@ -1030,19 +1030,19 @@
         {
           "artifacts": [
             {
-              "bytes": 4376,
+              "bytes": 4745,
               "path": "portable/probe-droid/README.md",
-              "sha256": "97eda99230d9905bc46cc7ddbac955215c2a5ac25ce7a3ec41f44c7842852a47"
+              "sha256": "38bb54b552b18f4f329c270d9c135f595606e7332c0d4234e9c92d95352f37fe"
             },
             {
-              "bytes": 13336,
+              "bytes": 15693,
               "path": "portable/probe-droid/agent.manifest.json",
-              "sha256": "5c866991461688ba906308e6607feb89278615d5b03974b9aac94213d5e32e40"
+              "sha256": "ab243726c504fe1802ad153384cbde4c6eda39893eeb0337e2b03a45c485f901"
             },
             {
-              "bytes": 48054,
+              "bytes": 48312,
               "path": "portable/probe-droid/agent.md",
-              "sha256": "82d98dee9a91c4a73a0d0eaa583a926c2203370307ed5f8ca77329eb0b698608"
+              "sha256": "3ed4653d2ed9cdde2719b2cf1b6990f6740ee03d631666fd2f59a8c39742939e"
             },
             {
               "bytes": 9819,
@@ -1055,9 +1055,9 @@
               "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
             },
             {
-              "bytes": 6067,
+              "bytes": 7469,
               "path": "portable/probe-droid/output-contract.md",
-              "sha256": "920b2ba6cfb52313c7483f402813e8516fb650ef103ab41e1818d0924e95b24d"
+              "sha256": "a4d9844ea6ea02aef203bc97cc5fc082c56b50bcec50b3d7565c5dd731981187"
             }
           ],
           "id": "portable-agent",
@@ -1080,19 +1080,19 @@
         {
           "artifacts": [
             {
-              "bytes": 4041,
+              "bytes": 4410,
               "path": "portable/remediation-planner/README.md",
-              "sha256": "c21a84907278f1c44925144239621ef2614a01fc5c9d6ac21a9afae6b0742aef"
+              "sha256": "ae0bbfa4459dab9e2e493d9279c2591994a823bdf254d0cb2c2751e8d3f2afc6"
             },
             {
-              "bytes": 6719,
+              "bytes": 9076,
               "path": "portable/remediation-planner/agent.manifest.json",
-              "sha256": "cb31070330337dcc73fbee6bf03ec44e512cd55ba3bc9d054aac65486f92622b"
+              "sha256": "4fc0819f312d8f5a5a56e969b139072ce114990a35be7a727a99a10bc293d3c6"
             },
             {
-              "bytes": 3072,
+              "bytes": 3330,
               "path": "portable/remediation-planner/agent.md",
-              "sha256": "8926902d5000fabbc941479c9837444404109549887631ac976ec95ad3c1b8c2"
+              "sha256": "b6ae060c60c541d565e65827f27c16a5764ed201946a46bd2b201c7f17792a34"
             },
             {
               "bytes": 9921,
@@ -1105,9 +1105,9 @@
               "sha256": "dd60d1e0a9f16d477524d6104f54ff1b9a0b86b777b2417b9dea2457fa44508c"
             },
             {
-              "bytes": 1625,
+              "bytes": 3027,
               "path": "portable/remediation-planner/output-contract.md",
-              "sha256": "3cdad4f28d1c5611c5cbb881ab2d689f149812f3ca38945d28f8fd8884e46f13"
+              "sha256": "0bce13d61e9ecc27eade2b912bdb10ea60c61e087af94dac46d5945cae2ab502"
             }
           ],
           "id": "portable-agent",
@@ -1130,24 +1130,24 @@
         {
           "artifacts": [
             {
-              "bytes": 3995,
+              "bytes": 4364,
               "path": "portable/repository-dependency-reviewer/README.md",
-              "sha256": "b798b169545ce680ce67fcfbab2aac244ee2d3464ffda2f15929e0b990974fa3"
+              "sha256": "9f1c7b0cf914cc694e50b20eaa12d6ac13d7178e8e6041226147f6743341618a"
             },
             {
-              "bytes": 7641,
+              "bytes": 9998,
               "path": "portable/repository-dependency-reviewer/agent.manifest.json",
-              "sha256": "52579dbf0ec46f89b9b9d7b56e3463ec602a1d07af005f91ea16f5632712bd15"
+              "sha256": "b62a29a39f04efa5f94ac4f2f7c18b78ea0a281e4d69b9b9876fb724d795119a"
             },
             {
-              "bytes": 7864,
+              "bytes": 8122,
               "path": "portable/repository-dependency-reviewer/agent.md",
-              "sha256": "40fb985756d426fad5f3114c5499a3e22fb8f0c639c425d4fc0efd2b66f4e5d6"
+              "sha256": "9271876e8811afa5cc4152d336e6155caef9587a6050c7684d0f714f94c6b108"
             },
             {
-              "bytes": 2103,
+              "bytes": 3505,
               "path": "portable/repository-dependency-reviewer/output-contract.md",
-              "sha256": "2117909ef971078fc36c9931b1f00ed96312ff59f770df2e579120cf4fb1ba34"
+              "sha256": "213f5dd98f92648362e4c2134d91eddac8eb3d8d76c28e7ea28dc4f714e758de"
             }
           ],
           "id": "portable-agent",
@@ -1170,24 +1170,24 @@
         {
           "artifacts": [
             {
-              "bytes": 4246,
+              "bytes": 4615,
               "path": "portable/sca-remediation/README.md",
-              "sha256": "33f8984ee0c9ea9be2a3eba9209a415198d72c2757c8904ecf6a58f5b523d05e"
+              "sha256": "544beaa56b97200050a26e87f1aec41513e14a666da202aa1770eaed586c51af"
             },
             {
-              "bytes": 6349,
+              "bytes": 7261,
               "path": "portable/sca-remediation/actions.yaml",
-              "sha256": "42e6a0662b71e08ac692c78cdc46d9c39606f48f6828da2c042d129a5d6d4688"
+              "sha256": "eb78bf062e442351d7a3e797b3f39268a9079e49bb237820533bbc5de6e4cb02"
             },
             {
-              "bytes": 15730,
+              "bytes": 18697,
               "path": "portable/sca-remediation/agent.manifest.json",
-              "sha256": "0c2ad276e7d76c59ae1d9eab3ee9424189ee14d4f42c16e4f0ea8e4cd6f2987d"
+              "sha256": "bc7317689f263a0115cba4ad0cd7b5842c236dddf38f14836548c26972b8d127"
             },
             {
-              "bytes": 37261,
+              "bytes": 39158,
               "path": "portable/sca-remediation/agent.md",
-              "sha256": "c5c79e481b6623e0e8ac74b064a2e38b79c8e13b483bf89c082219b63954cc98"
+              "sha256": "2c12f8fc43cbdd725e9edb86a0b11596e60a8e8cf30478ad280820eea7103d39"
             },
             {
               "bytes": 9851,
@@ -1200,9 +1200,9 @@
               "sha256": "6996bf3c6cc64f98cc5889c14e4b2d825a22ca553be96dd693fb1606842cc4f9"
             },
             {
-              "bytes": 6482,
+              "bytes": 8306,
               "path": "portable/sca-remediation/output-contract.md",
-              "sha256": "8f47df5e3717b4be2ada31b772244fd0a62ea26096d4c262bd4f825b4a01a550"
+              "sha256": "4ef7703a270355a12fe2b7028d0df55ec28a78593138a816f2ee3b7f6f03553e"
             }
           ],
           "id": "portable-agent",
@@ -1225,19 +1225,19 @@
         {
           "artifacts": [
             {
-              "bytes": 4385,
+              "bytes": 4754,
               "path": "portable/upgrade-impact-analysis/README.md",
-              "sha256": "30e7db2f3b6055dceb381e101ab21989093a18e57106d54ed31dad18023f7618"
+              "sha256": "1e3d3db480f6066a8d998049c04e7b380fb843a1537e5ff0b14815a917be28a1"
             },
             {
-              "bytes": 11265,
+              "bytes": 13622,
               "path": "portable/upgrade-impact-analysis/agent.manifest.json",
-              "sha256": "a59f01c67f37f5aecdfc9d18ebcc22a50b3f6d1f19138967b4c9589b464f5183"
+              "sha256": "4577acd459a1346934b311b2f24eea17d41974acf7304ce59c0c1236c92dd07e"
             },
             {
-              "bytes": 18462,
+              "bytes": 18720,
               "path": "portable/upgrade-impact-analysis/agent.md",
-              "sha256": "f534af0d481dbfb849ce52970e0d4def8ff79daafd14456def82f5b48a578b23"
+              "sha256": "01387abd95d81ef0caec4ce046975188d2912ed511b288e435ff791d02f9d693"
             },
             {
               "bytes": 9896,
@@ -1250,9 +1250,9 @@
               "sha256": "e642c94c56f7b501b3c6fee8d53390699339d1a27fa412d3252c9bd664f9a6ed"
             },
             {
-              "bytes": 4222,
+              "bytes": 5624,
               "path": "portable/upgrade-impact-analysis/output-contract.md",
-              "sha256": "72a7ac07e0ed5b4b62f277092c2b2f88fba7498a4f6804928a549366910faff3"
+              "sha256": "871f4524b9f01fc80b4bf5d634ca61300f0fca321cd7a79c63c5963aa7cbdec0"
             }
           ],
           "id": "portable-agent",
@@ -1275,24 +1275,24 @@
         {
           "artifacts": [
             {
-              "bytes": 4014,
+              "bytes": 4383,
               "path": "portable/vulnerability-explainer/README.md",
-              "sha256": "b44274ec589d3e910e9d1eaa9f681f59c52923708632b11686aa13533237f7cb"
+              "sha256": "4c793e1ab675571cee46a3db2a9e18046bb5986bbf0e0f49c611930eb462adb5"
             },
             {
-              "bytes": 7296,
+              "bytes": 9653,
               "path": "portable/vulnerability-explainer/agent.manifest.json",
-              "sha256": "084640bb5355528ba87b4fd58da865dc90d6479a393833a001a728cb793c70eb"
+              "sha256": "4df709b782ca567b7726cdde151463a3474174db29dfadb4571ab2844cc1e393"
             },
             {
-              "bytes": 5654,
+              "bytes": 5912,
               "path": "portable/vulnerability-explainer/agent.md",
-              "sha256": "cd6ed40b659bc50d62d8a075dcc615de97816ca6bacc74ca6a2f02ae8982b7f0"
+              "sha256": "f1c94ce420060e4fe8ac3274a866bc1f04499ff143836b012c3aa04238cf802e"
             },
             {
-              "bytes": 1746,
+              "bytes": 3148,
               "path": "portable/vulnerability-explainer/output-contract.md",
-              "sha256": "6484b0fed22b535cbc24ba29a8acfbaeec63e1886f343fabf2264534f24dee45"
+              "sha256": "953398cd895f56b2d67ab3f3ccb3246d19117ae083dbd1b597be18a2f6cec9e5"
             }
           ],
           "id": "portable-agent",

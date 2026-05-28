@@ -241,3 +241,33 @@ actions:
   availability: available
   notes: Post or update one stable remediation summary comment that includes UIA evidence,
     validation, findings fixed, and remaining data gaps.
+- id: create-remediation-ticket
+  kind: ticket.create
+  portable_kind: ticket.create
+  safety_class: mutating
+  confirmation_required: true
+  providers:
+  - jira
+  - servicenow
+  - linear
+  - internal-ticketing
+  required_runtime_capabilities: []
+  inputs:
+  - selected_remediation
+  - risk_decision
+  - uia_evidence
+  - validation_status
+  - change_request_url
+  - ticket_body
+  - data_gaps
+  outputs:
+  - ticket_id
+  - ticket_url
+  - status
+  - failure_reason
+  availability: available
+  notes: Create a remediation ticket only when the user or runtime selects ticket
+    creation at the mutation gate. Include the selected package, UIA evidence, deterministic
+    risk decision, validation status, proposed or opened change request link when
+    available, and remaining data gaps. Ask for explicit confirmation first, and do
+    not claim ticket creation until the ticket adapter returns a ticket ID or URL.
