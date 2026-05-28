@@ -829,6 +829,486 @@
         "recipe_schema_version": 2
       },
       "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4211,
+              "path": "portable/ai-sast-triage/README.md",
+              "sha256": "573224ccacb4dac9e6d47012e78dbdb24034c02265e24ccb13c48fe251bbc224"
+            },
+            {
+              "bytes": 5645,
+              "path": "portable/ai-sast-triage/actions.yaml",
+              "sha256": "1881e021488d7af6966dd32295b1db30f40209a2d73a45d9a751ef3eec28f727"
+            },
+            {
+              "bytes": 14243,
+              "path": "portable/ai-sast-triage/agent.manifest.json",
+              "sha256": "49df0fc74a8e5ce0ea99ff54ba66569d81ac05f9d4f3c718a9613c7fc084c5c0"
+            },
+            {
+              "bytes": 35547,
+              "path": "portable/ai-sast-triage/agent.md",
+              "sha256": "e5e39936a568497d45db56de6933e27a68ead03a9e1a561e12434906ec969144"
+            },
+            {
+              "bytes": 10814,
+              "path": "portable/ai-sast-triage/architecture.svg",
+              "sha256": "6512459127305c2d8bcc1e0c1415b82c54030144b33853f6485453a4bac12e68"
+            },
+            {
+              "bytes": 1002,
+              "path": "portable/ai-sast-triage/endorctl-setup.md",
+              "sha256": "865d07e1103bb557f7f59c4e320b5ea45cf16220ae384009c3560e02fbeae0b7"
+            },
+            {
+              "bytes": 6085,
+              "path": "portable/ai-sast-triage/output-contract.md",
+              "sha256": "9339c28938095078154463eb4353b89875c737c926f9d08bf5d9e5791411f5cf"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/ai-sast-triage",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "ai-sast-triage",
+      "name": "AI SAST Triage",
+      "source": {
+        "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 3975,
+              "path": "portable/dependency-decision-helper/README.md",
+              "sha256": "fb1dbaeb9d59659281066f8c6570a31502ea8f0087dea7a26aa823319cfb1dd2"
+            },
+            {
+              "bytes": 7068,
+              "path": "portable/dependency-decision-helper/agent.manifest.json",
+              "sha256": "2bed3ef95104fd25e6595706a1d96d6dfae4268493225b27b9fe0defe5387381"
+            },
+            {
+              "bytes": 9634,
+              "path": "portable/dependency-decision-helper/agent.md",
+              "sha256": "e1f8b639701c0974e2962e7be9d890a77de666501dfe597c55a40a43c70ccfa2"
+            },
+            {
+              "bytes": 729,
+              "path": "portable/dependency-decision-helper/endorctl-setup.md",
+              "sha256": "399e5b29a50d8a5bd44f236183f70ecee1a7b5ba4da479e935eafa73bc3daccd"
+            },
+            {
+              "bytes": 1703,
+              "path": "portable/dependency-decision-helper/output-contract.md",
+              "sha256": "78f5eae0772fc72bb8db0c10317a7487146cbd539bf9017c5b13097cc3b97404"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/dependency-decision-helper",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "dependency-decision-helper",
+      "name": "Dependency Decision Helper",
+      "source": {
+        "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4477,
+              "path": "portable/endor-troubleshooter/README.md",
+              "sha256": "9cb1e3a6184acf1931b19340a1146714cac077e6431d67bd581c360566dd277c"
+            },
+            {
+              "bytes": 11970,
+              "path": "portable/endor-troubleshooter/agent.manifest.json",
+              "sha256": "524d53dbdcfea7fbf12a4cadbc581ca1cbcd8814c7d4dc7a4cd8d4cd32d7493e"
+            },
+            {
+              "bytes": 50034,
+              "path": "portable/endor-troubleshooter/agent.md",
+              "sha256": "17df7eb395fe8fbac969dd11c0e02aca8d9f154cd6b06c595daeeace8ae0fd0b"
+            },
+            {
+              "bytes": 9834,
+              "path": "portable/endor-troubleshooter/architecture.svg",
+              "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
+            },
+            {
+              "bytes": 1288,
+              "path": "portable/endor-troubleshooter/endorctl-setup.md",
+              "sha256": "446ce11adb5d3ef4b824c63370e0f2c09c2052a7308009432a3c51103942426b"
+            },
+            {
+              "bytes": 5147,
+              "path": "portable/endor-troubleshooter/output-contract.md",
+              "sha256": "7dde33840ffa2090e37854d296a498076c3b87df33c5130d517417e51d35ca37"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/endor-troubleshooter",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "endor-troubleshooter",
+      "name": "Endor Troubleshooter",
+      "source": {
+        "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4150,
+              "path": "portable/package-risk-summary/README.md",
+              "sha256": "a9ec43c2b7e4e35829a3ec9f5f7571ac7ed01588c6541e182ea1de8d3f58bfe6"
+            },
+            {
+              "bytes": 7488,
+              "path": "portable/package-risk-summary/agent.manifest.json",
+              "sha256": "dd669fb58b2ac14a6b8ef025ae3eb73fb975a70f0fa7d47bcf24998462be5b3d"
+            },
+            {
+              "bytes": 9583,
+              "path": "portable/package-risk-summary/agent.md",
+              "sha256": "50393756736568538728604b2f52c4cf9da8227cbbb2364f23736d7bf53c03bb"
+            },
+            {
+              "bytes": 734,
+              "path": "portable/package-risk-summary/endorctl-setup.md",
+              "sha256": "92bc984b44410b214c35d759cee372643f14d560f92e813d48cef68c13a20c62"
+            },
+            {
+              "bytes": 1867,
+              "path": "portable/package-risk-summary/output-contract.md",
+              "sha256": "4c4b2498833386cbf1808a66b45669ecf2efc65c384d335d8720f0115bf2d06d"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/package-risk-summary",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "package-risk-summary",
+      "name": "Endor Labs Package Risk Summary",
+      "source": {
+        "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4376,
+              "path": "portable/probe-droid/README.md",
+              "sha256": "97eda99230d9905bc46cc7ddbac955215c2a5ac25ce7a3ec41f44c7842852a47"
+            },
+            {
+              "bytes": 13336,
+              "path": "portable/probe-droid/agent.manifest.json",
+              "sha256": "5c866991461688ba906308e6607feb89278615d5b03974b9aac94213d5e32e40"
+            },
+            {
+              "bytes": 48054,
+              "path": "portable/probe-droid/agent.md",
+              "sha256": "82d98dee9a91c4a73a0d0eaa583a926c2203370307ed5f8ca77329eb0b698608"
+            },
+            {
+              "bytes": 9819,
+              "path": "portable/probe-droid/architecture.svg",
+              "sha256": "35f1e6077af5d908a43c9ae9966cf3ec7c28f69456626609959c3b3ad7aeb9f9"
+            },
+            {
+              "bytes": 1107,
+              "path": "portable/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            },
+            {
+              "bytes": 6067,
+              "path": "portable/probe-droid/output-contract.md",
+              "sha256": "920b2ba6cfb52313c7483f402813e8516fb650ef103ab41e1818d0924e95b24d"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4041,
+              "path": "portable/remediation-planner/README.md",
+              "sha256": "c21a84907278f1c44925144239621ef2614a01fc5c9d6ac21a9afae6b0742aef"
+            },
+            {
+              "bytes": 6719,
+              "path": "portable/remediation-planner/agent.manifest.json",
+              "sha256": "cb31070330337dcc73fbee6bf03ec44e512cd55ba3bc9d054aac65486f92622b"
+            },
+            {
+              "bytes": 3072,
+              "path": "portable/remediation-planner/agent.md",
+              "sha256": "8926902d5000fabbc941479c9837444404109549887631ac976ec95ad3c1b8c2"
+            },
+            {
+              "bytes": 9921,
+              "path": "portable/remediation-planner/architecture.svg",
+              "sha256": "186c65599c646ec978a0b90736d12a302ca4996dae6c6f03ff9454421163132f"
+            },
+            {
+              "bytes": 582,
+              "path": "portable/remediation-planner/endorctl-setup.md",
+              "sha256": "dd60d1e0a9f16d477524d6104f54ff1b9a0b86b777b2417b9dea2457fa44508c"
+            },
+            {
+              "bytes": 1625,
+              "path": "portable/remediation-planner/output-contract.md",
+              "sha256": "3cdad4f28d1c5611c5cbb881ab2d689f149812f3ca38945d28f8fd8884e46f13"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/remediation-planner",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "remediation-planner",
+      "name": "Remediation Planner",
+      "source": {
+        "builder_recipe": "source/agents/remediation-planner/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 3995,
+              "path": "portable/repository-dependency-reviewer/README.md",
+              "sha256": "b798b169545ce680ce67fcfbab2aac244ee2d3464ffda2f15929e0b990974fa3"
+            },
+            {
+              "bytes": 7641,
+              "path": "portable/repository-dependency-reviewer/agent.manifest.json",
+              "sha256": "52579dbf0ec46f89b9b9d7b56e3463ec602a1d07af005f91ea16f5632712bd15"
+            },
+            {
+              "bytes": 7864,
+              "path": "portable/repository-dependency-reviewer/agent.md",
+              "sha256": "40fb985756d426fad5f3114c5499a3e22fb8f0c639c425d4fc0efd2b66f4e5d6"
+            },
+            {
+              "bytes": 2103,
+              "path": "portable/repository-dependency-reviewer/output-contract.md",
+              "sha256": "2117909ef971078fc36c9931b1f00ed96312ff59f770df2e579120cf4fb1ba34"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/repository-dependency-reviewer",
+          "requires_endorctl": ""
+        }
+      ],
+      "host": "portable",
+      "id": "repository-dependency-reviewer",
+      "name": "Endor Labs Repository Dependency Reviewer",
+      "source": {
+        "builder_recipe": "source/agents/repository-dependency-reviewer/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4246,
+              "path": "portable/sca-remediation/README.md",
+              "sha256": "33f8984ee0c9ea9be2a3eba9209a415198d72c2757c8904ecf6a58f5b523d05e"
+            },
+            {
+              "bytes": 6349,
+              "path": "portable/sca-remediation/actions.yaml",
+              "sha256": "42e6a0662b71e08ac692c78cdc46d9c39606f48f6828da2c042d129a5d6d4688"
+            },
+            {
+              "bytes": 15730,
+              "path": "portable/sca-remediation/agent.manifest.json",
+              "sha256": "0c2ad276e7d76c59ae1d9eab3ee9424189ee14d4f42c16e4f0ea8e4cd6f2987d"
+            },
+            {
+              "bytes": 37261,
+              "path": "portable/sca-remediation/agent.md",
+              "sha256": "c5c79e481b6623e0e8ac74b064a2e38b79c8e13b483bf89c082219b63954cc98"
+            },
+            {
+              "bytes": 9851,
+              "path": "portable/sca-remediation/architecture.svg",
+              "sha256": "c5a2c81c8b4ed780ac4eb291619b029dd98aa32f0ac844cf53bd3e8efedd3872"
+            },
+            {
+              "bytes": 997,
+              "path": "portable/sca-remediation/endorctl-setup.md",
+              "sha256": "6996bf3c6cc64f98cc5889c14e4b2d825a22ca553be96dd693fb1606842cc4f9"
+            },
+            {
+              "bytes": 6482,
+              "path": "portable/sca-remediation/output-contract.md",
+              "sha256": "8f47df5e3717b4be2ada31b772244fd0a62ea26096d4c262bd4f825b4a01a550"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/sca-remediation",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "sca-remediation",
+      "name": "SCA Remediation",
+      "source": {
+        "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4385,
+              "path": "portable/upgrade-impact-analysis/README.md",
+              "sha256": "30e7db2f3b6055dceb381e101ab21989093a18e57106d54ed31dad18023f7618"
+            },
+            {
+              "bytes": 11265,
+              "path": "portable/upgrade-impact-analysis/agent.manifest.json",
+              "sha256": "a59f01c67f37f5aecdfc9d18ebcc22a50b3f6d1f19138967b4c9589b464f5183"
+            },
+            {
+              "bytes": 18462,
+              "path": "portable/upgrade-impact-analysis/agent.md",
+              "sha256": "f534af0d481dbfb849ce52970e0d4def8ff79daafd14456def82f5b48a578b23"
+            },
+            {
+              "bytes": 9896,
+              "path": "portable/upgrade-impact-analysis/architecture.svg",
+              "sha256": "5de1257470e83a60b4eb49df9e908968b5a02be926e3d1d97dc77a9d7d937eb9"
+            },
+            {
+              "bytes": 597,
+              "path": "portable/upgrade-impact-analysis/endorctl-setup.md",
+              "sha256": "e642c94c56f7b501b3c6fee8d53390699339d1a27fa412d3252c9bd664f9a6ed"
+            },
+            {
+              "bytes": 4222,
+              "path": "portable/upgrade-impact-analysis/output-contract.md",
+              "sha256": "72a7ac07e0ed5b4b62f277092c2b2f88fba7498a4f6804928a549366910faff3"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/upgrade-impact-analysis",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "upgrade-impact-analysis",
+      "name": "Endor Labs Upgrade Impact Analysis",
+      "source": {
+        "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 4014,
+              "path": "portable/vulnerability-explainer/README.md",
+              "sha256": "b44274ec589d3e910e9d1eaa9f681f59c52923708632b11686aa13533237f7cb"
+            },
+            {
+              "bytes": 7296,
+              "path": "portable/vulnerability-explainer/agent.manifest.json",
+              "sha256": "084640bb5355528ba87b4fd58da865dc90d6479a393833a001a728cb793c70eb"
+            },
+            {
+              "bytes": 5654,
+              "path": "portable/vulnerability-explainer/agent.md",
+              "sha256": "cd6ed40b659bc50d62d8a075dcc615de97816ca6bacc74ca6a2f02ae8982b7f0"
+            },
+            {
+              "bytes": 1746,
+              "path": "portable/vulnerability-explainer/output-contract.md",
+              "sha256": "6484b0fed22b535cbc24ba29a8acfbaeec63e1886f343fabf2264534f24dee45"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/vulnerability-explainer",
+          "requires_endorctl": ""
+        }
+      ],
+      "host": "portable",
+      "id": "vulnerability-explainer",
+      "name": "Endor Labs Vulnerability Explainer",
+      "source": {
+        "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "1.0.0"
     }
   ],
   "generated_by": "endor-agent-kit",

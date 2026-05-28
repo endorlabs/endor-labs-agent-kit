@@ -139,6 +139,7 @@ evals: evals/cases.yaml
 compatible_hosts:
   - claude-code
   - claude-managed-agents
+  - portable
 host_editions:
   claude-code:
     - enterprise-edition

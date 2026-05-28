@@ -122,6 +122,7 @@ compatible_hosts:
   - claude-code
   - claude-managed-agents
   - codex
+  - portable
 host_editions:
   claude-code:
     - enterprise-edition

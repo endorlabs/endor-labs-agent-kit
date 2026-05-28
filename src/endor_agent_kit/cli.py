@@ -9,6 +9,7 @@ from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
     compile_codex,
+    compile_portable,
     compile_raw,
 )
 from endor_agent_kit.compilers.rendering import EDITION_CHOICES
@@ -16,6 +17,7 @@ from endor_agent_kit.install import (
     check_claude_code_install,
     check_claude_managed_agents_install,
     check_codex_install,
+    check_portable_install,
 )
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
@@ -48,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     compile_parser.add_argument("recipe", type=Path)
     compile_parser.add_argument(
         "--target",
-        choices=("claude-code", "claude-managed-agents", "codex", "raw"),
+        choices=("claude-code", "claude-managed-agents", "codex", "portable", "raw"),
         required=True,
     )
     compile_parser.add_argument(
@@ -78,12 +80,13 @@ def main(argv: list[str] | None = None) -> int:
     check_install_parser.add_argument("--agent", required=True)
     check_install_parser.add_argument(
         "--host",
-        choices=("claude-code", "claude-managed-agents", "codex"),
+        choices=("claude-code", "claude-managed-agents", "codex", "portable"),
         default="claude-code",
     )
     check_install_parser.add_argument("--repo", type=Path)
     check_install_parser.add_argument("--codex-home", type=Path)
     check_install_parser.add_argument("--managed-agent-dir", type=Path)
+    check_install_parser.add_argument("--portable-dir", type=Path)
     check_install_parser.add_argument("--catalog-root", default=Path("."), type=Path)
 
     args = parser.parse_args(argv)
@@ -123,6 +126,11 @@ def main(argv: list[str] | None = None) -> int:
                     print("ERROR: --edition/--variant is not valid for Codex skill artifacts")
                     return 1
                 outputs = compile_codex(args.recipe)
+            elif args.target == "portable":
+                if args.edition is not None:
+                    print("ERROR: --edition/--variant is not valid for portable artifacts")
+                    return 1
+                outputs = compile_portable(args.recipe)
             else:
                 if args.edition is not None:
                     print("ERROR: --edition/--variant is only valid for Claude provider targets")
@@ -158,6 +166,16 @@ def main(argv: list[str] | None = None) -> int:
                 catalog_root=args.catalog_root,
             )
             install_path = codex_home / "skills" / args.agent / "SKILL.md"
+        elif args.host == "portable":
+            if args.portable_dir is None:
+                print("ERROR: --portable-dir is required for --host portable")
+                return 1
+            errors = check_portable_install(
+                args.agent,
+                args.portable_dir,
+                catalog_root=args.catalog_root,
+            )
+            install_path = args.portable_dir
         elif args.host == "claude-managed-agents":
             managed_agent_dir = (
                 args.managed_agent_dir
