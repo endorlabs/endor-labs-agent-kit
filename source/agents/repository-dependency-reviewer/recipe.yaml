@@ -62,6 +62,7 @@ outputs:
 evals: evals/cases.yaml
 compatible_hosts:
   - claude-code
+  - portable
 host_editions:
   claude-code:
     - developer-edition

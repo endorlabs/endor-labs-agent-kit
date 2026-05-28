@@ -13,6 +13,7 @@ Use this repository in two ways:
 - [Agent Catalog](#agent-catalog)
 - [Which Directory Do I Use?](#which-directory-do-i-use)
 - [Supported Hosts](#supported-hosts)
+- [Already Have Your Own Tech Stack Or Workflows Wired?](#already-have-your-own-tech-stack-or-workflows-wired)
 - [MCP Usage](#mcp-usage)
 - [Plugin Packaging Route](#plugin-packaging-route)
 - [Editions](#editions)
@@ -36,18 +37,18 @@ maintainer-facing source of truth.
 If you are installing an agent, start with the generated host directories below.
 You only need `source/agents/` when you are changing or contributing an agent.
 
-| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex |
-| --- | --- | --- | --- | --- |
-| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` |
-| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - |
-| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - |
-| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - |
-| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - |
-| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - |
-| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` |
-| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` |
-| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - |
-| SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` |
+| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Portable |
+| --- | --- | --- | --- | --- | --- |
+| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `portable/ai-sast-triage/` |
+| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | `portable/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | `portable/package-risk-summary/` |
+| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | `portable/repository-dependency-reviewer/` |
+| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | `portable/upgrade-impact-analysis/` |
+| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | `portable/vulnerability-explainer/` |
+| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `portable/endor-troubleshooter/` |
+| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `portable/probe-droid/` |
+| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | `portable/remediation-planner/` |
+| SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` | `portable/sca-remediation/` |
 
 ## Which Directory Do I Use?
 
@@ -56,6 +57,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |
+| Install a portable runtime-neutral bundle | `portable/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |
 | Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |
 
@@ -70,6 +72,62 @@ are the generated host directories listed in the catalog.
 | Claude Code | `claude-code/<agent>/` | `.claude/agents/` in the target repository |
 | Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
 | Codex | `codex/<agent>/` | `$CODEX_HOME/skills/<agent>/` or `~/.codex/skills/<agent>/` |
+| Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
+
+## Already Have Your Own Tech Stack Or Workflows Wired?
+
+Use the `portable/<agent>/` bundles when your organization already has an
+agent runtime, repository workflow, ticketing workflow, approval system,
+credential controls, and audit pipeline. Portable bundles give you the
+agent instructions and runtime contract without assuming Claude Code,
+Claude Managed Agents, Codex, or any other host-specific package shape.
+
+Each portable bundle includes:
+
+- `agent.md`: the generated runtime-neutral agent instructions.
+- `agent.manifest.json`: machine-readable transports, capabilities, actions, wrappers, and degradation behavior.
+- `output-contract.md`: inputs, outputs, adapter contracts, and mechanical workflow gates when available.
+- Optional `actions.yaml` portable adapter contracts plus `endorctl-setup.md` and `architecture.svg` support files.
+
+The runtime integration model is deliberately split:
+
+- Agent Kit defines the workflow, evidence requirements, safety contract, and structured output.
+- Your runtime enforces authentication, authorization, logging, audit, adapter execution, and approval policy.
+- Runtime adapters perform semantic actions such as `endor.query`, `source.change_request.create`, `approval.verify`, `endor.policy.write`, and `ticket.create`.
+- The agent must not claim an action completed unless the runtime adapter returns evidence such as a PR/MR URL, ticket ID, policy UUID, branch, validation result, or explicit data gap.
+
+Example adapter mappings:
+
+| Portable action | Example runtime adapters |
+| --- | --- |
+| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |
+| `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |
+| `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |
+| `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |
+
+Example runtime wrapper:
+
+```text
+System:
+Load portable/<agent>/agent.md as the generated instruction source.
+Expose only the adapters allowed by portable/<agent>/agent.manifest.json and your organization policy.
+Pause for confirmation when an action declares confirmation_required=true.
+Return adapter evidence or a structured data gap after every action.
+
+User:
+Use this agent to analyze repository <repo>. Prefer ticket creation over a source change request unless the plan is low risk and validation evidence is available.
+```
+
+For remediation workflows, let the agent find the right remediation path
+first. At the mutation gate, your runtime can offer approved targets such
+as plan-only output, source change request creation, ticket creation, or
+both. In v1, `ticket.create` is available as a runtime wrapper for every
+portable bundle; the agent only claims ticket creation when the runtime
+performs it and returns ticket evidence.
+
+Portable bundles are generated artifacts. Configure local adapters and
+organization policy outside the bundle. If agent behavior needs to change,
+edit the Source Recipe and regenerate the catalog.
 
 ## MCP Usage
 
@@ -91,6 +149,12 @@ on Endor package/vulnerability lookup tools that do not yet have an
 
 If MCP is unavailable, those agents must record the missing signal in
 `data_gaps` rather than blocking install or fabricating evidence.
+
+Portable bundles do not configure MCP servers. They declare transport
+requirements in `agent.manifest.json`. If a portable agent requires MCP,
+the customer runtime must provide an MCP-compatible Endor adapter exposing
+the required tools; otherwise the agent records the missing signal in
+`data_gaps`.
 
 ## Plugin Packaging Route
 
@@ -307,6 +371,7 @@ endor-agent-kit lint-sca-pr-body pr-body.md
 endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo
 endor-agent-kit check-install --host claude-managed-agents --agent probe-droid
 endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex
+endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation
 endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation
 endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md
 endor-agent-kit lint-ai-sast-pr-body pr-body.md
@@ -324,7 +389,9 @@ AURI-style PR/MR body, including the folded advisory list, CVE-visible links
 to GHSA URLs, and severity emoji suffixes.
 `check-install` catches copied Claude Code primary artifacts, staged
 Claude Managed Agents bundles, and installed Codex skill bundles that are
-stale versus the checked-in Agent Kit catalog.
+stale versus the checked-in Agent Kit catalog. It can also compare a copied
+portable bundle with the catalog when you pass `--host portable` and
+`--portable-dir`.
 
 AI SAST triage outputs can be checked before remediation, PR/MR, or
 exception-policy gates advance. `validate-ai-sast-output` requires
@@ -477,9 +544,10 @@ CI runs the same validation and generated-artifact drift check.
 | `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |
 | `endor-agent-kit check-install --host claude-managed-agents --agent probe-droid` | Check whether a staged Claude Managed Agents bundle matches the generated catalog bundle. |
 | `endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex` | Check whether an installed Codex skill directory matches the generated catalog bundle. |
+| `endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation` | Check whether a copied portable bundle matches the generated catalog bundle. |
 
 Supported compile targets are `claude-code`, `claude-managed-agents`,
-`codex`, and `raw`.
+`codex`, `portable`, and `raw`.
 
 ## Recipe Reference
 
@@ -634,6 +702,73 @@ codex/
     actions.yaml
     architecture.svg
     endorctl-setup.md
+portable/
+  ai-sast-triage/
+    README.md
+    actions.yaml
+    agent.manifest.json
+    agent.md
+    architecture.svg
+    endorctl-setup.md
+    output-contract.md
+  dependency-decision-helper/
+    README.md
+    agent.manifest.json
+    agent.md
+    endorctl-setup.md
+    output-contract.md
+  endor-troubleshooter/
+    README.md
+    agent.manifest.json
+    agent.md
+    architecture.svg
+    endorctl-setup.md
+    output-contract.md
+  package-risk-summary/
+    README.md
+    agent.manifest.json
+    agent.md
+    endorctl-setup.md
+    output-contract.md
+  probe-droid/
+    README.md
+    agent.manifest.json
+    agent.md
+    architecture.svg
+    endorctl-setup.md
+    output-contract.md
+  remediation-planner/
+    README.md
+    agent.manifest.json
+    agent.md
+    architecture.svg
+    endorctl-setup.md
+    output-contract.md
+  repository-dependency-reviewer/
+    README.md
+    agent.manifest.json
+    agent.md
+    output-contract.md
+  sca-remediation/
+    README.md
+    actions.yaml
+    agent.manifest.json
+    agent.md
+    architecture.svg
+    endorctl-setup.md
+    output-contract.md
+  upgrade-impact-analysis/
+    README.md
+    agent.manifest.json
+    agent.md
+    architecture.svg
+    endorctl-setup.md
+    output-contract.md
+  vulnerability-explainer/
+    README.md
+    agent.manifest.json
+    agent.md
+    output-contract.md
 manifest.json
 ```
 
@@ -650,6 +785,7 @@ The root catalog directories are intentionally checked in:
 - `claude-code/`
 - `claude-managed-agents/`
 - `codex/`
+- `portable/`
 - `manifest.json`
 
 These paths are customer-facing and should stay stable.

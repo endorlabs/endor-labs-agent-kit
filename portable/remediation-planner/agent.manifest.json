@@ -1,0 +1,232 @@
+{
+  "action_contracts_path": null,
+  "artifacts": {
+    "actions": null,
+    "agent": "agent.md",
+    "architecture": "architecture.svg",
+    "output_contract": "output-contract.md",
+    "runtime_contract": "agent.manifest.json",
+    "runtime_setup": "endorctl-setup.md"
+  },
+  "data_gap_policy": "Record unavailable transport, credential, adapter, runtime, or evidence signals in data_gaps instead of fabricating evidence.",
+  "declared_actions": [],
+  "degradation": {
+    "missing_capability_behavior": "record_data_gap",
+    "mutation_without_adapter": "forbidden",
+    "supports_plan_only": true
+  },
+  "description": "Preview safe remediation options without opening PRs.",
+  "endorctl_api_invocations": [
+    "resolve_project_from_repository",
+    "list_version_upgrade_recommendations",
+    "get_version_upgrade_details",
+    "get_finding_fixing_upgrades"
+  ],
+  "generated_files_are_editable": false,
+  "id": "remediation-planner",
+  "inputs": [
+    {
+      "description": "Namespace",
+      "kind": "namespace",
+      "name": "namespace",
+      "required": false
+    },
+    {
+      "description": "Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL.",
+      "kind": "string",
+      "name": "project_name",
+      "required": false
+    },
+    {
+      "description": "Optional source repository URL when the runtime cannot infer it from repository context or session context.",
+      "kind": "string",
+      "name": "repository_url",
+      "required": false
+    },
+    {
+      "description": "Optional advanced fallback when project_name or repository_url cannot be resolved uniquely.",
+      "kind": "string",
+      "name": "project_uuid",
+      "required": false
+    },
+    {
+      "description": "Optional finding UUID",
+      "kind": "string",
+      "name": "finding_uuid",
+      "required": false
+    },
+    {
+      "description": "Optional package name",
+      "kind": "string",
+      "name": "package_name",
+      "required": false
+    }
+  ],
+  "name": "Remediation Planner",
+  "outputs": [
+    {
+      "description": "Concise result summary.",
+      "kind": "string",
+      "name": "summary",
+      "required": true
+    },
+    {
+      "description": "Missing Endor, source, or runtime signals.",
+      "kind": "list[string]",
+      "name": "data_gaps",
+      "required": true
+    }
+  ],
+  "portable_schema_version": 1,
+  "recipe_schema_version": 1,
+  "required_capabilities": [
+    "endor.query"
+  ],
+  "required_endor_mcp_tools": [],
+  "required_transports": [
+    "endorctl_api"
+  ],
+  "requires_endor_mcp": "",
+  "requires_endorctl": ">=1.0",
+  "runtime_action_vocabulary": [
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
+      "kind": "endor.query",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api",
+        "approved-endor-mcp-adapter"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Read repository files, manifests, lockfiles, or pinned source context.",
+      "kind": "repository.read",
+      "provider_examples": [
+        "repository-service",
+        "source-index",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Prepare or apply a repository patch after explicit approval.",
+      "kind": "repository.patch.prepare",
+      "provider_examples": [
+        "patch-service",
+        "dependency-update-service",
+        "local-checkout"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Look up existing branches, pull requests, merge requests, or internal change records.",
+      "kind": "source.change_request.lookup",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or update a source-provider change request after explicit approval.",
+      "kind": "source.change_request.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Post or update a source-provider comment after explicit approval.",
+      "kind": "source.comment.create",
+      "provider_examples": [
+        "github",
+        "gitlab",
+        "bitbucket",
+        "internal-change-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Request approval through the runtime's approved review workflow.",
+      "kind": "approval.request",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Verify approval evidence before a gated action proceeds.",
+      "kind": "approval.verify",
+      "provider_examples": [
+        "appsec-review-service",
+        "source-review-api",
+        "internal-approval-service"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": null,
+      "declared_by_recipe": false,
+      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "kind": "endor.policy.write",
+      "provider_examples": [
+        "endor-api",
+        "endorctl-api"
+      ],
+      "status": "unavailable"
+    },
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "description": "Create a ticket from final agent output through a runtime wrapper or declared action.",
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "runtime_wrappers": [
+    {
+      "confirmation_required": true,
+      "declared_by_recipe": false,
+      "kind": "ticket.create",
+      "provider_examples": [
+        "jira",
+        "servicenow",
+        "linear",
+        "internal-ticketing"
+      ],
+      "status": "wrapper_available"
+    }
+  ],
+  "safety_class": "read_only",
+  "version": "0.1.0"
+}

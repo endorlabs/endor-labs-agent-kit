@@ -55,4 +55,6 @@ jobs:
             README.md \
             manifest.json \
             claude-code \
-            claude-managed-agents
+            claude-managed-agents \
+            codex \
+            portable

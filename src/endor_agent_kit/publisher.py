@@ -7,11 +7,13 @@ from pathlib import Path
 from endor_agent_kit.compilers.claude_code import HOST as CLAUDE_CODE_HOST
 from endor_agent_kit.compilers.claude_managed_agents import HOST as CLAUDE_MANAGED_AGENTS_HOST
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST
+from endor_agent_kit.compilers.portable import HOST as PORTABLE_HOST
 from endor_agent_kit.publication import (
     ClaudeCodeHostAdapter,
     ClaudeManagedAgentsHostAdapter,
     CodexHostAdapter,
     HostArtifactPublication,
+    PortableHostAdapter,
     RootCatalogAggregate,
 )
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
@@ -20,6 +22,7 @@ _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
     CLAUDE_CODE_HOST: ClaudeCodeHostAdapter(),
     CLAUDE_MANAGED_AGENTS_HOST: ClaudeManagedAgentsHostAdapter(),
     CODEX_HOST: CodexHostAdapter(),
+    PORTABLE_HOST: PortableHostAdapter(),
 })
 _ROOT_CATALOG_AGGREGATE = RootCatalogAggregate()
 
@@ -52,6 +55,11 @@ def _publish_prepared_recipe(prepared: PreparedSourceRecipe, dest: str | Path) -
 
     if CODEX_HOST in recipe.compatible_hosts:
         publication = _HOST_ARTIFACT_PUBLICATION.publish(CODEX_HOST, prepared, destination)
+        written.extend(publication.bundle.written)
+        manifest = publication.catalog_manifest
+
+    if PORTABLE_HOST in recipe.compatible_hosts:
+        publication = _HOST_ARTIFACT_PUBLICATION.publish(PORTABLE_HOST, prepared, destination)
         written.extend(publication.bundle.written)
         manifest = publication.catalog_manifest
 
