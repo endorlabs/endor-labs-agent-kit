@@ -1,0 +1,11 @@
+{
+  "action_id": "open-change-request",
+  "portable_kind": "source.change_request.create",
+  "status": "denied",
+  "actor": "runtime-service-account",
+  "approved": false,
+  "evidence_summary": "Adapter authorization denied at repository scope.",
+  "data_gaps": [
+    "adapter_authorization denied source.change_request.create for repo org/repo"
+  ]
+}

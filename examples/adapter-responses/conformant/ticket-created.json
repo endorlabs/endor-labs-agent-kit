@@ -1,0 +1,18 @@
+{
+  "action_id": "create-ticket",
+  "portable_kind": "ticket.create",
+  "status": "succeeded",
+  "actor": "runtime-service-account",
+  "approved": true,
+  "approval_evidence_id": "approval-record-9f2",
+  "evidence_id": "runtime-evidence-7a1",
+  "evidence_summary": "Created tracking ticket from final agent output.",
+  "object_id": "SEC-4312",
+  "object_url": "https://tickets.example/SEC-4312",
+  "idempotency_check": {
+    "status": "none_found",
+    "lookup_method": "ticket.lookup",
+    "evidence_id": "lookup-evidence-2c8"
+  },
+  "data_gaps": []
+}

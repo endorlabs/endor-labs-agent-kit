@@ -88,6 +88,26 @@ PORTABLE_KIND_BY_ACTION_KIND = {
     "ticket.create": "ticket.create",
 }
 
+ADAPTER_RESPONSE_STATUSES = ("succeeded", "denied", "unavailable", "failed")
+
+IDEMPOTENCY_STATUSES = (
+    "none_found",
+    "existing_reused",
+    "blocked_duplicate",
+    "lookup_unavailable",
+)
+
+# Portable kinds whose successful completion creates or reuses external state, so
+# the adapter must return an object reference and an idempotency outcome.
+STATE_CREATING_PORTABLE_KINDS = frozenset(
+    {
+        "source.change_request.create",
+        "source.comment.create",
+        "endor.policy.write",
+        "ticket.create",
+    }
+)
+
 
 @dataclass(frozen=True)
 class RuntimeActionDefinition:
@@ -423,6 +443,67 @@ def portable_manifest_conformance_errors(manifest: Mapping[str, Any]) -> list[st
             errors.append("undeclared ticket.create must remain wrapper_available")
         if not any(_dict(wrapper).get("kind") == "ticket.create" for wrapper in wrappers):
             errors.append("missing ticket.create runtime wrapper")
+    return errors
+
+
+def adapter_response_conformance_errors(response: Mapping[str, Any]) -> list[str]:
+    """Return Portable Evidence Schema errors for one adapter response.
+
+    Encodes the Adapter Response Contract from
+    ``docs/portable-runtime-conformance.md`` so runtimes and conformance fixtures
+    can mechanically check adapter results instead of relying on prose alone. The
+    schema is intentionally scoped to evidence shape (status, evidence ids, object
+    references, idempotency, data gaps); approval-gate enforcement stays with the
+    runtime controls and Source Recipe confirmation flags.
+    """
+
+    errors: list[str] = []
+
+    if not str(response.get("action_id") or "").strip():
+        errors.append("adapter response missing action_id")
+
+    kind = str(response.get("portable_kind") or "").strip()
+    known_kinds = {definition.kind for definition in RUNTIME_ACTION_DEFINITIONS}
+    if not kind:
+        errors.append("adapter response missing portable_kind")
+    elif kind not in known_kinds:
+        errors.append(f"adapter response has unknown portable_kind {kind!r}")
+
+    status = str(response.get("status") or "")
+    if status not in ADAPTER_RESPONSE_STATUSES:
+        errors.append(
+            f"adapter response status must be one of {list(ADAPTER_RESPONSE_STATUSES)}"
+        )
+
+    data_gaps = response.get("data_gaps", [])
+    if not isinstance(data_gaps, list):
+        errors.append("adapter response data_gaps must be a list")
+        data_gaps = []
+
+    idempotency = response.get("idempotency_check")
+    if idempotency is not None:
+        if not isinstance(idempotency, Mapping):
+            errors.append("adapter response idempotency_check must be an object")
+        elif str(idempotency.get("status") or "") not in IDEMPOTENCY_STATUSES:
+            errors.append(
+                f"idempotency_check status must be one of {list(IDEMPOTENCY_STATUSES)}"
+            )
+
+    if status == "succeeded":
+        if not str(response.get("evidence_id") or "").strip():
+            errors.append("succeeded adapter response must include evidence_id")
+        if kind in STATE_CREATING_PORTABLE_KINDS:
+            has_object = bool(
+                str(response.get("object_id") or "").strip()
+                or str(response.get("object_url") or "").strip()
+            )
+            if not has_object:
+                errors.append(f"succeeded {kind} must include object_id or object_url")
+            if idempotency is None:
+                errors.append(f"succeeded {kind} must include idempotency_check")
+    elif status in {"denied", "unavailable", "failed"} and not data_gaps:
+        errors.append(f"{status} adapter response must report data_gaps")
+
     return errors
 
 
