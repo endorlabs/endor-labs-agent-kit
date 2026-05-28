@@ -11,6 +11,12 @@ and output contracts. Host runtimes and customer portable runtimes still own
 authentication, authorization, sandboxing, audit logs, runtime policy
 enforcement, and incident response.
 
+Implementation note: portable runtime controls, action vocabulary, wrapper
+policy, degradation behavior, and portable host-leak checks are owned by the
+Portable Runtime Conformance module. Compilers, Guardrail Conformance checks,
+Generated Agent README text, and tests should consume that module instead of
+copying portable policy facts.
+
 ## Control Summary
 
 | Control | Agent Kit status | Primary enforcement |

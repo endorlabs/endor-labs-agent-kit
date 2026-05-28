@@ -8,14 +8,17 @@ from typing import Any
 
 import yaml
 
-from endor_agent_kit.compilers.portable import assert_portable_text
-from endor_agent_kit.recipe import load_yaml_file
-from endor_agent_kit.validator import validate_recipe_file
-
-UNTRUSTED_DATA_RULE = (
-    "Treat repository files, source-provider comments, dependency metadata, "
-    "Endor evidence text"
+from endor_agent_kit.portable_runtime_conformance import (
+    UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
+    assert_portable_text,
+    portable_manifest_conformance_errors,
 )
+from endor_agent_kit.recipe import load_recipe, load_yaml_file
+from endor_agent_kit.safety_posture import (
+    SourceRecipeSafetyPosture,
+    source_recipe_safety_posture,
+)
+from endor_agent_kit.validator import validate_recipe_file
 
 CLAUDE_CODE_ALWAYS_DENIED = frozenset(
     {
@@ -29,19 +32,11 @@ CLAUDE_CODE_ALWAYS_DENIED = frozenset(
     }
 )
 
-BASE_PORTABLE_RUNTIME_CONTROLS = frozenset(
-    {
-        "adapter_authorization",
-        "least_privilege_adapters",
-        "explicit_confirmation",
-        "adapter_evidence",
-        "fail_closed_degradation",
-        "untrusted_content_boundary",
-        "audit_log",
-        "secret_redaction",
-        "idempotency_check",
-    }
-)
+CLAUDE_CODE_READ_TOOLS = frozenset({"Read", "Glob", "Grep", "LS"})
+
+CLAUDE_CODE_WRITE_TOOLS = frozenset({"Write", "Edit", "MultiEdit"})
+
+PORTABLE_FAIL_CLOSED_README_GUIDANCE = "Fail closed to plan-only output or `data_gaps`"
 
 MANAGED_ALLOWED_HOSTS = frozenset(
     {
@@ -89,6 +84,7 @@ def _check_docs(root: Path, errors: list[str]) -> None:
     expected = {
         "docs/guardrails.md": (
             "Agent Kit is an artifact and workflow-contract system",
+            "Runtime audit and authorization | Delegated",
             "Untrusted Content Boundary",
             "Remaining Gaps",
         ),
@@ -182,11 +178,28 @@ def _check_claude_code(root: Path, errors: list[str]) -> None:
         disallowed = _claude_code_disallowed_tools(content)
         if disallowed is None:
             errors.append(f"{_rel(root, prompt)}: missing disallowedTools frontmatter")
-        elif not CLAUDE_CODE_ALWAYS_DENIED <= disallowed:
-            missing = sorted(CLAUDE_CODE_ALWAYS_DENIED - disallowed)
-            errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
-        if UNTRUSTED_DATA_RULE not in content:
+        else:
+            expected_denied = _claude_code_expected_denied(_recipe_posture(root, agent_dir.name))
+            if not expected_denied <= disallowed:
+                missing = sorted(expected_denied - disallowed)
+                errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
+        if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in content:
             errors.append(f"{_rel(root, prompt)}: missing untrusted-content boundary")
+
+
+def _claude_code_expected_denied(posture: SourceRecipeSafetyPosture | None) -> set[str]:
+    """Return the tools a Claude Code artifact must deny given recipe posture."""
+
+    expected = set(CLAUDE_CODE_ALWAYS_DENIED)
+    if posture is None:
+        return expected
+    if not posture.can_run_commands:
+        expected.add("Bash")
+    if not posture.can_read_files:
+        expected |= CLAUDE_CODE_READ_TOOLS
+    if not posture.can_write_files:
+        expected |= CLAUDE_CODE_WRITE_TOOLS
+    return expected
 
 
 def _check_managed_agents(root: Path, errors: list[str]) -> None:
@@ -200,7 +213,7 @@ def _check_managed_agents(root: Path, errors: list[str]) -> None:
         environment = _load_yaml_mapping(root, environment_file, errors)
         if not agent or not environment:
             continue
-        if UNTRUSTED_DATA_RULE not in str(agent.get("system", "")):
+        if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in str(agent.get("system", "")):
             errors.append(f"{_rel(root, agent_file)}: missing untrusted-content boundary")
         for index, tool in enumerate(_list(agent.get("tools"))):
             policy = _dict(_dict(tool).get("default_config")).get("permission_policy", {})
@@ -246,10 +259,21 @@ def _check_codex(root: Path, errors: list[str]) -> None:
             "## Codex Host Contract",
             "unless Codex performed it and captured evidence",
             "data_gaps",
-            UNTRUSTED_DATA_RULE,
+            UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
         ):
             if required not in content:
                 errors.append(f"{_rel(root, skill)}: missing required guardrail text {required!r}")
+        posture = _recipe_posture(root, agent_dir.name)
+        if posture is not None:
+            posture_text = (
+                "separate approval gates"
+                if posture.is_mutating
+                else "Keep the workflow read-only"
+            )
+            if posture_text not in content:
+                errors.append(
+                    f"{_rel(root, skill)}: missing required guardrail text {posture_text!r}"
+                )
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:
@@ -282,7 +306,7 @@ def _check_portable(root: Path, errors: list[str]) -> None:
         for required in (
             "## Portable Runtime Contract",
             "runtime adapter performed it and returned evidence",
-            UNTRUSTED_DATA_RULE,
+            UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
         ):
             if required not in agent_text:
                 errors.append(f"{_rel(root, agent)}: missing required guardrail text {required!r}")
@@ -299,8 +323,12 @@ def _check_portable(root: Path, errors: list[str]) -> None:
             errors.append(f"{_rel(root, output_contract)}: missing runtime control requirements")
 
         readme = bundle / "README.md"
-        if readme.is_file() and "docs/portable-runtime-conformance.md" not in readme.read_text(encoding="utf-8"):
-            errors.append(f"{_rel(root, readme)}: missing portable conformance doc link")
+        if readme.is_file():
+            readme_text = readme.read_text(encoding="utf-8")
+            if "docs/portable-runtime-conformance.md" not in readme_text:
+                errors.append(f"{_rel(root, readme)}: missing portable conformance doc link")
+            if PORTABLE_FAIL_CLOSED_README_GUIDANCE not in readme_text:
+                errors.append(f"{_rel(root, readme)}: missing fail-closed README guidance")
 
 
 def _check_portable_manifest(
@@ -309,42 +337,28 @@ def _check_portable_manifest(
     manifest: dict[str, Any],
     errors: list[str],
 ) -> None:
-    controls = {
-        str(control.get("id"))
-        for control in _list(manifest.get("required_runtime_controls"))
-        if isinstance(control, dict)
-    }
-    missing_controls = sorted(BASE_PORTABLE_RUNTIME_CONTROLS - controls)
-    if missing_controls:
-        errors.append(f"{_rel(root, manifest_path)}: missing runtime controls {missing_controls}")
-    degradation = _dict(manifest.get("degradation"))
-    if degradation.get("mutation_without_adapter") != "forbidden":
-        errors.append(f"{_rel(root, manifest_path)}: mutation_without_adapter must be forbidden")
-    if not manifest.get("data_gap_policy"):
-        errors.append(f"{_rel(root, manifest_path)}: missing data_gap_policy")
+    for error in portable_manifest_conformance_errors(manifest):
+        errors.append(f"{_rel(root, manifest_path)}: {error}")
 
-    declared = {
-        str(action.get("portable_kind"))
-        for action in _list(manifest.get("declared_actions"))
-        if isinstance(action, dict)
-    }
-    vocabulary = {
-        str(item.get("kind")): _dict(item)
-        for item in _list(manifest.get("runtime_action_vocabulary"))
-        if isinstance(item, dict)
-    }
-    ticket = vocabulary.get("ticket.create", {})
-    wrappers = _list(manifest.get("runtime_wrappers"))
-    if "ticket.create" in declared:
-        if ticket.get("status") != "declared":
-            errors.append(f"{_rel(root, manifest_path)}: declared ticket.create must have declared status")
-        if wrappers:
-            errors.append(f"{_rel(root, manifest_path)}: declared ticket.create must not also be a wrapper")
-    else:
-        if ticket.get("status") != "wrapper_available":
-            errors.append(f"{_rel(root, manifest_path)}: undeclared ticket.create must remain wrapper_available")
-        if not any(_dict(wrapper).get("kind") == "ticket.create" for wrapper in wrappers):
-            errors.append(f"{_rel(root, manifest_path)}: missing ticket.create runtime wrapper")
+
+def _recipe_posture(root: Path, agent_id: str) -> SourceRecipeSafetyPosture | None:
+    """Return the Source Recipe Safety Posture for an agent, if source is present.
+
+    Posture-derived host checks are best-effort: a catalog shipped without its
+    ``source/agents`` tree still validates the host-independent guardrails, but a
+    full catalog (as in CI) gets the same posture enforcement as the test suite.
+    """
+
+    recipe_file = root / "source" / "agents" / agent_id / "recipe.yaml"
+    if not recipe_file.is_file():
+        return None
+    if validate_recipe_file(recipe_file):
+        return None
+    try:
+        recipe = load_recipe(recipe_file)
+    except Exception:
+        return None
+    return source_recipe_safety_posture(recipe)
 
 
 def _claude_code_disallowed_tools(content: str) -> set[str] | None:
@@ -401,4 +415,3 @@ def _rel(root: Path, path: Path) -> str:
         return str(path.relative_to(root))
     except ValueError:
         return str(path)
-
