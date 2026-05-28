@@ -80,6 +80,22 @@ evidence for the external side effect. If the adapter returns `denied`,
 `unavailable`, or `failed`, the agent must report the blocker in `data_gaps`
 and continue only with verified evidence.
 
+### Checking Adapter Responses
+
+Agent Kit ships a mechanical check for the evidence shape above so a runtime can
+validate adapter results in CI instead of relying on this prose alone:
+
+```bash
+endor-agent-kit validate-adapter-response path/to/response.json
+```
+
+Canonical examples live under `examples/adapter-responses/`: files in
+`conformant/` exit `0` and files in `nonconformant/` exit `1`. The check covers
+status values, required evidence ids, object references and idempotency outcomes
+for state-creating actions, and required `data_gaps` for denied, unavailable, or
+failed results. Approval-gate enforcement stays a runtime control; this schema
+validates the evidence shape, not who approved an action.
+
 ## Approval Gates
 
 The runtime must pause for explicit confirmation before:

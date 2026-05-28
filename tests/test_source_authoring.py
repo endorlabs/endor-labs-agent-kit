@@ -3,6 +3,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import yaml
+
 from endor_agent_kit.cli import main
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
 
@@ -69,3 +71,18 @@ def test_source_authoring_check_uses_shared_instruction_section_parser(tmp_path)
         (error.code, error.path) for error in report.errors
     }
     assert any("enterprise-edition" in error.message for error in report.errors)
+
+
+def test_source_authoring_check_validates_adversarial_eval_cases(tmp_path):
+    recipe = _copy_agent_source(tmp_path, "sca-remediation")
+    cases_path = recipe.parent / "evals" / "cases.yaml"
+    data = yaml.safe_load(cases_path.read_text(encoding="utf-8"))
+    for case in data["cases"]:
+        if case.get("adversarial"):
+            case["expected"].pop("must_not", None)
+            break
+    cases_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
+
+    report = check_source_recipe_authoring(recipe)
+
+    assert "evals.adversarial" in {error.code for error in report.errors}

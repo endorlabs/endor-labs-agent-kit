@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from endor_agent_kit.compilers import (
@@ -20,6 +21,7 @@ from endor_agent_kit.install import (
     check_codex_install,
     check_portable_install,
 )
+from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
 from endor_agent_kit.workflow_output_contracts.commands import (
@@ -77,6 +79,12 @@ def main(argv: list[str] | None = None) -> int:
         help="Check generated catalog artifacts against guardrail policies",
     )
     check_guardrails_parser.add_argument("--catalog-root", default=Path("."), type=Path)
+
+    validate_adapter_response_parser = subparsers.add_parser(
+        "validate-adapter-response",
+        help="Check a portable runtime adapter response against the Portable Evidence Schema",
+    )
+    validate_adapter_response_parser.add_argument("response", type=Path)
 
     add_workflow_command_parsers(subparsers)
 
@@ -167,6 +175,26 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.catalog_root}")
+        return 0
+
+    if args.command == "validate-adapter-response":
+        try:
+            data = json.loads(args.response.read_text(encoding="utf-8"))
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        except json.JSONDecodeError as exc:
+            print(f"ERROR: invalid JSON: {exc}")
+            return 1
+        if not isinstance(data, dict):
+            print("ERROR: adapter response must be a JSON object")
+            return 1
+        errors = adapter_response_conformance_errors(data)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.response}")
         return 0
 
     workflow_result = run_workflow_command(args)
