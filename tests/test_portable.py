@@ -5,7 +5,8 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.cli import main
-from endor_agent_kit.compilers.portable import assert_portable_text, compile_portable
+from endor_agent_kit.compilers.portable import compile_portable
+from endor_agent_kit.portable_runtime_conformance import assert_portable_text
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
