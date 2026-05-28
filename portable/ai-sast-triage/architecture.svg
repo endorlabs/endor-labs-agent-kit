@@ -124,11 +124,11 @@
     <g filter="url(#cardShadow)">
       <rect width="350" height="180" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
       <rect x="24" y="0" width="302" height="2" fill="url(#hairline)"/>
-      <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">HOST RESPONSIBILITY</text>
-      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Claude Code Workspace</text>
-      <text x="24" y="94" font-size="12" fill="#9fb4be">- local repository checkout</text>
-      <text x="24" y="118" font-size="12" fill="#9fb4be">- read/write file tools and bash</text>
-      <text x="24" y="142" font-size="12" fill="#9fb4be">- git plus source-provider credentials</text>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">RUNTIME RESPONSIBILITY</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Runtime Workspace</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- runtime repository checkout</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- repository patch and command adapters</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- repository plus source-provider adapters</text>
     </g>
 
     <g transform="translate(395,0)" filter="url(#cardShadow)">

@@ -29,7 +29,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `change_requests` (list[object], required): PR/MR URLs, branches, status, failure reason, and existing_change_request_check evidence for any requested change-request creation.
 - `approvals` (list[object], required): Verified AppSec approval evidence for exception requests, including approver, evidence URL, status, and data gaps.
 - `exception_policies` (list[object], required): Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL.
-- `data_gaps` (list[string], required): Missing Endor, source, or host signals.
+- `data_gaps` (list[string], required): Missing Endor, source, or runtime signals.
 
 ## Data Gaps
 

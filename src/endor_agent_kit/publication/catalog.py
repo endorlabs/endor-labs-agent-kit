@@ -179,7 +179,7 @@ def root_catalog_readme(
         "- `agent.md`: the generated runtime-neutral agent instructions.",
         "- `agent.manifest.json`: machine-readable transports, capabilities, actions, wrappers, and degradation behavior.",
         "- `output-contract.md`: inputs, outputs, adapter contracts, and mechanical workflow gates when available.",
-        "- Optional `actions.yaml`, `endorctl-setup.md`, and `architecture.svg` support files.",
+        "- Optional `actions.yaml` portable adapter contracts plus `endorctl-setup.md` and `architecture.svg` support files.",
         "",
         "The runtime integration model is deliberately split:",
         "",

@@ -58,9 +58,8 @@
       "portable_kind": "repository.read",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "local-git",
-        "gh-cli",
-        "glab-cli",
+        "repository-adapter",
+        "source-provider-adapter",
         "github",
         "gitlab"
       ]
@@ -92,9 +91,8 @@
       "portable_kind": "source.change_request.create",
       "safety_class": "mutating",
       "source_provider_examples": [
-        "local-git",
-        "gh-cli",
-        "glab-cli",
+        "repository-adapter",
+        "source-provider-adapter",
         "github",
         "gitlab"
       ]
@@ -146,10 +144,8 @@
       "portable_kind": "approval.verify",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "gh-cli",
-        "glab-cli",
-        "github-api",
-        "gitlab-api"
+        "source-provider-adapter",
+        "source-provider-api"
       ]
     },
     {
@@ -314,7 +310,7 @@
       "required": true
     },
     {
-      "description": "Missing Endor, source, or host signals.",
+      "description": "Missing Endor, source, or runtime signals.",
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true

@@ -115,7 +115,7 @@
       <rect width="350" height="170" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
       <rect x="24" y="0" width="302" height="2" fill="url(#hairline)"/>
       <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">GITHUB INVENTORY</text>
-      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Read-Only gh Or JSON</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Read-Only API Or JSON</text>
       <text x="24" y="94" font-size="12" fill="#9fb4be">- GitHub.com org or repo subset</text>
       <text x="24" y="118" font-size="12" fill="#9fb4be">- bounded tree and file inspection</text>
       <text x="24" y="142" font-size="12" fill="#9fb4be">- no cloning or local inference</text>

@@ -52,7 +52,7 @@
       "required": false
     },
     {
-      "description": "Optional exported GitHub inventory JSON fallback when gh CLI live inventory is unavailable.",
+      "description": "Optional exported GitHub inventory JSON fallback when live source-provider inventory is unavailable.",
       "kind": "object",
       "name": "github_inventory_json",
       "required": false

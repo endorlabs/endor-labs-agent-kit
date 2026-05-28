@@ -1,7 +1,7 @@
 # Runtime Setup
 
 The SCA Remediation agent preserves a mutating workflow.
-Use an authenticated Endor tenant plus local source-provider credentials
+Use an authenticated Endor tenant plus runtime-provided source-provider adapter credentials
 before allowing patch or change-request steps.
 
 Required endorctl version: `>=1.0`
@@ -15,7 +15,7 @@ The recipe documents these Endor lookup groups:
 - `get_finding_fixing_upgrades`
 - `inspect_dependency_metadata`
 
-The agent may also use git and source-provider CLIs such as `gh` or `glab`
+The agent may also use repository and source-provider adapters
 when the user asks it to apply patches, open a PR/MR, verify AppSec
 approval evidence, or post PR/MR comments. Confirm the target repository,
 base branch, generated diff, and change-request body before allowing
