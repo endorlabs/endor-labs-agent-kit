@@ -1,0 +1,18 @@
+{
+  "action_id": "open-change-request",
+  "portable_kind": "source.change_request.create",
+  "status": "succeeded",
+  "actor": "runtime-service-account",
+  "approved": true,
+  "approval_evidence_id": "user-approval-55",
+  "evidence_id": "runtime-evidence-3b9",
+  "evidence_summary": "Opened a pull request for the approved remediation branch.",
+  "object_id": "123",
+  "object_url": "https://source.example/org/repo/pull/123",
+  "idempotency_check": {
+    "status": "none_found",
+    "lookup_method": "source.change_request.lookup",
+    "evidence_id": "lookup-evidence-4d0"
+  },
+  "data_gaps": []
+}

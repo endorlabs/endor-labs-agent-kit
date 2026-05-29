@@ -1,0 +1,8 @@
+{
+  "action_id": "list-sca-findings",
+  "portable_kind": "endor.query",
+  "status": "succeeded",
+  "actor": "runtime-service-account",
+  "evidence_summary": "Listed SCA findings but did not capture an evidence id.",
+  "data_gaps": []
+}

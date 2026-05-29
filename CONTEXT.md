@@ -48,6 +48,23 @@ _Avoid_: path probe, source file scan
 The derived safety and transport view of a Source Recipe, including whether it uses MCP, uses documented `endorctl api` invocations, can run commands, can read or write files, can open change requests, and needs Endor setup guidance. Compilers and Host Adapters consume Source Recipe Safety Posture instead of recomputing those facts from raw recipe fields.
 _Avoid_: compiler safety helper, host policy blob
 
+**Portable Runtime Conformance**:
+The portable-runtime policy module that defines runtime action vocabulary,
+required runtime controls, wrapper policy, degradation behavior, data-gap
+behavior, and portable host-leak checks for portable Host Artifact Bundles.
+Compiler Rendering, Guardrail Conformance, Generated Agent README text, and
+tests consume Portable Runtime Conformance instead of copying portable policy
+facts.
+_Avoid_: portable constants, guardrail strings, manifest helper
+
+**Guardrail Conformance**:
+The catalog-level mechanical check that verifies Source Recipes, Host Artifact
+Bundles, portable manifests, Generated Agent README links, and security
+documentation still satisfy the current guardrail policy. Guardrail Conformance
+reports drift; it should delegate portable policy details to Portable Runtime
+Conformance instead of owning those facts itself.
+_Avoid_: security test blob, artifact grep script
+
 **Host Adapter**:
 The Host-specific publication implementation used by Host Artifact Publication. One Host Adapter owns compiler invocation, file layout, Generated Agent README content, supporting-file rules, and Bundle Record creation for exactly one Host.
 _Avoid_: host branch, special case

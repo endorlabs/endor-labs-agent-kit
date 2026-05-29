@@ -54,6 +54,7 @@ def test_sca_remediation_agent_is_mcp_free_and_action_contract_backed(tmp_path):
         "prepare-remediation-diff",
         "open-change-request",
         "post-remediation-comment",
+        "create-remediation-ticket",
     }
     for action in actions:
         if action["safety_class"] == "mutating":

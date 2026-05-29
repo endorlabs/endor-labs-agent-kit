@@ -1,0 +1,10 @@
+{
+  "action_id": "post-decision-comment",
+  "portable_kind": "source.comment.create",
+  "status": "unavailable",
+  "actor": "runtime-service-account",
+  "evidence_summary": "Source-provider comment adapter is not configured for this runtime.",
+  "data_gaps": [
+    "source.comment.create adapter unavailable in this runtime"
+  ]
+}
