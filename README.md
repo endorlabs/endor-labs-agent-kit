@@ -22,6 +22,7 @@ Use this repository in two ways:
 - [Example Prompts](#example-prompts)
 - [Output Contract](#output-contract)
 - [Safety Model](#safety-model)
+- [Guardrail And Runtime Security Docs](#guardrail-and-runtime-security-docs)
 - [Contribute An Agent](#contribute-an-agent)
 - [Create Agents With The Skill](#create-agents-with-the-skill)
 - [Recipe Reference](#recipe-reference)
@@ -121,8 +122,9 @@ Use this agent to analyze repository <repo>. Prefer ticket creation over a sourc
 For remediation workflows, let the agent find the right remediation path
 first. At the mutation gate, your runtime can offer approved targets such
 as plan-only output, source change request creation, ticket creation, or
-both. In v1, `ticket.create` is available as a runtime wrapper for every
-portable bundle; the agent only claims ticket creation when the runtime
+both. In v1, remediation workflows may declare `ticket.create` directly;
+other portable bundles can still use `ticket.create` as a runtime wrapper
+after final output. The agent only claims ticket creation when the runtime
 performs it and returns ticket evidence.
 
 Portable bundles are generated artifacts. Configure local adapters and
@@ -453,6 +455,13 @@ remain denied.
 Claude Managed Agents artifacts omit the pre-built agent toolset unless an
 agent needs read-only Bash, and then enable only Bash with confirmation.
 
+## Guardrail And Runtime Security Docs
+
+The repository includes two maintainer-facing guardrail references:
+
+- `docs/guardrails.md` maps recipe, host, portable, workflow, and artifact-integrity controls to the current catalog.
+- `docs/portable-runtime-conformance.md` defines the runtime controls a customer-managed portable integration must enforce around adapters, approvals, evidence, audit, untrusted content, and failure modes.
+
 ## Contribute An Agent
 
 This repository is both the source of truth and the distribution catalog.
@@ -515,6 +524,7 @@ python -m pip install -e ".[dev]"
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
+endor-agent-kit check-guardrails --catalog-root .
 python -m pytest -q
 git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
 ```
@@ -531,6 +541,7 @@ CI runs the same validation and generated-artifact drift check.
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |
 | `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |
+| `endor-agent-kit check-guardrails --catalog-root .` | Check generated catalog artifacts against guardrail policies. |
 | `endor-agent-kit validate-sca-output sca-output.json --gate selection-plan` | Validate structured `sca-remediation` output before advancing a workflow gate. |
 | `endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md` | Render the AURI-style SCA remediation PR/MR body from normalized JSON. |
 | `endor-agent-kit lint-sca-pr-body pr-body.md` | Lint a rendered SCA remediation PR/MR body for required sections, advisory formatting, and severity suffixes. |

@@ -23,6 +23,7 @@ def test_prepare_source_recipe_loads_validated_recipe_render_inputs():
         "prepare-remediation-diff",
         "open-change-request",
         "post-remediation-comment",
+        "create-remediation-ticket",
     ]
     assert prepared.action_contracts_path == recipe_file.parent / "actions.yaml"
     assert prepared.architecture_path == recipe_file.parent / "architecture.svg"

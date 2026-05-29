@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from endor_agent_kit.adversarial_evals import adversarial_eval_errors
 from endor_agent_kit.instruction_sections import parse_instruction_sections
 from endor_agent_kit.recipe import load_action_contracts, load_recipe, load_yaml_file
 from endor_agent_kit.validator import validate_recipe_file
@@ -239,6 +240,9 @@ def _check_eval_cases(
                         evals_path,
                     )
                 )
+
+    for message in adversarial_eval_errors(cases):
+        errors.append(SourceAuthoringIssue("evals.adversarial", message, evals_path))
 
 
 def _check_architecture(

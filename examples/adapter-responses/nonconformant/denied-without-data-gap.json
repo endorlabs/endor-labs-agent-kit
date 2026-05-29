@@ -1,0 +1,8 @@
+{
+  "action_id": "write-exception-policy",
+  "portable_kind": "endor.policy.write",
+  "status": "denied",
+  "actor": "runtime-service-account",
+  "evidence_summary": "Endor policy write was denied, but the blocker was not recorded.",
+  "data_gaps": []
+}

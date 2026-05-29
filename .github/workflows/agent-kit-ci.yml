@@ -58,3 +58,8 @@ jobs:
             claude-managed-agents \
             codex \
             portable
+
+      - name: Check guardrails
+        run: |
+          . .venv/bin/activate
+          endor-agent-kit check-guardrails --catalog-root .

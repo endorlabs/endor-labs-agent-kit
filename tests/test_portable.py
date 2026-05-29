@@ -5,7 +5,8 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.cli import main
-from endor_agent_kit.compilers.portable import assert_portable_text, compile_portable
+from endor_agent_kit.compilers.portable import compile_portable
+from endor_agent_kit.portable_runtime_conformance import assert_portable_text
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -35,9 +36,10 @@ def test_portable_compiler_emits_runtime_neutral_bundle(tmp_path):
     assert manifest["portable_schema_version"] == 1
     assert manifest["id"] == "sca-remediation"
     assert "source.change_request.create" in manifest["required_capabilities"]
+    assert "ticket.create" in manifest["required_capabilities"]
     assert manifest["degradation"]["supports_plan_only"] is True
     ticket = _vocabulary_item(manifest, "ticket.create")
-    assert ticket["status"] == "wrapper_available"
+    assert ticket["status"] == "declared"
     assert ticket["confirmation_required"] is True
     assert "source-provider-adapter" in json.dumps(manifest)
     assert "gh-cli" not in json.dumps(manifest)
@@ -107,6 +109,25 @@ def test_portable_manifest_distinguishes_declared_actions_and_wrappers(tmp_path)
     declared = {action["portable_kind"] for action in manifest["declared_actions"]}
     assert "source.change_request.create" in declared
     assert "endor.policy.write" in declared
+    assert "ticket.create" in declared
+    assert _vocabulary_item(manifest, "ticket.create")["status"] == "declared"
+    assert manifest["runtime_wrappers"] == []
+
+
+def test_portable_manifest_keeps_ticket_wrapper_for_non_declared_ticket_agents(tmp_path):
+    recipe = _copy_agent(tmp_path, "vulnerability-explainer")
+    compile_portable(recipe)
+    manifest = json.loads(
+        (
+            recipe.parent
+            / "dist"
+            / "portable"
+            / "vulnerability-explainer"
+            / "agent.manifest.json"
+        ).read_text(encoding="utf-8")
+    )
+
+    declared = {action["portable_kind"] for action in manifest["declared_actions"]}
     assert "ticket.create" not in declared
     assert _vocabulary_item(manifest, "ticket.create")["status"] == "wrapper_available"
     assert manifest["runtime_wrappers"][0]["kind"] == "ticket.create"
