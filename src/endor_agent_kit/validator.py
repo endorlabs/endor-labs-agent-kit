@@ -20,7 +20,14 @@ PUBLIC_MCP_TOOLS = frozenset(
 )
 
 SUPPORTED_TRANSPORTS = frozenset({"mcp", "endorctl_api", "direct_api"})
-SUPPORTED_HOSTS = frozenset({"claude-code", "claude-managed-agents", "codex", "portable", "raw"})
+SUPPORTED_HOSTS = frozenset({
+    "claude-code",
+    "claude-managed-agents",
+    "codex",
+    "gemini",
+    "portable",
+    "raw",
+})
 SUPPORTED_EDITIONS = frozenset({"developer-edition", "enterprise-edition"})
 SAFETY_CLASSES = frozenset({"read_only", "dry_run", "mutating"})
 ACTION_KINDS = frozenset(

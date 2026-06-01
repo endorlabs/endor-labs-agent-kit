@@ -7,23 +7,27 @@ from pathlib import Path
 from endor_agent_kit.compilers.claude_code import HOST as CLAUDE_CODE_HOST
 from endor_agent_kit.compilers.claude_managed_agents import HOST as CLAUDE_MANAGED_AGENTS_HOST
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST
+from endor_agent_kit.compilers.gemini import HOST as GEMINI_HOST
 from endor_agent_kit.compilers.portable import HOST as PORTABLE_HOST
 from endor_agent_kit.publication import (
     ClaudeCodeHostAdapter,
     ClaudeManagedAgentsHostAdapter,
     CodexHostAdapter,
+    GeminiHostAdapter,
     HostArtifactPublication,
     PortableHostAdapter,
     RootCatalogAggregate,
 )
 from endor_agent_kit.publication.claude_plugin import publish_claude_plugin_package
 from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_package
+from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
     CLAUDE_CODE_HOST: ClaudeCodeHostAdapter(),
     CLAUDE_MANAGED_AGENTS_HOST: ClaudeManagedAgentsHostAdapter(),
     CODEX_HOST: CodexHostAdapter(),
+    GEMINI_HOST: GeminiHostAdapter(),
     PORTABLE_HOST: PortableHostAdapter(),
 })
 _ROOT_CATALOG_AGGREGATE = RootCatalogAggregate()
@@ -62,6 +66,11 @@ def _publish_prepared_recipe(prepared: PreparedSourceRecipe, dest: str | Path) -
 
     if CODEX_HOST in recipe.compatible_hosts:
         publication = _HOST_ARTIFACT_PUBLICATION.publish(CODEX_HOST, prepared, destination)
+        written.extend(publication.bundle.written)
+        manifest = publication.catalog_manifest
+
+    if GEMINI_HOST in recipe.compatible_hosts:
+        publication = _HOST_ARTIFACT_PUBLICATION.publish(GEMINI_HOST, prepared, destination)
         written.extend(publication.bundle.written)
         manifest = publication.catalog_manifest
 
@@ -114,6 +123,10 @@ def publish_recipes(
         if claude_plugin is not None:
             written.extend(claude_plugin.written)
             plugin_packages.append(claude_plugin.package_record)
+        gemini_plugin = publish_gemini_plugin_package(prepared_recipes, destination)
+        if gemini_plugin is not None:
+            written.extend(gemini_plugin.written)
+            plugin_packages.append(gemini_plugin.package_record)
         if plugin_packages:
             manifest = _HOST_ARTIFACT_PUBLICATION.write_plugin_packages(
                 destination,

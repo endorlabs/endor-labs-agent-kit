@@ -1,0 +1,6 @@
+{
+  "contextFileName": "GEMINI.md",
+  "description": "Endor Labs workflow skills and subagents for Gemini CLI.",
+  "name": "endor-labs-agent-kit",
+  "version": "0.1.0"
+}

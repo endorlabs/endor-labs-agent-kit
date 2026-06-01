@@ -5,6 +5,7 @@ import json
 import shutil
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogAgent
@@ -431,7 +432,7 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
-def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tmp_path):
+def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_packages(tmp_path):
     claude_agent_ids = (
         "ai-sast-triage",
         "dependency-decision-helper",
@@ -450,6 +451,7 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
         "probe-droid",
         "sca-remediation",
     )
+    gemini_agent_ids = codex_agent_ids
     recipes = [
         _copy_agent(tmp_path / agent_id, agent_id)
         for agent_id in claude_agent_ids
@@ -469,6 +471,11 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit.zip" in written_paths
 
     for agent_id in codex_agent_ids:
         assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
@@ -480,6 +487,9 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
         assert f"plugins/codex/endor-labs-agent-kit/agents/{agent_name}.toml" in written_paths
     for agent_id in claude_agent_ids:
         assert f"plugins/claude/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+    for agent_id in gemini_agent_ids:
+        assert f"plugins/gemini/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        assert f"plugins/gemini/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
 
     plugin_manifest = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
@@ -503,6 +513,18 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
     assert claude_plugin_manifest["skills"] == "./skills/"
     assert "license" not in claude_plugin_manifest
     assert "mcpServers" not in claude_plugin_manifest
+    gemini_plugin_manifest = json.loads(
+        (dest / "plugins" / "gemini" / "endor-labs-agent-kit" / "gemini-extension.json").read_text()
+    )
+    assert gemini_plugin_manifest == {
+        "contextFileName": "GEMINI.md",
+        "description": "Endor Labs workflow skills and subagents for Gemini CLI.",
+        "name": "endor-labs-agent-kit",
+        "version": gemini_plugin_manifest["version"],
+    }
+    assert "mcpServers" not in gemini_plugin_manifest
+    assert "settings" not in gemini_plugin_manifest
+    assert "license" not in gemini_plugin_manifest
 
     marketplace = json.loads(
         (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
@@ -546,6 +568,20 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
     assert "Run `endorctl scan`" in claude_setup
     assert "Run `endorctl host-check`" in claude_setup
     assert "Do not add plugin-wide MCP automatically" in claude_setup
+    gemini_setup = (
+        dest
+        / "plugins"
+        / "gemini"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in gemini_setup
+    assert "Run `endorctl host-check`" in gemini_setup
+    assert "folder trust prompt" in gemini_setup
+    assert "Do not add plugin-wide MCP automatically" in gemini_setup
+    assert "Gemini subagents are preview functionality" in gemini_setup
 
     toml = (
         dest
@@ -592,10 +628,23 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
     ).read_text()
     assert "mcpServers:" not in claude_mcp_only_agent.split("---", 2)[1]
     assert "disallowedTools: Bash" in claude_mcp_only_agent.split("---", 2)[1]
+    gemini_agent = (
+        dest
+        / "plugins"
+        / "gemini"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "probe-droid.md"
+    ).read_text()
+    assert "endor_agent_kit_managed=true" in gemini_agent
+    assert "Gemini CLI Host Contract" in gemini_agent
+    assert "data_gaps" in gemini_agent
+    assert "kind: local" in gemini_agent.split("---", 2)[1]
+    assert "mcpServers:" not in gemini_agent.split("---", 2)[1]
 
     manifest = json.loads((dest / "manifest.json").read_text())
     packages = {package["host"]: package for package in manifest["plugin_packages"]}
-    assert set(packages) == {"claude-code", "codex"}
+    assert set(packages) == {"claude-code", "codex", "gemini"}
     assert packages["codex"] == {
         "artifacts": packages["codex"]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
@@ -616,6 +665,15 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
         "path": "plugins/claude/endor-labs-agent-kit",
         "version": claude_plugin_manifest["version"],
     }
+    assert packages["gemini"] == {
+        "artifacts": packages["gemini"]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "gemini",
+        "included_agents": list(gemini_agent_ids),
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/gemini/endor-labs-agent-kit",
+        "version": gemini_plugin_manifest["version"],
+    }
     package_artifact_paths = {
         artifact["path"]
         for artifact in packages["codex"]["artifacts"]
@@ -631,6 +689,22 @@ def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tm
     assert ".claude-plugin/marketplace.json" in claude_artifact_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in claude_artifact_paths
     assert "plugins/README.md" in claude_artifact_paths
+    gemini_artifact_paths = {
+        artifact["path"]
+        for artifact in packages["gemini"]["artifacts"]
+    }
+    assert "plugins/gemini/endor-labs-agent-kit/README.md" in gemini_artifact_paths
+    assert "plugins/gemini/endor-labs-agent-kit.zip" in gemini_artifact_paths
+    assert "plugins/README.md" in gemini_artifact_paths
+    with zipfile.ZipFile(dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip") as archive:
+        archive_names = set(archive.namelist())
+    assert "gemini-extension.json" in archive_names
+    assert "GEMINI.md" in archive_names
+    assert "skills/endor-agent-kit-setup/SKILL.md" in archive_names
+    assert "skills/sca-remediation/SKILL.md" in archive_names
+    assert "agents/sca-remediation.md" in archive_names
+    assert not any(name.startswith("endor-labs-agent-kit/") for name in archive_names)
+    assert not any(name.endswith("recipe.yaml") or name.endswith("cases.yaml") for name in archive_names)
 
 
 def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):

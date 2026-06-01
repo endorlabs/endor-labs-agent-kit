@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+import zipfile
 
 import yaml
 
@@ -61,6 +62,7 @@ def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     _check_claude_code(root, errors)
     _check_managed_agents(root, errors)
     _check_codex(root, errors)
+    _check_gemini(root, errors)
     _check_plugins(root, errors)
     _check_portable(root, errors)
     _check_credentials(root, errors)
@@ -294,6 +296,43 @@ def _check_codex(root: Path, errors: list[str]) -> None:
                 )
 
 
+def _check_gemini(root: Path, errors: list[str]) -> None:
+    host_root = root / "gemini"
+    if not host_root.is_dir():
+        return
+    for agent_dir in sorted(item for item in host_root.iterdir() if item.is_dir()):
+        skill = agent_dir / "SKILL.md"
+        if not skill.is_file():
+            errors.append(f"{_rel(root, skill)}: missing Gemini skill")
+        else:
+            skill_text = skill.read_text(encoding="utf-8")
+            for required in (
+                "## Gemini CLI Host Contract",
+                "unless Gemini CLI performed it and captured evidence",
+                "data_gaps",
+                UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
+            ):
+                if required not in skill_text:
+                    errors.append(f"{_rel(root, skill)}: missing required guardrail text {required!r}")
+        agent = agent_dir / f"{agent_dir.name}.md"
+        if not agent.is_file():
+            errors.append(f"{_rel(root, agent)}: missing Gemini subagent")
+            continue
+        agent_text = agent.read_text(encoding="utf-8")
+        for required in (
+            "endor_agent_kit_managed=true",
+            "## Gemini CLI Host Contract",
+            "data_gaps",
+            UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
+        ):
+            if required not in agent_text:
+                errors.append(f"{_rel(root, agent)}: missing required guardrail text {required!r}")
+        frontmatter = _frontmatter_mapping(root, agent, agent_text, errors)
+        for forbidden in ("mcpServers", "hooks"):
+            if forbidden in frontmatter:
+                errors.append(f"{_rel(root, agent)}: Gemini subagent must not declare {forbidden}")
+
+
 def _check_plugins(root: Path, errors: list[str]) -> None:
     plugins_root = root / "plugins"
     if not plugins_root.is_dir():
@@ -306,6 +345,10 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     claude_package = plugins_root / "claude" / "endor-labs-agent-kit"
     if claude_package.is_dir():
         _check_claude_plugin_package(root, plugins_root, claude_package, errors)
+
+    gemini_package = plugins_root / "gemini" / "endor-labs-agent-kit"
+    if gemini_package.is_dir():
+        _check_gemini_plugin_package(root, gemini_package, errors)
 
 
 def _check_codex_plugin_package(
@@ -489,6 +532,86 @@ def _check_claude_marketplace(
         return
     if entry.get("source") != expected_source:
         errors.append(f"{_rel(root, path)}: plugin source must be {expected_source!r}")
+
+
+def _check_gemini_plugin_package(
+    root: Path,
+    gemini_package: Path,
+    errors: list[str],
+) -> None:
+    manifest_path = gemini_package / "gemini-extension.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append("plugins/gemini/endor-labs-agent-kit/gemini-extension.json: name must be endor-labs-agent-kit")
+        if manifest.get("contextFileName") != "GEMINI.md":
+            errors.append("plugins/gemini/endor-labs-agent-kit/gemini-extension.json: contextFileName must be GEMINI.md")
+        for forbidden in ("mcpServers", "settings", "license"):
+            if forbidden in manifest:
+                errors.append(f"plugins/gemini/endor-labs-agent-kit/gemini-extension.json: must not declare {forbidden}")
+
+    setup = gemini_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    if not setup.is_file():
+        errors.append(f"{_rel(root, setup)}: missing Gemini setup skill")
+    else:
+        setup_text = setup.read_text(encoding="utf-8")
+        for required in (
+            "Run `endorctl scan`",
+            "Run `endorctl host-check`",
+            "folder trust prompt",
+            "Do not add plugin-wide MCP automatically",
+            "Gemini subagents are preview functionality",
+        ):
+            if required not in setup_text:
+                errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+
+    for skill in sorted((gemini_package / "skills").glob("*/SKILL.md")):
+        if skill.parent.name == "endor-agent-kit-setup":
+            continue
+        text = skill.read_text(encoding="utf-8")
+        for required in ("## Gemini CLI Host Contract", "data_gaps"):
+            if required not in text:
+                errors.append(f"{_rel(root, skill)}: missing required Gemini plugin skill text {required!r}")
+
+    for agent in sorted((gemini_package / "agents").glob("*.md")):
+        text = agent.read_text(encoding="utf-8")
+        for required in (
+            "endor_agent_kit_managed=true",
+            "## Gemini CLI Host Contract",
+            "data_gaps",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, agent)}: missing required Gemini plugin subagent text {required!r}")
+        frontmatter = _frontmatter_mapping(root, agent, text, errors)
+        if frontmatter.get("kind") != "local":
+            errors.append(f"{_rel(root, agent)}: Gemini subagent kind must be local")
+        for forbidden in ("mcpServers", "hooks"):
+            if forbidden in frontmatter:
+                errors.append(f"{_rel(root, agent)}: Gemini plugin subagent must not declare {forbidden}")
+
+    forbidden_names = {"recipe.yaml", "cases.yaml"}
+    for path in gemini_package.rglob("*"):
+        if path.is_file() and path.name in forbidden_names:
+            errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+    archive_path = root / "plugins" / "gemini" / "endor-labs-agent-kit.zip"
+    if not archive_path.is_file():
+        errors.append(f"{_rel(root, archive_path)}: missing Gemini release archive")
+        return
+    try:
+        with zipfile.ZipFile(archive_path) as archive:
+            names = set(archive.namelist())
+    except zipfile.BadZipFile as exc:
+        errors.append(f"{_rel(root, archive_path)}: invalid zip archive: {exc}")
+        return
+    if "gemini-extension.json" not in names:
+        errors.append(f"{_rel(root, archive_path)}: gemini-extension.json must be at archive root")
+    if "skills/endor-agent-kit-setup/SKILL.md" not in names:
+        errors.append(f"{_rel(root, archive_path)}: missing setup skill in release archive")
+    if any(name.startswith("endor-labs-agent-kit/") for name in names):
+        errors.append(f"{_rel(root, archive_path)}: archive must not include an extra endor-labs-agent-kit root directory")
+    if any(Path(name).name in forbidden_names for name in names):
+        errors.append(f"{_rel(root, archive_path)}: source-only file leaked into release archive")
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:
