@@ -9,9 +9,16 @@ from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.compilers.claude_code import HOST as CLAUDE_CODE_HOST
 from endor_agent_kit.compilers.claude_managed_agents import HOST as CLAUDE_MANAGED_AGENTS_HOST
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST
+from endor_agent_kit.compilers.gemini import HOST as GEMINI_HOST
 from endor_agent_kit.compilers.portable import HOST as PORTABLE_HOST
 
-DEFAULT_PUBLISHED_HOSTS = (CLAUDE_CODE_HOST, CLAUDE_MANAGED_AGENTS_HOST, CODEX_HOST, PORTABLE_HOST)
+DEFAULT_PUBLISHED_HOSTS = (
+    CLAUDE_CODE_HOST,
+    CLAUDE_MANAGED_AGENTS_HOST,
+    CODEX_HOST,
+    GEMINI_HOST,
+    PORTABLE_HOST,
+)
 
 
 @dataclass(frozen=True)
@@ -60,9 +67,10 @@ def root_catalog_readme(
             else "-"
         )
         codex_path = f"`{CODEX_HOST}/{agent_id}/`" if CODEX_HOST in item.hosts else "-"
+        gemini_path = f"`{GEMINI_HOST}/{agent_id}/`" if GEMINI_HOST in item.hosts else "-"
         portable_path = f"`{PORTABLE_HOST}/{agent_id}/`" if PORTABLE_HOST in item.hosts else "-"
         agent_rows.append(
-            f"| {item.name} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {codex_path} | {portable_path} |"
+            f"| {item.name} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {codex_path} | {gemini_path} | {portable_path} |"
         )
 
     layout_agents = _repository_layout(agents, published_hosts=published_hosts)
@@ -139,8 +147,8 @@ def root_catalog_readme(
         "If you are installing an agent, start with the generated host directories below.",
         "You only need `source/agents/` when you are changing or contributing an agent.",
         "",
-        "| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Portable |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Portable |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
         *agent_rows,
         "",
         "## Which Directory Do I Use?",
@@ -150,6 +158,7 @@ def root_catalog_readme(
         "| Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |",
         "| Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |",
         "| Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |",
+        "| Install a Gemini CLI skill and subagent | `gemini/<agent>/README.md` | `source/`, `src/`, `tests/` |",
         "| Install a portable runtime-neutral bundle | `portable/<agent>/README.md` | `source/`, `src/`, `tests/` |",
         "| Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |",
         "| Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |",
@@ -165,6 +174,7 @@ def root_catalog_readme(
         "| Claude Code | `claude-code/<agent>/` | `.claude/agents/` in the target repository |",
         "| Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |",
         "| Codex | `codex/<agent>/` | `$CODEX_HOME/skills/<agent>/` or `~/.codex/skills/<agent>/` |",
+        "| Gemini | `gemini/<agent>/` | Gemini CLI extension package under `plugins/gemini/endor-labs-agent-kit` |",
         "| Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |",
         "",
         "## Already Have Your Own Tech Stack Or Workflows Wired?",
@@ -173,7 +183,7 @@ def root_catalog_readme(
         "agent runtime, repository workflow, ticketing workflow, approval system,",
         "credential controls, and audit pipeline. Portable bundles give you the",
         "agent instructions and runtime contract without assuming Claude Code,",
-        "Claude Managed Agents, Codex, or any other host-specific package shape.",
+        "Claude Managed Agents, Codex, Gemini, or any other host-specific package shape.",
         "",
         "Each portable bundle includes:",
         "",
@@ -268,12 +278,15 @@ def root_catalog_readme(
         "- `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup",
         "  skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`",
         "  plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.",
+        "- `plugins/gemini/endor-labs-agent-kit/`: Gemini CLI extension with setup",
+        "  skill, Gemini workflow skills, preview subagents, minimal context, and a",
+        "  generated release archive at `plugins/gemini/endor-labs-agent-kit.zip`.",
         "",
-        "Both packages preserve the same recipe source, action metadata, and approval",
-        "gates as the manual generated catalog. Gemini remains a release-critical",
-        "follow-up and should use a generated release archive rooted at",
-        "`plugins/gemini/endor-labs-agent-kit` so `gemini-extension.json` is at the",
-        "archive root without turning this repository root into the Gemini extension root.",
+        "All plugin packages preserve the same recipe source, action metadata, and",
+        "approval gates as the manual generated catalog. The Gemini release archive",
+        "is rooted at `plugins/gemini/endor-labs-agent-kit` so",
+        "`gemini-extension.json` is at the archive root without turning this",
+        "repository root into the Gemini extension root.",
         "See `docs/plugin-packaging-design.md` for blast-radius notes.",
         "",
         "## Editions",

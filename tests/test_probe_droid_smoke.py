@@ -47,10 +47,11 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
-    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex", "portable"]
+    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex", "gemini", "portable"]
     assert data["host_editions"] == {
         "claude-code": ["enterprise-edition"],
         "claude-managed-agents": ["enterprise-edition"],
+        "gemini": ["enterprise-edition"],
     }
     assert data["host_capabilities_required"] == {
         "run_commands": True,
@@ -246,6 +247,11 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
         "codex/probe-droid/README.md",
         "codex/probe-droid/architecture.svg",
         "codex/probe-droid/endorctl-setup.md",
+        "gemini/probe-droid/SKILL.md",
+        "gemini/probe-droid/probe-droid.md",
+        "gemini/probe-droid/README.md",
+        "gemini/probe-droid/architecture.svg",
+        "gemini/probe-droid/endorctl-setup.md",
         "portable/probe-droid/README.md",
         "portable/probe-droid/agent.md",
         "portable/probe-droid/agent.manifest.json",
@@ -258,6 +264,7 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
     agent_dir = dest / "claude-code" / "probe-droid"
     managed_dir = dest / "claude-managed-agents" / "probe-droid"
     codex_dir = dest / "codex" / "probe-droid"
+    gemini_dir = dest / "gemini" / "probe-droid"
     portable_dir = dest / "portable" / "probe-droid"
     assert_host_bundle_files(
         agent_dir,
@@ -278,11 +285,16 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
         ),
     )
     assert_host_bundle_files(
+        gemini_dir,
+        {"SKILL.md", "probe-droid.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
+    assert_host_bundle_files(
         portable_dir,
         {"README.md", "agent.md", "agent.manifest.json", "output-contract.md", "architecture.svg", "endorctl-setup.md"},
     )
     assert_no_nested_edition_dirs(agent_dir)
     assert_no_nested_edition_dirs(managed_dir)
+    assert_no_nested_edition_dirs(gemini_dir)
 
     root_readme = (dest / "README.md").read_text(encoding="utf-8")
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
@@ -292,6 +304,8 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
     prompt = (agent_dir / "probe-droid.md").read_text(encoding="utf-8")
     codex_skill = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
     codex_readme = (codex_dir / "README.md").read_text(encoding="utf-8")
+    gemini_skill = (gemini_dir / "SKILL.md").read_text(encoding="utf-8")
+    gemini_readme = (gemini_dir / "README.md").read_text(encoding="utf-8")
     setup = (agent_dir / "endorctl-setup.md").read_text(encoding="utf-8")
     architecture = (agent_dir / "architecture.svg").read_text(encoding="utf-8")
 
@@ -299,6 +313,7 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
     assert "claude-code/probe-droid/" in root_readme
     assert "claude-managed-agents/probe-droid/" in root_readme
     assert "codex/probe-droid/" in root_readme
+    assert "gemini/probe-droid/" in root_readme
     assert "portable/probe-droid/" in root_readme
     assert "cp -R /path/to/endor-labs-agent-kit/codex/probe-droid" in root_readme
     assert "Use the probe-droid skill to probe GitHub org <org>" in root_readme
@@ -323,6 +338,9 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
     assert "GitHub App selection gaps" in codex_readme
     assert "## Codex Host Contract" in codex_skill
     assert "Do not write source files as part of this agent workflow." in codex_skill
+    assert "Probe Droid Gemini CLI Bundle" in gemini_readme
+    assert "## Gemini CLI Host Contract" in gemini_skill
+    assert "Do not write source files as part of this agent workflow." in gemini_skill
     assert "GitLab" not in agent_readme
     assert "Azure DevOps" not in agent_readme
     assert "Bitbucket" not in agent_readme
@@ -332,6 +350,7 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
     assert_mcp_free_generated_artifact(prompt)
     assert_mcp_free_generated_artifact(managed_agent)
     assert_mcp_free_generated_artifact(codex_skill)
+    assert_mcp_free_generated_artifact(gemini_skill)
 
 
 def test_probe_droid_raw_setup_documents_github_inventory_boundary(tmp_path):

@@ -94,9 +94,12 @@ evals: evals/cases.yaml
 compatible_hosts:
 - claude-code
 - codex
+- gemini
 - portable
 host_editions:
   claude-code:
+  - enterprise-edition
+  gemini:
   - enterprise-edition
 action_contracts_path: actions.yaml
 mutations:

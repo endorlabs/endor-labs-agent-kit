@@ -17,8 +17,10 @@ Current generated package slices:
 - `claude/endor-labs-agent-kit/`: Claude Code plugin package with setup skill,
   Claude Code workflow agents, minimal assets, and marketplace metadata under
   `.claude-plugin/marketplace.json` and `claude/.claude-plugin/marketplace.json`.
+- `gemini/endor-labs-agent-kit/`: Gemini CLI extension package with setup skill,
+  Gemini workflow skills, preview subagents, minimal context, and a generated
+  release archive at `gemini/endor-labs-agent-kit.zip`.
 
-Gemini remains a planned release-critical host package. The Gemini slice
-should generate a release archive rooted at `plugins/gemini/endor-labs-agent-kit`
+The Gemini release archive is rooted at `plugins/gemini/endor-labs-agent-kit`
 so `gemini-extension.json` is at the archive root while the repository keeps
 all generated host packages together.

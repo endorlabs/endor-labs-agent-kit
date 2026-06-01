@@ -38,18 +38,18 @@ maintainer-facing source of truth.
 If you are installing an agent, start with the generated host directories below.
 You only need `source/agents/` when you are changing or contributing an agent.
 
-| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Portable |
-| --- | --- | --- | --- | --- | --- |
-| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `portable/ai-sast-triage/` |
-| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | `portable/dependency-decision-helper/` |
-| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | `portable/package-risk-summary/` |
-| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | `portable/repository-dependency-reviewer/` |
-| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | `portable/upgrade-impact-analysis/` |
-| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | `portable/vulnerability-explainer/` |
-| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `portable/endor-troubleshooter/` |
-| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `portable/probe-droid/` |
-| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | `portable/remediation-planner/` |
-| SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` | `portable/sca-remediation/` |
+| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Portable |
+| --- | --- | --- | --- | --- | --- | --- |
+| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `gemini/ai-sast-triage/` | `portable/ai-sast-triage/` |
+| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | - | `portable/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | - | `portable/package-risk-summary/` |
+| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | - | `portable/repository-dependency-reviewer/` |
+| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | - | `portable/upgrade-impact-analysis/` |
+| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | - | `portable/vulnerability-explainer/` |
+| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `gemini/endor-troubleshooter/` | `portable/endor-troubleshooter/` |
+| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `gemini/probe-droid/` | `portable/probe-droid/` |
+| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | - | `portable/remediation-planner/` |
+| SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` | `gemini/sca-remediation/` | `portable/sca-remediation/` |
 
 ## Which Directory Do I Use?
 
@@ -58,6 +58,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |
+| Install a Gemini CLI skill and subagent | `gemini/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a portable runtime-neutral bundle | `portable/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Modify or contribute an agent | `source/agents/<agent>/recipe.yaml` and `instructions.md` | Generated catalog files as the first edit |
 | Work on the kit builder itself | `src/endor_agent_kit/` and `tests/` | Host install directories unless compiler output changes |
@@ -73,6 +74,7 @@ are the generated host directories listed in the catalog.
 | Claude Code | `claude-code/<agent>/` | `.claude/agents/` in the target repository |
 | Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
 | Codex | `codex/<agent>/` | `$CODEX_HOME/skills/<agent>/` or `~/.codex/skills/<agent>/` |
+| Gemini | `gemini/<agent>/` | Gemini CLI extension package under `plugins/gemini/endor-labs-agent-kit` |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
 ## Already Have Your Own Tech Stack Or Workflows Wired?
@@ -81,7 +83,7 @@ Use the `portable/<agent>/` bundles when your organization already has an
 agent runtime, repository workflow, ticketing workflow, approval system,
 credential controls, and audit pipeline. Portable bundles give you the
 agent instructions and runtime contract without assuming Claude Code,
-Claude Managed Agents, Codex, or any other host-specific package shape.
+Claude Managed Agents, Codex, Gemini, or any other host-specific package shape.
 
 Each portable bundle includes:
 
@@ -176,12 +178,15 @@ Generated plugin packages currently include:
 - `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup
   skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`
   plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.
+- `plugins/gemini/endor-labs-agent-kit/`: Gemini CLI extension with setup
+  skill, Gemini workflow skills, preview subagents, minimal context, and a
+  generated release archive at `plugins/gemini/endor-labs-agent-kit.zip`.
 
-Both packages preserve the same recipe source, action metadata, and approval
-gates as the manual generated catalog. Gemini remains a release-critical
-follow-up and should use a generated release archive rooted at
-`plugins/gemini/endor-labs-agent-kit` so `gemini-extension.json` is at the
-archive root without turning this repository root into the Gemini extension root.
+All plugin packages preserve the same recipe source, action metadata, and
+approval gates as the manual generated catalog. The Gemini release archive
+is rooted at `plugins/gemini/endor-labs-agent-kit` so
+`gemini-extension.json` is at the archive root without turning this
+repository root into the Gemini extension root.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## Editions
@@ -730,6 +735,33 @@ codex/
     actions.yaml
     architecture.svg
     endorctl-setup.md
+gemini/
+  ai-sast-triage/
+    README.md
+    SKILL.md
+    actions.yaml
+    ai-sast-triage.md
+    architecture.svg
+    endorctl-setup.md
+  endor-troubleshooter/
+    README.md
+    SKILL.md
+    architecture.svg
+    endor-troubleshooter.md
+    endorctl-setup.md
+  probe-droid/
+    README.md
+    SKILL.md
+    architecture.svg
+    endorctl-setup.md
+    probe-droid.md
+  sca-remediation/
+    README.md
+    SKILL.md
+    actions.yaml
+    architecture.svg
+    endorctl-setup.md
+    sca-remediation.md
 portable/
   ai-sast-triage/
     README.md

@@ -149,11 +149,14 @@ compatible_hosts:
   - claude-code
   - claude-managed-agents
   - codex
+  - gemini
   - portable
 host_editions:
   claude-code:
     - enterprise-edition
   claude-managed-agents:
+    - enterprise-edition
+  gemini:
     - enterprise-edition
 mutations: []
 required_endor_mcp_tools: []

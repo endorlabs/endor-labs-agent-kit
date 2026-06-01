@@ -10,6 +10,7 @@ from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
     compile_codex,
+    compile_gemini,
     compile_portable,
     compile_raw,
 )
@@ -54,7 +55,7 @@ def main(argv: list[str] | None = None) -> int:
     compile_parser.add_argument("recipe", type=Path)
     compile_parser.add_argument(
         "--target",
-        choices=("claude-code", "claude-managed-agents", "codex", "portable", "raw"),
+        choices=("claude-code", "claude-managed-agents", "codex", "gemini", "portable", "raw"),
         required=True,
     )
     compile_parser.add_argument(
@@ -159,6 +160,11 @@ def main(argv: list[str] | None = None) -> int:
                     print("ERROR: --edition/--variant is not valid for Codex skill artifacts")
                     return 1
                 outputs = compile_codex(args.recipe)
+            elif args.target == "gemini":
+                if args.edition is not None:
+                    print("ERROR: --edition/--variant is not valid for Gemini CLI artifacts")
+                    return 1
+                outputs = compile_gemini(args.recipe)
             elif args.target == "portable":
                 if args.edition is not None:
                     print("ERROR: --edition/--variant is not valid for portable artifacts")

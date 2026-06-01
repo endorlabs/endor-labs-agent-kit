@@ -11,6 +11,7 @@ from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
     compile_codex,
+    compile_gemini,
     compile_raw,
 )
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
@@ -285,6 +286,39 @@ def test_codex_compiler_emits_skill_artifact(tmp_path):
     assert "## Codex Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
     assert "endorctl api list" in skill
+
+
+def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    data = recipe.read_text(encoding="utf-8")
+    data = data.replace("  - claude-managed-agents\n", "  - claude-managed-agents\n  - gemini\n")
+    data = data.replace(
+        "  claude-managed-agents:\n    - enterprise-edition\n",
+        "  claude-managed-agents:\n    - enterprise-edition\n  gemini:\n    - enterprise-edition\n",
+    )
+    recipe.write_text(data, encoding="utf-8")
+
+    outputs = compile_gemini(recipe)
+
+    assert [path.name for path in outputs] == ["SKILL.md", "dependency-decision-helper.md"]
+    skill = (recipe.parent / "dist" / "gemini" / "dependency-decision-helper" / "SKILL.md").read_text()
+    agent = (
+        recipe.parent / "dist" / "gemini" / "dependency-decision-helper" / "dependency-decision-helper.md"
+    ).read_text()
+    agent_frontmatter = yaml.safe_load(agent.split("---", 2)[1])
+
+    assert "name: dependency-decision-helper" in skill
+    assert "Generated from Endor Agent Kit recipe `dependency-decision-helper`" in skill
+    assert "## Gemini CLI Host Contract" in skill
+    assert "Shell commands, when used, must stay read-only" in skill
+    assert "endorctl api list" in skill
+    assert "data_gaps" in skill
+    assert agent_frontmatter["kind"] == "local"
+    assert agent_frontmatter["model"] == "inherit"
+    assert agent_frontmatter["max_turns"] == 30
+    assert "mcpServers" not in agent_frontmatter
+    assert "endor_agent_kit_managed=true" in agent
+    assert "## Gemini CLI Host Contract" in agent
 
 
 def test_raw_compiler_removes_legacy_prompt_names(tmp_path):

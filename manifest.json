@@ -835,6 +835,196 @@
         {
           "artifacts": [
             {
+              "bytes": 2613,
+              "path": "gemini/ai-sast-triage/README.md",
+              "sha256": "af3b35cf8581fc996e98913ee502f1a6f9cffe7cdd81f1d0e33adbaccc474b67"
+            },
+            {
+              "bytes": 37973,
+              "path": "gemini/ai-sast-triage/SKILL.md",
+              "sha256": "d8be94c7afdcf47d88ab84820b09f6dff0c5116052fcb70664f1b564952013cf"
+            },
+            {
+              "bytes": 6162,
+              "path": "gemini/ai-sast-triage/actions.yaml",
+              "sha256": "8fc3b4ad3283e6ace7e4f57c772705aab18d34b4c957931b397096f231cd774f"
+            },
+            {
+              "bytes": 38267,
+              "path": "gemini/ai-sast-triage/ai-sast-triage.md",
+              "sha256": "1b9f44ad8a1b999f3a6d85b3e0f20a7544fe06cb751d541f058e75ac88c33478"
+            },
+            {
+              "bytes": 10801,
+              "path": "gemini/ai-sast-triage/architecture.svg",
+              "sha256": "a2f970ba2e8ad250c24ec1c6c56d4858277dabc562644629053ad0c0deae6597"
+            },
+            {
+              "bytes": 993,
+              "path": "gemini/ai-sast-triage/endorctl-setup.md",
+              "sha256": "a234c867e8fc1a3ec0b24387032e425b6af0fade7266e37024ae9c979abb52fc"
+            }
+          ],
+          "id": "gemini-cli",
+          "name": "Gemini CLI Skill And Subagent",
+          "path": "gemini/ai-sast-triage",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "gemini",
+      "id": "ai-sast-triage",
+      "name": "AI SAST Triage",
+      "source": {
+        "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 2575,
+              "path": "gemini/endor-troubleshooter/README.md",
+              "sha256": "6752076e1e75538ae34b9baace0f6fe6f0812f1350a77f4fdecb35bbd1dcd148"
+            },
+            {
+              "bytes": 50638,
+              "path": "gemini/endor-troubleshooter/SKILL.md",
+              "sha256": "ba31c19456b60c915bc26deadf98d8e0caa3ecc26acf5496bd5cc8594c58d503"
+            },
+            {
+              "bytes": 9834,
+              "path": "gemini/endor-troubleshooter/architecture.svg",
+              "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
+            },
+            {
+              "bytes": 50893,
+              "path": "gemini/endor-troubleshooter/endor-troubleshooter.md",
+              "sha256": "daf056f7073e00e0029304f7b3739c77ad515831efe155ace33de42c935cb03c"
+            },
+            {
+              "bytes": 1288,
+              "path": "gemini/endor-troubleshooter/endorctl-setup.md",
+              "sha256": "446ce11adb5d3ef4b824c63370e0f2c09c2052a7308009432a3c51103942426b"
+            }
+          ],
+          "id": "gemini-cli",
+          "name": "Gemini CLI Skill And Subagent",
+          "path": "gemini/endor-troubleshooter",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "gemini",
+      "id": "endor-troubleshooter",
+      "name": "Endor Troubleshooter",
+      "source": {
+        "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 2512,
+              "path": "gemini/probe-droid/README.md",
+              "sha256": "3d078919405b73d82a34796bde9ef7b059993844c0de01f363553770e00ec695"
+            },
+            {
+              "bytes": 48431,
+              "path": "gemini/probe-droid/SKILL.md",
+              "sha256": "f8250139100bf263ad5ee695c91bc71197fc6e1688692d1cab1b258c8eb5b497"
+            },
+            {
+              "bytes": 9818,
+              "path": "gemini/probe-droid/architecture.svg",
+              "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+            },
+            {
+              "bytes": 1107,
+              "path": "gemini/probe-droid/endorctl-setup.md",
+              "sha256": "ee3f6b3898a6b6ef3d7ebfdf4c04c1249cc19d803847d4b84682b32e6addb665"
+            },
+            {
+              "bytes": 48677,
+              "path": "gemini/probe-droid/probe-droid.md",
+              "sha256": "444fd81f12174394aff6584c98216807fabe8055ac546529244d1375f0c47e25"
+            }
+          ],
+          "id": "gemini-cli",
+          "name": "Gemini CLI Skill And Subagent",
+          "path": "gemini/probe-droid",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "gemini",
+      "id": "probe-droid",
+      "name": "Probe Droid",
+      "source": {
+        "builder_recipe": "source/agents/probe-droid/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 2830,
+              "path": "gemini/sca-remediation/README.md",
+              "sha256": "f9fd2876c68faf5118e31fa88f50fad6f5d890a0b2fc0679088aeeab2c4f61e2"
+            },
+            {
+              "bytes": 39072,
+              "path": "gemini/sca-remediation/SKILL.md",
+              "sha256": "fc4aa3856b7b3dc3c1dec1fb6e9f0d2c2bebc687d0a006e343cffb1cbd2f08a3"
+            },
+            {
+              "bytes": 6556,
+              "path": "gemini/sca-remediation/actions.yaml",
+              "sha256": "ef1e154cf39e2c0fbd4867e848e41a89fddfc03bdb3ff75caef7f97482aa00eb"
+            },
+            {
+              "bytes": 9846,
+              "path": "gemini/sca-remediation/architecture.svg",
+              "sha256": "f4260de452c5aa1eb67f804a6561db921cd9459e2e2aabda377a7c2d7557563e"
+            },
+            {
+              "bytes": 990,
+              "path": "gemini/sca-remediation/endorctl-setup.md",
+              "sha256": "f4c851c7536965f63265b3b8d67744b1b7d9f68f7dac69d6aaccf626fe32399a"
+            },
+            {
+              "bytes": 39367,
+              "path": "gemini/sca-remediation/sca-remediation.md",
+              "sha256": "9515f12d3c097304973a27aa94d9d33fbef9f6e67fafb966aba54a23249d82fc"
+            }
+          ],
+          "id": "gemini-cli",
+          "name": "Gemini CLI Skill And Subagent",
+          "path": "gemini/sca-remediation",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "gemini",
+      "id": "sca-remediation",
+      "name": "SCA Remediation",
+      "source": {
+        "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
+        "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 4580,
               "path": "portable/ai-sast-triage/README.md",
               "sha256": "7c2aa2a82703351de0f279d65e3dddd4df58ba15f60629872375b090b8e14f1d"
@@ -1396,9 +1586,9 @@
           "sha256": "dbe48fbc1c89d5a305af5d36b2d56f2d7f2aa6562187d73c46cf61429f417b4a"
         },
         {
-          "bytes": 1069,
+          "bytes": 1207,
           "path": "plugins/README.md",
-          "sha256": "82c39b0f18fe28861da5064cf275af80d20a42968decd41adf67edc06e3da73b"
+          "sha256": "880287865e55b00b8d6fb0e580b42085c329f1c1325d3f3505546eb306608785"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1493,9 +1683,9 @@
           "sha256": "61714d233f475253412a62d148ccb90c047ef0ca584422a1b58b5d9e2d67a934"
         },
         {
-          "bytes": 1069,
+          "bytes": 1207,
           "path": "plugins/README.md",
-          "sha256": "82c39b0f18fe28861da5064cf275af80d20a42968decd41adf67edc06e3da73b"
+          "sha256": "880287865e55b00b8d6fb0e580b42085c329f1c1325d3f3505546eb306608785"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1509,6 +1699,96 @@
       "marketplace_path": "plugins/codex/.agents/plugins/marketplace.json",
       "name": "endor-labs-agent-kit",
       "path": "plugins/codex/endor-labs-agent-kit",
+      "version": "0.1.0"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 850,
+          "path": "plugins/gemini/endor-labs-agent-kit/GEMINI.md",
+          "sha256": "0f4ae6225234cac0bb83bfe12137b190bc563e0ca82ee6160d41671b53a60ac4"
+        },
+        {
+          "bytes": 2539,
+          "path": "plugins/gemini/endor-labs-agent-kit/README.md",
+          "sha256": "0eb1fa2e09196b712310e392a4bd8571900d5c612928b9b506e714b3746b9fd9"
+        },
+        {
+          "bytes": 38298,
+          "path": "plugins/gemini/endor-labs-agent-kit/agents/ai-sast-triage.md",
+          "sha256": "53b5392503de9f04891d0e2ee30cab2621a149501df127986d9e202447b71e3f"
+        },
+        {
+          "bytes": 50924,
+          "path": "plugins/gemini/endor-labs-agent-kit/agents/endor-troubleshooter.md",
+          "sha256": "3dbd21cab2070060d653ffa34348b395796270d436b2613cdbf9d7a63eebd7d7"
+        },
+        {
+          "bytes": 48708,
+          "path": "plugins/gemini/endor-labs-agent-kit/agents/probe-droid.md",
+          "sha256": "5d2da1eba4becb1acc628e965a1f464a75269f138b375068ad016f1282621ee3"
+        },
+        {
+          "bytes": 39398,
+          "path": "plugins/gemini/endor-labs-agent-kit/agents/sca-remediation.md",
+          "sha256": "ca4e4a2b4a190d5348a370714a5ed4c4f8f68b131247a9acc04a9ba75aa28a09"
+        },
+        {
+          "bytes": 303,
+          "path": "plugins/gemini/endor-labs-agent-kit/assets/logo.svg",
+          "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
+        },
+        {
+          "bytes": 170,
+          "path": "plugins/gemini/endor-labs-agent-kit/gemini-extension.json",
+          "sha256": "cb02e7ffdd109bb2d489ef1ccd1654ad2df242889199319bf15a0cbdb78c916c"
+        },
+        {
+          "bytes": 38004,
+          "path": "plugins/gemini/endor-labs-agent-kit/skills/ai-sast-triage/SKILL.md",
+          "sha256": "b7158b77da0389d04bb492914bd948c8e1a3cb6bb638c3201d2d080ebee1b7b2"
+        },
+        {
+          "bytes": 6262,
+          "path": "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
+          "sha256": "55bee8e232010c3610925d523912da006816ebc48c04377da68415c796dba962"
+        },
+        {
+          "bytes": 50669,
+          "path": "plugins/gemini/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
+          "sha256": "18c5833bb2abbf09b2276ee44d602e2c58b0769700fb56cec31a4edfb34ab45d"
+        },
+        {
+          "bytes": 48462,
+          "path": "plugins/gemini/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
+          "sha256": "a790cae11d342cc4ccbf4c97b3aa68e5f0d2b4792f10442dc6da8ba29eef7ed7"
+        },
+        {
+          "bytes": 39103,
+          "path": "plugins/gemini/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
+          "sha256": "7c9dbf9defee679767aed2e453fb85babfcf297276bba14284340329c996b221"
+        },
+        {
+          "bytes": 119665,
+          "path": "plugins/gemini/endor-labs-agent-kit.zip",
+          "sha256": "3e9818250ba5c2b509bd137a1f90d74fde9d1c7f614e62e81d4f42ce384a6a84"
+        },
+        {
+          "bytes": 1207,
+          "path": "plugins/README.md",
+          "sha256": "880287865e55b00b8d6fb0e580b42085c329f1c1325d3f3505546eb306608785"
+        }
+      ],
+      "display_name": "Endor Labs Agent Kit",
+      "host": "gemini",
+      "included_agents": [
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation"
+      ],
+      "name": "endor-labs-agent-kit",
+      "path": "plugins/gemini/endor-labs-agent-kit",
       "version": "0.1.0"
     }
   ],

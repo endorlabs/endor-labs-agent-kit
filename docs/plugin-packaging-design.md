@@ -1,17 +1,18 @@
 # Plugin Packaging Design
 
 This is a blast-radius note for adding an Endor Labs Agent Kit plugin route.
-The Codex and Claude Code package slices are implemented behind
-`--include-plugins`; Gemini remains a planned release-critical follow-up.
+The Codex, Claude Code, and Gemini package slices are implemented behind
+`--include-plugins`.
 
 ## Current Decision
 
-Claude Code and Codex support still publish generated artifacts under
-`claude-code/<agent>/` and `codex/<agent>/`. The plugin package slices now wrap
-host-compatible public workflows under:
+Claude Code, Codex, and Gemini support still publish generated artifacts under
+`claude-code/<agent>/`, `codex/<agent>/`, and `gemini/<agent>/`. The plugin
+package slices now wrap host-compatible public workflows under:
 
 - `plugins/codex/endor-labs-agent-kit/`
 - `plugins/claude/endor-labs-agent-kit/`
+- `plugins/gemini/endor-labs-agent-kit/`
 
 The plugin route should sit alongside generated host artifacts. It should not
 replace `.claude/agents/` installs, Claude Managed Agents YAML, or Codex skill
@@ -58,6 +59,28 @@ those unsupported fields from packaged agents and makes MCP setup explicit in
 the setup skill and agent setup note. It does not add plugin-wide MCP by
 default.
 
+## Implemented Gemini CLI Extension Shape
+
+The generated Gemini CLI extension package includes:
+
+- `gemini-extension.json` for extension metadata.
+- `GEMINI.md` for minimal package context.
+- `skills/<agent>/SKILL.md` rendered from the same source recipe body as the
+  generated Gemini skill artifact.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `agents/<agent>.md` preview subagents generated from the same recipe body,
+  with provenance comments and Gemini host-contract text.
+- `assets/logo.svg`.
+- A deterministic release archive at `plugins/gemini/endor-labs-agent-kit.zip`
+  whose root contains `gemini-extension.json`.
+
+Gemini packages do not declare plugin-wide MCP by default. Setup documents the
+observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
+restart after extension installation or update. Gemini CLI 0.44.1 installs a
+local extension directory, but does not install a local zip path directly; the
+generated zip is for GitHub Release distribution.
+
 ## Blast Radius
 
 Adding first-class plugin publishing would touch:
@@ -71,12 +94,11 @@ Adding first-class plugin publishing would touch:
 - Tests for publisher output, guardrails, provenance, installer behavior, and
   generated metadata.
 
-Future Gemini package work should follow the same source-first publication model
-rather than introducing hand-assembled packages. Because Gemini extension
-gallery discovery expects `gemini-extension.json` at the repository or archive
-root, the Gemini slice should generate a release archive rooted at
-`plugins/gemini/endor-labs-agent-kit` instead of turning this repository root
-into the Gemini extension root.
+The Gemini package follows the same source-first publication model rather than
+introducing hand-assembled packages. Because Gemini extension discovery expects
+`gemini-extension.json` at the repository or archive root, the release archive
+is rooted at `plugins/gemini/endor-labs-agent-kit` instead of turning this
+repository root into the Gemini extension root.
 
 ## Safety Requirements
 
@@ -94,9 +116,13 @@ gates into a single broad authorization.
 Validate the generated Codex package through real Codex plugin installation and
 new-thread skill/custom-agent visibility. Validate the generated Claude Code
 package with `claude plugin validate`, local marketplace add/install, and
-agent/skill visibility in a fresh Claude Code session. Do not make plugins the
-primary README install path until the release-critical Claude Code, Codex, and
-Gemini host packages have local host validation.
+agent/skill visibility in a fresh Claude Code session. Validate the generated
+Gemini package with `gemini extensions install` from the package directory and
+zip archive-structure checks, then validate `gemini extensions install
+https://github.com/endorlabs/endor-labs-agent-kit --ref <tag>` after the public
+GitHub Release asset exists. Do not make plugins the primary README install path
+until the release-critical Claude Code, Codex, and Gemini host packages have
+local host validation.
 
 ## Prototype Result - 2026-05-24
 
