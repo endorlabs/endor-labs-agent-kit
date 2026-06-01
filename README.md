@@ -160,19 +160,28 @@ the required tools; otherwise the agent records the missing signal in
 
 ## Plugin Packaging Route
 
-Codex support currently publishes generated skills under `codex/<agent>/`.
+Claude Code and Codex still publish generated artifacts under
+`claude-code/<agent>/` and `codex/<agent>/` for manual installs.
 Plugin package generation is available as an opt-in publication slice:
 
 ```bash
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 ```
 
-The first generated plugin package is the Codex package under
-`plugins/codex/endor-labs-agent-kit/`. It wraps the Codex-compatible
-recipe artifacts as plugin skills, bundles Codex custom-agent TOML files,
-and includes a setup skill for `endorctl`, `gh`, namespace, auth, and
-custom-agent readiness. The generated package preserves the same recipe
-source, action metadata, and approval gates as the manual Codex catalog.
+Generated plugin packages currently include:
+
+- `plugins/codex/endor-labs-agent-kit/`: Codex plugin skills, bundled
+  custom-agent TOML files, setup skill, installer script, and Codex
+  marketplace metadata under `plugins/codex/.agents/plugins/marketplace.json`.
+- `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup
+  skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`
+  plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.
+
+Both packages preserve the same recipe source, action metadata, and approval
+gates as the manual generated catalog. Gemini remains a release-critical
+follow-up and should use a generated release archive rooted at
+`plugins/gemini/endor-labs-agent-kit` so `gemini-extension.json` is at the
+archive root without turning this repository root into the Gemini extension root.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## Editions

@@ -16,6 +16,7 @@ from endor_agent_kit.publication import (
     PortableHostAdapter,
     RootCatalogAggregate,
 )
+from endor_agent_kit.publication.claude_plugin import publish_claude_plugin_package
 from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_package
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
@@ -104,13 +105,20 @@ def publish_recipes(
             written.append(_write_root_readme(destination))
 
     if include_plugins:
+        plugin_packages = []
         codex_plugin = publish_codex_plugin_package(prepared_recipes, destination)
         if codex_plugin is not None:
             written.extend(codex_plugin.written)
+            plugin_packages.append(codex_plugin.package_record)
+        claude_plugin = publish_claude_plugin_package(prepared_recipes, destination)
+        if claude_plugin is not None:
+            written.extend(claude_plugin.written)
+            plugin_packages.append(claude_plugin.package_record)
+        if plugin_packages:
             manifest = _HOST_ARTIFACT_PUBLICATION.write_plugin_packages(
                 destination,
-                (codex_plugin.package_record,),
-                replace_hosts={"codex"},
+                tuple(plugin_packages),
+                replace_hosts={package.host for package in plugin_packages},
             )
             written.append(manifest)
 
