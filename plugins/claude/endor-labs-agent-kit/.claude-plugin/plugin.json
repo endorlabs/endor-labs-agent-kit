@@ -1,0 +1,21 @@
+{
+  "agents": "./agents/",
+  "author": {
+    "name": "Endor Labs",
+    "url": "https://www.endorlabs.com/"
+  },
+  "description": "Endor Labs workflow agents and setup for Claude Code.",
+  "displayName": "Endor Labs Agent Kit",
+  "homepage": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "sca",
+    "sast",
+    "claude-code"
+  ],
+  "name": "endor-labs-agent-kit",
+  "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

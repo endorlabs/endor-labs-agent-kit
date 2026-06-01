@@ -298,10 +298,22 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     plugins_root = root / "plugins"
     if not plugins_root.is_dir():
         return
-    codex_package = plugins_root / "codex" / "endor-labs-agent-kit"
-    if not codex_package.is_dir():
-        return
 
+    codex_package = plugins_root / "codex" / "endor-labs-agent-kit"
+    if codex_package.is_dir():
+        _check_codex_plugin_package(root, plugins_root, codex_package, errors)
+
+    claude_package = plugins_root / "claude" / "endor-labs-agent-kit"
+    if claude_package.is_dir():
+        _check_claude_plugin_package(root, plugins_root, claude_package, errors)
+
+
+def _check_codex_plugin_package(
+    root: Path,
+    plugins_root: Path,
+    codex_package: Path,
+    errors: list[str],
+) -> None:
     manifest = _load_json_mapping(
         root,
         codex_package / ".codex-plugin" / "plugin.json",
@@ -372,6 +384,111 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     for path in codex_package.rglob("*"):
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+
+def _check_claude_plugin_package(
+    root: Path,
+    plugins_root: Path,
+    claude_package: Path,
+    errors: list[str],
+) -> None:
+    manifest_path = claude_package / ".claude-plugin" / "plugin.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: name must be endor-labs-agent-kit")
+        if manifest.get("agents") != "./agents/":
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: agents must point at ./agents/")
+        if manifest.get("skills") != "./skills/":
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: skills must point at ./skills/")
+        if "license" in manifest:
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: license must be omitted until release metadata is final")
+        if "mcpServers" in manifest:
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: must not declare plugin-wide MCP")
+
+    _check_claude_marketplace(
+        root,
+        root / ".claude-plugin" / "marketplace.json",
+        "./plugins/claude/endor-labs-agent-kit",
+        errors,
+    )
+    _check_claude_marketplace(
+        root,
+        plugins_root / "claude" / ".claude-plugin" / "marketplace.json",
+        "./endor-labs-agent-kit",
+        errors,
+    )
+
+    setup = claude_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    if not setup.is_file():
+        errors.append(f"{_rel(root, setup)}: missing Claude setup skill")
+    else:
+        setup_text = setup.read_text(encoding="utf-8")
+        for required in (
+            "must not:",
+            "Run `endorctl scan`",
+            "Run `endorctl host-check`",
+            "Do not add plugin-wide MCP automatically",
+            "plugin-shipped agents cannot declare `mcpServers`",
+        ):
+            if required not in setup_text:
+                errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+
+    for agent in sorted((claude_package / "agents").glob("*.md")):
+        text = agent.read_text(encoding="utf-8")
+        for required in (
+            "endor_agent_kit_managed=true",
+            "Claude Code Plugin Setup Note",
+            "data_gaps",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, agent)}: missing required Claude plugin agent text {required!r}")
+        frontmatter = _frontmatter_mapping(root, agent, text, errors)
+        for forbidden in ("mcpServers", "permissionMode", "hooks"):
+            if forbidden in frontmatter:
+                errors.append(f"{_rel(root, agent)}: Claude plugin agent must not declare {forbidden}")
+        disallowed = _claude_code_disallowed_tools(text)
+        if disallowed is None:
+            errors.append(f"{_rel(root, agent)}: missing disallowedTools frontmatter")
+            continue
+        posture = _recipe_posture(root, agent.stem)
+        if posture is not None:
+            expected_denied = _claude_code_expected_denied(posture)
+            if not expected_denied <= disallowed:
+                missing = sorted(expected_denied - disallowed)
+                errors.append(f"{_rel(root, agent)}: disallowedTools missing {missing}")
+
+    forbidden_names = {"recipe.yaml", "cases.yaml"}
+    for path in claude_package.rglob("*"):
+        if path.is_file() and path.name in forbidden_names:
+            errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+
+def _check_claude_marketplace(
+    root: Path,
+    path: Path,
+    expected_source: str,
+    errors: list[str],
+) -> None:
+    marketplace = _load_json_mapping(root, path, errors)
+    if not marketplace:
+        return
+    if marketplace.get("name") != "endor-labs-agent-kit":
+        errors.append(f"{_rel(root, path)}: name must be endor-labs-agent-kit")
+    entries = _list(marketplace.get("plugins"))
+    entry = next(
+        (
+            _dict(item)
+            for item in entries
+            if _dict(item).get("name") == "endor-labs-agent-kit"
+        ),
+        {},
+    )
+    if not entry:
+        errors.append(f"{_rel(root, path)}: missing endor-labs-agent-kit plugin entry")
+        return
+    if entry.get("source") != expected_source:
+        errors.append(f"{_rel(root, path)}: plugin source must be {expected_source!r}")
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:
@@ -468,6 +585,27 @@ def _claude_code_disallowed_tools(content: str) -> set[str] | None:
             values = line.split(":", 1)[1].strip()
             return {item.strip() for item in values.split(",") if item.strip()}
     return None
+
+
+def _frontmatter_mapping(
+    root: Path,
+    path: Path,
+    content: str,
+    errors: list[str],
+) -> dict[str, Any]:
+    parts = content.split("---", 2)
+    if len(parts) < 3 or parts[0].strip():
+        errors.append(f"{_rel(root, path)}: missing YAML frontmatter")
+        return {}
+    try:
+        data = yaml.safe_load(parts[1]) or {}
+    except yaml.YAMLError as exc:
+        errors.append(f"{_rel(root, path)}: invalid YAML frontmatter: {exc}")
+        return {}
+    if not isinstance(data, dict):
+        errors.append(f"{_rel(root, path)}: YAML frontmatter must be a mapping")
+        return {}
+    return data
 
 
 def _load_yaml_mapping(root: Path, path: Path, errors: list[str]) -> dict[str, Any]:

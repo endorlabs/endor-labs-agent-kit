@@ -1316,6 +1316,113 @@
     {
       "artifacts": [
         {
+          "bytes": 541,
+          "path": "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json",
+          "sha256": "fa2ad21caf3927e5583cda8b4d543625ee82b346219bbc46e9645f9eec9437e6"
+        },
+        {
+          "bytes": 2725,
+          "path": "plugins/claude/endor-labs-agent-kit/README.md",
+          "sha256": "c16213d59ffe83817d1cfee717cedd019c16ce49c7fb168a15adca18a56928e5"
+        },
+        {
+          "bytes": 37956,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/ai-sast-triage.md",
+          "sha256": "1ec019486c543d6ca3a4ca9ee697748e5dd74d95622824d82dee5cb5c65c6e42"
+        },
+        {
+          "bytes": 10133,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-decision-helper.md",
+          "sha256": "f76dde85c1d2eb22f174ebf5b6fa7ad61efe86a27085c676b526948b86f6260f"
+        },
+        {
+          "bytes": 50721,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/endor-troubleshooter.md",
+          "sha256": "505fe1c2528905fca1266f9971cd000cb1f498cd6affc7a60d9c0a323346db4a"
+        },
+        {
+          "bytes": 10253,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/package-risk-summary.md",
+          "sha256": "603bae96e69d9f80c7b2d559a19f87bb51d30f8db89002129e8e4a56ec329d02"
+        },
+        {
+          "bytes": 48523,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/probe-droid.md",
+          "sha256": "85ce4a371c1f1b49b235930e481979b1f80ad307ce05b48e6afdbd1122525690"
+        },
+        {
+          "bytes": 3296,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/remediation-planner.md",
+          "sha256": "5aee84a4b6066367d525d3ab2f4a6e90d5a584b705e246a54da4ed1d08b79588"
+        },
+        {
+          "bytes": 8259,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/repository-dependency-reviewer.md",
+          "sha256": "4cb0e473f9829534f1f2108d71c6baebc15a31db8670e74a5ce74b9c3d11385e"
+        },
+        {
+          "bytes": 39055,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation.md",
+          "sha256": "03fec93b9e3624567d6985cf32c4e4ca9455e7935bc0bb6f9e714235061b623a"
+        },
+        {
+          "bytes": 19051,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/upgrade-impact-analysis.md",
+          "sha256": "27fcaae1fd58334f0fad924cc8e8fb7d7fb90e6ca1e2f8631dc0bf7a51f244ff"
+        },
+        {
+          "bytes": 6019,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/vulnerability-explainer.md",
+          "sha256": "aae68a8979293b1833ca6aba233f9c4a33dc1f6e07c957ff31e5d23316475c38"
+        },
+        {
+          "bytes": 303,
+          "path": "plugins/claude/endor-labs-agent-kit/assets/logo.svg",
+          "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
+        },
+        {
+          "bytes": 6425,
+          "path": "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
+          "sha256": "002258c19af500724cfe87ecfd1e52a36df17c312e8dcc194be64c7bfdf64b34"
+        },
+        {
+          "bytes": 679,
+          "path": ".claude-plugin/marketplace.json",
+          "sha256": "5c1881bab5519a92ee05b2bb9e1b8e6f500fccaf16549a1cd21d8fae965559a0"
+        },
+        {
+          "bytes": 664,
+          "path": "plugins/claude/.claude-plugin/marketplace.json",
+          "sha256": "dbe48fbc1c89d5a305af5d36b2d56f2d7f2aa6562187d73c46cf61429f417b4a"
+        },
+        {
+          "bytes": 1069,
+          "path": "plugins/README.md",
+          "sha256": "82c39b0f18fe28861da5064cf275af80d20a42968decd41adf67edc06e3da73b"
+        }
+      ],
+      "display_name": "Endor Labs Agent Kit",
+      "host": "claude-code",
+      "included_agents": [
+        "ai-sast-triage",
+        "dependency-decision-helper",
+        "endor-troubleshooter",
+        "package-risk-summary",
+        "probe-droid",
+        "remediation-planner",
+        "repository-dependency-reviewer",
+        "sca-remediation",
+        "upgrade-impact-analysis",
+        "vulnerability-explainer"
+      ],
+      "marketplace_path": ".claude-plugin/marketplace.json",
+      "name": "endor-labs-agent-kit",
+      "path": "plugins/claude/endor-labs-agent-kit",
+      "version": "0.1.0"
+    },
+    {
+      "artifacts": [
+        {
           "bytes": 1223,
           "path": "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json",
           "sha256": "c9ac81d94616ba8898386bafb409409ecbb6a7555a62dbc5acb5cb9f21539bf1"
@@ -1386,9 +1493,9 @@
           "sha256": "61714d233f475253412a62d148ccb90c047ef0ca584422a1b58b5d9e2d67a934"
         },
         {
-          "bytes": 696,
+          "bytes": 1069,
           "path": "plugins/README.md",
-          "sha256": "f85a931a12b65276c3bcce22d57ad5e273059f3901af63322112db2c54202f7f"
+          "sha256": "82c39b0f18fe28861da5064cf275af80d20a42968decd41adf67edc06e3da73b"
         }
       ],
       "display_name": "Endor Labs Agent Kit",

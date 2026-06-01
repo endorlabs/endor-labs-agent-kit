@@ -1,14 +1,17 @@
 # Plugin Packaging Design
 
 This is a blast-radius note for adding an Endor Labs Agent Kit plugin route.
-The Codex package slice is implemented behind `--include-plugins`; Claude Code
-and Gemini package slices remain planned release-critical follow-ups.
+The Codex and Claude Code package slices are implemented behind
+`--include-plugins`; Gemini remains a planned release-critical follow-up.
 
 ## Current Decision
 
-Codex support still publishes generated skills under `codex/<agent>/`, and the
-first plugin package slice now wraps the Codex-compatible public workflows under
-`plugins/codex/endor-labs-agent-kit/`.
+Claude Code and Codex support still publish generated artifacts under
+`claude-code/<agent>/` and `codex/<agent>/`. The plugin package slices now wrap
+host-compatible public workflows under:
+
+- `plugins/codex/endor-labs-agent-kit/`
+- `plugins/claude/endor-labs-agent-kit/`
 
 The plugin route should sit alongside generated host artifacts. It should not
 replace `.claude/agents/` installs, Claude Managed Agents YAML, or Codex skill
@@ -36,6 +39,25 @@ Do not add MCP servers to the plugin manifest by default. `sca-remediation` and
 `ai-sast-triage` are `endorctl_api` workflows, and their safety contract depends
 on local terminal/source-provider state plus explicit approval gates.
 
+## Implemented Claude Code Plugin Shape
+
+The generated Claude Code plugin package includes:
+
+- `.claude-plugin/plugin.json` for plugin metadata.
+- `agents/<agent>.md` files generated from the existing Claude Code artifacts.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `assets/logo.svg`.
+- Public-repo marketplace metadata at `.claude-plugin/marketplace.json`.
+- Package-local marketplace metadata at
+  `plugins/claude/.claude-plugin/marketplace.json` for local validation.
+
+Claude Code plugin-shipped agents do not support `mcpServers`,
+`permissionMode`, or `hooks` in agent frontmatter. The generated package strips
+those unsupported fields from packaged agents and makes MCP setup explicit in
+the setup skill and agent setup note. It does not add plugin-wide MCP by
+default.
+
 ## Blast Radius
 
 Adding first-class plugin publishing would touch:
@@ -49,8 +71,12 @@ Adding first-class plugin publishing would touch:
 - Tests for publisher output, guardrails, provenance, installer behavior, and
   generated metadata.
 
-Future Claude Code and Gemini package slices should follow the same source-first
-publication model rather than introducing hand-assembled packages.
+Future Gemini package work should follow the same source-first publication model
+rather than introducing hand-assembled packages. Because Gemini extension
+gallery discovery expects `gemini-extension.json` at the repository or archive
+root, the Gemini slice should generate a release archive rooted at
+`plugins/gemini/endor-labs-agent-kit` instead of turning this repository root
+into the Gemini extension root.
 
 ## Safety Requirements
 
@@ -66,9 +92,11 @@ gates into a single broad authorization.
 ## Current Next Step
 
 Validate the generated Codex package through real Codex plugin installation and
-new-thread skill/custom-agent visibility. Do not make plugins the primary README
-install path until the release-critical Claude Code, Codex, and Gemini host
-packages have local host validation.
+new-thread skill/custom-agent visibility. Validate the generated Claude Code
+package with `claude plugin validate`, local marketplace add/install, and
+agent/skill visibility in a fresh Claude Code session. Do not make plugins the
+primary README install path until the release-critical Claude Code, Codex, and
+Gemini host packages have local host validation.
 
 ## Prototype Result - 2026-05-24
 

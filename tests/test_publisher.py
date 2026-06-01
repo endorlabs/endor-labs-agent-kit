@@ -431,12 +431,28 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
-def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
+def test_publish_recipes_with_plugins_writes_codex_and_claude_plugin_packages(tmp_path):
+    claude_agent_ids = (
+        "ai-sast-triage",
+        "dependency-decision-helper",
+        "endor-troubleshooter",
+        "package-risk-summary",
+        "probe-droid",
+        "remediation-planner",
+        "repository-dependency-reviewer",
+        "sca-remediation",
+        "upgrade-impact-analysis",
+        "vulnerability-explainer",
+    )
+    codex_agent_ids = (
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation",
+    )
     recipes = [
-        _copy_agent(tmp_path / "ai-sast", "ai-sast-triage"),
-        _copy_agent(tmp_path / "troubleshooter", "endor-troubleshooter"),
-        _copy_agent(tmp_path / "probe", "probe-droid"),
-        _copy_agent(tmp_path / "sca", "sca-remediation"),
+        _copy_agent(tmp_path / agent_id, agent_id)
+        for agent_id in claude_agent_ids
     ]
     dest = tmp_path / "endor-labs-agent-kit"
 
@@ -448,13 +464,13 @@ def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
+    assert ".claude-plugin/marketplace.json" in written_paths
+    assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/assets/logo.svg" in written_paths
 
-    for agent_id in (
-        "ai-sast-triage",
-        "endor-troubleshooter",
-        "probe-droid",
-        "sca-remediation",
-    ):
+    for agent_id in codex_agent_ids:
         assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
         agent_name = (
             f"{agent_id}-agent"
@@ -462,6 +478,8 @@ def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
             else f"endor-{agent_id}-agent"
         )
         assert f"plugins/codex/endor-labs-agent-kit/agents/{agent_name}.toml" in written_paths
+    for agent_id in claude_agent_ids:
+        assert f"plugins/claude/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
 
     plugin_manifest = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
@@ -476,6 +494,15 @@ def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
         "Find the safest SCA remediation path.",
     ]
     assert "license" not in plugin_manifest
+    claude_plugin_manifest = json.loads(
+        (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
+    )
+    assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
+    assert claude_plugin_manifest["agents"] == "./agents/"
+    assert claude_plugin_manifest["skills"] == "./skills/"
+    assert "license" not in claude_plugin_manifest
+    assert "mcpServers" not in claude_plugin_manifest
 
     marketplace = json.loads(
         (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
@@ -486,6 +513,13 @@ def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL",
     }
+    claude_marketplace = json.loads((dest / ".claude-plugin" / "marketplace.json").read_text())
+    assert claude_marketplace["name"] == "endor-labs-agent-kit"
+    assert claude_marketplace["plugins"][0]["source"] == "./plugins/claude/endor-labs-agent-kit"
+    local_claude_marketplace = json.loads(
+        (dest / "plugins" / "claude" / ".claude-plugin" / "marketplace.json").read_text()
+    )
+    assert local_claude_marketplace["plugins"][0]["source"] == "./endor-labs-agent-kit"
 
     setup = (
         dest
@@ -500,6 +534,18 @@ def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
     assert "Run `endorctl host-check`" in setup
     assert "must not" in setup
     assert "provenance-gated updates" in setup
+    claude_setup = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in claude_setup
+    assert "Run `endorctl host-check`" in claude_setup
+    assert "Do not add plugin-wide MCP automatically" in claude_setup
 
     toml = (
         dest
@@ -525,32 +571,66 @@ def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
     ).read_text()
     assert 'name = "endor-sca-remediation-agent"' in mutating_toml
     assert "sandbox_mode" not in mutating_toml
+    claude_mcp_agent = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "package-risk-summary.md"
+    ).read_text()
+    assert "mcpServers:" not in claude_mcp_agent.split("---", 2)[1]
+    assert "Claude Code Plugin Setup Note" in claude_mcp_agent
+    assert "does not declare plugin-wide MCP" in claude_mcp_agent
+    claude_mcp_only_agent = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "vulnerability-explainer.md"
+    ).read_text()
+    assert "mcpServers:" not in claude_mcp_only_agent.split("---", 2)[1]
+    assert "disallowedTools: Bash" in claude_mcp_only_agent.split("---", 2)[1]
 
     manifest = json.loads((dest / "manifest.json").read_text())
-    assert manifest["plugin_packages"] == [
-        {
-            "artifacts": manifest["plugin_packages"][0]["artifacts"],
-            "display_name": "Endor Labs Agent Kit",
-            "host": "codex",
-            "included_agents": [
-                "ai-sast-triage",
-                "endor-troubleshooter",
-                "probe-droid",
-                "sca-remediation",
-            ],
-            "marketplace_path": "plugins/codex/.agents/plugins/marketplace.json",
-            "name": "endor-labs-agent-kit",
-            "path": "plugins/codex/endor-labs-agent-kit",
-            "version": plugin_manifest["version"],
-        }
-    ]
+    packages = {package["host"]: package for package in manifest["plugin_packages"]}
+    assert set(packages) == {"claude-code", "codex"}
+    assert packages["codex"] == {
+        "artifacts": packages["codex"]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "codex",
+        "included_agents": list(codex_agent_ids),
+        "marketplace_path": "plugins/codex/.agents/plugins/marketplace.json",
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/codex/endor-labs-agent-kit",
+        "version": plugin_manifest["version"],
+    }
+    assert packages["claude-code"] == {
+        "artifacts": packages["claude-code"]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "claude-code",
+        "included_agents": list(claude_agent_ids),
+        "marketplace_path": ".claude-plugin/marketplace.json",
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/claude/endor-labs-agent-kit",
+        "version": claude_plugin_manifest["version"],
+    }
     package_artifact_paths = {
         artifact["path"]
-        for artifact in manifest["plugin_packages"][0]["artifacts"]
+        for artifact in packages["codex"]["artifacts"]
     }
     assert "plugins/codex/endor-labs-agent-kit/README.md" in package_artifact_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in package_artifact_paths
     assert "plugins/README.md" in package_artifact_paths
+    claude_artifact_paths = {
+        artifact["path"]
+        for artifact in packages["claude-code"]["artifacts"]
+    }
+    assert "plugins/claude/endor-labs-agent-kit/README.md" in claude_artifact_paths
+    assert ".claude-plugin/marketplace.json" in claude_artifact_paths
+    assert "plugins/claude/.claude-plugin/marketplace.json" in claude_artifact_paths
+    assert "plugins/README.md" in claude_artifact_paths
 
 
 def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):

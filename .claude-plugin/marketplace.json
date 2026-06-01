@@ -1,0 +1,28 @@
+{
+  "description": "Endor Labs Agent Kit Claude Code plugin marketplace.",
+  "name": "endor-labs-agent-kit",
+  "owner": {
+    "email": "support@endorlabs.com",
+    "name": "Endor Labs"
+  },
+  "plugins": [
+    {
+      "author": {
+        "name": "Endor Labs"
+      },
+      "category": "Developer Tools",
+      "description": "Endor Labs workflow agents and setup for Claude Code.",
+      "displayName": "Endor Labs Agent Kit",
+      "name": "endor-labs-agent-kit",
+      "source": "./plugins/claude/endor-labs-agent-kit",
+      "tags": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code"
+      ],
+      "version": "0.1.0"
+    }
+  ]
+}
