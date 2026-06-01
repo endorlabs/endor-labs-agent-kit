@@ -74,6 +74,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Remove previously published agents that are not in the recipe set",
     )
+    publish_parser.add_argument(
+        "--include-plugins",
+        action="store_true",
+        help="Also generate opt-in plugin packages from published host artifacts",
+    )
 
     check_guardrails_parser = subparsers.add_parser(
         "check-guardrails",
@@ -173,7 +178,12 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "publish":
         try:
-            outputs = publish_recipes(args.recipes, args.dest, prune=args.prune)
+            outputs = publish_recipes(
+                args.recipes,
+                args.dest,
+                prune=args.prune,
+                include_plugins=args.include_plugins,
+            )
         except ValueError as exc:
             print(f"ERROR: {exc}")
             return 1

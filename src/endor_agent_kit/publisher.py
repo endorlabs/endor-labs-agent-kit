@@ -16,6 +16,7 @@ from endor_agent_kit.publication import (
     PortableHostAdapter,
     RootCatalogAggregate,
 )
+from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_package
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
@@ -27,10 +28,15 @@ _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
 _ROOT_CATALOG_AGGREGATE = RootCatalogAggregate()
 
 
-def publish_recipe(recipe_path: str | Path, dest: str | Path) -> list[Path]:
+def publish_recipe(
+    recipe_path: str | Path,
+    dest: str | Path,
+    *,
+    include_plugins: bool = False,
+) -> list[Path]:
     """Publish one recipe's customer-facing artifacts into ``dest``."""
 
-    return _publish_prepared_recipe(prepare_source_recipe(recipe_path), dest)
+    return publish_recipes([recipe_path], dest, include_plugins=include_plugins)
 
 
 def _publish_prepared_recipe(prepared: PreparedSourceRecipe, dest: str | Path) -> list[Path]:
@@ -70,7 +76,13 @@ def _publish_prepared_recipe(prepared: PreparedSourceRecipe, dest: str | Path) -
     return written
 
 
-def publish_recipes(recipe_paths: list[str | Path], dest: str | Path, *, prune: bool = False) -> list[Path]:
+def publish_recipes(
+    recipe_paths: list[str | Path],
+    dest: str | Path,
+    *,
+    prune: bool = False,
+    include_plugins: bool = False,
+) -> list[Path]:
     """Publish recipes, optionally removing previously published stale agents."""
 
     destination = Path(dest)
@@ -90,6 +102,17 @@ def publish_recipes(recipe_paths: list[str | Path], dest: str | Path, *, prune: 
         if manifest is not None:
             written.append(manifest)
             written.append(_write_root_readme(destination))
+
+    if include_plugins:
+        codex_plugin = publish_codex_plugin_package(prepared_recipes, destination)
+        if codex_plugin is not None:
+            written.extend(codex_plugin.written)
+            manifest = _HOST_ARTIFACT_PUBLICATION.write_plugin_packages(
+                destination,
+                (codex_plugin.package_record,),
+                replace_hosts={"codex"},
+            )
+            written.append(manifest)
 
     return written
 

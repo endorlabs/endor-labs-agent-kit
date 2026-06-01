@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogAgent
@@ -427,6 +429,186 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
     assert (dest / "portable" / "dependency-decision-helper" / "agent.md").is_file()
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+
+
+def test_publish_recipes_with_plugins_writes_codex_plugin_package(tmp_path):
+    recipes = [
+        _copy_agent(tmp_path / "ai-sast", "ai-sast-triage"),
+        _copy_agent(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent(tmp_path / "probe", "probe-droid"),
+        _copy_agent(tmp_path / "sca", "sca-remediation"),
+    ]
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    written = publish_recipes(recipes, dest, include_plugins=True)
+
+    written_paths = {path.relative_to(dest).as_posix() for path in written}
+    assert "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json" in written_paths
+    assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/assets/logo.svg" in written_paths
+
+    for agent_id in (
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation",
+    ):
+        assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        agent_name = (
+            f"{agent_id}-agent"
+            if agent_id.startswith("endor-")
+            else f"endor-{agent_id}-agent"
+        )
+        assert f"plugins/codex/endor-labs-agent-kit/agents/{agent_name}.toml" in written_paths
+
+    plugin_manifest = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
+    )
+    assert plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert plugin_manifest["skills"] == "./skills/"
+    assert "agents" not in plugin_manifest
+    assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
+    assert plugin_manifest["interface"]["defaultPrompt"] == [
+        "Set up Endor Agent Kit for this machine.",
+        "Triage AI SAST findings for this repository.",
+        "Find the safest SCA remediation path.",
+    ]
+    assert "license" not in plugin_manifest
+
+    marketplace = json.loads(
+        (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
+    )
+    assert marketplace["name"] == "endor-labs-agent-kit"
+    assert marketplace["plugins"][0]["source"]["path"] == "./endor-labs-agent-kit"
+    assert marketplace["plugins"][0]["policy"] == {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+    }
+
+    setup = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in setup
+    assert "Run `endorctl host-check`" in setup
+    assert "must not" in setup
+    assert "provenance-gated updates" in setup
+
+    toml = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-probe-droid-agent.toml"
+    ).read_text()
+    assert "# endor_agent_kit_managed = true" in toml
+    assert 'name = "endor-probe-droid-agent"' in toml
+    assert 'sandbox_mode = "read-only"' in toml
+    assert "Codex Host Contract" in toml
+    assert "developer_instructions = " in toml
+
+    mutating_toml = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-sca-remediation-agent.toml"
+    ).read_text()
+    assert 'name = "endor-sca-remediation-agent"' in mutating_toml
+    assert "sandbox_mode" not in mutating_toml
+
+    manifest = json.loads((dest / "manifest.json").read_text())
+    assert manifest["plugin_packages"] == [
+        {
+            "artifacts": manifest["plugin_packages"][0]["artifacts"],
+            "display_name": "Endor Labs Agent Kit",
+            "host": "codex",
+            "included_agents": [
+                "ai-sast-triage",
+                "endor-troubleshooter",
+                "probe-droid",
+                "sca-remediation",
+            ],
+            "marketplace_path": "plugins/codex/.agents/plugins/marketplace.json",
+            "name": "endor-labs-agent-kit",
+            "path": "plugins/codex/endor-labs-agent-kit",
+            "version": plugin_manifest["version"],
+        }
+    ]
+    package_artifact_paths = {
+        artifact["path"]
+        for artifact in manifest["plugin_packages"][0]["artifacts"]
+    }
+    assert "plugins/codex/endor-labs-agent-kit/README.md" in package_artifact_paths
+    assert "plugins/codex/.agents/plugins/marketplace.json" in package_artifact_paths
+    assert "plugins/README.md" in package_artifact_paths
+
+
+def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
+    recipes = [
+        _copy_agent(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent(tmp_path / "sca", "sca-remediation"),
+    ]
+    dest = tmp_path / "endor-labs-agent-kit"
+    publish_recipes(recipes, dest, include_plugins=True)
+    script = dest / "plugins" / "codex" / "endor-labs-agent-kit" / "scripts" / "install_codex_agents.py"
+    codex_home = tmp_path / "codex-home"
+
+    status = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "endor-sca-remediation-agent.toml: missing" in status.stdout
+    assert "endor-troubleshooter-agent.toml: missing" in status.stdout
+
+    install = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "installed" in install.stdout
+    assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
+    assert (codex_home / "agents" / "endor-troubleshooter-agent.toml").is_file()
+
+    current = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "endor-sca-remediation-agent.toml: current" in current.stdout
+    assert "endor-troubleshooter-agent.toml: current" in current.stdout
 
 
 def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):

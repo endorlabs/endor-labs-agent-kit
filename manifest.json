@@ -1312,5 +1312,98 @@
     }
   ],
   "generated_by": "endor-agent-kit",
+  "plugin_packages": [
+    {
+      "artifacts": [
+        {
+          "bytes": 1223,
+          "path": "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json",
+          "sha256": "c9ac81d94616ba8898386bafb409409ecbb6a7555a62dbc5acb5cb9f21539bf1"
+        },
+        {
+          "bytes": 2113,
+          "path": "plugins/codex/endor-labs-agent-kit/README.md",
+          "sha256": "ee6ae043b72545c86c769a80d04a8a257c792a58181e07c53007883885dd82fa"
+        },
+        {
+          "bytes": 39135,
+          "path": "plugins/codex/endor-labs-agent-kit/agents/endor-ai-sast-triage-agent.toml",
+          "sha256": "687ed0e46aa0478875aff9af2969a31adb7a0b5f356be8e9889f6e88dd5aeb3c"
+        },
+        {
+          "bytes": 50830,
+          "path": "plugins/codex/endor-labs-agent-kit/agents/endor-probe-droid-agent.toml",
+          "sha256": "4b13895e29c0e21044b2df7c006260007ff6cc980e00bdd500b988c2655cbb90"
+        },
+        {
+          "bytes": 40646,
+          "path": "plugins/codex/endor-labs-agent-kit/agents/endor-sca-remediation-agent.toml",
+          "sha256": "719988b5219c39ce34979e83aa47f552b55dc02e20de02ae84cb8fceb41405ba"
+        },
+        {
+          "bytes": 52721,
+          "path": "plugins/codex/endor-labs-agent-kit/agents/endor-troubleshooter-agent.toml",
+          "sha256": "dfc6321130c74a3f3b84b76dcf3dcf3680eb60544d3ef5b4bff4020de5bb8bb3"
+        },
+        {
+          "bytes": 303,
+          "path": "plugins/codex/endor-labs-agent-kit/assets/logo.svg",
+          "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
+        },
+        {
+          "bytes": 4272,
+          "path": "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py",
+          "sha256": "70fd14d0883a51099d60f02af72a31011e9d9d4486b4d89d524fc95316b22899"
+        },
+        {
+          "bytes": 37988,
+          "path": "plugins/codex/endor-labs-agent-kit/skills/ai-sast-triage/SKILL.md",
+          "sha256": "c9d07b01bcf64936ec9e64f056f310d11702d222ae43663df63ae2b862a36f22"
+        },
+        {
+          "bytes": 5508,
+          "path": "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
+          "sha256": "4034bcf5bacbe3ab401ef4a6beb43517b16780aae37bd6b87d72c39a629c6d7a"
+        },
+        {
+          "bytes": 50663,
+          "path": "plugins/codex/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
+          "sha256": "7ffa1a1a62474fb27af153e5ae8923a8b9bcb368197b0431e8b32d93e81dc925"
+        },
+        {
+          "bytes": 48456,
+          "path": "plugins/codex/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
+          "sha256": "b9c272dff2a11c3f567491b42279eaf28858b128eae1895776df68ec206a5326"
+        },
+        {
+          "bytes": 39084,
+          "path": "plugins/codex/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
+          "sha256": "0042e89a6a5a4f192d4cce5fa62b00cb14a6728602e97ec0c53e5e013af92b46"
+        },
+        {
+          "bytes": 405,
+          "path": "plugins/codex/.agents/plugins/marketplace.json",
+          "sha256": "61714d233f475253412a62d148ccb90c047ef0ca584422a1b58b5d9e2d67a934"
+        },
+        {
+          "bytes": 696,
+          "path": "plugins/README.md",
+          "sha256": "f85a931a12b65276c3bcce22d57ad5e273059f3901af63322112db2c54202f7f"
+        }
+      ],
+      "display_name": "Endor Labs Agent Kit",
+      "host": "codex",
+      "included_agents": [
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation"
+      ],
+      "marketplace_path": "plugins/codex/.agents/plugins/marketplace.json",
+      "name": "endor-labs-agent-kit",
+      "path": "plugins/codex/endor-labs-agent-kit",
+      "version": "0.1.0"
+    }
+  ],
   "schema_version": 1
 }

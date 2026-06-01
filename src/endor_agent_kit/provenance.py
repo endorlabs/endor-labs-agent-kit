@@ -23,6 +23,7 @@ from endor_agent_kit.catalog_schema import (
     GENERATOR_NAME,
     MANIFEST_PATH,
     catalog_agents_from_manifest_payload,
+    catalog_plugin_packages_from_manifest_payload,
 )
 
 PREDICATE_TYPE = "https://endorlabs.com/agent-kit/catalog-provenance/v1"
@@ -49,6 +50,7 @@ def verify_catalog_provenance(catalog_root: str | Path = ".") -> list[str]:
     try:
         payload = json.loads(manifest_path.read_text(encoding="utf-8"))
         agents = catalog_agents_from_manifest_payload(payload)
+        plugin_packages = catalog_plugin_packages_from_manifest_payload(payload)
     except (json.JSONDecodeError, ValueError) as exc:
         return [f"{MANIFEST_PATH}: {exc}"]
 
@@ -68,6 +70,20 @@ def verify_catalog_provenance(catalog_root: str | Path = ".") -> list[str]:
                         f"{artifact.path}: sha256 mismatch "
                         f"(manifest {artifact.sha256[:12]}..., disk {actual[:12]}...)"
                     )
+    for package in plugin_packages:
+        for artifact in package.artifacts:
+            path = root / artifact.path
+            if not path.is_file():
+                errors.append(
+                    f"{artifact.path}: missing published artifact recorded in manifest"
+                )
+                continue
+            actual = file_sha256(path)
+            if actual != artifact.sha256:
+                errors.append(
+                    f"{artifact.path}: sha256 mismatch "
+                    f"(manifest {artifact.sha256[:12]}..., disk {actual[:12]}...)"
+                )
     return errors
 
 
@@ -96,6 +112,7 @@ def build_provenance_statement(
     root = Path(catalog_root)
     payload = json.loads((root / MANIFEST_PATH).read_text(encoding="utf-8"))
     agents = catalog_agents_from_manifest_payload(payload)
+    plugin_packages = catalog_plugin_packages_from_manifest_payload(payload)
 
     catalog = [
         {
@@ -116,5 +133,15 @@ def build_provenance_statement(
             "generator": str(payload.get("generated_by", GENERATOR_NAME)),
             "manifest_schema_version": payload.get("schema_version"),
             "catalog": catalog,
+            "plugin_packages": [
+                {
+                    "host": package.host,
+                    "name": package.name,
+                    "version": package.version,
+                    "path": package.path,
+                    "included_agents": list(package.included_agents),
+                }
+                for package in sorted(plugin_packages, key=lambda package: (package.host, package.name))
+            ],
         },
     }

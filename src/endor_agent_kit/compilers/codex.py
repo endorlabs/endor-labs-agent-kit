@@ -38,11 +38,32 @@ def compile_codex_prepared(prepared: PreparedSourceRecipe) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
 
     skill = out_dir / "SKILL.md"
-    skill.write_text(_render_skill(recipe, prepared.instructions, prepared.actions), encoding="utf-8")
+    skill.write_text(render_codex_skill(prepared), encoding="utf-8")
     return [skill]
 
 
-def _render_skill(recipe: EndorAgentRecipe, instructions: str, actions: tuple = ()) -> str:
+def render_codex_skill(
+    prepared: PreparedSourceRecipe,
+    *,
+    generated_context: str = "Codex",
+) -> str:
+    """Render a Codex skill from a prepared Source Recipe."""
+
+    return _render_skill(
+        prepared.recipe,
+        prepared.instructions,
+        prepared.actions,
+        generated_context=generated_context,
+    )
+
+
+def _render_skill(
+    recipe: EndorAgentRecipe,
+    instructions: str,
+    actions: tuple = (),
+    *,
+    generated_context: str = "Codex",
+) -> str:
     body = _codex_instruction_text(instructions_for_edition(instructions, CODEX_SECTION_EDITION))
     return (
         "---\n"
@@ -50,19 +71,19 @@ def _render_skill(recipe: EndorAgentRecipe, instructions: str, actions: tuple = 
         "description: |\n"
         f"{indent(recipe.description.strip(), 2)}\n"
         "---\n\n"
-        f"{_codex_notice(recipe)}\n\n"
+        f"{_codex_notice(recipe, generated_context=generated_context)}\n\n"
         f"{_codex_host_contract(recipe)}\n\n"
         f"{body.rstrip()}\n"
         f"{_codex_instruction_text(render_action_contracts(actions))}"
     )
 
 
-def _codex_notice(recipe: EndorAgentRecipe) -> str:
+def _codex_notice(recipe: EndorAgentRecipe, *, generated_context: str) -> str:
     return dedent(
         f"""\
         # {recipe.name}
 
-        Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version} for Codex.
+        Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version} for {generated_context}.
         Treat this skill as a source-first generated artifact; update the recipe and
         republish instead of hand-editing installed copies.
         """
