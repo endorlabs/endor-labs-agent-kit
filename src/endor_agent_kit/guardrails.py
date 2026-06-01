@@ -61,6 +61,7 @@ def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     _check_claude_code(root, errors)
     _check_managed_agents(root, errors)
     _check_codex(root, errors)
+    _check_plugins(root, errors)
     _check_portable(root, errors)
     _check_credentials(root, errors)
     _check_provenance(root, errors)
@@ -90,6 +91,9 @@ def _check_manifest(root: Path, errors: list[str]) -> None:
     agents = data.get("agents")
     if not isinstance(agents, list) or not agents:
         errors.append(f"{_rel(root, manifest_path)}: agents must be a non-empty list")
+    plugin_packages = data.get("plugin_packages", [])
+    if plugin_packages and not isinstance(plugin_packages, list):
+        errors.append(f"{_rel(root, manifest_path)}: plugin_packages must be a list")
 
 
 def _check_docs(root: Path, errors: list[str]) -> None:
@@ -288,6 +292,86 @@ def _check_codex(root: Path, errors: list[str]) -> None:
                 errors.append(
                     f"{_rel(root, skill)}: missing required guardrail text {posture_text!r}"
                 )
+
+
+def _check_plugins(root: Path, errors: list[str]) -> None:
+    plugins_root = root / "plugins"
+    if not plugins_root.is_dir():
+        return
+    codex_package = plugins_root / "codex" / "endor-labs-agent-kit"
+    if not codex_package.is_dir():
+        return
+
+    manifest = _load_json_mapping(
+        root,
+        codex_package / ".codex-plugin" / "plugin.json",
+        errors,
+    )
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: name must be endor-labs-agent-kit")
+        if "agents" in manifest:
+            errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: Codex plugin manifest must not declare unsupported agents field")
+        if manifest.get("skills") != "./skills/":
+            errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: skills must point at ./skills/")
+        interface = _dict(manifest.get("interface"))
+        prompts = _list(interface.get("defaultPrompt"))
+        if len(prompts) > 3:
+            errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: defaultPrompt must include at most 3 prompts")
+        logo = interface.get("logo")
+        if isinstance(logo, str) and logo:
+            if not (codex_package / logo.removeprefix("./")).is_file():
+                errors.append(f"plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: logo path {logo!r} is missing")
+
+    marketplace = _load_json_mapping(
+        root,
+        plugins_root / "codex" / ".agents" / "plugins" / "marketplace.json",
+        errors,
+    )
+    if marketplace:
+        if marketplace.get("name") != "endor-labs-agent-kit":
+            errors.append("plugins/codex/.agents/plugins/marketplace.json: name must be endor-labs-agent-kit")
+        entries = _list(marketplace.get("plugins"))
+        if not any(_dict(entry).get("name") == "endor-labs-agent-kit" for entry in entries):
+            errors.append("plugins/codex/.agents/plugins/marketplace.json: missing endor-labs-agent-kit plugin entry")
+
+    setup = codex_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    if not setup.is_file():
+        errors.append(f"{_rel(root, setup)}: missing Codex setup skill")
+    else:
+        setup_text = setup.read_text(encoding="utf-8")
+        for required in (
+            "must not:",
+            "Run `endorctl scan`",
+            "Run `endorctl host-check`",
+            "Install Codex custom agents globally by default",
+            "provenance-gated updates",
+        ):
+            if required not in setup_text:
+                errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+
+    installer = codex_package / "scripts" / "install_codex_agents.py"
+    if not installer.is_file():
+        errors.append(f"{_rel(root, installer)}: missing Codex custom-agent installer")
+
+    for agent in sorted((codex_package / "agents").glob("*.toml")):
+        text = agent.read_text(encoding="utf-8")
+        for required in (
+            "# endor_agent_kit_managed = true",
+            "developer_instructions = ",
+            "Codex Host Contract",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, agent)}: missing required custom-agent text {required!r}")
+        if "_" in agent.stem:
+            errors.append(f"{_rel(root, agent)}: Codex custom-agent names must use hyphens, not underscores")
+        if not agent.stem.startswith("endor-") or not agent.stem.endswith("-agent"):
+            errors.append(f"{_rel(root, agent)}: Codex custom-agent name must use endor-...-agent")
+
+    forbidden_names = {"recipe.yaml", "cases.yaml"}
+    for path in codex_package.rglob("*"):
+        if path.is_file() and path.name in forbidden_names:
+            errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:

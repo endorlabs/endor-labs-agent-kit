@@ -1,0 +1,39 @@
+{
+  "author": {
+    "name": "Endor Labs",
+    "url": "https://www.endorlabs.com/"
+  },
+  "description": "Endor Labs workflow agents and setup for Codex.",
+  "homepage": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "interface": {
+    "brandColor": "#4F46E5",
+    "capabilities": [
+      "Code",
+      "Security",
+      "Workflow"
+    ],
+    "category": "Developer Tools",
+    "defaultPrompt": [
+      "Set up Endor Agent Kit for this machine.",
+      "Triage AI SAST findings for this repository.",
+      "Find the safest SCA remediation path."
+    ],
+    "developerName": "Endor Labs",
+    "displayName": "Endor Labs Agent Kit",
+    "logo": "./assets/logo.svg",
+    "longDescription": "Install setup guidance, Codex skills, and bundled custom agents for Endor Labs SCA remediation, AI SAST triage, troubleshooting, and onboarding analysis workflows.",
+    "shortDescription": "Endor Labs security workflows for Codex.",
+    "websiteURL": "https://www.endorlabs.com/"
+  },
+  "keywords": [
+    "endor-labs",
+    "security",
+    "sca",
+    "sast",
+    "codex"
+  ],
+  "name": "endor-labs-agent-kit",
+  "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "skills": "./skills/",
+  "version": "0.1.0"
+}

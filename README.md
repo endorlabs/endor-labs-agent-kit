@@ -161,11 +161,19 @@ the required tools; otherwise the agent records the missing signal in
 ## Plugin Packaging Route
 
 Codex support currently publishes generated skills under `codex/<agent>/`.
-A future plugin package can wrap those skills for easier installation, but
-the plugin route should preserve the same recipe source, generated skill
-text, action metadata, and approval gates. See
-`docs/plugin-packaging-design.md` for the current blast-radius notes before
-adding plugin publishing.
+Plugin package generation is available as an opt-in publication slice:
+
+```bash
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
+```
+
+The first generated plugin package is the Codex package under
+`plugins/codex/endor-labs-agent-kit/`. It wraps the Codex-compatible
+recipe artifacts as plugin skills, bundles Codex custom-agent TOML files,
+and includes a setup skill for `endorctl`, `gh`, namespace, auth, and
+custom-agent readiness. The generated package preserves the same recipe
+source, action metadata, and approval gates as the manual Codex catalog.
+See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## Editions
 

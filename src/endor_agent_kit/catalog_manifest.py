@@ -11,7 +11,9 @@ from endor_agent_kit.catalog_schema import (
     CatalogAgent,
     CatalogArtifact,
     CatalogBundle,
+    CatalogPluginPackage,
     catalog_agents_from_manifest_payload,
+    catalog_plugin_packages_from_manifest_payload,
 )
 
 
@@ -22,6 +24,7 @@ class CatalogManifest:
     path: Path
     agents: tuple[CatalogAgent, ...]
     bundles: tuple[CatalogBundle, ...]
+    plugin_packages: tuple[CatalogPluginPackage, ...] = ()
 
     @classmethod
     def load(
@@ -38,8 +41,12 @@ class CatalogManifest:
             raise ValueError(f"{manifest_path}: expected a JSON object")
 
         agents = catalog_agents_from_manifest_payload(data, manifest_path=manifest_path)
+        plugin_packages = catalog_plugin_packages_from_manifest_payload(
+            data,
+            manifest_path=manifest_path,
+        )
         bundles = tuple(bundle for agent in agents for bundle in agent.editions)
-        return cls(path=path, agents=agents, bundles=bundles)
+        return cls(path=path, agents=agents, bundles=bundles, plugin_packages=plugin_packages)
 
     def find_bundles(self, agent_id: str, host: str) -> tuple[CatalogBundle, ...]:
         """Return the Host Artifact Bundles for one agent and Host."""
