@@ -22,7 +22,7 @@ copying portable policy facts.
 | Control | Agent Kit status | Primary enforcement |
 | --- | --- | --- |
 | Safety classification | Enforced | `recipe.yaml`, recipe validator, generated prompts |
-| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini host contracts, portable manifest |
+| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity host contracts, portable manifest |
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
 | Missing data handling | Enforced in prompts | required `data_gaps` behavior |
@@ -144,6 +144,23 @@ steps require user approval. Setup guidance must not run scans, run
 `endorctl host-check`, edit shell profiles, auto-install `gh`, install language
 tooling, or collect/write API secrets.
 
+### Antigravity
+
+Antigravity CLI plugin artifacts include generated skills, generated subagent
+files, and a host contract derived from the Gemini-compatible recipe set with
+Antigravity-specific wording.
+
+The Antigravity plugin package declares root `plugin.json`, skills, subagents,
+and minimal assets. It does not declare plugin-wide MCP by default. Setup keeps
+`antigravity plugin validate`, install, enable/disable, and uninstall steps
+explicit and evidence-backed. If Antigravity subagent delegation is unavailable,
+the matching skill remains the fallback and the agent must report the
+limitation.
+
+Antigravity plugin setup must not run scans, run `endorctl host-check`, edit
+shell profiles, auto-install `gh`, install language tooling, or collect/write
+API secrets.
+
 ### Plugin Packages
 
 Plugin packages are package records, not new agent editions. They wrap generated
@@ -158,7 +175,8 @@ must report that namespace selection is required before live Endor lookups.
 ### Portable
 
 Portable bundles are runtime-neutral. They do not depend on Claude Code, Claude
-Managed Agents, Codex, or a specific source-provider CLI. Each bundle includes:
+Managed Agents, Codex, Gemini, Antigravity, or a specific source-provider CLI.
+Each bundle includes:
 
 - `agent.md`: generated runtime-neutral instructions
 - `agent.manifest.json`: machine-readable transports, capabilities, actions, wrappers, degradation, and runtime controls

@@ -27,6 +27,14 @@ CLAUDE_PLUGIN_PACKAGE_ROOT = Path("plugins") / "claude" / PLUGIN_NAME
 CLAUDE_MARKETPLACE_PATH = Path(".claude-plugin") / "marketplace.json"
 CLAUDE_LOCAL_MARKETPLACE_PATH = Path("plugins") / "claude" / ".claude-plugin" / "marketplace.json"
 CLAUDE_SETUP_SKILL = "endor-agent-kit-setup"
+CLAUDE_MARKETPLACE_NAME = "endorlabs"
+CLAUDE_DISCOVERY_TERMS = (
+    "agentic remediation",
+    "SAST remediation",
+    "agentic AppSec",
+    "AppSec",
+    "Upgrade Impact Analysis",
+)
 CLAUDE_UNSUPPORTED_AGENT_FRONTMATTER = frozenset({
     "hooks",
     "mcpServers",
@@ -250,13 +258,14 @@ def _claude_plugin_manifest(version: str) -> dict[str, object]:
             "sca",
             "sast",
             "claude-code",
+            *CLAUDE_DISCOVERY_TERMS,
         ],
     }
 
 
 def _claude_marketplace_manifest(*, source_path: str) -> dict[str, object]:
     return {
-        "name": PLUGIN_NAME,
+        "name": CLAUDE_MARKETPLACE_NAME,
         "description": "Endor Labs Agent Kit Claude Code plugin marketplace.",
         "owner": {
             "name": "Endor Labs",
@@ -272,6 +281,14 @@ def _claude_marketplace_manifest(*, source_path: str) -> dict[str, object]:
                 "author": {
                     "name": "Endor Labs",
                 },
+                "keywords": [
+                    "endor-labs",
+                    "security",
+                    "sca",
+                    "sast",
+                    "claude-code",
+                    *CLAUDE_DISCOVERY_TERMS,
+                ],
                 "category": "Developer Tools",
                 "tags": [
                     "endor-labs",
@@ -279,6 +296,7 @@ def _claude_marketplace_manifest(*, source_path: str) -> dict[str, object]:
                     "sca",
                     "sast",
                     "claude-code",
+                    *CLAUDE_DISCOVERY_TERMS,
                 ],
             }
         ],
@@ -311,21 +329,21 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "```text",
         "/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude",
-        f"/plugin install {PLUGIN_NAME}@{PLUGIN_NAME}",
+        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "From a local checkout of the Agent Kit repository root:",
         "",
         "```text",
-        "/plugin marketplace add .",
-        f"/plugin install {PLUGIN_NAME}@{PLUGIN_NAME}",
+        "/plugin marketplace add ./",
+        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "For package-only local validation, add the generated Claude marketplace:",
         "",
         "```text",
         "/plugin marketplace add ./plugins/claude",
-        f"/plugin install {PLUGIN_NAME}@{PLUGIN_NAME}",
+        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         setup_source.rstrip(),
@@ -384,7 +402,7 @@ def _claude_plugin_readme(
         "",
         "```text",
         "/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude",
-        f"/plugin install {PLUGIN_NAME}@{PLUGIN_NAME}",
+        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "## Install From A Local Checkout",
@@ -392,8 +410,8 @@ def _claude_plugin_readme(
         "From the Agent Kit repository root:",
         "",
         "```text",
-        "/plugin marketplace add .",
-        f"/plugin install {PLUGIN_NAME}@{PLUGIN_NAME}",
+        "/plugin marketplace add ./",
+        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "Start a new Claude Code session or run `/reload-plugins` after installing",

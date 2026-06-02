@@ -432,7 +432,7 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
-def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_packages(tmp_path):
+def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_path):
     claude_agent_ids = (
         "ai-sast-triage",
         "dependency-decision-helper",
@@ -452,6 +452,7 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
         "sca-remediation",
     )
     gemini_agent_ids = codex_agent_ids
+    antigravity_agent_ids = gemini_agent_ids
     recipes = [
         _copy_agent(tmp_path / agent_id, agent_id)
         for agent_id in claude_agent_ids
@@ -477,6 +478,9 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/assets/logo.svg" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg" in written_paths
 
     for agent_id in codex_agent_ids:
         assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
@@ -491,6 +495,9 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     for agent_id in gemini_agent_ids:
         assert f"plugins/gemini/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
         assert f"plugins/gemini/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+    for agent_id in antigravity_agent_ids:
+        assert f"plugins/antigravity/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        assert f"plugins/antigravity/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
 
     plugin_manifest = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
@@ -514,6 +521,14 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "skills" not in claude_plugin_manifest
     assert "license" not in claude_plugin_manifest
     assert "mcpServers" not in claude_plugin_manifest
+    claude_discovery_terms = {
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis",
+    }
+    assert claude_discovery_terms <= set(claude_plugin_manifest["keywords"])
     gemini_plugin_manifest = json.loads(
         (dest / "plugins" / "gemini" / "endor-labs-agent-kit" / "gemini-extension.json").read_text()
     )
@@ -526,6 +541,16 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "mcpServers" not in gemini_plugin_manifest
     assert "settings" not in gemini_plugin_manifest
     assert "license" not in gemini_plugin_manifest
+    antigravity_plugin_manifest = json.loads(
+        (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "plugin.json").read_text()
+    )
+    assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert antigravity_plugin_manifest["description"] == "Endor Labs workflow skills and subagents for Antigravity CLI."
+    assert antigravity_plugin_manifest["version"] == gemini_plugin_manifest["version"]
+    assert "mcpServers" not in antigravity_plugin_manifest
+    assert "settings" not in antigravity_plugin_manifest
+    assert "license" not in antigravity_plugin_manifest
+    assert "hooks" not in antigravity_plugin_manifest
 
     local_codex_marketplace = json.loads(
         (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
@@ -544,16 +569,21 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
         "authentication": "ON_INSTALL",
     }
     claude_marketplace = json.loads((dest / ".claude-plugin" / "marketplace.json").read_text())
-    assert claude_marketplace["name"] == "endor-labs-agent-kit"
+    assert claude_marketplace["name"] == "endorlabs"
     assert claude_marketplace["owner"]["name"] == "Endor Labs"
     assert claude_marketplace["plugins"][0]["source"] == "./plugins/claude/endor-labs-agent-kit"
     assert claude_marketplace["plugins"][0]["version"] == claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(claude_marketplace["plugins"][0]["tags"])
+    assert claude_discovery_terms <= set(claude_marketplace["plugins"][0]["keywords"])
     local_claude_marketplace = json.loads(
         (dest / "plugins" / "claude" / ".claude-plugin" / "marketplace.json").read_text()
     )
+    assert local_claude_marketplace["name"] == "endorlabs"
     assert local_claude_marketplace["owner"]["name"] == "Endor Labs"
     assert local_claude_marketplace["plugins"][0]["source"] == "./endor-labs-agent-kit"
     assert local_claude_marketplace["plugins"][0]["version"] == claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(local_claude_marketplace["plugins"][0]["tags"])
+    assert claude_discovery_terms <= set(local_claude_marketplace["plugins"][0]["keywords"])
 
     setup = (
         dest
@@ -594,6 +624,20 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "folder trust prompt" in gemini_setup
     assert "Do not add plugin-wide MCP automatically" in gemini_setup
     assert "Gemini subagents are preview functionality" in gemini_setup
+    antigravity_setup = (
+        dest
+        / "plugins"
+        / "antigravity"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in antigravity_setup
+    assert "Run `endorctl host-check`" in antigravity_setup
+    assert "antigravity plugin validate" in antigravity_setup
+    assert "Do not add plugin-wide MCP automatically" in antigravity_setup
+    assert "Antigravity subagents are host-managed" in antigravity_setup
 
     toml = (
         dest
@@ -653,10 +697,23 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "data_gaps" in gemini_agent
     assert "kind: local" in gemini_agent.split("---", 2)[1]
     assert "mcpServers:" not in gemini_agent.split("---", 2)[1]
+    antigravity_agent = (
+        dest
+        / "plugins"
+        / "antigravity"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "probe-droid.md"
+    ).read_text()
+    assert "endor_agent_kit_managed=true" in antigravity_agent
+    assert "Antigravity CLI Host Contract" in antigravity_agent
+    assert "data_gaps" in antigravity_agent
+    assert "kind: local" in antigravity_agent.split("---", 2)[1]
+    assert "mcpServers:" not in antigravity_agent.split("---", 2)[1]
 
     manifest = json.loads((dest / "manifest.json").read_text())
     packages = {package["host"]: package for package in manifest["plugin_packages"]}
-    assert set(packages) == {"claude-code", "codex", "gemini"}
+    assert set(packages) == {"antigravity", "claude-code", "codex", "gemini"}
     assert packages["codex"] == {
         "artifacts": packages["codex"]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
@@ -686,6 +743,15 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
         "path": "plugins/gemini/endor-labs-agent-kit",
         "version": gemini_plugin_manifest["version"],
     }
+    assert packages["antigravity"] == {
+        "artifacts": packages["antigravity"]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "antigravity",
+        "included_agents": list(antigravity_agent_ids),
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/antigravity/endor-labs-agent-kit",
+        "version": antigravity_plugin_manifest["version"],
+    }
     package_artifact_paths = {
         artifact["path"]
         for artifact in packages["codex"]["artifacts"]
@@ -709,6 +775,13 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "plugins/gemini/endor-labs-agent-kit/README.md" in gemini_artifact_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" in gemini_artifact_paths
     assert "plugins/README.md" in gemini_artifact_paths
+    antigravity_artifact_paths = {
+        artifact["path"]
+        for artifact in packages["antigravity"]["artifacts"]
+    }
+    assert "plugins/antigravity/endor-labs-agent-kit/README.md" in antigravity_artifact_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in antigravity_artifact_paths
+    assert "plugins/README.md" in antigravity_artifact_paths
     with zipfile.ZipFile(dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip") as archive:
         archive_names = set(archive.namelist())
     assert "gemini-extension.json" in archive_names

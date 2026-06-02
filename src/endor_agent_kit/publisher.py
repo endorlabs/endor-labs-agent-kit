@@ -18,6 +18,7 @@ from endor_agent_kit.publication import (
     PortableHostAdapter,
     RootCatalogAggregate,
 )
+from endor_agent_kit.publication.antigravity_plugin import publish_antigravity_plugin_package
 from endor_agent_kit.publication.claude_plugin import publish_claude_plugin_package
 from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
@@ -127,6 +128,10 @@ def publish_recipes(
         if gemini_plugin is not None:
             written.extend(gemini_plugin.written)
             plugin_packages.append(gemini_plugin.package_record)
+        antigravity_plugin = publish_antigravity_plugin_package(prepared_recipes, destination)
+        if antigravity_plugin is not None:
+            written.extend(antigravity_plugin.written)
+            plugin_packages.append(antigravity_plugin.package_record)
         if plugin_packages:
             manifest = _HOST_ARTIFACT_PUBLICATION.write_plugin_packages(
                 destination,

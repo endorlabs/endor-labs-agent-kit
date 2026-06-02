@@ -1,6 +1,6 @@
 {
   "description": "Endor Labs Agent Kit Claude Code plugin marketplace.",
-  "name": "endor-labs-agent-kit",
+  "name": "endorlabs",
   "owner": {
     "email": "support@endorlabs.com",
     "name": "Endor Labs"
@@ -13,6 +13,18 @@
       "category": "Developer Tools",
       "description": "Endor Labs workflow agents and setup for Claude Code.",
       "displayName": "Endor Labs Agent Kit",
+      "keywords": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
       "name": "endor-labs-agent-kit",
       "source": "./plugins/claude/endor-labs-agent-kit",
       "tags": [
@@ -20,7 +32,12 @@
         "security",
         "sca",
         "sast",
-        "claude-code"
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
       ],
       "version": "0.1.0"
     }

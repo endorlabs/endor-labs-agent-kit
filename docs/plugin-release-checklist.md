@@ -1,7 +1,7 @@
 # Plugin Release Checklist
 
 Use this checklist before publishing Endor Labs Agent Kit plugin packages for
-Claude Code, Codex, and Gemini CLI.
+Claude Code, Codex, Gemini CLI, and Antigravity CLI.
 
 ## Release Scope
 
@@ -13,6 +13,7 @@ Generated package roots:
 - Claude Code: `plugins/claude/endor-labs-agent-kit/`
 - Codex: `plugins/codex/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
+- Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
 
 Generated marketplace and release files:
 
@@ -21,6 +22,7 @@ Generated marketplace and release files:
 - Codex public marketplace: `.agents/plugins/marketplace.json`
 - Codex local marketplace: `plugins/codex/.agents/plugins/marketplace.json`
 - Gemini release archive: `plugins/gemini/endor-labs-agent-kit.zip`
+- Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
 
 ## Version Gate
 
@@ -45,6 +47,7 @@ print(match.group(1))
 PY
 )"
 test "$VERSION" = "$(jq -r .version plugins/gemini/endor-labs-agent-kit/gemini-extension.json)"
+test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
 ```
@@ -82,11 +85,12 @@ Run these from the repository root:
 pytest
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
-git status --short --ignored plugins/gemini
+git status --short --ignored plugins/gemini plugins/antigravity
 ```
 
 The final status check must show `plugins/gemini/endor-labs-agent-kit.zip` as
-tracked or untracked, not ignored.
+tracked or untracked, not ignored. It must also show the Antigravity package
+directory as tracked or untracked, not ignored.
 
 ## Claude Code
 
@@ -102,7 +106,7 @@ root:
 
 ```text
 /plugin marketplace add ./plugins/claude
-/plugin install endor-labs-agent-kit@endor-labs-agent-kit
+/plugin install endor-labs-agent-kit@endorlabs
 /plugin list
 /agents
 /reload-plugins
@@ -112,7 +116,7 @@ Public repository validation after tag push:
 
 ```text
 /plugin marketplace add endorlabs/endor-labs-agent-kit@<tag> --sparse .claude-plugin plugins/claude
-/plugin install endor-labs-agent-kit@endor-labs-agent-kit
+/plugin install endor-labs-agent-kit@endorlabs
 /plugin list
 /agents
 ```
@@ -192,12 +196,29 @@ Gemini CLI 0.44.1 does not install a local zip path directly. Use the local
 extension directory for local testing and the GitHub release asset for public
 release installs.
 
+## Antigravity CLI
+
+Local release validation:
+
+```bash
+antigravity plugin validate plugins/antigravity/endor-labs-agent-kit
+antigravity plugin install /absolute/path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+antigravity plugin list
+antigravity plugin uninstall endor-labs-agent-kit
+antigravity plugin list
+```
+
+Antigravity CLI currently validates a package directory with `plugin.json` at
+the root. Keep Antigravity validation separate from Gemini extension validation:
+Gemini uses `gemini-extension.json` and a release zip, while Antigravity uses
+`plugin.json` and installs from the generated plugin directory in v1.
+
 ## Documentation Freshness
 
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and release-asset behavior can change:
 
-Last checked for this checklist: 2026-06-01.
+Last checked for this checklist: 2026-06-02.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`
@@ -208,6 +229,9 @@ Last checked for this checklist: 2026-06-01.
 - Gemini extension authoring: `https://geminicli.com/docs/extensions/writing-extensions/`
 - Gemini extension release docs: `https://geminicli.com/docs/extensions/releasing/`
 - Gemini subagents: `https://geminicli.com/docs/core/subagents/`
+- Antigravity CLI plugins: `https://antigravity.google/docs/cli-plugins`
+- Gemini CLI to Antigravity migration: `https://antigravity.google/docs/gcli-migration`
+- Google transition announcement: `https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/`
 - Endor Labs `endorctl` install and auth: `https://docs.endorlabs.com/developers-api/cli/install-and-configure`
 - Endor Labs `endorctl init`: `https://docs.endorlabs.com/endorctl/commands/init/`
 
