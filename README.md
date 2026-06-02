@@ -5,17 +5,22 @@ recipe-first builder used to maintain and publish them.
 
 Use this repository in two ways:
 
-- **Install agents** from the generated catalog directories.
+- **Install plugin packages** for Claude Code, Codex, or Gemini CLI.
+- **Install individual agents** from generated catalog directories.
 - **Contribute agents** by editing source recipes and regenerating the catalog.
 
 ## Table Of Contents
 
+- [Plugin Quick Start](#plugin-quick-start)
+- [Capabilities And Skills](#capabilities-and-skills)
+- [Boundaries And Rules](#boundaries-and-rules)
 - [Agent Catalog](#agent-catalog)
 - [Which Directory Do I Use?](#which-directory-do-i-use)
 - [Supported Hosts](#supported-hosts)
 - [Already Have Your Own Tech Stack Or Workflows Wired?](#already-have-your-own-tech-stack-or-workflows-wired)
 - [MCP Usage](#mcp-usage)
 - [Plugin Packaging Route](#plugin-packaging-route)
+- [Release Checklist](#release-checklist)
 - [Editions](#editions)
 - [Install An Agent](#install-an-agent)
 - [Configure Endor Access](#configure-endor-access)
@@ -28,6 +33,53 @@ Use this repository in two ways:
 - [Recipe Reference](#recipe-reference)
 - [Repository Reference](#repository-reference)
 - [Release And License](#release-and-license)
+
+## Plugin Quick Start
+
+Current generated plugin package version: `0.1.0`.
+
+The plugin packages are the lowest-friction way to load Endor Labs
+workflows into Claude Code, Codex, or Gemini CLI. They package setup
+guidance and generated workflow agents/skills from the same source recipes
+as the manual catalog without injecting every recipe into the active model
+context.
+
+| Host | Plugin package | First install path |
+| --- | --- | --- |
+| Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit` for the public repo or `/plugin marketplace add .` from a checkout. |
+| Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |
+| Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub release archive. |
+
+After installing a plugin, ask the host to use the `endor-agent-kit-setup`
+skill first. Setup checks local readiness, guides `endorctl` authentication
+and namespace selection, reports `gh` and toolchain gaps, and offers
+host-specific self-checks before live Endor lookups.
+
+## Capabilities And Skills
+
+When a plugin package is loaded, start from the user job and let the host
+map to the generated skill or agent name.
+
+| Job | Claude Code | Codex | Gemini CLI |
+| --- | --- | --- | --- |
+| Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` |
+| Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` |
+| Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` |
+| Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` |
+| Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` |
+| Use Claude-only read-only package and dependency helpers | Agents `dependency-decision-helper`, `package-risk-summary`, `repository-dependency-reviewer`, `remediation-planner`, `upgrade-impact-analysis`, `vulnerability-explainer` | Not packaged in v1 | Not packaged in v1 |
+
+The full catalog below still matters for manual installs, portable bundles,
+and future agent contributions.
+
+## Boundaries And Rules
+
+- Always preserve the generated recipe safety contract, approval gates, and evidence requirements.
+- Always treat setup as readiness and configuration guidance; setup must not run scans or mutate repositories.
+- Always report namespace, authentication, MCP, `endorctl`, `gh`, or toolchain gaps before live Endor work.
+- Never print, persist, or copy secret values; report credential presence only by variable or key name.
+- Never run `endorctl host-check` from setup or generated plugin guidance.
+- Never claim a file edit, branch push, PR/MR, ticket, policy write, or approval unless the host or adapter returned evidence.
 
 ## Agent Catalog
 
@@ -55,6 +107,9 @@ You only need `source/agents/` when you are changing or contributing an agent.
 
 | Goal | Start Here | You Do Not Need |
 | --- | --- | --- |
+| Install the Claude Code plugin package | `plugins/claude/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |
@@ -71,10 +126,10 @@ are the generated host directories listed in the catalog.
 
 | Host | Generated path | Typical install target |
 | --- | --- | --- |
-| Claude Code | `claude-code/<agent>/` | `.claude/agents/` in the target repository |
+| Claude Code | `plugins/claude/endor-labs-agent-kit/` and `claude-code/<agent>/` | Claude Code plugin marketplace, or `.claude/agents/` for manual per-agent installs |
 | Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
-| Codex | `codex/<agent>/` | `$CODEX_HOME/skills/<agent>/` or `~/.codex/skills/<agent>/` |
-| Gemini | `gemini/<agent>/` | Gemini CLI extension package under `plugins/gemini/endor-labs-agent-kit` |
+| Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$CODEX_HOME/skills/<agent>/` for manual skill installs |
+| Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
 ## Already Have Your Own Tech Stack Or Workflows Wired?
@@ -174,7 +229,8 @@ Generated plugin packages currently include:
 
 - `plugins/codex/endor-labs-agent-kit/`: Codex plugin skills, bundled
   custom-agent TOML files, setup skill, installer script, and Codex
-  marketplace metadata under `plugins/codex/.agents/plugins/marketplace.json`.
+  marketplace metadata under `.agents/plugins/marketplace.json` and
+  `plugins/codex/.agents/plugins/marketplace.json`.
 - `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup
   skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`
   plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.
@@ -189,12 +245,19 @@ is rooted at `plugins/gemini/endor-labs-agent-kit` so
 repository root into the Gemini extension root.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
+## Release Checklist
+
+Use `docs/plugin-release-checklist.md` before tagging or publishing plugin
+packages. It records the provider-specific publish paths, local validation
+commands, GitHub release asset requirements, and external documentation
+freshness checks for Claude Code, Codex, and Gemini.
+
 ## Editions
 
 Most users should not need to think about editions. The current catalog
 publishes one customer-facing artifact per agent and host, directly under
-`claude-code/<agent>/`, `claude-managed-agents/<agent>/`, or
-`codex/<agent>/`.
+`claude-code/<agent>/`, `claude-managed-agents/<agent>/`, `codex/<agent>/`,
+`gemini/<agent>/`, or `portable/<agent>/`.
 
 The builder still understands internal `developer-edition` and
 `enterprise-edition` recipe sections for compatibility and for future
@@ -211,9 +274,11 @@ separate approval gates.
 
 ## Install An Agent
 
-Pick an agent from the catalog, then open that host directory's README. If
-the agent has edition subdirectories, choose the one that matches your
-environment; otherwise use the agent directory directly.
+For Claude Code, Codex, or Gemini CLI, prefer the plugin package README
+when you want the full v1 workflow set and setup guidance. For a single
+agent, pick an agent from the catalog, then open that host directory's
+README. If the agent has edition subdirectories, choose the one that
+matches your environment; otherwise use the agent directory directly.
 
 ### Ask An LLM To Install It
 
@@ -580,7 +645,7 @@ CI runs the same validation and generated-artifact drift check.
 | `endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation` | Check whether a copied portable bundle matches the generated catalog bundle. |
 
 Supported compile targets are `claude-code`, `claude-managed-agents`,
-`codex`, `portable`, and `raw`.
+`codex`, `gemini`, `portable`, and `raw`.
 
 ## Recipe Reference
 
@@ -624,211 +689,18 @@ skills/
     SKILL.md
 docs/
   plugin-packaging-design.md
+  plugin-release-checklist.md
 src/endor_agent_kit/
 tests/
-claude-code/
-  ai-sast-triage/
-    README.md
-    actions.yaml
-    ai-sast-triage.md
-    architecture.svg
-    endorctl-setup.md
-  dependency-decision-helper/
-    README.md
-    dependency-decision-helper.md
-    endorctl-setup.md
-  endor-troubleshooter/
-    README.md
-    architecture.svg
-    endor-troubleshooter.md
-    endorctl-setup.md
-  package-risk-summary/
-    README.md
-    endorctl-setup.md
-    package-risk-summary.md
-  probe-droid/
-    README.md
-    architecture.svg
-    endorctl-setup.md
-    probe-droid.md
-  remediation-planner/
-    README.md
-    architecture.svg
-    endorctl-setup.md
-    remediation-planner.md
-  repository-dependency-reviewer/
-    README.md
-    repository-dependency-reviewer.md
-  sca-remediation/
-    README.md
-    actions.yaml
-    architecture.svg
-    endorctl-setup.md
-    sca-remediation.md
-  upgrade-impact-analysis/
-    README.md
-    architecture.svg
-    endorctl-setup.md
-    upgrade-impact-analysis.md
-  vulnerability-explainer/
-    README.md
-    vulnerability-explainer.md
-claude-managed-agents/
-  dependency-decision-helper/
-    README.md
-    agent.yaml
-    endorctl-setup.md
-    environment.yaml
-    session-template.yaml
-  endor-troubleshooter/
-    README.md
-    agent.yaml
-    architecture.svg
-    endorctl-setup.md
-    environment.yaml
-    session-template.yaml
-  package-risk-summary/
-    README.md
-    agent.yaml
-    endorctl-setup.md
-    environment.yaml
-    session-template.yaml
-  probe-droid/
-    README.md
-    agent.yaml
-    architecture.svg
-    endorctl-setup.md
-    environment.yaml
-    session-template.yaml
-  upgrade-impact-analysis/
-    README.md
-    agent.yaml
-    architecture.svg
-    endorctl-setup.md
-    environment.yaml
-    session-template.yaml
-  vulnerability-explainer/
-    README.md
-    agent.yaml
-    environment.yaml
-    session-template.yaml
-codex/
-  ai-sast-triage/
-    README.md
-    SKILL.md
-    actions.yaml
-    architecture.svg
-    endorctl-setup.md
-  endor-troubleshooter/
-    README.md
-    SKILL.md
-    architecture.svg
-    endorctl-setup.md
-  probe-droid/
-    README.md
-    SKILL.md
-    architecture.svg
-    endorctl-setup.md
-  sca-remediation/
-    README.md
-    SKILL.md
-    actions.yaml
-    architecture.svg
-    endorctl-setup.md
-gemini/
-  ai-sast-triage/
-    README.md
-    SKILL.md
-    actions.yaml
-    ai-sast-triage.md
-    architecture.svg
-    endorctl-setup.md
-  endor-troubleshooter/
-    README.md
-    SKILL.md
-    architecture.svg
-    endor-troubleshooter.md
-    endorctl-setup.md
-  probe-droid/
-    README.md
-    SKILL.md
-    architecture.svg
-    endorctl-setup.md
-    probe-droid.md
-  sca-remediation/
-    README.md
-    SKILL.md
-    actions.yaml
-    architecture.svg
-    endorctl-setup.md
-    sca-remediation.md
-portable/
-  ai-sast-triage/
-    README.md
-    actions.yaml
-    agent.manifest.json
-    agent.md
-    architecture.svg
-    endorctl-setup.md
-    output-contract.md
-  dependency-decision-helper/
-    README.md
-    agent.manifest.json
-    agent.md
-    endorctl-setup.md
-    output-contract.md
-  endor-troubleshooter/
-    README.md
-    agent.manifest.json
-    agent.md
-    architecture.svg
-    endorctl-setup.md
-    output-contract.md
-  package-risk-summary/
-    README.md
-    agent.manifest.json
-    agent.md
-    endorctl-setup.md
-    output-contract.md
-  probe-droid/
-    README.md
-    agent.manifest.json
-    agent.md
-    architecture.svg
-    endorctl-setup.md
-    output-contract.md
-  remediation-planner/
-    README.md
-    agent.manifest.json
-    agent.md
-    architecture.svg
-    endorctl-setup.md
-    output-contract.md
-  repository-dependency-reviewer/
-    README.md
-    agent.manifest.json
-    agent.md
-    output-contract.md
-  sca-remediation/
-    README.md
-    actions.yaml
-    agent.manifest.json
-    agent.md
-    architecture.svg
-    endorctl-setup.md
-    output-contract.md
-  upgrade-impact-analysis/
-    README.md
-    agent.manifest.json
-    agent.md
-    architecture.svg
-    endorctl-setup.md
-    output-contract.md
-  vulnerability-explainer/
-    README.md
-    agent.manifest.json
-    agent.md
-    output-contract.md
+plugins/
+  claude/endor-labs-agent-kit/
+  codex/endor-labs-agent-kit/
+  gemini/endor-labs-agent-kit/
+claude-code/<agent>/
+claude-managed-agents/<agent>/
+codex/<agent>/
+gemini/<agent>/
+portable/<agent>/
 manifest.json
 ```
 
@@ -845,7 +717,9 @@ The root catalog directories are intentionally checked in:
 - `claude-code/`
 - `claude-managed-agents/`
 - `codex/`
+- `gemini/`
 - `portable/`
+- `plugins/`
 - `manifest.json`
 
 These paths are customer-facing and should stay stable.

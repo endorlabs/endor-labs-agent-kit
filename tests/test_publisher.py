@@ -462,6 +462,7 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json" in written_paths
+    assert ".agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
@@ -526,12 +527,19 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     assert "settings" not in gemini_plugin_manifest
     assert "license" not in gemini_plugin_manifest
 
-    marketplace = json.loads(
+    local_codex_marketplace = json.loads(
         (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
     )
-    assert marketplace["name"] == "endor-labs-agent-kit"
-    assert marketplace["plugins"][0]["source"]["path"] == "./endor-labs-agent-kit"
-    assert marketplace["plugins"][0]["policy"] == {
+    assert local_codex_marketplace["name"] == "endor-labs-agent-kit"
+    assert local_codex_marketplace["plugins"][0]["source"]["path"] == "./endor-labs-agent-kit"
+    assert local_codex_marketplace["plugins"][0]["policy"] == {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+    }
+    public_codex_marketplace = json.loads((dest / ".agents" / "plugins" / "marketplace.json").read_text())
+    assert public_codex_marketplace["name"] == "endor-labs-agent-kit"
+    assert public_codex_marketplace["plugins"][0]["source"]["path"] == "./plugins/codex/endor-labs-agent-kit"
+    assert public_codex_marketplace["plugins"][0]["policy"] == {
         "installation": "AVAILABLE",
         "authentication": "ON_INSTALL",
     }
@@ -650,7 +658,7 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
         "display_name": "Endor Labs Agent Kit",
         "host": "codex",
         "included_agents": list(codex_agent_ids),
-        "marketplace_path": "plugins/codex/.agents/plugins/marketplace.json",
+        "marketplace_path": ".agents/plugins/marketplace.json",
         "name": "endor-labs-agent-kit",
         "path": "plugins/codex/endor-labs-agent-kit",
         "version": plugin_manifest["version"],
@@ -679,6 +687,7 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
         for artifact in packages["codex"]["artifacts"]
     }
     assert "plugins/codex/endor-labs-agent-kit/README.md" in package_artifact_paths
+    assert ".agents/plugins/marketplace.json" in package_artifact_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in package_artifact_paths
     assert "plugins/README.md" in package_artifact_paths
     claude_artifact_paths = {

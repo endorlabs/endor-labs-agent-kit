@@ -21,7 +21,7 @@ Setup may:
 - Run lightweight read-only Endor auth verification when config or credentials
   are present.
 - Offer re-authentication when verification fails.
-- Guide `gh` authentication and installation.
+- Check `gh` authentication and point to official installation guidance.
 - Install, update, or uninstall host-specific Agent Kit support files only after
   explicit approval.
 

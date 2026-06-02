@@ -8,6 +8,15 @@ This generated Gemini CLI extension package includes Endor Labs setup
 support, Gemini Agent Skills, and preview Gemini subagents generated from
 source recipes in the Endor Labs Agent Kit repository.
 
+## Host Metadata
+
+- Manifest: `gemini-extension.json`.
+- Context: `GEMINI.md`, loaded through the manifest `contextFileName` field.
+- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
+- Preview subagents: `agents/<agent>.md`.
+- Model/runtime: generated skills and subagents inherit Gemini CLI defaults; the extension does not set a plugin-wide default model.
+- MCP: no extension-wide MCP server is declared by default.
+
 ## Install From A Local Checkout
 
 ```bash
@@ -45,7 +54,7 @@ toolchain prerequisites. It does not run scans, run `endorctl host-check`,
 edit shell profiles, auto-install `gh`, or install language runtimes and
 package managers.
 
-## Included Jobs
+## Capabilities And Skills
 
 | Job | Gemini skill | Gemini subagent | Safety |
 | --- | --- | --- | --- |
@@ -57,6 +66,14 @@ package managers.
 Mutating workflows keep file edits, branch pushes, PR/MR creation,
 comments, approval verification, and Endor policy writes behind separate
 approval gates. Setup never performs those workflow actions.
+
+## Boundaries And Rules
+
+- Always run readiness and namespace checks before live Endor lookups.
+- Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.
+- Never run setup scans or `endorctl host-check`.
+- Never auto-install `gh`, language runtimes, or package managers in v1.
+- Never print, persist, or copy Endor API key, secret, token, or full config values.
 
 ## Provider Docs
 
