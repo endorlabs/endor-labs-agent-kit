@@ -129,6 +129,9 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "Do not run `endorctl scan`" in artifact
     assert "Do not clone repositories" in artifact
     assert "GitHub.com only" in artifact
+    assert "Default Endor Context Scope" in artifact
+    assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
+    assert "Keep non-main counts" in artifact
     assert "gh auth status" in artifact
     assert "gh repo list" in artifact
     assert "gh repo view" in artifact

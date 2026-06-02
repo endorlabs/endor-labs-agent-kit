@@ -80,6 +80,10 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Natural-Language Intake" in prompt
     assert "Project scoping is mandatory" in prompt
+    assert "Default Endor Context Scope" in prompt
+    assert "Default to `context.type==CONTEXT_TYPE_MAIN` for Endor Findings" in prompt
+    assert "PR/CI-run findings" in prompt
+    assert "main-branch remediation counts" in prompt
     assert "Namespace Provenance" in prompt
     assert "Do not invent or reuse a namespace from unrelated examples" in prompt
     assert "Before running an Endor query with `-n <namespace>`" in prompt
@@ -93,10 +97,17 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "A high finding count alone is not enough" in prompt
     assert "Do not require, configure, or start an Endor MCP server" in prompt
     assert "endorctl api list -r Finding" in prompt
+    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY' in prompt
+    assert "uuid,context,meta.name,meta.description,meta.parent_uuid" in prompt
+    assert "spec.source_code_version" in prompt
+    assert "spec.target_uuid" in prompt
+    assert "spec.dependency_file_paths" in prompt
     assert "endorctl api list -r VersionUpgrade" in prompt
     assert "Do not make current upstream/latest-version claims unless you verified them during the current run" in prompt
     assert "prepare-remediation-diff" in prompt
     assert "post-remediation-comment" in prompt
+    assert "Query only main-context repository-scoped SCA vulnerability findings by default" in prompt
+    assert "Use PR/CI-run or all-context findings only when the user explicitly asks" in prompt
     assert "resolve-upgrade-risk" in prompt
     assert "Risky / Indeterminate Upgrade Solver" in prompt
     assert "Other Non-Breaking / Low-Risk UIA-Backed PR Lane" in prompt

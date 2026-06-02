@@ -47,6 +47,20 @@ Resolve the Endor project in this order:
 
 Project scoping is mandatory. After resolving a project, every Endor Finding and VersionUpgrade query must filter by the resolved project UUID or an equivalent repository-scoped selector.
 
+## Default Endor Context Scope
+
+Default to `context.type==CONTEXT_TYPE_MAIN` for Endor Findings,
+PackageVersion, VersionUpgrade/UIA, dependency, and other repository-scoped
+tenant lookups. This matches the normal Endor project UI view and prevents
+PR/CI-run findings from being mixed into main-branch remediation counts.
+
+Use `CONTEXT_TYPE_CI_RUN`, PR refs, commit SHA refs, or an all-context query only
+when the user explicitly asks for PR/CI-run evidence, a supplied finding UUID is
+known to belong to that context, or the task is specifically about a PR scan. In
+that case, label the scope in prose and JSON, preserve `context.type` and
+`spec.source_code_version.ref`, and keep those counts separate from main-context
+counts.
+
 ## Namespace Provenance
 
 Do not invent or reuse a namespace from unrelated examples, older sessions, prior repositories, or model memory.
@@ -65,7 +79,7 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 ## Workflow
 
 1. Resolve the project and namespace from local git, user-supplied selectors, and Endor project metadata.
-2. Query SCA vulnerability findings for the resolved project. Preserve severity, finding category, finding tags, reachability, exploitability, direct/transitive signal, package name/version, affected manifests, fix availability, CVE/GHSA IDs, finding UUIDs, and any VersionUpgrade/UIA `vuln_finding_info.fixed_findings` entries.
+2. Query main-context SCA vulnerability findings for the resolved project unless the user explicitly requested PR/CI-run or all-context evidence. Preserve context type, source ref, severity, finding category, finding tags, reachability, exploitability, direct/transitive signal, package name/version, affected manifests, package UUID, dependency UUID, fix availability, CVE/GHSA IDs, finding UUIDs, and any VersionUpgrade/UIA `vuln_finding_info.fixed_findings` entries.
 3. Group findings by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
 4. Query VersionUpgrade/UIA evidence before calling any remediation low-risk, safe, or best. A high finding count alone is not enough.
 5. Select the first remediation candidate using this order:
@@ -136,8 +150,8 @@ SCA findings example:
 
 ```bash
 endorctl api list -r Finding -n <namespace> \
-  --filter 'spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' \
-  --field-mask "uuid,meta.name,meta.description,spec.level,spec.project_uuid,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.target_dependency_version,spec.ecosystem,spec.finding_metadata,spec.remediation" \
+  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' \
+  --field-mask "uuid,context,meta.name,meta.description,meta.parent_uuid,spec.level,spec.project_uuid,spec.source_code_version,spec.finding_categories,spec.finding_tags,spec.target_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.dependency_file_paths,spec.ecosystem,spec.finding_metadata,spec.remediation" \
   --list-all -o json
 ```
 
@@ -394,7 +408,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`
 - inputs: `project_uuid`, `namespace`, `severity_filter`, `finding_uuids`, `package_name`, `finding_limit`
 - outputs: `findings`, `finding_counts`, `affected_packages`, `affected_manifests`
-- notes: Query only repository-scoped SCA vulnerability findings. Preserve reachability, exploitability, direct/transitive, fix availability, and package evidence for ranking.
+- notes: Query only main-context repository-scoped SCA vulnerability findings by default. Preserve context type, source ref, reachability, exploitability, direct/transitive, fix availability, package UUID, dependency UUID, location, and package evidence for ranking. Use PR/CI-run or all-context findings only when the user explicitly asks and label that scope separately.
 
 ### query-uia-evidence
 

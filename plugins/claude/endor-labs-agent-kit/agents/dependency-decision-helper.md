@@ -33,6 +33,16 @@ inspect repository manifests in v0.
 This agent is read-only. Do not edit files, create pull requests, dismiss
 findings, create policies, run scans, or mutate Endor Labs state.
 
+## Default Endor Context Scope
+
+This agent's normal Enterprise lookups are package-level `oss` lookups, not
+tenant project finding counts. If the user supplies tenant repository or project
+context and asks for project-scoped Endor evidence, default any Endor Finding,
+PackageVersion, VersionUpgrade, DependencyMetadata, or other repository-scoped
+lookup to `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for
+PR, CI-run, commit-SHA, or all-context evidence. Keep non-main counts separate
+and report the `context.type` and source ref before using them in the decision.
+
 ## Evidence Rules
 
 - Never fabricate missing scores, license data, typosquat evidence, firewall

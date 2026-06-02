@@ -45,6 +45,11 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "read the current repository root and `origin` remote URL" in prompt
     assert "ask the user to choose one" in prompt
     assert "Project scoping is mandatory" in prompt
+    assert "Default Endor Context Scope" in prompt
+    assert "Default Endor Finding list queries to `context.type==CONTEXT_TYPE_MAIN`" in prompt
+    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="AI_SAST"' in prompt
+    assert "inspect and report the returned `context.type` and `spec.source_code_version.ref`" in prompt
+    assert "do not merge a CI/PR-run finding into main-context counts" in prompt
     assert "Namespace Provenance" in prompt
     assert "If the user supplied a namespace in the current request" in prompt
     assert "Never print or dump an entire Endor config file" in prompt
@@ -107,6 +112,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Do not claim that an Endor exception policy was created" in prompt
     assert "## Action Contracts" in prompt
     assert "open-change-request" in prompt
+    assert "using finding UUID, source location, context type, source ref" in prompt
+    assert "Treat main-context findings as the default and label PR/CI-run context explicitly" in prompt
     assert "write-exception-policy" in prompt
     assert "availability: `available`" in prompt
     assert "checking existing Endor policies by generated policy name and finding UUID" in prompt

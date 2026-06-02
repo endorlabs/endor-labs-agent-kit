@@ -158,6 +158,17 @@ Use exact evidence from the tenant when fields are available. If a resource,
 field, or filter is unsupported in the current tenant or `endorctl` version,
 continue with the usable fields and add a precise `data_gaps` entry.
 
+## Default Endor Context Scope
+
+Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`
+when the resource supports context filters. This aligns onboarding, package,
+resolution-error, reachability, and finding evidence with the monitored-branch
+project UI view. Use PR refs, commit SHA refs, `CONTEXT_TYPE_CI_RUN`, or
+all-context evidence only when the user explicitly asks for that scope or the
+documented resource does not expose a context filter. Keep non-main counts
+separate from main-context counts, and record `context.type` plus source ref
+details in `evidence_queries[]` whenever they are available.
+
 ## GitHub Inventory
 
 Use authenticated `gh` CLI first. If live GitHub inventory is unavailable, use
