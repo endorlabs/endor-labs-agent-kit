@@ -59,12 +59,28 @@ Never print or dump an entire Endor config file. Do not run `cat ~/.config/endor
 
 Every output gate must include `project_resolution.project_uuid`, `project_resolution.namespace`, `project_resolution.namespace_provenance`, and `project_resolution.repo_full_name` before claiming scoped AI SAST findings or approval-policy readiness.
 
+## Default Endor Context Scope
+
+Default Endor Finding list queries to `context.type==CONTEXT_TYPE_MAIN` unless
+the user explicitly asks for PR/CI-run findings, supplies a PR/CI-run finding
+UUID, or asks to analyze a specific PR scan. This matches the normal Endor
+project UI view and prevents PR/CI-run findings from inflating main-branch
+triage counts.
+
+When the workflow intentionally uses a non-main context, label that scope in
+prose and JSON, preserve `context.type` and `spec.source_code_version.ref`, and
+keep those counts separate from main-context counts. For `endorctl api get` by
+UUID, `api get` cannot apply a filter; inspect the returned `context.type` and
+`spec.source_code_version.ref` before treating the finding as main-context
+evidence.
+
 ## Workflow
 
 1. Resolve the Endor project from the current repository or user-supplied repository selector. Ask for clarification only when the match is ambiguous or missing.
 2. Pull AI SAST findings + parse Endor's verdict: List findings via FindingService filtered by method=AI_SAST and the resolved project, then run a deterministic regex/markdown parser over each spec.explanation to extract the Classification line, all Verification Scorecard rows, Severity Scoring numbers, Data Flow anchors, Exploit Reproduction, Remediation Guidance, and any sibling-file hints from the Security Controls section. Keep raw finding payloads local to parsing; pass only compact extracted evidence into patch reasoning and summaries.
-   - Project scoping is mandatory. After resolving a project, every Endor finding query must filter by the resolved project UUID or an equivalent repository-scoped selector. Never list all AI SAST findings in the namespace and choose from unrelated repositories.
-   - For a known finding UUID, use `endorctl api get -r Finding -n <namespace> --uuid <finding_uuid> -o json`; `api get` does not accept `--filter`. Use `endorctl api list -r Finding -n <namespace> -f <filter> -o json` only for filtered list queries.
+   - Project scoping is mandatory. After resolving a project, every Endor finding list query must filter by `context.type==CONTEXT_TYPE_MAIN` and the resolved project UUID or an equivalent repository-scoped selector unless the user explicitly requested a PR/CI-run scope. Never list all AI SAST findings in the namespace and choose from unrelated repositories.
+   - For filtered list queries, use a filter shaped like `context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="AI_SAST"` and include `context` plus `spec.source_code_version` in the field mask.
+   - For a known finding UUID, use `endorctl api get -r Finding -n <namespace> --uuid <finding_uuid> -o json`; `api get` does not accept `--filter`. Use `endorctl api list -r Finding -n <namespace> -f <filter> -o json` only for filtered list queries. After a UUID get, inspect and report the returned `context.type` and `spec.source_code_version.ref`; do not merge a CI/PR-run finding into main-context counts unless the user requested that scope.
    - When parsing `endorctl` JSON in shell commands, tolerate update notices by redirecting non-JSON stderr or by parsing from the first JSON object. Do not let a CLI update notice become a false data gap.
    - Treat `## Exploit Reproduction` and `## Remediation Guidance` as optional sections for backward compatibility. If either section is absent, record the missing section in the per-finding evidence object and continue with the older scorecard/data-flow workflow.
 3. Use Exploit Reproduction for prioritization and validation planning: extract attacker preconditions, trigger input or payload shape, affected route/API/sink, expected impact, exploit reliability, and stated limitations. Raise priority when reproduction is concrete, externally reachable, low-precondition, or high-impact. Lower confidence or require manual review when reproduction depends on unrealistic assumptions, missing source context, or controls that appear to block the path. Never run exploit steps against live or customer systems; translate them into local regression tests, safe fixtures, or PR verification notes where possible.
@@ -198,7 +214,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`, `read_files`
 - inputs: `repo`, `finding_uuid`, `source_sha`, `file_path`, `data_flow_anchors`, `exploit_reproduction`, `remediation_guidance`
 - outputs: `source_text`, `source_sha`, `source_url`, `source_location_provenance`
-- notes: Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed.
+- notes: Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, context type, source ref, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed. Treat main-context findings as the default and label PR/CI-run context explicitly.
 
 ### open-change-request
 

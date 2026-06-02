@@ -59,6 +59,7 @@ def test_remediation_planner_uses_repository_context_not_required_uuid(tmp_path)
     assert "<project_uuid>" not in readme
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Only ask for a project UUID when human-readable selectors cannot" in prompt
+    assert "Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`" in prompt
     assert "![Remediation Planner architecture](architecture.svg)" in readme
     assert (agent_dir / "architecture.svg").is_file()
     assert not (agent_dir / "enterprise-edition").exists()

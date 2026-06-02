@@ -115,6 +115,8 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "`ScanLogRequest` is a create-style API" in artifact
     assert "Use `endorctl --version`" in artifact
     assert "Do not use\n`endorctl version`" in artifact
+    assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
+    assert "Never merge PR/CI-run finding counts into main-context finding counts" in artifact
     assert "resolved_dependency_count" in artifact
     assert "Do not `get` `CallGraphData`" in artifact
     assert "endorctl scan --pr --pr-baseline=<baseline_branch> --pr-incremental" in artifact
@@ -128,6 +130,7 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "--resource NotificationTarget" in artifact
     assert "--resource Exporter" in artifact
     assert "Do not generalize them into create, update, delete, scan" in artifact
+    assert '--filter \'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"\'' in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "Scan Lifecycle And Stuck States" in artifact
     assert "Stuck `STATUS_RUNNING`" in artifact

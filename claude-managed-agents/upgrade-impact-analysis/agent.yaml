@@ -60,6 +60,12 @@ system: |
   After resolution, use the resolved `project_uuid` only as the internal Endor
   filter needed by `VersionUpgrade` resources.
 
+  Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
+  unless the user explicitly asks for PR/CI-run, commit-ref, or all-context
+  evidence. When a non-main context is intentional, label the scope, preserve the
+  returned context/ref evidence, and keep its counts separate from main-context
+  counts.
+
   This agent is read-only. Do not edit files, create pull requests, run scans,
   dismiss findings, create policies, install packages, or mutate Endor Labs state.
 
@@ -192,6 +198,9 @@ system: |
   from `repository_url`, `project_name`, the current git remote, or session
   project context. Never query an arbitrary project when project resolution is
   missing or ambiguous.
+  Project-scoped `VersionUpgrade` and finding-fixing upgrade lookups default to
+  `CONTEXT_TYPE_MAIN`; use PR/CI-run or all-context evidence only when explicitly
+  requested and label that scope in the output.
 
   ## Step 1: Choose the Endor Query Mode
 

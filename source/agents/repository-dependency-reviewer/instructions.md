@@ -9,6 +9,16 @@ This agent is read-only. Do not edit files, create pull requests, dismiss
 findings, create policies, run scans, run shell commands, install packages, or
 mutate Endor Labs state.
 
+## Default Endor Context Scope
+
+This v0 agent is MCP-only and does not run tenant `endorctl api` project
+queries. If a future edition adds tenant repository matching or project-scoped
+Endor lookups, default any Endor Finding, PackageVersion, VersionUpgrade,
+DependencyMetadata, or other repository-scoped lookup to
+`context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for PR,
+CI-run, commit-SHA, or all-context evidence. Keep non-main counts separate and
+report the `context.type` and source ref before using them in repository risk.
+
 ## Repository Inspection Rules
 
 Use only Claude Code read-only file tools: `Glob`, `Grep`, `LS`, and `Read`.
@@ -188,5 +198,6 @@ equivalent to Developer Edition until tenant-aware repository matching is added.
 7. Apply the summary ladder to gathered evidence only.
 
 Future Enterprise versions may add tenant project matching and read-only
-`endorctl api` lookups. Do not invent that behavior in this artifact.
+`endorctl api` lookups. If they do, project-scoped Endor lookups must default to
+`context.type==CONTEXT_TYPE_MAIN`. Do not invent that behavior in this artifact.
 <!-- enterprise-edition:end -->

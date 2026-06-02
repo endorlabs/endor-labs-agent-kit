@@ -51,6 +51,9 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
         assert "check_dependency_for_vulnerabilities" in body
         assert "get_endor_vulnerability" in body
         assert "Do not use Bash" in body
+        assert "Default Endor Context Scope" in body
+        assert "context.type==CONTEXT_TYPE_MAIN" in body
+        assert "Keep non-main counts separate" in body
         assert "unresolved_versions" in body
         assert "data_gaps" in body
 

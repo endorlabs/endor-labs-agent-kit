@@ -17,7 +17,7 @@ actions:
     required_host_capabilities: ["run_commands", "read_files"]
     inputs: ["repo", "finding_uuid", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
     outputs: ["source_text", "source_sha", "source_url", "source_location_provenance"]
-    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed."
+    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, context type, source ref, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed. Treat main-context findings as the default and label PR/CI-run context explicitly."
 
   - id: open-change-request
     kind: scm.change_request
