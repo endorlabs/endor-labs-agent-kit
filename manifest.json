@@ -1506,14 +1506,14 @@
     {
       "artifacts": [
         {
-          "bytes": 541,
+          "bytes": 491,
           "path": "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json",
-          "sha256": "fa2ad21caf3927e5583cda8b4d543625ee82b346219bbc46e9645f9eec9437e6"
+          "sha256": "9cbe8783c5747cbe8027d61efc3b7c5dd8cf7244ef67ed8cda589897f30d3860"
         },
         {
-          "bytes": 3561,
+          "bytes": 3676,
           "path": "plugins/claude/endor-labs-agent-kit/README.md",
-          "sha256": "abb3c37b3ab6096c14c1d34accbffb8c9d20f6fbc95b0630d4f8d7c4989d524e"
+          "sha256": "be8214b35a9e7014f96fed5f1e2c841ec2a15c4820875ce573a5152cc2c7dcec"
         },
         {
           "bytes": 37956,
@@ -1571,9 +1571,9 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 6452,
+          "bytes": 6479,
           "path": "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "3b21b6056f1c9f57ebf8e6a7258b06037002d7024a0373a523420a4e3ab379d3"
+          "sha256": "0db8b8a38ae8a2ecb11e3f841c0e8b46b7a239e32db0ba1cf5f34f957221422a"
         },
         {
           "bytes": 679,

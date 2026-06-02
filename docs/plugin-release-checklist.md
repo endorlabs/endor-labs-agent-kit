@@ -101,7 +101,7 @@ Inside Claude Code, validate the package-local marketplace from the repository
 root:
 
 ```text
-/plugin marketplace add plugins/claude
+/plugin marketplace add ./plugins/claude
 /plugin install endor-labs-agent-kit@endor-labs-agent-kit
 /plugin list
 /agents
@@ -111,7 +111,7 @@ root:
 Public repository validation after tag push:
 
 ```text
-/plugin marketplace add endorlabs/endor-labs-agent-kit
+/plugin marketplace add endorlabs/endor-labs-agent-kit@<tag> --sparse .claude-plugin plugins/claude
 /plugin install endor-labs-agent-kit@endor-labs-agent-kit
 /plugin list
 /agents

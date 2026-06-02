@@ -462,10 +462,10 @@ def _check_claude_plugin_package(
     if manifest:
         if manifest.get("name") != "endor-labs-agent-kit":
             errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: name must be endor-labs-agent-kit")
-        if manifest.get("agents") != "./agents/":
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: agents must point at ./agents/")
-        if manifest.get("skills") != "./skills/":
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: skills must point at ./skills/")
+        if "agents" in manifest:
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: must not declare default agents path; Claude auto-discovers agents/")
+        if "skills" in manifest:
+            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: must not declare default skills path; Claude auto-discovers skills/")
         if "license" in manifest:
             errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: license must be omitted until release metadata is final")
         if "mcpServers" in manifest:
@@ -540,6 +540,9 @@ def _check_claude_marketplace(
         return
     if marketplace.get("name") != "endor-labs-agent-kit":
         errors.append(f"{_rel(root, path)}: name must be endor-labs-agent-kit")
+    owner = _dict(marketplace.get("owner"))
+    if owner.get("name") != "Endor Labs":
+        errors.append(f"{_rel(root, path)}: owner.name must be Endor Labs")
     entries = _list(marketplace.get("plugins"))
     entry = next(
         (
@@ -554,6 +557,11 @@ def _check_claude_marketplace(
         return
     if entry.get("source") != expected_source:
         errors.append(f"{_rel(root, path)}: plugin source must be {expected_source!r}")
+    source = entry.get("source")
+    if not isinstance(source, str) or not source.startswith("./") or "/../" in source or source.startswith("../"):
+        errors.append(f"{_rel(root, path)}: plugin source must be a marketplace-root relative path starting with ./")
+    if entry.get("version") != "0.1.0":
+        errors.append(f"{_rel(root, path)}: plugin entry version must match package version 0.1.0")
 
 
 def _check_gemini_plugin_package(
