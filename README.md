@@ -5,7 +5,7 @@ recipe-first builder used to maintain and publish them.
 
 Use this repository in two ways:
 
-- **Install plugin packages** for Claude Code, Codex, or Gemini CLI.
+- **Install plugin packages** for Claude Code, Codex, Gemini CLI, or Antigravity CLI.
 - **Install individual agents** from generated catalog directories.
 - **Contribute agents** by editing source recipes and regenerating the catalog.
 
@@ -39,16 +39,17 @@ Use this repository in two ways:
 Current generated plugin package version: `0.1.0`.
 
 The plugin packages are the lowest-friction way to load Endor Labs
-workflows into Claude Code, Codex, or Gemini CLI. They package setup
+workflows into Claude Code, Codex, Gemini CLI, or Antigravity CLI. They package setup
 guidance and generated workflow agents/skills from the same source recipes
 as the manual catalog without injecting every recipe into the active model
 context.
 
 | Host | Plugin package | First install path |
 | --- | --- | --- |
-| Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add .` from a checkout. |
+| Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add ./` from a checkout. |
 | Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub release archive. |
+| Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/` | Read `plugins/antigravity/endor-labs-agent-kit/README.md`, then use `antigravity plugin validate` and `antigravity plugin install` against the generated plugin directory. |
 
 After installing a plugin, ask the host to use the `endor-agent-kit-setup`
 skill first. Setup checks local readiness, guides `endorctl` authentication
@@ -60,14 +61,14 @@ host-specific self-checks before live Endor lookups.
 When a plugin package is loaded, start from the user job and let the host
 map to the generated skill or agent name.
 
-| Job | Claude Code | Codex | Gemini CLI |
-| --- | --- | --- | --- |
-| Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` |
-| Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` |
-| Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` |
-| Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` |
-| Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` |
-| Use Claude-only read-only package and dependency helpers | Agents `dependency-decision-helper`, `package-risk-summary`, `repository-dependency-reviewer`, `remediation-planner`, `upgrade-impact-analysis`, `vulnerability-explainer` | Not packaged in v1 | Not packaged in v1 |
+| Job | Claude Code | Codex | Gemini CLI | Antigravity CLI |
+| --- | --- | --- | --- | --- |
+| Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` |
+| Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` | Skill/subagent `ai-sast-triage` |
+| Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` | Skill/subagent `endor-troubleshooter` |
+| Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` | Skill/subagent `probe-droid` |
+| Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` | Skill/subagent `sca-remediation` |
+| Use Claude-only read-only package and dependency helpers | Agents `dependency-decision-helper`, `package-risk-summary`, `repository-dependency-reviewer`, `remediation-planner`, `upgrade-impact-analysis`, `vulnerability-explainer` | Not packaged in v1 | Not packaged in v1 | Not packaged in v1 |
 
 The full catalog below still matters for manual installs, portable bundles,
 and future agent contributions.
@@ -110,6 +111,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install the Claude Code plugin package | `plugins/claude/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |
@@ -130,6 +132,7 @@ are the generated host directories listed in the catalog.
 | Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
 | Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$CODEX_HOME/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
+| Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
 ## Already Have Your Own Tech Stack Or Workflows Wired?
@@ -138,7 +141,7 @@ Use the `portable/<agent>/` bundles when your organization already has an
 agent runtime, repository workflow, ticketing workflow, approval system,
 credential controls, and audit pipeline. Portable bundles give you the
 agent instructions and runtime contract without assuming Claude Code,
-Claude Managed Agents, Codex, Gemini, or any other host-specific package shape.
+Claude Managed Agents, Codex, Gemini, Antigravity, or any other host-specific package shape.
 
 Each portable bundle includes:
 
@@ -237,12 +240,16 @@ Generated plugin packages currently include:
 - `plugins/gemini/endor-labs-agent-kit/`: Gemini CLI extension with setup
   skill, Gemini workflow skills, preview subagents, minimal context, and a
   generated release archive at `plugins/gemini/endor-labs-agent-kit.zip`.
+- `plugins/antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin with
+  setup skill, Antigravity workflow skills, subagents, minimal assets, and
+  a root `plugin.json`.
 
 All plugin packages preserve the same recipe source, action metadata, and
 approval gates as the manual generated catalog. The Gemini release archive
 is rooted at `plugins/gemini/endor-labs-agent-kit` so
 `gemini-extension.json` is at the archive root without turning this
-repository root into the Gemini extension root.
+repository root into the Gemini extension root. Antigravity installs from
+the generated plugin directory and does not need a release zip in v1.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## Release Checklist
@@ -250,7 +257,7 @@ See `docs/plugin-packaging-design.md` for blast-radius notes.
 Use `docs/plugin-release-checklist.md` before tagging or publishing plugin
 packages. It records the provider-specific publish paths, local validation
 commands, GitHub release asset requirements, and external documentation
-freshness checks for Claude Code, Codex, and Gemini.
+freshness checks for Claude Code, Codex, Gemini, and Antigravity.
 
 ## Editions
 
@@ -274,7 +281,7 @@ separate approval gates.
 
 ## Install An Agent
 
-For Claude Code, Codex, or Gemini CLI, prefer the plugin package README
+For Claude Code, Codex, Gemini CLI, or Antigravity CLI, prefer the plugin package README
 when you want the full v1 workflow set and setup guidance. For a single
 agent, pick an agent from the catalog, then open that host directory's
 README. If the agent has edition subdirectories, choose the one that

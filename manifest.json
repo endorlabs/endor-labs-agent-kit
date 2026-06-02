@@ -1506,14 +1506,94 @@
     {
       "artifacts": [
         {
-          "bytes": 491,
-          "path": "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json",
-          "sha256": "9cbe8783c5747cbe8027d61efc3b7c5dd8cf7244ef67ed8cda589897f30d3860"
+          "bytes": 2867,
+          "path": "plugins/antigravity/endor-labs-agent-kit/README.md",
+          "sha256": "e9fb58f7cd6f90ec18daf92d081d57376fb6d5dea17050292d15c7462676eb52"
         },
         {
-          "bytes": 3676,
+          "bytes": 38330,
+          "path": "plugins/antigravity/endor-labs-agent-kit/agents/ai-sast-triage.md",
+          "sha256": "2db944f361990bd76f2ff589004576021ddaa4c48dd30adf5099f203ed42f76d"
+        },
+        {
+          "bytes": 50946,
+          "path": "plugins/antigravity/endor-labs-agent-kit/agents/endor-troubleshooter.md",
+          "sha256": "a15e6240b33dc82369727af4329b54785191ba92ededfeee5374c7773e4cd1b4"
+        },
+        {
+          "bytes": 48730,
+          "path": "plugins/antigravity/endor-labs-agent-kit/agents/probe-droid.md",
+          "sha256": "3c180763433a4cf38eb028ca6d0f2f9f106fa6a8139c7a916a1056f2bff6e282"
+        },
+        {
+          "bytes": 39430,
+          "path": "plugins/antigravity/endor-labs-agent-kit/agents/sca-remediation.md",
+          "sha256": "e0fe89af6636c9e0344049f41e6395e647b3ab3cb46a147002db77f6cee21bd2"
+        },
+        {
+          "bytes": 303,
+          "path": "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg",
+          "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
+        },
+        {
+          "bytes": 813,
+          "path": "plugins/antigravity/endor-labs-agent-kit/plugin.json",
+          "sha256": "dc976dd766dcd548c2861a1bdc1d667f22eccffd6dbf8fac7eeb359831362b03"
+        },
+        {
+          "bytes": 38031,
+          "path": "plugins/antigravity/endor-labs-agent-kit/skills/ai-sast-triage/SKILL.md",
+          "sha256": "e99b9636207b11470ad8d7a728f8a374d8b850a3bfeb6fa09d1e23027136b4a7"
+        },
+        {
+          "bytes": 6166,
+          "path": "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
+          "sha256": "599bc21929dabf9a0cc744649dea792d2e249b83c198fa028aaa018d77828470"
+        },
+        {
+          "bytes": 50686,
+          "path": "plugins/antigravity/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
+          "sha256": "533219501f036ddc747811f70133d1758742b050d64275d1c94b13e5398ace01"
+        },
+        {
+          "bytes": 48479,
+          "path": "plugins/antigravity/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
+          "sha256": "449d52e9c87c23f3757e1aee92c8de49660f32fbd24412221978493342a329a0"
+        },
+        {
+          "bytes": 39130,
+          "path": "plugins/antigravity/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
+          "sha256": "8a1bd638d331a53d07c78cb94dd207275816368b03737518349ca2209b14ff66"
+        },
+        {
+          "bytes": 1775,
+          "path": "plugins/README.md",
+          "sha256": "cfa4bde465c3a7a23d5b4e289a37ad0a5de243c4580124056947ec39ad72a480"
+        }
+      ],
+      "display_name": "Endor Labs Agent Kit",
+      "host": "antigravity",
+      "included_agents": [
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation"
+      ],
+      "name": "endor-labs-agent-kit",
+      "path": "plugins/antigravity/endor-labs-agent-kit",
+      "version": "0.1.0"
+    },
+    {
+      "artifacts": [
+        {
+          "bytes": 609,
+          "path": "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json",
+          "sha256": "84bf84e8419beefa7f6dcdcb0deda442a3e9a931a6b96836e03414ebe8aaab1f"
+        },
+        {
+          "bytes": 3655,
           "path": "plugins/claude/endor-labs-agent-kit/README.md",
-          "sha256": "be8214b35a9e7014f96fed5f1e2c841ec2a15c4820875ce573a5152cc2c7dcec"
+          "sha256": "5cdeffee94c7dbf28595a93893250ebec7cf595691363151cc8a6a44f6dd64ed"
         },
         {
           "bytes": 37956,
@@ -1571,24 +1651,24 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 6479,
+          "bytes": 6447,
           "path": "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "0db8b8a38ae8a2ecb11e3f841c0e8b46b7a239e32db0ba1cf5f34f957221422a"
+          "sha256": "f07fdee8e8c81a9dd45b9195b7754a9bdb514b7a47b2e46010a4fda2736d055c"
         },
         {
-          "bytes": 679,
+          "bytes": 1068,
           "path": ".claude-plugin/marketplace.json",
-          "sha256": "5c1881bab5519a92ee05b2bb9e1b8e6f500fccaf16549a1cd21d8fae965559a0"
+          "sha256": "216ec52dc4e9df571092896109c187dc0594248b3c226eb52f355183cc51d7d5"
         },
         {
-          "bytes": 664,
+          "bytes": 1053,
           "path": "plugins/claude/.claude-plugin/marketplace.json",
-          "sha256": "dbe48fbc1c89d5a305af5d36b2d56f2d7f2aa6562187d73c46cf61429f417b4a"
+          "sha256": "ccaef13dd4b8e7b29ba5934e564c543d188705f3e64661fa83f05945557154fa"
         },
         {
-          "bytes": 1447,
+          "bytes": 1775,
           "path": "plugins/README.md",
-          "sha256": "439571ebb5ed84e1eac0f1a0d8a68fe676ff97cf1cb9c82ace564e69a968f35d"
+          "sha256": "cfa4bde465c3a7a23d5b4e289a37ad0a5de243c4580124056947ec39ad72a480"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1688,9 +1768,9 @@
           "sha256": "61714d233f475253412a62d148ccb90c047ef0ca584422a1b58b5d9e2d67a934"
         },
         {
-          "bytes": 1447,
+          "bytes": 1775,
           "path": "plugins/README.md",
-          "sha256": "439571ebb5ed84e1eac0f1a0d8a68fe676ff97cf1cb9c82ace564e69a968f35d"
+          "sha256": "cfa4bde465c3a7a23d5b4e289a37ad0a5de243c4580124056947ec39ad72a480"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1779,9 +1859,9 @@
           "sha256": "177b66c210a14bf1ff404bf4902ef7b6c6a249d3b739d78e7a5a174ae15aa912"
         },
         {
-          "bytes": 1447,
+          "bytes": 1775,
           "path": "plugins/README.md",
-          "sha256": "439571ebb5ed84e1eac0f1a0d8a68fe676ff97cf1cb9c82ace564e69a968f35d"
+          "sha256": "cfa4bde465c3a7a23d5b4e289a37ad0a5de243c4580124056947ec39ad72a480"
         }
       ],
       "display_name": "Endor Labs Agent Kit",

@@ -1,7 +1,7 @@
 # Plugin Packaging Design
 
 This is a blast-radius note for adding an Endor Labs Agent Kit plugin route.
-The Codex, Claude Code, and Gemini package slices are implemented behind
+The Codex, Claude Code, Gemini, and Antigravity package slices are implemented behind
 `--include-plugins`.
 
 ## Current Decision
@@ -13,6 +13,7 @@ package slices now wrap host-compatible public workflows under:
 - `plugins/codex/endor-labs-agent-kit/`
 - `plugins/claude/endor-labs-agent-kit/`
 - `plugins/gemini/endor-labs-agent-kit/`
+- `plugins/antigravity/endor-labs-agent-kit/`
 
 The plugin route should sit alongside generated host artifacts. It should not
 replace `.claude/agents/` installs, Claude Managed Agents YAML, or Codex skill
@@ -83,6 +84,26 @@ restart after extension installation or update. Gemini CLI 0.44.1 installs a
 local extension directory, but does not install a local zip path directly; the
 generated zip is for GitHub Release distribution.
 
+## Implemented Antigravity CLI Plugin Shape
+
+The generated Antigravity CLI plugin package includes:
+
+- `plugin.json` for plugin metadata.
+- `skills/<agent>/SKILL.md` rendered from the Gemini-compatible source recipe
+  body with Antigravity host-contract text.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `agents/<agent>.md` subagents generated from the same recipe body, with
+  provenance comments and Antigravity host-contract text.
+- `assets/logo.svg`.
+
+Antigravity packages do not declare plugin-wide MCP by default. The setup skill
+keeps `antigravity plugin validate`, installation, update, enable/disable, and
+uninstall steps explicit and evidence-backed. In v1, Antigravity package
+contents are derived from the Gemini-compatible recipe set because Google's
+transition guidance says Gemini extensions become Antigravity plugins while
+retaining skills and subagents.
+
 ## Blast Radius
 
 Adding first-class plugin publishing would touch:
@@ -101,6 +122,10 @@ introducing hand-assembled packages. Because Gemini extension discovery expects
 `gemini-extension.json` at the repository or archive root, the release archive
 is rooted at `plugins/gemini/endor-labs-agent-kit` instead of turning this
 repository root into the Gemini extension root.
+
+The Antigravity package also follows the source-first publication model. It
+installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
+the package root; no release archive is generated for that target in v1.
 
 ## Safety Requirements
 
@@ -128,6 +153,7 @@ Validated locally:
   directory.
 - Gemini release archive structure with `gemini-extension.json` at the archive
   root.
+- Antigravity plugin package validation with `antigravity plugin validate`.
 
 Still release-critical:
 
@@ -138,6 +164,8 @@ Still release-critical:
   pushed, and tagged.
 - Gemini public GitHub Release install after the generated zip is attached as
   the single generic release asset.
+- Antigravity install/list/uninstall validation after the package is generated
+  and the installed CLI version is available.
 
 ## Prototype Result - 2026-05-24
 

@@ -11,7 +11,12 @@
     "security",
     "sca",
     "sast",
-    "claude-code"
+    "claude-code",
+    "agentic remediation",
+    "SAST remediation",
+    "agentic AppSec",
+    "AppSec",
+    "Upgrade Impact Analysis"
   ],
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/endor-labs-agent-kit",

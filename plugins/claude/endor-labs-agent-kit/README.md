@@ -20,7 +20,7 @@ Endor Labs Agent Kit repository.
 
 ```text
 /plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude
-/plugin install endor-labs-agent-kit@endor-labs-agent-kit
+/plugin install endor-labs-agent-kit@endorlabs
 ```
 
 ## Install From A Local Checkout
@@ -28,8 +28,8 @@ Endor Labs Agent Kit repository.
 From the Agent Kit repository root:
 
 ```text
-/plugin marketplace add .
-/plugin install endor-labs-agent-kit@endor-labs-agent-kit
+/plugin marketplace add ./
+/plugin install endor-labs-agent-kit@endorlabs
 ```
 
 Start a new Claude Code session or run `/reload-plugins` after installing

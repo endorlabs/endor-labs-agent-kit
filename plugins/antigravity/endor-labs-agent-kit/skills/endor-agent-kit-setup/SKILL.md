@@ -1,47 +1,38 @@
 ---
 name: endor-agent-kit-setup
-description: Use when setting up Endor Labs Agent Kit for Claude Code, checking readiness, verifying Endor auth, choosing namespaces, or diagnosing missing endorctl, gh, Endor MCP, or workflow prerequisites.
+description: Use when setting up Endor Labs Agent Kit for Antigravity CLI, checking readiness, verifying Endor auth, choosing namespaces, or diagnosing missing endorctl, gh, Antigravity CLI, Endor MCP, or workflow prerequisites.
 ---
 
-# Endor Agent Kit Setup For Claude Code
+# Endor Agent Kit Setup For Antigravity CLI
 
-Generated for the Endor Labs Agent Kit Claude Code plugin.
+Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 
-## Bundled Claude Code Agents
+## Bundled Antigravity CLI Workflows
 
-- `Triage AI SAST findings` -> Claude Code agent `ai-sast-triage`
-- `Decide whether a dependency is safe to use` -> Claude Code agent `dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> Claude Code agent `endor-troubleshooter`
-- `Summarize package-version risk` -> Claude Code agent `package-risk-summary`
-- `Assess GitHub onboarding gaps` -> Claude Code agent `probe-droid`
-- `Plan remediation across findings` -> Claude Code agent `remediation-planner`
-- `Review repository dependency manifests` -> Claude Code agent `repository-dependency-reviewer`
-- `Find safe SCA remediation paths` -> Claude Code agent `sca-remediation`
-- `Analyze upgrade impact` -> Claude Code agent `upgrade-impact-analysis`
-- `Explain vulnerability risk and remediation` -> Claude Code agent `vulnerability-explainer`
+- `Triage AI SAST findings` -> skill `ai-sast-triage`, subagent `@ai-sast-triage`
+- `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`, subagent `@endor-troubleshooter`
+- `Assess GitHub onboarding gaps` -> skill `probe-droid`, subagent `@probe-droid`
+- `Find safe SCA remediation paths` -> skill `sca-remediation`, subagent `@sca-remediation`
 
-## Claude Code Plugin Install Commands
+## Antigravity CLI Plugin Commands
 
-From the public Agent Kit repository:
+Validate and install from the generated local plugin package:
 
-```text
-/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude
-/plugin install endor-labs-agent-kit@endorlabs
+```bash
+antigravity plugin validate /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+antigravity plugin install /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+antigravity plugin list
 ```
 
-From a local checkout of the Agent Kit repository root:
+Remove the plugin only after explicit user approval:
 
-```text
-/plugin marketplace add ./
-/plugin install endor-labs-agent-kit@endorlabs
+```bash
+antigravity plugin uninstall endor-labs-agent-kit
 ```
 
-For package-only local validation, add the generated Claude marketplace:
-
-```text
-/plugin marketplace add ./plugins/claude
-/plugin install endor-labs-agent-kit@endorlabs
-```
+Antigravity CLI is the consumer migration path for Gemini CLI. Keep Gemini
+extension installation and Antigravity plugin installation as separate
+host-specific choices, and validate the selected package before installing.
 
 # Endor Agent Kit Setup
 
@@ -153,10 +144,10 @@ comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
 Remediation and AI SAST Triage keep those actions behind their generated agent
 approval gates.
 
-## Claude-Specific Rules
+## Antigravity-Specific Rules
 
-- Prefer the default Claude Code user-scope plugin install unless the user explicitly requests project, local, or managed scope.
-- Do not copy plugin-packaged agents into `.claude/agents/` when marketplace installation is available.
-- Do not add plugin-wide MCP automatically. Only guide per-workflow MCP setup when the selected workflow needs it and the user approves.
-- Claude Code plugin-shipped agents cannot declare `mcpServers`, `permissionMode`, or `hooks` in agent frontmatter; report unavailable MCP-only signals in `data_gaps`.
-- Tell the user to restart or reload Claude Code after installing or updating the plugin.
+- Keep Antigravity plugin installs explicit. Do not install, link, update, enable, disable, or uninstall plugins without user approval.
+- Do not add plugin-wide MCP automatically. Only guide MCP setup when a selected workflow needs it and the user approves.
+- Do not collect, write, or persist Endor API credential values. Report credential presence by key name only.
+- Antigravity subagents are host-managed; if subagent delegation is unavailable, use the matching skill and report the limitation.
+- Tell the user to restart Antigravity CLI after installing or updating the plugin if newly installed skills or subagents are not visible.

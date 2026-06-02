@@ -350,6 +350,10 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     if gemini_package.is_dir():
         _check_gemini_plugin_package(root, gemini_package, errors)
 
+    antigravity_package = plugins_root / "antigravity" / "endor-labs-agent-kit"
+    if antigravity_package.is_dir():
+        _check_antigravity_plugin_package(root, antigravity_package, errors)
+
 
 def _check_codex_plugin_package(
     root: Path,
@@ -538,8 +542,8 @@ def _check_claude_marketplace(
     marketplace = _load_json_mapping(root, path, errors)
     if not marketplace:
         return
-    if marketplace.get("name") != "endor-labs-agent-kit":
-        errors.append(f"{_rel(root, path)}: name must be endor-labs-agent-kit")
+    if marketplace.get("name") != "endorlabs":
+        errors.append(f"{_rel(root, path)}: name must be endorlabs")
     owner = _dict(marketplace.get("owner"))
     if owner.get("name") != "Endor Labs":
         errors.append(f"{_rel(root, path)}: owner.name must be Endor Labs")
@@ -562,6 +566,21 @@ def _check_claude_marketplace(
         errors.append(f"{_rel(root, path)}: plugin source must be a marketplace-root relative path starting with ./")
     if entry.get("version") != "0.1.0":
         errors.append(f"{_rel(root, path)}: plugin entry version must match package version 0.1.0")
+    expected_terms = {
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis",
+    }
+    tags = set(str(item) for item in _list(entry.get("tags")))
+    keywords = set(str(item) for item in _list(entry.get("keywords")))
+    if not expected_terms <= tags:
+        missing = sorted(expected_terms - tags)
+        errors.append(f"{_rel(root, path)}: plugin entry tags missing discovery terms {missing}")
+    if not expected_terms <= keywords:
+        missing = sorted(expected_terms - keywords)
+        errors.append(f"{_rel(root, path)}: plugin entry keywords missing discovery terms {missing}")
 
 
 def _check_gemini_plugin_package(
@@ -642,6 +661,65 @@ def _check_gemini_plugin_package(
         errors.append(f"{_rel(root, archive_path)}: archive must not include an extra endor-labs-agent-kit root directory")
     if any(Path(name).name in forbidden_names for name in names):
         errors.append(f"{_rel(root, archive_path)}: source-only file leaked into release archive")
+
+
+def _check_antigravity_plugin_package(
+    root: Path,
+    antigravity_package: Path,
+    errors: list[str],
+) -> None:
+    manifest_path = antigravity_package / "plugin.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append("plugins/antigravity/endor-labs-agent-kit/plugin.json: name must be endor-labs-agent-kit")
+        for forbidden in ("mcpServers", "settings", "license", "hooks"):
+            if forbidden in manifest:
+                errors.append(f"plugins/antigravity/endor-labs-agent-kit/plugin.json: must not declare {forbidden}")
+
+    setup = antigravity_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    if not setup.is_file():
+        errors.append(f"{_rel(root, setup)}: missing Antigravity setup skill")
+    else:
+        setup_text = setup.read_text(encoding="utf-8")
+        for required in (
+            "Run `endorctl scan`",
+            "Run `endorctl host-check`",
+            "antigravity plugin validate",
+            "Do not add plugin-wide MCP automatically",
+            "Antigravity subagents are host-managed",
+        ):
+            if required not in setup_text:
+                errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+
+    for skill in sorted((antigravity_package / "skills").glob("*/SKILL.md")):
+        if skill.parent.name == "endor-agent-kit-setup":
+            continue
+        text = skill.read_text(encoding="utf-8")
+        for required in ("## Antigravity CLI Host Contract", "data_gaps"):
+            if required not in text:
+                errors.append(f"{_rel(root, skill)}: missing required Antigravity plugin skill text {required!r}")
+
+    for agent in sorted((antigravity_package / "agents").glob("*.md")):
+        text = agent.read_text(encoding="utf-8")
+        for required in (
+            "endor_agent_kit_managed=true",
+            "## Antigravity CLI Host Contract",
+            "data_gaps",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, agent)}: missing required Antigravity plugin subagent text {required!r}")
+        frontmatter = _frontmatter_mapping(root, agent, text, errors)
+        if frontmatter.get("kind") != "local":
+            errors.append(f"{_rel(root, agent)}: Antigravity subagent kind must be local")
+        for forbidden in ("mcpServers", "hooks"):
+            if forbidden in frontmatter:
+                errors.append(f"{_rel(root, agent)}: Antigravity plugin subagent must not declare {forbidden}")
+
+    forbidden_names = {"recipe.yaml", "cases.yaml"}
+    for path in antigravity_package.rglob("*"):
+        if path.is_file() and path.name in forbidden_names:
+            errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:
