@@ -510,8 +510,8 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     )
     assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
     assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
-    assert claude_plugin_manifest["agents"] == "./agents/"
-    assert claude_plugin_manifest["skills"] == "./skills/"
+    assert "agents" not in claude_plugin_manifest
+    assert "skills" not in claude_plugin_manifest
     assert "license" not in claude_plugin_manifest
     assert "mcpServers" not in claude_plugin_manifest
     gemini_plugin_manifest = json.loads(
@@ -545,11 +545,15 @@ def test_publish_recipes_with_plugins_writes_codex_claude_and_gemini_plugin_pack
     }
     claude_marketplace = json.loads((dest / ".claude-plugin" / "marketplace.json").read_text())
     assert claude_marketplace["name"] == "endor-labs-agent-kit"
+    assert claude_marketplace["owner"]["name"] == "Endor Labs"
     assert claude_marketplace["plugins"][0]["source"] == "./plugins/claude/endor-labs-agent-kit"
+    assert claude_marketplace["plugins"][0]["version"] == claude_plugin_manifest["version"]
     local_claude_marketplace = json.loads(
         (dest / "plugins" / "claude" / ".claude-plugin" / "marketplace.json").read_text()
     )
+    assert local_claude_marketplace["owner"]["name"] == "Endor Labs"
     assert local_claude_marketplace["plugins"][0]["source"] == "./endor-labs-agent-kit"
+    assert local_claude_marketplace["plugins"][0]["version"] == claude_plugin_manifest["version"]
 
     setup = (
         dest

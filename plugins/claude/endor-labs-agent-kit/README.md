@@ -11,15 +11,15 @@ Endor Labs Agent Kit repository.
 ## Host Metadata
 
 - Manifest: `.claude-plugin/plugin.json`.
-- Agents: `agents/<agent>.md` with Claude Code plugin-supported frontmatter only.
-- Skills: `skills/endor-agent-kit-setup/SKILL.md`.
+- Agents: `agents/<agent>.md`, auto-discovered from the plugin root with Claude Code plugin-supported frontmatter only.
+- Skills: `skills/endor-agent-kit-setup/SKILL.md`, auto-discovered from the plugin root.
 - Model/runtime: packaged agents preserve supported generated agent frontmatter; the plugin does not set a plugin-wide default model.
 - MCP: no plugin-wide MCP server is declared by default.
 
 ## Install From The Public Repository
 
 ```text
-/plugin marketplace add endorlabs/endor-labs-agent-kit
+/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude
 /plugin install endor-labs-agent-kit@endor-labs-agent-kit
 ```
 

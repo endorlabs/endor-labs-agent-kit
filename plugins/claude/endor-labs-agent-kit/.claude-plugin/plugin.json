@@ -1,5 +1,4 @@
 {
-  "agents": "./agents/",
   "author": {
     "name": "Endor Labs",
     "url": "https://www.endorlabs.com/"
@@ -16,6 +15,5 @@
   ],
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
-  "skills": "./skills/",
   "version": "0.1.0"
 }

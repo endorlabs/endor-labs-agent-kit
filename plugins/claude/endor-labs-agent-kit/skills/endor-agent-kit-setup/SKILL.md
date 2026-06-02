@@ -22,10 +22,10 @@ Generated for the Endor Labs Agent Kit Claude Code plugin.
 
 ## Claude Code Plugin Install Commands
 
-From a public checkout of the Agent Kit repository:
+From the public Agent Kit repository:
 
 ```text
-/plugin marketplace add endorlabs/endor-labs-agent-kit
+/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude
 /plugin install endor-labs-agent-kit@endor-labs-agent-kit
 ```
 
@@ -39,7 +39,7 @@ From a local checkout of the Agent Kit repository root:
 For package-only local validation, add the generated Claude marketplace:
 
 ```text
-/plugin marketplace add plugins/claude
+/plugin marketplace add ./plugins/claude
 /plugin install endor-labs-agent-kit@endor-labs-agent-kit
 ```
 

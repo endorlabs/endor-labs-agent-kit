@@ -46,7 +46,7 @@ context.
 
 | Host | Plugin package | First install path |
 | --- | --- | --- |
-| Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit` for the public repo or `/plugin marketplace add .` from a checkout. |
+| Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add .` from a checkout. |
 | Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub release archive. |
 
