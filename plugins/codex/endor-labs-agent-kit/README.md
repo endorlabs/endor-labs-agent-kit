@@ -8,12 +8,28 @@ This generated Codex plugin package includes Endor Labs setup support,
 Codex skills, and bundled Codex custom-agent TOML files. The plugin is
 generated from source recipes in the Endor Labs Agent Kit repository.
 
+## Host Metadata
+
+- Manifest: `.codex-plugin/plugin.json`.
+- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
+- Custom agents: `agents/endor-*-agent.toml`, installed by the setup skill only after approval.
+- Model/runtime: custom agents inherit Codex defaults unless the user or host overrides them; read-only custom agents set `sandbox_mode = "read-only"`.
+- MCP: no plugin-wide MCP server is declared by default.
+
 ## Install Locally
 
 From the Agent Kit repository root:
 
 ```bash
-codex plugin marketplace add plugins/codex
+codex plugin marketplace add ./plugins/codex
+codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
+```
+
+After the repository is public and tagged, install from the repository
+marketplace metadata at `.agents/plugins/marketplace.json`:
+
+```bash
+codex plugin marketplace add endorlabs/endor-labs-agent-kit --ref <tag> --sparse .agents --sparse plugins/codex/endor-labs-agent-kit
 codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
 ```
 
@@ -32,7 +48,7 @@ under `${CODEX_HOME:-~/.codex}/agents` after explicit approval. It does
 not run scans, run `endorctl host-check`, edit shell profiles, install
 `gh`, or install language runtimes and package managers.
 
-## Included Workflows
+## Capabilities And Skills
 
 | Job | Codex skill | Codex custom agent | Safety |
 | --- | --- | --- | --- |
@@ -44,6 +60,14 @@ not run scans, run `endorctl host-check`, edit shell profiles, install
 Mutating workflows keep file edits, branch pushes, PR/MR creation,
 comments, approval verification, and Endor policy writes behind separate
 approval gates. Setup never performs those workflow actions.
+
+## Boundaries And Rules
+
+- Always run readiness and namespace checks before live Endor lookups.
+- Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.
+- Never run setup scans or `endorctl host-check`.
+- Never auto-install `gh`, language runtimes, or package managers in v1.
+- Never print, persist, or copy Endor API key, secret, token, or full config values.
 
 ## Manual Fallback
 

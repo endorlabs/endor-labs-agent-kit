@@ -22,14 +22,14 @@ copying portable policy facts.
 | Control | Agent Kit status | Primary enforcement |
 | --- | --- | --- |
 | Safety classification | Enforced | `recipe.yaml`, recipe validator, generated prompts |
-| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, portable manifest |
+| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini host contracts, portable manifest |
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
 | Missing data handling | Enforced in prompts | required `data_gaps` behavior |
 | Output structure | Enforced for workflow gates | SCA and AI SAST validators/renderers/linters |
 | Portable runtime controls | Declared and tested | `agent.manifest.json`, `output-contract.md`, portable docs |
 | Secret minimization | Enforced in prompts, partially in validators | source instructions, AI SAST/SCA renderers |
-| Artifact integrity | Enforced locally | root `manifest.json`, install checksum checks |
+| Artifact integrity | Enforced locally | root `manifest.json`, install checksum checks, plugin package records |
 | Runtime audit and authorization | Delegated | host runtime or customer portable runtime |
 | Prompt-injection tripwires | Partially covered | least privilege, untrusted-data instructions, planned evals |
 
@@ -122,6 +122,38 @@ the action and captured evidence.
 
 Codex tool enforcement is runtime-owned; Agent Kit supplies the generated skill
 contract and recipe-specific approval/evidence rules.
+
+The Codex plugin package also ships custom-agent TOML files. The setup skill
+installs them globally under `${CODEX_HOME:-~/.codex}/agents` only after
+explicit approval. The installer refuses to overwrite unmanaged files and marks
+read-only custom agents with `sandbox_mode = "read-only"`.
+
+### Gemini
+
+Gemini CLI artifacts include generated skills, generated subagent preview files,
+and a host contract that preserves the same recipe safety posture as the source
+recipe.
+
+The Gemini extension package declares `gemini-extension.json`, `GEMINI.md`,
+skills, preview subagents, and minimal assets. It does not declare extension-wide
+MCP by default. If Gemini subagent delegation is unavailable, the matching skill
+remains the fallback and the agent must report the limitation.
+
+Gemini extension setup must remain explicit: install, update, and uninstall
+steps require user approval. Setup guidance must not run scans, run
+`endorctl host-check`, edit shell profiles, auto-install `gh`, install language
+tooling, or collect/write API secrets.
+
+### Plugin Packages
+
+Plugin packages are package records, not new agent editions. They wrap generated
+host artifacts and setup guidance while preserving the recipe action contracts,
+approval gates, output contracts, and artifact provenance.
+
+All plugin setup skills may guide installation and authentication work, but
+every write, install, and authentication step must be explicit and
+evidence-backed. Setup may offer re-authentication and namespace changes, but it
+must report that namespace selection is required before live Endor lookups.
 
 ### Portable
 

@@ -8,6 +8,14 @@ This generated Claude Code plugin package includes Endor Labs setup
 support and Claude Code agents generated from source recipes in the
 Endor Labs Agent Kit repository.
 
+## Host Metadata
+
+- Manifest: `.claude-plugin/plugin.json`.
+- Agents: `agents/<agent>.md` with Claude Code plugin-supported frontmatter only.
+- Skills: `skills/endor-agent-kit-setup/SKILL.md`.
+- Model/runtime: packaged agents preserve supported generated agent frontmatter; the plugin does not set a plugin-wide default model.
+- MCP: no plugin-wide MCP server is declared by default.
+
 ## Install From The Public Repository
 
 ```text
@@ -41,7 +49,7 @@ toolchain prerequisites. It does not run scans, run `endorctl host-check`,
 edit shell profiles, auto-install `gh`, or install language runtimes and
 package managers.
 
-## Included Jobs
+## Capabilities And Skills
 
 | Job | Claude Code agent | Safety |
 | --- | --- | --- |
@@ -59,6 +67,14 @@ package managers.
 Mutating workflows keep file edits, branch pushes, PR/MR creation,
 comments, approval verification, and Endor policy writes behind separate
 approval gates. Setup never performs those workflow actions.
+
+## Boundaries And Rules
+
+- Always run readiness and namespace checks before live Endor lookups.
+- Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.
+- Never run setup scans or `endorctl host-check`.
+- Never auto-install `gh`, language runtimes, or package managers in v1.
+- Never print, persist, or copy Endor API key, secret, token, or full config values.
 
 ## Provider Notes
 

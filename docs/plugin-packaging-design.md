@@ -34,7 +34,9 @@ The generated Codex plugin package includes:
 - `scripts/install_codex_agents.py` for provenance-gated global install, update,
   status, and uninstall of bundled Codex custom agents.
 - `assets/logo.svg`.
-- Local marketplace metadata at `plugins/codex/.agents/plugins/marketplace.json`.
+- Public repository marketplace metadata at `.agents/plugins/marketplace.json`.
+- Package-local marketplace metadata at
+  `plugins/codex/.agents/plugins/marketplace.json` for local validation.
 
 Do not add MCP servers to the plugin manifest by default. `sca-remediation` and
 `ai-sast-triage` are `endorctl_api` workflows, and their safety contract depends
@@ -111,18 +113,31 @@ approval verification, and Endor policy writes must remain separate gates. A
 plugin can improve installation and discovery, but it must not flatten those
 gates into a single broad authorization.
 
-## Current Next Step
+## Release Validation Status
 
-Validate the generated Codex package through real Codex plugin installation and
-new-thread skill/custom-agent visibility. Validate the generated Claude Code
-package with `claude plugin validate`, local marketplace add/install, and
-agent/skill visibility in a fresh Claude Code session. Validate the generated
-Gemini package with `gemini extensions install` from the package directory and
-zip archive-structure checks, then validate `gemini extensions install
-https://github.com/endorlabs/endor-labs-agent-kit --ref <tag>` after the public
-GitHub Release asset exists. Do not make plugins the primary README install path
-until the release-critical Claude Code, Codex, and Gemini host packages have
-local host validation.
+The release gate is now `docs/plugin-release-checklist.md`. Keep this design
+note focused on package shape and blast radius.
+
+Validated locally:
+
+- Codex local marketplace installation from `plugins/codex`.
+- Codex repo-root marketplace metadata at `.agents/plugins/marketplace.json`.
+- Codex custom-agent installer status/install flow with a temporary
+  `CODEX_HOME`.
+- Gemini extension package install from the generated local extension
+  directory.
+- Gemini release archive structure with `gemini-extension.json` at the archive
+  root.
+
+Still release-critical:
+
+- Claude Code package validation with `claude plugin validate`, local
+  marketplace install, and fresh-session agent/skill visibility when the
+  `claude` CLI is available.
+- Codex public GitHub sparse marketplace validation after the repo is public,
+  pushed, and tagged.
+- Gemini public GitHub Release install after the generated zip is attached as
+  the single generic release asset.
 
 ## Prototype Result - 2026-05-24
 

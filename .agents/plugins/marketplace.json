@@ -1,0 +1,20 @@
+{
+  "interface": {
+    "displayName": "Endor Labs Agent Kit"
+  },
+  "name": "endor-labs-agent-kit",
+  "plugins": [
+    {
+      "category": "Developer Tools",
+      "name": "endor-labs-agent-kit",
+      "policy": {
+        "authentication": "ON_INSTALL",
+        "installation": "AVAILABLE"
+      },
+      "source": {
+        "path": "./plugins/codex/endor-labs-agent-kit",
+        "source": "local"
+      }
+    }
+  ]
+}

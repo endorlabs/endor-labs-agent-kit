@@ -390,6 +390,28 @@ def _check_codex_plugin_package(
         if not any(_dict(entry).get("name") == "endor-labs-agent-kit" for entry in entries):
             errors.append("plugins/codex/.agents/plugins/marketplace.json: missing endor-labs-agent-kit plugin entry")
 
+    public_marketplace = _load_json_mapping(
+        root,
+        root / ".agents" / "plugins" / "marketplace.json",
+        errors,
+    )
+    if public_marketplace:
+        if public_marketplace.get("name") != "endor-labs-agent-kit":
+            errors.append(".agents/plugins/marketplace.json: name must be endor-labs-agent-kit")
+        entries = _list(public_marketplace.get("plugins"))
+        entry = next(
+            (
+                _dict(item)
+                for item in entries
+                if _dict(item).get("name") == "endor-labs-agent-kit"
+            ),
+            {},
+        )
+        if not entry:
+            errors.append(".agents/plugins/marketplace.json: missing endor-labs-agent-kit plugin entry")
+        elif _dict(entry.get("source")).get("path") != "./plugins/codex/endor-labs-agent-kit":
+            errors.append(".agents/plugins/marketplace.json: plugin source path must be './plugins/codex/endor-labs-agent-kit'")
+
     setup = codex_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
         errors.append(f"{_rel(root, setup)}: missing Codex setup skill")

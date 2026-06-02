@@ -22,7 +22,8 @@ from endor_agent_kit.publication.plugin_package_common import (
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 CODEX_PLUGIN_PACKAGE_ROOT = Path("plugins") / "codex" / PLUGIN_NAME
-CODEX_MARKETPLACE_PATH = Path("plugins") / "codex" / ".agents" / "plugins" / "marketplace.json"
+CODEX_MARKETPLACE_PATH = Path(".agents") / "plugins" / "marketplace.json"
+CODEX_LOCAL_MARKETPLACE_PATH = Path("plugins") / "codex" / ".agents" / "plugins" / "marketplace.json"
 CODEX_SETUP_SKILL = "endor-agent-kit-setup"
 CODEX_AGENT_SUFFIX = "-agent"
 CODEX_SECTION_EDITION = "enterprise-edition"
@@ -52,6 +53,7 @@ def publish_codex_plugin_package(
 
     package_dir = destination / CODEX_PLUGIN_PACKAGE_ROOT
     marketplace_path = destination / CODEX_MARKETPLACE_PATH
+    local_marketplace_path = destination / CODEX_LOCAL_MARKETPLACE_PATH
     if package_dir.exists():
         shutil.rmtree(package_dir)
     package_dir.mkdir(parents=True)
@@ -61,6 +63,7 @@ def publish_codex_plugin_package(
     (package_dir / "scripts").mkdir()
     (package_dir / "assets").mkdir()
     marketplace_path.parent.mkdir(parents=True, exist_ok=True)
+    local_marketplace_path.parent.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
     version = package_version()
@@ -109,10 +112,24 @@ def publish_codex_plugin_package(
     written.append(readme)
 
     marketplace_path.write_text(
-        json.dumps(_codex_marketplace_manifest(), indent=2, sort_keys=True) + "\n",
+        json.dumps(
+            _codex_marketplace_manifest(f"./{CODEX_PLUGIN_PACKAGE_ROOT.as_posix()}"),
+            indent=2,
+            sort_keys=True,
+        ) + "\n",
         encoding="utf-8",
     )
     written.append(marketplace_path)
+
+    local_marketplace_path.write_text(
+        json.dumps(
+            _codex_marketplace_manifest(f"./{PLUGIN_NAME}"),
+            indent=2,
+            sort_keys=True,
+        ) + "\n",
+        encoding="utf-8",
+    )
+    written.append(local_marketplace_path)
 
     plugins_readme = destination / "plugins" / "README.md"
     plugins_readme.write_text(plugin_packages_readme(), encoding="utf-8")
@@ -127,7 +144,7 @@ def publish_codex_plugin_package(
         package_dir=package_dir,
         marketplace_path=CODEX_MARKETPLACE_PATH.as_posix(),
         included_agents=tuple(prepared.recipe.id for prepared in sorted_recipes),
-        extra_artifacts=(marketplace_path, plugins_readme),
+        extra_artifacts=(marketplace_path, local_marketplace_path, plugins_readme),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
 
@@ -297,7 +314,7 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
     }
 
 
-def _codex_marketplace_manifest() -> dict[str, object]:
+def _codex_marketplace_manifest(plugin_path: str) -> dict[str, object]:
     return {
         "name": PLUGIN_NAME,
         "interface": {
@@ -308,7 +325,7 @@ def _codex_marketplace_manifest() -> dict[str, object]:
                 "name": PLUGIN_NAME,
                 "source": {
                     "source": "local",
-                    "path": f"./{PLUGIN_NAME}",
+                    "path": plugin_path,
                 },
                 "policy": {
                     "installation": "AVAILABLE",
@@ -339,12 +356,28 @@ def _codex_plugin_readme(
         "Codex skills, and bundled Codex custom-agent TOML files. The plugin is",
         "generated from source recipes in the Endor Labs Agent Kit repository.",
         "",
+        "## Host Metadata",
+        "",
+        "- Manifest: `.codex-plugin/plugin.json`.",
+        "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
+        "- Custom agents: `agents/endor-*-agent.toml`, installed by the setup skill only after approval.",
+        "- Model/runtime: custom agents inherit Codex defaults unless the user or host overrides them; read-only custom agents set `sandbox_mode = \"read-only\"`.",
+        "- MCP: no plugin-wide MCP server is declared by default.",
+        "",
         "## Install Locally",
         "",
         "From the Agent Kit repository root:",
         "",
         "```bash",
-        "codex plugin marketplace add plugins/codex",
+        "codex plugin marketplace add ./plugins/codex",
+        f"codex plugin add {PLUGIN_NAME}@{PLUGIN_NAME}",
+        "```",
+        "",
+        "After the repository is public and tagged, install from the repository",
+        "marketplace metadata at `.agents/plugins/marketplace.json`:",
+        "",
+        "```bash",
+        "codex plugin marketplace add endorlabs/endor-labs-agent-kit --ref <tag> --sparse .agents --sparse plugins/codex/endor-labs-agent-kit",
         f"codex plugin add {PLUGIN_NAME}@{PLUGIN_NAME}",
         "```",
         "",
@@ -363,7 +396,7 @@ def _codex_plugin_readme(
         "not run scans, run `endorctl host-check`, edit shell profiles, install",
         "`gh`, or install language runtimes and package managers.",
         "",
-        "## Included Workflows",
+        "## Capabilities And Skills",
         "",
         "| Job | Codex skill | Codex custom agent | Safety |",
         "| --- | --- | --- | --- |",
@@ -372,6 +405,14 @@ def _codex_plugin_readme(
         "Mutating workflows keep file edits, branch pushes, PR/MR creation,",
         "comments, approval verification, and Endor policy writes behind separate",
         "approval gates. Setup never performs those workflow actions.",
+        "",
+        "## Boundaries And Rules",
+        "",
+        "- Always run readiness and namespace checks before live Endor lookups.",
+        "- Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.",
+        "- Never run setup scans or `endorctl host-check`.",
+        "- Never auto-install `gh`, language runtimes, or package managers in v1.",
+        "- Never print, persist, or copy Endor API key, secret, token, or full config values.",
         "",
         "## Manual Fallback",
         "",
@@ -538,4 +579,3 @@ def _codex_agent_installer_script() -> str:
             raise SystemExit(main())
         '''
     ).lstrip()
-
