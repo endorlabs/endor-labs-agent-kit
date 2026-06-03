@@ -99,10 +99,10 @@ both values with provenance and stopping for user confirmation before scoped
 Endor or Endor MCP lookups.
 
 Generated setup and workflow guidance must not read, cat, source, recurse
-through, or point `ENDORCTL_CONFIG` or `--config-path` at
-`~/.endorctl/aigovernance/` or any path whose name contains `aigovernance` or
-`ai-governance`. When a namespace is selected, scoped `endorctl api` lookups
-must pass it explicitly with `-n <namespace>` or `--namespace <namespace>`.
+through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific,
+customer-specific, production, backup, or other non-default Endor config
+directories. When a namespace is selected, scoped `endorctl api` lookups must
+pass it explicitly with `-n <namespace>` or `--namespace <namespace>`.
 
 ## Host Guardrails
 

@@ -45,8 +45,8 @@ def test_shared_compiler_rendering_injects_namespace_preflight():
 
     assert "## Endor Namespace Preflight" in rendered
     assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in rendered
-    assert "`~/.endorctl/aigovernance/`" in rendered
-    assert "`aigovernance` or `ai-governance`" in rendered
+    assert "tenant-specific, customer-specific, production, backup" in rendered
+    assert "non-default Endor config directories" in rendered
 
 
 def test_shared_compiler_rendering_reports_missing_instruction_sections():

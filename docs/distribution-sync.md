@@ -33,20 +33,24 @@ script is not installed.
 
 ## Mirror Sync
 
-Run from the `ai-plugins` repo after Agent Kit regeneration is clean:
+Run from the `ai-plugins` repo after Agent Kit regeneration is clean. Set
+`AGENT_KIT_REPO` to your local checkout of
+[🐙 The Endor Labs Agent Kit](https://github.com/endorlabs/endor-labs-agent-kit/tree/main):
 
 ```bash
-rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/plugins/ ./plugins/
-cp /Users/mattbrown/AURI/endor-labs-agent-kit/.claude-plugin/marketplace.json .claude-plugin/marketplace.json
-cp /Users/mattbrown/AURI/endor-labs-agent-kit/.agents/plugins/marketplace.json .agents/plugins/marketplace.json
-rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/.cursor-plugin/ ./.cursor-plugin/
-rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/agents/ ./agents/
-rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/cursor-sdk/ ./cursor-sdk/
+AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
+
+rsync -a --delete "$AGENT_KIT_REPO/plugins/" ./plugins/
+cp "$AGENT_KIT_REPO/.claude-plugin/marketplace.json" .claude-plugin/marketplace.json
+cp "$AGENT_KIT_REPO/.agents/plugins/marketplace.json" .agents/plugins/marketplace.json
+rsync -a --delete "$AGENT_KIT_REPO/.cursor-plugin/" ./.cursor-plugin/
+rsync -a --delete "$AGENT_KIT_REPO/agents/" ./agents/
+rsync -a --delete "$AGENT_KIT_REPO/cursor-sdk/" ./cursor-sdk/
 for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
-  rsync -a --delete "/Users/mattbrown/AURI/endor-labs-agent-kit/skills/$skill/" "./skills/$skill/"
+  rsync -a --delete "$AGENT_KIT_REPO/skills/$skill/" "./skills/$skill/"
 done
 mkdir -p assets
-cp /Users/mattbrown/AURI/endor-labs-agent-kit/assets/logo.svg assets/logo.svg
+cp "$AGENT_KIT_REPO/assets/logo.svg" assets/logo.svg
 ```
 
 Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
@@ -58,6 +62,8 @@ Cursor package files; Gemini CLI uses `plugins/gemini/endor-labs-agent-kit/`.
 Run from `ai-plugins`:
 
 ```bash
+AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
+
 for skill in skills/*; do python3 scripts/quick_validate.py "$skill"; done
 python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
 python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
@@ -68,14 +74,14 @@ python3 -m py_compile cursor-sdk/run_cursor_agent.py
 python3 -m json.tool gemini-extension.json >/dev/null
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
-diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/plugins ./plugins
-diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/.cursor-plugin ./.cursor-plugin
-diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/agents ./agents
-diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/cursor-sdk ./cursor-sdk
+diff -qr "$AGENT_KIT_REPO/plugins" ./plugins
+diff -qr "$AGENT_KIT_REPO/.cursor-plugin" ./.cursor-plugin
+diff -qr "$AGENT_KIT_REPO/agents" ./agents
+diff -qr "$AGENT_KIT_REPO/cursor-sdk" ./cursor-sdk
 for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
-  diff -qr "/Users/mattbrown/AURI/endor-labs-agent-kit/skills/$skill" "./skills/$skill"
+  diff -qr "$AGENT_KIT_REPO/skills/$skill" "./skills/$skill"
 done
-diff -q /Users/mattbrown/AURI/endor-labs-agent-kit/assets/logo.svg assets/logo.svg
+diff -q "$AGENT_KIT_REPO/assets/logo.svg" assets/logo.svg
 git diff --check
 ```
 

@@ -14,9 +14,9 @@ allow silent namespace conflicts.
 
 Read only the current process `ENDOR_NAMESPACE` and the `ENDOR_NAMESPACE` key
 from the default `~/.endorctl/config.yaml`. Do not read, cat, source, recurse
-through, or point `ENDORCTL_CONFIG` or `--config-path` at
-`~/.endorctl/aigovernance/` or any path whose name contains `aigovernance` or
-`ai-governance`.
+through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific,
+customer-specific, production, backup, or other non-default Endor config
+directories.
 
 If the process environment and default config namespaces both exist and differ,
 surface both values with provenance and stop before scoped Endor lookups or

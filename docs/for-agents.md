@@ -91,10 +91,10 @@ and must record namespace provenance.
 
 ## Public Distribution Boundary
 
-`/Users/mattbrown/AURI/ai-plugins` is the public distribution mirror. Normal
-package sync should be generated from this repo and byte-for-byte identical for
-`plugins/`. Cursor mirror sync should copy only `.cursor-plugin/`, generated
-root workflow `agents/`, generated root workflow `skills/`, and
-`assets/logo.svg`. Cursor SDK mirror sync should copy `cursor-sdk/`. Do not
-copy Gemini root compatibility files as Cursor package output. Use
-`docs/distribution-sync.md` before editing or syncing that repo.
+[🐙 Endor Labs AI Plugins](https://github.com/endorlabs/ai-plugins/tree/main)
+is the public distribution mirror. Normal package sync should be generated from
+this repo and byte-for-byte identical for `plugins/`. Cursor mirror sync should
+copy only `.cursor-plugin/`, generated root workflow `agents`, generated root
+workflow `skills/`, and `assets/logo.svg`. Cursor SDK mirror sync should copy
+`cursor-sdk/`. Do not copy Gemini root compatibility files as Cursor package
+output. Use `docs/distribution-sync.md` before editing or syncing that repo.

@@ -62,8 +62,8 @@ Setup must not:
 - Run `endorctl host-check`.
 - Print `~/.endorctl/config.yaml` or secret values.
 - Read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or
-  `--config-path` at `~/.endorctl/aigovernance/` or any path whose name
-  contains `aigovernance` or `ai-governance`.
+  `--config-path` at tenant-specific, customer-specific, production, backup,
+  or other non-default Endor config directories.
 - Ask the user to paste API keys, API secrets, tokens, or passwords into chat.
 - Write `ENDOR_API_CREDENTIALS_KEY` or `ENDOR_API_CREDENTIALS_SECRET`.
 - Edit shell profile files such as `.zshrc`, `.bashrc`, or PowerShell profile.
@@ -90,10 +90,10 @@ Endor config: found
 API endpoint: https://api.endorlabs.com
 Namespace candidates:
 - ENDOR_NAMESPACE: not set
-- ~/.endorctl/config.yaml ENDOR_NAMESPACE: auri
-Selected namespace: auri from ~/.endorctl/config.yaml
+- ~/.endorctl/config.yaml ENDOR_NAMESPACE: example-namespace
+Selected namespace: example-namespace from ~/.endorctl/config.yaml
 Auth: API credential fields present
-Endor auth: verified for namespace auri
+Endor auth: verified for namespace example-namespace
 Secret values: hidden
 ```
 
