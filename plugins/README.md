@@ -41,6 +41,11 @@ root `agents/`, root `skills/`, and `assets/logo.svg` because the public
 Cursor package source is `./`. It is intentionally separate from Gemini
 CLI extension files such as `GEMINI.md` and `gemini-extension.json`.
 
+The Cursor SDK automation package is generated under `cursor-sdk/` with
+Python SDK prompt definitions, a runnable `run_cursor_agent.py` launcher,
+and `agent_definitions.json`. Use it for CI, orchestration, and backend
+automation; use the root Cursor plugin for customer-facing Cursor IDE UX.
+
 Gemini installs from the generated extension directory for local validation
 or from the tagged GitHub repository for public distribution. Antigravity
 installs from the generated plugin directory; no release zip is generated

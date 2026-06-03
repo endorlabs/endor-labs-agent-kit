@@ -1,8 +1,8 @@
 # Plugin Packaging Design
 
 This is a blast-radius note for adding an Endor Labs Agent Kit plugin route.
-The Codex, Claude Code, Gemini, Antigravity, and Cursor package slices are implemented behind
-`--include-plugins`.
+The Codex, Claude Code, Gemini, Antigravity, Cursor, and Cursor SDK package
+slices are implemented behind `--include-plugins`.
 
 ## Current Decision
 
@@ -16,6 +16,7 @@ package slices now wrap host-compatible public workflows under:
 - `plugins/gemini/endor-labs-agent-kit/`
 - `plugins/antigravity/endor-labs-agent-kit/`
 - `.cursor-plugin/` plus root generated `agents/` and `skills/` for Cursor
+- `cursor-sdk/` for Cursor Python SDK automation
 
 The plugin route should sit alongside generated host artifacts. It should not
 replace `.claude/agents/` installs, Claude Managed Agents YAML, or Codex skill
@@ -134,11 +135,26 @@ Cursor is intentionally not a Gemini wrapper. It does not generate `GEMINI.md`
 or `gemini-extension.json`; those remain part of the Gemini CLI package under
 `plugins/gemini/endor-labs-agent-kit/`.
 
-Cursor SDK automation is a separate lane from plugin delivery. If Agent Kit adds
-Python or TypeScript SDK launchers later, those launchers should still be
-generated from Agent Kit source recipes and then mirrored into `ai-plugins` as
-distribution artifacts. They should not replace the customer-facing Cursor
-plugin agents under `agents/`.
+## Implemented Cursor SDK Automation Shape
+
+The generated Cursor SDK automation package includes:
+
+- `cursor-sdk/README.md` for local and cloud run instructions.
+- `cursor-sdk/requirements.txt` with the `cursor-sdk` Python dependency.
+- `cursor-sdk/agent_definitions.json` as the machine-readable agent map.
+- `cursor-sdk/run_cursor_agent.py` as the runnable Python launcher.
+- `cursor-sdk/agents/<agent>.md` generated from the same recipe body with
+  Cursor SDK host-contract text.
+- `cursor-sdk/agents/<agent>.architecture.svg` when the source recipe has an
+  architecture diagram.
+- `cursor-sdk/agents/<agent>.actions.yaml` when the source recipe declares
+  action contracts.
+
+Cursor SDK automation is a separate lane from Cursor plugin delivery. Use it
+for CI, orchestration, backend services, scripted local runs, or Cursor cloud
+agents. Use the root Cursor plugin agents under `agents/` for
+customer-facing Cursor IDE UX. The SDK package is still generated from Agent
+Kit source recipes and mirrored into `ai-plugins` as a distribution artifact.
 
 ## Blast Radius
 
@@ -168,6 +184,10 @@ root-shaped because Cursor package metadata uses `.cursor-plugin/`, a root
 workflow agents and managed workflow skill directories, while preserving
 unrelated root skills such as `skills/create-endor-labs-agent/`.
 
+The Cursor SDK package follows the same source-first publication model under
+`cursor-sdk/`. It does not install anything into the Cursor IDE; it launches
+Cursor's Python SDK with generated Agent Kit prompts and an explicit user task.
+
 ## Safety Requirements
 
 Plugin packaging must preserve the same generated skill text and action
@@ -196,6 +216,7 @@ Validated locally:
   and no zip artifact.
 - Antigravity plugin package validation with `antigravity plugin validate`.
 - Cursor metadata JSON validation and root skill validation.
+- Cursor SDK `agent_definitions.json` validation and launcher `py_compile`.
 
 Still release-critical:
 
@@ -209,6 +230,8 @@ Still release-critical:
   and the installed CLI version is available.
 - Cursor public package install validation after the repo is public, pushed,
   and tagged.
+- Cursor SDK local or cloud smoke validation after API-key use, target repo,
+  namespace provenance, and side-effect boundaries are explicitly approved.
 
 ## Prototype Result - 2026-05-24
 

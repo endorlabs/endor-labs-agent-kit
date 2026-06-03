@@ -1,7 +1,8 @@
 # Plugin Release Checklist
 
-Use this checklist before publishing Endor Labs Agent Kit plugin packages for
-Claude Code, Codex, Gemini CLI, Antigravity CLI, and Cursor.
+Use this checklist before publishing Endor Labs Agent Kit plugin packages and
+SDK automation packages for Claude Code, Codex, Gemini CLI, Antigravity CLI,
+Cursor, and Cursor SDK.
 
 ## Release Scope
 
@@ -17,6 +18,7 @@ Generated package roots:
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
 - Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
   `skills/`, and `assets/logo.svg`
+- Cursor SDK: `cursor-sdk/`
 
 Generated marketplace and release files:
 
@@ -28,6 +30,7 @@ Generated marketplace and release files:
 - Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
 - Cursor marketplace and manifest: `.cursor-plugin/marketplace.json`,
   `.cursor-plugin/plugin.json`
+- Cursor SDK definitions: `cursor-sdk/agent_definitions.json`
 
 ## Version Gate
 
@@ -56,6 +59,7 @@ test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plu
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
+test "$VERSION" = "$(jq -r .version cursor-sdk/agent_definitions.json)"
 test "1.0.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
 ```
 
@@ -78,6 +82,10 @@ test -f agents/endor-agent-kit-setup-agent.md
 test -f agents/endor-probe-droid-agent.md
 test -f skills/endor-agent-kit-setup/SKILL.md
 test -f skills/ai-sast-triage/architecture.svg
+test -f cursor-sdk/README.md
+test -f cursor-sdk/run_cursor_agent.py
+test -f cursor-sdk/agent_definitions.json
+test -f cursor-sdk/agents/endor-probe-droid-agent.md
 ```
 
 ## Repository Gates
@@ -118,6 +126,26 @@ package source is `./`. Keep Cursor validation separate from Gemini validation:
 Cursor uses `.cursor-plugin/`, root `agents/`, and root `skills/`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/GEMINI.md` and
 `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`.
+
+## Cursor SDK
+
+Local release validation:
+
+```bash
+python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
+python3 -m py_compile cursor-sdk/run_cursor_agent.py
+test -f cursor-sdk/requirements.txt
+for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-troubleshooter-agent endor-probe-droid-agent endor-sca-remediation-agent; do
+  test -f "cursor-sdk/agents/$agent.md"
+done
+```
+
+Cursor SDK runs require `CURSOR_API_KEY` and consume Cursor SDK billing. Do not
+run local or cloud SDK smoke tests in release validation unless the requester
+has approved the API-key use, target repository, namespace provenance, and any
+possible agent side effects. Use the Cursor IDE plugin package for
+customer-facing Cursor UX; use `cursor-sdk/` for automation, CI,
+orchestration, and backend services.
 
 ## Claude Code
 

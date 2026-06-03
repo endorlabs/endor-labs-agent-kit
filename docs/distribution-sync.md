@@ -8,12 +8,13 @@ Use this guide when syncing generated Agent Kit artifacts into the public
 | Repo | Owns |
 | --- | --- |
 | `endor-labs-agent-kit` | Source recipes, compiler/publisher code, guardrails, tests, provenance, generated catalog, and source documentation. |
-| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents and support skills, release-facing README, and checked-in distribution artifacts. |
+| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents and support skills, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
 
 Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
 `endor-labs-agent-kit/plugins/`. Cursor package sync should make
 `ai-plugins/.cursor-plugin/`, generated root workflow `agents/`, generated root
-workflow `skills/`, and `assets/logo.svg` match this repo.
+workflow `skills/`, and `assets/logo.svg` match this repo. Cursor SDK sync
+should make `ai-plugins/cursor-sdk/` match this repo.
 
 ## Source Repo Regeneration
 
@@ -40,6 +41,7 @@ cp /Users/mattbrown/AURI/endor-labs-agent-kit/.claude-plugin/marketplace.json .c
 cp /Users/mattbrown/AURI/endor-labs-agent-kit/.agents/plugins/marketplace.json .agents/plugins/marketplace.json
 rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/.cursor-plugin/ ./.cursor-plugin/
 rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/agents/ ./agents/
+rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/cursor-sdk/ ./cursor-sdk/
 for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
   rsync -a --delete "/Users/mattbrown/AURI/endor-labs-agent-kit/skills/$skill/" "./skills/$skill/"
 done
@@ -61,12 +63,15 @@ python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
 python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
+python3 -m py_compile cursor-sdk/run_cursor_agent.py
 python3 -m json.tool gemini-extension.json >/dev/null
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
 diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/plugins ./plugins
 diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/.cursor-plugin ./.cursor-plugin
 diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/agents ./agents
+diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/cursor-sdk ./cursor-sdk
 for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
   diff -qr "/Users/mattbrown/AURI/endor-labs-agent-kit/skills/$skill" "./skills/$skill"
 done

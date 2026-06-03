@@ -36,6 +36,7 @@
 - `.cursor-plugin/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`
+- `cursor-sdk/`
 - `assets/logo.svg`
 - `.claude-plugin/marketplace.json`
 - `.agents/plugins/marketplace.json`
@@ -62,5 +63,5 @@ The public distribution mirror is `/Users/mattbrown/AURI/ai-plugins`. Sync it
 only after Agent Kit generation and validation are clean. Normal sync keeps
 `ai-plugins/plugins/` byte-for-byte identical to this repo's `plugins/` and
 copies Cursor package files from `.cursor-plugin/`, generated root workflow
-`agents/`, generated root workflow `skills/`, and `assets/logo.svg`. Gemini
-root compatibility files are separate from Cursor.
+`agents/`, generated root workflow `skills/`, `cursor-sdk/`, and
+`assets/logo.svg`. Gemini root compatibility files are separate from Cursor.
