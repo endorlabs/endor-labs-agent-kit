@@ -116,6 +116,9 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "Use `endorctl --version`" in artifact
     assert "Do not use\n`endorctl version`" in artifact
     assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
+    assert "retry the same read-only query with `--traverse`" in artifact
+    assert "PROJECT_NOT_FOUND" in artifact
+    assert "Record both the original and\ntraverse query attempts" in artifact
     assert "Never merge PR/CI-run finding counts into main-context finding counts" in artifact
     assert "resolved_dependency_count" in artifact
     assert "Do not `get` `CallGraphData`" in artifact

@@ -40,6 +40,7 @@ def test_package_risk_summary_compiled_artifacts_carry_expected_rules(tmp_path):
     assert "package-level `oss` lookups" in enterprise
     assert "context.type==CONTEXT_TYPE_MAIN" in enterprise
     assert "Keep non-main counts separate" in enterprise
+    assert "retry the project lookup with `--traverse`" in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
     assert "PackageVersion UUID Lookup" in enterprise
     assert "QuerySimilarPackages" in enterprise

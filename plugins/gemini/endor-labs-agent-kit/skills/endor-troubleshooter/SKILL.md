@@ -240,6 +240,26 @@ endorctl api list --resource Project --namespace <namespace> \
   -o json
 ```
 
+If that project or repository selector query returns no matching project in a
+proven namespace, retry the same read-only query with `--traverse` before
+reporting `PROJECT_NOT_FOUND`. This handles active `endorctl` configurations
+that point at a parent namespace while the repository project lives in a child
+namespace.
+
+```bash
+endorctl api list --resource Project --namespace <namespace> --traverse \
+  --filter '<name_or_repository_selector_filter>' \
+  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
+  -o json
+```
+
+When traverse finds the project in a child namespace, use the returned project
+namespace for later scoped reads when available. If the child namespace is not
+returned, keep `--traverse` on later project-scoped read-only lookups and label
+that evidence as parent namespace plus traverse. Record both the original and
+traverse query attempts in `evidence_queries[]`; never say a project is missing
+until both attempts have been evaluated.
+
 Scan execution evidence:
 
 ```bash

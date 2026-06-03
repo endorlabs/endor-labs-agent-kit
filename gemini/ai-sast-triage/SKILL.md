@@ -36,9 +36,11 @@ Resolve the Endor project in this order:
 1. If running inside a Git checkout, read the current repository root and `origin` remote URL, then normalize it to `owner/repo` or the equivalent GitLab full path.
 2. If the user supplied a repository URL, project name, or owner/repo string, normalize that value the same way.
 3. Query Endor project metadata and match first on repository full name, then Endor project name, then repository basename.
-4. If exactly one project matches, use that project for AI SAST findings without asking the user for anything else.
-5. If multiple projects match, show the short candidate list with human-readable names and ask the user to choose one.
-6. If no project matches, report the attempted selectors in `data_gaps` and ask for a repository URL or project name. Do not ask for a project UUID unless the user explicitly prefers that.
+4. If a proven namespace returns no matching project, retry the same read-only project lookup with `--traverse` before reporting that the project is missing. This handles users whose active `endorctl` namespace is a parent namespace.
+5. If a traverse lookup finds the project in a child namespace, use the returned project namespace for subsequent scoped Endor lookups when available. If the child namespace is not returned, keep `--traverse` on subsequent project-scoped read-only lookups and label the namespace provenance as parent namespace plus traverse.
+6. If exactly one project matches, use that project for AI SAST findings without asking the user for anything else.
+7. If multiple projects match, show the short candidate list with human-readable names and ask the user to choose one.
+8. If no project matches after the non-traverse and traverse attempts, report the attempted selectors and traversal status in `data_gaps` and ask for a repository URL or project name. Do not ask for a project UUID unless the user explicitly prefers that.
 
 ## Namespace Provenance
 
@@ -47,6 +49,11 @@ Before running an Endor query with `-n <namespace>`, prove where the namespace c
 Never print or dump an entire Endor config file. Do not run `cat ~/.config/endorctl/config.yaml`, `cat ~/.endorctl/config.yaml`, or equivalent whole-file reads. Endor config files may contain API credentials. If reading local config is necessary, extract only the namespace key with a field-specific command and record a compact provenance string such as `user_request.namespace`, `ENDOR_NAMESPACE`, or `active endorctl config namespace`. Never echo credential keys, secrets, tokens, or full config contents into tool output, JSON, PR/MR bodies, comments, commits, or summaries.
 
 Every output gate must include `project_resolution.project_uuid`, `project_resolution.namespace`, `project_resolution.namespace_provenance`, and `project_resolution.repo_full_name` before claiming scoped AI SAST findings or approval-policy readiness.
+
+When recording project resolution evidence, include whether `--traverse` was
+used and whether the resolved project came from the active namespace or a child
+namespace. Never collapse parent-namespace lookup failures into "project not
+found" until the traverse fallback has also been attempted.
 
 ## Default Endor Context Scope
 
