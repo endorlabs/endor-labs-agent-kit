@@ -1,7 +1,7 @@
 # Plugin Packaging Design
 
 This is a blast-radius note for adding an Endor Labs Agent Kit plugin route.
-The Codex, Claude Code, Gemini, and Antigravity package slices are implemented behind
+The Codex, Claude Code, Gemini, Antigravity, and Cursor package slices are implemented behind
 `--include-plugins`.
 
 ## Current Decision
@@ -15,6 +15,7 @@ package slices now wrap host-compatible public workflows under:
 - `plugins/claude/ai-plugins/` for legacy Claude Code compatibility
 - `plugins/gemini/endor-labs-agent-kit/`
 - `plugins/antigravity/endor-labs-agent-kit/`
+- `.cursor-plugin/` plus root generated `agents/` and `skills/` for Cursor
 
 The plugin route should sit alongside generated host artifacts. It should not
 replace `.claude/agents/` installs, Claude Managed Agents YAML, or Codex skill
@@ -109,6 +110,36 @@ contents are derived from the Gemini-compatible recipe set because Google's
 transition guidance says Gemini extensions become Antigravity plugins while
 retaining skills and subagents.
 
+## Implemented Cursor Package Shape
+
+The generated Cursor package includes:
+
+- `.cursor-plugin/plugin.json` for Cursor package metadata.
+- `.cursor-plugin/marketplace.json` for public marketplace metadata.
+- `agents/<agent>.md` rendered from the source recipe body with Cursor
+  plugin-agent frontmatter and host-contract text.
+- `agents/endor-agent-kit-setup-agent.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `skills/<agent>/SKILL.md` rendered from the source recipe body with Cursor
+  host-contract text and support material.
+- `skills/<agent>/architecture.svg` copied from the source agent diagram when
+  present.
+- `skills/<agent>/actions.yaml` when the source recipe declares action
+  contracts.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `assets/logo.svg`.
+
+Cursor is intentionally not a Gemini wrapper. It does not generate `GEMINI.md`
+or `gemini-extension.json`; those remain part of the Gemini CLI package under
+`plugins/gemini/endor-labs-agent-kit/`.
+
+Cursor SDK automation is a separate lane from plugin delivery. If Agent Kit adds
+Python or TypeScript SDK launchers later, those launchers should still be
+generated from Agent Kit source recipes and then mirrored into `ai-plugins` as
+distribution artifacts. They should not replace the customer-facing Cursor
+plugin agents under `agents/`.
+
 ## Blast Radius
 
 Adding first-class plugin publishing would touch:
@@ -130,6 +161,12 @@ tagged GitHub repository.
 The Antigravity package also follows the source-first publication model. It
 installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
 the package root; no release archive is generated for either target in v1.
+
+The Cursor package follows the same source-first publication model, but it is
+root-shaped because Cursor package metadata uses `.cursor-plugin/`, a root
+`agents/` directory, and a root `skills/` directory. Generation updates managed
+workflow agents and managed workflow skill directories, while preserving
+unrelated root skills such as `skills/create-endor-labs-agent/`.
 
 ## Safety Requirements
 
@@ -158,6 +195,7 @@ Validated locally:
 - Gemini package structure with `gemini-extension.json` at the extension root
   and no zip artifact.
 - Antigravity plugin package validation with `antigravity plugin validate`.
+- Cursor metadata JSON validation and root skill validation.
 
 Still release-critical:
 
@@ -169,6 +207,8 @@ Still release-critical:
 - Gemini public GitHub install after the repo is public, pushed, and tagged.
 - Antigravity install/list/uninstall validation after the package is generated
   and the installed CLI version is available.
+- Cursor public package install validation after the repo is public, pushed,
+  and tagged.
 
 ## Prototype Result - 2026-05-24
 

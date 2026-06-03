@@ -22,7 +22,7 @@ copying portable policy facts.
 | Control | Agent Kit status | Primary enforcement |
 | --- | --- | --- |
 | Safety classification | Enforced | `recipe.yaml`, recipe validator, generated prompts |
-| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity host contracts, portable manifest |
+| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity/Cursor host contracts, portable manifest |
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
 | Namespace provenance and conflict surfacing | Enforced in prompts and setup guidance | shared prompt preflight, setup support files, catalog guardrails |
@@ -182,6 +182,23 @@ limitation.
 Antigravity plugin setup must not run scans, run `endorctl host-check`, edit
 shell profiles, auto-install `gh`, install language tooling, or collect/write
 API secrets.
+
+### Cursor
+
+Cursor package artifacts include generated root agents, generated root support
+skills, and a host contract that preserves the same recipe safety posture as
+the source recipe.
+
+The Cursor package declares `.cursor-plugin/` metadata, root generated
+`agents/`, root generated `skills/`, and `assets/logo.svg`. It does not declare
+plugin-wide MCP by default and does not use Gemini extension files. Setup keeps
+install, update, and uninstall steps explicit and evidence-backed. Cursor agents
+are the customer-facing workflow entry points; matching skills remain bundled
+support material and fallback workflow reference.
+
+Cursor package setup must not run scans, run `endorctl host-check`, edit shell
+profiles, auto-install `gh`, install language tooling, or collect/write API
+secrets.
 
 ### Plugin Packages
 

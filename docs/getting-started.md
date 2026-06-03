@@ -12,6 +12,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Codex | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with Codex skills plus optional managed custom-agent TOML files. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
+| Cursor | `.cursor-plugin/`, root `agents/`, and root `skills/` | Cursor plugin metadata with generated workflow agents and support skills. |
 | Manual single-agent install | `<host>/<agent>/README.md` | One workflow in one host without the full plugin package. |
 | Runtime-neutral integration | `portable/<agent>/README.md` | Internal runtime with its own adapters, approvals, audit, and credentials. |
 
@@ -40,9 +41,11 @@ Do not enable `endor-labs-agent-kit@endorlabs` and `ai-plugins@endorlabs` in
 the same Claude profile for normal use. They expose the same setup skill and
 agents.
 
-For Codex, Gemini CLI, and Antigravity CLI, use the host package README because
-their public install commands depend on the pushed tag and host-specific
-marketplace behavior.
+For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
+or package metadata because their public install commands depend on the pushed
+tag and host-specific marketplace behavior. Cursor uses `.cursor-plugin/`,
+root `agents/`, and root `skills/`; Gemini uses
+`plugins/gemini/endor-labs-agent-kit/`.
 
 ## Run Setup First
 

@@ -9,6 +9,7 @@ approval gates.
 | User Intent | Work In | Do Not Start By Editing |
 | --- | --- | --- |
 | Install a package | `plugins/<host>/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the Cursor package | `.cursor-plugin/`, root `agents/`, and root `skills/` | Gemini extension files or generated package internals |
 | Install one agent | `<host>/<agent>/README.md` | `source/agents/<agent>/` |
 | Change agent behavior | `source/agents/<agent>/recipe.yaml`, `instructions.md`, optional `actions.yaml`, evals, and `architecture.svg` | Generated host directories |
 | Change generated docs or package shape | `src/endor_agent_kit/publication/` and tests | Installed plugin cache copies |
@@ -26,7 +27,9 @@ Agent behavior is source-owned by:
 - publication templates in `src/endor_agent_kit/publication/`
 
 Generated files under `claude-code/`, `claude-managed-agents/`, `codex/`,
-`gemini/`, `portable/`, `plugins/`, `manifest.json`, and root `README.md` are
+`gemini/`, `portable/`, `plugins/`, `.cursor-plugin/`, generated root
+workflow `agents/`, generated root workflow `skills/`, `assets/logo.svg`,
+`manifest.json`, and root `README.md` are
 outputs. Change the source, regenerate, then review the generated diff.
 
 ## Install Without Drift
@@ -89,4 +92,7 @@ and must record namespace provenance.
 
 `/Users/mattbrown/AURI/ai-plugins` is the public distribution mirror. Normal
 package sync should be generated from this repo and byte-for-byte identical for
-`plugins/`. Use `docs/distribution-sync.md` before editing or syncing that repo.
+`plugins/`. Cursor mirror sync should copy only `.cursor-plugin/`, generated
+root workflow `agents/`, generated root workflow `skills/`, and
+`assets/logo.svg`; it should not copy Gemini root compatibility files. Use
+`docs/distribution-sync.md` before editing or syncing that repo.

@@ -385,6 +385,8 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
 
 def _check_plugins(root: Path, errors: list[str]) -> None:
     plugins_root = root / "plugins"
+    if (root / ".cursor-plugin").is_dir():
+        _check_cursor_plugin_package(root, errors)
     if not plugins_root.is_dir():
         return
 
@@ -450,6 +452,132 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     antigravity_package = plugins_root / "antigravity" / "endor-labs-agent-kit"
     if antigravity_package.is_dir():
         _check_antigravity_plugin_package(root, antigravity_package, errors)
+
+
+def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
+    manifest_path = root / ".cursor-plugin" / "plugin.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append(".cursor-plugin/plugin.json: name must be endor-labs-agent-kit")
+        if manifest.get("version") != "0.1.0":
+            errors.append(".cursor-plugin/plugin.json: version must be 0.1.0")
+        if manifest.get("logo") != "assets/logo.svg":
+            errors.append(".cursor-plugin/plugin.json: logo must be assets/logo.svg")
+        if manifest.get("agents") != "./agents/":
+            errors.append(".cursor-plugin/plugin.json: agents must point at ./agents/")
+        if manifest.get("skills") != "./skills/":
+            errors.append(".cursor-plugin/plugin.json: skills must point at ./skills/")
+        for forbidden in ("mcpServers", "settings", "gemini-extension.json"):
+            if forbidden in manifest:
+                errors.append(f".cursor-plugin/plugin.json: must not declare {forbidden}")
+
+    marketplace_path = root / ".cursor-plugin" / "marketplace.json"
+    marketplace = _load_json_mapping(root, marketplace_path, errors)
+    if marketplace:
+        if marketplace.get("name") != "endorlabs":
+            errors.append(".cursor-plugin/marketplace.json: name must be endorlabs")
+        entries = _list(marketplace.get("plugins"))
+        entry = next(
+            (
+                _dict(item)
+                for item in entries
+                if _dict(item).get("name") == "endor-labs-agent-kit"
+            ),
+            {},
+        )
+        if not entry:
+            errors.append(".cursor-plugin/marketplace.json: missing endor-labs-agent-kit plugin entry")
+        elif entry.get("source") != "./":
+            errors.append(".cursor-plugin/marketplace.json: Cursor package source must be './'")
+
+    setup = root / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    if not setup.is_file():
+        errors.append(f"{_rel(root, setup)}: missing Cursor setup skill")
+    else:
+        setup_text = setup.read_text(encoding="utf-8")
+        for required in (
+            "Run `endorctl scan`",
+            "Run `endorctl host-check`",
+            "separate from the Gemini CLI extension",
+            "Do not add plugin-wide MCP automatically",
+        ):
+            if required not in setup_text:
+                errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+        _check_namespace_setup_guidance(root, setup, setup_text, errors)
+
+    expected_skills = (
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation",
+    )
+    for skill_id in expected_skills:
+        skill = root / "skills" / skill_id / "SKILL.md"
+        if not skill.is_file():
+            errors.append(f"{_rel(root, skill)}: missing Cursor workflow skill")
+            continue
+        text = skill.read_text(encoding="utf-8")
+        for required in ("## Cursor Host Contract", "data_gaps"):
+            if required not in text:
+                errors.append(f"{_rel(root, skill)}: missing required Cursor skill text {required!r}")
+        if "Gemini CLI Host Contract" in text:
+            errors.append(f"{_rel(root, skill)}: Cursor skill must not use Gemini host contract")
+        _check_namespace_preflight(root, skill, text, errors)
+        architecture = skill.parent / "architecture.svg"
+        if not architecture.is_file():
+            errors.append(f"{_rel(root, architecture)}: missing Cursor architecture diagram")
+
+    expected_agents = {
+        "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "endor-troubleshooter": "endor-troubleshooter-agent",
+        "probe-droid": "endor-probe-droid-agent",
+        "sca-remediation": "endor-sca-remediation-agent",
+    }
+    mutating_agents = {"ai-sast-triage", "sca-remediation"}
+    for skill_id, agent_name in expected_agents.items():
+        agent = root / "agents" / f"{agent_name}.md"
+        if not agent.is_file():
+            errors.append(f"{_rel(root, agent)}: missing Cursor workflow agent")
+            continue
+        text = agent.read_text(encoding="utf-8")
+        frontmatter = text.split("---", 2)[1] if text.startswith("---") else ""
+        for required in (
+            f"name: {agent_name}",
+            "model: inherit",
+            "## Cursor Host Contract",
+            "data_gaps",
+            "host=cursor",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, agent)}: missing required Cursor agent text {required!r}")
+        if skill_id in mutating_agents:
+            if "readonly: false" not in frontmatter:
+                errors.append(f"{_rel(root, agent)}: mutating Cursor agent must set readonly: false")
+        elif "readonly: true" not in frontmatter:
+            errors.append(f"{_rel(root, agent)}: read-only Cursor agent must set readonly: true")
+        if "Gemini CLI Host Contract" in text:
+            errors.append(f"{_rel(root, agent)}: Cursor agent must not use Gemini host contract")
+        _check_namespace_preflight(root, agent, text, errors)
+
+    setup_agent = root / "agents" / "endor-agent-kit-setup-agent.md"
+    if not setup_agent.is_file():
+        errors.append(f"{_rel(root, setup_agent)}: missing Cursor setup agent")
+    else:
+        setup_agent_text = setup_agent.read_text(encoding="utf-8")
+        for required in (
+            "Endor Agent Kit Setup Agent For Cursor",
+            "agents/",
+            "skills/",
+            "separate from the Gemini CLI extension",
+            "Do not add plugin-wide MCP automatically",
+        ):
+            if required not in setup_agent_text:
+                errors.append(f"{_rel(root, setup_agent)}: missing required setup agent text {required!r}")
+        _check_namespace_setup_guidance(root, setup_agent, setup_agent_text, errors)
+
+    if (root / "GEMINI.md").exists() or (root / "gemini-extension.json").exists():
+        errors.append("Cursor package generation must not create root Gemini files")
 
 
 def _check_codex_plugin_package(
