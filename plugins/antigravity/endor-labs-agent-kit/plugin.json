@@ -4,7 +4,7 @@
     "url": "https://www.endorlabs.com/"
   },
   "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
-  "homepage": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "homepage": "https://github.com/endorlabs/ai-plugins",
   "keywords": [
     "Endor Labs",
     "AppSec",
@@ -17,7 +17,7 @@
   ],
   "long_description": "Setup guidance, workflow skills, and subagents for Endor Labs SCA remediation, AI SAST triage, troubleshooting, and onboarding analysis.",
   "name": "endor-labs-agent-kit",
-  "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "repository": "https://github.com/endorlabs/ai-plugins",
   "short_description": "Endor Labs security workflows for Antigravity.",
   "version": "0.1.0"
 }

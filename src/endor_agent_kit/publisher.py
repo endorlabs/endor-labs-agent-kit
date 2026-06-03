@@ -123,7 +123,7 @@ def publish_recipes(
         claude_plugin = publish_claude_plugin_package(prepared_recipes, destination)
         if claude_plugin is not None:
             written.extend(claude_plugin.written)
-            plugin_packages.append(claude_plugin.package_record)
+            plugin_packages.extend(claude_plugin.package_records)
         gemini_plugin = publish_gemini_plugin_package(prepared_recipes, destination)
         if gemini_plugin is not None:
             written.extend(gemini_plugin.written)

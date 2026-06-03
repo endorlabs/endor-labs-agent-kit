@@ -141,8 +141,8 @@ def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
             "name": "Endor Labs",
             "url": "https://www.endorlabs.com/",
         },
-        "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
-        "homepage": "https://github.com/endorlabs/endor-labs-agent-kit",
+        "repository": "https://github.com/endorlabs/ai-plugins",
+        "homepage": "https://github.com/endorlabs/ai-plugins",
         "keywords": [
             "Endor Labs",
             "AppSec",

@@ -4,7 +4,7 @@
     "url": "https://www.endorlabs.com/"
   },
   "description": "Endor Labs workflow agents and setup for Codex.",
-  "homepage": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "homepage": "https://github.com/endorlabs/ai-plugins",
   "interface": {
     "brandColor": "#4F46E5",
     "capabilities": [
@@ -33,7 +33,7 @@
     "codex"
   ],
   "name": "endor-labs-agent-kit",
-  "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
+  "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",
   "version": "0.1.0"
 }

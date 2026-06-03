@@ -477,6 +477,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
+    assert "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/claude/ai-plugins/assets/logo.svg" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
@@ -497,6 +500,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         assert f"plugins/codex/endor-labs-agent-kit/agents/{agent_name}.toml" in written_paths
     for agent_id in claude_agent_ids:
         assert f"plugins/claude/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+        assert f"plugins/claude/ai-plugins/agents/{agent_id}.md" in written_paths
     for agent_id in gemini_agent_ids:
         assert f"plugins/gemini/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
         assert f"plugins/gemini/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
@@ -534,6 +538,17 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "Upgrade Impact Analysis",
     }
     assert claude_discovery_terms <= set(claude_plugin_manifest["keywords"])
+    legacy_claude_plugin_manifest = json.loads(
+        (dest / "plugins" / "claude" / "ai-plugins" / ".claude-plugin" / "plugin.json").read_text()
+    )
+    assert legacy_claude_plugin_manifest["name"] == "ai-plugins"
+    assert legacy_claude_plugin_manifest["displayName"] == "Endor Labs AI Plugins (Legacy)"
+    assert legacy_claude_plugin_manifest["version"] == "1.0.1"
+    assert "agents" not in legacy_claude_plugin_manifest
+    assert "skills" not in legacy_claude_plugin_manifest
+    assert "license" not in legacy_claude_plugin_manifest
+    assert "mcpServers" not in legacy_claude_plugin_manifest
+    assert claude_discovery_terms <= set(legacy_claude_plugin_manifest["keywords"])
     gemini_plugin_manifest = json.loads(
         (dest / "plugins" / "gemini" / "endor-labs-agent-kit" / "gemini-extension.json").read_text()
     )
@@ -576,19 +591,33 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     claude_marketplace = json.loads((dest / ".claude-plugin" / "marketplace.json").read_text())
     assert claude_marketplace["name"] == "endorlabs"
     assert claude_marketplace["owner"]["name"] == "Endor Labs"
-    assert claude_marketplace["plugins"][0]["source"] == "./plugins/claude/endor-labs-agent-kit"
-    assert claude_marketplace["plugins"][0]["version"] == claude_plugin_manifest["version"]
-    assert claude_discovery_terms <= set(claude_marketplace["plugins"][0]["tags"])
-    assert claude_discovery_terms <= set(claude_marketplace["plugins"][0]["keywords"])
+    claude_marketplace_plugins = {
+        plugin["name"]: plugin for plugin in claude_marketplace["plugins"]
+    }
+    assert claude_marketplace_plugins["endor-labs-agent-kit"]["source"] == "./plugins/claude/endor-labs-agent-kit"
+    assert claude_marketplace_plugins["endor-labs-agent-kit"]["version"] == claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["endor-labs-agent-kit"]["tags"])
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["endor-labs-agent-kit"]["keywords"])
+    assert claude_marketplace_plugins["ai-plugins"]["source"] == "./plugins/claude/ai-plugins"
+    assert claude_marketplace_plugins["ai-plugins"]["version"] == legacy_claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["ai-plugins"]["tags"])
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["ai-plugins"]["keywords"])
     local_claude_marketplace = json.loads(
         (dest / "plugins" / "claude" / ".claude-plugin" / "marketplace.json").read_text()
     )
     assert local_claude_marketplace["name"] == "endorlabs"
     assert local_claude_marketplace["owner"]["name"] == "Endor Labs"
-    assert local_claude_marketplace["plugins"][0]["source"] == "./endor-labs-agent-kit"
-    assert local_claude_marketplace["plugins"][0]["version"] == claude_plugin_manifest["version"]
-    assert claude_discovery_terms <= set(local_claude_marketplace["plugins"][0]["tags"])
-    assert claude_discovery_terms <= set(local_claude_marketplace["plugins"][0]["keywords"])
+    local_claude_marketplace_plugins = {
+        plugin["name"]: plugin for plugin in local_claude_marketplace["plugins"]
+    }
+    assert local_claude_marketplace_plugins["endor-labs-agent-kit"]["source"] == "./endor-labs-agent-kit"
+    assert local_claude_marketplace_plugins["endor-labs-agent-kit"]["version"] == claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["endor-labs-agent-kit"]["tags"])
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["endor-labs-agent-kit"]["keywords"])
+    assert local_claude_marketplace_plugins["ai-plugins"]["source"] == "./ai-plugins"
+    assert local_claude_marketplace_plugins["ai-plugins"]["version"] == legacy_claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["tags"])
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["keywords"])
 
     setup = (
         dest
@@ -615,6 +644,31 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl scan`" in claude_setup
     assert "Run `endorctl host-check`" in claude_setup
     assert "Do not add plugin-wide MCP automatically" in claude_setup
+    legacy_claude_setup = (
+        dest
+        / "plugins"
+        / "claude"
+        / "ai-plugins"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "retained for existing Claude Code users and pinned installs" in legacy_claude_setup
+    assert "Do not enable both Claude plugin ids in the same profile" in legacy_claude_setup
+    assert "does not auto-disable, uninstall, or edit Claude settings" in legacy_claude_setup
+    assert "/plugin install ai-plugins@endorlabs" in legacy_claude_setup
+    primary_claude_setup = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "preferred Claude Code plugin id for new installs" in primary_claude_setup
+    assert "Existing `ai-plugins@endorlabs` users can keep using" in primary_claude_setup
+    assert "does not auto-disable, uninstall, or edit Claude settings" in primary_claude_setup
     gemini_setup = (
         dest
         / "plugins"
@@ -724,10 +778,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "mcpServers:" not in antigravity_agent.split("---", 2)[1]
 
     manifest = json.loads((dest / "manifest.json").read_text())
-    packages = {package["host"]: package for package in manifest["plugin_packages"]}
-    assert set(packages) == {"antigravity", "claude-code", "codex", "gemini"}
-    assert packages["codex"] == {
-        "artifacts": packages["codex"]["artifacts"],
+    packages = {
+        (package["host"], package["name"]): package
+        for package in manifest["plugin_packages"]
+    }
+    assert set(packages) == {
+        ("antigravity", "endor-labs-agent-kit"),
+        ("claude-code", "ai-plugins"),
+        ("claude-code", "endor-labs-agent-kit"),
+        ("codex", "endor-labs-agent-kit"),
+        ("gemini", "endor-labs-agent-kit"),
+    }
+    assert packages[("codex", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("codex", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
         "host": "codex",
         "included_agents": list(codex_agent_ids),
@@ -736,8 +799,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "path": "plugins/codex/endor-labs-agent-kit",
         "version": plugin_manifest["version"],
     }
-    assert packages["claude-code"] == {
-        "artifacts": packages["claude-code"]["artifacts"],
+    assert packages[("claude-code", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("claude-code", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
         "host": "claude-code",
         "included_agents": list(claude_agent_ids),
@@ -746,8 +809,18 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "path": "plugins/claude/endor-labs-agent-kit",
         "version": claude_plugin_manifest["version"],
     }
-    assert packages["gemini"] == {
-        "artifacts": packages["gemini"]["artifacts"],
+    assert packages[("claude-code", "ai-plugins")] == {
+        "artifacts": packages[("claude-code", "ai-plugins")]["artifacts"],
+        "display_name": "Endor Labs AI Plugins (Legacy)",
+        "host": "claude-code",
+        "included_agents": list(claude_agent_ids),
+        "marketplace_path": ".claude-plugin/marketplace.json",
+        "name": "ai-plugins",
+        "path": "plugins/claude/ai-plugins",
+        "version": legacy_claude_plugin_manifest["version"],
+    }
+    assert packages[("gemini", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("gemini", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
         "host": "gemini",
         "included_agents": list(gemini_agent_ids),
@@ -755,8 +828,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "path": "plugins/gemini/endor-labs-agent-kit",
         "version": gemini_plugin_manifest["version"],
     }
-    assert packages["antigravity"] == {
-        "artifacts": packages["antigravity"]["artifacts"],
+    assert packages[("antigravity", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("antigravity", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
         "host": "antigravity",
         "included_agents": list(antigravity_agent_ids),
@@ -766,7 +839,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     }
     package_artifact_paths = {
         artifact["path"]
-        for artifact in packages["codex"]["artifacts"]
+        for artifact in packages[("codex", "endor-labs-agent-kit")]["artifacts"]
     }
     assert "plugins/codex/endor-labs-agent-kit/README.md" in package_artifact_paths
     assert ".agents/plugins/marketplace.json" in package_artifact_paths
@@ -774,22 +847,30 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/README.md" in package_artifact_paths
     claude_artifact_paths = {
         artifact["path"]
-        for artifact in packages["claude-code"]["artifacts"]
+        for artifact in packages[("claude-code", "endor-labs-agent-kit")]["artifacts"]
     }
     assert "plugins/claude/endor-labs-agent-kit/README.md" in claude_artifact_paths
     assert ".claude-plugin/marketplace.json" in claude_artifact_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in claude_artifact_paths
     assert "plugins/README.md" in claude_artifact_paths
+    legacy_claude_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("claude-code", "ai-plugins")]["artifacts"]
+    }
+    assert "plugins/claude/ai-plugins/README.md" in legacy_claude_artifact_paths
+    assert ".claude-plugin/marketplace.json" in legacy_claude_artifact_paths
+    assert "plugins/claude/.claude-plugin/marketplace.json" in legacy_claude_artifact_paths
+    assert "plugins/README.md" in legacy_claude_artifact_paths
     gemini_artifact_paths = {
         artifact["path"]
-        for artifact in packages["gemini"]["artifacts"]
+        for artifact in packages[("gemini", "endor-labs-agent-kit")]["artifacts"]
     }
     assert "plugins/gemini/endor-labs-agent-kit/README.md" in gemini_artifact_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" not in gemini_artifact_paths
     assert "plugins/README.md" in gemini_artifact_paths
     antigravity_artifact_paths = {
         artifact["path"]
-        for artifact in packages["antigravity"]["artifacts"]
+        for artifact in packages[("antigravity", "endor-labs-agent-kit")]["artifacts"]
     }
     assert "plugins/antigravity/endor-labs-agent-kit/README.md" in antigravity_artifact_paths
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in antigravity_artifact_paths

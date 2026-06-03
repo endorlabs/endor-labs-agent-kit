@@ -40,6 +40,41 @@
         "Upgrade Impact Analysis"
       ],
       "version": "0.1.0"
+    },
+    {
+      "author": {
+        "name": "Endor Labs"
+      },
+      "category": "Developer Tools",
+      "description": "Legacy Claude Code plugin id for Endor Labs Agent Kit workflows.",
+      "displayName": "Endor Labs AI Plugins (Legacy)",
+      "keywords": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
+      "name": "ai-plugins",
+      "source": "./plugins/claude/ai-plugins",
+      "tags": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
+      "version": "1.0.1"
     }
   ]
 }

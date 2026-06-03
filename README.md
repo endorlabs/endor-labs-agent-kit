@@ -46,10 +46,17 @@ context.
 
 | Host | Plugin package | First install path |
 | --- | --- | --- |
-| Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add ./` from a checkout. |
+| Claude Code | `plugins/claude/endor-labs-agent-kit/` plus legacy `plugins/claude/ai-plugins/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add ./` from a checkout. Existing `ai-plugins@endorlabs` users can update the legacy package, but should not enable both Claude plugin ids. |
 | Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub repository. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/` | Read `plugins/antigravity/endor-labs-agent-kit/README.md`, then use `antigravity plugin validate` and `antigravity plugin install` against the generated plugin directory. |
+
+Claude compatibility note: `ai-plugins@endorlabs` remains available for
+existing Claude Code users and pinned installs. New users should prefer
+`endor-labs-agent-kit@endorlabs`. Do not enable both Claude plugin ids in
+one profile because they expose the same setup skill and agents. The
+plugin does not auto-disable, uninstall, or edit Claude settings for
+either id.
 
 After installing a plugin, ask the host to use the `endor-agent-kit-setup`
 skill first. Setup checks local readiness, guides `endorctl` authentication
@@ -108,7 +115,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 
 | Goal | Start Here | You Do Not Need |
 | --- | --- | --- |
-| Install the Claude Code plugin package | `plugins/claude/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the Claude Code plugin package | `plugins/claude/endor-labs-agent-kit/README.md` or legacy `plugins/claude/ai-plugins/README.md` | `source/`, `src/`, `tests/` |
 | Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
@@ -128,7 +135,7 @@ are the generated host directories listed in the catalog.
 
 | Host | Generated path | Typical install target |
 | --- | --- | --- |
-| Claude Code | `plugins/claude/endor-labs-agent-kit/` and `claude-code/<agent>/` | Claude Code plugin marketplace, or `.claude/agents/` for manual per-agent installs |
+| Claude Code | `plugins/claude/endor-labs-agent-kit/`, legacy `plugins/claude/ai-plugins/`, and `claude-code/<agent>/` | Claude Code plugin marketplace, or `.claude/agents/` for manual per-agent installs |
 | Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
 | Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$CODEX_HOME/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
@@ -237,6 +244,9 @@ Generated plugin packages currently include:
 - `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup
   skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`
   plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.
+- `plugins/claude/ai-plugins/`: legacy Claude Code compatibility package
+  for existing `ai-plugins@endorlabs` installs. New installs should prefer
+  `endor-labs-agent-kit@endorlabs`; do not enable both ids in one Claude profile.
 - `plugins/gemini/endor-labs-agent-kit/`: Gemini CLI extension with setup
   skill, Gemini workflow skills, preview subagents, minimal context, and no
   zip release artifact.

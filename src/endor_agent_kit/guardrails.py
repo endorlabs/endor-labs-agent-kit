@@ -341,9 +341,56 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     if codex_package.is_dir():
         _check_codex_plugin_package(root, plugins_root, codex_package, errors)
 
-    claude_package = plugins_root / "claude" / "endor-labs-agent-kit"
-    if claude_package.is_dir():
-        _check_claude_plugin_package(root, plugins_root, claude_package, errors)
+    claude_root = plugins_root / "claude"
+    claude_package = claude_root / "endor-labs-agent-kit"
+    legacy_claude_package = claude_root / "ai-plugins"
+    if claude_package.is_dir() or legacy_claude_package.is_dir() or (claude_root / ".claude-plugin").is_dir():
+        if not claude_package.is_dir():
+            errors.append("plugins/claude/endor-labs-agent-kit: missing primary Claude plugin package")
+        else:
+            _check_claude_plugin_package(
+                root,
+                claude_package,
+                expected_name="endor-labs-agent-kit",
+                expected_version="0.1.0",
+                errors=errors,
+            )
+        if not legacy_claude_package.is_dir():
+            errors.append("plugins/claude/ai-plugins: missing legacy Claude plugin package")
+        else:
+            _check_claude_plugin_package(
+                root,
+                legacy_claude_package,
+                expected_name="ai-plugins",
+                expected_version="1.0.1",
+                errors=errors,
+            )
+        _check_claude_marketplace(
+            root,
+            root / ".claude-plugin" / "marketplace.json",
+            {
+                "endor-labs-agent-kit": "./plugins/claude/endor-labs-agent-kit",
+                "ai-plugins": "./plugins/claude/ai-plugins",
+            },
+            {
+                "endor-labs-agent-kit": "0.1.0",
+                "ai-plugins": "1.0.1",
+            },
+            errors,
+        )
+        _check_claude_marketplace(
+            root,
+            plugins_root / "claude" / ".claude-plugin" / "marketplace.json",
+            {
+                "endor-labs-agent-kit": "./endor-labs-agent-kit",
+                "ai-plugins": "./ai-plugins",
+            },
+            {
+                "endor-labs-agent-kit": "0.1.0",
+                "ai-plugins": "1.0.1",
+            },
+            errors,
+        )
 
     gemini_package = plugins_root / "gemini" / "endor-labs-agent-kit"
     if gemini_package.is_dir():
@@ -456,36 +503,28 @@ def _check_codex_plugin_package(
 
 def _check_claude_plugin_package(
     root: Path,
-    plugins_root: Path,
     claude_package: Path,
+    *,
+    expected_name: str,
+    expected_version: str,
     errors: list[str],
 ) -> None:
     manifest_path = claude_package / ".claude-plugin" / "plugin.json"
     manifest = _load_json_mapping(root, manifest_path, errors)
+    manifest_rel = _rel(root, manifest_path)
     if manifest:
-        if manifest.get("name") != "endor-labs-agent-kit":
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: name must be endor-labs-agent-kit")
+        if manifest.get("name") != expected_name:
+            errors.append(f"{manifest_rel}: name must be {expected_name}")
+        if manifest.get("version") != expected_version:
+            errors.append(f"{manifest_rel}: version must be {expected_version}")
         if "agents" in manifest:
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: must not declare default agents path; Claude auto-discovers agents/")
+            errors.append(f"{manifest_rel}: must not declare default agents path; Claude auto-discovers agents/")
         if "skills" in manifest:
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: must not declare default skills path; Claude auto-discovers skills/")
+            errors.append(f"{manifest_rel}: must not declare default skills path; Claude auto-discovers skills/")
         if "license" in manifest:
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: license must be omitted until release metadata is final")
+            errors.append(f"{manifest_rel}: license must be omitted until release metadata is final")
         if "mcpServers" in manifest:
-            errors.append("plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json: must not declare plugin-wide MCP")
-
-    _check_claude_marketplace(
-        root,
-        root / ".claude-plugin" / "marketplace.json",
-        "./plugins/claude/endor-labs-agent-kit",
-        errors,
-    )
-    _check_claude_marketplace(
-        root,
-        plugins_root / "claude" / ".claude-plugin" / "marketplace.json",
-        "./endor-labs-agent-kit",
-        errors,
-    )
+            errors.append(f"{manifest_rel}: must not declare plugin-wide MCP")
 
     setup = claude_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
@@ -501,6 +540,22 @@ def _check_claude_plugin_package(
         ):
             if required not in setup_text:
                 errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+        if expected_name == "ai-plugins":
+            for required in (
+                "retained for existing Claude Code users and pinned installs",
+                "Do not enable both Claude plugin ids in the same profile",
+                "does not auto-disable, uninstall, or edit Claude settings",
+            ):
+                if required not in setup_text:
+                    errors.append(f"{_rel(root, setup)}: missing legacy compatibility text {required!r}")
+        else:
+            for required in (
+                "preferred Claude Code plugin id for new installs",
+                "Existing `ai-plugins@endorlabs` users can keep using",
+                "does not auto-disable, uninstall, or edit Claude settings",
+            ):
+                if required not in setup_text:
+                    errors.append(f"{_rel(root, setup)}: missing Claude compatibility text {required!r}")
 
     for agent in sorted((claude_package / "agents").glob("*.md")):
         text = agent.read_text(encoding="utf-8")
@@ -535,7 +590,8 @@ def _check_claude_plugin_package(
 def _check_claude_marketplace(
     root: Path,
     path: Path,
-    expected_source: str,
+    expected_sources: dict[str, str],
+    expected_versions: dict[str, str],
     errors: list[str],
 ) -> None:
     marketplace = _load_json_mapping(root, path, errors)
@@ -547,24 +603,6 @@ def _check_claude_marketplace(
     if owner.get("name") != "Endor Labs":
         errors.append(f"{_rel(root, path)}: owner.name must be Endor Labs")
     entries = _list(marketplace.get("plugins"))
-    entry = next(
-        (
-            _dict(item)
-            for item in entries
-            if _dict(item).get("name") == "endor-labs-agent-kit"
-        ),
-        {},
-    )
-    if not entry:
-        errors.append(f"{_rel(root, path)}: missing endor-labs-agent-kit plugin entry")
-        return
-    if entry.get("source") != expected_source:
-        errors.append(f"{_rel(root, path)}: plugin source must be {expected_source!r}")
-    source = entry.get("source")
-    if not isinstance(source, str) or not source.startswith("./") or "/../" in source or source.startswith("../"):
-        errors.append(f"{_rel(root, path)}: plugin source must be a marketplace-root relative path starting with ./")
-    if entry.get("version") != "0.1.0":
-        errors.append(f"{_rel(root, path)}: plugin entry version must match package version 0.1.0")
     expected_terms = {
         "agentic remediation",
         "SAST remediation",
@@ -572,14 +610,34 @@ def _check_claude_marketplace(
         "AppSec",
         "Upgrade Impact Analysis",
     }
-    tags = set(str(item) for item in _list(entry.get("tags")))
-    keywords = set(str(item) for item in _list(entry.get("keywords")))
-    if not expected_terms <= tags:
-        missing = sorted(expected_terms - tags)
-        errors.append(f"{_rel(root, path)}: plugin entry tags missing discovery terms {missing}")
-    if not expected_terms <= keywords:
-        missing = sorted(expected_terms - keywords)
-        errors.append(f"{_rel(root, path)}: plugin entry keywords missing discovery terms {missing}")
+    for plugin_name, expected_source in expected_sources.items():
+        entry = next(
+            (
+                _dict(item)
+                for item in entries
+                if _dict(item).get("name") == plugin_name
+            ),
+            {},
+        )
+        if not entry:
+            errors.append(f"{_rel(root, path)}: missing {plugin_name} plugin entry")
+            continue
+        if entry.get("source") != expected_source:
+            errors.append(f"{_rel(root, path)}: {plugin_name} source must be {expected_source!r}")
+        source = entry.get("source")
+        if not isinstance(source, str) or not source.startswith("./") or "/../" in source or source.startswith("../"):
+            errors.append(f"{_rel(root, path)}: {plugin_name} source must be a marketplace-root relative path starting with ./")
+        expected_version = expected_versions[plugin_name]
+        if entry.get("version") != expected_version:
+            errors.append(f"{_rel(root, path)}: {plugin_name} entry version must match package version {expected_version}")
+        tags = set(str(item) for item in _list(entry.get("tags")))
+        keywords = set(str(item) for item in _list(entry.get("keywords")))
+        if not expected_terms <= tags:
+            missing = sorted(expected_terms - tags)
+            errors.append(f"{_rel(root, path)}: {plugin_name} entry tags missing discovery terms {missing}")
+        if not expected_terms <= keywords:
+            missing = sorted(expected_terms - keywords)
+            errors.append(f"{_rel(root, path)}: {plugin_name} entry keywords missing discovery terms {missing}")
 
 
 def _check_gemini_plugin_package(
