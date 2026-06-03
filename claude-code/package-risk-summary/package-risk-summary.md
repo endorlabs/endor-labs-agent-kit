@@ -49,6 +49,11 @@ PackageVersion, VersionUpgrade, DependencyMetadata, or other repository-scoped
 lookup to `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for
 PR, CI-run, commit-SHA, or all-context evidence. Keep non-main counts separate
 and report the `context.type` and source ref before using them in the summary.
+If project-scoped tenant lookup is used and a proven namespace returns no
+matching project, retry the project lookup with `--traverse` before reporting
+the project as missing. When traverse finds a child namespace, use that child
+namespace for later scoped reads when available, or keep `--traverse` on later
+project-scoped read-only lookups from the parent namespace.
 
 ## Evidence Rules
 

@@ -42,6 +42,7 @@ def test_dependency_decision_helper_compiled_artifacts_carry_load_bearing_rules(
     assert "package-level `oss` lookups" in enterprise
     assert "context.type==CONTEXT_TYPE_MAIN" in enterprise
     assert "Keep non-main counts separate" in enterprise
+    assert "retry the project lookup with `--traverse`" in enterprise
     assert "PackageVersion UUID Lookup" in enterprise
     assert "QuerySimilarPackages" in enterprise
 

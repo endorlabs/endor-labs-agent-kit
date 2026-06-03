@@ -39,6 +39,11 @@ DependencyMetadata, or other repository-scoped lookup to
 `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for PR,
 CI-run, commit-SHA, or all-context evidence. Keep non-main counts separate and
 report the `context.type` and source ref before using them in repository risk.
+If a future project-scoped tenant lookup uses a proven namespace and finds no
+matching project, retry the project lookup with `--traverse` before reporting
+the project as missing. When traverse finds a child namespace, use that child
+namespace for later scoped reads when available, or keep `--traverse` on later
+project-scoped read-only lookups from the parent namespace.
 
 ## Repository Inspection Rules
 

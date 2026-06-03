@@ -132,6 +132,9 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "Default Endor Context Scope" in artifact
     assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
     assert "Keep non-main counts" in artifact
+    assert "retry the same read-only Endor inventory lookup with `--traverse`" in artifact
+    assert "Traverse fallback when the first project inventory has no strict match" in artifact
+    assert "`--traverse` before classifying repositories as not onboarded" in artifact
     assert "gh auth status" in artifact
     assert "gh repo list" in artifact
     assert "gh repo view" in artifact

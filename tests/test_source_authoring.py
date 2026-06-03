@@ -25,6 +25,19 @@ def test_source_authoring_check_accepts_existing_agent_recipes():
         assert not report.errors
 
 
+def test_all_source_agents_include_parent_namespace_traverse_fallback():
+    for instructions in sorted((repo_root() / "source" / "agents").glob("*/instructions.md")):
+        body = instructions.read_text(encoding="utf-8")
+
+        assert "--traverse" in body, instructions
+        assert (
+            "matching project" in body
+            or "matching Endor projects" in body
+            or "PROJECT_NOT_FOUND" in body
+            or "reporting the project as missing" in body
+        ), instructions
+
+
 def test_source_authoring_check_accepts_strict_new_mutating_agent(tmp_path, capsys):
     recipe = _copy_agent_source(tmp_path, "sca-remediation")
 

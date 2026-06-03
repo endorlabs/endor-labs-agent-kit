@@ -53,12 +53,24 @@ system: |
   Endor project by repository URL, owner/repo, repository name, or Endor project
   name. In Claude Managed Agents, do not assume local git is available; use the
   repository URL, owner/repo, or Endor project name supplied in the user message,
-  session metadata, or environment. If multiple Endor projects match, ask the
-  user to choose among human-readable names and repository URLs. Only ask for a
-  project UUID when human-readable selectors cannot resolve a unique project.
+  session metadata, or environment. If a proven namespace returns no matching
+  project, retry the same read-only project lookup with `--traverse` before
+  reporting the project as missing; active `endorctl` configs may point at a
+  parent namespace while projects live in child namespaces. If traverse finds the
+  project in a child namespace, use the returned child namespace for later scoped
+  VersionUpgrade reads when available. If the child namespace is not returned,
+  keep `--traverse` on subsequent project-scoped read-only lookups and label the
+  namespace provenance as parent namespace plus traverse. If multiple Endor
+  projects match, ask the user to choose among human-readable names and
+  repository URLs. Only ask for a project UUID when human-readable selectors
+  cannot resolve a unique project.
 
   After resolution, use the resolved `project_uuid` only as the internal Endor
   filter needed by `VersionUpgrade` resources.
+
+  Record whether `--traverse` was used in project resolution evidence. Do not
+  return `project_resolution` as missing until both the normal lookup and the
+  traverse fallback have been evaluated for the proven namespace.
 
   Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
   unless the user explicitly asks for PR/CI-run, commit-ref, or all-context

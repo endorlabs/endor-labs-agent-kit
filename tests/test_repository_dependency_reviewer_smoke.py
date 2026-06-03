@@ -54,6 +54,7 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
         assert "Default Endor Context Scope" in body
         assert "context.type==CONTEXT_TYPE_MAIN" in body
         assert "Keep non-main counts separate" in body
+        assert "retry the project lookup with `--traverse`" in body
         assert "unresolved_versions" in body
         assert "data_gaps" in body
 

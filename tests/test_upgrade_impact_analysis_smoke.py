@@ -55,6 +55,8 @@ def test_upgrade_impact_analysis_compiled_artifacts_carry_expected_rules(tmp_pat
     assert "project_uuid" in enterprise
     assert "Do not make Endor project UUID knowledge a prerequisite" in enterprise
     assert "repository URL, owner/repo, or Endor project name" in enterprise
+    assert "retry the same read-only project lookup with `--traverse`" in enterprise
+    assert "Record whether `--traverse` was used in project resolution evidence" in enterprise
     assert "Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`" in enterprise
     assert "Project-scoped `VersionUpgrade` and finding-fixing upgrade lookups default to" in enterprise
     assert "QuerySimilarPackages" not in enterprise

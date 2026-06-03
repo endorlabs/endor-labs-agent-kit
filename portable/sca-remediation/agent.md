@@ -45,9 +45,11 @@ Resolve the Endor project in this order:
 2. If the user supplied a repository URL, project name, owner/repo string, or namespace, normalize those values the same way.
 3. Resolve a namespace with provenance before the first Endor query that uses `-n`.
 4. Query Endor project metadata and match first on repository full name, then Endor project name, then repository basename.
-5. If exactly one project matches, use it without asking for a UUID.
-6. If multiple projects match, show a short candidate list with human-readable names and repository URLs and ask the user to choose.
-7. If no project matches, report attempted selectors in `data_gaps` and ask for a repository URL, owner/repo, or project name. Do not ask for a project UUID unless the user explicitly prefers that.
+5. If a proven namespace returns no matching project, retry the same read-only project lookup with `--traverse` before reporting that the project is missing. This handles users whose active `endorctl` namespace is a parent namespace.
+6. If a traverse lookup finds the project in a child namespace, use the returned project namespace for subsequent scoped Endor lookups when available. If the child namespace is not returned, keep `--traverse` on subsequent project-scoped read-only lookups and label the namespace provenance as parent namespace plus traverse.
+7. If exactly one project matches, use it without asking for a UUID.
+8. If multiple projects match, show a short candidate list with human-readable names and repository URLs and ask the user to choose.
+9. If no project matches after the non-traverse and traverse attempts, report attempted selectors and traversal status in `data_gaps` and ask for a repository URL, owner/repo, or project name. Do not ask for a project UUID unless the user explicitly prefers that.
 
 Project scoping is mandatory. After resolving a project, every Endor Finding and VersionUpgrade query must filter by the resolved project UUID or an equivalent repository-scoped selector.
 
@@ -76,7 +78,12 @@ Resolve namespace candidates in this order:
 3. `ENDOR_NAMESPACE` in the active endorctl config, usually `~/.endorctl/config.yaml` or the directory named by `--config-path`.
 4. A namespace discovered from an already-resolved Endor project record.
 
-Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, first try a project lookup without `-n` so endorctl can use its active configuration, or ask the user for the namespace. If a namespace candidate returns no matching project, record that candidate and provenance in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
+Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, first try a project lookup without `-n` so endorctl can use its active configuration, or ask the user for the namespace. If a namespace candidate returns no matching project, retry that same candidate with `--traverse`, then record the candidate, provenance, and traversal result in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
+
+When recording project resolution evidence, include whether `--traverse` was
+used and whether the resolved project came from the active namespace or a child
+namespace. Never collapse parent-namespace lookup failures into "project not
+found" until the traverse fallback has also been attempted.
 
 Do not print or dump an entire Endor config file. It can contain auth and tenant details outside the namespace signal needed for this workflow. To read namespace provenance from config, extract only the namespace key with a narrow command or parser and do not echo tokens, API keys, session data, or unrelated config contents.
 
@@ -146,6 +153,15 @@ Project lookup example:
 
 ```bash
 endorctl api list -r Project -n <namespace> \
+  --field-mask "uuid,meta.name,spec.git" \
+  --list-all -o json
+```
+
+Traverse fallback when the first project lookup has no match:
+
+```bash
+endorctl api list -r Project -n <namespace> \
+  --traverse \
   --field-mask "uuid,meta.name,spec.git" \
   --list-all -o json
 ```

@@ -44,6 +44,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Do not require or start an Endor MCP server" in prompt
     assert "read the current repository root and `origin` remote URL" in prompt
     assert "ask the user to choose one" in prompt
+    assert "retry the same read-only project lookup with `--traverse`" in prompt
+    assert "Never collapse parent-namespace lookup failures into \"project not\nfound\"" in prompt
     assert "Project scoping is mandatory" in prompt
     assert "Default Endor Context Scope" in prompt
     assert "Default Endor Finding list queries to `context.type==CONTEXT_TYPE_MAIN`" in prompt

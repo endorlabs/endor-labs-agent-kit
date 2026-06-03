@@ -87,6 +87,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Namespace Provenance" in prompt
     assert "Do not invent or reuse a namespace from unrelated examples" in prompt
     assert "Before running an Endor query with `-n <namespace>`" in prompt
+    assert "retry that same candidate with `--traverse`" in prompt
+    assert "Traverse fallback when the first project lookup has no match" in prompt
     assert "Do not print or dump an entire Endor config file" in prompt
     assert "extract only the namespace key" in prompt
     assert "namespace_provenance" in prompt
