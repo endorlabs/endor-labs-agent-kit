@@ -48,7 +48,7 @@ context.
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add ./` from a checkout. |
 | Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |
-| Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub release archive. |
+| Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub repository. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/` | Read `plugins/antigravity/endor-labs-agent-kit/README.md`, then use `antigravity plugin validate` and `antigravity plugin install` against the generated plugin directory. |
 
 After installing a plugin, ask the host to use the `endor-agent-kit-setup`
@@ -238,25 +238,24 @@ Generated plugin packages currently include:
   skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`
   plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.
 - `plugins/gemini/endor-labs-agent-kit/`: Gemini CLI extension with setup
-  skill, Gemini workflow skills, preview subagents, minimal context, and a
-  generated release archive at `plugins/gemini/endor-labs-agent-kit.zip`.
+  skill, Gemini workflow skills, preview subagents, minimal context, and no
+  zip release artifact.
 - `plugins/antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json`.
 
 All plugin packages preserve the same recipe source, action metadata, and
-approval gates as the manual generated catalog. The Gemini release archive
-is rooted at `plugins/gemini/endor-labs-agent-kit` so
-`gemini-extension.json` is at the archive root without turning this
-repository root into the Gemini extension root. Antigravity installs from
-the generated plugin directory and does not need a release zip in v1.
+approval gates as the manual generated catalog. Gemini installs from the
+generated extension directory for local validation or from the tagged
+GitHub repository for public distribution. Antigravity installs from the
+generated plugin directory. No zip artifact is generated in v1.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## Release Checklist
 
 Use `docs/plugin-release-checklist.md` before tagging or publishing plugin
 packages. It records the provider-specific publish paths, local validation
-commands, GitHub release asset requirements, and external documentation
+commands, public GitHub distribution steps, and external documentation
 freshness checks for Claude Code, Codex, Gemini, and Antigravity.
 
 ## Editions

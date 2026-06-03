@@ -75,14 +75,12 @@ The generated Gemini CLI extension package includes:
 - `agents/<agent>.md` preview subagents generated from the same recipe body,
   with provenance comments and Gemini host-contract text.
 - `assets/logo.svg`.
-- A deterministic release archive at `plugins/gemini/endor-labs-agent-kit.zip`
-  whose root contains `gemini-extension.json`.
 
 Gemini packages do not declare plugin-wide MCP by default. Setup documents the
 observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
-restart after extension installation or update. Gemini CLI 0.44.1 installs a
-local extension directory, but does not install a local zip path directly; the
-generated zip is for GitHub Release distribution.
+restart after extension installation or update. Gemini CLI installs a local
+extension directory and supports tagged GitHub repository installs for public
+distribution. The package does not generate or publish a zip artifact.
 
 ## Implemented Antigravity CLI Plugin Shape
 
@@ -118,14 +116,13 @@ Adding first-class plugin publishing would touch:
   generated metadata.
 
 The Gemini package follows the same source-first publication model rather than
-introducing hand-assembled packages. Because Gemini extension discovery expects
-`gemini-extension.json` at the repository or archive root, the release archive
-is rooted at `plugins/gemini/endor-labs-agent-kit` instead of turning this
-repository root into the Gemini extension root.
+introducing hand-assembled packages. Gemini local validation installs from
+`plugins/gemini/endor-labs-agent-kit`; public validation installs from the
+tagged GitHub repository.
 
 The Antigravity package also follows the source-first publication model. It
 installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
-the package root; no release archive is generated for that target in v1.
+the package root; no release archive is generated for either target in v1.
 
 ## Safety Requirements
 
@@ -151,8 +148,8 @@ Validated locally:
   `CODEX_HOME`.
 - Gemini extension package install from the generated local extension
   directory.
-- Gemini release archive structure with `gemini-extension.json` at the archive
-  root.
+- Gemini package structure with `gemini-extension.json` at the extension root
+  and no zip artifact.
 - Antigravity plugin package validation with `antigravity plugin validate`.
 
 Still release-critical:
@@ -162,8 +159,7 @@ Still release-critical:
   `claude` CLI is available.
 - Codex public GitHub sparse marketplace validation after the repo is public,
   pushed, and tagged.
-- Gemini public GitHub Release install after the generated zip is attached as
-  the single generic release asset.
+- Gemini public GitHub install after the repo is public, pushed, and tagged.
 - Antigravity install/list/uninstall validation after the package is generated
   and the installed CLI version is available.
 

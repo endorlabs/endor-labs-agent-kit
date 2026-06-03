@@ -23,20 +23,18 @@ source recipes in the Endor Labs Agent Kit repository.
 gemini extensions install /path/to/endor-labs-agent-kit/plugins/gemini/endor-labs-agent-kit
 ```
 
-For release distribution, attach the generated zip archive to the GitHub
-Release as the single generic asset. The archive is rooted at the extension
-directory so `gemini-extension.json` is at the archive root.
+Install from the public GitHub repository after a release tag is published:
 
 ```bash
-gemini extensions install https://github.com/endorlabs/endor-labs-agent-kit --ref <tag>
+gemini extensions install https://github.com/endorlabs/ai-plugins --ref <tag>
 ```
 
 Gemini CLI 0.44.1 local validation showed a folder trust prompt for local
 paths even with `--consent`. Inspect the package and approve only the
 expected Endor Agent Kit extension source.
-Gemini CLI 0.44.1 does not install a local zip path directly; use the local
-extension directory for local testing and the GitHub release asset for
-published installs.
+Do not create or install zip archives for Gemini CLI; use the local extension
+directory for local testing and the tagged GitHub repository for published
+installs.
 
 Restart Gemini CLI after installing or reinstalling the extension.
 

@@ -21,7 +21,7 @@ Generated marketplace and release files:
 - Claude local marketplace: `plugins/claude/.claude-plugin/marketplace.json`
 - Codex public marketplace: `.agents/plugins/marketplace.json`
 - Codex local marketplace: `plugins/codex/.agents/plugins/marketplace.json`
-- Gemini release archive: `plugins/gemini/endor-labs-agent-kit.zip`
+- Gemini manifest: `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`
 - Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
 
 ## Version Gate
@@ -60,21 +60,12 @@ Regenerate source-owned artifacts from recipes:
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 ```
 
-Confirm the generated zip is tracked and rooted correctly:
+Confirm the Gemini package is directory-only and no zip artifact exists:
 
 ```bash
-python3 - <<'PY'
-from pathlib import Path
-import zipfile
-
-archive_path = Path("plugins/gemini/endor-labs-agent-kit.zip")
-with zipfile.ZipFile(archive_path) as archive:
-    names = set(archive.namelist())
-assert "gemini-extension.json" in names
-assert "skills/endor-agent-kit-setup/SKILL.md" in names
-assert not any(name.startswith("endor-labs-agent-kit/") for name in names)
-print("Gemini archive OK")
-PY
+test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
+test -f plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md
+test ! -e plugins/gemini/endor-labs-agent-kit.zip
 ```
 
 ## Repository Gates
@@ -88,9 +79,9 @@ endor-agent-kit verify-provenance --catalog-root .
 git status --short --ignored plugins/gemini plugins/antigravity
 ```
 
-The final status check must show `plugins/gemini/endor-labs-agent-kit.zip` as
-tracked or untracked, not ignored. It must also show the Antigravity package
-directory as tracked or untracked, not ignored.
+The final status check must show the Gemini extension directory and
+Antigravity package directory as tracked or untracked, not ignored. It must not
+show a Gemini zip artifact.
 
 ## Claude Code
 
@@ -175,11 +166,10 @@ Gemini CLI 0.44.1 may still show a folder trust prompt for local paths even with
 `--consent`. Inspect the package source and approve only the expected generated
 folder.
 
-Create the GitHub release with the generated zip as the single generic Gemini
-asset:
+Create or update the GitHub release/tag without adding a Gemini zip asset:
 
 ```bash
-gh release create "$VERSION" plugins/gemini/endor-labs-agent-kit.zip \
+gh release create "$VERSION" \
   --title "Endor Labs Agent Kit $VERSION" \
   --notes "Endor Labs Agent Kit plugin package release."
 ```
@@ -187,14 +177,14 @@ gh release create "$VERSION" plugins/gemini/endor-labs-agent-kit.zip \
 Public repository validation after the release exists:
 
 ```bash
-gemini extensions install https://github.com/endorlabs/endor-labs-agent-kit --ref "$VERSION"
+gemini extensions install https://github.com/endorlabs/ai-plugins --ref "$VERSION"
 gemini extensions list
 gemini extensions uninstall endor-labs-agent-kit
 ```
 
-Gemini CLI 0.44.1 does not install a local zip path directly. Use the local
-extension directory for local testing and the GitHub release asset for public
-release installs.
+Do not create or attach a Gemini zip artifact. Use the local extension
+directory for local testing and the tagged GitHub repository for public release
+installs.
 
 ## Antigravity CLI
 
@@ -210,13 +200,14 @@ antigravity plugin list
 
 Antigravity CLI currently validates a package directory with `plugin.json` at
 the root. Keep Antigravity validation separate from Gemini extension validation:
-Gemini uses `gemini-extension.json` and a release zip, while Antigravity uses
-`plugin.json` and installs from the generated plugin directory in v1.
+Gemini uses `gemini-extension.json` and installs from the generated extension
+directory or tagged GitHub repository, while Antigravity uses `plugin.json` and
+installs from the generated plugin directory in v1.
 
 ## Documentation Freshness
 
 Before each release, manually re-check these provider docs because marketplace,
-manifest, and release-asset behavior can change:
+manifest, and public GitHub install behavior can change:
 
 Last checked for this checklist: 2026-06-02.
 

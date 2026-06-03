@@ -23,13 +23,13 @@ Current generated package slices:
   Claude Code workflow agents, minimal assets, and marketplace metadata under
   `.claude-plugin/marketplace.json` and `claude/.claude-plugin/marketplace.json`.
 - `gemini/endor-labs-agent-kit/`: Gemini CLI extension package with setup skill,
-  Gemini workflow skills, preview subagents, minimal context, and a generated
-  release archive at `gemini/endor-labs-agent-kit.zip`.
+  Gemini workflow skills, preview subagents, minimal context, and no zip
+  release artifact.
 - `antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin package with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json` validated with `antigravity plugin validate`.
 
-The Gemini release archive is rooted at `plugins/gemini/endor-labs-agent-kit`
-so `gemini-extension.json` is at the archive root while the repository keeps
-all generated host packages together. Antigravity installs from the generated
-plugin directory; no release zip is generated for that target in v1.
+Gemini installs from the generated extension directory for local validation
+or from the tagged GitHub repository for public distribution. Antigravity
+installs from the generated plugin directory; no release zip is generated
+for either target in v1.
