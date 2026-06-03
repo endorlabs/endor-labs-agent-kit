@@ -54,16 +54,20 @@ NAMESPACE_PREFLIGHT_REQUIRED_TEXT = (
     "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only",
     "surface both values with provenance and stop for user confirmation",
     "`endorctl api` lookup",
-    "`~/.endorctl/aigovernance/`",
-    "`aigovernance` or `ai-governance`",
+    "tenant-specific",
+    "customer-specific",
+    "production, backup",
+    "non-default Endor config",
 )
 
 NAMESPACE_SETUP_REQUIRED_TEXT = (
     "`ENDOR_NAMESPACE`",
     "`ENDOR_API_CREDENTIALS_*`",
     "`~/.endorctl/config.yaml`",
-    "`~/.endorctl/aigovernance/`",
-    "`ai-governance`",
+    "tenant-specific",
+    "customer-specific",
+    "production, backup",
+    "non-default Endor config",
     "surface both values",
     "`-n <namespace>` or `--namespace <namespace>`",
 )
