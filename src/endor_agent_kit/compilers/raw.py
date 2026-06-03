@@ -22,6 +22,28 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
 
+ENDOR_NAMESPACE_SETUP_GUIDANCE = """\
+## Namespace Guardrails
+
+Preserve normal environment-variable auth and namespace selection:
+`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Do not
+allow silent namespace conflicts.
+
+Read only the current process `ENDOR_NAMESPACE` and the `ENDOR_NAMESPACE` key
+from the default `~/.endorctl/config.yaml`. Do not read, cat, source, recurse
+through, or point `ENDORCTL_CONFIG` or `--config-path` at
+`~/.endorctl/aigovernance/` or any path whose name contains `aigovernance` or
+`ai-governance`.
+
+If the process environment and default config namespaces both exist and differ,
+surface both values with provenance and stop before scoped Endor lookups or
+Endor MCP calls. Ask the user which namespace to use for this workflow.
+
+After a namespace is selected, every scoped `endorctl api` lookup must pass it
+explicitly with `-n <namespace>` or `--namespace <namespace>`. Do not rely on
+bare `endorctl` namespace resolution.
+"""
+
 
 def compile_raw(recipe_path: str | Path) -> list[Path]:
     """Compile a recipe to raw prompt/setup artifacts."""
@@ -116,6 +138,8 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "",
             f"Required endorctl version: `{recipe.requires_endorctl or 'latest recommended'}`",
             "",
+            ENDOR_NAMESPACE_SETUP_GUIDANCE.rstrip(),
+            "",
             "The recipe documents these Endor lookup groups:",
             "",
             invocations,
@@ -148,6 +172,8 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             f"The {recipe.name} artifacts do not require read-only `endorctl api` lookups.",
             "Use the generated Claude Code subagent with Endor MCP access.",
             "",
+            ENDOR_NAMESPACE_SETUP_GUIDANCE.rstrip(),
+            "",
             "If a future edition adds tenant-aware Endor lookups, this file will document",
             "the exact read-only commands that are allowed.",
         ])
@@ -163,6 +189,8 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         "Install and authenticate `endorctl` before using this artifact.",
         "",
         f"Required version: `{recipe.requires_endorctl or 'latest recommended'}`",
+        "",
+        ENDOR_NAMESPACE_SETUP_GUIDANCE.rstrip(),
         "",
         "The recipe documents these read-only API invocation groups:",
         "",

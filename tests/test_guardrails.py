@@ -46,6 +46,7 @@ def test_guardrail_docs_define_runtime_boundaries():
 
     assert "Agent Kit is an artifact and workflow-contract system" in guardrails
     assert "Runtime audit and authorization | Delegated" in guardrails
+    assert "Namespace provenance and conflict surfacing" in guardrails
     assert "Untrusted Content Boundary" in guardrails
     assert "Remaining Gaps" in guardrails
     assert "Required Runtime Controls" in portable
@@ -313,7 +314,7 @@ def test_sca_guardrail_rejects_mutation_gate_without_risk_decision():
         "project_resolution": {
             "project_uuid": "proj-123",
             "namespace": "tenant-a",
-            "namespace_provenance": "active endorctl config namespace",
+            "namespace_provenance": "~/.endorctl/config.yaml ENDOR_NAMESPACE",
         },
         "selected_remediation": {
             "branch_name": "remediation/sca/pkg-1.2.3",
@@ -369,6 +370,7 @@ def _write_source_catalog(catalog: Path, *, include_audit_delegation_doc: bool =
     (docs / "guardrails.md").write_text(
         "Agent Kit is an artifact and workflow-contract system.\n"
         f"{audit_line}"
+        "Namespace provenance and conflict surfacing\n"
         "Untrusted Content Boundary\n"
         "Remaining Gaps\n",
         encoding="utf-8",

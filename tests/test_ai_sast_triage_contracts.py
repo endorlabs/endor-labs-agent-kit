@@ -21,7 +21,7 @@ def _valid_payload() -> dict:
         "project_resolution": {
             "project_uuid": "proj-123",
             "namespace": "tenant-a",
-            "namespace_provenance": "active endorctl config namespace",
+            "namespace_provenance": "~/.endorctl/config.yaml ENDOR_NAMESPACE",
             "repo_full_name": "example/app",
             "project_name": "example-app",
         },

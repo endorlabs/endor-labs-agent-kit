@@ -25,6 +25,7 @@ copying portable policy facts.
 | Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity host contracts, portable manifest |
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
+| Namespace provenance and conflict surfacing | Enforced in prompts and setup guidance | shared prompt preflight, setup support files, catalog guardrails |
 | Missing data handling | Enforced in prompts | required `data_gaps` behavior |
 | Output structure | Enforced for workflow gates | SCA and AI SAST validators/renderers/linters |
 | Portable runtime controls | Declared and tested | `agent.manifest.json`, `output-contract.md`, portable docs |
@@ -81,6 +82,27 @@ Mutating agents use explicit action contracts for semantic side effects such as:
 `ticket.create` is part of the portable vocabulary. `sca-remediation` and
 `ai-sast-triage` declare it as an agent-owned action; other portable bundles
 can use it as a runtime wrapper after final output.
+
+## Endor Namespace Guardrails
+
+Generated agents must resolve and report namespace provenance before any
+project-, finding-, package-, version-upgrade-, policy-, or repository-scoped
+Endor lookup. The valid namespace sources are the current user request, the
+current process `ENDOR_NAMESPACE`, the `ENDOR_NAMESPACE` key from the default
+`~/.endorctl/config.yaml`, or already-resolved Endor project metadata.
+
+Environment-variable auth remains supported. Agents and setup workflows may use
+`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*`, but they must not silently
+trust a namespace when the process environment and default config disagree. If
+both namespace values exist and differ, generated guidance requires surfacing
+both values with provenance and stopping for user confirmation before scoped
+Endor or Endor MCP lookups.
+
+Generated setup and workflow guidance must not read, cat, source, recurse
+through, or point `ENDORCTL_CONFIG` or `--config-path` at
+`~/.endorctl/aigovernance/` or any path whose name contains `aigovernance` or
+`ai-governance`. When a namespace is selected, scoped `endorctl api` lookups
+must pass it explicitly with `-n <namespace>` or `--namespace <namespace>`.
 
 ## Host Guardrails
 
@@ -170,7 +192,8 @@ approval gates, output contracts, and artifact provenance.
 All plugin setup skills may guide installation and authentication work, but
 every write, install, and authentication step must be explicit and
 evidence-backed. Setup may offer re-authentication and namespace changes, but it
-must report that namespace selection is required before live Endor lookups.
+must report that namespace selection is required before live Endor lookups and
+must surface environment/config namespace conflicts before scoped Endor work.
 
 ### Portable
 
