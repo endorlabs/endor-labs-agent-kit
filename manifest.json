@@ -1566,9 +1566,9 @@
           "sha256": "7cb00ec6d672e31469be5e75413f52a0f2f61cb95fddde5bdb78e8f953dffa2e"
         },
         {
-          "bytes": 2391,
+          "bytes": 2684,
           "path": "plugins/README.md",
-          "sha256": "33ee422cf8fd91a3677e5459a6828deaa39b8fe2a5fb2d44e4dc264704deddb1"
+          "sha256": "5be49db73876b8b0bd5a66886c1a6b09c4e53e7da94434dad1158ed022887402"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1666,9 +1666,9 @@
           "sha256": "769b62dea2f695d19aaa396d8169d978b29e54f9d93581cce5cfa1506c49e007"
         },
         {
-          "bytes": 2391,
+          "bytes": 2684,
           "path": "plugins/README.md",
-          "sha256": "33ee422cf8fd91a3677e5459a6828deaa39b8fe2a5fb2d44e4dc264704deddb1"
+          "sha256": "5be49db73876b8b0bd5a66886c1a6b09c4e53e7da94434dad1158ed022887402"
         }
       ],
       "display_name": "Endor Labs AI Plugins (Legacy)",
@@ -1773,9 +1773,9 @@
           "sha256": "769b62dea2f695d19aaa396d8169d978b29e54f9d93581cce5cfa1506c49e007"
         },
         {
-          "bytes": 2391,
+          "bytes": 2684,
           "path": "plugins/README.md",
-          "sha256": "33ee422cf8fd91a3677e5459a6828deaa39b8fe2a5fb2d44e4dc264704deddb1"
+          "sha256": "5be49db73876b8b0bd5a66886c1a6b09c4e53e7da94434dad1158ed022887402"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1875,9 +1875,9 @@
           "sha256": "61714d233f475253412a62d148ccb90c047ef0ca584422a1b58b5d9e2d67a934"
         },
         {
-          "bytes": 2391,
+          "bytes": 2684,
           "path": "plugins/README.md",
-          "sha256": "33ee422cf8fd91a3677e5459a6828deaa39b8fe2a5fb2d44e4dc264704deddb1"
+          "sha256": "5be49db73876b8b0bd5a66886c1a6b09c4e53e7da94434dad1158ed022887402"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -2007,6 +2007,96 @@
     {
       "artifacts": [
         {
+          "bytes": 4092,
+          "path": "cursor-sdk/README.md",
+          "sha256": "774d19f2b3c863a36b844f6acdcc6b64337237d5937c37ff7d203df7a43b48de"
+        },
+        {
+          "bytes": 3826,
+          "path": "cursor-sdk/agent_definitions.json",
+          "sha256": "94a267d3285c3daaaad7a64dfe230db969a8ccb942c425475c62b0916bb500d8"
+        },
+        {
+          "bytes": 6770,
+          "path": "cursor-sdk/agents/endor-agent-kit-setup-agent.md",
+          "sha256": "c523f834d7394146112bf02adf6c7d746cf62fe5179f6a974c860b390e9a8a55"
+        },
+        {
+          "bytes": 6325,
+          "path": "cursor-sdk/agents/endor-ai-sast-triage-agent.actions.yaml",
+          "sha256": "be25d22cbd3d617262683c782ed6b3093ad7c422223e2307babcfc396a505d7a"
+        },
+        {
+          "bytes": 10797,
+          "path": "cursor-sdk/agents/endor-ai-sast-triage-agent.architecture.svg",
+          "sha256": "43cee084b3fd84a06253bdcaf577f2db2f0f0b2a2edfcd48fb17c8a4d8348032"
+        },
+        {
+          "bytes": 42462,
+          "path": "cursor-sdk/agents/endor-ai-sast-triage-agent.md",
+          "sha256": "0795ebdf47fe7af5f02a62fa25b8b8445df14bb967060607aba3f851687f2a34"
+        },
+        {
+          "bytes": 9818,
+          "path": "cursor-sdk/agents/endor-probe-droid-agent.architecture.svg",
+          "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
+        },
+        {
+          "bytes": 52049,
+          "path": "cursor-sdk/agents/endor-probe-droid-agent.md",
+          "sha256": "a6dd251e4d55e1edcabf9c7e5b9de254e1cb15911186b70541fb3f11f5a22910"
+        },
+        {
+          "bytes": 6811,
+          "path": "cursor-sdk/agents/endor-sca-remediation-agent.actions.yaml",
+          "sha256": "57c63fa23a5c19584af92704766e7c68b76089ce6f749d8478ed5cc6b976cec8"
+        },
+        {
+          "bytes": 9839,
+          "path": "cursor-sdk/agents/endor-sca-remediation-agent.architecture.svg",
+          "sha256": "b4f710b517dc3ed1e75d26db0241f3fcc13d4eaf993ab965f35a9362d57b15ff"
+        },
+        {
+          "bytes": 43417,
+          "path": "cursor-sdk/agents/endor-sca-remediation-agent.md",
+          "sha256": "52393303fcb602bbe938f88e42f8abbe131aa951ed37ce352e99d2d1306dc9a7"
+        },
+        {
+          "bytes": 9834,
+          "path": "cursor-sdk/agents/endor-troubleshooter-agent.architecture.svg",
+          "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
+        },
+        {
+          "bytes": 54016,
+          "path": "cursor-sdk/agents/endor-troubleshooter-agent.md",
+          "sha256": "7e8d4ea4b18b45e2156d0bb0b4434af03542117b72b183c9c2fd1a1bda5a06a8"
+        },
+        {
+          "bytes": 11,
+          "path": "cursor-sdk/requirements.txt",
+          "sha256": "65d1e5c94c612731f7149c1e460ee4ac8a7f3f7752d07d35f4d2d456d6c94203"
+        },
+        {
+          "bytes": 4744,
+          "path": "cursor-sdk/run_cursor_agent.py",
+          "sha256": "f509e208df61f7d9d74118080fe2acea256a405d0c4300650d5ab5d7c6d9e1b3"
+        }
+      ],
+      "display_name": "Endor Labs Agent Kit Cursor SDK",
+      "host": "cursor-sdk",
+      "included_agents": [
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation"
+      ],
+      "name": "endor-labs-agent-kit-cursor-sdk",
+      "path": "cursor-sdk",
+      "version": "0.1.0"
+    },
+    {
+      "artifacts": [
+        {
           "bytes": 850,
           "path": "plugins/gemini/endor-labs-agent-kit/GEMINI.md",
           "sha256": "0f4ae6225234cac0bb83bfe12137b190bc563e0ca82ee6160d41671b53a60ac4"
@@ -2072,9 +2162,9 @@
           "sha256": "a7faea477aa83848ee2f1e34010293d8e651c5d91f5c7ac6544a398557cc6a90"
         },
         {
-          "bytes": 2391,
+          "bytes": 2684,
           "path": "plugins/README.md",
-          "sha256": "33ee422cf8fd91a3677e5459a6828deaa39b8fe2a5fb2d44e4dc264704deddb1"
+          "sha256": "5be49db73876b8b0bd5a66886c1a6b09c4e53e7da94434dad1158ed022887402"
         }
       ],
       "display_name": "Endor Labs Agent Kit",

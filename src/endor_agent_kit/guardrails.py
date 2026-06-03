@@ -387,6 +387,8 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     plugins_root = root / "plugins"
     if (root / ".cursor-plugin").is_dir():
         _check_cursor_plugin_package(root, errors)
+    if (root / "cursor-sdk").is_dir():
+        _check_cursor_sdk_package(root, errors)
     if not plugins_root.is_dir():
         return
 
@@ -578,6 +580,104 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
 
     if (root / "GEMINI.md").exists() or (root / "gemini-extension.json").exists():
         errors.append("Cursor package generation must not create root Gemini files")
+
+
+def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
+    sdk_root = root / "cursor-sdk"
+    readme = sdk_root / "README.md"
+    if not readme.is_file():
+        errors.append("cursor-sdk/README.md: missing Cursor SDK README")
+    else:
+        readme_text = readme.read_text(encoding="utf-8")
+        for required in (
+            "uv pip install -r requirements.txt",
+            "run_cursor_agent.py",
+            "Cursor Python SDK",
+            "Filter > Source > SDK",
+            "must not run `endorctl scan` or `endorctl host-check`",
+        ):
+            if required not in readme_text:
+                errors.append(f"cursor-sdk/README.md: missing required SDK text {required!r}")
+
+    requirements = sdk_root / "requirements.txt"
+    if not requirements.is_file():
+        errors.append("cursor-sdk/requirements.txt: missing Cursor SDK requirements")
+    elif "cursor-sdk" not in requirements.read_text(encoding="utf-8"):
+        errors.append("cursor-sdk/requirements.txt: must depend on cursor-sdk")
+
+    runner = sdk_root / "run_cursor_agent.py"
+    if not runner.is_file():
+        errors.append("cursor-sdk/run_cursor_agent.py: missing Cursor SDK runner")
+    else:
+        runner_text = runner.read_text(encoding="utf-8")
+        for required in (
+            "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions",
+            "CURSOR_API_KEY",
+            "Agent.create",
+            "agent_definitions.json",
+            "CloudAgentOptions",
+            "LocalAgentOptions",
+        ):
+            if required not in runner_text:
+                errors.append(f"cursor-sdk/run_cursor_agent.py: missing required SDK runner text {required!r}")
+
+    definitions = _load_json_mapping(root, sdk_root / "agent_definitions.json", errors)
+    expected_agents = {
+        "endor-agent-kit-setup": "endor-agent-kit-setup-agent",
+        "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "endor-troubleshooter": "endor-troubleshooter-agent",
+        "probe-droid": "endor-probe-droid-agent",
+        "sca-remediation": "endor-sca-remediation-agent",
+    }
+    if definitions:
+        if definitions.get("sdk") != "cursor-python":
+            errors.append("cursor-sdk/agent_definitions.json: sdk must be cursor-python")
+        agents = _list(definitions.get("agents"))
+        by_id = {
+            str(_dict(agent).get("id")): _dict(agent)
+            for agent in agents
+        }
+        for agent_id, agent_name in expected_agents.items():
+            definition = by_id.get(agent_id)
+            if not definition:
+                errors.append(f"cursor-sdk/agent_definitions.json: missing {agent_id}")
+                continue
+            if definition.get("agent_name") != agent_name:
+                errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} has wrong agent_name")
+            prompt_file = definition.get("prompt_file")
+            if not isinstance(prompt_file, str) or not (sdk_root / prompt_file).is_file():
+                errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} prompt_file is missing")
+            readonly = definition.get("readonly")
+            expected_readonly = agent_id not in {"ai-sast-triage", "sca-remediation"}
+            if readonly is not expected_readonly:
+                errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} readonly must be {expected_readonly}")
+
+    expected_prompt_files = {
+        "endor-agent-kit-setup-agent": "Endor Agent Kit Setup Agent For Cursor SDK",
+        "endor-ai-sast-triage-agent": "## Cursor SDK Host Contract",
+        "endor-troubleshooter-agent": "## Cursor SDK Host Contract",
+        "endor-probe-droid-agent": "## Cursor SDK Host Contract",
+        "endor-sca-remediation-agent": "## Cursor SDK Host Contract",
+    }
+    for agent_name, required_heading in expected_prompt_files.items():
+        prompt = sdk_root / "agents" / f"{agent_name}.md"
+        if not prompt.is_file():
+            errors.append(f"{_rel(root, prompt)}: missing Cursor SDK prompt")
+            continue
+        text = prompt.read_text(encoding="utf-8")
+        for required in (
+            required_heading,
+            "host=cursor-sdk",
+            "data_gaps",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, prompt)}: missing required Cursor SDK prompt text {required!r}")
+        if "Gemini CLI Host Contract" in text:
+            errors.append(f"{_rel(root, prompt)}: Cursor SDK prompt must not use Gemini host contract")
+        if agent_name == "endor-agent-kit-setup-agent":
+            _check_namespace_setup_guidance(root, prompt, text, errors)
+        else:
+            _check_namespace_preflight(root, prompt, text, errors)
 
 
 def _check_codex_plugin_package(

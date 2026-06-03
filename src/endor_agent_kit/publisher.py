@@ -22,6 +22,7 @@ from endor_agent_kit.publication.antigravity_plugin import publish_antigravity_p
 from endor_agent_kit.publication.claude_plugin import publish_claude_plugin_package
 from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_package
 from endor_agent_kit.publication.cursor_plugin import publish_cursor_plugin_package
+from endor_agent_kit.publication.cursor_sdk import publish_cursor_sdk_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
@@ -137,6 +138,10 @@ def publish_recipes(
         if cursor_plugin is not None:
             written.extend(cursor_plugin.written)
             plugin_packages.append(cursor_plugin.package_record)
+        cursor_sdk = publish_cursor_sdk_package(prepared_recipes, destination)
+        if cursor_sdk is not None:
+            written.extend(cursor_sdk.written)
+            plugin_packages.append(cursor_sdk.package_record)
         if plugin_packages:
             manifest = _HOST_ARTIFACT_PUBLICATION.write_plugin_packages(
                 destination,

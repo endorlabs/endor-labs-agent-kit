@@ -1,0 +1,61 @@
+{
+  "agents": [
+    {
+      "agent_name": "endor-agent-kit-setup-agent",
+      "default_model": "composer-2.5",
+      "description": "Check Cursor SDK, Endor Agent Kit, endorctl, gh, auth, namespace, and workflow readiness before live Endor work.",
+      "id": "endor-agent-kit-setup",
+      "prompt_file": "agents/endor-agent-kit-setup-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Check Endor Agent Kit readiness for this repository. Do not run scans or mutate files.",
+      "safety_class": "read-only"
+    },
+    {
+      "agent_name": "endor-ai-sast-triage-agent",
+      "default_model": "composer-2.5",
+      "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
+      "id": "ai-sast-triage",
+      "prompt_file": "agents/endor-ai-sast-triage-agent.md",
+      "readonly": false,
+      "recommended_prompt": "Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.",
+      "safety_class": "mutating"
+    },
+    {
+      "agent_name": "endor-troubleshooter-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs errors, warnings, missing integrations, scan failures, slow scans, or unhealthy configuration. Endor Troubleshooter gathers the smallest useful read-only Endor evidence, classifies the issue across scan, integration, authentication, dependency resolution, container, reachability, policy, and workflow lanes, then returns low-friction repair guidance without mutating Endor, source-provider, or repository state.",
+      "id": "endor-troubleshooter",
+      "prompt_file": "agents/endor-troubleshooter-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Diagnose this Endor issue from redacted error text and read-only local evidence. Keep the workflow read-only.",
+      "safety_class": "read-only"
+    },
+    {
+      "agent_name": "endor-probe-droid-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding gaps for Endor Labs monitored-branch coverage. Probe Droid compares github.com organization or repository inventory with Endor project, GitHub App, package, scan, scan profile, package manager integration, dependency resolution, and reachability evidence, then returns human-readable setup actions without mutating source, GitHub, or Endor state.",
+      "id": "probe-droid",
+      "prompt_file": "agents/endor-probe-droid-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
+      "safety_class": "read-only"
+    },
+    {
+      "agent_name": "endor-sca-remediation-agent",
+      "default_model": "composer-2.5",
+      "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
+      "id": "sca-remediation",
+      "prompt_file": "agents/endor-sca-remediation-agent.md",
+      "readonly": false,
+      "recommended_prompt": "Inspect this repository and prepare a remediation plan only. Do not edit files, create branches, push, open a PR/MR, create a ticket, or write Endor policy.",
+      "safety_class": "mutating"
+    }
+  ],
+  "default_model": "composer-2.5",
+  "display_name": "Endor Labs Agent Kit Cursor SDK",
+  "generated_by": "endor-agent-kit",
+  "package": "endor-labs-agent-kit-cursor-sdk",
+  "schema_version": 1,
+  "sdk": "cursor-python",
+  "version": "0.1.0"
+}

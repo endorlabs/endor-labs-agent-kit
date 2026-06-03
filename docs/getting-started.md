@@ -13,6 +13,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
 | Cursor | `.cursor-plugin/`, root `agents/`, and root `skills/` | Cursor plugin metadata with generated workflow agents and support skills. |
+| Cursor SDK | `cursor-sdk/README.md` | Python SDK automation for local workspaces, CI, orchestration, backend services, or Cursor cloud agents. |
 | Manual single-agent install | `<host>/<agent>/README.md` | One workflow in one host without the full plugin package. |
 | Runtime-neutral integration | `portable/<agent>/README.md` | Internal runtime with its own adapters, approvals, audit, and credentials. |
 
@@ -43,9 +44,32 @@ agents.
 
 For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
 or package metadata because their public install commands depend on the pushed
-tag and host-specific marketplace behavior. Cursor uses `.cursor-plugin/`,
-root `agents/`, and root `skills/`; Gemini uses
-`plugins/gemini/endor-labs-agent-kit/`.
+tag and host-specific marketplace behavior. Cursor IDE uses `.cursor-plugin/`,
+root `agents/`, and root `skills/`; Cursor SDK automation uses `cursor-sdk/`;
+Gemini uses `plugins/gemini/endor-labs-agent-kit/`.
+
+## Run Cursor SDK Automation
+
+Use the SDK lane when the workflow should be launched from Python code instead
+of installed into the Cursor IDE.
+
+```bash
+python3 -m pip install -r cursor-sdk/requirements.txt
+export CURSOR_API_KEY="crsr_..."
+python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \
+  --workspace /path/to/repo \
+  "Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only."
+```
+
+For Cursor cloud agents:
+
+```bash
+python cursor-sdk/run_cursor_agent.py endor-sca-remediation-agent \
+  --mode cloud \
+  --repo-url https://github.com/your-org/your-repo \
+  --ref main \
+  "Prepare a remediation plan only. Do not edit files or open a PR."
+```
 
 ## Run Setup First
 

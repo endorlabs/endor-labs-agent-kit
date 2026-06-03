@@ -22,7 +22,7 @@ copying portable policy facts.
 | Control | Agent Kit status | Primary enforcement |
 | --- | --- | --- |
 | Safety classification | Enforced | `recipe.yaml`, recipe validator, generated prompts |
-| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity/Cursor host contracts, portable manifest |
+| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity/Cursor/Cursor SDK host contracts, portable manifest |
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
 | Namespace provenance and conflict surfacing | Enforced in prompts and setup guidance | shared prompt preflight, setup support files, catalog guardrails |
@@ -199,6 +199,21 @@ support material and fallback workflow reference.
 Cursor package setup must not run scans, run `endorctl host-check`, edit shell
 profiles, auto-install `gh`, install language tooling, or collect/write API
 secrets.
+
+### Cursor SDK
+
+Cursor SDK artifacts include generated prompt files, a machine-readable agent
+definition map, Python requirements, and a runnable SDK launcher. The SDK lane
+uses the same recipe safety posture as the Cursor plugin lane, but it is for
+automation, CI, orchestration, backend services, and Cursor cloud agents rather
+than Cursor IDE plugin installation.
+
+The Cursor SDK package must not hide API-key use or live workspace/cloud side
+effects. Local or cloud SDK runs require explicit approval for the target
+workspace or repository, `CURSOR_API_KEY` use, Endor namespace provenance, and
+any mutation gate. Setup remains readiness guidance only and must not run
+scans, run `endorctl host-check`, edit shell profiles, auto-install tooling, or
+collect/write API secrets.
 
 ### Plugin Packages
 

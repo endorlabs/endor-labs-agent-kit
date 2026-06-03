@@ -1,76 +1,79 @@
-# Endor Labs Agent Kit
+# 🛡️ Endor Labs Agent Kit
 
 Ready-to-use Endor Labs agents for AI coding assistants, plus the
 recipe-first builder used to maintain and publish them.
 
-Most readers should choose one lane before reading the long reference
-sections:
-
-- **Humans installing workflows** should start with `docs/getting-started.md` or the host package README.
-- **Agents working in this repo** should start with `docs/for-agents.md` and preserve generated-artifact boundaries.
-- **Maintainers changing behavior** should edit source recipes or publication code, then regenerate.
-- **Distribution work** should use `docs/distribution-sync.md` before touching `ai-plugins`.
-
-A machine-readable index is available in `llms.txt`.
-
-## Table Of Contents
-
-- [Start Here](#start-here)
-- [Plugin Quick Start](#plugin-quick-start)
-- [Capabilities And Skills](#capabilities-and-skills)
-- [Boundaries And Rules](#boundaries-and-rules)
-- [Agent Quick Start](#agent-quick-start)
-- [Agent Catalog](#agent-catalog)
-- [Which Directory Do I Use?](#which-directory-do-i-use)
-- [Supported Hosts](#supported-hosts)
-- [Already Have Your Own Tech Stack Or Workflows Wired?](#already-have-your-own-tech-stack-or-workflows-wired)
-- [MCP Usage](#mcp-usage)
-- [Plugin Packaging Route](#plugin-packaging-route)
-- [Release Checklist](#release-checklist)
-- [Editions](#editions)
-- [Install An Agent](#install-an-agent)
-- [Configure Endor Access](#configure-endor-access)
-- [Example Prompts](#example-prompts)
-- [Output Contract](#output-contract)
-- [Safety Model](#safety-model)
-- [Guardrail And Runtime Security Docs](#guardrail-and-runtime-security-docs)
-- [Contribute An Agent](#contribute-an-agent)
-- [Create Agents With The Skill](#create-agents-with-the-skill)
-- [Recipe Reference](#recipe-reference)
-- [Repository Reference](#repository-reference)
-- [Release And License](#release-and-license)
+> [!TIP]
+> Pick a lane first. The repository is both an installable agent catalog
+> and the source generator for the public `endorlabs/ai-plugins` mirror.
 
 ## Start Here
 
-| Reader | Start With | Outcome |
+| I want to... | Go here |
+| --- | --- |
+| 🚀 Install agents in a coding assistant | [`docs/getting-started.md`](docs/getting-started.md) or the host package README |
+| 🤖 Ask an agent to inspect or sync this repo | [`docs/for-agents.md`](docs/for-agents.md) |
+| 🧰 Change how agents are generated | [`docs/maintainer-guide.md`](docs/maintainer-guide.md) |
+| 📦 Publish or mirror to `ai-plugins` | [`docs/distribution-sync.md`](docs/distribution-sync.md) |
+| 🧱 Embed the workflows in another runtime | [`docs/portable-runtime-conformance.md`](docs/portable-runtime-conformance.md) |
+
+A machine-readable index is available in `llms.txt`.
+
+## 🧭 Browse The Kit
+
+| Area | What is inside | Start here |
 | --- | --- | --- |
-| Human installer | `docs/getting-started.md` | Pick a host, install the package, run setup, and try the first prompt. |
-| Agent installer or reviewer | `docs/for-agents.md` | Know what can be copied, what must be regenerated, and which actions need approval. |
-| Maintainer or contributor | `docs/maintainer-guide.md` | Change recipes, instructions, evals, diagrams, or publisher templates without drifting generated artifacts. |
-| Distribution maintainer | `docs/distribution-sync.md` | Regenerate from Agent Kit and sync the public `ai-plugins` mirror safely. |
-| Runtime integrator | `docs/portable-runtime-conformance.md` | Wire portable bundles to adapters, approval gates, audit, and failure handling. |
+| 🤖 Plugin agents | Host packages for Claude Code, Codex, Gemini CLI, Antigravity CLI, and Cursor | [`plugins/README.md`](plugins/README.md) |
+| 🖱️ Cursor IDE | Cursor plugin metadata, generated agents, and support skills | [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) |
+| 🐍 Cursor SDK | Python SDK launcher and generated prompts for automation | [`cursor-sdk/README.md`](cursor-sdk/README.md) |
+| 🧩 Single-agent bundles | Manual per-host artifacts and README files | [Agent Catalog](#agent-catalog) |
+| 🧱 Portable bundles | Runtime-neutral prompts, manifests, output contracts, and adapter expectations | [`portable/`](portable/) |
+| 🛠️ Source recipes | Maintainer-only source of truth for behavior, evals, actions, and diagrams | [`source/agents/`](source/agents/) |
+| 🔒 Guardrails | Safety, provenance, runtime, and documentation validation | [`docs/guardrails.md`](docs/guardrails.md) |
 
-Use the tables below when you already know the host or agent you need.
-Keep `architecture.svg` files next to generated agent README files; they
-show the workflow boundary and are copied from `source/agents/<agent>/`.
+## Table Of Contents
 
-## Plugin Quick Start
+- [🚀 Plugin Quick Start](#-plugin-quick-start)
+- [🐍 Cursor SDK Quick Start](#-cursor-sdk-quick-start)
+- [Agent Quick Start](#agent-quick-start)
+- [🧩 Capabilities And Skills](#-capabilities-and-skills)
+- [🔒 Boundaries And Rules](#-boundaries-and-rules)
+- [🤖 Agent Operating Rules](#-agent-operating-rules)
+- [📇 Agent Catalog](#-agent-catalog)
+- [🗂️ Which Directory Do I Use?](#️-which-directory-do-i-use)
+- [🖥️ Supported Hosts](#️-supported-hosts)
+- [🧱 Already Have Your Own Tech Stack Or Workflows Wired?](#-already-have-your-own-tech-stack-or-workflows-wired)
+- [🔌 MCP Usage](#-mcp-usage)
+- [📦 Plugin Packaging Route](#-plugin-packaging-route)
+- [✅ Release Checklist](#-release-checklist)
+- [🧪 Output Contract](#-output-contract)
+- [🛡️ Safety Model](#️-safety-model)
+- [🧰 Contribute An Agent](#-contribute-an-agent)
+- [📖 Reference](#-reference)
+
+## 🚀 Plugin Quick Start
 
 Current generated plugin package version: `0.1.0`.
+
+| Host | Best for | First move |
+| --- | --- | --- |
+| Claude Code | Full plugin agents plus Claude-only helper agents | Read `plugins/claude/endor-labs-agent-kit/README.md`, then install `endor-labs-agent-kit@endorlabs`. |
+| Codex | Skills plus optional bundled custom-agent TOML files | Read `plugins/codex/endor-labs-agent-kit/README.md`. |
+| Gemini CLI | Extension with skills and preview subagents | Read `plugins/gemini/endor-labs-agent-kit/README.md`. |
+| Antigravity CLI | Plugin with skills and subagents | Read `plugins/antigravity/endor-labs-agent-kit/README.md`. |
+| Cursor IDE | Customer-facing Cursor plugin agents | Install from `.cursor-plugin/`, root `agents/`, root `skills/`, and `assets/logo.svg`. |
+
+After installing any host package, run setup first:
+
+```text
+Use the endor-agent-kit-setup skill to check Endor Agent Kit readiness. Do not run scans.
+```
 
 The plugin packages are the lowest-friction way to load Endor Labs
 workflows into Claude Code, Codex, Gemini CLI, Antigravity CLI, or Cursor. They package setup
 guidance and generated workflow agents/skills from the same source recipes
 as the manual catalog without injecting every recipe into the active model
 context.
-
-| Host | Plugin package | First install path |
-| --- | --- | --- |
-| Claude Code | `plugins/claude/endor-labs-agent-kit/` plus legacy `plugins/claude/ai-plugins/` | Read `plugins/claude/endor-labs-agent-kit/README.md`, then use `/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude` for the public repo or `/plugin marketplace add ./` from a checkout. Existing `ai-plugins@endorlabs` users can update the legacy package, but should not enable both Claude plugin ids. |
-| Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |
-| Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub repository. |
-| Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/` | Read `plugins/antigravity/endor-labs-agent-kit/README.md`, then use `antigravity plugin validate` and `antigravity plugin install` against the generated plugin directory. |
-| Cursor | `.cursor-plugin/`, `agents/`, `skills/`, and `assets/logo.svg` | Read the Cursor package metadata, then install through Cursor's plugin-loading mechanism. Cursor does not use Gemini extension files. |
 
 Claude compatibility note: `ai-plugins@endorlabs` remains available for
 existing Claude Code users and pinned installs. New users should prefer
@@ -84,7 +87,37 @@ skill first. Setup checks local readiness, guides `endorctl` authentication
 and namespace selection, reports `gh` and toolchain gaps, and offers
 host-specific self-checks before live Endor lookups.
 
-## Capabilities And Skills
+## 🐍 Cursor SDK Quick Start
+
+Use `cursor-sdk/` when you want to launch Cursor agents from Python code, CI, orchestration, or a backend service.
+Use the Cursor plugin package when you want agents installed into the Cursor IDE.
+
+```bash
+python3 -m pip install -r cursor-sdk/requirements.txt
+export CURSOR_API_KEY="crsr_..."
+python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \
+  --workspace /path/to/repo \
+  "Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only."
+```
+
+The SDK package includes `cursor-sdk/agent_definitions.json`, generated prompt files under `cursor-sdk/agents/`, and a runnable `run_cursor_agent.py` launcher for local or cloud agents.
+
+## Agent Quick Start
+
+| Agent | What it does | Invoke | Safety | First prompt |
+| --- | --- | --- | --- | --- |
+| 🔎 AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `endor-ai-sast-triage-agent` | `approval-gated mutating` | `Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.` |
+| ⚖️ Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `@agent-dependency-decision-helper` | `read-only` | `Assess whether we should use npm lodash version 4.17.20. Keep it read-only.` |
+| 📊 Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `@agent-package-risk-summary` | `read-only` | `Summarize npm lodash version 4.17.20 with verified Endor evidence. Keep it read-only.` |
+| 📚 Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `@agent-repository-dependency-reviewer` | `read-only` | `Review this repository's dependency manifests with read-only evidence only.` |
+| ⬆️ Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `@agent-upgrade-impact-analysis` | `read-only` | `Show the safest upgrade path for repository <owner>/<repo> package lodash. Keep it read-only.` |
+| 💬 Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `@agent-vulnerability-explainer` | `read-only` | `Explain CVE-2021-44228 using verified Endor evidence. Keep it read-only.` |
+| 🧯 Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `endor-troubleshooter-agent` | `read-only` | `Diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep it read-only.` |
+| 📡 Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `endor-probe-droid-agent` | `read-only` | `Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep it read-only.` |
+| 🗺️ Remediation Planner | Preview safe dependency remediation options without opening PRs | `@agent-remediation-planner` | `read-only` | `Preview remediation options for this repository. Do not edit files or open a PR/MR.` |
+| 🛠️ SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `endor-sca-remediation-agent` | `approval-gated mutating` | `Inspect this repository and prepare a remediation plan only. Do not edit files, create branches, push, open a PR/MR, create a ticket, or write Endor policy.` |
+
+## 🧩 Capabilities And Skills
 
 When a plugin package is loaded, start from the user job and let the host
 map to the generated skill or agent name.
@@ -101,7 +134,7 @@ map to the generated skill or agent name.
 The full catalog below still matters for manual installs, portable bundles,
 and future agent contributions.
 
-## Boundaries And Rules
+## 🔒 Boundaries And Rules
 
 - Always preserve the generated recipe safety contract, approval gates, and evidence requirements.
 - Always treat setup as readiness and configuration guidance; setup must not run scans or mutate repositories.
@@ -110,7 +143,7 @@ and future agent contributions.
 - Never run `endorctl host-check` from setup or generated plugin guidance.
 - Never claim a file edit, branch push, PR/MR, ticket, policy write, or approval unless the host or adapter returned evidence.
 
-## Agent Quick Start
+## 🤖 Agent Operating Rules
 
 If you are an AI agent reading this repository:
 
@@ -121,7 +154,7 @@ If you are an AI agent reading this repository:
 5. Validate with tests, guardrails, provenance checks, generated-artifact drift checks, and the provider checks listed in `docs/plugin-release-checklist.md`.
 6. Sync `ai-plugins` only after Agent Kit generation is clean; use `docs/distribution-sync.md` for the mirror boundary.
 
-## Agent Catalog
+## 📇 Agent Catalog
 
 Generated artifacts are checked in so users can copy or install agents without
 running the builder. Maintainer source recipes live under `source/agents/` and are the
@@ -130,20 +163,20 @@ maintainer-facing source of truth.
 If you are installing an agent, start with the generated host directories below.
 You only need `source/agents/` when you are changing or contributing an agent.
 
-| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Cursor | Portable |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `gemini/ai-sast-triage/` | `agents/endor-ai-sast-triage-agent.md` + `skills/ai-sast-triage/` | `portable/ai-sast-triage/` |
-| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | - | - | `portable/dependency-decision-helper/` |
-| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | - | - | `portable/package-risk-summary/` |
-| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | - | - | `portable/repository-dependency-reviewer/` |
-| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | - | - | `portable/upgrade-impact-analysis/` |
-| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | - | - | `portable/vulnerability-explainer/` |
-| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `gemini/endor-troubleshooter/` | `agents/endor-troubleshooter-agent.md` + `skills/endor-troubleshooter/` | `portable/endor-troubleshooter/` |
-| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `gemini/probe-droid/` | `agents/endor-probe-droid-agent.md` + `skills/probe-droid/` | `portable/probe-droid/` |
-| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | - | - | `portable/remediation-planner/` |
-| SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` | `gemini/sca-remediation/` | `agents/endor-sca-remediation-agent.md` + `skills/sca-remediation/` | `portable/sca-remediation/` |
+| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Cursor | Cursor SDK | Portable |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `gemini/ai-sast-triage/` | `agents/endor-ai-sast-triage-agent.md` + `skills/ai-sast-triage/` | `cursor-sdk/agents/endor-ai-sast-triage-agent.md` | `portable/ai-sast-triage/` |
+| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | - | - | - | `portable/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | - | - | - | `portable/package-risk-summary/` |
+| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | - | - | - | `portable/repository-dependency-reviewer/` |
+| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | - | - | - | `portable/upgrade-impact-analysis/` |
+| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | - | - | - | `portable/vulnerability-explainer/` |
+| Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `gemini/endor-troubleshooter/` | `agents/endor-troubleshooter-agent.md` + `skills/endor-troubleshooter/` | `cursor-sdk/agents/endor-troubleshooter-agent.md` | `portable/endor-troubleshooter/` |
+| Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `gemini/probe-droid/` | `agents/endor-probe-droid-agent.md` + `skills/probe-droid/` | `cursor-sdk/agents/endor-probe-droid-agent.md` | `portable/probe-droid/` |
+| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | - | - | - | `portable/remediation-planner/` |
+| SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` | `gemini/sca-remediation/` | `agents/endor-sca-remediation-agent.md` + `skills/sca-remediation/` | `cursor-sdk/agents/endor-sca-remediation-agent.md` | `portable/sca-remediation/` |
 
-## Which Directory Do I Use?
+## 🗂️ Which Directory Do I Use?
 
 | Goal | Start Here | You Do Not Need |
 | --- | --- | --- |
@@ -152,6 +185,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Cursor package | `.cursor-plugin/`, root `agents/`, and root `skills/` | Gemini extension files, `source/`, `src/`, `tests/` |
+| Run Cursor SDK automation | `cursor-sdk/README.md` | Cursor IDE plugin metadata, Gemini extension files, `source/` |
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |
@@ -164,7 +198,7 @@ The `source/agents/` tree is for maintainers and contributors. It is not
 copied into Claude Code or Managed Agents. Installable artifacts
 are the generated host directories listed in the catalog.
 
-## Supported Hosts
+## 🖥️ Supported Hosts
 
 | Host | Generated path | Typical install target |
 | --- | --- | --- |
@@ -174,15 +208,16 @@ are the generated host directories listed in the catalog.
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
 | Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.svg` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |
+| Cursor SDK | `cursor-sdk/` | Python automation, CI, orchestration, backend services, local SDK agents, or Cursor cloud agents |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
-## Already Have Your Own Tech Stack Or Workflows Wired?
+## 🧱 Already Have Your Own Tech Stack Or Workflows Wired?
 
 Use the `portable/<agent>/` bundles when your organization already has an
 agent runtime, repository workflow, ticketing workflow, approval system,
 credential controls, and audit pipeline. Portable bundles give you the
 agent instructions and runtime contract without assuming Claude Code,
-Claude Managed Agents, Codex, Gemini, Antigravity, Cursor, or any other host-specific package shape.
+Claude Managed Agents, Codex, Gemini, Antigravity, Cursor, Cursor SDK, or any other host-specific package shape.
 
 Each portable bundle includes:
 
@@ -232,7 +267,7 @@ Portable bundles are generated artifacts. Configure local adapters and
 organization policy outside the bundle. If agent behavior needs to change,
 edit the Source Recipe and regenerate the catalog.
 
-## MCP Usage
+## 🔌 MCP Usage
 
 MCP is not used by the mutating remediation workflows. AI SAST Triage, SCA
 Remediation, Remediation Planner, Upgrade Impact Analysis, Probe Droid,
@@ -259,7 +294,7 @@ the customer runtime must provide an MCP-compatible Endor adapter exposing
 the required tools; otherwise the agent records the missing signal in
 `data_gaps`.
 
-## Plugin Packaging Route
+## 📦 Plugin Packaging Route
 
 Claude Code and Codex still publish generated artifacts under
 `claude-code/<agent>/` and `codex/<agent>/` for manual installs.
@@ -290,6 +325,9 @@ Generated plugin packages currently include:
 - `.cursor-plugin/` plus root `agents/` and `skills/`: Cursor plugin metadata,
   generated Cursor workflow agents, setup agent, and support skills. Cursor
   does not generate or install `GEMINI.md` or `gemini-extension.json`.
+- `cursor-sdk/`: Cursor Python SDK automation package with generated prompt
+  files, `agent_definitions.json`, `requirements.txt`, and a runnable
+  `run_cursor_agent.py` launcher for local or cloud SDK agents.
 
 All plugin packages preserve the same recipe source, action metadata, and
 approval gates as the manual generated catalog. Cursor package files stay
@@ -300,19 +338,19 @@ GitHub repository for public distribution. Antigravity installs from the
 generated plugin directory. No zip artifact is generated in v1.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
-## Release Checklist
+## ✅ Release Checklist
 
 Use `docs/plugin-release-checklist.md` before tagging or publishing plugin
 packages. It records the provider-specific publish paths, local validation
 commands, public GitHub distribution steps, and external documentation
-freshness checks for Claude Code, Codex, Gemini, Antigravity, and Cursor.
+freshness checks for Claude Code, Codex, Gemini, Antigravity, Cursor, and Cursor SDK.
 
 ## Editions
 
 Most users should not need to think about editions. The current catalog
 publishes one customer-facing artifact per agent and host, directly under
 `claude-code/<agent>/`, `claude-managed-agents/<agent>/`, `codex/<agent>/`,
-`gemini/<agent>/`, or `portable/<agent>/`.
+`gemini/<agent>/`, `cursor-sdk/agents/<agent>.md`, or `portable/<agent>/`.
 
 The builder still understands internal `developer-edition` and
 `enterprise-edition` recipe sections for compatibility and for future
@@ -334,7 +372,9 @@ when you want the full v1 workflow set and setup guidance. For Cursor, use
 the `.cursor-plugin/` metadata, root `agents/`, and root `skills/`. For a single
 agent, pick an agent from the catalog, then open that host directory's
 README. If the agent has edition subdirectories, choose the one that
-matches your environment; otherwise use the agent directory directly.
+matches your environment; otherwise use the agent directory directly. For
+scripted Cursor automation, use `cursor-sdk/README.md` instead of the
+Cursor IDE plugin metadata.
 
 ### Ask An LLM To Install It
 
@@ -415,6 +455,20 @@ Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch o
 Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.
 ```
 
+### Cursor SDK
+
+Run generated Cursor SDK agents from Python against a local workspace or
+Cursor cloud repo:
+
+```bash
+python3 -m pip install -r cursor-sdk/requirements.txt
+export CURSOR_API_KEY="crsr_..."
+python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent --workspace /path/to/repo \
+  "Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only."
+```
+
+For cloud agents, pass `--mode cloud --repo-url <repo-url> --ref <branch>`.
+
 ## Configure Endor Access
 
 | Access path | Used by | Notes |
@@ -424,6 +478,7 @@ Use the sca-remediation skill to check this repository for P0 SCA findings I can
 | GitHub read-only inventory credentials | Probe Droid | Required when the agent compares GitHub.com repository inventory with Endor projects without cloning or mutating repositories. |
 | Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage and SCA Remediation | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |
 | Codex terminal and file-editing tools | Codex skills for mutating agents such as AI SAST Triage and SCA Remediation | The skill keeps file edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes behind separate approval gates. |
+| Cursor SDK API key | Cursor SDK automation package | Required for local or cloud SDK runs. Use `CURSOR_API_KEY`; do not paste the key into prompts. |
 | Endor policy-write access | AI SAST Triage standalone exceptions | Required only when a verified AppSec PR/MR approval should create a scoped Endor exception policy. The agent must show the policy spec and ask for confirmation before writing. |
 
 ## Example Prompts
@@ -500,7 +555,7 @@ SCA remediation PR plan:
 @agent-sca-remediation prepare the top UIA-backed dependency remediation for this repository. Show the selected package, affected manifests, VersionUpgrade/UIA UUID, risk, CIA status, risk_decision, findings fixed, folded advisory/finding list, validation command, branch name, PR/MR title, and body before changing files.
 ```
 
-## Output Contract
+## 🧪 Output Contract
 
 Agents return concise prose plus a JSON block. The exact schema depends on the
 agent. If a signal is unavailable because of setup, authentication, account
@@ -567,7 +622,7 @@ Validation commands must come from the repository's actual manifest and
 package-manager layout; the agent must not assume Java, Maven, npm, Python,
 Go, .NET, Ruby, Rust, or any other ecosystem from prior runs.
 
-## Safety Model
+## 🛡️ Safety Model
 
 Most agents in this kit are read-only. Recipes declare their safety class and
 host capabilities explicitly.
@@ -666,7 +721,7 @@ python -m pip install -e ".[dev]"
 ```bash
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
-endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 endor-agent-kit check-guardrails --catalog-root .
 python -m pytest -q
 git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
@@ -703,7 +758,9 @@ CI runs the same validation and generated-artifact drift check.
 Supported compile targets are `claude-code`, `claude-managed-agents`,
 `codex`, `gemini`, `portable`, and `raw`.
 
-## Recipe Reference
+## 📖 Reference
+
+### Recipe Reference
 
 Recipes are YAML files with schema version `1` or `2`. They describe the agent's
 prompt, Endor access paths, host capabilities, inputs, outputs, evals, and
@@ -728,7 +785,7 @@ requesting exception-policy approval.
 Generated artifacts must not be edited as the first step. Change the recipe
 or instructions source, publish the catalog, then review the generated diff.
 
-## Repository Reference
+### Repository Reference
 
 ### Layout
 
@@ -751,6 +808,13 @@ skills/
 .cursor-plugin/
   marketplace.json
   plugin.json
+cursor-sdk/
+  README.md
+  agent_definitions.json
+  run_cursor_agent.py
+  requirements.txt
+  agents/
+    <generated-cursor-sdk-agent>.md
 assets/
   logo.svg
 docs/
@@ -791,6 +855,7 @@ The root catalog directories are intentionally checked in:
 - `portable/`
 - `plugins/`
 - `.cursor-plugin/`
+- `cursor-sdk/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`
 - `assets/logo.svg`
@@ -798,7 +863,7 @@ The root catalog directories are intentionally checked in:
 
 These paths are customer-facing and should stay stable.
 
-## Release And License
+### Release And License
 
 Before publishing a public release, verify that generated artifacts are fresh
 and that Endor Labs has selected and added the final open-source license.

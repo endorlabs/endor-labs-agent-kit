@@ -1,0 +1,101 @@
+actions:
+  - id: resolve-endor-project
+    kind: endor.query
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api", "local-git"]
+    required_host_capabilities: ["run_commands"]
+    inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
+    outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
+    notes: "Resolve from the current repository and human-readable selectors first. Resolve namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml namespace key, or resolved project metadata before using -n. Do not use namespaces from prior sessions or ask for a project UUID unless selectors are missing or ambiguous."
+
+  - id: query-sca-findings
+    kind: endor.query
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api"]
+    required_host_capabilities: ["run_commands"]
+    inputs: ["project_uuid", "namespace", "severity_filter", "finding_uuids", "package_name", "finding_limit"]
+    outputs: ["findings", "finding_counts", "affected_packages", "affected_manifests"]
+    notes: "Query only main-context repository-scoped SCA vulnerability findings by default. Preserve context type, source ref, reachability, exploitability, direct/transitive, fix availability, package UUID, dependency UUID, location, and package evidence for ranking. Use PR/CI-run or all-context findings only when the user explicitly asks and label that scope separately."
+
+  - id: query-uia-evidence
+    kind: endor.query
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api"]
+    required_host_capabilities: ["run_commands"]
+    inputs: ["project_uuid", "namespace", "package_name", "finding_uuids"]
+    outputs: ["version_upgrades", "finding_fixing_upgrades", "cia_results", "selected_upgrade"]
+    notes: "Fetch VersionUpgrade/UIA evidence before calling a remediation low-risk or best. Surface the exact resource UUIDs, risk, findings fixed, findings introduced, CIA status, and score explanation."
+
+  - id: list-low-risk-uia-prs
+    kind: endor.query
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api", "local-git"]
+    required_host_capabilities: ["run_commands", "read_files"]
+    inputs: ["project_uuid", "namespace", "repo", "version_upgrades"]
+    outputs: ["low_risk_recommendations", "candidate_prs", "ready_to_open", "most_findings_in_one_pr", "p0_duplicates_hidden", "data_gaps"]
+    notes: "List non-breaking low-risk UIA-backed PR candidates separately from the P0/exploited queue and risky solver. Hide P0 or exploited duplicates from the main low-risk list, report them separately, and require repo metadata plus manifest paths before marking candidates ready to open."
+
+  - id: read-local-manifests
+    kind: scm.source_read
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["local-files", "local-git"]
+    required_host_capabilities: ["read_files"]
+    inputs: ["repo", "manifest_files", "package_name", "selected_upgrade"]
+    outputs: ["manifest_text", "lockfile_text", "dependency_declaration", "source_context"]
+    notes: "Read only the target manifests, lockfiles, and UIA/CIA-indicated source files needed to plan the remediation."
+
+  - id: resolve-upgrade-risk
+    kind: scm.source_read
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api", "local-files", "local-git", "package-manager"]
+    required_host_capabilities: ["run_commands", "read_files"]
+    inputs: ["selected_upgrade", "cia_results", "manifest_text", "lockfile_text", "source_context", "validation_plan"]
+    outputs: ["risk_decision", "compatibility_evidence", "required_companion_edits", "validation_requirements"]
+    notes: "For medium/high/unknown risk, indeterminate CIA, introduced findings, conflicts, major/minor compatibility-sensitive bumps, or material dependency-footprint changes, produce a deterministic approve/block/reject verdict from Endor evidence plus local source usage. Do not hand-wave with release-note suggestions."
+
+  - id: prepare-remediation-diff
+    kind: scm.change_request
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["local-git", "package-manager"]
+    required_host_capabilities: ["run_commands", "read_files", "write_files"]
+    inputs: ["repo", "selected_upgrade", "manifest_files", "companion_edits", "validation_plan"]
+    outputs: ["patch_diff", "changed_files", "branch_name", "validation_status"]
+    notes: "Show the selected UIA evidence, target files, and intended diff first. Apply local manifest or companion edits only after explicit approval; this action does not push or open a PR/MR."
+
+  - id: open-change-request
+    kind: scm.change_request
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
+    required_host_capabilities: ["run_commands", "read_files", "write_files", "open_pr"]
+    inputs: ["repo", "base_branch", "branch_name", "patch_diff", "title", "body", "validation_status"]
+    outputs: ["url", "branch", "status", "failure_reason"]
+    notes: "Open or update a PR/MR only after local validation has passed or the validation blocker is explicitly documented and the user approves opening anyway."
+
+  - id: post-remediation-comment
+    kind: scm.comment
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["github", "gitlab", "gh-cli", "glab-cli"]
+    required_host_capabilities: ["run_commands", "open_pr"]
+    inputs: ["pr_url", "selected_remediation", "uia_evidence", "validation_status", "body"]
+    outputs: ["comment_url", "status"]
+    notes: "Post or update one stable remediation summary comment that includes UIA evidence, validation, findings fixed, and remaining data gaps."
+
+  - id: create-remediation-ticket
+    kind: ticket.create
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["jira", "servicenow", "linear", "internal-ticketing"]
+    required_host_capabilities: []
+    inputs: ["selected_remediation", "risk_decision", "uia_evidence", "validation_status", "change_request_url", "ticket_body", "data_gaps"]
+    outputs: ["ticket_id", "ticket_url", "status", "failure_reason"]
+    availability: available
+    notes: "Create a remediation ticket only when the user or runtime selects ticket creation at the mutation gate. Include the selected package, UIA evidence, deterministic risk decision, validation status, proposed or opened change request link when available, and remaining data gaps. Ask for explicit confirmation first, and do not claim ticket creation until the ticket adapter returns a ticket ID or URL."

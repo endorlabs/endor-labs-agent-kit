@@ -458,6 +458,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     gemini_agent_ids = codex_agent_ids
     antigravity_agent_ids = gemini_agent_ids
     cursor_agent_ids = codex_agent_ids
+    cursor_sdk_agent_ids = cursor_agent_ids
     recipes = [
         _copy_agent(tmp_path / agent_id, agent_id)
         for agent_id in claude_agent_ids
@@ -497,6 +498,11 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".cursor-plugin/marketplace.json" in written_paths
     assert "skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "agents/endor-agent-kit-setup-agent.md" in written_paths
+    assert "cursor-sdk/README.md" in written_paths
+    assert "cursor-sdk/requirements.txt" in written_paths
+    assert "cursor-sdk/run_cursor_agent.py" in written_paths
+    assert "cursor-sdk/agent_definitions.json" in written_paths
+    assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in written_paths
     assert "assets/logo.svg" in written_paths
     assert "GEMINI.md" not in written_paths
     assert "gemini-extension.json" not in written_paths
@@ -528,6 +534,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
             else f"endor-{agent_id}-agent"
         )
         assert f"agents/{cursor_agent_name}.md" in written_paths
+        assert f"cursor-sdk/agents/{cursor_agent_name}.md" in written_paths
 
     plugin_manifest = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
@@ -660,6 +667,20 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert cursor_marketplace["plugins"][0]["name"] == "endor-labs-agent-kit"
     assert cursor_marketplace["plugins"][0]["source"] == "./"
     assert cursor_marketplace["plugins"][0]["version"] == cursor_plugin_manifest["version"]
+    cursor_sdk_definitions = json.loads((dest / "cursor-sdk" / "agent_definitions.json").read_text())
+    assert cursor_sdk_definitions["sdk"] == "cursor-python"
+    assert cursor_sdk_definitions["default_model"] == "composer-2.5"
+    cursor_sdk_agents = {
+        agent["id"]: agent
+        for agent in cursor_sdk_definitions["agents"]
+    }
+    assert set(cursor_sdk_agents) == set(cursor_sdk_agent_ids) | {"endor-agent-kit-setup"}
+    assert cursor_sdk_agents["endor-agent-kit-setup"]["agent_name"] == "endor-agent-kit-setup-agent"
+    assert cursor_sdk_agents["endor-agent-kit-setup"]["readonly"] is True
+    assert cursor_sdk_agents["ai-sast-triage"]["readonly"] is False
+    assert cursor_sdk_agents["sca-remediation"]["readonly"] is False
+    assert cursor_sdk_agents["probe-droid"]["readonly"] is True
+    assert cursor_sdk_agents["probe-droid"]["prompt_file"] == "agents/endor-probe-droid-agent.md"
 
     setup = (
         dest
@@ -770,6 +791,23 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "agents/" in cursor_setup_agent
     assert "skills/" in cursor_setup_agent
     assert "separate from the Gemini CLI extension" in cursor_setup_agent
+    cursor_sdk_readme = (dest / "cursor-sdk" / "README.md").read_text()
+    assert "uv pip install -r requirements.txt" in cursor_sdk_readme
+    assert "Cursor Python SDK" in cursor_sdk_readme
+    assert "Filter > Source > SDK" in cursor_sdk_readme
+    assert "must not run `endorctl scan` or `endorctl host-check`" in cursor_sdk_readme
+    cursor_sdk_runner = (dest / "cursor-sdk" / "run_cursor_agent.py").read_text()
+    assert "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions" in cursor_sdk_runner
+    assert "agent_definitions.json" in cursor_sdk_runner
+    assert "CURSOR_API_KEY" in cursor_sdk_runner
+    cursor_sdk_prompt = (dest / "cursor-sdk" / "agents" / "endor-probe-droid-agent.md").read_text()
+    assert "Cursor SDK Host Contract" in cursor_sdk_prompt
+    assert "host=cursor-sdk" in cursor_sdk_prompt
+    assert "Gemini CLI Host Contract" not in cursor_sdk_prompt
+    cursor_sdk_setup = (dest / "cursor-sdk" / "agents" / "endor-agent-kit-setup-agent.md").read_text()
+    assert "Endor Agent Kit Setup Agent For Cursor SDK" in cursor_sdk_setup
+    assert "Run `endorctl scan`" in cursor_sdk_setup
+    assert "Run `endorctl host-check`" in cursor_sdk_setup
 
     toml = (
         dest
@@ -858,6 +896,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         ("claude-code", "endor-labs-agent-kit"),
         ("codex", "endor-labs-agent-kit"),
         ("cursor", "endor-labs-agent-kit"),
+        ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk"),
         ("gemini", "endor-labs-agent-kit"),
     }
     assert packages[("codex", "endor-labs-agent-kit")] == {
@@ -918,6 +957,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "path": ".",
         "version": cursor_plugin_manifest["version"],
     }
+    assert packages[("cursor-sdk", "endor-labs-agent-kit-cursor-sdk")] == {
+        "artifacts": packages[("cursor-sdk", "endor-labs-agent-kit-cursor-sdk")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit Cursor SDK",
+        "host": "cursor-sdk",
+        "included_agents": list(cursor_sdk_agent_ids),
+        "name": "endor-labs-agent-kit-cursor-sdk",
+        "path": "cursor-sdk",
+        "version": cursor_plugin_manifest["version"],
+    }
     package_artifact_paths = {
         artifact["path"]
         for artifact in packages[("codex", "endor-labs-agent-kit")]["artifacts"]
@@ -969,6 +1017,16 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "skills/probe-droid/architecture.svg" in cursor_artifact_paths
     assert "GEMINI.md" not in cursor_artifact_paths
     assert "gemini-extension.json" not in cursor_artifact_paths
+    cursor_sdk_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("cursor-sdk", "endor-labs-agent-kit-cursor-sdk")]["artifacts"]
+    }
+    assert "cursor-sdk/README.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/run_cursor_agent.py" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agent_definitions.json" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-probe-droid-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-sca-remediation-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in cursor_sdk_artifact_paths
     assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
 
 
