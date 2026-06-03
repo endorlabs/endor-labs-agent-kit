@@ -2,6 +2,16 @@
 
 Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
 
+## Start Here
+
+This is the Claude Code generated agent for `sca-remediation`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed. Then use the example prompt below: @agent-sca-remediation check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR until I approve. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy `sca-remediation.md` into your target repository's `.claude/agents/` directory,

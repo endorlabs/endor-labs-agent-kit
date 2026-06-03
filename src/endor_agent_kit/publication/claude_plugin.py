@@ -18,6 +18,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_NAME,
     logo_svg,
     package_version,
+    plugin_readme_start_here,
     plugin_packages_readme,
 )
 from endor_agent_kit.recipe import editions_for_host
@@ -470,6 +471,11 @@ def _claude_plugin_readme(
         for prepared in prepared_recipes
     ]
     install_notice = _claude_install_upgrade_notice(spec)
+    start_here = plugin_readme_start_here(
+        host_label="Claude Code",
+        install_summary=f"Install `{spec.name}@{CLAUDE_MARKETPLACE_NAME}` from the public marketplace or a local checkout.",
+        setup_summary=f"ask Claude Code to use the `{CLAUDE_SETUP_SKILL}` skill.",
+    )
     return "\n".join([
         f"# {spec.display_name} Claude Code Plugin",
         "",
@@ -481,6 +487,7 @@ def _claude_plugin_readme(
         "support and Claude Code agents generated from source recipes in the",
         "Endor Labs Agent Kit repository.",
         "",
+        *start_here,
         "## Install And Upgrade Notice",
         "",
         *install_notice,

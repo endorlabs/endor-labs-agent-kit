@@ -7,6 +7,16 @@ App, package, scan, scan profile, package manager integration, dependency
 resolution, and reachability evidence, then returns human-readable setup
 actions without mutating source, GitHub, or Endor state.
 
+## Start Here
+
+This is the Claude Code generated agent for `probe-droid`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed. Then use the example prompt below: @agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/probe-droid/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy `probe-droid.md` into your target repository's `.claude/agents/` directory,

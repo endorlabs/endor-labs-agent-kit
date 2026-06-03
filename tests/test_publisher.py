@@ -511,6 +511,12 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     plugin_manifest = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
     )
+    codex_plugin_readme = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "README.md"
+    ).read_text()
+    assert "## Start Here" in codex_plugin_readme
+    assert "Agent installer" in codex_plugin_readme
+    assert "sync generated artifacts to `ai-plugins`" in codex_plugin_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
     assert plugin_manifest["skills"] == "./skills/"
     assert "agents" not in plugin_manifest
@@ -982,6 +988,13 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         ("portable", "vulnerability-explainer"),
     ]
     root_readme = (dest / "README.md").read_text()
+    assert "## Start Here" in root_readme
+    assert "docs/getting-started.md" in root_readme
+    assert "docs/for-agents.md" in root_readme
+    assert "docs/maintainer-guide.md" in root_readme
+    assert "docs/distribution-sync.md" in root_readme
+    assert "## Agent Quick Start" in root_readme
+    assert "llms.txt" in root_readme
     assert "## Table Of Contents" in root_readme
     assert "## Contribute An Agent" in root_readme
     assert "## Recipe Reference" in root_readme

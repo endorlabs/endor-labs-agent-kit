@@ -8,6 +8,16 @@ authentication, dependency resolution, container, reachability, policy, and
 workflow lanes, then returns low-friction repair guidance without mutating
 Endor, source-provider, or repository state.
 
+## Start Here
+
+This is the Claude Managed Agents generated agent for `endor-troubleshooter`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Update generated YAML placeholders, then create the managed agent and environment. Then use the example prompt below: Diagnose this Endor scan failure from redacted error text and read-only tenant evidence. Keep the workflow read-only. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/endor-troubleshooter/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Update placeholders in `agent.yaml`, `environment.yaml`, and

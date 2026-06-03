@@ -8,6 +8,16 @@ This generated Gemini CLI extension package includes Endor Labs setup
 support, Gemini Agent Skills, and preview Gemini subagents generated from
 source recipes in the Endor Labs Agent Kit repository.
 
+## Start Here
+
+| Reader | First move |
+| --- | --- |
+| Human installer | Install the generated extension directory locally or the tagged public GitHub repository. Then run setup: ask Gemini CLI to use the `endor-agent-kit-setup` skill. |
+| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |
+| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |
+
+This package is host-specific for Gemini CLI. Use the root README when choosing between hosts.
+
 ## Host Metadata
 
 - Manifest: `gemini-extension.json`.

@@ -2,6 +2,16 @@
 
 Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
 
+## Start Here
+
+This is the Gemini CLI generated skill and subagent bundle for `sca-remediation`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI. Then use the example prompt below: Use @sca-remediation to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install Through The Generated Extension
 
 Prefer the generated extension package under `plugins/gemini/endor-labs-agent-kit`.

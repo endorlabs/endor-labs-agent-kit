@@ -7,6 +7,16 @@ App, package, scan, scan profile, package manager integration, dependency
 resolution, and reachability evidence, then returns human-readable setup
 actions without mutating source, GitHub, or Endor state.
 
+## Start Here
+
+This is the Gemini CLI generated skill and subagent bundle for `probe-droid`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI. Then use the example prompt below: Use @probe-droid to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/probe-droid/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install Through The Generated Extension
 
 Prefer the generated extension package under `plugins/gemini/endor-labs-agent-kit`.

@@ -5,6 +5,39 @@ from __future__ import annotations
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 
+def agent_readme_start_here(
+    recipe: EndorAgentRecipe,
+    *,
+    host_label: str,
+    artifact_label: str,
+    install_summary: str,
+    run_summary: str,
+    has_architecture: bool = False,
+) -> list[str]:
+    """Return a small reader map for generated agent README files."""
+
+    support_files = ["the generated prompt or skill file"]
+    if recipe.action_contracts_path:
+        support_files.append("`actions.yaml`")
+    if recipe.requires_endorctl:
+        support_files.append("`endorctl-setup.md`")
+    if has_architecture:
+        support_files.append("`architecture.svg`")
+    support_file_text = ", ".join(support_files)
+    return [
+        "## Start Here",
+        "",
+        f"This is the {host_label} generated {artifact_label} for `{recipe.id}`.",
+        "",
+        "| Reader | First move |",
+        "| --- | --- |",
+        f"| Human operator | {install_summary} Then use the example prompt below: {run_summary} |",
+        f"| Agent installer | Copy the generated files exactly, including {support_file_text}. Do not summarize or rewrite the generated prompt. |",
+        f"| Maintainer | Change `source/agents/{recipe.id}/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |",
+        "",
+    ]
+
+
 def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return the shared architecture section for Generated Agent READMEs."""
 

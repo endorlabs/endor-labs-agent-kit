@@ -8,6 +8,16 @@ This generated Antigravity CLI plugin package includes Endor Labs setup
 support, Antigravity Agent Skills, and Antigravity subagents generated
 from source recipes in the Endor Labs Agent Kit repository.
 
+## Start Here
+
+| Reader | First move |
+| --- | --- |
+| Human installer | Validate and install the generated Antigravity plugin directory with `antigravity plugin` commands. Then run setup: ask Antigravity CLI to use the `endor-agent-kit-setup` skill. |
+| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |
+| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |
+
+This package is host-specific for Antigravity CLI. Use the root README when choosing between hosts.
+
 ## Host Metadata
 
 - Manifest: `plugin.json`.

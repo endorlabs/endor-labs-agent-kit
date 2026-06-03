@@ -11,7 +11,7 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
-from .readme import architecture_readme_section
+from .readme import agent_readme_start_here, architecture_readme_section
 from .records import (
     BundleRecord,
     artifact_bundle_record,
@@ -132,11 +132,20 @@ def gemini_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) -
         )
     else:
         notes.append("- This read-only workflow must report unavailable signals in `data_gaps`.")
+    start_here = agent_readme_start_here(
+        recipe,
+        host_label="Gemini CLI",
+        artifact_label="skill and subagent bundle",
+        install_summary="Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI.",
+        run_summary=gemini_example_prompt(recipe),
+        has_architecture=has_architecture,
+    )
     return "\n".join([
         f"# {recipe.name} Gemini CLI Bundle",
         "",
         recipe.description.strip(),
         "",
+        *start_here,
         "## Install Through The Generated Extension",
         "",
         "Prefer the generated extension package under `plugins/gemini/endor-labs-agent-kit`.",

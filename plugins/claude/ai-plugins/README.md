@@ -8,6 +8,16 @@ This generated Claude Code plugin package includes Endor Labs setup
 support and Claude Code agents generated from source recipes in the
 Endor Labs Agent Kit repository.
 
+## Start Here
+
+| Reader | First move |
+| --- | --- |
+| Human installer | Install `ai-plugins@endorlabs` from the public marketplace or a local checkout. Then run setup: ask Claude Code to use the `endor-agent-kit-setup` skill. |
+| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |
+| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |
+
+This package is host-specific for Claude Code. Use the root README when choosing between hosts.
+
 ## Install And Upgrade Notice
 
 - `ai-plugins@endorlabs` is retained for existing Claude Code users and pinned installs.

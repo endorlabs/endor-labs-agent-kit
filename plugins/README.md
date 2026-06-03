@@ -13,6 +13,10 @@ Read the host package README first when installing or validating a plugin.
 For release publication, use `docs/plugin-release-checklist.md` from the
 repository root.
 
+Use `README.md`, `docs/getting-started.md`, `docs/for-agents.md`,
+`docs/maintainer-guide.md`, and `docs/distribution-sync.md` from the
+Agent Kit source repo for the two-audience documentation map.
+
 Current generated package slices:
 
 - `codex/endor-labs-agent-kit/`: Codex plugin package with setup skill,
