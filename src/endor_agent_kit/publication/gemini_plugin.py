@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 import json
 import shutil
-import zipfile
 from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogPluginPackage
@@ -25,9 +24,8 @@ from endor_agent_kit.publication.plugin_package_common import (
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 GEMINI_PLUGIN_PACKAGE_ROOT = Path("plugins") / "gemini" / PLUGIN_NAME
-GEMINI_RELEASE_ARCHIVE_PATH = Path("plugins") / "gemini" / f"{PLUGIN_NAME}.zip"
 GEMINI_SETUP_SKILL = "endor-agent-kit-setup"
-ZIP_TIMESTAMP = (2026, 1, 1, 0, 0, 0)
+PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY = "https://github.com/endorlabs/ai-plugins"
 
 
 @dataclass(frozen=True)
@@ -53,16 +51,12 @@ def publish_gemini_plugin_package(
         return None
 
     package_dir = destination / GEMINI_PLUGIN_PACKAGE_ROOT
-    archive_path = destination / GEMINI_RELEASE_ARCHIVE_PATH
     if package_dir.exists():
         shutil.rmtree(package_dir)
     package_dir.mkdir(parents=True)
     (package_dir / "skills").mkdir()
     (package_dir / "agents").mkdir()
     (package_dir / "assets").mkdir()
-    archive_path.parent.mkdir(parents=True, exist_ok=True)
-    if archive_path.exists():
-        archive_path.unlink()
 
     written: list[Path] = []
     version = package_version()
@@ -116,9 +110,6 @@ def publish_gemini_plugin_package(
     readme.write_text(_gemini_plugin_readme(sorted_recipes, version), encoding="utf-8")
     written.append(readme)
 
-    _write_release_archive(package_dir, archive_path)
-    written.append(archive_path)
-
     plugins_readme = destination / "plugins" / "README.md"
     plugins_readme.write_text(plugin_packages_readme(), encoding="utf-8")
     written.append(plugins_readme)
@@ -131,7 +122,7 @@ def publish_gemini_plugin_package(
         version=version,
         package_dir=package_dir,
         included_agents=tuple(prepared.recipe.id for prepared in sorted_recipes),
-        extra_artifacts=(archive_path, plugins_readme),
+        extra_artifacts=(plugins_readme,),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
 
@@ -173,20 +164,19 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         f"gemini extensions install /path/to/endor-labs-agent-kit/{GEMINI_PLUGIN_PACKAGE_ROOT.as_posix()}",
         "```",
         "",
-        "Install from the public GitHub release after the generated archive is attached",
-        "as the single generic release asset:",
+        "Install from the public GitHub repository after a release tag is published:",
         "",
         "```bash",
-        "gemini extensions install https://github.com/endorlabs/endor-labs-agent-kit --ref <tag>",
+        f"gemini extensions install {PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY} --ref <tag>",
         "```",
         "",
         "Observed local validation on Gemini CLI 0.44.1: local installs may still",
         "show a folder trust prompt even when `--consent` is supplied. Inspect the",
-        "extension package, approve only the expected Agent Kit folder or archive,",
+        "extension package, approve only the expected Agent Kit folder,",
         "then restart Gemini CLI so skills and subagents become visible.",
-        "Do not install a local zip path directly with Gemini CLI 0.44.1; use the",
-        "local extension directory for local testing and attach the generated zip to",
-        "a GitHub Release for release installs.",
+        "Do not create or install zip archives for Gemini CLI; use the local extension",
+        "directory for local testing and the tagged GitHub repository for release",
+        "installs.",
         "",
         setup_source.rstrip(),
         "",
@@ -270,20 +260,18 @@ def _gemini_plugin_readme(
         f"gemini extensions install /path/to/endor-labs-agent-kit/{GEMINI_PLUGIN_PACKAGE_ROOT.as_posix()}",
         "```",
         "",
-        "For release distribution, attach the generated zip archive to the GitHub",
-        "Release as the single generic asset. The archive is rooted at the extension",
-        "directory so `gemini-extension.json` is at the archive root.",
+        "Install from the public GitHub repository after a release tag is published:",
         "",
         "```bash",
-        "gemini extensions install https://github.com/endorlabs/endor-labs-agent-kit --ref <tag>",
+        f"gemini extensions install {PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY} --ref <tag>",
         "```",
         "",
         "Gemini CLI 0.44.1 local validation showed a folder trust prompt for local",
         "paths even with `--consent`. Inspect the package and approve only the",
         "expected Endor Agent Kit extension source.",
-        "Gemini CLI 0.44.1 does not install a local zip path directly; use the local",
-        "extension directory for local testing and the GitHub release asset for",
-        "published installs.",
+        "Do not create or install zip archives for Gemini CLI; use the local extension",
+        "directory for local testing and the tagged GitHub repository for published",
+        "installs.",
         "",
         "Restart Gemini CLI after installing or reinstalling the extension.",
         "",
@@ -327,18 +315,6 @@ def _gemini_plugin_readme(
         "- https://geminicli.com/docs/core/subagents/",
         "",
     ])
-
-
-def _write_release_archive(package_dir: Path, archive_path: Path) -> None:
-    files = sorted(path for path in package_dir.rglob("*") if path.is_file())
-    with zipfile.ZipFile(archive_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for path in files:
-            relative = path.relative_to(package_dir).as_posix()
-            info = zipfile.ZipInfo(relative, ZIP_TIMESTAMP)
-            info.compress_type = zipfile.ZIP_DEFLATED
-            info.external_attr = 0o644 << 16
-            archive.writestr(info, path.read_bytes())
-
 
 def _workflow_label(agent_id: str) -> str:
     labels = {

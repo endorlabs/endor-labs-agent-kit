@@ -5,8 +5,12 @@ import json
 import shutil
 import subprocess
 import sys
-import zipfile
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
+    import tomli as tomllib
 
 from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.cli import main
@@ -477,7 +481,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/assets/logo.svg" in written_paths
-    assert "plugins/gemini/endor-labs-agent-kit.zip" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit.zip" not in written_paths
+    assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg" in written_paths
@@ -622,6 +627,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl scan`" in gemini_setup
     assert "Run `endorctl host-check`" in gemini_setup
     assert "folder trust prompt" in gemini_setup
+    assert "tagged GitHub repository" in gemini_setup
+    assert "https://github.com/endorlabs/ai-plugins" in gemini_setup
+    assert "zip archives" in gemini_setup
     assert "Do not add plugin-wide MCP automatically" in gemini_setup
     assert "Gemini subagents are preview functionality" in gemini_setup
     antigravity_setup = (
@@ -663,6 +671,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     ).read_text()
     assert 'name = "endor-sca-remediation-agent"' in mutating_toml
     assert "sandbox_mode" not in mutating_toml
+    for agent_toml in sorted((dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents").glob("*.toml")):
+        parsed_agent = tomllib.loads(agent_toml.read_text())
+        assert parsed_agent["name"].startswith("endor-")
+        assert parsed_agent["developer_instructions"]
     claude_mcp_agent = (
         dest
         / "plugins"
@@ -773,7 +785,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         for artifact in packages["gemini"]["artifacts"]
     }
     assert "plugins/gemini/endor-labs-agent-kit/README.md" in gemini_artifact_paths
-    assert "plugins/gemini/endor-labs-agent-kit.zip" in gemini_artifact_paths
+    assert "plugins/gemini/endor-labs-agent-kit.zip" not in gemini_artifact_paths
     assert "plugins/README.md" in gemini_artifact_paths
     antigravity_artifact_paths = {
         artifact["path"]
@@ -782,15 +794,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/antigravity/endor-labs-agent-kit/README.md" in antigravity_artifact_paths
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in antigravity_artifact_paths
     assert "plugins/README.md" in antigravity_artifact_paths
-    with zipfile.ZipFile(dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip") as archive:
-        archive_names = set(archive.namelist())
-    assert "gemini-extension.json" in archive_names
-    assert "GEMINI.md" in archive_names
-    assert "skills/endor-agent-kit-setup/SKILL.md" in archive_names
-    assert "skills/sca-remediation/SKILL.md" in archive_names
-    assert "agents/sca-remediation.md" in archive_names
-    assert not any(name.startswith("endor-labs-agent-kit/") for name in archive_names)
-    assert not any(name.endswith("recipe.yaml") or name.endswith("cases.yaml") for name in archive_names)
+    assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
 
 
 def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):

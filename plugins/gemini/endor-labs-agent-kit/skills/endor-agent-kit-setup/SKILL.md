@@ -22,20 +22,19 @@ Install from the generated local extension package:
 gemini extensions install /path/to/endor-labs-agent-kit/plugins/gemini/endor-labs-agent-kit
 ```
 
-Install from the public GitHub release after the generated archive is attached
-as the single generic release asset:
+Install from the public GitHub repository after a release tag is published:
 
 ```bash
-gemini extensions install https://github.com/endorlabs/endor-labs-agent-kit --ref <tag>
+gemini extensions install https://github.com/endorlabs/ai-plugins --ref <tag>
 ```
 
 Observed local validation on Gemini CLI 0.44.1: local installs may still
 show a folder trust prompt even when `--consent` is supplied. Inspect the
-extension package, approve only the expected Agent Kit folder or archive,
+extension package, approve only the expected Agent Kit folder,
 then restart Gemini CLI so skills and subagents become visible.
-Do not install a local zip path directly with Gemini CLI 0.44.1; use the
-local extension directory for local testing and attach the generated zip to
-a GitHub Release for release installs.
+Do not create or install zip archives for Gemini CLI; use the local extension
+directory for local testing and the tagged GitHub repository for release
+installs.
 
 # Endor Agent Kit Setup
 

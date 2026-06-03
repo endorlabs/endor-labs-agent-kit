@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
-import zipfile
 
 import yaml
 
@@ -644,23 +643,8 @@ def _check_gemini_plugin_package(
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
     archive_path = root / "plugins" / "gemini" / "endor-labs-agent-kit.zip"
-    if not archive_path.is_file():
-        errors.append(f"{_rel(root, archive_path)}: missing Gemini release archive")
-        return
-    try:
-        with zipfile.ZipFile(archive_path) as archive:
-            names = set(archive.namelist())
-    except zipfile.BadZipFile as exc:
-        errors.append(f"{_rel(root, archive_path)}: invalid zip archive: {exc}")
-        return
-    if "gemini-extension.json" not in names:
-        errors.append(f"{_rel(root, archive_path)}: gemini-extension.json must be at archive root")
-    if "skills/endor-agent-kit-setup/SKILL.md" not in names:
-        errors.append(f"{_rel(root, archive_path)}: missing setup skill in release archive")
-    if any(name.startswith("endor-labs-agent-kit/") for name in names):
-        errors.append(f"{_rel(root, archive_path)}: archive must not include an extra endor-labs-agent-kit root directory")
-    if any(Path(name).name in forbidden_names for name in names):
-        errors.append(f"{_rel(root, archive_path)}: source-only file leaked into release archive")
+    if archive_path.exists():
+        errors.append(f"{_rel(root, archive_path)}: Gemini plugin packaging must not generate a zip archive")
 
 
 def _check_antigravity_plugin_package(
