@@ -16,7 +16,7 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
-from .readme import architecture_readme_section
+from .readme import agent_readme_start_here, architecture_readme_section
 from .records import (
     BundleRecord,
     artifact_bundle_record,
@@ -207,11 +207,20 @@ def claude_code_edition_readme(
             ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
+    start_here = agent_readme_start_here(
+        recipe,
+        host_label="Claude Code",
+        artifact_label=artifact_label,
+        install_summary="Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed.",
+        run_summary=example_prompt(recipe, edition),
+        has_architecture=has_architecture,
+    )
     return "\n".join([
         f"# {title}",
         "",
         recipe.description.strip(),
         "",
+        *start_here,
         "## Install",
         "",
         f"Copy `{recipe.id}.md` into your target repository's `.claude/agents/` directory,",

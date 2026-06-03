@@ -6,6 +6,16 @@ Analysis, breaking changes, manifest targeting, or whether a dependency
 upgrade should happen now. The artifact queries Endor's read-only
 VersionUpgrade workflow through documented Endor API or endorctl paths.
 
+## Start Here
+
+This is the Claude Managed Agents generated agent for `upgrade-impact-analysis`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Update generated YAML placeholders, then create the managed agent and environment. Then use the example prompt below: Show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA, findings fixed, manifest files, and breaking changes. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/upgrade-impact-analysis/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Update placeholders in `agent.yaml`, `environment.yaml`, and

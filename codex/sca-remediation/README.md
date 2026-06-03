@@ -2,6 +2,16 @@
 
 Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
 
+## Start Here
+
+This is the Codex generated skill for `sca-remediation`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session. Then use the example prompt below: Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy this generated skill directory into your Codex skills directory:

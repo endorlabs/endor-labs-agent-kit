@@ -31,6 +31,28 @@ def logo_svg() -> str:
     ])
 
 
+def plugin_readme_start_here(
+    *,
+    host_label: str,
+    install_summary: str,
+    setup_summary: str,
+) -> list[str]:
+    """Return a reader map for generated plugin package README files."""
+
+    return [
+        "## Start Here",
+        "",
+        "| Reader | First move |",
+        "| --- | --- |",
+        f"| Human installer | {install_summary} Then run setup: {setup_summary} |",
+        "| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |",
+        "| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |",
+        "",
+        f"This package is host-specific for {host_label}. Use the root README when choosing between hosts.",
+        "",
+    ]
+
+
 def plugin_packages_readme() -> str:
     """Return the generated plugin packages README."""
 
@@ -49,6 +71,10 @@ def plugin_packages_readme() -> str:
         "Read the host package README first when installing or validating a plugin.",
         "For release publication, use `docs/plugin-release-checklist.md` from the",
         "repository root.",
+        "",
+        "Use `README.md`, `docs/getting-started.md`, `docs/for-agents.md`,",
+        "`docs/maintainer-guide.md`, and `docs/distribution-sync.md` from the",
+        "Agent Kit source repo for the two-audience documentation map.",
         "",
         "Current generated package slices:",
         "",

@@ -18,6 +18,7 @@ from endor_agent_kit.portable_runtime_conformance import PORTABLE_UNTRUSTED_CONT
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
+from .readme import agent_readme_start_here
 from .records import (
     BundleRecord,
     artifact_bundle_record,
@@ -121,12 +122,21 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
         setup_files.append("`architecture.svg`: human-readable workflow diagram.")
 
     architecture = _portable_architecture_readme_section(recipe) if has_architecture else []
+    start_here = agent_readme_start_here(
+        recipe,
+        host_label="portable runtime",
+        artifact_label="agent bundle",
+        install_summary="Load `agent.md` and `agent.manifest.json` into your runtime and wire only the adapters your policy allows.",
+        run_summary=f"Use this agent to analyze repository <repo> with `{recipe.id}`.",
+        has_architecture=has_architecture,
+    )
     return "\n".join(
         [
             f"# {recipe.name} Portable Agent Bundle",
             "",
             portable_text(recipe.description).strip(),
             "",
+            *start_here,
             "## Use This When",
             "",
             "Use this bundle when your organization already has an agent runtime, source-provider workflow, ticketing workflow, approval system, credential controls, and audit pipeline. The bundle supplies the generated agent and runtime contract; your platform supplies adapters.",

@@ -17,6 +17,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_NAME,
     logo_svg,
     package_version,
+    plugin_readme_start_here,
     plugin_packages_readme,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -349,6 +350,11 @@ def _codex_plugin_readme(
         f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `{_codex_agent_name(prepared.recipe.id)}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
+    start_here = plugin_readme_start_here(
+        host_label="Codex",
+        install_summary=f"Install `{PLUGIN_NAME}@{PLUGIN_NAME}` from the local or public Codex marketplace metadata.",
+        setup_summary=f"ask Codex to use the `{CODEX_SETUP_SKILL}` skill.",
+    )
     return "\n".join([
         "# Endor Labs Agent Kit Codex Plugin",
         "",
@@ -360,6 +366,7 @@ def _codex_plugin_readme(
         "Codex skills, and bundled Codex custom-agent TOML files. The plugin is",
         "generated from source recipes in the Endor Labs Agent Kit repository.",
         "",
+        *start_here,
         "## Host Metadata",
         "",
         "- Manifest: `.codex-plugin/plugin.json`.",

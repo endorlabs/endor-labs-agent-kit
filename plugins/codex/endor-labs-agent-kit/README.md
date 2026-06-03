@@ -8,6 +8,16 @@ This generated Codex plugin package includes Endor Labs setup support,
 Codex skills, and bundled Codex custom-agent TOML files. The plugin is
 generated from source recipes in the Endor Labs Agent Kit repository.
 
+## Start Here
+
+| Reader | First move |
+| --- | --- |
+| Human installer | Install `endor-labs-agent-kit@endor-labs-agent-kit` from the local or public Codex marketplace metadata. Then run setup: ask Codex to use the `endor-agent-kit-setup` skill. |
+| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |
+| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |
+
+This package is host-specific for Codex. Use the root README when choosing between hosts.
+
 ## Host Metadata
 
 - Manifest: `.codex-plugin/plugin.json`.

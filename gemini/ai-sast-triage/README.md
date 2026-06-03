@@ -2,6 +2,16 @@
 
 Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
 
+## Start Here
+
+This is the Gemini CLI generated skill and subagent bundle for `ai-sast-triage`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI. Then use the example prompt below: Use @ai-sast-triage to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/ai-sast-triage/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install Through The Generated Extension
 
 Prefer the generated extension package under `plugins/gemini/endor-labs-agent-kit`.

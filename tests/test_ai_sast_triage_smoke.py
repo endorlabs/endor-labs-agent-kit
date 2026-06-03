@@ -35,6 +35,9 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     architecture = (agent_dir / "architecture.svg").read_text()
 
     assert "@agent-ai-sast-triage triage AI SAST findings for this repository" in root_readme
+    assert "## Start Here" in agent_readme
+    assert "Agent installer" in agent_readme
+    assert "Do not hand-edit generated copies" in agent_readme
     assert "Do not open a PR until I approve the patch" in agent_readme
     assert "<project_uuid>" not in agent_readme
     assert "<project_uuid>" not in prompt

@@ -19,6 +19,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_NAME,
     logo_svg,
     package_version,
+    plugin_readme_start_here,
     plugin_packages_readme,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -234,6 +235,11 @@ def _gemini_plugin_readme(
         f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
+    start_here = plugin_readme_start_here(
+        host_label="Gemini CLI",
+        install_summary="Install the generated extension directory locally or the tagged public GitHub repository.",
+        setup_summary=f"ask Gemini CLI to use the `{GEMINI_SETUP_SKILL}` skill.",
+    )
     return "\n".join([
         "# Endor Labs Agent Kit Gemini CLI Extension",
         "",
@@ -245,6 +251,7 @@ def _gemini_plugin_readme(
         "support, Gemini Agent Skills, and preview Gemini subagents generated from",
         "source recipes in the Endor Labs Agent Kit repository.",
         "",
+        *start_here,
         "## Host Metadata",
         "",
         "- Manifest: `gemini-extension.json`.",

@@ -1,0 +1,59 @@
+# Endor Labs Agent Kit
+
+> Source repository for Endor Labs workflow agents, generated host artifacts,
+> plugin packages, guardrails, tests, provenance, and source documentation.
+
+## Start Here
+
+- `README.md`: generated catalog front door for humans and agents.
+- `docs/getting-started.md`: human install and first-run guide.
+- `docs/for-agents.md`: agent operating rules for installing, editing, validating, and syncing.
+- `docs/maintainer-guide.md`: source recipe, generated docs, and publication template workflow.
+- `docs/distribution-sync.md`: source-to-`ai-plugins` mirror process.
+- `docs/plugin-release-checklist.md`: release validation matrix.
+- `docs/guardrails.md`: safety and runtime-control documentation.
+- `docs/portable-runtime-conformance.md`: portable adapter and approval-gate contract.
+
+## Source Of Truth
+
+- `source/agents/<agent>/recipe.yaml`: public agent identity, host compatibility, capabilities, and safety class.
+- `source/agents/<agent>/instructions.md`: source prompt body.
+- `source/agents/<agent>/actions.yaml`: semantic side-effect contract when present.
+- `source/agents/<agent>/evals/cases.yaml`: behavior/eval cases.
+- `source/agents/<agent>/architecture.svg`: architecture diagram copied into generated artifacts.
+- `src/endor_agent_kit/publication/`: generated README and package publication templates.
+
+## Generated Outputs
+
+- `README.md`
+- `manifest.json`
+- `claude-code/`
+- `claude-managed-agents/`
+- `codex/`
+- `gemini/`
+- `portable/`
+- `plugins/`
+- `.claude-plugin/marketplace.json`
+- `.agents/plugins/marketplace.json`
+
+Generated outputs are checked in for installation, but behavior changes should
+start from source recipes or publication code and then regenerate.
+
+## Common Commands
+
+```bash
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
+python -m pytest -q
+endor-agent-kit check-guardrails --catalog-root .
+endor-agent-kit verify-provenance --catalog-root .
+git diff --check
+```
+
+Use `PYTHONPATH=src python3 -m endor_agent_kit.cli ...` when the console script
+is not installed.
+
+## Public Mirror
+
+The public distribution mirror is `/Users/mattbrown/AURI/ai-plugins`. Sync it
+only after Agent Kit generation and validation are clean. Normal sync keeps
+`ai-plugins/plugins/` byte-for-byte identical to this repo's `plugins/`.
