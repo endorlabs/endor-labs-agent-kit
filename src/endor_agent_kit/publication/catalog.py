@@ -69,9 +69,14 @@ def root_catalog_readme(
         )
         codex_path = f"`{CODEX_HOST}/{agent_id}/`" if CODEX_HOST in item.hosts else "-"
         gemini_path = f"`{GEMINI_HOST}/{agent_id}/`" if GEMINI_HOST in item.hosts else "-"
+        cursor_path = (
+            f"`agents/{_cursor_agent_name(agent_id)}.md` + `skills/{agent_id}/`"
+            if CODEX_HOST in item.hosts
+            else "-"
+        )
         portable_path = f"`{PORTABLE_HOST}/{agent_id}/`" if PORTABLE_HOST in item.hosts else "-"
         agent_rows.append(
-            f"| {item.name} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {codex_path} | {gemini_path} | {portable_path} |"
+            f"| {item.name} | {_agent_summary(agent_id)} | {claude_code_path} | {managed_path} | {codex_path} | {gemini_path} | {cursor_path} | {portable_path} |"
         )
 
     examples = []
@@ -168,7 +173,7 @@ def root_catalog_readme(
         f"Current generated plugin package version: `{plugin_version}`.",
         "",
         "The plugin packages are the lowest-friction way to load Endor Labs",
-        "workflows into Claude Code, Codex, Gemini CLI, or Antigravity CLI. They package setup",
+        "workflows into Claude Code, Codex, Gemini CLI, Antigravity CLI, or Cursor. They package setup",
         "guidance and generated workflow agents/skills from the same source recipes",
         "as the manual catalog without injecting every recipe into the active model",
         "context.",
@@ -179,6 +184,7 @@ def root_catalog_readme(
         "| Codex | `plugins/codex/endor-labs-agent-kit/` | Read `plugins/codex/endor-labs-agent-kit/README.md`, then use `codex plugin marketplace add ./plugins/codex` locally or the public sparse marketplace command after the repo is tagged. |",
         "| Gemini CLI | `plugins/gemini/endor-labs-agent-kit/` | Read `plugins/gemini/endor-labs-agent-kit/README.md`, then install the local extension directory or the tagged GitHub repository. |",
         "| Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/` | Read `plugins/antigravity/endor-labs-agent-kit/README.md`, then use `antigravity plugin validate` and `antigravity plugin install` against the generated plugin directory. |",
+        "| Cursor | `.cursor-plugin/`, `agents/`, `skills/`, and `assets/logo.svg` | Read the Cursor package metadata, then install through Cursor's plugin-loading mechanism. Cursor does not use Gemini extension files. |",
         "",
         "Claude compatibility note: `ai-plugins@endorlabs` remains available for",
         "existing Claude Code users and pinned installs. New users should prefer",
@@ -197,14 +203,14 @@ def root_catalog_readme(
         "When a plugin package is loaded, start from the user job and let the host",
         "map to the generated skill or agent name.",
         "",
-        "| Job | Claude Code | Codex | Gemini CLI | Antigravity CLI |",
-        "| --- | --- | --- | --- | --- |",
-        "| Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` |",
-        "| Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` | Skill/subagent `ai-sast-triage` |",
-        "| Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` | Skill/subagent `endor-troubleshooter` |",
-        "| Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` | Skill/subagent `probe-droid` |",
-        "| Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` | Skill/subagent `sca-remediation` |",
-        "| Use Claude-only read-only package and dependency helpers | Agents `dependency-decision-helper`, `package-risk-summary`, `repository-dependency-reviewer`, `remediation-planner`, `upgrade-impact-analysis`, `vulnerability-explainer` | Not packaged in v1 | Not packaged in v1 | Not packaged in v1 |",
+        "| Job | Claude Code | Codex | Gemini CLI | Antigravity CLI | Cursor |",
+        "| --- | --- | --- | --- | --- | --- |",
+        "| Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Agent `endor-agent-kit-setup-agent`, skill `endor-agent-kit-setup` |",
+        "| Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` | Skill/subagent `ai-sast-triage` | Agent `endor-ai-sast-triage-agent`, skill `ai-sast-triage` |",
+        "| Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` | Skill/subagent `endor-troubleshooter` | Agent `endor-troubleshooter-agent`, skill `endor-troubleshooter` |",
+        "| Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` | Skill/subagent `probe-droid` | Agent `endor-probe-droid-agent`, skill `probe-droid` |",
+        "| Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` | Skill/subagent `sca-remediation` | Agent `endor-sca-remediation-agent`, skill `sca-remediation` |",
+        "| Use Claude-only read-only package and dependency helpers | Agents `dependency-decision-helper`, `package-risk-summary`, `repository-dependency-reviewer`, `remediation-planner`, `upgrade-impact-analysis`, `vulnerability-explainer` | Not packaged in v1 | Not packaged in v1 | Not packaged in v1 | Not packaged in v1 |",
         "",
         "The full catalog below still matters for manual installs, portable bundles,",
         "and future agent contributions.",
@@ -238,8 +244,8 @@ def root_catalog_readme(
         "If you are installing an agent, start with the generated host directories below.",
         "You only need `source/agents/` when you are changing or contributing an agent.",
         "",
-        "| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Portable |",
-        "| --- | --- | --- | --- | --- | --- | --- |",
+        "| Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Cursor | Portable |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
         *agent_rows,
         "",
         "## Which Directory Do I Use?",
@@ -250,6 +256,7 @@ def root_catalog_readme(
         "| Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |",
         "| Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |",
         "| Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |",
+        "| Install the Cursor package | `.cursor-plugin/`, root `agents/`, and root `skills/` | Gemini extension files, `source/`, `src/`, `tests/` |",
         "| Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |",
         "| Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |",
         "| Install a Codex skill | `codex/<agent>/README.md` | `source/`, `src/`, `tests/` |",
@@ -271,6 +278,7 @@ def root_catalog_readme(
         "| Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$CODEX_HOME/skills/<agent>/` for manual skill installs |",
         "| Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |",
         "| Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |",
+        "| Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.svg` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |",
         "| Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |",
         "",
         "## Already Have Your Own Tech Stack Or Workflows Wired?",
@@ -279,7 +287,7 @@ def root_catalog_readme(
         "agent runtime, repository workflow, ticketing workflow, approval system,",
         "credential controls, and audit pipeline. Portable bundles give you the",
         "agent instructions and runtime contract without assuming Claude Code,",
-        "Claude Managed Agents, Codex, Gemini, Antigravity, or any other host-specific package shape.",
+        "Claude Managed Agents, Codex, Gemini, Antigravity, Cursor, or any other host-specific package shape.",
         "",
         "Each portable bundle includes:",
         "",
@@ -384,9 +392,14 @@ def root_catalog_readme(
         "- `plugins/antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin with",
         "  setup skill, Antigravity workflow skills, subagents, minimal assets, and",
         "  a root `plugin.json`.",
+        "- `.cursor-plugin/` plus root `agents/` and `skills/`: Cursor plugin metadata,",
+        "  generated Cursor workflow agents, setup agent, and support skills. Cursor",
+        "  does not generate or install `GEMINI.md` or `gemini-extension.json`.",
         "",
         "All plugin packages preserve the same recipe source, action metadata, and",
-        "approval gates as the manual generated catalog. Gemini installs from the",
+        "approval gates as the manual generated catalog. Cursor package files stay",
+        "at the repository root because the public Cursor package source is `./`.",
+        "Gemini installs from the",
         "generated extension directory for local validation or from the tagged",
         "GitHub repository for public distribution. Antigravity installs from the",
         "generated plugin directory. No zip artifact is generated in v1.",
@@ -397,7 +410,7 @@ def root_catalog_readme(
         "Use `docs/plugin-release-checklist.md` before tagging or publishing plugin",
         "packages. It records the provider-specific publish paths, local validation",
         "commands, public GitHub distribution steps, and external documentation",
-        "freshness checks for Claude Code, Codex, Gemini, and Antigravity.",
+        "freshness checks for Claude Code, Codex, Gemini, Antigravity, and Cursor.",
         "",
         "## Editions",
         "",
@@ -422,7 +435,8 @@ def root_catalog_readme(
         "## Install An Agent",
         "",
         "For Claude Code, Codex, Gemini CLI, or Antigravity CLI, prefer the plugin package README",
-        "when you want the full v1 workflow set and setup guidance. For a single",
+        "when you want the full v1 workflow set and setup guidance. For Cursor, use",
+        "the `.cursor-plugin/` metadata, root `agents/`, and root `skills/`. For a single",
         "agent, pick an agent from the catalog, then open that host directory's",
         "README. If the agent has edition subdirectories, choose the one that",
         "matches your environment; otherwise use the agent directory directly.",
@@ -749,9 +763,19 @@ def root_catalog_readme(
         "      actions.yaml",
         "      instructions.md",
         "      evals/cases.yaml",
+        "agents/",
+        "  <generated-cursor-agent>.md",
         "skills/",
         "  create-endor-labs-agent/",
         "    SKILL.md",
+        "  <generated-cursor-skill>/",
+        "    SKILL.md",
+        "    architecture.svg",
+        ".cursor-plugin/",
+        "  marketplace.json",
+        "  plugin.json",
+        "assets/",
+        "  logo.svg",
         "docs/",
         "  distribution-sync.md",
         "  for-agents.md",
@@ -789,6 +813,10 @@ def root_catalog_readme(
         "- `gemini/`",
         "- `portable/`",
         "- `plugins/`",
+        "- `.cursor-plugin/`",
+        "- `agents/<generated-cursor-agent>.md`",
+        "- `skills/<generated-cursor-skill>/`",
+        "- `assets/logo.svg`",
         "- `manifest.json`",
         "",
         "These paths are customer-facing and should stay stable.",
@@ -822,6 +850,12 @@ def _agent_catalog(agents: list[CatalogAgent]) -> list[_AgentCatalogEntry]:
 
 def _agent_name(agent: CatalogAgent) -> str:
     return agent.name or agent.id or "Endor Labs Agent"
+
+
+def _cursor_agent_name(agent_id: str) -> str:
+    if agent_id.startswith("endor-"):
+        return f"{agent_id}-agent"
+    return f"endor-{agent_id}-agent"
 
 
 def _agent_summary(agent_id: str) -> str:

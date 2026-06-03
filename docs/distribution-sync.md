@@ -8,10 +8,12 @@ Use this guide when syncing generated Agent Kit artifacts into the public
 | Repo | Owns |
 | --- | --- |
 | `endor-labs-agent-kit` | Source recipes, compiler/publisher code, guardrails, tests, provenance, generated catalog, and source documentation. |
-| `ai-plugins` | Public host metadata, root skill-compatible package, release-facing README, and checked-in distribution artifacts. |
+| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents and support skills, release-facing README, and checked-in distribution artifacts. |
 
 Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
-`endor-labs-agent-kit/plugins/`.
+`endor-labs-agent-kit/plugins/`. Cursor package sync should make
+`ai-plugins/.cursor-plugin/`, generated root workflow `agents/`, generated root
+workflow `skills/`, and `assets/logo.svg` match this repo.
 
 ## Source Repo Regeneration
 
@@ -36,11 +38,18 @@ Run from the `ai-plugins` repo after Agent Kit regeneration is clean:
 rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/plugins/ ./plugins/
 cp /Users/mattbrown/AURI/endor-labs-agent-kit/.claude-plugin/marketplace.json .claude-plugin/marketplace.json
 cp /Users/mattbrown/AURI/endor-labs-agent-kit/.agents/plugins/marketplace.json .agents/plugins/marketplace.json
+rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/.cursor-plugin/ ./.cursor-plugin/
+rsync -a --delete /Users/mattbrown/AURI/endor-labs-agent-kit/agents/ ./agents/
+for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
+  rsync -a --delete "/Users/mattbrown/AURI/endor-labs-agent-kit/skills/$skill/" "./skills/$skill/"
+done
+mkdir -p assets
+cp /Users/mattbrown/AURI/endor-labs-agent-kit/assets/logo.svg assets/logo.svg
 ```
 
-Refresh the root Cursor/root skill-compatible package only from the generated
-common skill package, preserving the root host wording in `README.md`,
-`GEMINI.md`, `gemini-extension.json`, `.cursor-plugin/`, and `skills/`.
+Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
+`ai-plugins`. Do not treat root `GEMINI.md` or root `gemini-extension.json` as
+Cursor package files; Gemini CLI uses `plugins/gemini/endor-labs-agent-kit/`.
 
 ## Mirror Validation
 
@@ -56,6 +65,12 @@ python3 -m json.tool gemini-extension.json >/dev/null
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
 diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/plugins ./plugins
+diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/.cursor-plugin ./.cursor-plugin
+diff -qr /Users/mattbrown/AURI/endor-labs-agent-kit/agents ./agents
+for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
+  diff -qr "/Users/mattbrown/AURI/endor-labs-agent-kit/skills/$skill" "./skills/$skill"
+done
+diff -q /Users/mattbrown/AURI/endor-labs-agent-kit/assets/logo.svg assets/logo.svg
 git diff --check
 ```
 
@@ -67,5 +82,6 @@ release matrix.
 
 - Do not create or publish a Gemini zip artifact.
 - Do not enable both Claude package ids in the same profile for normal use.
+- Do not couple Cursor package sync to Gemini CLI extension files.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
 - Do not run live `endorctl api` smoke tests without explicit user approval and namespace provenance.

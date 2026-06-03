@@ -36,6 +36,11 @@ Current generated package slices:
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json` validated with `antigravity plugin validate`.
 
+The Cursor package is generated at repository root as `.cursor-plugin/`,
+root `agents/`, root `skills/`, and `assets/logo.svg` because the public
+Cursor package source is `./`. It is intentionally separate from Gemini
+CLI extension files such as `GEMINI.md` and `gemini-extension.json`.
+
 Gemini installs from the generated extension directory for local validation
 or from the tagged GitHub repository for public distribution. Antigravity
 installs from the generated plugin directory; no release zip is generated

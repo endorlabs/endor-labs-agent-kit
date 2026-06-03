@@ -1,7 +1,7 @@
 # Plugin Release Checklist
 
 Use this checklist before publishing Endor Labs Agent Kit plugin packages for
-Claude Code, Codex, Gemini CLI, and Antigravity CLI.
+Claude Code, Codex, Gemini CLI, Antigravity CLI, and Cursor.
 
 ## Release Scope
 
@@ -15,6 +15,8 @@ Generated package roots:
 - Codex: `plugins/codex/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
+- Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
+  `skills/`, and `assets/logo.svg`
 
 Generated marketplace and release files:
 
@@ -24,6 +26,8 @@ Generated marketplace and release files:
 - Codex local marketplace: `plugins/codex/.agents/plugins/marketplace.json`
 - Gemini manifest: `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`
 - Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
+- Cursor marketplace and manifest: `.cursor-plugin/marketplace.json`,
+  `.cursor-plugin/plugin.json`
 
 ## Version Gate
 
@@ -51,6 +55,7 @@ test "$VERSION" = "$(jq -r .version plugins/gemini/endor-labs-agent-kit/gemini-e
 test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
 test "1.0.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
 ```
 
@@ -68,6 +73,11 @@ Confirm the Gemini package is directory-only and no zip artifact exists:
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test -f plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
+test -f .cursor-plugin/plugin.json
+test -f agents/endor-agent-kit-setup-agent.md
+test -f agents/endor-probe-droid-agent.md
+test -f skills/endor-agent-kit-setup/SKILL.md
+test -f skills/ai-sast-triage/architecture.svg
 ```
 
 ## Repository Gates
@@ -84,6 +94,30 @@ git status --short --ignored plugins/gemini plugins/antigravity
 The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not
 show a Gemini zip artifact.
+
+## Cursor
+
+Local release validation:
+
+```bash
+python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
+python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-troubleshooter-agent endor-probe-droid-agent endor-sca-remediation-agent; do
+  test -f "agents/$agent.md"
+done
+for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
+  test -f "skills/$skill/SKILL.md"
+done
+for skill in ai-sast-triage endor-troubleshooter probe-droid sca-remediation; do
+  test -f "skills/$skill/architecture.svg"
+done
+```
+
+Cursor package files are generated at repository root because the public
+package source is `./`. Keep Cursor validation separate from Gemini validation:
+Cursor uses `.cursor-plugin/`, root `agents/`, and root `skills/`; Gemini uses
+`plugins/gemini/endor-labs-agent-kit/GEMINI.md` and
+`plugins/gemini/endor-labs-agent-kit/gemini-extension.json`.
 
 ## Claude Code
 
@@ -223,7 +257,7 @@ installs from the generated plugin directory in v1.
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and public GitHub install behavior can change:
 
-Last checked for this checklist: 2026-06-02.
+Last checked for this checklist: 2026-06-03.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`
@@ -237,6 +271,8 @@ Last checked for this checklist: 2026-06-02.
 - Antigravity CLI plugins: `https://antigravity.google/docs/cli-plugins`
 - Gemini CLI to Antigravity migration: `https://antigravity.google/docs/gcli-migration`
 - Google transition announcement: `https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/`
+- Cursor plugin schema and package examples: `https://github.com/cursor/plugins`
+- Cursor Python SDK: `https://cursor.com/docs/sdk/python`
 - Endor Labs `endorctl` install and auth: `https://docs.endorlabs.com/developers-api/cli/install-and-configure`
 - Endor Labs `endorctl init`: `https://docs.endorlabs.com/endorctl/commands/init/`
 

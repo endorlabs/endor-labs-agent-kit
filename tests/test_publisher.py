@@ -457,11 +457,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     )
     gemini_agent_ids = codex_agent_ids
     antigravity_agent_ids = gemini_agent_ids
+    cursor_agent_ids = codex_agent_ids
     recipes = [
         _copy_agent(tmp_path / agent_id, agent_id)
         for agent_id in claude_agent_ids
     ]
     dest = tmp_path / "endor-labs-agent-kit"
+    existing_creator_skill = dest / "skills" / "create-endor-labs-agent" / "SKILL.md"
+    existing_creator_skill.parent.mkdir(parents=True)
+    existing_creator_skill.write_text("# existing creator skill\n")
 
     written = publish_recipes(recipes, dest, include_plugins=True)
 
@@ -489,6 +493,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert ".cursor-plugin/plugin.json" in written_paths
+    assert ".cursor-plugin/marketplace.json" in written_paths
+    assert "skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "agents/endor-agent-kit-setup-agent.md" in written_paths
+    assert "assets/logo.svg" in written_paths
+    assert "GEMINI.md" not in written_paths
+    assert "gemini-extension.json" not in written_paths
+    assert existing_creator_skill.read_text() == "# existing creator skill\n"
 
     for agent_id in codex_agent_ids:
         assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
@@ -507,6 +519,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     for agent_id in antigravity_agent_ids:
         assert f"plugins/antigravity/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
         assert f"plugins/antigravity/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+    for agent_id in cursor_agent_ids:
+        assert f"skills/{agent_id}/SKILL.md" in written_paths
+        assert f"skills/{agent_id}/architecture.svg" in written_paths
+        cursor_agent_name = (
+            f"{agent_id}-agent"
+            if agent_id.startswith("endor-")
+            else f"endor-{agent_id}-agent"
+        )
+        assert f"agents/{cursor_agent_name}.md" in written_paths
 
     plugin_manifest = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
@@ -577,6 +598,16 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "settings" not in antigravity_plugin_manifest
     assert "license" not in antigravity_plugin_manifest
     assert "hooks" not in antigravity_plugin_manifest
+    cursor_plugin_manifest = json.loads((dest / ".cursor-plugin" / "plugin.json").read_text())
+    assert cursor_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
+    assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
+    assert cursor_plugin_manifest["logo"] == "assets/logo.svg"
+    assert cursor_plugin_manifest["agents"] == "./agents/"
+    assert cursor_plugin_manifest["skills"] == "./skills/"
+    assert "gemini-extension.json" not in cursor_plugin_manifest
+    assert "mcpServers" not in cursor_plugin_manifest
+    assert "settings" not in cursor_plugin_manifest
 
     local_codex_marketplace = json.loads(
         (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
@@ -624,6 +655,11 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert local_claude_marketplace_plugins["ai-plugins"]["version"] == legacy_claude_plugin_manifest["version"]
     assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["tags"])
     assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["keywords"])
+    cursor_marketplace = json.loads((dest / ".cursor-plugin" / "marketplace.json").read_text())
+    assert cursor_marketplace["name"] == "endorlabs"
+    assert cursor_marketplace["plugins"][0]["name"] == "endor-labs-agent-kit"
+    assert cursor_marketplace["plugins"][0]["source"] == "./"
+    assert cursor_marketplace["plugins"][0]["version"] == cursor_plugin_manifest["version"]
 
     setup = (
         dest
@@ -706,6 +742,34 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "antigravity plugin validate" in antigravity_setup
     assert "Do not add plugin-wide MCP automatically" in antigravity_setup
     assert "Antigravity subagents are host-managed" in antigravity_setup
+    cursor_setup = (
+        dest / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    ).read_text()
+    assert "Endor Agent Kit Setup For Cursor" in cursor_setup
+    assert "Run `endorctl scan`" in cursor_setup
+    assert "Run `endorctl host-check`" in cursor_setup
+    assert "separate from the Gemini CLI extension" in cursor_setup
+    assert "Do not add plugin-wide MCP automatically" in cursor_setup
+    cursor_skill = (dest / "skills" / "probe-droid" / "SKILL.md").read_text()
+    assert "Cursor Host Contract" in cursor_skill
+    assert "Gemini CLI Host Contract" not in cursor_skill
+    cursor_agent = (dest / "agents" / "endor-probe-droid-agent.md").read_text()
+    assert "endor_agent_kit_managed=true" in cursor_agent
+    assert "name: endor-probe-droid-agent" in cursor_agent.split("---", 2)[1]
+    assert "model: inherit" in cursor_agent.split("---", 2)[1]
+    assert "readonly: true" in cursor_agent.split("---", 2)[1]
+    assert "Cursor Host Contract" in cursor_agent
+    assert "matching support skill `skills/probe-droid/`" in cursor_agent
+    assert "Gemini CLI Host Contract" not in cursor_agent
+    cursor_sast_agent = (dest / "agents" / "endor-ai-sast-triage-agent.md").read_text()
+    assert "readonly: false" in cursor_sast_agent.split("---", 2)[1]
+    cursor_mutating_agent = (dest / "agents" / "endor-sca-remediation-agent.md").read_text()
+    assert "readonly: false" in cursor_mutating_agent.split("---", 2)[1]
+    cursor_setup_agent = (dest / "agents" / "endor-agent-kit-setup-agent.md").read_text()
+    assert "Endor Agent Kit Setup Agent For Cursor" in cursor_setup_agent
+    assert "agents/" in cursor_setup_agent
+    assert "skills/" in cursor_setup_agent
+    assert "separate from the Gemini CLI extension" in cursor_setup_agent
 
     toml = (
         dest
@@ -793,6 +857,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         ("claude-code", "ai-plugins"),
         ("claude-code", "endor-labs-agent-kit"),
         ("codex", "endor-labs-agent-kit"),
+        ("cursor", "endor-labs-agent-kit"),
         ("gemini", "endor-labs-agent-kit"),
     }
     assert packages[("codex", "endor-labs-agent-kit")] == {
@@ -843,6 +908,16 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "path": "plugins/antigravity/endor-labs-agent-kit",
         "version": antigravity_plugin_manifest["version"],
     }
+    assert packages[("cursor", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("cursor", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "cursor",
+        "included_agents": list(cursor_agent_ids),
+        "marketplace_path": ".cursor-plugin/marketplace.json",
+        "name": "endor-labs-agent-kit",
+        "path": ".",
+        "version": cursor_plugin_manifest["version"],
+    }
     package_artifact_paths = {
         artifact["path"]
         for artifact in packages[("codex", "endor-labs-agent-kit")]["artifacts"]
@@ -881,6 +956,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/antigravity/endor-labs-agent-kit/README.md" in antigravity_artifact_paths
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in antigravity_artifact_paths
     assert "plugins/README.md" in antigravity_artifact_paths
+    cursor_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("cursor", "endor-labs-agent-kit")]["artifacts"]
+    }
+    assert ".cursor-plugin/plugin.json" in cursor_artifact_paths
+    assert ".cursor-plugin/marketplace.json" in cursor_artifact_paths
+    assert "agents/endor-probe-droid-agent.md" in cursor_artifact_paths
+    assert "agents/endor-sca-remediation-agent.md" in cursor_artifact_paths
+    assert "agents/endor-agent-kit-setup-agent.md" in cursor_artifact_paths
+    assert "skills/probe-droid/SKILL.md" in cursor_artifact_paths
+    assert "skills/probe-droid/architecture.svg" in cursor_artifact_paths
+    assert "GEMINI.md" not in cursor_artifact_paths
+    assert "gemini-extension.json" not in cursor_artifact_paths
     assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
 
 
