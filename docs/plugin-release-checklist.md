@@ -11,6 +11,7 @@ package for a normal v1 release.
 Generated package roots:
 
 - Claude Code: `plugins/claude/endor-labs-agent-kit/`
+- Claude Code legacy compatibility: `plugins/claude/ai-plugins/`
 - Codex: `plugins/codex/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
@@ -50,6 +51,7 @@ test "$VERSION" = "$(jq -r .version plugins/gemini/endor-labs-agent-kit/gemini-e
 test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "1.0.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
 ```
 
 ## Generate
@@ -89,6 +91,7 @@ Local release validation:
 
 ```bash
 claude plugin validate plugins/claude/endor-labs-agent-kit
+claude plugin validate plugins/claude/ai-plugins
 claude --plugin-dir plugins/claude/endor-labs-agent-kit
 ```
 
@@ -98,16 +101,27 @@ root:
 ```text
 /plugin marketplace add ./plugins/claude
 /plugin install endor-labs-agent-kit@endorlabs
+/plugin install ai-plugins@endorlabs
 /plugin list
 /agents
 /reload-plugins
 ```
 
+`ai-plugins@endorlabs` is a legacy compatibility package for existing Claude
+Code users. Do not enable both Claude plugin ids in the same profile for normal
+use because they expose the same setup skill and agents.
+
+Release notes and install docs must state that `ai-plugins@endorlabs` remains
+available for existing users, `endor-labs-agent-kit@endorlabs` is preferred for
+new installs, and the plugin does not auto-disable, uninstall, or edit Claude
+settings for either id.
+
 Public repository validation after tag push:
 
 ```text
-/plugin marketplace add endorlabs/endor-labs-agent-kit@<tag> --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins@<tag> --sparse .claude-plugin plugins/claude
 /plugin install endor-labs-agent-kit@endorlabs
+/plugin install ai-plugins@endorlabs
 /plugin list
 /agents
 ```
@@ -141,7 +155,7 @@ rm -rf "$TMP_CODEX_HOME"
 Public repository validation after tag push:
 
 ```bash
-codex plugin marketplace add endorlabs/endor-labs-agent-kit --ref "$VERSION" --sparse .agents --sparse plugins/codex/endor-labs-agent-kit
+codex plugin marketplace add endorlabs/ai-plugins --ref "$VERSION" --sparse .agents --sparse plugins/codex/endor-labs-agent-kit
 codex plugin list --marketplace endor-labs-agent-kit
 codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
 codex plugin remove endor-labs-agent-kit@endor-labs-agent-kit

@@ -29,7 +29,7 @@ After the repository is public and tagged, install from the repository
 marketplace metadata at `.agents/plugins/marketplace.json`:
 
 ```bash
-codex plugin marketplace add endorlabs/endor-labs-agent-kit --ref <tag> --sparse .agents --sparse plugins/codex/endor-labs-agent-kit
+codex plugin marketplace add endorlabs/ai-plugins --ref <tag> --sparse .agents --sparse plugins/codex/endor-labs-agent-kit
 codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
 ```
 

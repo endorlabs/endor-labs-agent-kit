@@ -59,8 +59,19 @@ CLAUDE_SUPPORTED_AGENT_FRONTMATTER = frozenset({
 class PluginPackagePublication:
     """Result of publishing one generated plugin package."""
 
-    package_record: CatalogPluginPackage
+    package_records: tuple[CatalogPluginPackage, ...]
     written: tuple[Path, ...]
+
+
+@dataclass(frozen=True)
+class ClaudePluginPackageSpec:
+    """One Claude Code plugin package emitted from the same Agent Kit sources."""
+
+    name: str
+    display_name: str
+    version: str
+    package_root: Path
+    legacy: bool = False
 
 
 def publish_claude_plugin_package(
@@ -77,9 +88,104 @@ def publish_claude_plugin_package(
     if not claude_recipes:
         return None
 
-    package_dir = destination / CLAUDE_PLUGIN_PACKAGE_ROOT
     marketplace_path = destination / CLAUDE_MARKETPLACE_PATH
     local_marketplace_path = destination / CLAUDE_LOCAL_MARKETPLACE_PATH
+    marketplace_path.parent.mkdir(parents=True, exist_ok=True)
+    local_marketplace_path.parent.mkdir(parents=True, exist_ok=True)
+
+    written: list[Path] = []
+    version = package_version()
+    package_specs = _claude_plugin_package_specs(version)
+    sorted_recipes = sorted(claude_recipes, key=lambda item: item.recipe.id)
+
+    for spec in package_specs:
+        written.extend(_write_claude_plugin_package(destination, spec, sorted_recipes))
+
+    marketplace_path.write_text(
+        json.dumps(
+            _claude_marketplace_manifest(
+                package_specs,
+                source_paths={
+                    spec.name: f"./{spec.package_root.as_posix()}"
+                    for spec in package_specs
+                },
+            ),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    written.append(marketplace_path)
+
+    local_marketplace_path.write_text(
+        json.dumps(
+            _claude_marketplace_manifest(
+                package_specs,
+                source_paths={
+                    spec.name: f"./{spec.name}"
+                    for spec in package_specs
+                },
+            ),
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    written.append(local_marketplace_path)
+
+    plugins_readme = destination / "plugins" / "README.md"
+    plugins_readme.write_text(plugin_packages_readme(), encoding="utf-8")
+    written.append(plugins_readme)
+
+    package_records = tuple(
+        CatalogPluginPackage.from_published_package(
+            destination,
+            host=CLAUDE_CODE_HOST,
+            name=spec.name,
+            display_name=spec.display_name,
+            version=spec.version,
+            package_dir=destination / spec.package_root,
+            marketplace_path=CLAUDE_MARKETPLACE_PATH.as_posix(),
+            included_agents=tuple(prepared.recipe.id for prepared in sorted_recipes),
+            extra_artifacts=(marketplace_path, local_marketplace_path, plugins_readme),
+        )
+        for spec in package_specs
+    )
+    return PluginPackagePublication(package_records=package_records, written=tuple(written))
+
+
+LEGACY_CLAUDE_PLUGIN_NAME = "ai-plugins"
+LEGACY_CLAUDE_PLUGIN_DISPLAY_NAME = "Endor Labs AI Plugins (Legacy)"
+LEGACY_CLAUDE_PLUGIN_VERSION = "1.0.1"
+PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY = "endorlabs/ai-plugins"
+
+
+def _claude_plugin_package_specs(version: str) -> tuple[ClaudePluginPackageSpec, ...]:
+    return (
+        ClaudePluginPackageSpec(
+            name=PLUGIN_NAME,
+            display_name=PLUGIN_DISPLAY_NAME,
+            version=version,
+            package_root=CLAUDE_PLUGIN_PACKAGE_ROOT,
+        ),
+        ClaudePluginPackageSpec(
+            name=LEGACY_CLAUDE_PLUGIN_NAME,
+            display_name=LEGACY_CLAUDE_PLUGIN_DISPLAY_NAME,
+            version=LEGACY_CLAUDE_PLUGIN_VERSION,
+            package_root=Path("plugins") / "claude" / LEGACY_CLAUDE_PLUGIN_NAME,
+            legacy=True,
+        ),
+    )
+
+
+def _write_claude_plugin_package(
+    destination: Path,
+    spec: ClaudePluginPackageSpec,
+    sorted_recipes: list[PreparedSourceRecipe],
+) -> tuple[Path, ...]:
+    package_dir = destination / spec.package_root
     if package_dir.exists():
         shutil.rmtree(package_dir)
     package_dir.mkdir(parents=True)
@@ -87,13 +193,8 @@ def publish_claude_plugin_package(
     (package_dir / "agents").mkdir()
     (package_dir / "skills").mkdir()
     (package_dir / "assets").mkdir()
-    marketplace_path.parent.mkdir(parents=True, exist_ok=True)
-    local_marketplace_path.parent.mkdir(parents=True, exist_ok=True)
 
     written: list[Path] = []
-    version = package_version()
-    sorted_recipes = sorted(claude_recipes, key=lambda item: item.recipe.id)
-
     for prepared in sorted_recipes:
         source_agent = _published_claude_agent_path(destination, prepared)
         target_agent = package_dir / "agents" / f"{prepared.recipe.id}.md"
@@ -109,7 +210,7 @@ def publish_claude_plugin_package(
     setup_skill_dir = package_dir / "skills" / CLAUDE_SETUP_SKILL
     setup_skill_dir.mkdir(parents=True)
     setup_skill = setup_skill_dir / "SKILL.md"
-    setup_skill.write_text(_render_setup_skill(sorted_recipes), encoding="utf-8")
+    setup_skill.write_text(_render_setup_skill(sorted_recipes, spec), encoding="utf-8")
     written.append(setup_skill)
 
     logo = package_dir / "assets" / "logo.svg"
@@ -118,53 +219,15 @@ def publish_claude_plugin_package(
 
     plugin_manifest = package_dir / ".claude-plugin" / "plugin.json"
     plugin_manifest.write_text(
-        json.dumps(_claude_plugin_manifest(version), indent=2, sort_keys=True) + "\n",
+        json.dumps(_claude_plugin_manifest(spec), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     written.append(plugin_manifest)
 
     readme = package_dir / "README.md"
-    readme.write_text(_claude_plugin_readme(sorted_recipes, version), encoding="utf-8")
+    readme.write_text(_claude_plugin_readme(sorted_recipes, spec), encoding="utf-8")
     written.append(readme)
-
-    marketplace_path.write_text(
-        json.dumps(
-            _claude_marketplace_manifest(source_path=f"./{CLAUDE_PLUGIN_PACKAGE_ROOT.as_posix()}"),
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    written.append(marketplace_path)
-
-    local_marketplace_path.write_text(
-        json.dumps(
-            _claude_marketplace_manifest(source_path=f"./{PLUGIN_NAME}"),
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n",
-        encoding="utf-8",
-    )
-    written.append(local_marketplace_path)
-
-    plugins_readme = destination / "plugins" / "README.md"
-    plugins_readme.write_text(plugin_packages_readme(), encoding="utf-8")
-    written.append(plugins_readme)
-
-    package_record = CatalogPluginPackage.from_published_package(
-        destination,
-        host=CLAUDE_CODE_HOST,
-        name=PLUGIN_NAME,
-        display_name=PLUGIN_DISPLAY_NAME,
-        version=version,
-        package_dir=package_dir,
-        marketplace_path=CLAUDE_MARKETPLACE_PATH.as_posix(),
-        included_agents=tuple(prepared.recipe.id for prepared in sorted_recipes),
-        extra_artifacts=(marketplace_path, local_marketplace_path, plugins_readme),
-    )
-    return PluginPackagePublication(package_record=package_record, written=tuple(written))
+    return tuple(written)
 
 
 def _published_claude_agent_path(destination: Path, prepared: PreparedSourceRecipe) -> Path:
@@ -240,18 +303,21 @@ def _sanitize_agent_frontmatter(frontmatter: str) -> str:
     return "\n".join(kept).rstrip()
 
 
-def _claude_plugin_manifest(version: str) -> dict[str, object]:
+def _claude_plugin_manifest(spec: ClaudePluginPackageSpec) -> dict[str, object]:
+    description = "Endor Labs workflow agents and setup for Claude Code."
+    if spec.legacy:
+        description = "Legacy Claude Code plugin id for Endor Labs Agent Kit workflows."
     return {
-        "name": PLUGIN_NAME,
-        "displayName": PLUGIN_DISPLAY_NAME,
-        "version": version,
-        "description": "Endor Labs workflow agents and setup for Claude Code.",
+        "name": spec.name,
+        "displayName": spec.display_name,
+        "version": spec.version,
+        "description": description,
         "author": {
             "name": "Endor Labs",
             "url": "https://www.endorlabs.com/",
         },
-        "homepage": "https://github.com/endorlabs/endor-labs-agent-kit",
-        "repository": "https://github.com/endorlabs/endor-labs-agent-kit",
+        "homepage": "https://github.com/endorlabs/ai-plugins",
+        "repository": "https://github.com/endorlabs/ai-plugins",
         "keywords": [
             "endor-labs",
             "security",
@@ -263,7 +329,11 @@ def _claude_plugin_manifest(version: str) -> dict[str, object]:
     }
 
 
-def _claude_marketplace_manifest(*, source_path: str) -> dict[str, object]:
+def _claude_marketplace_manifest(
+    package_specs: tuple[ClaudePluginPackageSpec, ...],
+    *,
+    source_paths: dict[str, str],
+) -> dict[str, object]:
     return {
         "name": CLAUDE_MARKETPLACE_NAME,
         "description": "Endor Labs Agent Kit Claude Code plugin marketplace.",
@@ -272,43 +342,59 @@ def _claude_marketplace_manifest(*, source_path: str) -> dict[str, object]:
             "email": "support@endorlabs.com",
         },
         "plugins": [
-            {
-                "name": PLUGIN_NAME,
-                "displayName": PLUGIN_DISPLAY_NAME,
-                "source": source_path,
-                "description": "Endor Labs workflow agents and setup for Claude Code.",
-                "version": package_version(),
-                "author": {
-                    "name": "Endor Labs",
-                },
-                "keywords": [
-                    "endor-labs",
-                    "security",
-                    "sca",
-                    "sast",
-                    "claude-code",
-                    *CLAUDE_DISCOVERY_TERMS,
-                ],
-                "category": "Developer Tools",
-                "tags": [
-                    "endor-labs",
-                    "security",
-                    "sca",
-                    "sast",
-                    "claude-code",
-                    *CLAUDE_DISCOVERY_TERMS,
-                ],
-            }
+            _claude_marketplace_entry(spec, source_path=source_paths[spec.name])
+            for spec in package_specs
         ],
     }
 
 
-def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
+def _claude_marketplace_entry(
+    spec: ClaudePluginPackageSpec,
+    *,
+    source_path: str,
+) -> dict[str, object]:
+    description = "Endor Labs workflow agents and setup for Claude Code."
+    if spec.legacy:
+        description = "Legacy Claude Code plugin id for Endor Labs Agent Kit workflows."
+    return {
+        "name": spec.name,
+        "displayName": spec.display_name,
+        "source": source_path,
+        "description": description,
+        "version": spec.version,
+        "author": {
+            "name": "Endor Labs",
+        },
+        "keywords": [
+            "endor-labs",
+            "security",
+            "sca",
+            "sast",
+            "claude-code",
+            *CLAUDE_DISCOVERY_TERMS,
+        ],
+        "category": "Developer Tools",
+        "tags": [
+            "endor-labs",
+            "security",
+            "sca",
+            "sast",
+            "claude-code",
+            *CLAUDE_DISCOVERY_TERMS,
+        ],
+    }
+
+
+def _render_setup_skill(
+    prepared_recipes: list[PreparedSourceRecipe],
+    spec: ClaudePluginPackageSpec,
+) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
         f"- `{_workflow_label(prepared.recipe.id)}` -> Claude Code agent `{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
+    install_notice = _claude_install_upgrade_notice(spec)
     return "\n".join([
         "---",
         f"name: {CLAUDE_SETUP_SKILL}",
@@ -317,7 +403,11 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "# Endor Agent Kit Setup For Claude Code",
         "",
-        "Generated for the Endor Labs Agent Kit Claude Code plugin.",
+        f"Generated for the {spec.display_name} Claude Code plugin.",
+        "",
+        "## Claude Install And Upgrade Notice",
+        "",
+        *install_notice,
         "",
         "## Bundled Claude Code Agents",
         "",
@@ -325,25 +415,25 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "## Claude Code Plugin Install Commands",
         "",
-        "From the public Agent Kit repository:",
+        "From the public ai-plugins distribution repository:",
         "",
         "```text",
-        "/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude",
-        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
+        f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY} --sparse .claude-plugin plugins/claude",
+        f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "From a local checkout of the Agent Kit repository root:",
         "",
         "```text",
         "/plugin marketplace add ./",
-        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
+        f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "For package-only local validation, add the generated Claude marketplace:",
         "",
         "```text",
         "/plugin marketplace add ./plugins/claude",
-        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
+        f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         setup_source.rstrip(),
@@ -373,22 +463,27 @@ def _setup_source(prepared_recipes: list[PreparedSourceRecipe]) -> str:
 
 def _claude_plugin_readme(
     prepared_recipes: list[PreparedSourceRecipe],
-    version: str,
+    spec: ClaudePluginPackageSpec,
 ) -> str:
     rows = [
         f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
+    install_notice = _claude_install_upgrade_notice(spec)
     return "\n".join([
-        "# Endor Labs Agent Kit Claude Code Plugin",
+        f"# {spec.display_name} Claude Code Plugin",
         "",
         "<!-- Generated by Endor Labs Agent Kit. Do not hand-edit. -->",
         "",
-        f"Version: `{version}`",
+        f"Version: `{spec.version}`",
         "",
         "This generated Claude Code plugin package includes Endor Labs setup",
         "support and Claude Code agents generated from source recipes in the",
         "Endor Labs Agent Kit repository.",
+        "",
+        "## Install And Upgrade Notice",
+        "",
+        *install_notice,
         "",
         "## Host Metadata",
         "",
@@ -401,8 +496,8 @@ def _claude_plugin_readme(
         "## Install From The Public Repository",
         "",
         "```text",
-        "/plugin marketplace add endorlabs/endor-labs-agent-kit --sparse .claude-plugin plugins/claude",
-        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
+        f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY} --sparse .claude-plugin plugins/claude",
+        f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "## Install From A Local Checkout",
@@ -411,7 +506,7 @@ def _claude_plugin_readme(
         "",
         "```text",
         "/plugin marketplace add ./",
-        f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}",
+        f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
         "Start a new Claude Code session or run `/reload-plugins` after installing",
@@ -463,6 +558,23 @@ def _claude_plugin_readme(
         "- https://code.claude.com/docs/en/plugins-reference",
         "",
     ])
+
+
+def _claude_install_upgrade_notice(spec: ClaudePluginPackageSpec) -> list[str]:
+    if spec.legacy:
+        return [
+            f"- `{LEGACY_CLAUDE_PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}` is retained for existing Claude Code users and pinned installs.",
+            f"- New installs should prefer `{PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}`.",
+            "- Existing users do not need an automatic migration; this package will keep working.",
+            "- Do not enable both Claude plugin ids in the same profile because they expose the same agents and setup skill.",
+            "- The plugin does not auto-disable, uninstall, or edit Claude settings for either id.",
+        ]
+    return [
+        f"- `{PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}` is the preferred Claude Code plugin id for new installs.",
+        f"- Existing `{LEGACY_CLAUDE_PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}` users can keep using the legacy compatibility package.",
+        "- Do not enable both Claude plugin ids in the same profile because they expose the same agents and setup skill.",
+        "- The plugin does not auto-disable, uninstall, or edit Claude settings for either id.",
+    ]
 
 
 def _workflow_label(agent_id: str) -> str:

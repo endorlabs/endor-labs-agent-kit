@@ -5,12 +5,13 @@ description: Use when setting up Endor Labs Agent Kit for Claude Code, checking 
 
 # Endor Agent Kit Setup For Claude Code
 
-Generated for the Endor Labs Agent Kit Claude Code plugin.
+Generated for the Endor Labs AI Plugins (Legacy) Claude Code plugin.
 
 ## Claude Install And Upgrade Notice
 
-- `endor-labs-agent-kit@endorlabs` is the preferred Claude Code plugin id for new installs.
-- Existing `ai-plugins@endorlabs` users can keep using the legacy compatibility package.
+- `ai-plugins@endorlabs` is retained for existing Claude Code users and pinned installs.
+- New installs should prefer `endor-labs-agent-kit@endorlabs`.
+- Existing users do not need an automatic migration; this package will keep working.
 - Do not enable both Claude plugin ids in the same profile because they expose the same agents and setup skill.
 - The plugin does not auto-disable, uninstall, or edit Claude settings for either id.
 
@@ -33,21 +34,21 @@ From the public ai-plugins distribution repository:
 
 ```text
 /plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
-/plugin install endor-labs-agent-kit@endorlabs
+/plugin install ai-plugins@endorlabs
 ```
 
 From a local checkout of the Agent Kit repository root:
 
 ```text
 /plugin marketplace add ./
-/plugin install endor-labs-agent-kit@endorlabs
+/plugin install ai-plugins@endorlabs
 ```
 
 For package-only local validation, add the generated Claude marketplace:
 
 ```text
 /plugin marketplace add ./plugins/claude
-/plugin install endor-labs-agent-kit@endorlabs
+/plugin install ai-plugins@endorlabs
 ```
 
 # Endor Agent Kit Setup

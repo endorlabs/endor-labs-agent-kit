@@ -12,6 +12,7 @@ package slices now wrap host-compatible public workflows under:
 
 - `plugins/codex/endor-labs-agent-kit/`
 - `plugins/claude/endor-labs-agent-kit/`
+- `plugins/claude/ai-plugins/` for legacy Claude Code compatibility
 - `plugins/gemini/endor-labs-agent-kit/`
 - `plugins/antigravity/endor-labs-agent-kit/`
 
@@ -45,7 +46,7 @@ on local terminal/source-provider state plus explicit approval gates.
 
 ## Implemented Claude Code Plugin Shape
 
-The generated Claude Code plugin package includes:
+The generated Claude Code plugin packages include:
 
 - `.claude-plugin/plugin.json` for plugin metadata.
 - `agents/<agent>.md` files generated from the existing Claude Code artifacts.
@@ -55,6 +56,12 @@ The generated Claude Code plugin package includes:
 - Public-repo marketplace metadata at `.claude-plugin/marketplace.json`.
 - Package-local marketplace metadata at
   `plugins/claude/.claude-plugin/marketplace.json` for local validation.
+
+The preferred package id is `endor-labs-agent-kit@endorlabs`. The legacy
+`ai-plugins@endorlabs` package is retained as a real generated package so
+existing Claude Code users pinned to that id can continue to install and update
+without a breaking rename. Both packages expose the same setup skill and agents;
+normal users should not enable both ids in the same Claude profile.
 
 Claude Code plugin-shipped agents do not support `mcpServers`,
 `permissionMode`, or `hooks` in agent frontmatter. The generated package strips
