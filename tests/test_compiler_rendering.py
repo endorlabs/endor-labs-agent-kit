@@ -7,6 +7,7 @@ import pytest
 from conftest import repo_root
 from endor_agent_kit.compilers import claude_code
 from endor_agent_kit.compilers.rendering import (
+    ENDOR_NAMESPACE_PREFLIGHT,
     indent,
     instructions_for_edition,
     normalize_edition,
@@ -32,11 +33,20 @@ Enterprise rules.
 
 def test_shared_compiler_rendering_extracts_instruction_sections():
     assert instructions_for_edition(INSTRUCTIONS, "enterprise-edition") == (
-        "Shared rules.\n\nEnterprise rules.\n"
+        f"Shared rules.\n\n{ENDOR_NAMESPACE_PREFLIGHT.rstrip()}\n\nEnterprise rules.\n"
     )
     assert instructions_for_edition(INSTRUCTIONS, "standard") == (
-        "Shared rules.\n\nDeveloper rules.\n"
+        f"Shared rules.\n\n{ENDOR_NAMESPACE_PREFLIGHT.rstrip()}\n\nDeveloper rules.\n"
     )
+
+
+def test_shared_compiler_rendering_injects_namespace_preflight():
+    rendered = instructions_for_edition(INSTRUCTIONS, "enterprise-edition")
+
+    assert "## Endor Namespace Preflight" in rendered
+    assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in rendered
+    assert "`~/.endorctl/aigovernance/`" in rendered
+    assert "`aigovernance` or `ai-governance`" in rendered
 
 
 def test_shared_compiler_rendering_reports_missing_instruction_sections():

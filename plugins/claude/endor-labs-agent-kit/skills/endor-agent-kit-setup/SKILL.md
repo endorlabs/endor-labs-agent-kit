@@ -67,9 +67,13 @@ Setup may:
 
 - Inspect command availability and versions for `endorctl`, `gh`, `git`, and
   workflow-relevant language tooling.
+- Read `ENDOR_NAMESPACE` from the current process environment and report it as
+  namespace provenance when present.
 - Safely parse `~/.endorctl/config.yaml` for non-secret fields such as
   `ENDOR_API` and `ENDOR_NAMESPACE`.
 - Report the presence of credential fields by key name only.
+- Report the presence of `ENDOR_API_CREDENTIALS_*` authentication variables by
+  key name only.
 - Run lightweight read-only Endor auth verification when config or credentials
   are present.
 - Offer re-authentication when verification fails.
@@ -82,6 +86,9 @@ Setup must not:
 - Run `endorctl scan`.
 - Run `endorctl host-check`.
 - Print `~/.endorctl/config.yaml` or secret values.
+- Read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or
+  `--config-path` at `~/.endorctl/aigovernance/` or any path whose name
+  contains `aigovernance` or `ai-governance`.
 - Ask the user to paste API keys, API secrets, tokens, or passwords into chat.
 - Write `ENDOR_API_CREDENTIALS_KEY` or `ENDOR_API_CREDENTIALS_SECRET`.
 - Edit shell profile files such as `.zshrc`, `.bashrc`, or PowerShell profile.
@@ -106,7 +113,10 @@ For Endor auth, report sanitized fields only:
 ```text
 Endor config: found
 API endpoint: https://api.endorlabs.com
-Namespace: auri
+Namespace candidates:
+- ENDOR_NAMESPACE: not set
+- ~/.endorctl/config.yaml ENDOR_NAMESPACE: auri
+Selected namespace: auri from ~/.endorctl/config.yaml
 Auth: API credential fields present
 Endor auth: verified for namespace auri
 Secret values: hidden
@@ -115,6 +125,17 @@ Secret values: hidden
 If a namespace is missing, say that a namespace is required before live Endor
 lookups. If a namespace is detected, let the user use it or override it for the
 current workflow.
+
+If `ENDOR_NAMESPACE` from the current process environment and
+`~/.endorctl/config.yaml` disagree, surface both values and stop before live
+Endor lookups. Ask the user which namespace to use for this workflow. Do not
+silently trust either value, and do not unset environment variables or edit
+config files unless the user explicitly asks for that separate operational
+cleanup.
+
+When the user selects or supplies a namespace, later workflow agents must pass
+it explicitly with `-n <namespace>` or `--namespace <namespace>` for scoped
+Endor lookups rather than relying on bare `endorctl` namespace resolution.
 
 ## Endor Tooling
 

@@ -48,6 +48,26 @@ MANAGED_ALLOWED_HOSTS = frozenset(
     }
 )
 
+NAMESPACE_PREFLIGHT_REQUIRED_TEXT = (
+    "## Endor Namespace Preflight",
+    "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs",
+    "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only",
+    "surface both values with provenance and stop for user confirmation",
+    "`endorctl api` lookup",
+    "`~/.endorctl/aigovernance/`",
+    "`aigovernance` or `ai-governance`",
+)
+
+NAMESPACE_SETUP_REQUIRED_TEXT = (
+    "`ENDOR_NAMESPACE`",
+    "`ENDOR_API_CREDENTIALS_*`",
+    "`~/.endorctl/config.yaml`",
+    "`~/.endorctl/aigovernance/`",
+    "`ai-governance`",
+    "surface both values",
+    "`-n <namespace>` or `--namespace <namespace>`",
+)
+
 
 def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     """Return guardrail conformance errors for a generated catalog root."""
@@ -79,6 +99,18 @@ def _check_provenance(root: Path, errors: list[str]) -> None:
     errors.extend(verify_catalog_provenance(root))
 
 
+def _check_namespace_preflight(root: Path, path: Path, content: str, errors: list[str]) -> None:
+    for required in NAMESPACE_PREFLIGHT_REQUIRED_TEXT:
+        if required not in content:
+            errors.append(f"{_rel(root, path)}: missing namespace preflight text {required!r}")
+
+
+def _check_namespace_setup_guidance(root: Path, path: Path, content: str, errors: list[str]) -> None:
+    for required in NAMESPACE_SETUP_REQUIRED_TEXT:
+        if required not in content:
+            errors.append(f"{_rel(root, path)}: missing namespace setup text {required!r}")
+
+
 def _check_manifest(root: Path, errors: list[str]) -> None:
     manifest_path = root / "manifest.json"
     if not manifest_path.is_file():
@@ -104,6 +136,7 @@ def _check_docs(root: Path, errors: list[str]) -> None:
         "docs/guardrails.md": (
             "Agent Kit is an artifact and workflow-contract system",
             "Runtime audit and authorization | Delegated",
+            "Namespace provenance and conflict surfacing",
             "Untrusted Content Boundary",
             "Remaining Gaps",
         ),
@@ -204,6 +237,10 @@ def _check_claude_code(root: Path, errors: list[str]) -> None:
                 errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
         if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in content:
             errors.append(f"{_rel(root, prompt)}: missing untrusted-content boundary")
+        _check_namespace_preflight(root, prompt, content, errors)
+        setup = agent_dir / "endorctl-setup.md"
+        if setup.is_file():
+            _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
 
 
 def _claude_code_expected_denied(posture: SourceRecipeSafetyPosture | None) -> set[str]:
@@ -232,8 +269,10 @@ def _check_managed_agents(root: Path, errors: list[str]) -> None:
         environment = _load_yaml_mapping(root, environment_file, errors)
         if not agent or not environment:
             continue
-        if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in str(agent.get("system", "")):
+        system = str(agent.get("system", ""))
+        if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in system:
             errors.append(f"{_rel(root, agent_file)}: missing untrusted-content boundary")
+        _check_namespace_preflight(root, agent_file, system, errors)
         for index, tool in enumerate(_list(agent.get("tools"))):
             policy = _dict(_dict(tool).get("default_config")).get("permission_policy", {})
             if _dict(policy).get("type") != "always_ask":
@@ -262,6 +301,9 @@ def _check_managed_agents(root: Path, errors: list[str]) -> None:
                 )
         elif networking.get("allow_package_managers") is not False:
             errors.append(f"{_rel(root, environment_file)}: allow_package_managers must be false")
+        setup = agent_dir / "endorctl-setup.md"
+        if setup.is_file():
+            _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
 
 
 def _check_codex(root: Path, errors: list[str]) -> None:
@@ -293,6 +335,10 @@ def _check_codex(root: Path, errors: list[str]) -> None:
                 errors.append(
                     f"{_rel(root, skill)}: missing required guardrail text {posture_text!r}"
                 )
+        _check_namespace_preflight(root, skill, content, errors)
+        setup = agent_dir / "endorctl-setup.md"
+        if setup.is_file():
+            _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
 
 
 def _check_gemini(root: Path, errors: list[str]) -> None:
@@ -313,6 +359,7 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
             ):
                 if required not in skill_text:
                     errors.append(f"{_rel(root, skill)}: missing required guardrail text {required!r}")
+            _check_namespace_preflight(root, skill, skill_text, errors)
         agent = agent_dir / f"{agent_dir.name}.md"
         if not agent.is_file():
             errors.append(f"{_rel(root, agent)}: missing Gemini subagent")
@@ -330,6 +377,10 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini subagent must not declare {forbidden}")
+        _check_namespace_preflight(root, agent, agent_text, errors)
+        setup = agent_dir / "endorctl-setup.md"
+        if setup.is_file():
+            _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
 
 
 def _check_plugins(root: Path, errors: list[str]) -> None:
@@ -476,10 +527,16 @@ def _check_codex_plugin_package(
         ):
             if required not in setup_text:
                 errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+        _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
     installer = codex_package / "scripts" / "install_codex_agents.py"
     if not installer.is_file():
         errors.append(f"{_rel(root, installer)}: missing Codex custom-agent installer")
+
+    for skill in sorted((codex_package / "skills").glob("*/SKILL.md")):
+        if skill.parent.name == "endor-agent-kit-setup":
+            continue
+        _check_namespace_preflight(root, skill, skill.read_text(encoding="utf-8"), errors)
 
     for agent in sorted((codex_package / "agents").glob("*.toml")):
         text = agent.read_text(encoding="utf-8")
@@ -494,6 +551,7 @@ def _check_codex_plugin_package(
             errors.append(f"{_rel(root, agent)}: Codex custom-agent names must use hyphens, not underscores")
         if not agent.stem.startswith("endor-") or not agent.stem.endswith("-agent"):
             errors.append(f"{_rel(root, agent)}: Codex custom-agent name must use endor-...-agent")
+        _check_namespace_preflight(root, agent, text, errors)
 
     forbidden_names = {"recipe.yaml", "cases.yaml"}
     for path in codex_package.rglob("*"):
@@ -556,6 +614,7 @@ def _check_claude_plugin_package(
             ):
                 if required not in setup_text:
                     errors.append(f"{_rel(root, setup)}: missing Claude compatibility text {required!r}")
+        _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
     for agent in sorted((claude_package / "agents").glob("*.md")):
         text = agent.read_text(encoding="utf-8")
@@ -580,6 +639,7 @@ def _check_claude_plugin_package(
             if not expected_denied <= disallowed:
                 missing = sorted(expected_denied - disallowed)
                 errors.append(f"{_rel(root, agent)}: disallowedTools missing {missing}")
+        _check_namespace_preflight(root, agent, text, errors)
 
     forbidden_names = {"recipe.yaml", "cases.yaml"}
     for path in claude_package.rglob("*"):
@@ -670,6 +730,7 @@ def _check_gemini_plugin_package(
         ):
             if required not in setup_text:
                 errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+        _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
     for skill in sorted((gemini_package / "skills").glob("*/SKILL.md")):
         if skill.parent.name == "endor-agent-kit-setup":
@@ -678,6 +739,7 @@ def _check_gemini_plugin_package(
         for required in ("## Gemini CLI Host Contract", "data_gaps"):
             if required not in text:
                 errors.append(f"{_rel(root, skill)}: missing required Gemini plugin skill text {required!r}")
+        _check_namespace_preflight(root, skill, text, errors)
 
     for agent in sorted((gemini_package / "agents").glob("*.md")):
         text = agent.read_text(encoding="utf-8")
@@ -694,6 +756,7 @@ def _check_gemini_plugin_package(
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini plugin subagent must not declare {forbidden}")
+        _check_namespace_preflight(root, agent, text, errors)
 
     forbidden_names = {"recipe.yaml", "cases.yaml"}
     for path in gemini_package.rglob("*"):
@@ -733,6 +796,7 @@ def _check_antigravity_plugin_package(
         ):
             if required not in setup_text:
                 errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+        _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
     for skill in sorted((antigravity_package / "skills").glob("*/SKILL.md")):
         if skill.parent.name == "endor-agent-kit-setup":
@@ -741,6 +805,7 @@ def _check_antigravity_plugin_package(
         for required in ("## Antigravity CLI Host Contract", "data_gaps"):
             if required not in text:
                 errors.append(f"{_rel(root, skill)}: missing required Antigravity plugin skill text {required!r}")
+        _check_namespace_preflight(root, skill, text, errors)
 
     for agent in sorted((antigravity_package / "agents").glob("*.md")):
         text = agent.read_text(encoding="utf-8")
@@ -757,6 +822,7 @@ def _check_antigravity_plugin_package(
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Antigravity plugin subagent must not declare {forbidden}")
+        _check_namespace_preflight(root, agent, text, errors)
 
     forbidden_names = {"recipe.yaml", "cases.yaml"}
     for path in antigravity_package.rglob("*"):
@@ -786,6 +852,8 @@ def _check_portable(root: Path, errors: list[str]) -> None:
                 assert_portable_text(path.name, content)
             except ValueError as exc:
                 errors.append(str(exc))
+            if path.name == "endorctl-setup.md":
+                _check_namespace_setup_guidance(root, path, content, errors)
         agent = bundle / "agent.md"
         if not agent.is_file():
             errors.append(f"{_rel(root, agent)}: missing portable agent instructions")
@@ -798,6 +866,7 @@ def _check_portable(root: Path, errors: list[str]) -> None:
         ):
             if required not in agent_text:
                 errors.append(f"{_rel(root, agent)}: missing required guardrail text {required!r}")
+        _check_namespace_preflight(root, agent, agent_text, errors)
 
         manifest_path = bundle / "agent.manifest.json"
         manifest = _load_json_mapping(root, manifest_path, errors)

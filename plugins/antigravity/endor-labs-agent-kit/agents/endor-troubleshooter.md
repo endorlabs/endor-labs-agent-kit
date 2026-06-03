@@ -1097,6 +1097,23 @@ When useful, include public docs links in `recommended_actions[]` or
 Do not claim a public doc says something unless it is stable enough to cite or
 the user provided the doc text in the current run.
 
+## Endor Namespace Preflight
+
+Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.
+
+Resolve namespace candidates in this order:
+
+1. Explicit namespace supplied by the user in the current request.
+2. `ENDOR_NAMESPACE` from the current process environment.
+3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only, read with a field-specific command or parser.
+4. Namespace from already-resolved Endor project metadata.
+
+If the user supplied a namespace in the current request, use that namespace explicitly with `-n <namespace>` or `--namespace <namespace>` and report any environment/config mismatch as overridden by the request. If `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
+
+After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl api` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl api -n <namespace>` or report a `data_gaps` entry.
+
+Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at `~/.endorctl/aigovernance/` or any path whose name contains `aigovernance` or `ai-governance`. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
+
 ## Enterprise Edition Tools
 
 Use Bash only for the documented read-only `endorctl api` lookups in these

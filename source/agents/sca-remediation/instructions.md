@@ -57,10 +57,10 @@ Resolve namespace candidates in this order:
 
 1. Explicit namespace supplied by the user in the current request.
 2. `ENDOR_NAMESPACE` from the current shell environment.
-3. `ENDOR_NAMESPACE` in the active endorctl config, usually `~/.endorctl/config.yaml` or the directory named by `--config-path`.
+3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml`, read with a field-specific command or parser.
 4. A namespace discovered from an already-resolved Endor project record.
 
-Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, first try a project lookup without `-n` so endorctl can use its active configuration, or ask the user for the namespace. If a namespace candidate returns no matching project, retry that same candidate with `--traverse`, then record the candidate, provenance, and traversal result in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
+Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, ask the user for the namespace before scoped lookups. If a namespace candidate returns no matching project, retry that same candidate with `--traverse`, then record the candidate, provenance, and traversal result in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
 
 When recording project resolution evidence, include whether `--traverse` was
 used and whether the resolved project came from the active namespace or a child
