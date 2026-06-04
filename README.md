@@ -725,6 +725,7 @@ python -m pip install -e ".[dev]"
 
 ```bash
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
+endor-agent-kit doctor-new-agent source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 endor-agent-kit check-guardrails --catalog-root .
@@ -744,6 +745,7 @@ generated `ai-plugins` distribution PR.
 | Command | Purpose |
 | --- | --- |
 | `endor-agent-kit validate source/agents/<agent>/recipe.yaml` | Validate one recipe. |
+| `endor-agent-kit doctor-new-agent source/agents/<agent>/recipe.yaml` | Run contributor-facing pre-PR checks and next-step guidance for a new source agent. |
 | `endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent` | Check source-first authoring rules for a new public agent. |
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host>` | Compile one recipe into its local `dist/` directory. |
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |

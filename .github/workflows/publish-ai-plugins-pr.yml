@@ -48,6 +48,7 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           path: endor-labs-agent-kit
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -70,6 +71,15 @@ jobs:
             endor-agent-kit validate "$recipe"
             endor-agent-kit authoring-check "$recipe"
           done
+
+      - name: Validate newly added agents strictly
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: endor-labs-agent-kit
+        run: |
+          . .venv/bin/activate
+          python scripts/check_new_agent_authoring.py \
+            --base-ref "origin/${{ github.base_ref }}" \
+            --command endor-agent-kit
 
       - name: Test Agent Kit
         working-directory: endor-labs-agent-kit
@@ -116,11 +126,9 @@ jobs:
           mkdir -p dist/provenance
           endor-agent-kit provenance-statement --catalog-root . > dist/provenance/agent-kit-catalog.intoto.json
           sha256sum manifest.json > dist/provenance/manifest.sha256
-          tar --sort=name --mtime='UTC 1970-01-01' --owner=0 --group=0 --numeric-owner \
-            -czf dist/agent-kit-catalog-provenance.tgz \
-            manifest.json \
-            dist/provenance/agent-kit-catalog.intoto.json \
-            dist/provenance/manifest.sha256
+          python scripts/build_provenance_bundle.py \
+            --root . \
+            --output dist/agent-kit-catalog-provenance.tgz
           provenance_sha="$(sha256sum dist/agent-kit-catalog-provenance.tgz | awk '{print $1}')"
           manifest_sha="$(sha256sum manifest.json | awk '{print $1}')"
           artifact_prefix="${ENDOR_ARTIFACT_NAME_PREFIX:-github.com/endorlabs/ai-plugins/agent-kit-catalog-provenance}"
@@ -129,11 +137,19 @@ jobs:
           echo "ENDOR_AGENT_KIT_ARTIFACT_NAME=${artifact_prefix}@sha256:${provenance_sha}" >> "$GITHUB_ENV"
 
       - name: Optional Endor Labs artifact signing
-        if: ${{ vars.ENDOR_ARTIFACT_SIGNING_ENABLED == 'true' }}
+        if: ${{ vars.ENDOR_ARTIFACT_SIGNING_ENABLED == 'true' && env.DRY_RUN != 'true' }}
         uses: endorlabs/github-action/sign@b8992820cc4d9c9e7ded5022adf6cabe2dc11946 # v1.1.12
         with:
           namespace: ${{ vars.ENDOR_NAMESPACE }}
           artifact_name: ${{ env.ENDOR_AGENT_KIT_ARTIFACT_NAME }}
+
+      - name: Optional Endor Labs artifact signature verification
+        if: ${{ vars.ENDOR_ARTIFACT_SIGNING_ENABLED == 'true' && env.DRY_RUN != 'true' }}
+        uses: endorlabs/github-action/verify@b8992820cc4d9c9e7ded5022adf6cabe2dc11946 # v1.1.12
+        with:
+          namespace: ${{ vars.ENDOR_NAMESPACE }}
+          artifact_name: ${{ env.ENDOR_AGENT_KIT_ARTIFACT_NAME }}
+          certificate_oidc_issuer: "https://token.actions.githubusercontent.com"
 
       - name: Check ai-plugins sync token
         if: ${{ env.DRY_RUN != 'true' }}
