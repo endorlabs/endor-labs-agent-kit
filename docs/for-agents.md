@@ -14,6 +14,7 @@ approval gates.
 | Install one agent | `<host>/<agent>/README.md` | `source/agents/<agent>/` |
 | Change agent behavior | `source/agents/<agent>/recipe.yaml`, `instructions.md`, optional `actions.yaml`, evals, and `architecture.svg` | Generated host directories |
 | Change generated docs or package shape | `src/endor_agent_kit/publication/` and tests | Installed plugin cache copies |
+| Propose or create a new agent | `docs/contributing-agents.md` and `source/agents/<agent>/` | `ai-plugins` |
 | Publish or mirror packages | `docs/plugin-release-checklist.md` and `docs/distribution-sync.md` | `ai-plugins` generated packages before source regeneration |
 
 ## Source Of Truth
@@ -98,3 +99,7 @@ copy only `.cursor-plugin/`, generated root workflow `agents`, generated root
 workflow `skills/`, and `assets/logo.svg`. Cursor SDK mirror sync should copy
 `cursor-sdk/`. Do not copy Gemini root compatibility files as Cursor package
 output. Use `docs/distribution-sync.md` before editing or syncing that repo.
+
+New agents, skills, hooks, and action contracts must be proposed and reviewed in
+this source repo with `docs/contributing-agents.md`. After a maintainer merges
+the source PR, the publish workflow opens the generated `ai-plugins` PR.

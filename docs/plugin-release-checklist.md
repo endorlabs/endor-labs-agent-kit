@@ -103,6 +103,29 @@ The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not
 show a Gemini zip artifact.
 
+## ai-plugins Publication
+
+Normal `ai-plugins` publication is a generated PR from
+`.github/workflows/publish-ai-plugins-pr.yml` after an Agent Kit maintainer
+merge to `main`. The workflow validates source recipes, runs tests,
+regenerates with `--include-plugins`, verifies guardrails and provenance, syncs
+generated distribution surfaces with `scripts/sync_ai_plugins_distribution.py`,
+and opens or updates the mirror PR.
+
+Before release, verify:
+
+- `AI_PLUGINS_SYNC_TOKEN` is configured with `contents:write` and
+  `pull-requests:write` on `endorlabs/ai-plugins`.
+- Endor signing variables are configured when signing is required:
+  `ENDOR_ARTIFACT_SIGNING_ENABLED=true`, `ENDOR_NAMESPACE`, and optional
+  `ENDOR_ARTIFACT_NAME_PREFIX`.
+- The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`
+  and `provenance/manifest.sha256`.
+- The PR body links to the source Agent Kit commit and lists validation,
+  manifest digest, and provenance bundle digest.
+
+Use `docs/distribution-sync.md` only for local dry runs or manual fallback.
+
 ## Cursor
 
 Local release validation:
@@ -133,7 +156,11 @@ Local release validation:
 
 ```bash
 python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
-python3 -m py_compile cursor-sdk/run_cursor_agent.py
+python3 - <<'PY'
+import py_compile
+
+py_compile.compile("cursor-sdk/run_cursor_agent.py", cfile="/tmp/run_cursor_agent.pyc", doraise=True)
+PY
 test -f cursor-sdk/requirements.txt
 for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-troubleshooter-agent endor-probe-droid-agent endor-sca-remediation-agent; do
   test -f "cursor-sdk/agents/$agent.md"

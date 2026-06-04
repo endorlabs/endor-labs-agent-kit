@@ -47,19 +47,33 @@ jobs:
       - name: Regenerate catalog
         run: |
           . .venv/bin/activate
-          endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
+          endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 
       - name: Check generated artifacts
         run: |
           git diff --exit-code -- \
             README.md \
             manifest.json \
+            .agents/plugins \
+            .claude-plugin \
+            .cursor-plugin \
+            agents \
+            assets \
             claude-code \
             claude-managed-agents \
             codex \
-            portable
+            cursor-sdk \
+            gemini \
+            plugins \
+            portable \
+            skills
 
       - name: Check guardrails
         run: |
           . .venv/bin/activate
           endor-agent-kit check-guardrails --catalog-root .
+
+      - name: Verify provenance
+        run: |
+          . .venv/bin/activate
+          endor-agent-kit verify-provenance --catalog-root .
