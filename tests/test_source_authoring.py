@@ -51,6 +51,35 @@ def test_source_authoring_check_accepts_strict_new_mutating_agent(tmp_path, caps
     assert f"OK: {recipe}" in output
 
 
+def test_doctor_new_agent_reports_pre_pr_readiness(tmp_path, capsys):
+    recipe = _copy_agent_source(tmp_path, "sca-remediation")
+
+    status = main(["doctor-new-agent", str(recipe)])
+    output = capsys.readouterr().out
+
+    assert status == 0
+    assert f"Doctor New Agent: {recipe}" in output
+    assert "OK: recipe validation" in output
+    assert "OK: strict new-agent authoring" in output
+    assert "- agent id: sca-remediation" in output
+    assert "- safety class: mutating" in output
+    assert "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins" in output
+    assert "OK: new agent is ready for an Agent Kit PR" in output
+
+
+def test_doctor_new_agent_returns_failure_for_incomplete_new_agent(tmp_path, capsys):
+    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+
+    status = main(["doctor-new-agent", str(recipe)])
+    output = capsys.readouterr().out
+
+    assert status == 1
+    assert "OK: recipe validation" in output
+    assert "FAIL: strict new-agent authoring" in output
+    assert "ERROR: architecture.required" in output
+    assert "Next commands:" in output
+
+
 def test_source_authoring_check_requires_new_agent_architecture(tmp_path):
     recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
 

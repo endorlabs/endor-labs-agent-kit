@@ -25,6 +25,7 @@ from endor_agent_kit.install import (
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
 from endor_agent_kit.provenance import build_provenance_statement, verify_catalog_provenance
 from endor_agent_kit.publisher import publish_recipes
+from endor_agent_kit.recipe import load_yaml_file
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
 from endor_agent_kit.workflow_output_contracts.commands import (
     add_workflow_command_parsers,
@@ -50,6 +51,12 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Require the stricter file set and eval coverage expected for new agents",
     )
+
+    doctor_new_agent_parser = subparsers.add_parser(
+        "doctor-new-agent",
+        help="Run the contributor-facing pre-PR checks for a new source agent",
+    )
+    doctor_new_agent_parser.add_argument("recipe", type=Path)
 
     compile_parser = subparsers.add_parser("compile", help="Compile a recipe")
     compile_parser.add_argument("recipe", type=Path)
@@ -143,6 +150,9 @@ def main(argv: list[str] | None = None) -> int:
             return 1
         print(f"OK: {args.recipe}")
         return 0
+
+    if args.command == "doctor-new-agent":
+        return _doctor_new_agent(args.recipe)
 
     if args.command == "compile":
         errors = validate_recipe_file(args.recipe)
@@ -297,6 +307,91 @@ def main(argv: list[str] | None = None) -> int:
 
     parser.error(f"unknown command {args.command!r}")
     return 2
+
+
+def _doctor_new_agent(recipe_path: Path) -> int:
+    """Print a contributor-facing health report for a new source agent."""
+
+    report = check_source_recipe_authoring(recipe_path, new_agent=True)
+    recipe_errors = [error for error in report.errors if error.code == "recipe.validation"]
+    authoring_errors = [error for error in report.errors if error.code != "recipe.validation"]
+
+    print(f"Doctor New Agent: {recipe_path}")
+    _print_doctor_check("recipe validation", not recipe_errors)
+    _print_doctor_check("strict new-agent authoring", not authoring_errors)
+
+    for warning in report.warnings:
+        print(f"WARNING: {warning.code}: {warning.message}{_issue_location(warning)}")
+    for error in report.errors:
+        print(f"ERROR: {error.code}: {error.message}{_issue_location(error)}")
+
+    data = _load_recipe_data_for_doctor(recipe_path)
+    source_dir = report.source_dir
+    agent_id = report.agent_id or "<unknown>"
+    evals_path = source_dir / str(data.get("evals") or "evals/cases.yaml")
+    eval_case_count = _eval_case_count(evals_path)
+    hosts = _string_list(data.get("compatible_hosts"))
+    safety_class = str(data.get("safety_class") or "unknown")
+
+    print("")
+    print("Source summary:")
+    print(f"- agent id: {agent_id}")
+    print(f"- source dir: {source_dir}")
+    print(f"- safety class: {safety_class}")
+    print(f"- compatible hosts: {', '.join(hosts) if hosts else '<none>'}")
+    print(f"- eval cases: {eval_case_count if eval_case_count is not None else '<unreadable>'}")
+    print(f"- architecture: {source_dir / 'architecture.svg'}")
+
+    print("")
+    print("Next commands:")
+    print("endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins")
+    print("endor-agent-kit check-guardrails --catalog-root .")
+    print("endor-agent-kit verify-provenance --catalog-root .")
+    print("python -m pytest -q")
+    print(
+        "git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin "
+        ".cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk "
+        "gemini plugins portable skills"
+    )
+
+    if report.errors:
+        return 1
+    print("")
+    print("OK: new agent is ready for an Agent Kit PR after regenerated artifacts are committed.")
+    return 0
+
+
+def _print_doctor_check(label: str, ok: bool) -> None:
+    prefix = "OK" if ok else "FAIL"
+    print(f"{prefix}: {label}")
+
+
+def _issue_location(issue: object) -> str:
+    path = getattr(issue, "path", None)
+    return f" ({path})" if path else ""
+
+
+def _load_recipe_data_for_doctor(recipe_path: Path) -> dict[str, object]:
+    try:
+        data = load_yaml_file(recipe_path)
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _eval_case_count(evals_path: Path) -> int | None:
+    try:
+        data = load_yaml_file(evals_path)
+    except Exception:
+        return None
+    cases = data.get("cases") if isinstance(data, dict) else None
+    return len(cases) if isinstance(cases, list) else None
+
+
+def _string_list(value: object) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str)]
 
 
 if __name__ == "__main__":

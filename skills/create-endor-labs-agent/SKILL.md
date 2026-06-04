@@ -107,7 +107,7 @@ commands.
 Create:
 
 ```text
-source/agents/<agent-id>/
+  source/agents/<agent-id>/
   recipe.yaml
   actions.yaml
   instructions.md
@@ -248,8 +248,11 @@ Run:
 python3 -m pip install -e ".[dev]"
 python3 -m pytest -q
 endor-agent-kit validate source/agents/<agent-id>/recipe.yaml
+endor-agent-kit doctor-new-agent source/agents/<agent-id>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent-id>/recipe.yaml --new-agent
-endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
+endor-agent-kit check-guardrails --catalog-root .
+endor-agent-kit verify-provenance --catalog-root .
 git diff --check
 ```
 
@@ -258,13 +261,21 @@ Then verify:
 ```bash
 python3 -m pytest -q
 for recipe in source/agents/*/recipe.yaml; do endor-agent-kit validate "$recipe"; done
+endor-agent-kit doctor-new-agent source/agents/<agent-id>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent-id>/recipe.yaml --new-agent
-endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
-git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
+python scripts/check_new_agent_authoring.py --base-ref origin/main --command endor-agent-kit
+endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
+endor-agent-kit check-guardrails --catalog-root .
+endor-agent-kit verify-provenance --catalog-root .
+git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini plugins portable skills
 ```
 
 If generated files changed, review them and keep them committed with the source
 recipe.
+
+`doctor-new-agent` is the first contributor-facing stop before opening the
+Agent Kit PR. It is read-only and reports missing source layout, eval,
+architecture, transport, and action-contract requirements before CI does.
 
 ## Final Report
 
@@ -280,3 +291,27 @@ Report:
 
 Do not claim the agent works in a host until its generated artifact was inspected
 or tested for that host.
+
+## Prepare The Pull Request
+
+After source files, generated artifacts, tests, and validation are complete,
+prepare a PR in `endor-labs-agent-kit`, not `ai-plugins`.
+
+The PR should use `.github/PULL_REQUEST_TEMPLATE/agent-source-change.md` and
+include:
+
+- source files created or changed
+- generated host and plugin artifact paths
+- architecture diagram path
+- eval coverage summary
+- safety class, host capabilities, and approval gates
+- validation commands and results
+- any known host-install or provider-validation gaps
+
+If the host has GitHub CLI and the user explicitly approves opening the PR, the
+assistant may create the branch and PR with `gh`. Otherwise, stop with the exact
+branch name, commit message, PR title, PR body, and validation summary for a
+maintainer to apply.
+
+Do not open or edit a PR in `ai-plugins`. After an Agent Kit maintainer merges
+the source PR, the publication workflow opens the generated `ai-plugins` PR.

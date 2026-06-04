@@ -119,6 +119,8 @@ Before release, verify:
 - Endor signing variables are configured when signing is required:
   `ENDOR_ARTIFACT_SIGNING_ENABLED=true`, `ENDOR_NAMESPACE`, and optional
   `ENDOR_ARTIFACT_NAME_PREFIX`.
+- Signing and signature verification are skipped for manual dry runs and both
+  run for non-dry-run publication workflows when signing is enabled.
 - The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`
   and `provenance/manifest.sha256`.
 - The PR body links to the source Agent Kit commit and lists validation,

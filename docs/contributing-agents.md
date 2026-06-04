@@ -69,13 +69,23 @@ Run:
 
 ```bash
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
+endor-agent-kit doctor-new-agent source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 python -m pytest -q
+python scripts/check_new_agent_authoring.py --base-ref origin/main --command endor-agent-kit
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 git diff --check
 ```
+
+`doctor-new-agent` is the contributor-friendly local gate. It runs recipe
+validation plus the stricter new-agent authoring checks, reports missing
+`architecture.svg`, eval coverage, action-contract, transport, and source
+layout issues, and prints the publish/test commands that should pass before the
+Agent Kit PR is opened. The `scripts/check_new_agent_authoring.py` command is
+the CI/base-ref companion: it only applies strict new-agent checks to recipes
+that are newly added in the PR.
 
 ## 🔁 Automated ai-plugins PR Flow
 
@@ -92,11 +102,13 @@ The workflow:
 5. fails if generated artifacts drift from the merged source PR
 6. verifies guardrails and manifest checksums
 7. emits `dist/provenance/agent-kit-catalog.intoto.json`
-8. optionally signs the provenance bundle with Endor Labs artifact signing
-9. checks out `endorlabs/ai-plugins`
-10. runs `scripts/sync_ai_plugins_distribution.py`
-11. validates the mirror
-12. opens or updates an `ai-plugins` PR
+8. builds `dist/agent-kit-catalog-provenance.tgz`
+9. optionally signs the provenance bundle with Endor Labs artifact signing
+10. verifies the Endor Labs artifact signature when signing is enabled
+11. checks out `endorlabs/ai-plugins`
+12. runs `scripts/sync_ai_plugins_distribution.py`
+13. validates the mirror
+14. opens or updates an `ai-plugins` PR
 
 Required secret:
 
@@ -112,6 +124,9 @@ Optional repository variables:
 | `ENDOR_NAMESPACE` | Endor namespace used by the signing action. |
 | `ENDOR_ARTIFACT_NAME_PREFIX` | Optional artifact name prefix. Defaults to `github.com/endorlabs/ai-plugins/agent-kit-catalog-provenance`. |
 
+Signing and signature verification are skipped when the workflow runs with
+`dry_run=true`.
+
 ## 🔐 Provenance And Signing
 
 Agent Kit already records per-artifact SHA256 digests in `manifest.json`.
@@ -125,7 +140,9 @@ flow documented at
 <https://docs.endorlabs.com/scan/containers/artifact-signing>. The official
 Endor docs describe GitHub Actions signing with
 `endorlabs/github-action/sign` and `endorctl artifact sign` as supported signing
-paths.
+paths. The workflow immediately verifies the signed artifact with
+`endorlabs/github-action/verify` and
+`certificate_oidc_issuer=https://token.actions.githubusercontent.com`.
 
 For releases where Endor signing is not yet configured, the minimum required
 provenance is:

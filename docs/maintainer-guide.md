@@ -65,12 +65,21 @@ and `manifest.json` checksums stay aligned.
 ```bash
 python -m pytest -q
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
-endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml
+endor-agent-kit doctor-new-agent source/agents/<agent>/recipe.yaml
+endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
+python scripts/check_new_agent_authoring.py --base-ref origin/main --command endor-agent-kit
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 git diff --check
 ```
+
+Use `doctor-new-agent` for a net-new public agent before review. For existing
+agent edits or non-agent PRs, use `validate`, the normal `authoring-check`
+without `--new-agent`, focused tests, and the generated-artifact/provenance
+checks that match the changed surface. CI runs
+`scripts/check_new_agent_authoring.py` only for recipes that are newly added in
+the pull request.
 
 For a full release, also follow `docs/plugin-release-checklist.md`.
 

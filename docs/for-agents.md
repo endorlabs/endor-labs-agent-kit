@@ -53,6 +53,7 @@ Use this command sequence after source edits:
 
 ```bash
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
+endor-agent-kit doctor-new-agent source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 python -m pytest -q
@@ -63,6 +64,11 @@ git diff --check
 
 If the shell cannot run `endor-agent-kit`, use the local source package with
 `PYTHONPATH=src python3 -m endor_agent_kit.cli ...`.
+
+Use `doctor-new-agent` only when the change adds a new public agent under
+`source/agents/<agent>/`. For docs-only changes, bug fixes, or existing-agent
+edits, skip that command and run the validation commands that match the changed
+surface.
 
 ## Approval Gates
 

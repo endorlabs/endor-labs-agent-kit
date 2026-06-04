@@ -45,7 +45,9 @@ ENDOR_ARTIFACT_NAME_PREFIX=github.com/endorlabs/ai-plugins/agent-kit-catalog-pro
 The workflow writes `provenance/agent-kit-catalog.intoto.json` and
 `provenance/manifest.sha256` into the generated `ai-plugins` PR. When signing is
 enabled, it signs the provenance bundle with the Endor Labs GitHub Action
-signing flow.
+signing flow and immediately verifies the signature with
+`endorlabs/github-action/verify`. Signing and verification are skipped for
+`dry_run=true`.
 
 ## Source Repo Regeneration
 
