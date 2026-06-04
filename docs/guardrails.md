@@ -305,10 +305,12 @@ catalog. Two mechanical controls build on it:
   statement whose subject is `manifest.json`; it carries no timestamp so it is
   reproducible from catalog content alone.
 
-Cryptographic signing stays a release-pipeline concern: CI signs the statement
-(for example with cosign, the SLSA generator, or `gh attestation`) over the
-manifest digest. Agent Kit produces and verifies the attestable subject; it does
-not hold signing keys.
+Cryptographic signing stays a release-pipeline concern. The
+`publish-ai-plugins-pr` workflow packages the deterministic statement and
+manifest checksum into the generated `ai-plugins` PR. When
+`ENDOR_ARTIFACT_SIGNING_ENABLED=true`, CI signs the provenance bundle with the
+Endor Labs artifact signing GitHub Action. Agent Kit produces and verifies the
+attestable subject; it does not hold signing keys.
 
 ## Remaining Gaps
 
@@ -319,7 +321,7 @@ production agent platform:
 - no universal pre-tool and post-tool tripwire framework
 - credential/secret scanning is mechanical and pattern-based in the catalog guardrails, not a full DLP service with entropy analysis or allowlist management
 - no centralized audit log store
-- the in-toto provenance statement and offline verification exist, but release signing over the manifest digest is still a CI step
+- the in-toto provenance statement and offline verification exist, but Endor Labs artifact signing requires repository-level signing variables and authorization policy setup
 - adversarial eval coverage is seeded and mechanically validated for the mutating agents, but is not yet complete across all agents or executed against a live runtime
 - no runtime sandbox for portable bundles, because portable intentionally delegates runtime execution
 

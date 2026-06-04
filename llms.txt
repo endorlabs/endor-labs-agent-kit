@@ -8,6 +8,7 @@
 - `README.md`: generated catalog front door for humans and agents.
 - `docs/getting-started.md`: human install and first-run guide.
 - `docs/for-agents.md`: agent operating rules for installing, editing, validating, and syncing.
+- `docs/contributing-agents.md`: contribution, approval, provenance, signing, and generated `ai-plugins` PR process.
 - `docs/maintainer-guide.md`: source recipe, generated docs, and publication template workflow.
 - `docs/distribution-sync.md`: source-to-`ai-plugins` mirror process.
 - `docs/plugin-release-checklist.md`: release validation matrix.
@@ -66,3 +67,5 @@ keeps `ai-plugins/plugins/` byte-for-byte identical to this repo's `plugins/`
 and copies Cursor package files from `.cursor-plugin/`, generated root workflow
 `agents/`, generated root workflow `skills/`, `cursor-sdk/`, and
 `assets/logo.svg`. Gemini root compatibility files are separate from Cursor.
+Maintainer-approved merges to Agent Kit `main` should publish generated mirror
+PRs through `.github/workflows/publish-ai-plugins-pr.yml`.

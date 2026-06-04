@@ -12,6 +12,7 @@ recipe-first builder used to maintain and publish them.
 | I want to... | Go here |
 | --- | --- |
 | 🚀 Install agents in a coding assistant | [`docs/getting-started.md`](docs/getting-started.md) or the host package README |
+| 🧰 Contribute or propose an agent | [`docs/contributing-agents.md`](docs/contributing-agents.md) |
 | 🤖 Ask an agent to inspect or sync this repo | [`docs/for-agents.md`](docs/for-agents.md) |
 | 🧰 Change how agents are generated | [`docs/maintainer-guide.md`](docs/maintainer-guide.md) |
 | 📦 Publish or mirror to `ai-plugins` | [`docs/distribution-sync.md`](docs/distribution-sync.md) |
@@ -662,9 +663,13 @@ The repository includes two maintainer-facing guardrail references:
 
 ## Contribute An Agent
 
-This repository is both the source of truth and the distribution catalog.
-Contributor workflow is recipe-first: edit source files under `source/agents/`, then
-regenerate customer-facing artifacts.
+This repository is the source of truth for agent behavior and generated
+package output. The public `endorlabs/ai-plugins` repository is the
+distribution mirror. New agents, skills, hooks, action contracts, and
+publication changes start here, not in `ai-plugins`.
+
+Read `docs/contributing-agents.md` for the official proposal, review,
+approval, provenance, signing, and generated `ai-plugins` PR process.
 
 ### Create Agents With The Skill
 
@@ -723,12 +728,16 @@ endor-agent-kit validate source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 endor-agent-kit check-guardrails --catalog-root .
+endor-agent-kit verify-provenance --catalog-root .
 python -m pytest -q
-git diff --exit-code -- README.md manifest.json claude-code claude-managed-agents
+git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini plugins portable skills
 ```
 
 Pull requests should include both source changes and regenerated artifacts.
-CI runs the same validation and generated-artifact drift check.
+CI runs validation, generated-artifact drift checks, guardrails, and
+provenance verification. After a maintainer merges to `main`,
+`.github/workflows/publish-ai-plugins-pr.yml` opens or updates the
+generated `ai-plugins` distribution PR.
 
 ### CLI Reference
 

@@ -10,6 +10,7 @@ shape, or release validation.
 | `source/agents/` | Source recipes, instructions, evals, action contracts, and architecture diagrams. |
 | `src/endor_agent_kit/` | Compiler, publisher, guardrail, provenance, install, and output-contract code. |
 | `docs/` | Maintainer, release, guardrail, runtime, and distribution documentation. |
+| `.github/workflows/publish-ai-plugins-pr.yml` | Post-merge publication workflow that opens generated `ai-plugins` PRs. |
 | `claude-code/`, `claude-managed-agents/`, `codex/`, `gemini/`, `portable/` | Generated installable agent catalog. |
 | `plugins/` | Generated plugin packages for Claude Code, Codex, Gemini CLI, and Antigravity CLI. |
 | `.cursor-plugin/`, root generated `agents/`, root generated `skills/`, `assets/logo.svg` | Generated Cursor package surface. |
@@ -27,6 +28,10 @@ shape, or release validation.
 
 Architecture drawings are part of the public docs. Keep them with the agent and
 preserve the existing SVG-based publishing path.
+
+For the full contributor and approval process, use
+`docs/contributing-agents.md`. New agents are authored and approved here; they
+are not created directly in `ai-plugins`.
 
 ## Change Generated Documentation
 
@@ -79,5 +84,8 @@ For a full release, also follow `docs/plugin-release-checklist.md`.
 
 ## Public Mirror
 
-Do not manually change generated behavior in `ai-plugins`. Regenerate here,
-then sync the generated package outputs there with `docs/distribution-sync.md`.
+Do not manually change generated behavior in `ai-plugins`. Maintainer-approved
+Agent Kit merges to `main` trigger `.github/workflows/publish-ai-plugins-pr.yml`,
+which validates source, verifies provenance, syncs generated distribution
+surfaces, and opens or updates an `ai-plugins` PR. Use
+`docs/distribution-sync.md` only for local validation or manual fallback.
