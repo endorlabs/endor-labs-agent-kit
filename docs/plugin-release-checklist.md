@@ -38,6 +38,11 @@ Use one release version across package manifests and the GitHub release tag.
 Gemini CLI release docs recommend keeping `gemini-extension.json` version and
 the GitHub release tag in sync.
 
+Merging to `main` does not automatically bump the package version. The publish
+workflow opens or updates an `ai-plugins` sync PR from the merged Agent Kit
+commit; maintainers must intentionally update `pyproject.toml`, regenerate, and
+review `CHANGELOG.md` when a release version changes.
+
 For the current package version, use an exact tag that matches the generated
 package version, not a `v`-prefixed tag, unless the generator and package
 manifests are intentionally changed to emit a `v` prefix.
@@ -61,6 +66,7 @@ test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-pl
 test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version cursor-sdk/agent_definitions.json)"
 test "1.0.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
+test -f CHANGELOG.md
 ```
 
 ## Generate
@@ -123,6 +129,7 @@ Before release, verify:
   run for non-dry-run publication workflows when signing is enabled.
 - The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`
   and `provenance/manifest.sha256`.
+- The generated `ai-plugins` PR includes the current `CHANGELOG.md`.
 - The PR body links to the source Agent Kit commit and lists validation,
   manifest digest, and provenance bundle digest.
 

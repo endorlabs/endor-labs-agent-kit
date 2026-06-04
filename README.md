@@ -12,6 +12,7 @@ recipe-first builder used to maintain and publish them.
 | I want to... | Go here |
 | --- | --- |
 | 🚀 Install agents in a coding assistant | [`docs/getting-started.md`](docs/getting-started.md) or the host package README |
+| 🧾 See what changed | [`CHANGELOG.md`](CHANGELOG.md) |
 | 🧰 Contribute or propose an agent | [`docs/contributing-agents.md`](docs/contributing-agents.md) |
 | 🤖 Ask an agent to inspect or sync this repo | [`docs/for-agents.md`](docs/for-agents.md) |
 | 🧰 Change how agents are generated | [`docs/maintainer-guide.md`](docs/maintainer-guide.md) |
@@ -54,7 +55,9 @@ A machine-readable index is available in `llms.txt`.
 
 ## 🚀 Plugin Quick Start
 
-Current generated plugin package version: `0.1.0`.
+Current generated plugin package version: `0.1.0`. Merges to `main` open or
+update the generated `ai-plugins` PR, but they do not automatically bump the
+package version. Maintainers update `pyproject.toml` intentionally for releases.
 
 | Host | Best for | First move |
 | --- | --- | --- |
@@ -82,6 +85,13 @@ existing Claude Code users and pinned installs. New users should prefer
 one profile because they expose the same setup skill and agents. The
 plugin does not auto-disable, uninstall, or edit Claude settings for
 either id.
+
+Cursor and Gemini compatibility note: Cursor users installing from the
+`ai-plugins` repository root continue to receive the current root
+`.cursor-plugin/`, `agents/`, `skills/`, and `assets/logo.svg` package. Gemini
+CLI users should use `plugins/gemini/endor-labs-agent-kit/` or the tagged
+GitHub repository install path; root `GEMINI.md` and `gemini-extension.json`
+remain compatibility files, and the old Gemini zip artifact is not generated.
 
 After installing a plugin, ask the host to use the `endor-agent-kit-setup`
 skill first. Setup checks local readiness, guides `endorctl` authentication
