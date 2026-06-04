@@ -16,6 +16,7 @@ SYNC_DIRECTORIES = (
 )
 
 SYNC_FILES = (
+    ("CHANGELOG.md", "CHANGELOG.md"),
     (".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"),
     (".agents/plugins/marketplace.json", ".agents/plugins/marketplace.json"),
     ("assets/logo.svg", "assets/logo.svg"),

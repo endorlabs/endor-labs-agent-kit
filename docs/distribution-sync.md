@@ -16,14 +16,16 @@ Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
 `endor-labs-agent-kit/plugins/`. Cursor package sync should make
 `ai-plugins/.cursor-plugin/`, generated root workflow `agents/`, generated root
 workflow `skills/`, and `assets/logo.svg` match this repo. Cursor SDK sync
-should make `ai-plugins/cursor-sdk/` match this repo.
+should make `ai-plugins/cursor-sdk/` match this repo. The root `CHANGELOG.md`
+is also synced so release notes travel with generated distribution PRs.
 
 ## Automated Publication
 
 After a maintainer merges an Agent Kit source PR to `main`, the publish workflow
 validates Agent Kit, regenerates the catalog, verifies provenance, syncs the
 generated distribution surfaces into `ai-plugins`, and opens or updates an
-`ai-plugins` PR.
+`ai-plugins` PR. This does not auto-increment package versions; maintainers bump
+`pyproject.toml` intentionally when a release version should change.
 
 Required GitHub secret in `endor-labs-agent-kit`:
 
@@ -81,6 +83,8 @@ python3 "$AGENT_KIT_REPO/scripts/sync_ai_plugins_distribution.py" \
 Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
 `ai-plugins`. Do not treat root `GEMINI.md` or root `gemini-extension.json` as
 Cursor package files; Gemini CLI uses `plugins/gemini/endor-labs-agent-kit/`.
+The sync script copies `CHANGELOG.md`; update it in Agent Kit source before
+opening a release-oriented distribution PR.
 
 ## Mirror Validation
 

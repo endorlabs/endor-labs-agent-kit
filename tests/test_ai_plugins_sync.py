@@ -16,6 +16,7 @@ def _write(path: Path, content: str = "content\n") -> None:
 def _minimal_source_tree(root: Path) -> None:
     for directory in ("plugins", ".cursor-plugin", "agents", "cursor-sdk"):
         _write(root / directory / "artifact.txt")
+    _write(root / "CHANGELOG.md", "# Changelog\n")
     _write(root / ".claude-plugin" / "marketplace.json", "{}\n")
     _write(root / ".agents" / "plugins" / "marketplace.json", "{}\n")
     _write(root / "assets" / "logo.svg", "<svg />\n")
@@ -40,6 +41,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert (target / "skills" / "probe-droid" / "SKILL.md").exists()
     assert not (target / "skills" / "create-endor-labs-agent").exists()
     assert not (target / "skills" / "old-generated-skill").exists()
+    assert (target / "CHANGELOG.md").read_text(encoding="utf-8") == "# Changelog\n"
     assert (target / ".claude-plugin" / "marketplace.json").exists()
     assert (target / ".agents" / "plugins" / "marketplace.json").exists()
     assert (target / "assets" / "logo.svg").exists()
