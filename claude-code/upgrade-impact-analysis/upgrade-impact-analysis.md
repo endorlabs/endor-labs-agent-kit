@@ -240,6 +240,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
 - Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
 - Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
+- If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.
 
 ### Scope Normalization Contract
 
@@ -344,8 +345,8 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
-- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
 
 #### `version-upgrade-detail` (explain)
@@ -353,8 +354,8 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
-- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
 
 #### `selected-source-usage` (explain)
@@ -403,9 +404,10 @@ Optional top-level fields when verified:
 - `endor_patch` (`string`): Endor Patch target version when VersionUpgrade reports one.
 - `score_explanation` (`string`): Platform score explanation from VersionUpgrade.
 
-`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Use source categories, not raw commands; summarize selectors/fields; put gaps in `data_gaps`.
+`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up.
 
 ```json
 {

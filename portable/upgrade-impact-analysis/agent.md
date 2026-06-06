@@ -242,6 +242,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
 - Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
 - Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
+- If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.
 
 ### Scope Normalization Contract
 
@@ -346,8 +347,8 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
-- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
 
 #### `version-upgrade-detail` (explain)
@@ -355,8 +356,8 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
-- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
 
 #### `selected-source-usage` (explain)

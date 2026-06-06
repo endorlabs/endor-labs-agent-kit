@@ -384,7 +384,8 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `troubleshooting_verdict`, `executive_summary`, `intake_classification`, `issue_lanes`, `affected_resources`, `evidence_queries`, `evidence_summary`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `support_escalation_packet`, `data_gaps`, `future_action_contracts`, `future_scope`
-`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Use source categories, not raw commands; summarize selectors/fields; put gaps in `data_gaps`.
+`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
+Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
