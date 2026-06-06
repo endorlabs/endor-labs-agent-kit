@@ -65,6 +65,16 @@ def _valid_netty_payload() -> dict:
                 "mvn test",
             ],
         },
+        "uia_evidence": [
+            {
+                "resource_type": "VersionUpgrade",
+                "uuid": "version-upgrade-fixture-001",
+                "upgrade_risk": "low",
+                "cia_status": "indeterminate",
+                "findings_fixed": 25,
+                "findings_introduced": 0,
+            }
+        ],
         "patch_plan": [
             {
                 "file": "services/api-gateway/pom.xml",
@@ -144,6 +154,15 @@ def test_sca_gate_validator_requires_project_resolution_status():
     errors = validate_sca_gate_payload(payload)
 
     assert "project_resolution.status: required for SCA workflow gates" in errors
+
+
+def test_sca_gate_validator_rejects_non_array_uia_evidence():
+    payload = _valid_netty_payload()
+    payload["uia_evidence"] = {"uuid": "version-upgrade-fixture-001"}
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert "uia_evidence: must be an array" in errors
 
 
 def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():

@@ -119,6 +119,13 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 
 Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, and `project_resolution.namespace_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` when evidence is missing, conflicting, or host-blocked, and include the exact blocker in `data_gaps`. If any project-resolution field is unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
 
+Runtime, plan-only, and read-only gates still need
+`project_resolution.status`, `project_resolution.namespace_provenance`,
+`selected_remediation.branch_name`, `uia_evidence` as an array,
+`risk_decision.source_usage_summary`, `risk_decision.validation_requirements`,
+and `change_requests[].proposed_branch`; lack of mutation approval is not an
+omission reason.
+
 Local repository docs, CLAUDE.md files, README files, cached notes, prior agent memory, and generated project descriptions are context only. They cannot prove Endor finding counts, VersionUpgrade/UIA availability, project UUIDs, namespace provenance, repository URLs, review time, or touched files. Treat those claims as unverified until current Endor evidence or user-provided evidence supports them.
 
 If Finding or VersionUpgrade/UIA evidence was not queried successfully for the resolved project, `data_gaps` must include the missing lane, such as `main_context_findings_unavailable` or `version_upgrade_uia_unavailable`. Do not return `data_gaps: []` at a project-only gate.
@@ -202,19 +209,6 @@ Choose validation commands from the actual repository layout, package manager, a
 
 Inspect nearby files such as `pom.xml`, `build.gradle`, `package.json`, lockfiles, `requirements.txt`, `pyproject.toml`, `go.mod`, `.csproj`, `packages.lock.json`, `Gemfile`, `Cargo.toml`, README build instructions, CI config, and package-manager metadata before selecting commands.
 
-Use ecosystem-appropriate checks:
-
-| Ecosystem / manager | Dependency-resolution check examples | Build/test examples |
-| --- | --- | --- |
-| Maven | `mvn -f <path/to/pom.xml> dependency:tree` or `dependency:resolve`; use `-pl` only after confirming a root aggregator POM exists | `mvn -f <path/to/pom.xml> test`, `verify`, or package goals supported by that POM |
-| Gradle | `./gradlew <module>:dependencies` or `dependencyInsight` | `./gradlew <module>:test` or the repo's documented check task |
-| npm / Yarn / pnpm | `npm ls <package>`, `yarn why <package>`, `pnpm why <package>` | `npm test`, `npm run build`, `yarn test`, `pnpm test`, or scripts declared in `package.json` |
-| Python pip / Poetry / Pipenv | `python -m pip show <package>`, `pipdeptree`, `poetry show --tree`, or lockfile inspection | `pytest`, `python -m pytest`, `poetry run pytest`, or repo-documented checks |
-| Go modules | `go list -m all`, `go mod graph`, `go mod why -m <module>` | `go test ./...` or package-scoped `go test` |
-| NuGet / .NET | `dotnet list <project> package --include-transitive` | `dotnet test <solution-or-project>` |
-| Ruby Bundler | `bundle info <gem>`, `bundle list`, lockfile inspection | `bundle exec rake test`, `bundle exec rspec`, or documented checks |
-| Rust Cargo | `cargo tree -i <crate>` or `cargo update -p <crate> --dry-run` where available | `cargo test`, workspace or package scoped as appropriate |
-
 When a package manager supports multiple layouts, explain why the selected command matches the current repository. For example, for Maven use `-f <path/to/pom.xml>` when there is only a service-local POM, and use `-pl <module>` only when an aggregator root POM exists and resolves that module.
 
 ## Branch Naming
@@ -265,6 +259,7 @@ extract; do not replace the JSON object with a table or prose summary.
   "summary": "string",
   "remediation_candidates": [],
   "project_resolution": {
+    "status": "resolved | unresolved | ambiguous | lookup_unavailable",
     "project_uuid": "string",
     "namespace": "string",
     "namespace_provenance": "current request | ENDOR_NAMESPACE | ~/.endorctl/config.yaml ENDOR_NAMESPACE | resolved Endor project metadata",
@@ -272,9 +267,20 @@ extract; do not replace the JSON object with a table or prose summary.
     "attempted_selectors": []
   },
   "selected_remediation": {
+    "package": "string",
+    "from_version": "string",
+    "to_version": "string",
     "branch_name": "remediation/sca/<package>-<target-version>"
   },
-  "uia_evidence": [],
+  "uia_evidence": [
+    {
+      "uuid": "string",
+      "upgrade_risk": "string",
+      "cia_status": "string",
+      "findings_fixed": 0,
+      "findings_introduced": 0
+    }
+  ],
   "risk_decision": {
     "status": "approved_low_risk | approved_with_validation_required | blocked_needs_compatibility_analysis | rejected",
     "source_usage_summary": "required when CIA is indeterminate, risk is elevated, conflicts exist, or findings are introduced",
@@ -291,12 +297,10 @@ extract; do not replace the JSON object with a table or prose summary.
 The JSON object must be syntactically valid. If a PR/MR body draft is too large to duplicate inside JSON, put the full Markdown body in the prose section and set a compact field such as `"pr_body_draft": "included_above"`. Never leave arrays or objects unterminated.
 
 For runtime QA, plan-only gates, and read-only selection gates, include the
-JSON object even when no mutation is allowed. Include `uia_evidence[]` when
-VersionUpgrade/UIA records were queried, include a remediation branch name
-using `remediation/sca/<package>-<target-version>` for the selected candidate,
-and include `risk_decision.source_usage_summary` whenever the selected
-candidate has indeterminate CIA, elevated risk, conflicts, or introduced
-findings.
+JSON object even when no mutation is allowed. `uia_evidence` must be a JSON
+array, not an object. Mirror the remediation branch in
+`change_requests[].proposed_branch`. Include `risk_decision.source_usage_summary`
+for indeterminate CIA, elevated risk, conflicts, or introduced findings.
 
 ## Endor Namespace Preflight
 
