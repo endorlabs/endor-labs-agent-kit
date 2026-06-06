@@ -100,19 +100,17 @@ recipes:
   - id: package-version-exact
     title: Exact PackageVersion Lookup
     resource: PackageVersion
-    purpose: Fetch one named package version without inventorying unrelated dependencies.
+    purpose: Fetch one named package version from package-level `oss` metadata without inventorying unrelated dependencies.
     template: >-
-      endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json
+      endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json
     fields:
       - uuid
       - meta.name
-      - spec.ecosystem
-      - spec.package_name
-      - spec.version
     constraints:
+      - Map ecosystem to PackageVersion URL prefix before querying; use `oss` for package-level lookups.
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
       - If version is unknown, ask for it or report data_gaps.
-    completeness: Complete for one named package coordinate in the selected namespace.
+    completeness: Complete for one named package coordinate in the package-level `oss` namespace.
     forbidden:
       - Do not guess package coordinates from unrelated local manifests.
 

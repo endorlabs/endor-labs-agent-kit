@@ -139,14 +139,11 @@ evidence_query_recipes:
     canonical_id: package-version-exact
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
-    template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
-      and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json
+    template: endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"'
+      --field-mask "uuid,meta.name" -o json
     fields:
       - uuid
       - meta.name
-      - spec.ecosystem
-      - spec.package_name
-      - spec.version
     constraints:
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
       - If version is unknown, ask for it or report data_gaps.

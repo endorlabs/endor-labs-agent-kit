@@ -179,6 +179,41 @@ def test_lint_accepts_remediation_planner_version_upgrade_backed_options():
     assert lint_agent_output("remediation-planner", output, task_profile="selection-plan") == []
 
 
+def test_lint_accepts_remediation_planner_evidence_check_without_selected_options():
+    output = json.dumps(
+        {
+            "summary": "Finding and VersionUpgrade evidence lanes are confirmed.",
+            "project_resolution": {
+                **_resolved_project_resolution(),
+            },
+            "evidence_queries": [
+                _evidence_query(
+                    "Project",
+                    query_template_id="project-by-list",
+                    filter_summary="namespace=auri; list all projects; matched on repository URL",
+                ),
+                _evidence_query(
+                    "VersionUpgrade",
+                    query_template_id="version-upgrade-summary",
+                    filter_summary="context.type=CONTEXT_TYPE_MAIN; project_uuid=proj-123; list-all",
+                    result_count=339,
+                ),
+                _evidence_query(
+                    "Finding",
+                    query_template_id="finding-availability",
+                    filter_summary="context.type=CONTEXT_TYPE_MAIN; project_uuid=proj-123; list-all",
+                    result_count=10025,
+                ),
+            ],
+            "remediation_options": [],
+            "selected_remediation": None,
+            "data_gaps": [],
+        }
+    )
+
+    assert lint_agent_output("remediation-planner", output, task_profile="evidence-check") == []
+
+
 def test_lint_accepts_structured_data_gap_objects():
     output = json.dumps(
         {
@@ -399,6 +434,59 @@ def test_lint_allows_selection_plan_after_version_upgrade_narrowing():
     assert lint_agent_output("sca-remediation", output, task_profile="selection-plan") == []
 
 
+def test_lint_accepts_sca_evidence_check_without_selection_or_branch():
+    output = json.dumps(
+        {
+            "summary": "Evidence-check stopped after confirming scoped Finding and VersionUpgrade availability.",
+            "remediation_candidates": [],
+            "project_resolution": {
+                "status": "resolved",
+                "project_uuid": "proj-123",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+                "repo_full_name": "endor-matt/death-star",
+                "default_branch": None,
+                "branch_provenance": "not queried; out of scope for evidence-check profile",
+                "traverse_attempted": True,
+            },
+            "evidence_queries": [
+                _evidence_query(
+                    "Finding",
+                    query_template_id="finding-availability",
+                    filter_summary="context.type=CONTEXT_TYPE_MAIN; project_uuid=proj-123; list-all",
+                    result_count=10025,
+                ),
+                _evidence_query(
+                    "VersionUpgrade",
+                    query_template_id="version-upgrade-summary",
+                    filter_summary="context.type=CONTEXT_TYPE_MAIN; project_uuid=proj-123; list-all",
+                    result_count=339,
+                ),
+            ],
+            "selected_remediation": None,
+            "uia_evidence": [
+                {
+                    "resource": "VersionUpgrade",
+                    "uuid": "version-upgrade-123",
+                    "total_findings_fixed": 5,
+                    "total_findings_introduced": 0,
+                }
+            ],
+            "risk_decision": None,
+            "patch_plan": [],
+            "validation": [],
+            "change_requests": [],
+            "tickets": [],
+            "data_gaps": [
+                "risk_decision=null: evidence-check profile does not select or rank candidates",
+                "default_branch: not queried; out of scope for evidence-check profile",
+            ],
+        }
+    )
+
+    assert lint_agent_output("sca-remediation", output, task_profile="evidence-check") == []
+
+
 def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     errors = lint_agent_output(
         "vulnerability-explainer",
@@ -524,6 +612,7 @@ def test_lint_accepts_probe_droid_aliases_for_gap_rows():
     payload["report_scope"].pop("namespace")
     payload["report_scope"]["endor_namespace"] = "auri"
     row = payload["onboarded_repositories_with_gaps"][0]
+    row["full_name"] = row.pop("repository")
     row["github_default_branch"] = row.pop("default_branch")
     row["endor_project_uuid"] = row["endor_project"].pop("project_uuid")
     row["endor_monitored_branch"] = None

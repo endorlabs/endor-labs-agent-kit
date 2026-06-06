@@ -149,6 +149,16 @@ commands. The only allowed `endorctl api create` form is the
 CreateQuerySimilarPackages service as a read-only lookup and does not persist a
 customer resource.
 
+## Fast Path: Exact PackageVersion Lookup
+
+For exact package coordinates, query package-level `oss` evidence before MCP or
+project discovery: `endorctl api list -r PackageVersion -n oss --filter
+'meta.name=="<prefix>://<package_name>@<version>"' --field-mask
+"uuid,meta.name" -o json`. Use the package URL prefix map from the Knowledge
+Pack. For `evidence-check`, stop after this lookup unless the user explicitly
+requested tenant project scope; on empty, denied, unavailable, or non-JSON
+results, return `UNKNOWN` with `data_gaps`.
+
 ## Step 1: MCP Risk Flags
 
 Call `check_dependency_for_risks` only when that tool is exposed in the current
