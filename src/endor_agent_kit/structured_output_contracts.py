@@ -266,6 +266,21 @@ def _nullable_object() -> dict[str, Any]:
     return _with_nullable(_generic_object_schema(), nullable=True)
 
 
+def _nullable_endor_project_object() -> dict[str, Any]:
+    return _with_nullable(
+        _strict_object_schema(
+            {
+                "matched": _nullable_boolean(),
+                "project_uuid": _nullable_string(),
+                "project_name": _nullable_string(),
+                "namespace": _nullable_string(),
+                "match_method": _nullable_string(),
+            }
+        ),
+        nullable=True,
+    )
+
+
 def _nullable_string_array() -> dict[str, Any]:
     return {
         "type": ["array", "null"],
@@ -301,14 +316,19 @@ def _generic_object_schema() -> dict[str, Any]:
             "count": _nullable_integer(),
             "result_count": _nullable_integer(),
             "project_uuid": _nullable_string(),
+            "endor_project_uuid": _nullable_string(),
             "namespace": _nullable_string(),
+            "endor_namespace": _nullable_string(),
             "namespace_provenance": _nullable_string(),
             "repo_full_name": _nullable_string(),
+            "repository": _nullable_string(),
             "normalized_repo_full_name": _nullable_string(),
             "repo_url": _nullable_string(),
             "default_branch": _nullable_string(),
+            "github_default_branch": _nullable_string(),
             "selected_branch": _nullable_string(),
             "monitored_branch": _nullable_string(),
+            "endor_monitored_branch": _nullable_string(),
             "package": _nullable_string(),
             "package_name": _nullable_string(),
             "ecosystem": _nullable_string(),
@@ -335,6 +355,7 @@ def _generic_object_schema() -> dict[str, Any]:
             "data_gaps": _nullable_string_array(),
             "evidence": _nullable_string_array(),
             "next_steps": _nullable_string_array(),
+            "endor_project": _nullable_endor_project_object(),
         }
     )
 
@@ -345,6 +366,7 @@ def _project_resolution_schema() -> dict[str, Any]:
             "status": _nullable_string(),
             "project_uuid": _nullable_string(),
             "namespace": _nullable_string(),
+            "endor_namespace": _nullable_string(),
             "namespace_provenance": _nullable_string(),
             "repo_full_name": _nullable_string(),
             "repo_url": _nullable_string(),
@@ -366,6 +388,7 @@ def _report_scope_schema() -> dict[str, Any]:
             "status": _nullable_string(),
             "project_uuid": _nullable_string(),
             "namespace": _nullable_string(),
+            "endor_namespace": _nullable_string(),
             "namespace_provenance": _nullable_string(),
             "repo_full_name": _nullable_string(),
             "repo_url": _nullable_string(),

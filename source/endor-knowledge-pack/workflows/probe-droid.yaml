@@ -81,6 +81,8 @@ data_gaps:
   - Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty,
     and package-version query gaps in `data_gaps`.
   - Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.
+  - Put repositories with inferred or missing monitored-branch, project UUID, or GitHub App evidence in `onboarded_repositories_with_gaps`,
+    not `onboarded_healthy_repositories`; healthy rows require direct normalized branch and project evidence.
 evidence_query_plans:
   - profile_id: resolve-scope
     title: Onboarding Scope Query Plan

@@ -230,9 +230,10 @@ def _scope_normalization_errors(agent_id: str, payload: dict[str, Any]) -> list[
             errors.append("report_scope.mode: required for probe-droid outputs")
         has_endor_evidence = _evidence_query_mentions(_list(payload.get("evidence_queries")), ("Project", "Endor"))
         if has_endor_evidence:
-            for field in ("namespace", "namespace_provenance"):
-                if not _text(report_scope.get(field)):
-                    errors.append(f"report_scope.{field}: required when Endor project evidence is queried")
+            if not _text(report_scope.get("namespace") or report_scope.get("endor_namespace")):
+                errors.append("report_scope.namespace: required when Endor project evidence is queried")
+            if not _text(report_scope.get("namespace_provenance")):
+                errors.append("report_scope.namespace_provenance: required when Endor project evidence is queried")
     return errors
 
 
@@ -298,17 +299,47 @@ def _probe_droid_errors(payload: dict[str, Any]) -> list[str]:
                 continue
             if not (_text(row.get("repository")) or _text(row.get("repo_full_name"))):
                 errors.append(f"{field}[{index}].repository: normalized owner/repo required")
-            if field != "excluded_repositories" and not (
-                _text(row.get("default_branch")) or _text(row.get("branch"))
-            ):
+            if field != "excluded_repositories" and not _repo_row_default_branch(row):
                 errors.append(f"{field}[{index}].default_branch: required for monitored-branch comparison")
             if field in {"onboarded_repositories_with_gaps", "onboarded_healthy_repositories"}:
                 endor_project = _dict(row.get("endor_project"))
-                if not _text(endor_project.get("project_uuid")):
+                if not _repo_row_project_uuid(row, endor_project):
                     errors.append(f"{field}[{index}].endor_project.project_uuid: required for onboarded repositories")
-                if not _text(row.get("endor_monitored_branch")):
+                if not _text(row.get("endor_monitored_branch")) and not _repo_row_has_branch_gap(row):
                     errors.append(f"{field}[{index}].endor_monitored_branch: required for onboarded repositories")
+                if field == "onboarded_healthy_repositories" and _repo_row_has_branch_gap(row):
+                    errors.append(
+                        f"{field}[{index}]: repositories with monitored-branch gaps must be reported under onboarded_repositories_with_gaps"
+                    )
     return errors
+
+
+def _repo_row_default_branch(row: dict[str, Any]) -> str:
+    return _text(row.get("default_branch") or row.get("github_default_branch") or row.get("branch"))
+
+
+def _repo_row_project_uuid(row: dict[str, Any], endor_project: dict[str, Any]) -> str:
+    return _text(
+        endor_project.get("project_uuid")
+        or row.get("project_uuid")
+        or row.get("endor_project_uuid")
+    )
+
+
+def _repo_row_has_branch_gap(row: dict[str, Any]) -> bool:
+    haystack = json.dumps(row, sort_keys=True).lower()
+    return "branch" in haystack and any(
+        marker in haystack
+        for marker in (
+            "gap",
+            "unavailable",
+            "unknown",
+            "not valid",
+            "cannot confirm",
+            "inferred",
+            "null",
+        )
+    )
 
 
 def _endor_troubleshooter_errors(payload: dict[str, Any]) -> list[str]:

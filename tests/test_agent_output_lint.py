@@ -519,6 +519,38 @@ def test_lint_accepts_probe_droid_normalized_output():
     assert lint_agent_output("probe-droid", json.dumps(_valid_probe_droid_output())) == []
 
 
+def test_lint_accepts_probe_droid_aliases_for_gap_rows():
+    payload = _valid_probe_droid_output()
+    payload["report_scope"].pop("namespace")
+    payload["report_scope"]["endor_namespace"] = "auri"
+    row = payload["onboarded_repositories_with_gaps"][0]
+    row["github_default_branch"] = row.pop("default_branch")
+    row["endor_project_uuid"] = row["endor_project"].pop("project_uuid")
+    row["endor_monitored_branch"] = None
+    row["monitored_branch_note"] = "Cannot confirm monitored branch from current Project field evidence."
+    row["statuses"].append("MONITORED_BRANCH_EVIDENCE_UNAVAILABLE")
+    row["data_gaps"] = ["monitored_branch evidence unavailable"]
+
+    assert lint_agent_output("probe-droid", json.dumps(payload)) == []
+
+
+def test_lint_rejects_probe_droid_healthy_rows_with_branch_gaps():
+    payload = _valid_probe_droid_output()
+    row = payload["onboarded_repositories_with_gaps"].pop()
+    row["github_default_branch"] = row.pop("default_branch")
+    row["endor_project_uuid"] = row["endor_project"].pop("project_uuid")
+    row["endor_monitored_branch"] = None
+    row["monitored_branch_note"] = "Cannot confirm monitored branch from current Project field evidence."
+    payload["onboarded_healthy_repositories"].append(row)
+
+    errors = lint_agent_output("probe-droid", json.dumps(payload))
+
+    assert (
+        "onboarded_healthy_repositories[0]: repositories with monitored-branch gaps must be reported under onboarded_repositories_with_gaps"
+        in errors
+    )
+
+
 def test_lint_rejects_unsafe_endorctl_query_recipe_shapes():
     output = """
 ```bash

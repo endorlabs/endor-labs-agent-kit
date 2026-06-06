@@ -56,6 +56,12 @@ DEFAULT_AGENTS = (
     "endor-troubleshooter",
     "probe-droid",
 )
+RUNTIME_QA_DEFAULT_TASK_PROFILES = {
+    "dependency-decision-helper": "evidence-check",
+    "package-risk-summary": "evidence-check",
+    "remediation-planner": "evidence-check",
+    "sca-remediation": "evidence-check",
+}
 LEGACY_CODEX_PLUGIN_NAMES = ("endor-agent-kit-security-agents",)
 LEGACY_CODEX_PLUGIN_IDS = ("endor-agent-kit-security-agents@endor-agent-kit-local",)
 CODEX_PLUGIN_CACHE_PATH_RE = re.compile(
@@ -725,6 +731,8 @@ def build_prompt(
 
 
 def default_runtime_task_profile(agent: str) -> str:
+    if agent in RUNTIME_QA_DEFAULT_TASK_PROFILES:
+        return RUNTIME_QA_DEFAULT_TASK_PROFILES[agent]
     if default_task_profile_for_agent is None:
         return "evidence-check"
     return default_task_profile_for_agent(agent)
@@ -826,7 +834,9 @@ def qa_task(agent: str, task_profile: str | None = None) -> str:
         ("endor-troubleshooter", "diagnose"): "diagnose only this issue lane: `project or main-branch findings missing for the current repository`. Resolve namespace, project, branch evidence, and one relevant read-only evidence query, then stop. Do not run scans, mutate integrations, or print config secrets.",
         ("probe-droid", "evidence-check"): "assess only this current repository's onboarding coverage, not the full org. Resolve local git repo identity, query the matching Endor Project/monitored branch when possible, inspect only setup files in this repo, then stop. Do not enumerate tenant projects beyond the current repo selector, inspect scan profiles, inspect package managers, run scans, or edit GitHub/Endor state. If the current repo cannot be resolved quickly, return lookup_unavailable with data_gaps.",
         ("package-risk-summary", "explain"): "summarize package risk for ecosystem `pypi`, package `urllib3`, version `1.25.11` using available Endor evidence. Check only exact package/version evidence and optional project-scoped evidence for that package. If evidence is unavailable, return UNKNOWN with evidence_queries and data_gaps; do not recommend a new scan as the default next check.",
+        ("package-risk-summary", "evidence-check"): "summarize package risk for ecosystem `pypi`, package `urllib3`, version `1.25.11` using at most one exact PackageVersion lookup and one package-linked Finding lookup when project scope is already resolved. Do not use MCP discovery or broad tenant/repository inventory in runtime QA. If exact evidence is unavailable, return UNKNOWN with evidence_queries and data_gaps; do not recommend a new scan as the default next check.",
         ("dependency-decision-helper", "explain"): "decide whether ecosystem `pypi`, package `urllib3`, version `1.25.11` is acceptable using available Endor package and vulnerability evidence. Check only exact package/version evidence and optional project-scoped evidence for that package. If evidence is unavailable, return a blocked or degraded verdict with data_gaps; do not inventory the repository.",
+        ("dependency-decision-helper", "evidence-check"): "decide whether ecosystem `pypi`, package `urllib3`, version `1.25.11` is acceptable using at most one exact PackageVersion lookup and one package-linked Finding lookup when project scope is already resolved. Do not use MCP discovery or broad tenant/repository inventory in runtime QA. If evidence is unavailable, return a blocked or degraded verdict with data_gaps.",
         ("upgrade-impact-analysis", "evidence-check"): "evaluate upgrade impact for package `pypi://jinja2` from `3.1.1` to `3.1.6` for this repository if a matching VersionUpgrade exists; otherwise return INSUFFICIENT_DATA with evidence_queries and data_gaps. Top-level `findings_fixed` and `findings_introduced` are integer counts only. Put advisory identifiers in `fixed_cves`. Top-level `endor_patch` must be a string such as `none`, `unknown`, or the Endor Patch target version, never a boolean or array. `breaking_change_notes` must be an array.",
         ("vulnerability-explainer", "explain"): "explain `CVE-2021-44228` for package context ecosystem `maven`, package `org.apache.logging.log4j:log4j-core`, version `2.14.1`. If Endor MCP or vulnerability evidence is unavailable, return INSUFFICIENT_DATA as JSON with evidence_queries and data_gaps. `severity` must be a string such as `UNKNOWN` when unavailable, never null.",
         ("repository-dependency-reviewer", "evidence-check"): "review a bounded dependency sample from this repository's manifests, then check available Endor evidence only for that sample. Do not inventory the entire tenant or turn this into a full SCA export.",
