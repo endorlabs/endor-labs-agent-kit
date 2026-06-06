@@ -147,7 +147,10 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "project-specific layout" not in prompt
     assert "services/api-gateway/pom.xml dependency:resolve" not in prompt
     assert "remediation/sca/<normalized-package-name>-<target-version>" in prompt
-    assert "Do not use unrelated branch families such as `endor/fix/...`" in prompt
+    assert "remediation/sca/golang.org-x-crypto-v0.48.0" in prompt
+    assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
+    assert "Do not use unrelated branch families such as" in prompt
+    assert "`endor/fix/...`" in prompt
     assert "complete AURI-style PR/MR body draft" in prompt
     assert "Do not stop at a PR title or patch plan only" in prompt
     assert "Do not return an empty `change_requests` array when a PR/MR is part of the requested plan" in prompt
