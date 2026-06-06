@@ -1840,9 +1840,9 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 13476,
+          "bytes": 17367,
           "path": "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py",
-          "sha256": "66cb1cc2a479399ab27b4efe17487cbd706f0e9939678c88ab17619ee35f34b5"
+          "sha256": "c90f70b6484da1fb9d4716009a4935a416f0d71d4c6b8715a0d8ccda4635a940"
         },
         {
           "bytes": 29323,

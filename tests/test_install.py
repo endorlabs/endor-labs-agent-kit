@@ -241,6 +241,23 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
         ),
         encoding="utf-8",
     )
+    config = codex_home / "config.toml"
+    config.write_text(
+        "\n".join(
+            [
+                '[plugins."presentations@openai-primary-runtime"]',
+                "enabled = true",
+                "",
+                '[plugins."endor-agent-kit-security-agents@endor-agent-kit-local"]',
+                "enabled = true",
+                "",
+                '[plugins."notion@openai-curated"]',
+                "enabled = true",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
 
     status = subprocess.run(
         [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
@@ -255,6 +272,10 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert (
         "plugin-cache:plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents/0.1.0: "
         "stale-legacy-cache package=endor-agent-kit-security-agents version=0.1.0"
+    ) in status.stdout
+    assert (
+        "plugin-config:config.toml:endor-agent-kit-security-agents@endor-agent-kit-local: "
+        "stale-legacy-config enabled=true"
     ) in status.stdout
     assert "--purge-stale-plugin-cache --yes" in status.stdout
 
@@ -272,7 +293,9 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
         text=True,
     )
     assert "would move stale plugin cache" in dry_purge.stdout
+    assert "would remove stale legacy entries endor-agent-kit-security-agents@endor-agent-kit-local" in dry_purge.stdout
     assert stale_cache_root.exists()
+    assert "endor-agent-kit-security-agents@endor-agent-kit-local" in config.read_text(encoding="utf-8")
 
     purge = subprocess.run(
         [
@@ -288,8 +311,11 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
         text=True,
     )
     assert "moved stale plugin cache" in purge.stdout
+    assert "removed stale legacy entries endor-agent-kit-security-agents@endor-agent-kit-local" in purge.stdout
     assert not stale_cache_root.exists()
     assert list((codex_home / "plugins" / "cache-backups").glob("endor-agent-kit-local-endor-agent-kit-security-agents-0.1.0.bak-*"))
+    assert "endor-agent-kit-security-agents@endor-agent-kit-local" not in config.read_text(encoding="utf-8")
+    assert list(codex_home.glob("config.toml.bak-*"))
 
     clean_cache_status = subprocess.run(
         [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
@@ -298,6 +324,7 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
         text=True,
     )
     assert "plugin-cache: none" in clean_cache_status.stdout
+    assert "plugin-config: none" in clean_cache_status.stdout
 
     subprocess.run(
         [

@@ -53,12 +53,14 @@ DEFAULT_AGENTS = (
     "probe-droid",
 )
 LEGACY_CODEX_PLUGIN_NAMES = ("endor-agent-kit-security-agents",)
+LEGACY_CODEX_PLUGIN_IDS = ("endor-agent-kit-security-agents@endor-agent-kit-local",)
 CODEX_PLUGIN_CACHE_PATH_RE = re.compile(
     r"(?P<path>/[^\s'\"`<>]*?\.codex/plugins/cache/"
     r"(?P<marketplace>[^/\s'\"`<>]+)/"
     r"(?P<plugin>[^/\s'\"`<>]+)/"
     r"(?P<version>[^/\s'\"`<>]+))"
 )
+CODEX_PLUGIN_WARNING_RE = re.compile(r'plugin="(?P<plugin>endor-[^"]+@[^"]+)"')
 
 
 @dataclass(frozen=True)
@@ -610,6 +612,13 @@ def detect_stale_codex_cache_paths(text: str) -> list[str]:
             errors.append(
                 f"{path} references legacy Endor Agent Kit package {plugin}@{version}; "
                 f"expected {PLUGIN_NAME}@{expected_version}"
+            )
+    for match in CODEX_PLUGIN_WARNING_RE.finditer(text):
+        plugin_id = match.group("plugin")
+        if plugin_id in LEGACY_CODEX_PLUGIN_IDS:
+            errors.append(
+                f"Codex config references removed legacy Endor Agent Kit plugin {plugin_id}; "
+                "run the Codex installer stale-cache purge to remove the config entry"
             )
     return errors
 
