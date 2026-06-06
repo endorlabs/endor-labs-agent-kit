@@ -1,6 +1,33 @@
 agent_id: dependency-decision-helper
 title: Dependency Decision Evidence Contract
 summary: Decide whether to add, keep, or upgrade one explicit package version using only available Endor risk evidence and precise missing-signal reporting.
+task_profiles:
+  - id: explain
+    title: Explain Decision Inputs
+    summary: Explain what evidence is needed for one package decision without broad discovery.
+    when_to_use:
+      - The user asks whether a dependency can be approved, kept, or upgraded.
+      - Package coordinate or version is missing.
+    minimal_evidence:
+      - Explicit ecosystem, package name, version, and namespace provenance for tenant-scoped checks when available.
+    stop_when:
+      - Required package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps.
+      - Do not query unrelated dependencies or repository-wide manifests.
+    output_focus:
+      - Return verdict, conditions, alternatives, summary, and data_gaps.
+  - id: evidence-check
+    title: Package Evidence Check
+    summary: Query only exact package-version risk evidence needed for a decision.
+    when_to_use:
+      - The user provides a complete package coordinate and asks for a decision.
+      - Host exposes Endor package, score, or vulnerability evidence.
+    minimal_evidence:
+      - Exact PackageVersion resolution, available Metric signals, vulnerability evidence, and data_gaps for missing signals.
+    stop_when:
+      - Allow, block, or conditional decision can be justified from exact evidence.
+      - Do not infer risk from popularity, local docs, or version heuristics.
+    output_focus:
+      - Return verdict with conditions, alternatives, evidence source summary, and data_gaps.
 resources:
   - name: PackageVersion
     purpose: Resolve the exact package-version UUID for score, license, and risk enrichment.

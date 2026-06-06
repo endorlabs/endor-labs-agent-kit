@@ -197,16 +197,42 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### AI SAST Triage Evidence Contract
 
 Use namespace-scoped main-context AI SAST findings, exploit reproduction, remediation guidance, and source evidence before proposing remediation or optional exception work.
+
+### Agent Task Profiles
+
+#### `resolve-scope` - Resolve Scope
+
+Prove namespace, repository, project, source ref, and AI SAST finding scope only.
+- Use when: The user gives a repository or finding reference and asks what Endor scope applies. A patch or exception decision would be premature.
+- Minimal evidence: Repository identity, namespace provenance, Project lookup, and any supplied finding UUID or source ref.
+- Stop when: Project and finding scope are resolved or blocked with precise data_gaps. Do not inspect source files or propose patches in this profile.
+- Output focus: Return project resolution, finding selector attempts, evidence_queries, and data_gaps.
+
+#### `evidence-check` - Evidence Check
+
+Fetch only the AI SAST evidence needed to classify availability and source context.
+- Use when: The user asks whether a finding is actionable, reproducible, or has enough context. Runtime QA needs evidence discipline without patch generation.
+- Minimal evidence: Resolved Project, one main-context AI SAST Finding lookup, source ref, finding metadata, and source-file availability.
+- Stop when: Finding evidence and source availability are known. Do not generate diffs, policies, or change requests unless the user asks for remediation.
+- Output focus: Return verdict placeholders, evidence_queries, and data_gaps for missing finding, exploit, guidance, or source evidence.
+
+#### `selection-plan` - Remediation Plan
+
+Decide whether to patch, request approval, or block based on verified AI SAST and source evidence.
+- Use when: The user asks for triage plus a remediation path. The finding has source context and remediation guidance.
+- Minimal evidence: AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, source file at pinned ref, and sibling-file context.
+- Stop when: A TRUE_POSITIVE, FALSE_POSITIVE, ACCEPT_RISK, or insufficient-evidence verdict is recorded. Do not open PRs or create policies without explicit approval.
+- Output focus: Return verdicts, patch plan or exception lane, validation plan, change_requests, and data_gaps.
 
 - Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`.
 - `Project`: Resolve the Endor project and repository identity from namespace-scoped metadata. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.

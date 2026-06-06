@@ -61,6 +61,8 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     summary = _load_summary(log_root)
     assert {item["host"] for item in summary["results"]} == {"claude", "codex", "antigravity"}
     assert {item["status"] for item in summary["results"]} == {"passed"}
+    assert summary["task_profiles"] == {"sca-remediation": "selection-plan"}
+    assert {item["task_profile"] for item in summary["results"]} == {"selection-plan"}
     assert all(Path(item["prompt_log"]).is_file() for item in summary["results"])
     assert all(Path(item["output_schema_log"]).is_file() for item in summary["results"])
     assert all(Path(item["stdout_log"]).is_file() for item in summary["results"])
@@ -91,17 +93,63 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert claude_argv[claude_argv.index("--agent") + 1] == "sca-remediation"
     assert claude_argv[claude_argv.index("--permission-mode") + 1] == "default"
     assert claude_argv.index(claude_prompt) < claude_argv.index("--add-dir")
-    assert "blocked_needs_compatibility_analysis" in claude_prompt
-    assert "do not invent variants" in claude_prompt
-    assert "remediation/sca/golang.org-x-crypto-v0.48.0" in claude_prompt
+    assert "Task profile: selection-plan" in claude_prompt
+    assert "Agent task profile: `selection-plan`" in claude_prompt
+    assert "Use this compact profile instead of running the full workflow" in claude_prompt
+    assert "query only the main-context Finding and VersionUpgrade/UIA evidence needed" in claude_prompt
     assert "exec" in argv_by_host["codex"]
     assert "--ask-for-approval" not in argv_by_host["codex"]
     codex_argv = argv_by_host["codex"]
+    codex_prompt = codex_argv[-1]
+    assert "do not spawn or fork subagents" in codex_prompt
     assert codex_argv[codex_argv.index("--sandbox") + 1] == "danger-full-access"
     assert codex_argv[codex_argv.index("--output-schema") + 1].endswith("output-schema.json")
     assert "run" in argv_by_host["antigravity"]
     assert summary["codex_sandbox"] == "danger-full-access"
     assert summary["claude_permission_mode"] == "default"
+
+
+def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    fake = _fake_command(tmp_path)
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "sca-remediation",
+            "--task-profile",
+            "sca-remediation=evidence-check",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    summary = _load_summary(log_root)
+    assert summary["task_profiles"] == {"sca-remediation": "evidence-check"}
+    assert summary["results"][0]["task_profile"] == "evidence-check"
+    prompt = Path(summary["results"][0]["prompt_log"]).read_text(encoding="utf-8")
+    assert "Task profile: evidence-check" in prompt
+    assert "Do not inspect source files or prepare branch names unless selection is requested." in prompt
 
 
 def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):

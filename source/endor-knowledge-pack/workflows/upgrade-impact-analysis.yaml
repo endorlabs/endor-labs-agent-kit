@@ -1,6 +1,46 @@
 agent_id: upgrade-impact-analysis
 title: Upgrade Impact Analysis Evidence Contract
 summary: Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compatibility claims without platform or user-provided evidence.
+task_profiles:
+  - id: resolve-scope
+    title: Resolve Upgrade Scope
+    summary: Prove project, package, current version, and target version scope before impact claims.
+    when_to_use:
+      - The user asks about an upgrade but project or package scope is incomplete.
+      - A finding UUID or package coordinate must be mapped first.
+    minimal_evidence:
+      - Namespace provenance, project or package coordinate, current version, and target version or finding selector.
+    stop_when:
+      - Upgrade scope is explicit or missing evidence is recorded in data_gaps.
+      - Do not claim safety or breaking-change status in this profile.
+    output_focus:
+      - Return scope summary, evidence_queries, and data_gaps.
+  - id: evidence-check
+    title: Upgrade Evidence Check
+    summary: Query VersionUpgrade/UIA evidence for one explicit upgrade candidate.
+    when_to_use:
+      - The user asks whether an upgrade is safe, risky, or worth doing.
+      - Runtime QA needs upgrade-impact evidence without remediation planning.
+    minimal_evidence:
+      - Resolved project, VersionUpgrade/UIA row for the candidate, and Finding cross-check when a finding UUID is supplied.
+    stop_when:
+      - Risk, CIA, fixed findings, introduced findings, and missing evidence are known.
+      - Do not edit manifests or create remediation branches.
+    output_focus:
+      - Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, and data_gaps.
+  - id: explain
+    title: Explain Impact
+    summary: Explain verified upgrade impact in concise user-facing terms.
+    when_to_use:
+      - The user asks for a readable explanation of already-fetched VersionUpgrade evidence.
+      - Evidence was supplied by the user or a prior current lookup in the same run.
+    minimal_evidence:
+      - Current VersionUpgrade/UIA evidence or a clear data_gaps entry that evidence is unavailable.
+    stop_when:
+      - The explanation covers risk, CIA, findings fixed/introduced, and validation next checks.
+      - Do not infer compatibility from version numbers alone.
+    output_focus:
+      - Return concise explanation plus structured recommendation and data_gaps.
 resources:
   - name: Project
     purpose: Resolve namespace-scoped project identity before project upgrade recommendations.

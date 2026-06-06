@@ -469,16 +469,42 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### SCA Remediation Evidence Contract
 
 Use namespace-scoped project, Finding, and VersionUpgrade evidence before recommending or preparing any remediation branch.
+
+### Agent Task Profiles
+
+#### `resolve-scope` - Resolve Scope
+
+Prove namespace, repository, and Endor project identity only.
+- Use when: The user asks whether the repository is known to Endor or which project/namespace applies. The next workflow step depends on scoped Endor evidence.
+- Minimal evidence: Current repository root and remote or user-provided repository identity. Namespace provenance and one Project lookup or a precise project lookup data_gaps entry.
+- Stop when: `project_resolution.status`, namespace provenance, and attempted selectors are known. Do not query Finding or VersionUpgrade evidence in this profile unless scope is already resolved and the user asks for it.
+- Output focus: Return `project_resolution`, `evidence_queries`, and `data_gaps` with other required fields empty or null.
+
+#### `evidence-check` - Evidence Check
+
+Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choosing a remediation.
+- Use when: The user asks what evidence is available, why a recommendation is blocked, or whether findings/UIA can be queried. Runtime or host QA needs evidence discipline without a full plan.
+- Minimal evidence: Resolved project and namespace. One main-context Finding query and one VersionUpgrade/UIA query, or precise data_gaps for each missing lane.
+- Stop when: Finding and VersionUpgrade/UIA availability is known for the resolved project. Do not inspect source files or prepare branch names unless selection is requested.
+- Output focus: Return `evidence_queries`, high-level evidence counts, and `data_gaps`; leave selected remediation null when no selection was requested.
+
+#### `selection-plan` - Selection Plan
+
+Select at most one UIA-backed remediation candidate and stop before mutation.
+- Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. Runtime QA needs a complete remediation gate JSON object.
+- Minimal evidence: Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source usage for the selected package. Dirty worktree state for affected manifests before proposing any branch.
+- Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
+- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`.
 
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.

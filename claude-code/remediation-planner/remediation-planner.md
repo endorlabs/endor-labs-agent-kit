@@ -111,16 +111,42 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### Remediation Planner Evidence Contract
 
 Preview remediation options only from verified Endor findings and VersionUpgrade/UIA evidence; local project docs are context, not evidence.
+
+### Agent Task Profiles
+
+#### `resolve-scope` - Resolve Scope
+
+Prove namespace, repository, and Endor project identity before planning.
+- Use when: The user asks whether a repository can be planned against Endor evidence. Project resolution is missing or ambiguous.
+- Minimal evidence: Repository identity from current workspace or explicit user input. Namespace provenance and Project lookup attempt.
+- Stop when: `project_resolution.status` is resolved, unresolved, ambiguous, or lookup_unavailable. Do not report SCA counts or options in this profile.
+- Output focus: Return `project_resolution`, `evidence_queries`, and `data_gaps` without remediation options.
+
+#### `evidence-check` - Evidence Check
+
+Check whether verified Finding and VersionUpgrade/UIA evidence exists for planning.
+- Use when: The user asks why a plan cannot be trusted or whether remediation evidence exists. The request is exploratory and does not require a selected option.
+- Minimal evidence: Resolved project and namespace. One scoped Finding query and one scoped VersionUpgrade/UIA query, or data_gaps for each unavailable lane.
+- Stop when: Evidence availability is known and unproven local counts are rejected. Do not estimate counts, risk, review time, or touched files from local docs.
+- Output focus: Return evidence availability, empty or verified `remediation_options`, and precise `data_gaps`.
+
+#### `selection-plan` - Selection Plan
+
+Preview one or more verified remediation options without editing files.
+- Use when: The user asks for a remediation plan or ranked options. The host needs a read-only planning gate.
+- Minimal evidence: Resolved project, Finding evidence, VersionUpgrade/UIA evidence, and affected manifest context for each named option.
+- Stop when: Verified options are ranked, or missing evidence blocks selection. Do not mutate files, create branches, or open change requests.
+- Output focus: Return `remediation_options`, optional `selected_remediation`, `evidence_queries`, and `data_gaps`.
 
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve repository-scoped project identity and namespace provenance before any remediation option. Fields: `uuid`, `meta.name`, `spec.git`.

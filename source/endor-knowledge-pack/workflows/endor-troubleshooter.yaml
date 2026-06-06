@@ -1,6 +1,46 @@
 agent_id: endor-troubleshooter
 title: Endor Troubleshooter Evidence Contract
 summary: Diagnose Endor scan, integration, identity, notification, and runtime issues with read-only namespace-scoped evidence and explicit support-escalation packets.
+task_profiles:
+  - id: classify
+    title: Classify Issue
+    summary: Classify the reported Endor problem and choose the narrowest diagnostic lane.
+    when_to_use:
+      - The user provides an error, log excerpt, scan UUID, or vague Endor failure.
+      - The issue area is not yet known.
+    minimal_evidence:
+      - User-provided symptom, namespace provenance if scoped, and any supplied resource IDs.
+    stop_when:
+      - The issue lane and next minimal query are known, or the report is too sparse.
+      - Do not run scans or broad inventories in this profile.
+    output_focus:
+      - Return intake classification, evidence_queries, recommended next read-only checks, and data_gaps.
+  - id: diagnose
+    title: Diagnose Narrow Lane
+    summary: Query only the Endor resources needed for the classified issue lane.
+    when_to_use:
+      - The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue.
+      - Runtime QA needs a read-only troubleshooting result.
+    minimal_evidence:
+      - Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult, or Integration.
+    stop_when:
+      - A root-cause hypothesis and validation plan are supported, or the lane is blocked with data_gaps.
+      - Do not create scans, edit scan profiles, mutate integrations, or post support tickets.
+    output_focus:
+      - Return issue_lanes, evidence_summary, root_cause_hypotheses, recommended_actions, and data_gaps.
+  - id: support-packet
+    title: Support Packet
+    summary: Package verified facts and missing evidence for escalation without changing tenant state.
+    when_to_use:
+      - The user needs a support-ready summary after diagnosis.
+      - Required tenant or account-tier evidence is unavailable.
+    minimal_evidence:
+      - Issue lane, resource identifiers, command/error provenance, and data_gaps from failed lookups.
+    stop_when:
+      - The packet contains reproducible facts, attempted queries, and missing evidence.
+      - Do not claim escalation was created unless an approved host action returned evidence.
+    output_focus:
+      - Return support_escalation_packet, validation_plan, future_action_contracts, and data_gaps.
 resources:
   - name: Project
     purpose: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis.

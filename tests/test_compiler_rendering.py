@@ -64,6 +64,8 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert rendered.index(PACK_SECTION_HEADING) < rendered.index("Enterprise rules.")
     assert "source recipe instructions remain authoritative" in rendered
     assert "Context first" in rendered
+    assert "Agent Task Profiles" in rendered
+    assert "`selection-plan` - Selection Plan" in rendered
 
 
 def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
@@ -110,6 +112,20 @@ Enterprise rules.
     assert "Reference-only details" not in compact
     assert "Shared rules." in compact
     assert "Shared tail." in compact
+
+
+def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
+    compact = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        recipe_id="sca-remediation",
+        compact_plugin=True,
+    )
+
+    assert "Agent Task Profiles" in compact
+    assert "Profiles: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
+    assert "full only on request" in compact
+    assert "#### `selection-plan` - Selection Plan" not in compact
 
 
 def test_shared_compiler_rendering_reports_missing_instruction_sections():

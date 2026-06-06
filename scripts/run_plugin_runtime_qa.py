@@ -22,12 +22,18 @@ if SRC_ROOT.is_dir():
 
 try:
     from endor_agent_kit.agent_output_lint import lint_agent_output
+    from endor_agent_kit.knowledge_pack import (
+        default_task_profile_for_agent,
+        render_task_profile_prompt,
+    )
     from endor_agent_kit.structured_output_contracts import (
         json_schema_for_agent,
         required_fields_for,
     )
 except ModuleNotFoundError:  # pragma: no cover - generated mirror may omit src/
     lint_agent_output = None
+    default_task_profile_for_agent = None
+    render_task_profile_prompt = None
     json_schema_for_agent = None
     required_fields_for = None
 
@@ -46,6 +52,7 @@ DEFAULT_AGENTS = (
 class RuntimeQaResult:
     host: str
     agent: str
+    task_profile: str
     workspace: str
     status: str
     reason: str
@@ -74,6 +81,7 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = Path(__file__).resolve().parents[1]
     log_dir = create_log_dir(args.log_root)
     overrides = parse_command_overrides(args.command_override)
+    task_profiles = parse_task_profile_overrides(args.task_profile)
     hosts = tuple(dict.fromkeys(args.host or DEFAULT_HOSTS))
     agents = tuple(dict.fromkeys(args.agent or DEFAULT_AGENTS))
 
@@ -86,6 +94,7 @@ def main(argv: list[str] | None = None) -> int:
                     agent=agent,
                     workspace=workspace,
                     namespace=args.namespace,
+                    task_profile=task_profiles.get(agent) or default_runtime_task_profile(agent),
                     log_dir=log_dir,
                     repo_root=repo_root,
                     timeout=args.timeout,
@@ -104,6 +113,10 @@ def main(argv: list[str] | None = None) -> int:
         "log_dir": str(log_dir),
         "hosts": list(hosts),
         "agents": list(agents),
+        "task_profiles": {
+            agent: task_profiles.get(agent) or default_runtime_task_profile(agent)
+            for agent in agents
+        },
         "codex_sandbox": args.codex_sandbox,
         "claude_permission_mode": args.claude_permission_mode,
         "workspaces": [str(path) for path in workspaces],
@@ -122,6 +135,13 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--allow-live-endor-read", action="store_true", help="Confirm that runtime prompts may perform read-only Endor tenant lookups.")
     parser.add_argument("--host", action="append", choices=SUPPORTED_HOSTS, help="Host to test. Repeatable. Defaults to all supported/blocked hosts.")
     parser.add_argument("--agent", action="append", help="Agent id to test. Repeatable. Defaults to core runtime QA agents.")
+    parser.add_argument(
+        "--task-profile",
+        action="append",
+        default=[],
+        metavar="AGENT=PROFILE",
+        help="Select an agent task profile for runtime QA. Repeatable. Defaults come from the Endor Knowledge Pack.",
+    )
     parser.add_argument("--timeout", type=int, default=600, help="Per-case timeout in seconds.")
     parser.add_argument("--log-root", type=Path, default=Path("/tmp"), help="Parent directory for runtime QA logs.")
     parser.add_argument(
@@ -173,12 +193,25 @@ def parse_command_overrides(values: Sequence[str]) -> dict[str, str]:
     return overrides
 
 
+def parse_task_profile_overrides(values: Sequence[str]) -> dict[str, str]:
+    overrides: dict[str, str] = {}
+    for value in values:
+        if "=" not in value:
+            raise SystemExit(f"Invalid --task-profile {value!r}; expected AGENT=PROFILE")
+        agent, profile = value.split("=", 1)
+        if not agent.strip() or not profile.strip():
+            raise SystemExit(f"Invalid --task-profile {value!r}; expected AGENT=PROFILE")
+        overrides[agent.strip()] = profile.strip()
+    return overrides
+
+
 def run_case(
     *,
     host: str,
     agent: str,
     workspace: Path,
     namespace: str,
+    task_profile: str,
     log_dir: Path,
     repo_root: Path,
     timeout: int,
@@ -189,7 +222,13 @@ def run_case(
 ) -> RuntimeQaResult:
     case_dir = log_dir / safe_name(f"{host}-{agent}-{workspace.name}")
     case_dir.mkdir(parents=True, exist_ok=True)
-    prompt = build_prompt(host=host, agent=agent, workspace=workspace, namespace=namespace)
+    prompt = build_prompt(
+        host=host,
+        agent=agent,
+        workspace=workspace,
+        namespace=namespace,
+        task_profile=task_profile,
+    )
     prompt_log = case_dir / "prompt.txt"
     output_schema_log = case_dir / "output-schema.json"
     stdout_log = case_dir / "stdout.txt"
@@ -222,6 +261,7 @@ def run_case(
         return RuntimeQaResult(
             host=host,
             agent=agent,
+            task_profile=task_profile,
             workspace=str(workspace),
             status="blocked",
             reason=command_or_block.reason,
@@ -259,6 +299,7 @@ def run_case(
         return RuntimeQaResult(
             host=host,
             agent=agent,
+            task_profile=task_profile,
             workspace=str(workspace),
             status="timeout",
             reason=f"timed out after {timeout}s",
@@ -291,6 +332,7 @@ def run_case(
     return RuntimeQaResult(
         host=host,
         agent=agent,
+        task_profile=task_profile,
         workspace=str(workspace),
         status=status,
         reason=reason,
@@ -401,22 +443,47 @@ def default_executable(host: str) -> str:
     }[host]
 
 
-def build_prompt(*, host: str, agent: str, workspace: Path, namespace: str) -> str:
-    invocation = agent_invocation(host, agent)
+def build_prompt(
+    *,
+    host: str,
+    agent: str,
+    workspace: Path,
+    namespace: str,
+    task_profile: str | None = None,
+) -> str:
+    selected_profile = task_profile or default_runtime_task_profile(agent)
+    invocation = agent_invocation(host, agent, selected_profile)
     lines = [
         "Endor Agent Kit runtime QA run.",
         f"Workspace: {workspace}",
         f"Namespace: {namespace}",
+        f"Task profile: {selected_profile}",
         "Live Endor tenant reads are explicitly allowed for this QA run, but writes, scans, PRs, comments, and source edits are not approved.",
         "Use current live evidence when host tools and credentials allow it. If required Endor evidence is unavailable, do not guess; return precise data_gaps and evidence_queries.",
         "Do not read or print Endor config file contents. Do not use remembered namespace, project UUID, repo URL, finding counts, UIA, or CIA evidence.",
+        "Do not consult memory, continuity notes, or prior runtime logs for evidence unless the selected profile explicitly requires setup or troubleshooting context.",
         "",
     ]
+    profile_prompt = runtime_task_profile_prompt(agent, selected_profile)
+    if profile_prompt:
+        lines.extend([profile_prompt, ""])
     output_contract = runtime_output_contract(agent)
     if output_contract:
         lines.extend([output_contract, ""])
     lines.append(invocation)
     return "\n".join(lines)
+
+
+def default_runtime_task_profile(agent: str) -> str:
+    if default_task_profile_for_agent is None:
+        return "evidence-check"
+    return default_task_profile_for_agent(agent)
+
+
+def runtime_task_profile_prompt(agent: str, profile: str) -> str:
+    if render_task_profile_prompt is None:
+        return ""
+    return render_task_profile_prompt(agent, profile)
 
 
 def structured_output_schema(agent: str) -> dict | None:
@@ -442,13 +509,18 @@ def runtime_output_contract(agent: str) -> str:
     )
 
 
-def agent_invocation(host: str, agent: str) -> str:
-    task = qa_task(agent)
+def agent_invocation(host: str, agent: str, task_profile: str | None = None) -> str:
+    selected_profile = task_profile or default_runtime_task_profile(agent)
+    task = qa_task(agent, selected_profile)
     if host == "claude":
         return f"Run this read-only QA task: {task}"
     if host == "codex":
         codex_name = agent if agent.startswith("endor-") else f"endor-{agent}"
-        return f"Use the {codex_name}-agent custom agent if available, otherwise use the {agent} skill, for this read-only QA task: {task}"
+        return (
+            "For noninteractive Codex QA, do not spawn or fork subagents. "
+            f"Execute the installed {codex_name}-agent instructions directly if available, "
+            f"otherwise use the {agent} skill, for this read-only QA task: {task}"
+        )
     if host == "antigravity":
         return f"Invoke @{agent} for this read-only QA task: {task}"
     if host == "gemini":
@@ -458,15 +530,21 @@ def agent_invocation(host: str, agent: str) -> str:
     return task
 
 
-def qa_task(agent: str) -> str:
+def qa_task(agent: str, task_profile: str | None = None) -> str:
+    profile = task_profile or default_runtime_task_profile(agent)
     tasks = {
-        "sca-remediation": "resolve the Endor project for this repository and return exactly one parseable remediation gate JSON object. The JSON must include project_resolution.status, project_resolution.project_uuid, project_resolution.namespace, project_resolution.namespace_provenance, project_resolution.repo_full_name, selected_remediation.package, selected_remediation.from_version, selected_remediation.to_version, selected_remediation.branch_name using remediation/sca/<package>-<target-version>, uia_evidence as an array, risk_decision.status, risk_decision.source_usage_summary, risk_decision.validation_requirements, validation, change_requests with proposed_branch, evidence_queries, and data_gaps. Normalize branch package names by replacing /, :, spaces, and underscores with -; for example go://golang.org/x/crypto at v0.48.0 becomes remediation/sca/golang.org-x-crypto-v0.48.0. risk_decision.status must be exactly approved_low_risk, approved_with_validation_required, blocked_needs_compatibility_analysis, or rejected; do not invent variants. Do not edit files. If Finding or VersionUpgrade/UIA evidence is unavailable, include non-empty data_gaps and do not select a remediation from unverified counts.",
-        "remediation-planner": "preview remediation options from verified Endor evidence only and return exactly one parseable JSON object. Refuse unproven SCA counts from local docs and report missing Finding or UIA evidence in data_gaps.",
-        "ai-sast-triage": "triage available AI SAST findings for this repository. Do not edit files or create policies. If findings cannot be queried, return evidence_queries and data_gaps.",
-        "endor-troubleshooter": "check Endor readiness and diagnose missing setup without running scans or printing config secrets.",
-        "probe-droid": "assess onboarding evidence for the repository or organization using read-only GitHub and Endor evidence. Do not run scans.",
+        ("sca-remediation", "resolve-scope"): "resolve this repository to an Endor project and stop. Return one JSON object with project_resolution, evidence_queries, and data_gaps; do not query Finding or VersionUpgrade unless scope is already provided.",
+        ("sca-remediation", "evidence-check"): "resolve this repository, query only scoped main-context Finding availability and VersionUpgrade/UIA availability, and stop. Do not select a remediation.",
+        ("sca-remediation", "selection-plan"): "resolve this repository, query only the main-context Finding and VersionUpgrade/UIA evidence needed to select at most one remediation candidate, inspect only the selected package's local manifest/source usage, then return one remediation gate JSON object. Do not edit files.",
+        ("remediation-planner", "selection-plan"): "preview verified remediation options from scoped Finding and VersionUpgrade/UIA evidence only. Refuse unproven SCA counts from local docs and return data_gaps for missing evidence.",
+        ("ai-sast-triage", "evidence-check"): "resolve AI SAST finding availability and source context for this repository. Do not generate diffs, create policies, or edit files.",
+        ("endor-troubleshooter", "diagnose"): "diagnose one narrow Endor issue lane with read-only evidence. Do not run scans, mutate integrations, or print config secrets.",
+        ("probe-droid", "evidence-check"): "assess bounded onboarding coverage evidence for this repository or supplied inventory. Do not run scans or edit GitHub/Endor state.",
     }
-    return tasks.get(agent, "run the generated read-only evidence check and report verified evidence, evidence_queries, and data_gaps.")
+    return tasks.get(
+        (agent, profile),
+        "run the selected compact agent task profile and report only verified evidence, evidence_queries, and data_gaps.",
+    )
 
 
 def cursor_agent_name(agent: str) -> str:

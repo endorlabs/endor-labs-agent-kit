@@ -7,8 +7,10 @@ import yaml
 from conftest import repo_root
 from endor_agent_kit.knowledge_pack import (
     PACK_SECTION_HEADING,
+    default_task_profile_for_agent,
     load_knowledge_pack,
     render_knowledge_pack_section,
+    render_task_profile_prompt,
     validate_knowledge_pack,
 )
 from endor_agent_kit.recipe import load_yaml_file
@@ -48,6 +50,11 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "verified-evidence",
         "data-gaps",
     ]
+    assert [profile.id for profile in pack.workflow_for("sca-remediation").task_profiles] == [
+        "resolve-scope",
+        "evidence-check",
+        "selection-plan",
+    ]
 
 
 def test_knowledge_pack_renders_global_section_for_known_agent():
@@ -56,6 +63,8 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert section.startswith(PACK_SECTION_HEADING)
     assert "Context first" in section
     assert "Evidence Gate Contract" in section
+    assert "Agent Task Profiles" in section
+    assert "`selection-plan` - Selection Plan" in section
     assert "Never use memory" in section
     assert "Never dump or `cat` Endor config files" in section
     assert "SCA Remediation Evidence Contract" in section
@@ -63,6 +72,17 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert "namespace_provenance" in section
     assert "data_gaps" in section
     assert "Workflow output contracts" in section
+
+
+def test_knowledge_pack_renders_task_profile_prompt():
+    prompt = render_task_profile_prompt("sca-remediation", "selection-plan")
+
+    assert "Agent task profile: `selection-plan`" in prompt
+    assert "Use this compact profile instead of running the full workflow" in prompt
+    assert "Minimal evidence:" in prompt
+    assert "VersionUpgrade/UIA evidence" in prompt
+    assert "Output focus:" in prompt
+    assert default_task_profile_for_agent("sca-remediation") == "selection-plan"
 
 
 def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
@@ -85,6 +105,17 @@ def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
                 "retrieval_steps": ["Resolve namespace and project evidence."],
                 "fallbacks": ["Record lookup failures in data_gaps."],
                 "data_gaps": ["Record missing namespace access in data_gaps."],
+                "task_profiles": [
+                    {
+                        "id": "evidence-check",
+                        "title": "Evidence Check",
+                        "summary": "Use namespace evidence and report data_gaps.",
+                        "when_to_use": ["Use for read-only evidence checks."],
+                        "minimal_evidence": ["Namespace evidence or data_gaps."],
+                        "stop_when": ["Evidence is known or data_gaps are recorded."],
+                        "output_focus": ["Return evidence_queries and data_gaps."],
+                    }
+                ],
             },
             sort_keys=False,
         ),

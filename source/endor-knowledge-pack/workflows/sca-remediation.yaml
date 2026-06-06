@@ -1,6 +1,49 @@
 agent_id: sca-remediation
 title: SCA Remediation Evidence Contract
 summary: Use namespace-scoped project, Finding, and VersionUpgrade evidence before recommending or preparing any remediation branch.
+task_profiles:
+  - id: resolve-scope
+    title: Resolve Scope
+    summary: Prove namespace, repository, and Endor project identity only.
+    when_to_use:
+      - The user asks whether the repository is known to Endor or which project/namespace applies.
+      - The next workflow step depends on scoped Endor evidence.
+    minimal_evidence:
+      - Current repository root and remote or user-provided repository identity.
+      - Namespace provenance and one Project lookup or a precise project lookup data_gaps entry.
+    stop_when:
+      - "`project_resolution.status`, namespace provenance, and attempted selectors are known."
+      - Do not query Finding or VersionUpgrade evidence in this profile unless scope is already resolved and the user asks for it.
+    output_focus:
+      - Return `project_resolution`, `evidence_queries`, and `data_gaps` with other required fields empty or null.
+  - id: evidence-check
+    title: Evidence Check
+    summary: Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choosing a remediation.
+    when_to_use:
+      - The user asks what evidence is available, why a recommendation is blocked, or whether findings/UIA can be queried.
+      - Runtime or host QA needs evidence discipline without a full plan.
+    minimal_evidence:
+      - Resolved project and namespace.
+      - One main-context Finding query and one VersionUpgrade/UIA query, or precise data_gaps for each missing lane.
+    stop_when:
+      - Finding and VersionUpgrade/UIA availability is known for the resolved project.
+      - Do not inspect source files or prepare branch names unless selection is requested.
+    output_focus:
+      - Return `evidence_queries`, high-level evidence counts, and `data_gaps`; leave selected remediation null when no selection was requested.
+  - id: selection-plan
+    title: Selection Plan
+    summary: Select at most one UIA-backed remediation candidate and stop before mutation.
+    when_to_use:
+      - The user asks for the best next remediation, a PR plan, or a read-only remediation gate.
+      - Runtime QA needs a complete remediation gate JSON object.
+    minimal_evidence:
+      - Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source usage for the selected package.
+      - Dirty worktree state for affected manifests before proposing any branch.
+    stop_when:
+      - One candidate is selected, blocked, or rejected with `risk_decision.status`.
+      - Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
+    output_focus:
+      - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`.
 resources:
   - name: Project
     purpose: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence.

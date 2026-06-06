@@ -146,16 +146,34 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### Package Risk Summary Evidence Contract
 
 Summarize one explicit package version's risk posture without turning unavailable evidence into an approval or rejection.
+
+### Agent Task Profiles
+
+#### `explain` - Explain Package Risk
+
+Summarize risk for one explicit package coordinate from available evidence only.
+- Use when: The user asks for a concise risk posture for a package version. Missing package coordinate details would make tenant lookups ambiguous.
+- Minimal evidence: Ecosystem, package name, version, and namespace provenance for tenant-scoped evidence when available.
+- Stop when: Package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps. Do not inspect repository manifests or run scans.
+- Output focus: Return risk_posture, findings, strengths, next_checks, summary, and data_gaps.
+
+#### `evidence-check` - Exact Package Evidence Check
+
+Fetch only exact package-version enrichment before selecting a posture.
+- Use when: The host exposes Endor PackageVersion, Metric, or Vulnerability evidence. The user asks for evidence-backed risk, not a general explanation.
+- Minimal evidence: Exact PackageVersion match, available score/license signals, vulnerability enrichment, and data_gaps for unavailable evidence.
+- Stop when: Evidence-backed posture is known or evidence is insufficient. Do not substitute ecosystem-level assumptions for exact package-version evidence.
+- Output focus: Return bounded posture, evidence source summary, and data_gaps.
 
 - Preferred evidence resources: `PackageVersion`, `Metric`, `Vulnerability`.
 - `PackageVersion`: Resolve the exact package-version UUID for package-level enrichment. Fields: `uuid`, `meta.name`.

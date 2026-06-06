@@ -222,16 +222,42 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### Upgrade Impact Analysis Evidence Contract
 
 Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compatibility claims without platform or user-provided evidence.
+
+### Agent Task Profiles
+
+#### `resolve-scope` - Resolve Upgrade Scope
+
+Prove project, package, current version, and target version scope before impact claims.
+- Use when: The user asks about an upgrade but project or package scope is incomplete. A finding UUID or package coordinate must be mapped first.
+- Minimal evidence: Namespace provenance, project or package coordinate, current version, and target version or finding selector.
+- Stop when: Upgrade scope is explicit or missing evidence is recorded in data_gaps. Do not claim safety or breaking-change status in this profile.
+- Output focus: Return scope summary, evidence_queries, and data_gaps.
+
+#### `evidence-check` - Upgrade Evidence Check
+
+Query VersionUpgrade/UIA evidence for one explicit upgrade candidate.
+- Use when: The user asks whether an upgrade is safe, risky, or worth doing. Runtime QA needs upgrade-impact evidence without remediation planning.
+- Minimal evidence: Resolved project, VersionUpgrade/UIA row for the candidate, and Finding cross-check when a finding UUID is supplied.
+- Stop when: Risk, CIA, fixed findings, introduced findings, and missing evidence are known. Do not edit manifests or create remediation branches.
+- Output focus: Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, and data_gaps.
+
+#### `explain` - Explain Impact
+
+Explain verified upgrade impact in concise user-facing terms.
+- Use when: The user asks for a readable explanation of already-fetched VersionUpgrade evidence. Evidence was supplied by the user or a prior current lookup in the same run.
+- Minimal evidence: Current VersionUpgrade/UIA evidence or a clear data_gaps entry that evidence is unavailable.
+- Stop when: The explanation covers risk, CIA, findings fixed/introduced, and validation next checks. Do not infer compatibility from version numbers alone.
+- Output focus: Return concise explanation plus structured recommendation and data_gaps.
 
 - Preferred evidence resources: `Project`, `VersionUpgrade`, `Finding`.
 - `Project`: Resolve namespace-scoped project identity before project upgrade recommendations. Fields: `uuid`, `meta.name`, `spec.git`.

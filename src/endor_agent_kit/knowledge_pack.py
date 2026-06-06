@@ -39,13 +39,22 @@ REQUIRED_WORKFLOW_FIELDS = (
     "fallbacks",
     "data_gaps",
 )
+REQUIRED_TASK_PROFILE_FIELDS = (
+    "id",
+    "title",
+    "summary",
+    "when_to_use",
+    "minimal_evidence",
+    "stop_when",
+    "output_focus",
+)
 EVIDENCE_GATE_RULES = (
-    "Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.",
-    "Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.",
-    "Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.",
-    "Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.",
-    "Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.",
-    "Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.",
+    "Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.",
+    "Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.",
+    "Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.",
+    "Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.",
+    "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.",
+    "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.",
 )
 
 
@@ -68,6 +77,19 @@ class KnowledgeResource:
 
 
 @dataclass(frozen=True)
+class KnowledgeTaskProfile:
+    """One compact operating mode for an agent."""
+
+    id: str
+    title: str
+    summary: str
+    when_to_use: tuple[str, ...]
+    minimal_evidence: tuple[str, ...]
+    stop_when: tuple[str, ...]
+    output_focus: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class KnowledgeWorkflow:
     """Per-agent workflow knowledge rendered only for the matching agent."""
 
@@ -78,6 +100,15 @@ class KnowledgeWorkflow:
     retrieval_steps: tuple[str, ...]
     fallbacks: tuple[str, ...]
     data_gaps: tuple[str, ...]
+    task_profiles: tuple[KnowledgeTaskProfile, ...]
+
+    def task_profile_for(self, profile_id: str) -> KnowledgeTaskProfile | None:
+        """Return a task profile by id."""
+
+        for profile in self.task_profiles:
+            if profile.id == profile_id:
+                return profile
+        return None
 
 
 @dataclass(frozen=True)
@@ -201,6 +232,25 @@ def render_knowledge_pack_section(
     workflow = pack.workflow_for(agent_id)
     if workflow is not None:
         lines.extend(["", f"### {workflow.title}", "", workflow.summary, ""])
+        if workflow.task_profiles:
+            lines.extend(["### Agent Task Profiles", ""])
+            if compact:
+                profiles = ", ".join(f"`{profile.id}`" for profile in workflow.task_profiles)
+                lines.append(
+                    f"- Profiles: {profiles}. Start narrow; stop with `data_gaps`; full only on request."
+                )
+            else:
+                for profile in workflow.task_profiles:
+                    lines.extend([
+                        f"#### `{profile.id}` - {profile.title}",
+                        "",
+                        profile.summary,
+                        "- Use when: " + " ".join(profile.when_to_use),
+                        "- Minimal evidence: " + " ".join(profile.minimal_evidence),
+                        "- Stop when: " + " ".join(profile.stop_when),
+                        "- Output focus: " + " ".join(profile.output_focus),
+                        "",
+                    ])
         if workflow.resources:
             resources = ", ".join(f"`{resource.name}`" for resource in workflow.resources)
             lines.append(f"- Preferred evidence resources: {resources}.")
@@ -223,6 +273,53 @@ def render_knowledge_pack_section(
             lines.append("- Data gaps: " + " ".join(workflow.data_gaps))
 
     return "\n".join(lines).rstrip() + "\n"
+
+
+def default_task_profile_for_agent(agent_id: str) -> str:
+    """Return the preferred compact profile for runtime proof of an agent."""
+
+    defaults = {
+        "ai-sast-triage": "evidence-check",
+        "dependency-decision-helper": "explain",
+        "endor-troubleshooter": "diagnose",
+        "package-risk-summary": "explain",
+        "probe-droid": "evidence-check",
+        "remediation-planner": "selection-plan",
+        "repository-dependency-reviewer": "evidence-check",
+        "sca-remediation": "selection-plan",
+        "upgrade-impact-analysis": "evidence-check",
+        "vulnerability-explainer": "explain",
+    }
+    return defaults.get(agent_id, "evidence-check")
+
+
+def render_task_profile_prompt(
+    agent_id: str,
+    profile_id: str | None = None,
+    root: str | Path | None = None,
+) -> str:
+    """Render one compact task-profile selection prompt for runtime use."""
+
+    selected_profile_id = profile_id or default_task_profile_for_agent(agent_id)
+    pack = load_knowledge_pack(root)
+    workflow = pack.workflow_for(agent_id)
+    if workflow is None:
+        return ""
+    profile = workflow.task_profile_for(selected_profile_id)
+    if profile is None:
+        return ""
+    lines = [
+        f"Agent task profile: `{profile.id}` ({profile.title}).",
+        profile.summary,
+        "Use this compact profile instead of running the full workflow unless the user explicitly asks for the full workflow.",
+        "Minimal evidence:",
+        *[f"- {item}" for item in profile.minimal_evidence],
+        "Stop when:",
+        *[f"- {item}" for item in profile.stop_when],
+        "Output focus:",
+        *[f"- {item}" for item in profile.output_focus],
+    ]
+    return "\n".join(lines)
 
 
 def _validate_workflows(
@@ -273,6 +370,28 @@ def _validate_workflows(
         for field in ("retrieval_steps", "fallbacks", "data_gaps"):
             if not _strings(data.get(field)):
                 errors.append(f"{prefix}.{field}: must be a non-empty list")
+        task_profiles = _mappings(data.get("task_profiles"))
+        if not task_profiles:
+            errors.append(f"{prefix}.task_profiles: must be a non-empty list")
+        profile_ids: set[str] = set()
+        for index, profile in enumerate(task_profiles):
+            profile_prefix = f"{prefix}.task_profiles[{index}]"
+            for field in REQUIRED_TASK_PROFILE_FIELDS:
+                if field not in profile:
+                    errors.append(f"{profile_prefix}: missing required field {field!r}")
+            profile_id = _required_slug(profile, "id", profile_prefix, errors)
+            if profile_id:
+                if profile_id in profile_ids:
+                    errors.append(f"{profile_prefix}.id: duplicate task profile id {profile_id!r}")
+                profile_ids.add(profile_id)
+            _required_string(profile, "title", profile_prefix, errors)
+            _required_string(profile, "summary", profile_prefix, errors)
+            for field in ("when_to_use", "minimal_evidence", "stop_when", "output_focus"):
+                if not _strings(profile.get(field)):
+                    errors.append(f"{profile_prefix}.{field}: must be a non-empty list")
+            profile_text = _visible_text(profile).lower()
+            if "data_gaps" not in profile_text:
+                errors.append(f"{profile_prefix}: task profile guidance must mention data_gaps")
         visible = _visible_text(data)
         if "namespace" not in visible.lower():
             errors.append(f"{prefix}: workflow guidance must mention namespace handling")
@@ -297,6 +416,7 @@ def _workflow(data: dict[str, Any]) -> KnowledgeWorkflow:
         retrieval_steps=tuple(_strings(data.get("retrieval_steps"))),
         fallbacks=tuple(_strings(data.get("fallbacks"))),
         data_gaps=tuple(_strings(data.get("data_gaps"))),
+        task_profiles=tuple(_task_profile(item) for item in _mappings(data.get("task_profiles"))),
     )
 
 
@@ -305,6 +425,18 @@ def _resource(data: dict[str, Any]) -> KnowledgeResource:
         name=str(data.get("name", "")),
         purpose=str(data.get("purpose", "")),
         fields=tuple(_strings(data.get("fields"))),
+    )
+
+
+def _task_profile(data: dict[str, Any]) -> KnowledgeTaskProfile:
+    return KnowledgeTaskProfile(
+        id=str(data.get("id", "")),
+        title=str(data.get("title", "")),
+        summary=str(data.get("summary", "")),
+        when_to_use=tuple(_strings(data.get("when_to_use"))),
+        minimal_evidence=tuple(_strings(data.get("minimal_evidence"))),
+        stop_when=tuple(_strings(data.get("stop_when"))),
+        output_focus=tuple(_strings(data.get("output_focus"))),
     )
 
 
