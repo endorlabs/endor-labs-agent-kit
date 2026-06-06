@@ -125,3 +125,81 @@ evidence_query_plans:
     data_gaps:
       - Record unverified owner, unknown branch protection, missing setup-file evidence, and unavailable project metadata
         in data_gaps.
+evidence_query_recipes:
+  - profile_id: resolve-scope
+    id: local-git-state
+    resource: local-git
+    purpose: Capture local repository provenance without reading secrets.
+    template: pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url
+    fields:
+      - cwd
+      - branch
+      - commit
+      - remote.origin.url
+      - dirty_files
+    constraints:
+      - Use as local context only; it does not prove Endor project, namespace, or finding counts.
+  - profile_id: resolve-scope
+    id: project-branch-coverage
+    resource: Project
+    purpose: Read Endor project git and monitored branch metadata for selected repositories.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
+      --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.git
+      - spec.monitored_branch
+    constraints:
+      - Compare only selected repositories.
+      - Do not run scans or mutate GitHub or Endor settings.
+  - profile_id: evidence-check
+    id: project-branch-coverage
+    resource: Project
+    purpose: Read Endor project git and monitored branch metadata for selected repositories.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
+      --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.git
+      - spec.monitored_branch
+    constraints:
+      - Compare only selected repositories.
+      - Do not run scans or mutate GitHub or Endor settings.
+  - profile_id: evidence-check
+    id: repo-setup-file-inventory
+    resource: local-files
+    purpose: Inventory dependency manifests before scoped Endor expansion.
+    template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
+      -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+    fields:
+      - manifest_path
+      - ecosystem_hint
+    constraints:
+      - Use local files as context only until Endor evidence backs project-scoped risk.
+  - profile_id: prescribe-actions
+    id: project-branch-coverage
+    resource: Project
+    purpose: Read Endor project git and monitored branch metadata for selected repositories.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
+      --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.git
+      - spec.monitored_branch
+    constraints:
+      - Compare only selected repositories.
+      - Do not run scans or mutate GitHub or Endor settings.
+  - profile_id: prescribe-actions
+    id: missing-setup-file-check
+    resource: local-files
+    purpose: Inventory dependency manifests before scoped Endor expansion.
+    template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
+      -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+    fields:
+      - manifest_path
+      - ecosystem_hint
+    constraints:
+      - Use local files as context only until Endor evidence backs project-scoped risk.

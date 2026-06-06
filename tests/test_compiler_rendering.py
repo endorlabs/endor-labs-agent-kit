@@ -68,6 +68,8 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert "`selection-plan` - Selection Plan" in rendered
     assert "Evidence Query Plans" in rendered
     assert "`selection-plan` - Selection Plan Query Plan" in rendered
+    assert "Evidence Query Recipes" in rendered
+    assert "endorctl api list -r VersionUpgrade -n <namespace>" in rendered
 
 
 def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
@@ -131,6 +133,9 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     assert "Plans: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
     assert "Exact/ranked evidence first; selected detail only" in compact
     assert "VersionUpgrade/UIA before Finding detail; no broad Finding inventory" in compact
+    assert "Evidence Query Recipes" in compact
+    assert "version-upgrade-summary" in compact
+    assert "endorctl api list -r VersionUpgrade -n <namespace>" in compact
     assert "#### `selection-plan` - Selection Plan" not in compact
 
 

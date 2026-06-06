@@ -389,6 +389,36 @@ def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     assert "read-only workflow must not recommend running a new Endor scan as the default next step" in errors
 
 
+def test_lint_rejects_unsafe_endorctl_query_recipe_shapes():
+    output = """
+```bash
+endorctl api list -r Project --field-mask "uuid,meta.name" -o json
+endorctl api list -r Project -n auri -o json
+endorctl api get -r Finding -n auri --filter 'uuid=="finding-123"' -o json
+endorctl api list -r Finding -n auri --field-mask "uuid" --list-all -o json
+```
+"""
+
+    errors = lint_agent_output("unknown-agent", output)
+
+    assert "endorctl query recipe: api commands must include explicit namespace" in errors
+    assert "endorctl query recipe: api list commands must include --field-mask" in errors
+    assert "endorctl query recipe: api get must not use filters; use --uuid or api list" in errors
+    assert "endorctl query recipe: broad Finding --list-all is not allowed" in errors
+
+
+def test_lint_accepts_safe_endorctl_query_recipe_shapes():
+    output = """
+```bash
+endorctl api list -r Project -n auri --field-mask "uuid,meta.name,spec.git" -o json
+endorctl api get -r Finding -n auri --uuid finding-123 -o json
+endorctl api list -r VersionUpgrade -n auri --filter 'spec.project_uuid=="proj-123"' --field-mask "uuid,spec.upgrade_info" -o json
+```
+"""
+
+    assert lint_agent_output("unknown-agent", output) == []
+
+
 def test_extract_json_object_returns_last_json_object():
     assert extract_json_object('{"first": true}\nthen\n{"second": true}') == {"second": True}
 

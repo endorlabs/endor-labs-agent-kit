@@ -89,3 +89,76 @@ evidence_query_plans:
       - Stop after required decision evidence is present or specific missing lanes are known.
     data_gaps:
       - Record missing coordinate, unresolved namespace, package not found, and missing project-scoped risk evidence in data_gaps.
+evidence_query_recipes:
+  - profile_id: explain
+    id: package-version-exact
+    resource: PackageVersion
+    purpose: Fetch exact package-version risk metadata for a named package only.
+    template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
+      and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata"
+      -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.version
+      - spec.risk_score
+      - spec.dependency_metadata
+    constraints:
+      - Use exact package coordinates; do not inventory the whole repository when a package is named.
+      - If version is unknown, ask for it or report data_gaps.
+  - profile_id: explain
+    id: package-finding-evidence
+    resource: Finding
+    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level"
+      -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.target_dependency_version
+      - spec.finding_categories
+      - spec.level
+    constraints:
+      - Use for availability or selected-candidate reconciliation only.
+      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+  - profile_id: evidence-check
+    id: package-version-exact
+    resource: PackageVersion
+    purpose: Fetch exact package-version risk metadata for a named package only.
+    template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
+      and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata"
+      -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.version
+      - spec.risk_score
+      - spec.dependency_metadata
+    constraints:
+      - Use exact package coordinates; do not inventory the whole repository when a package is named.
+      - If version is unknown, ask for it or report data_gaps.
+  - profile_id: evidence-check
+    id: package-finding-evidence-check
+    resource: Finding
+    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level"
+      -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.target_dependency_version
+      - spec.finding_categories
+      - spec.level
+    constraints:
+      - Use for availability or selected-candidate reconciliation only.
+      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
