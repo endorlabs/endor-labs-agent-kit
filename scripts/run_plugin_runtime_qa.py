@@ -483,7 +483,7 @@ def default_runtime_task_profile(agent: str) -> str:
 def runtime_task_profile_prompt(agent: str, profile: str) -> str:
     if render_task_profile_prompt is None:
         return ""
-    return render_task_profile_prompt(agent, profile)
+    return render_task_profile_prompt(agent, profile, compact=True)
 
 
 def structured_output_schema(agent: str) -> dict | None:

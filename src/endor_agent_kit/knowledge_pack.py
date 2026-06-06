@@ -297,6 +297,8 @@ def render_task_profile_prompt(
     agent_id: str,
     profile_id: str | None = None,
     root: str | Path | None = None,
+    *,
+    compact: bool = False,
 ) -> str:
     """Render one compact task-profile selection prompt for runtime use."""
 
@@ -308,6 +310,11 @@ def render_task_profile_prompt(
     profile = workflow.task_profile_for(selected_profile_id)
     if profile is None:
         return ""
+    if compact:
+        return (
+            f"Agent task profile `{profile.id}`: {profile.summary} "
+            "Use only that profile's minimal evidence; stop with the selected gate or precise `data_gaps`."
+        )
     lines = [
         f"Agent task profile: `{profile.id}` ({profile.title}).",
         profile.summary,
