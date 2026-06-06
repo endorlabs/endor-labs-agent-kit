@@ -15,7 +15,7 @@ task_profiles:
       - Required package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps.
       - Do not query unrelated dependencies or repository-wide manifests.
     output_focus:
-      - Return verdict, conditions, alternatives, summary, and data_gaps.
+      - Return verdict, conditions, alternatives, summary, evidence_queries, and data_gaps.
   - id: evidence-check
     title: Package Evidence Check
     summary: Query only exact package-version risk evidence needed for a decision.
@@ -28,7 +28,7 @@ task_profiles:
       - Allow, block, or conditional decision can be justified from exact evidence.
       - Do not infer risk from popularity, local docs, or version heuristics.
     output_focus:
-      - Return verdict with conditions, alternatives, evidence source summary, and data_gaps.
+      - Return verdict with conditions, alternatives, evidence_queries, evidence source summary, and data_gaps.
 resources:
   - name: PackageVersion
     purpose: Resolve the exact package-version UUID for score, license, and risk enrichment.

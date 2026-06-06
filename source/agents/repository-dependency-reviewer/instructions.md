@@ -151,6 +151,19 @@ shape:
   ],
   "recommended_actions": ["upgrade lodash to a fixed version"],
   "summary": "One-paragraph human-readable repository dependency review.",
+  "evidence_queries": [
+    {
+      "name": "Repository dependency evidence",
+      "resource": "RepositoryManifest | PackageRisk | Vulnerability",
+      "source": "local_repository | endor_mcp | endorctl_api",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "manifest-inventory | package-version-exact | vulnerability-enrichment | null",
+      "filter_summary": "Exact manifest coordinate or vulnerability selector",
+      "field_mask_summary": "Manifest fields and available package risk fields",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": ["unresolved_versions"]
 }
 ```

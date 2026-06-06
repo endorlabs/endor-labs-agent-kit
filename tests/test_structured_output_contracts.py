@@ -36,8 +36,14 @@ def test_required_fields_for_preserves_recipe_order():
         "conditions",
         "alternatives",
         "summary",
+        "evidence_queries",
         "data_gaps",
     )
+
+
+def test_all_structured_contracts_require_evidence_queries():
+    for agent_id in STRUCTURED_OUTPUT_CONTRACTS:
+        assert "evidence_queries" in required_fields_for(agent_id)
 
 
 def test_json_schema_for_agent_preserves_required_fields_and_shapes():
@@ -47,6 +53,19 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
     assert schema["additionalProperties"] is False
     assert schema["required"] == list(required_fields_for("sca-remediation"))
     assert schema["properties"]["evidence_queries"]["type"] == "array"
+    evidence_query = schema["properties"]["evidence_queries"]["items"]
+    assert evidence_query["additionalProperties"] is False
+    assert evidence_query["required"] == [
+        "name",
+        "resource",
+        "source",
+        "status",
+        "query_template_id",
+        "filter_summary",
+        "field_mask_summary",
+        "result_count",
+        "reason",
+    ]
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
 
 
@@ -117,6 +136,25 @@ def test_structured_output_contract_requires_data_gap_when_evidence_queries_empt
     )
 
     assert "data_gaps: required when evidence_queries is empty" in errors
+
+
+def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
+    errors = validate_structured_output_payload(
+        "vulnerability-explainer",
+        {
+            "action": "MONITOR",
+            "severity": "high",
+            "exploitability": [],
+            "remediation": [],
+            "summary": "Missing normalized evidence query fields.",
+            "evidence_queries": [{"resource": "Vulnerability", "status": "succeeded", "query": "raw query"}],
+            "data_gaps": [],
+        },
+    )
+
+    assert "evidence_queries[0].query: unsupported ledger field" in errors
+    assert "evidence_queries[0].name: required" in errors
+    assert "evidence_queries[0].source: required" in errors
 
 
 def _field_kinds(agent_id: str) -> dict[str, str]:

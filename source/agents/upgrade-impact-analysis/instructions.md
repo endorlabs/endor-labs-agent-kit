@@ -143,6 +143,19 @@ shape:
   "breaking_change_notes": ["known compatibility note, CIA finding, or unavailable compatibility evidence"],
   "next_checks": ["recommended check before merging"],
   "summary": "One-paragraph human-readable upgrade assessment.",
+  "evidence_queries": [
+    {
+      "name": "Upgrade impact evidence",
+      "resource": "VersionUpgrade",
+      "source": "endorctl_api | endor_mcp | user_input",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
+      "filter_summary": "Project, package, current version, and target version selector",
+      "field_mask_summary": "Risk, CIA, fixed findings, introduced findings, and manifest fields",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": ["current_scores", "target_license", "version_upgrade_records"],
   "upgrade_candidates": [
     {

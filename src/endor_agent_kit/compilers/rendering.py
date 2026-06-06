@@ -38,6 +38,12 @@ Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--conf
 """
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
+EVIDENCE_LEDGER_GUIDANCE = (
+    "`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, "
+    "`source`, `status`, `query_template_id`, `filter_summary`, "
+    "`field_mask_summary`, `result_count`, `reason`. Summarize selectors and "
+    "fields; put missing, failed, stale, or unsupported evidence in `data_gaps`."
+)
 
 
 def instructions_for_edition(
@@ -119,6 +125,8 @@ def render_structured_output_contract(
                 "Optional fields when verified:",
                 _inline_field_list(optional),
             ])
+        if _has_required_field(required, "evidence_queries"):
+            lines.append(EVIDENCE_LEDGER_GUIDANCE)
         lines.extend([
             "Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.",
             "Object fields may be `{}` or `null` only when `data_gaps` explains why.",
@@ -127,7 +135,7 @@ def render_structured_output_contract(
         return "\n".join(lines)
 
     skeleton = {
-        field.name: _json_placeholder(field.kind)
+        field.name: _json_placeholder(field)
         for field in required
     }
     lines = [
@@ -145,6 +153,8 @@ def render_structured_output_contract(
         lines.extend(["", "Optional top-level fields when verified:"])
         for field in optional:
             lines.append(f"- `{field.name}` (`{field.kind}`): {field.description or 'Optional recipe output.'}")
+    if _has_required_field(required, "evidence_queries"):
+        lines.extend(["", EVIDENCE_LEDGER_GUIDANCE])
     lines.extend([
         "",
         "Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.",
@@ -226,14 +236,32 @@ def _inline_field_list(fields: tuple[RecipeField, ...]) -> str:
     return ", ".join(f"`{field.name}`" for field in fields)
 
 
-def _json_placeholder(kind: str):
-    if kind.startswith("list["):
+def _json_placeholder(field: RecipeField):
+    if field.name == "evidence_queries":
+        return [
+            {
+                "name": "Evidence lane name",
+                "resource": "Project | Finding | VersionUpgrade | PackageVersion | local_repository | user_input",
+                "source": "endorctl_api | endor_mcp | local_repository | user_input",
+                "status": "succeeded | failed | skipped | unavailable",
+                "query_template_id": "knowledge-pack-recipe-id or null",
+                "filter_summary": "concise selector summary or null",
+                "field_mask_summary": "concise field summary or null",
+                "result_count": 0,
+                "reason": "why this evidence was used, unavailable, or skipped",
+            }
+        ]
+    if field.kind.startswith("list["):
         return []
-    if kind == "object":
+    if field.kind == "object":
         return {}
-    if kind == "integer":
+    if field.kind == "integer":
         return 0
     return "string"
+
+
+def _has_required_field(fields: tuple[RecipeField, ...], name: str) -> bool:
+    return any(field.name == name for field in fields)
 
 
 def indent(text: str, spaces: int) -> str:

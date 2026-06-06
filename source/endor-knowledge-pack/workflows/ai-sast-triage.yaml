@@ -42,7 +42,7 @@ task_profiles:
       - A TRUE_POSITIVE, FALSE_POSITIVE, ACCEPT_RISK, or insufficient-evidence verdict is recorded.
       - Do not open PRs or create policies without explicit approval.
     output_focus:
-      - Return verdicts, patch plan or exception lane, validation plan, change_requests, and data_gaps.
+      - Return verdicts, patch plan or exception lane, validation plan, change_requests, evidence_queries, and data_gaps.
 resources:
   - name: Project
     purpose: Resolve the Endor project and repository identity from namespace-scoped metadata.

@@ -82,13 +82,16 @@ GitHub App without matching GitHub and Endor evidence.
 
 Every response must include `evidence_queries[]`. Each entry records:
 
-- system: `github` or `endor`
-- command_or_query: the exact read-only command, API path, or filter attempted
-- purpose
-- status: `SUCCESS`, `PARTIAL`, `FAILED`, or `SKIPPED`
-- returned_count when known
-- fields_used
-- data_gaps
+- name: short human-readable evidence lane
+- resource: GitHub, Endor, or local repository resource inspected
+- source: `github`, `endorctl_api`, `endor_mcp`, `user_input`, or
+  `local_repository`
+- status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
+- query_template_id: compact recipe id, API path id, or null
+- filter_summary: concise selector summary or null
+- field_mask_summary: concise field summary or null
+- result_count: integer count or null
+- reason: why the evidence was used, unavailable, or skipped
 
 Required evidence categories:
 
@@ -985,7 +988,19 @@ the count imply exact complete lane membership.
       "success_signal": "affected repos move out of not_onboarded_repositories or gap lanes"
     }
   ],
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "Onboarding coverage evidence",
+      "resource": "GitHubRepository | Project | ScanResult",
+      "source": "github | endorctl_api | endor_mcp | local_repository",
+      "status": "succeeded | partial | failed | skipped",
+      "query_template_id": "github-inventory | project-onboarding-check | null",
+      "filter_summary": "Repository, org, project, or monitored-branch selector",
+      "field_mask_summary": "Repository, project, scan, branch, and package-manager fields used",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": [],
   "future_scope": ["pull_request_scan_coverage", "github_enterprise_server"]
 }

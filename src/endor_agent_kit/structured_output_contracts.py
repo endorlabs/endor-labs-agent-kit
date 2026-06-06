@@ -19,6 +19,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
     "ai-sast-triage": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("project_resolution", "object"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("verdicts", "list[object]"),
         StructuredOutputField("patches", "list[object]"),
         StructuredOutputField("change_requests", "list[object]"),
@@ -32,6 +33,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("conditions", "list[string]"),
         StructuredOutputField("alternatives", "list[string]"),
         StructuredOutputField("summary", "string"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
     "endor-troubleshooter": (
@@ -56,6 +58,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("strengths", "list[string]"),
         StructuredOutputField("next_checks", "list[string]"),
         StructuredOutputField("summary", "string"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
     "probe-droid": (
@@ -94,6 +97,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("findings", "list[object]"),
         StructuredOutputField("recommended_actions", "list[string]"),
         StructuredOutputField("summary", "string"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
     "sca-remediation": (
@@ -117,6 +121,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("breaking_change_notes", "list[string]"),
         StructuredOutputField("next_checks", "list[string]"),
         StructuredOutputField("summary", "string"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
         StructuredOutputField("upgrade_candidates", "list[object]", required=False),
         StructuredOutputField("selected_upgrade", "object", required=False),
@@ -136,6 +141,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("exploitability", "list[string]"),
         StructuredOutputField("remediation", "list[string]"),
         StructuredOutputField("summary", "string"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
 }
@@ -186,6 +192,7 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
                 errors.append(f"{field.name}: required")
             continue
         errors.extend(_kind_errors(field, payload[field.name]))
+    errors.extend(_evidence_query_ledger_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
 
@@ -332,11 +339,12 @@ def _evidence_queries_schema() -> dict[str, Any]:
             {
                 "name": _nullable_string(),
                 "resource": _nullable_string(),
-                "status": _nullable_string(),
-                "query": _nullable_string(),
-                "filter": _nullable_string(),
-                "result_count": _nullable_integer(),
                 "source": _nullable_string(),
+                "status": _nullable_string(),
+                "query_template_id": _nullable_string(),
+                "filter_summary": _nullable_string(),
+                "field_mask_summary": _nullable_string(),
+                "result_count": _nullable_integer(),
                 "reason": _nullable_string(),
             }
         ),
@@ -504,4 +512,109 @@ def _evidence_gap_contract_errors(
     if isinstance(evidence_queries, list) and isinstance(data_gaps, list):
         if not evidence_queries and not data_gaps:
             return ["data_gaps: required when evidence_queries is empty"]
+        if not evidence_queries and _claims_current_evidence(payload):
+            return ["evidence_queries: required when current Endor or repository evidence is claimed"]
     return []
+
+
+EVIDENCE_QUERY_LEDGER_FIELDS = (
+    "name",
+    "resource",
+    "source",
+    "status",
+    "query_template_id",
+    "filter_summary",
+    "field_mask_summary",
+    "result_count",
+    "reason",
+)
+
+EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("name", "resource", "source", "status")
+EVIDENCE_QUERY_GAP_STATUSES = (
+    "blocked",
+    "error",
+    "failed",
+    "lookup_unavailable",
+    "no_results",
+    "unavailable",
+)
+
+
+def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
+    evidence_queries = payload.get("evidence_queries")
+    if not isinstance(evidence_queries, list):
+        return []
+    data_gaps = _string_list(payload.get("data_gaps"))
+    errors: list[str] = []
+    for index, item in enumerate(evidence_queries):
+        if not isinstance(item, dict):
+            errors.append(f"evidence_queries[{index}]: must be an object")
+            continue
+        for field in item:
+            if field not in EVIDENCE_QUERY_LEDGER_FIELDS:
+                errors.append(f"evidence_queries[{index}].{field}: unsupported ledger field")
+        for field in EVIDENCE_QUERY_LEDGER_FIELDS:
+            if field not in item:
+                errors.append(f"evidence_queries[{index}].{field}: required")
+        for field in EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS:
+            if field in item and not _text(item.get(field)):
+                errors.append(f"evidence_queries[{index}].{field}: must be a non-empty string")
+        for field in EVIDENCE_QUERY_LEDGER_FIELDS:
+            if field == "result_count" or field not in item or item[field] is None:
+                continue
+            if not isinstance(item[field], str):
+                errors.append(f"evidence_queries[{index}].{field}: must be a string or null")
+        if "result_count" in item and item["result_count"] is not None:
+            if isinstance(item["result_count"], bool) or not isinstance(item["result_count"], int):
+                errors.append(f"evidence_queries[{index}].result_count: must be an integer or null")
+        status = _text(item.get("status")).lower()
+        if any(marker in status for marker in EVIDENCE_QUERY_GAP_STATUSES):
+            if not _text(item.get("reason")) and not data_gaps:
+                errors.append(f"evidence_queries[{index}].reason: required for unavailable or failed evidence")
+    return errors
+
+
+def _claims_current_evidence(payload: dict[str, Any]) -> bool:
+    for field in (
+        "findings",
+        "sca_findings",
+        "remediation_candidates",
+        "remediation_options",
+        "uia_evidence",
+        "version_upgrades",
+        "upgrade_candidates",
+        "verdicts",
+        "dependencies_reviewed",
+        "affected_resources",
+    ):
+        if isinstance(payload.get(field), list) and payload[field]:
+            return True
+    for field in ("project_resolution", "report_scope"):
+        value = payload.get(field)
+        if isinstance(value, dict):
+            status = _text(value.get("status")).lower()
+            if status == "resolved" and _text(value.get("project_uuid")):
+                return True
+    return False
+
+
+def _string_list(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    result: list[str] = []
+    for item in value:
+        if isinstance(item, str):
+            result.append(item)
+        elif isinstance(item, dict):
+            text = " ".join(
+                str(item.get(field))
+                for field in ("id", "signal", "reason", "description")
+                if item.get(field)
+            )
+            if text:
+                result.append(text)
+    return result
+
+
+def _text(value: Any) -> str:
+    return value.strip() if isinstance(value, str) else ""

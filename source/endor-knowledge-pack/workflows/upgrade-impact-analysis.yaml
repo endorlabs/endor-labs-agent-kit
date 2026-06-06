@@ -28,7 +28,7 @@ task_profiles:
       - Risk, CIA, fixed findings, introduced findings, and missing evidence are known.
       - Do not edit manifests or create remediation branches.
     output_focus:
-      - Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, and data_gaps.
+      - Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, evidence_queries, and data_gaps.
   - id: explain
     title: Explain Impact
     summary: Explain verified upgrade impact in concise user-facing terms.
@@ -41,7 +41,7 @@ task_profiles:
       - The explanation covers risk, CIA, findings fixed/introduced, and validation next checks.
       - Do not infer compatibility from version numbers alone.
     output_focus:
-      - Return concise explanation plus structured recommendation and data_gaps.
+      - Return concise explanation plus structured recommendation, evidence_queries, and data_gaps.
 resources:
   - name: Project
     purpose: Resolve namespace-scoped project identity before project upgrade recommendations.

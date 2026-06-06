@@ -367,16 +367,8 @@ def _valid_sca_output() -> dict:
             "repo_full_name": "example/workspace",
         },
         "evidence_queries": [
-            {
-                "name": "VersionUpgrade fixture",
-                "resource": "VersionUpgrade",
-                "status": "success",
-            },
-            {
-                "name": "Finding fixture",
-                "resource": "Finding",
-                "status": "success",
-            },
+            _evidence_query("VersionUpgrade", query_template_id="version-upgrade-summary"),
+            _evidence_query("Finding", query_template_id="selected-finding-detail"),
         ],
         "sca_findings": [{"uuid": "finding-fixture"}],
         "selected_remediation": {
@@ -421,3 +413,17 @@ def _load_summary(log_root: Path) -> dict:
     summaries = sorted(log_root.glob("endor-agent-kit-runtime-qa-*/summary.json"))
     assert len(summaries) == 1
     return json.loads(summaries[0].read_text(encoding="utf-8"))
+
+
+def _evidence_query(resource: str, *, query_template_id: str) -> dict:
+    return {
+        "name": f"{resource} fixture",
+        "resource": resource,
+        "source": "endorctl_api",
+        "status": "succeeded",
+        "query_template_id": query_template_id,
+        "filter_summary": "fixture selector",
+        "field_mask_summary": "fixture fields",
+        "result_count": 1,
+        "reason": "Fixture evidence.",
+    }

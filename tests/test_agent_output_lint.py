@@ -120,11 +120,12 @@ def test_lint_accepts_remediation_planner_insufficient_evidence_payload():
                 "namespace_provenance": "user_request.namespace",
             },
             "evidence_queries": [
-                {
-                    "resource": "Project",
-                    "status": "failed",
-                    "reason": "No matching project found in selected namespace",
-                }
+                _evidence_query(
+                    "Project",
+                    status="failed",
+                    query_template_id="project-resolution",
+                    reason="No matching project found in selected namespace",
+                )
             ],
             "remediation_options": [],
             "selected_remediation": None,
@@ -177,14 +178,8 @@ def test_lint_rejects_non_array_sca_uia_evidence():
                 "namespace_provenance": "current_request",
             },
             "evidence_queries": [
-                {
-                    "resource": "Finding",
-                    "status": "success",
-                },
-                {
-                    "resource": "VersionUpgrade",
-                    "status": "success",
-                },
+                _evidence_query("Finding", query_template_id="finding-detail"),
+                _evidence_query("VersionUpgrade", query_template_id="version-upgrade-summary"),
             ],
             "selected_remediation": {
                 "package": "mvn://example:demo",
@@ -218,14 +213,8 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
                 "namespace_provenance": "current_request",
             },
             "evidence_queries": [
-                {
-                    "resource": "Finding",
-                    "status": "success",
-                },
-                {
-                    "resource": "VersionUpgrade",
-                    "status": "success",
-                },
+                _evidence_query("Finding", query_template_id="finding-detail"),
+                _evidence_query("VersionUpgrade", query_template_id="version-upgrade-summary"),
             ],
             "selected_remediation": {
                 "package": "mvn://example:demo",
@@ -280,17 +269,19 @@ def test_lint_rejects_broad_finding_inventory_for_sca_selection_plan():
                 "namespace_provenance": "current_request",
             },
             "evidence_queries": [
-                {
-                    "resource": "Finding",
-                    "status": "completed",
-                    "result_count": 10025,
-                    "query": "endorctl api list -r Finding --list-all",
-                },
-                {
-                    "resource": "VersionUpgrade",
-                    "status": "completed",
-                    "result_count": 20,
-                },
+                _evidence_query(
+                    "Finding",
+                    status="completed",
+                    query_template_id="finding-summary",
+                    filter_summary="Broad namespace Finding inventory.",
+                    result_count=10025,
+                ),
+                _evidence_query(
+                    "VersionUpgrade",
+                    status="completed",
+                    query_template_id="version-upgrade-summary",
+                    result_count=20,
+                ),
             ],
             "selected_remediation": {
                 "package": "mvn://example:demo",
@@ -336,17 +327,19 @@ def test_lint_allows_selection_plan_after_version_upgrade_narrowing():
                 "namespace_provenance": "current_request",
             },
             "evidence_queries": [
-                {
-                    "resource": "VersionUpgrade",
-                    "status": "completed",
-                    "result_count": 20,
-                },
-                {
-                    "resource": "Finding",
-                    "status": "completed",
-                    "result_count": 18,
-                    "reason": "Selected-candidate advisory mapping only.",
-                },
+                _evidence_query(
+                    "VersionUpgrade",
+                    status="completed",
+                    query_template_id="version-upgrade-summary",
+                    result_count=20,
+                ),
+                _evidence_query(
+                    "Finding",
+                    status="completed",
+                    query_template_id="selected-finding-detail",
+                    result_count=18,
+                    reason="Selected-candidate advisory mapping only.",
+                ),
             ],
             "selected_remediation": {
                 "package": "mvn://example:demo",
@@ -448,8 +441,18 @@ def test_lint_agent_output_cli_accepts_task_profile(tmp_path, capsys):
                     "namespace_provenance": "current_request",
                 },
                 "evidence_queries": [
-                    {"resource": "Finding", "status": "completed", "result_count": 10025},
-                    {"resource": "VersionUpgrade", "status": "completed", "result_count": 20},
+                    _evidence_query(
+                        "Finding",
+                        status="completed",
+                        query_template_id="finding-summary",
+                        result_count=10025,
+                    ),
+                    _evidence_query(
+                        "VersionUpgrade",
+                        status="completed",
+                        query_template_id="version-upgrade-summary",
+                        result_count=20,
+                    ),
                 ],
                 "selected_remediation": {
                     "package": "mvn://example:demo",
@@ -496,7 +499,15 @@ def test_lint_accepts_minimal_structured_payloads_for_non_project_gate_agents():
             if field.required
         }
         if "evidence_queries" in payload:
-            payload["evidence_queries"] = [{"resource": "Fixture", "status": "not_queried"}]
+            payload["evidence_queries"] = [
+                _evidence_query(
+                    "Fixture",
+                    status="skipped",
+                    source="user_input",
+                    query_template_id=None,
+                    reason="No live evidence required for fixture.",
+                )
+            ]
 
         assert lint_agent_output(agent_id, json.dumps(payload)) == []
 
@@ -509,3 +520,28 @@ def _placeholder_value(kind: str):
     if kind == "integer":
         return 0
     return "fixture"
+
+
+def _evidence_query(
+    resource: str,
+    *,
+    name: str | None = None,
+    source: str = "endorctl_api",
+    status: str = "succeeded",
+    query_template_id: str | None = None,
+    filter_summary: str | None = "fixture selector",
+    field_mask_summary: str | None = "fixture fields",
+    result_count: int | None = 1,
+    reason: str = "Fixture evidence.",
+) -> dict:
+    return {
+        "name": name or f"{resource} evidence",
+        "resource": resource,
+        "source": source,
+        "status": status,
+        "query_template_id": query_template_id,
+        "filter_summary": filter_summary,
+        "field_mask_summary": field_mask_summary,
+        "result_count": result_count,
+        "reason": reason,
+    }
