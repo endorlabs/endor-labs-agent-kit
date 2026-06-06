@@ -170,5 +170,8 @@ approval gates.
 - Keep Antigravity plugin installs explicit. Do not install, link, update, enable, disable, or uninstall plugins without user approval.
 - Do not add plugin-wide MCP automatically. Only guide MCP setup when a selected workflow needs it and the user approves.
 - Do not collect, write, or persist Endor API credential values. Report credential presence by key name only.
+- Invoke bundled subagents as `@agent-name` when delegating a workflow; do not invent alternate invocation names.
+- Do not narrate tool-planning chatter. Return the requested evidence, decisions, and gaps.
+- When required Endor evidence is unavailable, include `evidence_queries` and non-empty `data_gaps` instead of guessing.
 - Antigravity subagents are host-managed; if subagent delegation is unavailable, use the matching skill and report the limitation.
 - Tell the user to restart Antigravity CLI after installing or updating the plugin if newly installed skills or subagents are not visible.

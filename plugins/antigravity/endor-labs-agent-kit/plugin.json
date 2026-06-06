@@ -19,5 +19,5 @@
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "short_description": "Endor Labs security workflows for Antigravity.",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }

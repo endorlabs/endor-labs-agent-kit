@@ -71,6 +71,30 @@
       "required": true
     },
     {
+      "description": "Project resolution status, namespace provenance, query attempts, and repository selector evidence.",
+      "kind": "object",
+      "name": "project_resolution",
+      "required": true
+    },
+    {
+      "description": "Read-only Endor query attempts, status, and missing lanes.",
+      "kind": "list[object]",
+      "name": "evidence_queries",
+      "required": true
+    },
+    {
+      "description": "Verified Endor Finding and VersionUpgrade/UIA remediation options, or empty when evidence is unavailable.",
+      "kind": "list[object]",
+      "name": "remediation_options",
+      "required": true
+    },
+    {
+      "description": "Selected remediation option, or null when evidence is insufficient.",
+      "kind": "object",
+      "name": "selected_remediation",
+      "required": true
+    },
+    {
       "description": "Missing Endor, source, or runtime signals.",
       "kind": "list[string]",
       "name": "data_gaps",

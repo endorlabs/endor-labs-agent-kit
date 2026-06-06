@@ -44,6 +44,7 @@ EVIDENCE_GATE_RULES = (
     "Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.",
     "Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.",
     "Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.",
+    "Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.",
     "Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.",
 )
 

@@ -57,5 +57,5 @@
   "package": "endor-labs-agent-kit-cursor-sdk",
   "schema_version": 1,
   "sdk": "cursor-python",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
