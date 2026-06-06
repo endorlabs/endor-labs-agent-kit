@@ -161,7 +161,11 @@ def render_cursor_skill(prepared: PreparedSourceRecipe) -> str:
 
     recipe = prepared.recipe
     body = _cursor_text(
-        instructions_for_edition(prepared.instructions, CURSOR_SECTION_EDITION)
+        instructions_for_edition(
+            prepared.instructions,
+            CURSOR_SECTION_EDITION,
+            recipe_id=recipe.id,
+        )
     )
     actions = _cursor_text(render_action_contracts(prepared.actions))
     return (
@@ -185,7 +189,11 @@ def render_cursor_agent(prepared: PreparedSourceRecipe) -> str:
     recipe = prepared.recipe
     posture = source_recipe_safety_posture(recipe)
     body = _cursor_agent_text(
-        instructions_for_edition(prepared.instructions, CURSOR_SECTION_EDITION)
+        instructions_for_edition(
+            prepared.instructions,
+            CURSOR_SECTION_EDITION,
+            recipe_id=recipe.id,
+        )
     )
     actions = _cursor_agent_text(render_action_contracts(prepared.actions))
     agent_name = _cursor_agent_name(recipe.id)

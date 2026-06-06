@@ -20,7 +20,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "76f87a5d778b583d4304c7682f5448f2b89585f1597710942e1b7092d1ee9022"
+ENTERPRISE_EDITION_SHA256 = "c1406f356d8187896bbc1cd8961239fa26d2d555e902226657a0058261ccbb52"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -73,6 +73,8 @@ def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     assert "model: sonnet" in enterprise_header
     assert "endorctl api list" in enterprise
     assert "data_gaps" in enterprise
+    assert "## Endor Knowledge Pack" in enterprise
+    assert "Context first" in enterprise
 
 
 def test_claude_code_disallowed_tools_allow_read_only_file_access():
