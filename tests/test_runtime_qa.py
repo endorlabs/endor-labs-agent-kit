@@ -68,8 +68,8 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     summary = _load_summary(log_root)
     assert {item["host"] for item in summary["results"]} == {"claude", "codex", "antigravity"}
     assert {item["status"] for item in summary["results"]} == {"passed"}
-    assert summary["task_profiles"] == {"sca-remediation": "selection-plan"}
-    assert {item["task_profile"] for item in summary["results"]} == {"selection-plan"}
+    assert summary["task_profiles"] == {"sca-remediation": "evidence-check"}
+    assert {item["task_profile"] for item in summary["results"]} == {"evidence-check"}
     assert all(Path(item["prompt_log"]).is_file() for item in summary["results"])
     assert all(Path(item["output_schema_log"]).is_file() for item in summary["results"])
     assert all(Path(item["stdout_log"]).is_file() for item in summary["results"])
@@ -100,14 +100,14 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert claude_argv[claude_argv.index("--agent") + 1] == "sca-remediation"
     assert claude_argv[claude_argv.index("--permission-mode") + 1] == "default"
     assert claude_argv.index(claude_prompt) < claude_argv.index("--add-dir")
-    assert "Task profile: selection-plan" in claude_prompt
-    assert "Agent task profile `selection-plan`" in claude_prompt
+    assert "Task profile: evidence-check" in claude_prompt
+    assert "Agent task profile `evidence-check`" in claude_prompt
     assert "Use only that profile's minimal evidence" in claude_prompt
     assert "`source` must be a category" in claude_prompt
     assert "`traverse_attempted`" in claude_prompt
     assert "Evidence query plan:" in claude_prompt
-    assert "Query VersionUpgrade/UIA candidate summaries" in claude_prompt
-    assert "before any selected-candidate Finding detail" in claude_prompt
+    assert "Finding availability and VersionUpgrade/UIA availability" in claude_prompt
+    assert "Do not inspect local source files" in claude_prompt
     assert "Evidence query recipes:" in claude_prompt
     assert "version-upgrade-summary" in claude_prompt
     assert "endorctl api list -r VersionUpgrade -n <namespace>" in claude_prompt
@@ -146,7 +146,7 @@ def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
             "--agent",
             "sca-remediation",
             "--task-profile",
-            "sca-remediation=evidence-check",
+            "sca-remediation=selection-plan",
             "--log-root",
             str(log_root),
             "--command-override",
@@ -159,11 +159,11 @@ def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
     )
 
     summary = _load_summary(log_root)
-    assert summary["task_profiles"] == {"sca-remediation": "evidence-check"}
-    assert summary["results"][0]["task_profile"] == "evidence-check"
+    assert summary["task_profiles"] == {"sca-remediation": "selection-plan"}
+    assert summary["results"][0]["task_profile"] == "selection-plan"
     prompt = Path(summary["results"][0]["prompt_log"]).read_text(encoding="utf-8")
-    assert "Task profile: evidence-check" in prompt
-    assert "Agent task profile `evidence-check`" in prompt
+    assert "Task profile: selection-plan" in prompt
+    assert "Agent task profile `selection-plan`" in prompt
     assert "Use only that profile's minimal evidence" in prompt
     assert "Evidence query plan:" in prompt
     assert "Evidence query recipes:" in prompt
@@ -201,7 +201,7 @@ def test_runtime_qa_prompts_use_bounded_exact_package_and_output_types(tmp_path)
     assert "version `1.25.11`" in package_prompt
     assert "version `1.25.11`" in dependency_prompt
     assert "do not recommend a new scan as the default next check" in package_prompt
-    assert "do not inventory the repository" in dependency_prompt
+    assert "broad tenant/repository inventory" in dependency_prompt
     assert "Top-level `findings_fixed` and `findings_introduced` are integer counts only" in upgrade_prompt
     assert "Top-level `endor_patch` must be a string" in upgrade_prompt
     assert "`severity` must be a string" in vulnerability_prompt

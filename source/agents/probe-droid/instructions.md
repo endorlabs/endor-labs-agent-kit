@@ -286,6 +286,15 @@ Separate the workflow and output into these lanes:
 - `excluded_repositories`: archived, disabled, explicitly excluded, or
   optionally inactive repositories.
 
+`onboarded_healthy_repositories` is a strict lane. Use it only when the row has
+`repository` or `repo_full_name`, `default_branch`, `endor_project.project_uuid`
+or `project_uuid`, and a non-empty `endor_monitored_branch` backed by current
+evidence. If branch evidence, monitored-branch evidence, project UUID, or
+GitHub App evidence is missing or inferred, put the repository in
+`onboarded_repositories_with_gaps` and add the missing signal to `data_gaps`.
+Use `report_scope.namespace` for the selected Endor namespace; do not emit only
+`endor_namespace`.
+
 ## Endor Evidence Queries
 
 Use `<namespace_flag>` as `--namespace <namespace>` when the user provides

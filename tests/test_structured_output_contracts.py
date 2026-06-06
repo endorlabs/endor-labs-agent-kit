@@ -76,8 +76,13 @@ def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
 
     assert "mode" in report_scope["properties"]
     assert "namespace_provenance" in report_scope["properties"]
+    assert "endor_namespace" in report_scope["properties"]
     assert "monitored_branch_policy" in report_scope["properties"]
     assert "top_counts" in executive_report["properties"]
+    healthy_row = probe_schema["properties"]["onboarded_healthy_repositories"]["items"]
+    assert "endor_project_uuid" in healthy_row["properties"]
+    assert "github_default_branch" in healthy_row["properties"]
+    assert "endor_monitored_branch" in healthy_row["properties"]
 
     troubleshooter_schema = json_schema_for_agent("endor-troubleshooter")
     executive_summary = troubleshooter_schema["properties"]["executive_summary"]
