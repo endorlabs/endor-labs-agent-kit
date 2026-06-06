@@ -1,6 +1,7 @@
 agent_id: endor-troubleshooter
 title: Endor Troubleshooter Evidence Contract
-summary: Diagnose Endor scan, integration, identity, notification, and runtime issues with read-only namespace-scoped evidence and explicit support-escalation packets.
+summary: Diagnose Endor scan, integration, identity, notification, and runtime issues with read-only namespace-scoped evidence
+  and explicit support-escalation packets.
 task_profiles:
   - id: classify
     title: Classify Issue
@@ -22,7 +23,8 @@ task_profiles:
       - The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue.
       - Runtime QA needs a read-only troubleshooting result.
     minimal_evidence:
-      - Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult, or Integration.
+      - Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult,
+        or Integration.
     stop_when:
       - A root-cause hypothesis and validation plan are supported, or the lane is blocked with data_gaps.
       - Do not create scans, edit scan profiles, mutate integrations, or post support tickets.
@@ -71,11 +73,57 @@ resources:
       - spec
 retrieval_steps:
   - Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups.
-  - Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans.
+  - Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is
+    explicitly about PR or CI scans.
   - Query only the minimal resource lanes needed for the user-reported issue area and preserve command/error provenance.
 fallbacks:
   - If project lookup misses, retry eligible read-only lookup with traversal before labeling `PROJECT_NOT_FOUND`.
   - If a diagnostic lane cannot be queried, keep other lanes available and prepare a support packet with precise missing evidence.
 data_gaps:
-  - Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`.
+  - Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures,
+    and unsupported account-tier evidence in `data_gaps`.
   - Preserve `namespace_provenance`, command attempts, issue lane, and support escalation evidence.
+evidence_query_plans:
+  - profile_id: classify
+    title: Troubleshooting Classification Query Plan
+    objective: Classify the issue lane before reading tenant resources.
+    query_order:
+      - Read only the user's error text, command, host, namespace claim, and repository context.
+      - Identify whether the issue is auth, namespace/project resolution, scan execution, integration delivery, policy, findings,
+        or package evidence.
+      - Select the smallest read-only Endor resource family needed for the lane.
+    avoid:
+      - Do not run scans, mutate integrations, or fetch unrelated Endor resources during classification.
+    stop_after:
+      - Stop after the lane, likely resource family, and required follow-up evidence are known.
+    data_gaps:
+      - Record missing command output, namespace, project selector, integration name, scan identifier, or host access in data_gaps.
+  - profile_id: diagnose
+    title: Troubleshooting Diagnosis Query Plan
+    objective: Diagnose one narrow Endor issue lane with read-only, lane-specific evidence.
+    query_order:
+      - Classify the issue lane and resolve namespace provenance.
+      - Resolve Project, PackageVersion, Finding, ScanResult, integration, policy, or notification evidence only for that
+        lane.
+      - Correlate the user's exact error text with the selected resource evidence and local command context.
+    avoid:
+      - Do not run a new scan, create scan log requests, edit integrations, rotate credentials, or print config contents.
+      - Do not broaden to every troubleshooting domain when one lane has enough evidence.
+    stop_after:
+      - Stop after root cause is supported, disproven, or blocked with concrete next evidence needs.
+    data_gaps:
+      - Record missing resource access, unavailable scan or integration IDs, redacted logs, and host-blocked Endor reads in
+        data_gaps.
+  - profile_id: support-packet
+    title: Support Packet Query Plan
+    objective: Prepare a minimal support packet without secrets or mutation.
+    query_order:
+      - Classify the issue lane and list already-collected evidence.
+      - Fetch only redaction-safe metadata for the affected Project, ScanResult, integration, Finding, or package resource.
+      - Summarize exact commands, timestamps, resource UUIDs, and non-sensitive error snippets.
+    avoid:
+      - Do not include tokens, credential material, full config files, or unrelated tenant inventory.
+    stop_after:
+      - Stop after the packet contains reproduction context, safe identifiers, evidence_queries, and open data_gaps.
+    data_gaps:
+      - Record withheld secrets, missing timestamps, inaccessible resource IDs, and unavailable logs in data_gaps.

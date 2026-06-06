@@ -66,6 +66,8 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert "Context first" in rendered
     assert "Agent Task Profiles" in rendered
     assert "`selection-plan` - Selection Plan" in rendered
+    assert "Evidence Query Plans" in rendered
+    assert "`selection-plan` - Selection Plan Query Plan" in rendered
 
 
 def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
@@ -125,6 +127,9 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     assert "Agent Task Profiles" in compact
     assert "Profiles: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
     assert "full only on request" in compact
+    assert "Evidence Query Plans" in compact
+    assert "Query VersionUpgrade/UIA candidate summaries" in compact
+    assert "Do not enumerate broad Finding inventories" in compact
     assert "#### `selection-plan` - Selection Plan" not in compact
 
 

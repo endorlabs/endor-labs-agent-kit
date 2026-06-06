@@ -38,7 +38,7 @@ local docs, repository names, cached notes, memory, or example paths.
 ## Workflow
 
 1. Resolve project context from the current repository, repository URL, owner/repo, Endor project name, finding UUID, or optional project UUID.
-2. Gather remediation options: use documented Endor API lookups or authenticated `endorctl api` commands to read main-context Finding, VersionUpgrade, and finding-fixing upgrade evidence for the resolved project.
+2. Gather remediation options through the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection plans, query VersionUpgrade/UIA summaries before detailed Finding expansion, then fetch Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation. For evidence checks, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
 3. Preview plan: Build a dry-run plan with the selected option and alternatives.
 
 Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`

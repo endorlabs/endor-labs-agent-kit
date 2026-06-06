@@ -1,6 +1,7 @@
 agent_id: upgrade-impact-analysis
 title: Upgrade Impact Analysis Evidence Contract
-summary: Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compatibility claims without platform or user-provided evidence.
+summary: Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compatibility claims without platform or
+  user-provided evidence.
 task_profiles:
   - id: resolve-scope
     title: Resolve Upgrade Scope
@@ -62,11 +63,57 @@ resources:
       - spec.target_uuid
 retrieval_steps:
   - Resolve project and namespace provenance before project-scoped VersionUpgrade queries.
-  - Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor Patch availability.
+  - Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor
+    Patch availability.
   - Keep current-version, target-version, and non-main-context evidence separate.
 fallbacks:
-  - If project resolution or VersionUpgrade evidence is unavailable, return `INSUFFICIENT_DATA` and do not infer upgrade safety from version numbers.
+  - If project resolution or VersionUpgrade evidence is unavailable, return `INSUFFICIENT_DATA` and do not infer upgrade safety
+    from version numbers.
   - If compatibility evidence is missing, put that in breaking-change notes and data_gaps.
 data_gaps:
-  - Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`.
+  - Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context,
+    and host command capability in `data_gaps`.
   - Preserve `namespace_provenance`, project query attempts, upgrade UUIDs, and context scope in the final output.
+evidence_query_plans:
+  - profile_id: resolve-scope
+    title: Upgrade Impact Scope Query Plan
+    objective: Resolve namespace, project, package, and upgrade selectors before impact analysis.
+    query_order:
+      - Read supplied package, current version, target version, upgrade UUID, repository, and namespace selectors.
+      - Resolve Project only when repository-scoped VersionUpgrade evidence is requested.
+      - Normalize package coordinate and ecosystem for VersionUpgrade filtering.
+    avoid:
+      - Do not list unrelated VersionUpgrade records or repository Findings during scope resolution.
+    stop_after:
+      - Stop after selectors are exact enough for a VersionUpgrade lookup or data_gaps explain what is missing.
+    data_gaps:
+      - Record missing package coordinate, target version, namespace, project, or upgrade UUID in data_gaps.
+  - profile_id: evidence-check
+    title: Upgrade Impact Evidence Query Plan
+    objective: Verify VersionUpgrade/UIA impact evidence for a scoped package or candidate.
+    query_order:
+      - Resolve namespace, package/version, and optional project scope first.
+      - Query VersionUpgrade summaries matching the package and from/to versions or upgrade UUID.
+      - Fetch detailed VersionUpgrade evidence only for the selected candidate.
+    avoid:
+      - Do not query broad Findings to estimate upgrade impact when VersionUpgrade is the source of truth.
+    stop_after:
+      - Stop after VersionUpgrade evidence is found, absent, ambiguous, or inaccessible.
+    data_gaps:
+      - Record absent VersionUpgrade evidence, missing CIA fields, ambiguous package versions, and unavailable namespace/project
+        reads in data_gaps.
+  - profile_id: explain
+    title: Upgrade Impact Explanation Query Plan
+    objective: Explain one selected upgrade impact using VersionUpgrade detail and minimal local usage context.
+    query_order:
+      - Start from the selected VersionUpgrade candidate or exact package/from/to selectors.
+      - Fetch detailed VersionUpgrade evidence including risk, CIA, findings fixed, findings introduced, conflicts, and manifest
+        fields.
+      - Inspect only matching local manifest/source usage when repository context is available and risk needs explanation.
+    avoid:
+      - Do not produce broad remediation planning or PR mutation steps unless the user switches to remediation.
+    stop_after:
+      - Stop after impact, confidence, validation needs, and caveats are explained.
+    data_gaps:
+      - Record missing VersionUpgrade detail, unavailable local usage, missing CIA evidence, and unverified upstream latest-version
+        claims in data_gaps.

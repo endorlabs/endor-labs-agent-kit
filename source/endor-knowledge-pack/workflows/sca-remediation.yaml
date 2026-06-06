@@ -1,6 +1,7 @@
 agent_id: sca-remediation
 title: SCA Remediation Evidence Contract
-summary: Use namespace-scoped project, Finding, and VersionUpgrade evidence before recommending or preparing any remediation branch.
+summary: Use namespace-scoped project, Finding, and VersionUpgrade evidence before recommending or preparing any remediation
+  branch.
 task_profiles:
   - id: resolve-scope
     title: Resolve Scope
@@ -12,8 +13,9 @@ task_profiles:
       - Current repository root and remote or user-provided repository identity.
       - Namespace provenance and one Project lookup or a precise project lookup data_gaps entry.
     stop_when:
-      - "`project_resolution.status`, namespace provenance, and attempted selectors are known."
-      - Do not query Finding or VersionUpgrade evidence in this profile unless scope is already resolved and the user asks for it.
+      - '`project_resolution.status`, namespace provenance, and attempted selectors are known.'
+      - Do not query Finding or VersionUpgrade evidence in this profile unless scope is already resolved and the user asks
+        for it.
     output_focus:
       - Return `project_resolution`, `evidence_queries`, and `data_gaps` with other required fields empty or null.
   - id: evidence-check
@@ -29,7 +31,8 @@ task_profiles:
       - Finding and VersionUpgrade/UIA availability is known for the resolved project.
       - Do not inspect source files or prepare branch names unless selection is requested.
     output_focus:
-      - Return `evidence_queries`, high-level evidence counts, and `data_gaps`; leave selected remediation null when no selection was requested.
+      - Return `evidence_queries`, high-level evidence counts, and `data_gaps`; leave selected remediation null when no selection
+        was requested.
   - id: selection-plan
     title: Selection Plan
     summary: Select at most one UIA-backed remediation candidate and stop before mutation.
@@ -37,13 +40,15 @@ task_profiles:
       - The user asks for the best next remediation, a PR plan, or a read-only remediation gate.
       - Runtime QA needs a complete remediation gate JSON object.
     minimal_evidence:
-      - Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source usage for the selected package.
+      - Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source
+        usage for the selected package.
       - Dirty worktree state for affected manifests before proposing any branch.
     stop_when:
       - One candidate is selected, blocked, or rejected with `risk_decision.status`.
       - Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
     output_focus:
-      - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`.
+      - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change
+        request plan, and precise `data_gaps`.
 resources:
   - name: Project
     purpose: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence.
@@ -53,7 +58,8 @@ resources:
       - meta.parent_uuid
       - spec.git
   - name: Finding
-    purpose: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths.
+    purpose: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory,
+      severity, and dependency file paths.
     fields:
       - uuid
       - context.type
@@ -69,17 +75,79 @@ resources:
       - spec.upgrade_info
       - spec.upgrade_impact
 retrieval_steps:
-  - Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness.
-  - Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path.
-  - Query `Finding` with `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for PR, CI, or all-context findings.
-  - Query `VersionUpgrade` for each candidate upgrade before labeling risk or choosing the first remediation branch.
+  - Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID,
+    and freshness.
+  - Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default
+    path.
+  - For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion.
+  - Query narrow main-context Finding availability for evidence checks, and fetch Finding detail only for selected-candidate
+    advisory mapping, PR body detail, or count reconciliation.
 fallbacks:
   - If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap.
-  - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk.
-  - A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
-  - Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
+  - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling
+    it low risk.
+  - A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`,
+    `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
+  - Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`,
+    `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
 data_gaps:
-  - Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.
+  - Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade
+    evidence, and unavailable source files in `data_gaps`.
   - Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output.
   - Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object.
-  - For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
+  - For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary`
+    and validation requirements instead of returning a prose-only risk summary.
+evidence_query_plans:
+  - profile_id: resolve-scope
+    title: Resolve Scope Query Plan
+    objective: Prove namespace and project identity only; do not fetch vulnerability or upgrade inventories.
+    query_order:
+      - Read current repository root, branch, remote URL, and user-provided selectors.
+      - Resolve namespace from the current request before environment or default config key extraction.
+      - Query Project by repository full name or git selector with a tight field mask, retrying traversal only for the same
+        proven namespace.
+    avoid:
+      - Do not query Finding, VersionUpgrade, PackageVersion, or dependency resources unless scope is already supplied and
+        requested.
+      - Do not ask for a project UUID as the default path or reuse one from memory.
+    stop_after:
+      - Stop when project_resolution.status and namespace_provenance are known or a precise lookup data_gaps entry explains
+        the blocker.
+    data_gaps:
+      - Record missing namespace, ambiguous repository selectors, project lookup failures, traversal misses, and host-blocked
+        Endor access in data_gaps.
+  - profile_id: evidence-check
+    title: Evidence Availability Query Plan
+    objective: Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without selecting a remediation.
+    query_order:
+      - Resolve namespace and project first.
+      - Query a narrow main-context Finding availability view with package, severity, and fixability fields only.
+      - Query VersionUpgrade/UIA availability with rank, risk, findings fixed, findings introduced, CIA status, and manifest
+        fields.
+    avoid:
+      - Do not inspect local source files, fetch every finding body, or prepare branch names.
+      - Do not turn local README or dependency files into Endor finding counts.
+    stop_after:
+      - Stop after availability and counts are known or blocked; do not choose a remediation candidate.
+    data_gaps:
+      - Record unavailable Finding or VersionUpgrade/UIA lanes, stale context scope, and any missing namespace or project
+        evidence in data_gaps.
+  - profile_id: selection-plan
+    title: Selection Plan Query Plan
+    objective: Select at most one UIA-backed candidate by narrowing through VersionUpgrade before detailed Finding expansion.
+    query_order:
+      - Resolve namespace, project, repository provenance, and dirty worktree state first.
+      - Query VersionUpgrade/UIA candidate summaries with tight fields for worth_it, is_best, upgrade risk, findings fixed,
+        findings introduced, CIA status, direct package, and manifest files.
+      - Fetch detailed VersionUpgrade/UIA evidence only for the selected candidate.
+      - Inspect only the selected package manifests and source usage needed for risk_decision.source_usage_summary.
+      - Fetch Finding detail only for selected-candidate advisory mapping, PR body detail, or a required data_gaps reconciliation.
+    avoid:
+      - Do not enumerate broad Finding inventories before VersionUpgrade narrowing.
+      - Do not fetch full advisory/finding lists when the current gate is only selecting or blocking one candidate.
+      - Do not edit files, create branches, run dependency-manager mutations, or open change requests without approval.
+    stop_after:
+      - Stop after one candidate is selected, blocked, or rejected with risk_decision.status and validation requirements.
+    data_gaps:
+      - Record skipped broad Finding detail, missing introduced-finding identity, missing advisory mapping, dirty worktree
+        blockers, and unavailable UIA/CIA evidence in data_gaps.

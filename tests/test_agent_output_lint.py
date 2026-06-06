@@ -268,6 +268,118 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
     assert lint_agent_output("sca-remediation", output) == []
 
 
+def test_lint_rejects_broad_finding_inventory_for_sca_selection_plan():
+    output = json.dumps(
+        {
+            "summary": "Selected a remediation.",
+            "remediation_candidates": [],
+            "project_resolution": {
+                "status": "resolved",
+                "project_uuid": "proj-123",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+            },
+            "evidence_queries": [
+                {
+                    "resource": "Finding",
+                    "status": "completed",
+                    "result_count": 10025,
+                    "query": "endorctl api list -r Finding --list-all",
+                },
+                {
+                    "resource": "VersionUpgrade",
+                    "status": "completed",
+                    "result_count": 20,
+                },
+            ],
+            "selected_remediation": {
+                "package": "mvn://example:demo",
+                "from_version": "1.0.0",
+                "to_version": "1.0.1",
+                "branch_name": "remediation/sca/demo-1.0.1",
+            },
+            "uia_evidence": [
+                {
+                    "resource": "VersionUpgrade",
+                    "uuid": "version-upgrade-123",
+                    "total_findings_fixed": 18,
+                }
+            ],
+            "risk_decision": {
+                "status": "blocked_needs_compatibility_analysis",
+                "source_usage_summary": "Source usage was inspected.",
+                "validation_requirements": ["mvn test"],
+            },
+            "patch_plan": [],
+            "validation": [],
+            "change_requests": [],
+            "tickets": [],
+            "data_gaps": ["Full Finding detail was skipped."],
+        }
+    )
+
+    errors = lint_agent_output("sca-remediation", output, task_profile="selection-plan")
+
+    assert "evidence_queries: selection-plan must not enumerate broad Finding inventories before VersionUpgrade/UIA narrowing" in errors
+    assert "evidence_queries: selection-plan must query VersionUpgrade/UIA before Finding detail expansion" in errors
+
+
+def test_lint_allows_selection_plan_after_version_upgrade_narrowing():
+    output = json.dumps(
+        {
+            "summary": "Selected a remediation.",
+            "remediation_candidates": [],
+            "project_resolution": {
+                "status": "resolved",
+                "project_uuid": "proj-123",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+            },
+            "evidence_queries": [
+                {
+                    "resource": "VersionUpgrade",
+                    "status": "completed",
+                    "result_count": 20,
+                },
+                {
+                    "resource": "Finding",
+                    "status": "completed",
+                    "result_count": 18,
+                    "reason": "Selected-candidate advisory mapping only.",
+                },
+            ],
+            "selected_remediation": {
+                "package": "mvn://example:demo",
+                "from_version": "1.0.0",
+                "to_version": "1.0.1",
+                "branch_name": "remediation/sca/demo-1.0.1",
+                "upgrade_risk": "medium",
+                "cia_status": "indeterminate",
+                "findings_introduced": 0,
+            },
+            "uia_evidence": [
+                {
+                    "resource": "VersionUpgrade",
+                    "uuid": "version-upgrade-123",
+                    "total_findings_fixed": 18,
+                }
+            ],
+            "risk_decision": {
+                "status": "blocked_needs_compatibility_analysis",
+                "source_usage_summary": "Source usage was inspected.",
+                "validation_requirements": ["mvn test"],
+            },
+            "patch_plan": [],
+            "validation": [],
+            "change_requests": [],
+            "tickets": [],
+            "data_gaps": ["Full Finding detail was skipped."],
+        }
+    )
+
+    assert lint_agent_output("sca-remediation", output, task_profile="selection-plan") == []
+
+
 def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     errors = lint_agent_output(
         "vulnerability-explainer",
@@ -290,6 +402,58 @@ def test_lint_agent_output_cli_reports_errors(tmp_path, capsys):
 
     assert status == 1
     assert "unsafe Endor config read" in captured
+
+
+def test_lint_agent_output_cli_accepts_task_profile(tmp_path, capsys):
+    output = tmp_path / "agent-output.txt"
+    output.write_text(
+        json.dumps(
+            {
+                "summary": "Selected a remediation.",
+                "remediation_candidates": [],
+                "project_resolution": {
+                    "status": "resolved",
+                    "project_uuid": "proj-123",
+                    "namespace": "auri",
+                    "namespace_provenance": "current_request",
+                },
+                "evidence_queries": [
+                    {"resource": "Finding", "status": "completed", "result_count": 10025},
+                    {"resource": "VersionUpgrade", "status": "completed", "result_count": 20},
+                ],
+                "selected_remediation": {
+                    "package": "mvn://example:demo",
+                    "from_version": "1.0.0",
+                    "to_version": "1.0.1",
+                    "branch_name": "remediation/sca/demo-1.0.1",
+                },
+                "uia_evidence": [
+                    {
+                        "resource": "VersionUpgrade",
+                        "uuid": "version-upgrade-123",
+                        "total_findings_fixed": 18,
+                    }
+                ],
+                "risk_decision": {
+                    "status": "blocked_needs_compatibility_analysis",
+                    "source_usage_summary": "Source usage was inspected.",
+                    "validation_requirements": ["mvn test"],
+                },
+                "patch_plan": [],
+                "validation": [],
+                "change_requests": [],
+                "tickets": [],
+                "data_gaps": ["Full Finding detail was skipped."],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    status = main(["lint-agent-output", "--agent", "sca-remediation", "--task-profile", "selection-plan", str(output)])
+    captured = capsys.readouterr().out
+
+    assert status == 1
+    assert "broad Finding inventories" in captured
 
 
 def test_lint_accepts_minimal_structured_payloads_for_non_project_gate_agents():

@@ -1,6 +1,7 @@
 agent_id: probe-droid
 title: Probe Droid Evidence Contract
-summary: Compare GitHub repository inventory with namespace-scoped Endor project and monitored-branch coverage using bounded read-only evidence.
+summary: Compare GitHub repository inventory with namespace-scoped Endor project and monitored-branch coverage using bounded
+  read-only evidence.
 task_profiles:
   - id: resolve-scope
     title: Resolve Inventory Scope
@@ -22,7 +23,8 @@ task_profiles:
       - The user asks for onboarding gaps or monitored-branch coverage.
       - Runtime QA needs read-only onboarding evidence without full org analysis.
     minimal_evidence:
-      - Namespace provenance, bounded GitHub inventory or supplied repository list, and projected Endor Project lookup with traversal when needed.
+      - Namespace provenance, bounded GitHub inventory or supplied repository list, and projected Endor Project lookup with
+        traversal when needed.
     stop_when:
       - Repositories are classified as onboarded, not onboarded, ambiguous, or evidence-blocked.
       - Do not inspect full scan profile or package manager objects unless a selected repository requires it.
@@ -35,7 +37,8 @@ task_profiles:
       - The user asks how to fix onboarding, monitored branch, scan profile, or package-manager gaps.
       - Evidence-check has identified selected repositories with gaps.
     minimal_evidence:
-      - Repository classification, Endor Project match if any, and minimal scan profile/package-manager evidence for selected repositories.
+      - Repository classification, Endor Project match if any, and minimal scan profile/package-manager evidence for selected
+        repositories.
     stop_when:
       - Each selected gap has a human action or an explicit data_gaps blocker.
       - Do not create scans, edit scan profiles, change GitHub App selection, or write repository files.
@@ -75,5 +78,50 @@ fallbacks:
   - Retry Endor project inventory with traversal before classifying repositories as not onboarded.
   - If GitHub App installation or GitHub API evidence is unavailable, continue with provided inventory and mark the gap.
 data_gaps:
-  - Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`.
+  - Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty,
+    and package-version query gaps in `data_gaps`.
   - Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.
+evidence_query_plans:
+  - profile_id: resolve-scope
+    title: Onboarding Scope Query Plan
+    objective: Resolve the GitHub inventory and Endor namespace/project scope before comparing coverage.
+    query_order:
+      - Read user-provided org/repo selectors and current repository remote when available.
+      - Resolve namespace provenance and Endor Project selectors.
+      - Query only repository/project identity and monitored-branch metadata needed for scope.
+    avoid:
+      - Do not scan repositories, clone missing repos, or mutate GitHub or Endor settings.
+    stop_after:
+      - Stop after GitHub and Endor scope are resolved or blocked.
+    data_gaps:
+      - Record missing GitHub org access, missing namespace, unresolved project selectors, and unavailable monitored-branch
+        evidence in data_gaps.
+  - profile_id: evidence-check
+    title: Onboarding Evidence Query Plan
+    objective: Check bounded onboarding coverage evidence without prescribing changes yet.
+    query_order:
+      - Resolve GitHub repository list or selected repositories first.
+      - Query Endor Project records and monitored branch evidence for only those repositories.
+      - Compare repository default branches, Endor monitored branches, and required setup files.
+    avoid:
+      - Do not enumerate unrelated organizations or all tenant projects unless the user selected that inventory.
+      - Do not run scans or update repo settings.
+    stop_after:
+      - Stop after each selected repository is covered, missing, ambiguous, or blocked.
+    data_gaps:
+      - Record missing GitHub permissions, missing Endor project records, unknown default branches, and unavailable branch-monitoring
+        evidence in data_gaps.
+  - profile_id: prescribe-actions
+    title: Onboarding Action Query Plan
+    objective: Prescribe read-only onboarding fixes from verified coverage gaps.
+    query_order:
+      - Start from completed coverage evidence for selected repositories.
+      - Fetch only missing setup-file or branch metadata needed to explain each gap.
+      - Group actions by repository, branch, Endor project, and owner handoff.
+    avoid:
+      - Do not create GitHub branches, edit files, install apps, or mutate Endor project settings.
+    stop_after:
+      - Stop after recommended actions are tied to verified coverage evidence or data_gaps.
+    data_gaps:
+      - Record unverified owner, unknown branch protection, missing setup-file evidence, and unavailable project metadata
+        in data_gaps.

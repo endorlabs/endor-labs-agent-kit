@@ -22,7 +22,8 @@ task_profiles:
       - The host exposes Endor PackageVersion, Metric, or Vulnerability evidence.
       - The user asks for evidence-backed risk, not a general explanation.
     minimal_evidence:
-      - Exact PackageVersion match, available score/license signals, vulnerability enrichment, and data_gaps for unavailable evidence.
+      - Exact PackageVersion match, available score/license signals, vulnerability enrichment, and data_gaps for unavailable
+        evidence.
     stop_when:
       - Evidence-backed posture is known or evidence is insufficient.
       - Do not substitute ecosystem-level assumptions for exact package-version evidence.
@@ -52,5 +53,35 @@ fallbacks:
   - If only partial vulnerability evidence is available, summarize that evidence and label the posture as evidence-limited.
   - If no usable Endor evidence is available, return `UNKNOWN` with precise missing signals.
 data_gaps:
-  - Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`.
+  - Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history,
+    vulnerability lists, and vulnerability enrichment in `data_gaps`.
   - Preserve exact package coordinate and evidence source in the final output.
+evidence_query_plans:
+  - profile_id: explain
+    title: Package Risk Summary Query Plan
+    objective: Summarize risk for one named package/version without whole-project expansion.
+    query_order:
+      - Resolve package coordinate, version, ecosystem, namespace, and optional repository context.
+      - Query PackageVersion or package metadata for the named package/version.
+      - Query scoped Finding or available Endor risk evidence only for that package when project context is present.
+    avoid:
+      - Do not list all repository dependencies or all tenant package versions.
+    stop_after:
+      - Stop after the package risk summary has verified risk signals and caveats.
+    data_gaps:
+      - Record missing package version, unavailable package metadata, missing project scope, and absent finding evidence in
+        data_gaps.
+  - profile_id: evidence-check
+    title: Package Risk Evidence Query Plan
+    objective: Verify whether package-specific Endor evidence is available.
+    query_order:
+      - Resolve namespace and package coordinate first.
+      - Query only exact package/version metadata.
+      - If repository scope is supplied, query narrow package-linked Finding evidence.
+    avoid:
+      - Do not infer risk from local lockfiles alone or from unrelated package names.
+    stop_after:
+      - Stop after package evidence is available, unavailable, or ambiguous.
+    data_gaps:
+      - Record ambiguous coordinates, missing namespace, absent PackageVersion, and unavailable project-scoped Findings in
+        data_gaps.

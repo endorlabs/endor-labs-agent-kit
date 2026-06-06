@@ -96,7 +96,9 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "Task profile: selection-plan" in claude_prompt
     assert "Agent task profile `selection-plan`" in claude_prompt
     assert "Use only that profile's minimal evidence" in claude_prompt
-    assert "query only the main-context Finding and VersionUpgrade/UIA evidence needed" in claude_prompt
+    assert "Evidence query plan:" in claude_prompt
+    assert "Query VersionUpgrade/UIA candidate summaries" in claude_prompt
+    assert "before any selected-candidate Finding detail" in claude_prompt
     assert "exec" in argv_by_host["codex"]
     assert "--ask-for-approval" not in argv_by_host["codex"]
     codex_argv = argv_by_host["codex"]
@@ -151,6 +153,7 @@ def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
     assert "Task profile: evidence-check" in prompt
     assert "Agent task profile `evidence-check`" in prompt
     assert "Use only that profile's minimal evidence" in prompt
+    assert "Evidence query plan:" in prompt
 
 
 def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):
@@ -361,13 +364,13 @@ def _valid_sca_output() -> dict:
         },
         "evidence_queries": [
             {
-                "name": "Finding fixture",
-                "resource": "Finding",
+                "name": "VersionUpgrade fixture",
+                "resource": "VersionUpgrade",
                 "status": "success",
             },
             {
-                "name": "VersionUpgrade fixture",
-                "resource": "VersionUpgrade",
+                "name": "Finding fixture",
+                "resource": "Finding",
                 "status": "success",
             },
         ],

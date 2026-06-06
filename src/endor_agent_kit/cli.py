@@ -110,6 +110,10 @@ def main(argv: list[str] | None = None) -> int:
         help="Check a captured agent response for release-blocking QA regressions",
     )
     lint_agent_output_parser.add_argument("--agent", required=True)
+    lint_agent_output_parser.add_argument(
+        "--task-profile",
+        help="Optional task profile used by profile-aware lint rules, for example selection-plan.",
+    )
     lint_agent_output_parser.add_argument("output", type=Path)
 
     structured_output_schema_parser = subparsers.add_parser(
@@ -264,7 +268,7 @@ def main(argv: list[str] | None = None) -> int:
         except OSError as exc:
             print(f"ERROR: {exc}")
             return 1
-        errors = lint_agent_output(args.agent, text)
+        errors = lint_agent_output(args.agent, text, task_profile=args.task_profile)
         if errors:
             for error in errors:
                 print(f"ERROR: {error}")
