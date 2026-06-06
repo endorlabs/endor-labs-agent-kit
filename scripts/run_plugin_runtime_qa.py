@@ -74,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
                     repo_root=repo_root,
                     timeout=args.timeout,
                     command_overrides=overrides,
+                    codex_sandbox=args.codex_sandbox,
                     env=os.environ.copy(),
                 )
                 results.append(result)
@@ -86,6 +87,7 @@ def main(argv: list[str] | None = None) -> int:
         "log_dir": str(log_dir),
         "hosts": list(hosts),
         "agents": list(agents),
+        "codex_sandbox": args.codex_sandbox,
         "workspaces": [str(path) for path in workspaces],
         "results": [asdict(result) for result in results],
     }
@@ -104,6 +106,15 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser.add_argument("--agent", action="append", help="Agent id to test. Repeatable. Defaults to core runtime QA agents.")
     parser.add_argument("--timeout", type=int, default=600, help="Per-case timeout in seconds.")
     parser.add_argument("--log-root", type=Path, default=Path("/tmp"), help="Parent directory for runtime QA logs.")
+    parser.add_argument(
+        "--codex-sandbox",
+        choices=("read-only", "workspace-write", "danger-full-access"),
+        default="read-only",
+        help=(
+            "Sandbox mode for Codex runtime QA. Default is read-only; live Endor "
+            "reads may require danger-full-access because Codex sandboxes can block DNS/network."
+        ),
+    )
     parser.add_argument(
         "--command-override",
         action="append",
@@ -148,6 +159,7 @@ def run_case(
     repo_root: Path,
     timeout: int,
     command_overrides: dict[str, str],
+    codex_sandbox: str,
     env: dict[str, str],
 ) -> RuntimeQaResult:
     case_dir = log_dir / safe_name(f"{host}-{agent}-{workspace.name}")
@@ -166,6 +178,7 @@ def run_case(
         workspace=workspace,
         repo_root=repo_root,
         command_overrides=command_overrides,
+        codex_sandbox=codex_sandbox,
         env=env,
     )
     if isinstance(command_or_block, BlockedCommand):
@@ -250,6 +263,7 @@ def build_command(
     workspace: Path,
     repo_root: Path,
     command_overrides: dict[str, str],
+    codex_sandbox: str,
     env: dict[str, str],
 ) -> list[str] | BlockedCommand:
     executable = command_overrides.get(host)
@@ -270,9 +284,11 @@ def build_command(
             "plan",
             "--plugin-dir",
             str(plugin_dir),
+            "--agent",
+            agent,
+            prompt,
             "--add-dir",
             str(workspace),
-            prompt,
         ]
 
     if host == "codex":
@@ -282,9 +298,7 @@ def build_command(
             "-C",
             str(workspace),
             "--sandbox",
-            "read-only",
-            "--ask-for-approval",
-            "never",
+            codex_sandbox,
             "--color",
             "never",
             prompt,
@@ -345,7 +359,7 @@ def build_prompt(*, host: str, agent: str, workspace: Path, namespace: str) -> s
 def agent_invocation(host: str, agent: str) -> str:
     task = qa_task(agent)
     if host == "claude":
-        return f"Use @agent-{agent} for this read-only QA task: {task}"
+        return f"Run this read-only QA task: {task}"
     if host == "codex":
         codex_name = agent if agent.startswith("endor-") else f"endor-{agent}"
         return f"Use the {codex_name}-agent custom agent if available, otherwise use the {agent} skill, for this read-only QA task: {task}"
@@ -360,8 +374,8 @@ def agent_invocation(host: str, agent: str) -> str:
 
 def qa_task(agent: str) -> str:
     tasks = {
-        "sca-remediation": "resolve the Endor project for this repository and return the required remediation gate JSON. Do not edit files. If Finding or VersionUpgrade/UIA evidence is unavailable, include non-empty data_gaps.",
-        "remediation-planner": "preview remediation options from verified Endor evidence only. Refuse unproven SCA counts from local docs and report missing Finding or UIA evidence in data_gaps.",
+        "sca-remediation": "resolve the Endor project for this repository and return exactly one parseable remediation gate JSON object, with project_resolution, selected_remediation, uia_evidence, risk_decision, validation, change_requests, evidence_queries, and data_gaps. Do not edit files. If Finding or VersionUpgrade/UIA evidence is unavailable, include non-empty data_gaps.",
+        "remediation-planner": "preview remediation options from verified Endor evidence only and return exactly one parseable JSON object. Refuse unproven SCA counts from local docs and report missing Finding or UIA evidence in data_gaps.",
         "ai-sast-triage": "triage available AI SAST findings for this repository. Do not edit files or create policies. If findings cannot be queried, return evidence_queries and data_gaps.",
         "endor-troubleshooter": "check Endor readiness and diagnose missing setup without running scans or printing config secrets.",
         "probe-droid": "assess onboarding evidence for the repository or organization using read-only GitHub and Endor evidence. Do not run scans.",

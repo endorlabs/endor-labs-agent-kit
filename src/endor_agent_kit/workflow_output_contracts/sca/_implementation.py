@@ -533,12 +533,9 @@ def _collect_branch_names(value: Any) -> list[str]:
 
 def _is_remediation_branch_key(key: str) -> bool:
     return key in {
-        "branch",
         "branch_name",
-        "head_branch",
         "proposed_branch",
         "proposed_branch_name",
-        "source_branch",
     } or key.endswith("_branch_name")
 
 

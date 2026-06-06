@@ -178,7 +178,21 @@ def _list(value: Any) -> list[Any]:
 def _string_list(value: Any) -> list[str]:
     if not isinstance(value, list):
         return []
-    return [item for item in value if isinstance(item, str)]
+    result: list[str] = []
+    for item in value:
+        if isinstance(item, str):
+            result.append(item)
+        elif isinstance(item, dict):
+            fields = [
+                item.get("id"),
+                item.get("signal"),
+                item.get("reason"),
+                item.get("description"),
+            ]
+            text = " ".join(field for field in fields if isinstance(field, str))
+            if text:
+                result.append(text)
+    return result
 
 
 def _text(value: Any) -> str:
