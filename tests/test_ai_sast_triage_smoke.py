@@ -57,7 +57,10 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Project scoping is mandatory" in prompt
     assert "Default Endor Context Scope" in prompt
     assert "Default Endor Finding list queries to `context.type==CONTEXT_TYPE_MAIN`" in prompt
-    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="AI_SAST"' in prompt
+    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' in prompt
+    assert 'spec.method=="AI_SAST"' not in prompt
+    assert 'spec.finding_tags contains "AI_SAST"' not in prompt
+    assert "add `--list-all` when the output needs a complete scoped finding list or count" in prompt
     assert "inspect and report the returned `context.type` and `spec.source_code_version.ref`" in prompt
     assert "do not merge a CI/PR-run finding into main-context counts" in prompt
     assert "Namespace Provenance" in prompt

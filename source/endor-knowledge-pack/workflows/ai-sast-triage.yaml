@@ -70,8 +70,8 @@ resources:
 retrieval_steps:
   - Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace,
     project UUID, source ref, and finding UUID freshness.
-  - Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"`
-    by default.
+  - Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN`,
+    `spec.project_uuid`, and `spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"` by default.
   - Use exploit reproduction for prioritization and validation planning while redacting concrete exploit strings from review-facing
     output.
   - Treat remediation guidance as advisory evidence and verify source locations before proposing patches.
@@ -104,7 +104,8 @@ evidence_query_plans:
     objective: Confirm AI SAST evidence and pinned source context without generating a patch.
     query_order:
       - Resolve project and namespace first.
-      - Get the selected Finding by UUID, or list only AI SAST findings for the resolved project with tight fields.
+      - Get the selected Finding by UUID, or list all main-context AI SAST findings for the resolved project with tight
+        fields and `--list-all`.
       - Extract classification, severity, verification scorecard, data-flow anchors, exploit reproduction, and remediation
         guidance from the selected finding.
       - Verify local source file and pinned commit/ref only for the selected finding path.
@@ -121,7 +122,8 @@ evidence_query_plans:
     objective: Choose one actionable AI SAST finding and produce a read-only triage/remediation plan.
     query_order:
       - Resolve namespace, project, and requested finding selector.
-      - Get or narrowly list AI SAST findings with severity, classification, source path, source ref, and finding UUID.
+      - Get or narrowly list all main-context AI SAST findings with severity, classification, source path, source ref,
+        finding UUID, tight fields, and `--list-all`.
       - Fetch and parse detail only for the selected finding.
       - Inspect only the selected source file, sibling control files, and referenced data-flow anchors.
     avoid:
@@ -182,19 +184,21 @@ evidence_query_recipes:
     resource: Finding
     purpose: List only AI SAST findings for a resolved project when no Finding UUID was supplied.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.finding_tags contains "AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.source_code_version,spec.finding_tags,spec.finding_metadata,spec.explanation"
-      -o json
+      and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata,spec.explanation"
+      --list-all -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
+      - spec.method
       - spec.source_code_version
-      - spec.finding_tags
       - spec.finding_metadata
       - spec.explanation
     constraints:
       - Prefer finding-by-uuid when supplied.
-      - Do not list unrelated SAST findings.
+      - Use `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST`; do not use shorthand method values or finding-tags selectors.
+      - Use `--list-all` only with the resolved project UUID, main context, method filter, and field mask.
+      - Do not list unrelated SAST findings or broad namespace Finding inventories.
   - profile_id: selection-plan
     id: selected-ai-sast-finding
     resource: Finding

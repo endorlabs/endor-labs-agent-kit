@@ -219,9 +219,23 @@ def _endorctl_command_shape_errors(text: str) -> list[str]:
         if "endorctl api list" in lower and " --field-mask " not in lower:
             errors.append("endorctl query recipe: api list commands must include --field-mask")
         if "endorctl api list" in lower and "finding" in lower and "--list-all" in lower:
-            if "uuid==" not in lower and "spec.target" not in lower and "target_dependency" not in lower:
+            if not _is_scoped_finding_list_all_query(lower):
                 errors.append("endorctl query recipe: broad Finding --list-all is not allowed")
     return errors
+
+
+def _is_scoped_finding_list_all_query(lower_command: str) -> bool:
+    if (
+        "context.type==context_type_main" in lower_command
+        and "spec.project_uuid" in lower_command
+        and "system_evaluation_method_definition_ai_sast" in lower_command
+    ):
+        return True
+    return (
+        "uuid==" in lower_command
+        or "spec.target" in lower_command
+        or "target_dependency" in lower_command
+    )
 
 
 def _uia_contains_fixed_finding_evidence(value: Any) -> bool:

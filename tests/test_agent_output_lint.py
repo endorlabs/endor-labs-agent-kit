@@ -406,6 +406,7 @@ def test_lint_accepts_safe_endorctl_query_recipe_shapes():
 endorctl api list -r Project -n auri --field-mask "uuid,meta.name,spec.git" -o json
 endorctl api get -r Finding -n auri --uuid finding-123 -o json
 endorctl api list -r VersionUpgrade -n auri --filter 'spec.project_uuid=="proj-123"' --field-mask "uuid,spec.upgrade_info" -o json
+endorctl api list -r Finding -n auri --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="proj-123" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method" --list-all -o json
 ```
 """
 

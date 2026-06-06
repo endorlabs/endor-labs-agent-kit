@@ -70,6 +70,17 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "selected-source-usage",
         "selected-finding-detail",
     ]
+    query_efficiency = next(rule for rule in pack.global_rules if rule.id == "query-efficiency")
+    assert "--list-all" in query_efficiency.guidance
+    assert "complete scoped inventory or count" in query_efficiency.guidance
+    ai_sast_recipe = next(
+        recipe
+        for recipe in pack.workflow_for("ai-sast-triage").evidence_query_recipes
+        if recipe.id == "ai-sast-list"
+    )
+    assert "SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST" in ai_sast_recipe.template
+    assert 'finding_tags contains "AI_SAST"' not in ai_sast_recipe.template
+    assert "--list-all" in ai_sast_recipe.template
 
 
 def test_knowledge_pack_renders_global_section_for_known_agent():
@@ -261,6 +272,27 @@ def test_knowledge_pack_validator_rejects_unsafe_query_recipe_template(tmp_path)
     assert any("must include explicit namespace" in error for error in errors)
     assert any("must include --field-mask" in error for error in errors)
     assert any("broad Finding --list-all templates are not allowed" in error for error in errors)
+
+
+def test_knowledge_pack_validator_accepts_scoped_ai_sast_list_all_query(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["evidence_query_recipes"][0]["template"] = (
+        'endorctl api list -r Finding -n <namespace> --filter '
+        '\'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" '
+        'and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"\' '
+        '--field-mask "uuid,context.type,spec.project_uuid,spec.method" --list-all -o json'
+    )
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert "workflows/sca-remediation.yaml evidence_query_recipes[0].template: broad Finding --list-all templates are not allowed" not in errors
 
 
 def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_gaps.") -> None:

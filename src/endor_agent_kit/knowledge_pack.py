@@ -831,10 +831,24 @@ def _validate_query_recipe_template(
     if "endorctl api list" in lower and " --field-mask " not in lower:
         errors.append(f"{prefix}.template: endorctl api list commands must include --field-mask")
     if "endorctl api list" in lower and "finding" in lower and "--list-all" in lower:
-        if "uuid==" not in lower and "spec.target" not in lower and "target_dependency" not in lower:
+        if not _is_scoped_finding_list_all_query(lower):
             errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
     if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:
         errors.append(f"{prefix}.template: must not cat Endor config files")
+
+
+def _is_scoped_finding_list_all_query(lower_template: str) -> bool:
+    if (
+        "context.type==context_type_main" in lower_template
+        and "spec.project_uuid" in lower_template
+        and "system_evaluation_method_definition_ai_sast" in lower_template
+    ):
+        return True
+    return (
+        "uuid==" in lower_template
+        or "spec.target" in lower_template
+        or "target_dependency" in lower_template
+    )
 
 
 def _validate_sca_query_order(
