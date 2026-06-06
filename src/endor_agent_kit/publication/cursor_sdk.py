@@ -159,7 +159,11 @@ def render_cursor_sdk_prompt(prepared: PreparedSourceRecipe) -> str:
 
     recipe = prepared.recipe
     body = _cursor_text(
-        instructions_for_edition(prepared.instructions, CURSOR_SECTION_EDITION)
+        instructions_for_edition(
+            prepared.instructions,
+            CURSOR_SECTION_EDITION,
+            recipe_id=recipe.id,
+        )
     )
     actions = _cursor_text(render_action_contracts(prepared.actions))
     return "\n".join([

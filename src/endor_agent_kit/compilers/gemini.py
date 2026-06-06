@@ -66,7 +66,11 @@ def render_gemini_agent(
 
     recipe = prepared.recipe
     body = _gemini_instruction_text(
-        instructions_for_edition(prepared.instructions, GEMINI_SECTION_EDITION)
+        instructions_for_edition(
+            prepared.instructions,
+            GEMINI_SECTION_EDITION,
+            recipe_id=recipe.id,
+        )
     )
     body += _gemini_instruction_text(render_action_contracts(prepared.actions))
     posture = source_recipe_safety_posture(recipe)
@@ -108,7 +112,7 @@ def _render_skill(
     generated_context: str,
 ) -> str:
     body = _gemini_instruction_text(
-        instructions_for_edition(instructions, GEMINI_SECTION_EDITION)
+        instructions_for_edition(instructions, GEMINI_SECTION_EDITION, recipe_id=recipe.id)
     )
     return (
         "---\n"

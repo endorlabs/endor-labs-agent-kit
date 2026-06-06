@@ -64,7 +64,9 @@ def _render_skill(
     *,
     generated_context: str = "Codex",
 ) -> str:
-    body = _codex_instruction_text(instructions_for_edition(instructions, CODEX_SECTION_EDITION))
+    body = _codex_instruction_text(
+        instructions_for_edition(instructions, CODEX_SECTION_EDITION, recipe_id=recipe.id)
+    )
     return (
         "---\n"
         f"name: {recipe.id}\n"

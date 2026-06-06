@@ -13,6 +13,7 @@ from endor_agent_kit.compilers.rendering import (
     normalize_edition,
     render_action_contracts,
 )
+from endor_agent_kit.knowledge_pack import PACK_SECTION_HEADING
 from endor_agent_kit.recipe import ActionContract
 
 
@@ -47,6 +48,20 @@ def test_shared_compiler_rendering_injects_namespace_preflight():
     assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in rendered
     assert "tenant-specific, customer-specific, production, backup" in rendered
     assert "non-default Endor config directories" in rendered
+
+
+def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_preflight():
+    rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        recipe_id="sca-remediation",
+    )
+
+    assert rendered.count(PACK_SECTION_HEADING) == 1
+    assert rendered.index("## Endor Namespace Preflight") < rendered.index(PACK_SECTION_HEADING)
+    assert rendered.index(PACK_SECTION_HEADING) < rendered.index("Enterprise rules.")
+    assert "source recipe instructions remain authoritative" in rendered
+    assert "Context first" in rendered
 
 
 def test_shared_compiler_rendering_reports_missing_instruction_sections():

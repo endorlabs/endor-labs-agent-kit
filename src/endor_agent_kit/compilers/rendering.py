@@ -8,6 +8,7 @@ from endor_agent_kit.instruction_sections import (
     normalize_edition,
     parse_instruction_sections,
 )
+from endor_agent_kit.knowledge_pack import render_knowledge_pack_section
 from endor_agent_kit.recipe import ActionContract
 
 EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
@@ -31,20 +32,38 @@ Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--conf
 """
 
 
-def instructions_for_edition(instructions: str, edition: str) -> str:
+def instructions_for_edition(
+    instructions: str,
+    edition: str,
+    *,
+    recipe_id: str | None = None,
+) -> str:
     """Render the shared and edition-specific instruction sections."""
 
     edition = normalize_edition(edition)
     sections = parse_instruction_sections(instructions)
     shared = sections.shared
     mode = sections.for_edition(edition)
-    return f"{shared.rstrip()}\n\n{ENDOR_NAMESPACE_PREFLIGHT.rstrip()}\n\n{mode.rstrip()}\n"
+    knowledge_pack = render_knowledge_pack_section(recipe_id).rstrip()
+    sections_to_render = [
+        shared.rstrip(),
+        ENDOR_NAMESPACE_PREFLIGHT.rstrip(),
+    ]
+    if knowledge_pack:
+        sections_to_render.append(knowledge_pack)
+    sections_to_render.append(mode.rstrip())
+    return "\n\n".join(sections_to_render) + "\n"
 
 
-def instructions_for_variant(instructions: str, variant: str) -> str:
+def instructions_for_variant(
+    instructions: str,
+    variant: str,
+    *,
+    recipe_id: str | None = None,
+) -> str:
     """Compatibility wrapper for old variant names."""
 
-    return instructions_for_edition(instructions, variant)
+    return instructions_for_edition(instructions, variant, recipe_id=recipe_id)
 
 
 def render_action_contracts(actions: tuple[ActionContract, ...]) -> str:
