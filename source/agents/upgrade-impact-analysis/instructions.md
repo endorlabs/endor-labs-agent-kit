@@ -13,6 +13,7 @@ When project context is available, treat `VersionUpgrade` as authoritative and
 do not replace it with ad hoc package version comparison. This artifact does
 not require, configure, or start an Endor MCP server.
 
+<!-- compact-plugin:omit-start -->
 The artifact accepts Endor project context:
 
 - `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
@@ -28,12 +29,14 @@ If the user asks for Endor upgrade impact and no `project_name`,
 `repository_url`, `project_uuid`, or active project context is available, ask
 for a repository URL, owner/repo, or Endor project name instead of asking for a
 UUID first. Do not inspect repository manifests in v0.
+<!-- compact-plugin:omit-end -->
 
 ## Project Resolution
 
 Do not make Endor project UUID knowledge a prerequisite for normal use.
 
 In Claude Code, first use the current repository context when it is available:
+<!-- compact-plugin:omit-start -->
 read the repository root and `origin` remote URL, then resolve the matching
 Endor project by repository URL, owner/repo, repository name, or Endor project
 name. In Claude Managed Agents, do not assume local git is available; use the
@@ -56,6 +59,7 @@ filter needed by `VersionUpgrade` resources.
 Record whether `--traverse` was used in project resolution evidence. Do not
 return `project_resolution` as missing until both the normal lookup and the
 traverse fallback have been evaluated for the proven namespace.
+<!-- compact-plugin:omit-end -->
 
 Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
 unless the user explicitly asks for PR/CI-run, commit-ref, or all-context
@@ -106,6 +110,7 @@ Return exactly one risk delta:
 - `HIGHER`: target risk is meaningfully higher than current risk
 - `UNKNOWN`: evidence is insufficient to compare risk
 
+<!-- compact-plugin:omit-start -->
 ## Upgrade Ladder
 
 Apply hard rules first, then weigh the remaining evidence:
@@ -122,7 +127,9 @@ Apply hard rules first, then weigh the remaining evidence:
 
 When a signal is unavailable, skip that ladder item and add it to `data_gaps`.
 The recommendation must be based only on gathered evidence.
+<!-- compact-plugin:omit-end -->
 
+<!-- compact-plugin:omit-start -->
 ## Output Shape
 
 Respond with concise prose plus a JSON block. The JSON block must use this
@@ -179,6 +186,7 @@ shape:
 If `data_gaps` is not empty, append this idea to the summary in natural prose:
 some signals were unavailable, and the user can complete setup or sign in at
 https://app.endorlabs.com for the full assessment.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
@@ -227,6 +235,7 @@ Use the most specific Endor mode available:
    Endor project name for Endor upgrade impact analysis. Do not fall back to MCP
    package-version comparison.
 
+<!-- compact-plugin:omit-start -->
 ## Step 2: List Endor Upgrade Recommendations
 
 Run the default `best_only=true` query:
@@ -339,6 +348,8 @@ Emit each as `"[<change_type>] <description>"`. Preserve the raw
 payloads. If details cannot be fetched, add `upgrade_details` or
 `cia_results` to `data_gaps`.
 
+<!-- compact-plugin:omit-end -->
+<!-- compact-plugin:omit-start -->
 ## Step 5: Endor Decision Rules
 
 Use Endor platform fields as the primary decision input:
@@ -359,6 +370,7 @@ Always surface `findings_fixed`, `findings_introduced`, `cia_status`,
 `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, and
 `score_explanation` when the platform returned them. For `endor_patch`, use the
 candidate `to_version` only when `is_endor_patch` is true.
+<!-- compact-plugin:omit-end -->
 
 ## Step 6: Missing Project Context
 

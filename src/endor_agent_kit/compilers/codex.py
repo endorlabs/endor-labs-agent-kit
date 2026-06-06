@@ -46,6 +46,7 @@ def render_codex_skill(
     prepared: PreparedSourceRecipe,
     *,
     generated_context: str = "Codex",
+    compact_plugin: bool = False,
 ) -> str:
     """Render a Codex skill from a prepared Source Recipe."""
 
@@ -54,6 +55,7 @@ def render_codex_skill(
         prepared.instructions,
         prepared.actions,
         generated_context=generated_context,
+        compact_plugin=compact_plugin,
     )
 
 
@@ -63,9 +65,15 @@ def _render_skill(
     actions: tuple = (),
     *,
     generated_context: str = "Codex",
+    compact_plugin: bool = False,
 ) -> str:
     body = _codex_instruction_text(
-        instructions_for_edition(instructions, CODEX_SECTION_EDITION, recipe_id=recipe.id)
+        instructions_for_edition(
+            instructions,
+            CODEX_SECTION_EDITION,
+            recipe_id=recipe.id,
+            compact_plugin=compact_plugin,
+        )
     )
     return (
         "---\n"
@@ -76,7 +84,7 @@ def _render_skill(
         f"{_codex_notice(recipe, generated_context=generated_context)}\n\n"
         f"{_codex_host_contract(recipe)}\n\n"
         f"{body.rstrip()}\n"
-        f"{_codex_instruction_text(render_action_contracts(actions))}"
+        f"{_codex_instruction_text(render_action_contracts(actions, compact=compact_plugin))}"
     )
 
 

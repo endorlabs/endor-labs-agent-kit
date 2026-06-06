@@ -165,9 +165,10 @@ def render_cursor_skill(prepared: PreparedSourceRecipe) -> str:
             prepared.instructions,
             CURSOR_SECTION_EDITION,
             recipe_id=recipe.id,
+            compact_plugin=True,
         )
     )
-    actions = _cursor_text(render_action_contracts(prepared.actions))
+    actions = _cursor_text(render_action_contracts(prepared.actions, compact=True))
     return (
         "---\n"
         f"name: {recipe.id}\n"
@@ -193,9 +194,10 @@ def render_cursor_agent(prepared: PreparedSourceRecipe) -> str:
             prepared.instructions,
             CURSOR_SECTION_EDITION,
             recipe_id=recipe.id,
+            compact_plugin=True,
         )
     )
-    actions = _cursor_agent_text(render_action_contracts(prepared.actions))
+    actions = _cursor_agent_text(render_action_contracts(prepared.actions, compact=True))
     agent_name = _cursor_agent_name(recipe.id)
     return (
         "---\n"

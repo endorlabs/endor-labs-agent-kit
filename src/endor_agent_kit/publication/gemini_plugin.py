@@ -71,6 +71,7 @@ def publish_gemini_plugin_package(
             render_gemini_skill(
                 prepared,
                 generated_context="Endor Labs Agent Kit Gemini CLI extension",
+                compact_plugin=True,
             ),
             encoding="utf-8",
         )
@@ -81,6 +82,7 @@ def publish_gemini_plugin_package(
             render_gemini_agent(
                 prepared,
                 generated_context="Endor Labs Agent Kit Gemini CLI extension subagent",
+                compact_plugin=True,
             ),
             encoding="utf-8",
         )

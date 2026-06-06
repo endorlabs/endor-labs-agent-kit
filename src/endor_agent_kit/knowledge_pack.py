@@ -172,6 +172,8 @@ def validate_knowledge_pack(
 def render_knowledge_pack_section(
     agent_id: str | None,
     root: str | Path | None = None,
+    *,
+    compact: bool = False,
 ) -> str:
     """Render compact pack guidance for one generated agent."""
 
@@ -186,8 +188,12 @@ def render_knowledge_pack_section(
         "### Global Rules",
         "",
     ]
-    for rule in pack.global_rules:
-        lines.append(f"- {rule.title}: {rule.guidance}")
+    if compact:
+        global_titles = "; ".join(rule.title for rule in pack.global_rules)
+        lines.append(f"- {global_titles}.")
+    else:
+        for rule in pack.global_rules:
+            lines.append(f"- {rule.title}: {rule.guidance}")
     lines.extend(["", "### Evidence Gate Contract", ""])
     lines.extend(f"- {rule}" for rule in EVIDENCE_GATE_RULES)
 
@@ -197,16 +203,22 @@ def render_knowledge_pack_section(
         if workflow.resources:
             resources = ", ".join(f"`{resource.name}`" for resource in workflow.resources)
             lines.append(f"- Preferred evidence resources: {resources}.")
-            for resource in workflow.resources:
-                fields = ", ".join(f"`{field}`" for field in resource.fields)
-                lines.append(f"- `{resource.name}`: {resource.purpose} Fields: {fields}.")
-        if workflow.retrieval_steps:
+            if not compact:
+                for resource in workflow.resources:
+                    fields = ", ".join(f"`{field}`" for field in resource.fields)
+                    lines.append(f"- `{resource.name}`: {resource.purpose} Fields: {fields}.")
+        if compact:
+            if workflow.retrieval_steps:
+                lines.append("- Retrieval: " + " ".join(workflow.retrieval_steps[:2]))
+            if workflow.data_gaps:
+                lines.append("- Data gaps: " + " ".join(workflow.data_gaps[:1]))
+        elif workflow.retrieval_steps:
             lines.append("- Retrieval order: " + " ".join(
                 f"{index}. {step}" for index, step in enumerate(workflow.retrieval_steps, start=1)
             ))
-        if workflow.fallbacks:
+        if not compact and workflow.fallbacks:
             lines.append("- Fallbacks: " + " ".join(workflow.fallbacks))
-        if workflow.data_gaps:
+        if not compact and workflow.data_gaps:
             lines.append("- Data gaps: " + " ".join(workflow.data_gaps))
 
     return "\n".join(lines).rstrip() + "\n"
