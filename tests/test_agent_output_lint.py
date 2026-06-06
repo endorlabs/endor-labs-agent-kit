@@ -156,6 +156,55 @@ def test_lint_rejects_non_array_sca_uia_evidence():
     assert "uia_evidence: must be an array" in lint_agent_output("sca-remediation", output)
 
 
+def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
+    output = json.dumps(
+        {
+            "summary": "Selected a UIA-backed remediation.",
+            "project_resolution": {
+                "status": "resolved",
+                "project_uuid": "proj-123",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+            },
+            "selected_remediation": {
+                "package": "mvn://example:demo",
+                "from_version": "1.0.0",
+                "to_version": "1.0.1",
+                "branch_name": "remediation/sca/demo-1.0.1",
+                "upgrade_risk": "low",
+                "cia_status": "no breaking changes",
+                "findings_introduced": 0,
+            },
+            "uia_evidence": [
+                {
+                    "resource": "VersionUpgrade",
+                    "uuid": "version-upgrade-123",
+                    "upgrade_risk": "low",
+                    "cia_status": "no breaking changes",
+                    "total_findings_fixed": 18,
+                    "total_findings_introduced": 0,
+                    "sample_fixed_findings": ["GHSA-1234-5678-9012"],
+                }
+            ],
+            "risk_decision": {
+                "status": "approved_with_validation_required",
+                "source_usage_summary": "Source usage was inspected.",
+                "validation_requirements": ["mvn test"],
+            },
+            "validation": [{"command": "mvn test", "status": "planned"}],
+            "change_requests": [
+                {
+                    "status": "not_created",
+                    "proposed_branch": "remediation/sca/demo-1.0.1",
+                }
+            ],
+            "data_gaps": [],
+        }
+    )
+
+    assert lint_agent_output("sca-remediation", output) == []
+
+
 def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     errors = lint_agent_output(
         "vulnerability-explainer",

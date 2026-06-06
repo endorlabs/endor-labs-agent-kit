@@ -134,6 +134,7 @@ def _project_evidence_gap_errors(
         or _list(payload.get("sca_findings"))
         or _list(payload.get("remediation_candidates"))
         or _list(payload.get("remediation_options"))
+        or _uia_contains_fixed_finding_evidence(payload.get("uia_evidence"))
     )
     has_uia_evidence = bool(_list(payload.get("uia_evidence")) or _list(payload.get("version_upgrades")))
     evidence_queries = _list(payload.get("evidence_queries"))
@@ -167,6 +168,24 @@ def _evidence_query_mentions(items: list[Any], terms: tuple[str, ...]) -> bool:
     return any(term.lower() in lower for term in terms)
 
 
+def _uia_contains_fixed_finding_evidence(value: Any) -> bool:
+    for item in _list(value):
+        if not isinstance(item, dict):
+            continue
+        if _list(item.get("fixed_findings")) or _list(item.get("sample_fixed_findings")):
+            return True
+        if _int(item.get("total_findings_fixed") or item.get("findings_fixed")) > 0:
+            return True
+        severity_reduction = item.get("severity_reduction")
+        if isinstance(severity_reduction, dict):
+            for reduction in severity_reduction.values():
+                if isinstance(reduction, dict) and _int(
+                    reduction.get("fixed_count") or reduction.get("reachable_fixed_count")
+                ) > 0:
+                    return True
+    return False
+
+
 def _dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
 
@@ -197,6 +216,19 @@ def _string_list(value: Any) -> list[str]:
 
 def _text(value: Any) -> str:
     return value.strip() if isinstance(value, str) else ""
+
+
+def _int(value: Any) -> int:
+    if isinstance(value, bool):
+        return 0
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except ValueError:
+            return 0
+    return 0
 
 
 def _dedupe(errors: list[str]) -> list[str]:
