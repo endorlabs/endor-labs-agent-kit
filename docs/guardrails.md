@@ -26,6 +26,7 @@ copying portable policy facts.
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
 | Namespace provenance and conflict surfacing | Enforced in prompts and setup guidance | shared prompt preflight, setup support files, catalog guardrails |
+| Endor Knowledge Pack rendering | Enforced in source and generated artifacts | `source/endor-knowledge-pack/`, shared renderer, catalog guardrails |
 | Missing data handling | Enforced in prompts | required `data_gaps` behavior |
 | Output structure | Enforced for workflow gates | SCA and AI SAST validators/renderers/linters |
 | Portable runtime controls | Declared and tested | `agent.manifest.json`, `output-contract.md`, portable docs |
@@ -55,6 +56,20 @@ The recipe validator rejects unsafe combinations, including:
 - MCP recipes without declared public Endor MCP tools
 - schema v2 mutating recipes without `actions.yaml`
 - mutating actions that do not require confirmation
+
+## Endor Knowledge Pack Controls
+
+The Endor Knowledge Pack under `source/endor-knowledge-pack/` is structured
+source data for compact Endor workflow guidance. It augments generated prompts;
+it does not replace Source Recipes, workflow output contracts, namespace
+preflight, action contracts, or host runtime policy.
+
+Generated agent instructions must include exactly one `## Endor Knowledge Pack`
+section after namespace preflight and before workflow execution details. The
+section keeps global rules short and renders per-agent workflow contracts only
+when a matching pack file exists. Catalog guardrails validate the source pack
+and require generated workflow surfaces to preserve the pack section, context
+first behavior, `namespace_provenance`, and `data_gaps` guidance.
 
 ## Catalog Posture
 
