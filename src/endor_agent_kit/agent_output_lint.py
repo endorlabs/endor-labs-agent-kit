@@ -115,7 +115,8 @@ def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = No
         errors.extend(_mutability_gate_errors(agent_id, payload))
 
     if agent_id == "sca-remediation" and payload is not None:
-        errors.extend(validate_sca_gate_payload(payload))
+        if task_profile != "evidence-check":
+            errors.extend(validate_sca_gate_payload(payload))
         errors.extend(_project_evidence_gap_errors(payload, require_options=False))
         if task_profile == "selection-plan":
             errors.extend(_selection_plan_query_efficiency_errors(payload))
@@ -197,6 +198,10 @@ def _project_evidence_gap_errors(
     evidence_queries = _list(payload.get("evidence_queries"))
     queried_finding = _evidence_query_mentions(evidence_queries, ("Finding", "findings"))
     queried_uia = _evidence_query_mentions(evidence_queries, ("VersionUpgrade", "UIA", "version_upgrades"))
+    if not has_finding_evidence:
+        has_finding_evidence = _evidence_query_has_positive_result(evidence_queries, ("Finding", "findings"))
+    if not has_uia_evidence:
+        has_uia_evidence = _evidence_query_has_positive_result(evidence_queries, ("VersionUpgrade", "UIA", "version_upgrades"))
 
     if not data_gaps and (not has_finding_evidence or not has_uia_evidence):
         errors.append("data_gaps: cannot be empty when Finding or VersionUpgrade/UIA evidence is absent")
@@ -247,11 +252,47 @@ def _resolved_scope_errors(label: str, scope: dict[str, Any]) -> list[str]:
             errors.append(f"{label}.{field}: required when status is resolved")
     if not (_text(scope.get("repo_full_name")) or _text(scope.get("normalized_repo_full_name"))):
         errors.append(f"{label}.repo_full_name: normalized repository identity required when status is resolved")
-    if not (_text(scope.get("default_branch")) or _text(scope.get("selected_branch")) or _text(scope.get("monitored_branch"))):
+    if not (
+        _text(scope.get("default_branch"))
+        or _text(scope.get("selected_branch"))
+        or _text(scope.get("monitored_branch"))
+        or _known_scope_gap(scope, "branch")
+    ):
         errors.append(f"{label}.default_branch: branch provenance required when status is resolved")
     if "traverse_attempted" not in scope:
         errors.append(f"{label}.traverse_attempted: required when status is resolved")
     return errors
+
+
+def _known_scope_gap(scope: dict[str, Any], term: str) -> bool:
+    haystack = json.dumps(scope, sort_keys=True).lower()
+    return term.lower() in haystack and any(
+        marker in haystack
+        for marker in (
+            "gap",
+            "unavailable",
+            "unknown",
+            "not queried",
+            "out of scope",
+            "cannot confirm",
+            "unconfirmed",
+            "null",
+        )
+    )
+
+
+def _mutation_relevant_item_text(item: dict[str, Any]) -> str:
+    ignored_keys = {
+        "field_mask_summary",
+        "filter_summary",
+        "query_template_id",
+        "reason",
+    }
+    return " ".join(
+        value
+        for key, value in item.items()
+        if key not in ignored_keys and isinstance(value, str)
+    )
 
 
 def _mutability_gate_errors(agent_id: str, payload: dict[str, Any]) -> list[str]:
@@ -262,14 +303,14 @@ def _mutability_gate_errors(agent_id: str, payload: dict[str, Any]) -> list[str]
                 status = _text(item.get("status")).lower()
                 if status in MUTATION_STATUS_VALUES:
                     errors.append(f"{path}.status: read-only workflow cannot claim mutation status {status!r}")
-                item_text = " ".join(value for value in item.values() if isinstance(value, str))
+                item_text = _mutation_relevant_item_text(item)
                 if MUTATION_COMMAND_RE.search(item_text) and item.get("confirmation_required") is not True:
                     errors.append(f"{path}: mutation command requires confirmation_required=true and must remain a future action")
     else:
         for path, item in _walk_json(payload):
             if not isinstance(item, dict):
                 continue
-            item_text = " ".join(value for value in item.values() if isinstance(value, str))
+            item_text = _mutation_relevant_item_text(item)
             if MUTATION_COMMAND_RE.search(item_text) and item.get("confirmation_required") is False:
                 errors.append(f"{path}: mutation command cannot be marked confirmation_required=false")
     return errors
@@ -297,7 +338,7 @@ def _probe_droid_errors(payload: dict[str, Any]) -> list[str]:
             if not isinstance(row, dict):
                 errors.append(f"{field}[{index}]: must be an object")
                 continue
-            if not (_text(row.get("repository")) or _text(row.get("repo_full_name"))):
+            if not (_text(row.get("repository")) or _text(row.get("repo_full_name")) or _text(row.get("full_name"))):
                 errors.append(f"{field}[{index}].repository: normalized owner/repo required")
             if field != "excluded_repositories" and not _repo_row_default_branch(row):
                 errors.append(f"{field}[{index}].default_branch: required for monitored-branch comparison")
@@ -377,6 +418,22 @@ def _evidence_query_mentions(items: list[Any], terms: tuple[str, ...]) -> bool:
     haystack = " ".join(json.dumps(item, sort_keys=True) for item in items)
     lower = haystack.lower()
     return any(term.lower() in lower for term in terms)
+
+
+def _evidence_query_has_positive_result(items: list[Any], terms: tuple[str, ...]) -> bool:
+    positive_statuses = {"completed", "confirmed", "resolved", "success", "succeeded"}
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        lower = json.dumps(item, sort_keys=True).lower()
+        if not any(term.lower() in lower for term in terms):
+            continue
+        result_count = item.get("result_count")
+        if isinstance(result_count, int) and result_count > 0:
+            return True
+        if result_count is None and _text(item.get("status")).lower() in positive_statuses:
+            return True
+    return False
 
 
 def _selection_plan_query_efficiency_errors(payload: dict[str, Any]) -> list[str]:

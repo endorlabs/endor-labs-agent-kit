@@ -9,7 +9,7 @@ task_profiles:
       - The user asks for a concise risk posture for a package version.
       - Missing package coordinate details would make tenant lookups ambiguous.
     minimal_evidence:
-      - Ecosystem, package name, version, and namespace provenance for tenant-scoped evidence when available.
+      - Ecosystem, package name, version, and the package-level `oss` lookup path for exact package evidence.
     stop_when:
       - Package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps.
       - Do not inspect repository manifests or run scans.
@@ -46,7 +46,11 @@ resources:
       - spec
 retrieval_steps:
   - Require ecosystem, package name, and version before risk posture selection.
-  - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
+  - >-
+    Map ecosystems to PackageVersion URL prefixes: `pypi/python/pip -> pypi`, `maven/java -> mvn`, `npm -> npm`,
+    `go -> go`, `cargo/rust -> cargo`, `gem/rubygems/ruby -> gem`, `nuget -> nuget`, `packagist/composer/php -> packagist`.
+  - Use package-level `oss` PackageVersion evidence for exact package/version lookups; resolve namespace provenance only for
+    explicitly requested tenant-scoped Endor lookups.
   - Use host-exposed Endor MCP tools only when available; otherwise report unavailable Endor risk evidence in data_gaps.
   - Resolve exact PackageVersion evidence before score, license, and package-health claims.
 fallbacks:
@@ -64,8 +68,8 @@ evidence_query_plans:
     title: Package Risk Summary Query Plan
     objective: Summarize risk for one named package/version without whole-project expansion.
     query_order:
-      - Resolve package coordinate, version, ecosystem, namespace, and optional repository context.
-      - Query PackageVersion or package metadata for the named package/version.
+      - Resolve package coordinate, version, ecosystem, and package URL prefix.
+      - Query PackageVersion in `oss` by exact `meta.name` for the named package/version.
       - Query scoped Finding or available Endor risk evidence only for that package when project context is present.
     avoid:
       - Do not list all repository dependencies or all tenant package versions.
@@ -78,9 +82,9 @@ evidence_query_plans:
     title: Package Risk Evidence Query Plan
     objective: Verify whether package-specific Endor evidence is available.
     query_order:
-      - Resolve namespace and package coordinate first.
-      - Query only exact package/version metadata.
-      - If repository scope is supplied, query narrow package-linked Finding evidence.
+      - Resolve package coordinate, version, ecosystem, and package URL prefix first.
+      - Query only exact `oss` PackageVersion metadata by `meta.name`.
+      - Query project-scoped Finding evidence only when the user explicitly requested project scope.
     avoid:
       - Do not infer risk from local lockfiles alone or from unrelated package names.
     stop_after:
@@ -94,14 +98,11 @@ evidence_query_recipes:
     canonical_id: package-version-exact
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
-    template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
-      and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json
+    template: endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"'
+      --field-mask "uuid,meta.name" -o json
     fields:
       - uuid
       - meta.name
-      - spec.ecosystem
-      - spec.package_name
-      - spec.version
     constraints:
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
       - If version is unknown, ask for it or report data_gaps.
@@ -127,14 +128,11 @@ evidence_query_recipes:
     canonical_id: package-version-exact
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
-    template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
-      and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json
+    template: endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"'
+      --field-mask "uuid,meta.name" -o json
     fields:
       - uuid
       - meta.name
-      - spec.ecosystem
-      - spec.package_name
-      - spec.version
     constraints:
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
       - If version is unknown, ask for it or report data_gaps.
