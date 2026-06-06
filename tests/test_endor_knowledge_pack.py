@@ -114,6 +114,10 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert section.startswith(PACK_SECTION_HEADING)
     assert "Context first" in section
     assert "Evidence Gate Contract" in section
+    assert "Scope Normalization Contract" in section
+    assert "normalized repo identity" in section
+    assert "Mutability Gate Contract" in section
+    assert "future action contract" in section
     assert "Agent Task Profiles" in section
     assert "`selection-plan` - Selection Plan" in section
     assert "Evidence Query Plans" in section

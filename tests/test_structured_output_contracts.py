@@ -69,6 +69,27 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
 
 
+def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
+    probe_schema = json_schema_for_agent("probe-droid")
+    report_scope = probe_schema["properties"]["report_scope"]
+    executive_report = probe_schema["properties"]["executive_report"]
+
+    assert "mode" in report_scope["properties"]
+    assert "namespace_provenance" in report_scope["properties"]
+    assert "monitored_branch_policy" in report_scope["properties"]
+    assert "top_counts" in executive_report["properties"]
+
+    troubleshooter_schema = json_schema_for_agent("endor-troubleshooter")
+    executive_summary = troubleshooter_schema["properties"]["executive_summary"]
+    intake_classification = troubleshooter_schema["properties"]["intake_classification"]
+    support_packet = troubleshooter_schema["properties"]["support_escalation_packet"]
+
+    assert "issue_title" in executive_summary["properties"]
+    assert "confirmation_required" in executive_summary["properties"]
+    assert "issue_lanes" in intake_classification["properties"]
+    assert "redactions_applied" in support_packet["properties"]
+
+
 def test_json_schema_cli_prints_agent_schema(capsys):
     status = main(["structured-output-schema", "--agent", "sca-remediation"])
     output = capsys.readouterr().out

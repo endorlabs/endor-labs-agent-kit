@@ -23,6 +23,19 @@ READ_ONLY_SCAN_BLOCK_AGENTS = frozenset(
     }
 )
 
+READ_ONLY_AGENTS = frozenset(
+    {
+        "dependency-decision-helper",
+        "endor-troubleshooter",
+        "package-risk-summary",
+        "probe-droid",
+        "remediation-planner",
+        "repository-dependency-reviewer",
+        "upgrade-impact-analysis",
+        "vulnerability-explainer",
+    }
+)
+
 PROJECT_GATE_AGENTS = frozenset({"sca-remediation", "remediation-planner"})
 STRUCTURED_OUTPUT_AGENTS = frozenset(known_structured_agent_ids())
 
@@ -47,6 +60,30 @@ READ_ONLY_SCAN_RE = re.compile(
     re.IGNORECASE,
 )
 ENDORCTL_API_LINE_RE = re.compile(r"endorctl\s+api\s+(?:list|get)\b[^\n`]*", re.IGNORECASE)
+MUTATION_COMMAND_RE = re.compile(
+    r"\b(?:"
+    r"endorctl\s+scan|"
+    r"endorctl\s+api\s+(?:create|update|delete)|"
+    r"gh\s+pr\s+(?:create|merge|edit|comment)|"
+    r"git\s+(?:clone|checkout\s+-b|switch\s+-c|commit|push)|"
+    r"curl\b[^\n]*(?:-X|--request)\s*(?:POST|PUT|PATCH|DELETE)"
+    r")\b",
+    re.IGNORECASE,
+)
+MUTATION_STATUS_VALUES = frozenset(
+    {
+        "applied",
+        "branch_created",
+        "commented",
+        "committed",
+        "created",
+        "merged",
+        "opened",
+        "pushed",
+        "updated",
+        "written",
+    }
+)
 
 
 def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = None) -> list[str]:
@@ -70,8 +107,12 @@ def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = No
     payload = extract_json_object(text)
     if agent_id in STRUCTURED_OUTPUT_AGENTS and payload is None:
         errors.append(f"{agent_id} output must include a JSON object")
+        if agent_id in READ_ONLY_AGENTS and MUTATION_COMMAND_RE.search(text):
+            errors.append("read-only workflow must not include mutation commands; put proposed mutations in future_action_contracts with confirmation_required")
     elif payload is not None:
         errors.extend(validate_structured_output_payload(agent_id, payload))
+        errors.extend(_scope_normalization_errors(agent_id, payload))
+        errors.extend(_mutability_gate_errors(agent_id, payload))
 
     if agent_id == "sca-remediation" and payload is not None:
         errors.extend(validate_sca_gate_payload(payload))
@@ -83,6 +124,10 @@ def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = No
         if task_profile == "selection-plan":
             errors.extend(_selection_plan_query_efficiency_errors(payload))
     elif payload is not None:
+        if agent_id == "probe-droid":
+            errors.extend(_probe_droid_errors(payload))
+        elif agent_id == "endor-troubleshooter":
+            errors.extend(_endor_troubleshooter_errors(payload))
         errors.extend(_empty_data_gap_errors(payload))
     return _dedupe(errors)
 
@@ -172,6 +217,129 @@ def _empty_data_gap_errors(payload: dict[str, Any]) -> list[str]:
     return []
 
 
+def _scope_normalization_errors(agent_id: str, payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    project_resolution = _dict(payload.get("project_resolution"))
+    if project_resolution:
+        errors.extend(_resolved_scope_errors("project_resolution", project_resolution))
+    report_scope = _dict(payload.get("report_scope"))
+    if agent_id == "probe-droid" and report_scope:
+        if not _text(report_scope.get("mode")):
+            errors.append("report_scope.mode: required for probe-droid outputs")
+        has_endor_evidence = _evidence_query_mentions(_list(payload.get("evidence_queries")), ("Project", "Endor"))
+        if has_endor_evidence:
+            for field in ("namespace", "namespace_provenance"):
+                if not _text(report_scope.get(field)):
+                    errors.append(f"report_scope.{field}: required when Endor project evidence is queried")
+    return errors
+
+
+def _resolved_scope_errors(label: str, scope: dict[str, Any]) -> list[str]:
+    status = _text(scope.get("status")).lower()
+    if status != "resolved":
+        return []
+    errors: list[str] = []
+    for field in ("project_uuid", "namespace", "namespace_provenance"):
+        if not _text(scope.get(field)):
+            errors.append(f"{label}.{field}: required when status is resolved")
+    if not (_text(scope.get("repo_full_name")) or _text(scope.get("normalized_repo_full_name"))):
+        errors.append(f"{label}.repo_full_name: normalized repository identity required when status is resolved")
+    if not (_text(scope.get("default_branch")) or _text(scope.get("selected_branch")) or _text(scope.get("monitored_branch"))):
+        errors.append(f"{label}.default_branch: branch provenance required when status is resolved")
+    if "traverse_attempted" not in scope:
+        errors.append(f"{label}.traverse_attempted: required when status is resolved")
+    return errors
+
+
+def _mutability_gate_errors(agent_id: str, payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if agent_id in READ_ONLY_AGENTS:
+        for path, item in _walk_json(payload):
+            if isinstance(item, dict):
+                status = _text(item.get("status")).lower()
+                if status in MUTATION_STATUS_VALUES:
+                    errors.append(f"{path}.status: read-only workflow cannot claim mutation status {status!r}")
+                item_text = " ".join(value for value in item.values() if isinstance(value, str))
+                if MUTATION_COMMAND_RE.search(item_text) and item.get("confirmation_required") is not True:
+                    errors.append(f"{path}: mutation command requires confirmation_required=true and must remain a future action")
+    else:
+        for path, item in _walk_json(payload):
+            if not isinstance(item, dict):
+                continue
+            item_text = " ".join(value for value in item.values() if isinstance(value, str))
+            if MUTATION_COMMAND_RE.search(item_text) and item.get("confirmation_required") is False:
+                errors.append(f"{path}: mutation command cannot be marked confirmation_required=false")
+    return errors
+
+
+def _probe_droid_errors(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for field in (
+        "executive_report",
+        "report_scope",
+        "coverage_summary",
+        "github_inventory_summary",
+        "github_app_coverage",
+    ):
+        if not _dict(payload.get(field)):
+            errors.append(f"{field}: must be a non-empty object for probe-droid outputs")
+    for field in (
+        "not_onboarded_repositories",
+        "onboarded_repositories_with_gaps",
+        "onboarded_healthy_repositories",
+        "ambiguous_matches",
+        "excluded_repositories",
+    ):
+        for index, row in enumerate(_list(payload.get(field))):
+            if not isinstance(row, dict):
+                errors.append(f"{field}[{index}]: must be an object")
+                continue
+            if not (_text(row.get("repository")) or _text(row.get("repo_full_name"))):
+                errors.append(f"{field}[{index}].repository: normalized owner/repo required")
+            if field != "excluded_repositories" and not (
+                _text(row.get("default_branch")) or _text(row.get("branch"))
+            ):
+                errors.append(f"{field}[{index}].default_branch: required for monitored-branch comparison")
+            if field in {"onboarded_repositories_with_gaps", "onboarded_healthy_repositories"}:
+                endor_project = _dict(row.get("endor_project"))
+                if not _text(endor_project.get("project_uuid")):
+                    errors.append(f"{field}[{index}].endor_project.project_uuid: required for onboarded repositories")
+                if not _text(row.get("endor_monitored_branch")):
+                    errors.append(f"{field}[{index}].endor_monitored_branch: required for onboarded repositories")
+    return errors
+
+
+def _endor_troubleshooter_errors(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    for field in (
+        "executive_summary",
+        "intake_classification",
+        "evidence_summary",
+        "support_escalation_packet",
+    ):
+        value = payload.get(field)
+        if value is not None and not isinstance(value, dict):
+            errors.append(f"{field}: must be an object for endor-troubleshooter outputs")
+    classification = _dict(payload.get("intake_classification"))
+    if classification and not _list(classification.get("issue_lanes")):
+        errors.append("intake_classification.issue_lanes: at least one lane or UNKNOWN_OR_INSUFFICIENT_DATA is required")
+    for index, item in enumerate(_list(payload.get("recommended_actions"))):
+        if not isinstance(item, dict):
+            errors.append(f"recommended_actions[{index}]: must be an object")
+            continue
+        if not _text(item.get("action")):
+            errors.append(f"recommended_actions[{index}].action: required")
+        if not _text(item.get("validation")):
+            errors.append(f"recommended_actions[{index}].validation: required")
+    for index, item in enumerate(_list(payload.get("future_action_contracts"))):
+        if not isinstance(item, dict):
+            errors.append(f"future_action_contracts[{index}]: must be an object")
+            continue
+        if item.get("confirmation_required") is not True:
+            errors.append(f"future_action_contracts[{index}].confirmation_required: must be true")
+    return errors
+
+
 def _evidence_query_mentions(items: list[Any], terms: tuple[str, ...]) -> bool:
     haystack = " ".join(json.dumps(item, sort_keys=True) for item in items)
     lower = haystack.lower()
@@ -205,6 +373,16 @@ def _selection_plan_query_efficiency_errors(payload: dict[str, Any]) -> list[str
 def _item_mentions(item: dict[str, Any], terms: tuple[str, ...]) -> bool:
     lower = json.dumps(item, sort_keys=True).lower()
     return any(term.lower() in lower for term in terms)
+
+
+def _walk_json(value: Any, path: str = "$"):
+    yield path, value
+    if isinstance(value, dict):
+        for key, child in value.items():
+            yield from _walk_json(child, f"{path}.{key}")
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            yield from _walk_json(child, f"{path}[{index}]")
 
 
 def _endorctl_command_shape_errors(text: str) -> list[str]:

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, asdict
 from datetime import datetime, timezone
 import json
@@ -11,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -80,6 +82,34 @@ class RuntimeQaResult:
     stderr_log: str
 
 
+@dataclass(frozen=True)
+class RuntimeQaGateResult:
+    name: str
+    status: str
+    reason: str
+    returncode: int | None
+    duration_seconds: float
+    command: list[str]
+    stdout_log: str
+    stderr_log: str
+
+
+@dataclass(frozen=True)
+class HostCommandResult:
+    returncode: int
+    stdout: str
+    stderr: str
+
+
+class HostCommandTimeout(Exception):
+    """Raised when a host command exceeds the runtime QA timeout."""
+
+    def __init__(self, *, stdout: str, stderr: str) -> None:
+        super().__init__("host command timed out")
+        self.stdout = stdout
+        self.stderr = stderr
+
+
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     if not args.allow_live_endor_read:
@@ -94,38 +124,75 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     repo_root = Path(__file__).resolve().parents[1]
-    log_dir = create_log_dir(args.log_root)
+    log_dir = args.resume_log_dir.expanduser().resolve() if args.resume_log_dir else create_log_dir(args.log_root)
+    log_dir.mkdir(parents=True, exist_ok=True)
     overrides = parse_command_overrides(args.command_override)
     task_profiles = parse_task_profile_overrides(args.task_profile)
     hosts = tuple(dict.fromkeys(args.host or DEFAULT_HOSTS))
     agents = tuple(dict.fromkeys(args.agent or DEFAULT_AGENTS))
+    previous_results = load_previous_results(log_dir) if args.resume_log_dir else {}
+
+    gates: list[RuntimeQaGateResult] = []
+    if args.qa_profile == "release-candidate":
+        gates = run_release_candidate_gates(
+            repo_root=repo_root,
+            log_dir=log_dir,
+            timeout=args.structural_timeout,
+            env=os.environ.copy(),
+        )
+        for gate in gates:
+            print(f"gate/{gate.name}: {gate.status} {gate.reason}".rstrip())
 
     results: list[RuntimeQaResult] = []
+    cases: list[dict[str, object]] = []
     for workspace in workspaces:
         for host in hosts:
             for agent in agents:
-                result = run_case(
-                    host=host,
-                    agent=agent,
-                    workspace=workspace,
-                    namespace=args.namespace,
-                    task_profile=task_profiles.get(agent) or default_runtime_task_profile(agent),
-                    log_dir=log_dir,
-                    repo_root=repo_root,
-                    timeout=args.timeout,
-                    command_overrides=overrides,
-                    codex_sandbox=args.codex_sandbox,
-                    claude_permission_mode=args.claude_permission_mode,
-                    env=os.environ.copy(),
+                profile = task_profiles.get(agent) or default_runtime_task_profile(agent)
+                key = case_key(host, agent, workspace, profile)
+                previous = previous_results.get(key)
+                if previous is not None and previous.status in {"passed", "blocked"}:
+                    results.append(previous)
+                    print(f"{host}/{agent}/{workspace.name}: skipped previous {previous.status} {previous.reason}".rstrip())
+                    continue
+                cases.append(
+                    {
+                        "host": host,
+                        "agent": agent,
+                        "workspace": workspace,
+                        "namespace": args.namespace,
+                        "task_profile": profile,
+                        "log_dir": log_dir,
+                        "repo_root": repo_root,
+                        "timeout": args.timeout,
+                        "command_overrides": overrides,
+                        "codex_sandbox": args.codex_sandbox,
+                        "claude_permission_mode": args.claude_permission_mode,
+                        "env": os.environ.copy(),
+                    }
                 )
+
+    if args.jobs == 1:
+        for case in cases:
+            result = run_case(**case)
+            results.append(result)
+            print(f"{result.host}/{result.agent}/{Path(result.workspace).name}: {result.status} {result.reason}".rstrip())
+    else:
+        with ThreadPoolExecutor(max_workers=args.jobs) as executor:
+            future_to_case = {executor.submit(run_case, **case): case for case in cases}
+            for future in as_completed(future_to_case):
+                result = future.result()
                 results.append(result)
                 print(f"{result.host}/{result.agent}/{Path(result.workspace).name}: {result.status} {result.reason}".rstrip())
 
     summary = {
         "created_at": datetime.now(timezone.utc).isoformat(),
+        "qa_profile": args.qa_profile,
         "namespace": args.namespace,
         "allow_live_endor_read": args.allow_live_endor_read,
         "log_dir": str(log_dir),
+        "resumed_from": str(args.resume_log_dir.expanduser().resolve()) if args.resume_log_dir else "",
+        "jobs": args.jobs,
         "hosts": list(hosts),
         "agents": list(agents),
         "task_profiles": {
@@ -135,12 +202,15 @@ def main(argv: list[str] | None = None) -> int:
         "codex_sandbox": args.codex_sandbox,
         "claude_permission_mode": args.claude_permission_mode,
         "workspaces": [str(path) for path in workspaces],
+        "gates": [asdict(gate) for gate in gates],
         "results": [asdict(result) for result in results],
     }
     (log_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(f"runtime QA logs: {log_dir}")
 
-    return 1 if any(result.status in {"failed", "timeout"} for result in results) else 0
+    failed_gates = any(gate.status in {"failed", "timeout"} for gate in gates)
+    failed_results = any(result.status in {"failed", "timeout"} for result in results)
+    return 1 if failed_gates or failed_results else 0
 
 
 def parse_args(argv: list[str] | None) -> argparse.Namespace:
@@ -158,7 +228,16 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         help="Select an agent task profile for runtime QA. Repeatable. Defaults come from the Endor Knowledge Pack.",
     )
     parser.add_argument("--timeout", type=int, default=600, help="Per-case timeout in seconds.")
+    parser.add_argument("--structural-timeout", type=int, default=900, help="Per structural release-candidate gate timeout in seconds.")
     parser.add_argument("--log-root", type=Path, default=Path("/tmp"), help="Parent directory for runtime QA logs.")
+    parser.add_argument("--resume-log-dir", type=Path, help="Reuse an existing runtime QA log directory and skip prior passed/blocked cases.")
+    parser.add_argument("--jobs", type=int, default=1, help="Number of runtime QA cases to run concurrently.")
+    parser.add_argument(
+        "--qa-profile",
+        choices=("runtime-smoke", "release-candidate"),
+        default="runtime-smoke",
+        help="runtime-smoke runs host cases only; release-candidate also records structural/package/freshness gates.",
+    )
     parser.add_argument(
         "--codex-sandbox",
         choices=("read-only", "workspace-write", "danger-full-access"),
@@ -181,7 +260,10 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         metavar="HOST=/path/to/command",
         help="Override a host CLI command for testing or local wrappers. Repeatable.",
     )
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.jobs < 1:
+        parser.error("--jobs must be >= 1")
+    return args
 
 
 def create_log_dir(log_root: Path) -> Path:
@@ -196,6 +278,30 @@ def create_log_dir(log_root: Path) -> Path:
     return candidate
 
 
+def load_previous_results(log_dir: Path) -> dict[tuple[str, str, str, str], RuntimeQaResult]:
+    summary_path = log_dir / "summary.json"
+    if not summary_path.is_file():
+        return {}
+    try:
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError:
+        return {}
+    results: dict[tuple[str, str, str, str], RuntimeQaResult] = {}
+    for item in summary.get("results", []):
+        if not isinstance(item, dict):
+            continue
+        try:
+            result = RuntimeQaResult(**item)
+        except TypeError:
+            continue
+        results[(result.host, result.agent, str(Path(result.workspace).resolve()), result.task_profile)] = result
+    return results
+
+
+def case_key(host: str, agent: str, workspace: Path, task_profile: str) -> tuple[str, str, str, str]:
+    return (host, agent, str(workspace.resolve()), task_profile)
+
+
 def parse_command_overrides(values: Sequence[str]) -> dict[str, str]:
     overrides: dict[str, str] = {}
     for value in values:
@@ -206,6 +312,126 @@ def parse_command_overrides(values: Sequence[str]) -> dict[str, str]:
             raise SystemExit(f"Invalid command override host {host!r}; expected one of {', '.join(SUPPORTED_HOSTS)}")
         overrides[host] = command
     return overrides
+
+
+def run_release_candidate_gates(
+    *,
+    repo_root: Path,
+    log_dir: Path,
+    timeout: int,
+    env: dict[str, str],
+) -> list[RuntimeQaGateResult]:
+    gates_dir = log_dir / "release-candidate-gates"
+    gates_dir.mkdir(parents=True, exist_ok=True)
+    gate_specs = release_candidate_gate_specs(repo_root)
+    results: list[RuntimeQaGateResult] = []
+    for name, command in gate_specs:
+        result = run_release_candidate_gate(
+            name=name,
+            command=command,
+            cwd=repo_root,
+            gates_dir=gates_dir,
+            timeout=timeout,
+            env=env,
+        )
+        results.append(result)
+    return results
+
+
+def release_candidate_gate_specs(repo_root: Path) -> tuple[tuple[str, list[str]], ...]:
+    python = sys.executable
+    return (
+        ("pytest", [python, "-m", "pytest", "-q"]),
+        ("guardrails", [python, "-m", "endor_agent_kit.cli", "check-guardrails", "--catalog-root", "."]),
+        ("provenance", [python, "-m", "endor_agent_kit.cli", "verify-provenance", "--catalog-root", "."]),
+        ("diff-check", ["git", "diff", "--check"]),
+        ("codex-install-freshness", [python, str(repo_root / "plugins" / "codex" / PLUGIN_NAME / "scripts" / "install_codex_agents.py"), "--status"]),
+        ("claude-plugin-endor-labs-agent-kit", ["claude", "plugin", "validate", "plugins/claude/endor-labs-agent-kit"]),
+        ("claude-plugin-ai-plugins", ["claude", "plugin", "validate", "plugins/claude/ai-plugins"]),
+        ("antigravity-plugin", ["agy", "plugin", "validate", "plugins/antigravity/endor-labs-agent-kit"]),
+    )
+
+
+def run_release_candidate_gate(
+    *,
+    name: str,
+    command: list[str],
+    cwd: Path,
+    gates_dir: Path,
+    timeout: int,
+    env: dict[str, str],
+) -> RuntimeQaGateResult:
+    stdout_log = gates_dir / f"{safe_name(name)}-stdout.txt"
+    stderr_log = gates_dir / f"{safe_name(name)}-stderr.txt"
+    start = time.monotonic()
+    if shutil.which(command[0]) is None and not Path(command[0]).exists():
+        reason = f"{command[0]} not found"
+        stdout_log.write_text("", encoding="utf-8")
+        stderr_log.write_text(reason + "\n", encoding="utf-8")
+        return RuntimeQaGateResult(
+            name=name,
+            status="blocked",
+            reason=reason,
+            returncode=None,
+            duration_seconds=0.0,
+            command=command,
+            stdout_log=str(stdout_log),
+            stderr_log=str(stderr_log),
+        )
+    gate_env = dict(env)
+    src_path = str(cwd / "src")
+    gate_env["PYTHONPATH"] = src_path + (os.pathsep + gate_env["PYTHONPATH"] if gate_env.get("PYTHONPATH") else "")
+    try:
+        completed = run_host_command(command, cwd=cwd, env=gate_env, timeout=timeout)
+    except HostCommandTimeout as exc:
+        duration = time.monotonic() - start
+        stdout_log.write_text(exc.stdout, encoding="utf-8")
+        stderr_log.write_text(exc.stderr + f"\nTIMEOUT after {timeout}s\n", encoding="utf-8")
+        return RuntimeQaGateResult(
+            name=name,
+            status="timeout",
+            reason=f"timed out after {timeout}s",
+            returncode=None,
+            duration_seconds=round(duration, 3),
+            command=command,
+            stdout_log=str(stdout_log),
+            stderr_log=str(stderr_log),
+        )
+    duration = time.monotonic() - start
+    stdout = completed.stdout
+    stderr = completed.stderr
+    status = "passed" if completed.returncode == 0 else "failed"
+    reason = "" if completed.returncode == 0 else f"exit {completed.returncode}"
+    if name == "codex-install-freshness":
+        freshness_errors = codex_install_freshness_errors(stdout)
+        if freshness_errors:
+            status = "failed"
+            reason = f"codex freshness failed ({len(freshness_errors)} errors)"
+            stderr = stderr + ("\n" if stderr and not stderr.endswith("\n") else "") + "\n".join(freshness_errors) + "\n"
+    stdout_log.write_text(stdout, encoding="utf-8")
+    stderr_log.write_text(stderr, encoding="utf-8")
+    return RuntimeQaGateResult(
+        name=name,
+        status=status,
+        reason=reason,
+        returncode=completed.returncode,
+        duration_seconds=round(duration, 3),
+        command=command,
+        stdout_log=str(stdout_log),
+        stderr_log=str(stderr_log),
+    )
+
+
+def codex_install_freshness_errors(status_text: str) -> list[str]:
+    errors: list[str] = []
+    for line in status_text.splitlines():
+        if line.startswith(("agent:", "skill:")) and not line.endswith(": current"):
+            errors.append(f"Codex installed surface is not current: {line}")
+        if line.startswith("plugin-cache:") and line != "plugin-cache: none":
+            errors.append(f"Codex stale plugin cache/config risk: {line}")
+        if line.startswith("plugin-config:") and line != "plugin-config: none":
+            errors.append(f"Codex stale plugin cache/config risk: {line}")
+    return errors
 
 
 def parse_task_profile_overrides(values: Sequence[str]) -> dict[str, str]:
@@ -293,22 +519,17 @@ def run_case(
     command_log.write_text(json.dumps({"command": command}, indent=2) + "\n", encoding="utf-8")
     start = time.monotonic()
     try:
-        completed = subprocess.run(
+        completed = run_host_command(
             command,
             cwd=workspace,
             env=env,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True,
             timeout=timeout,
-            check=False,
         )
-    except subprocess.TimeoutExpired as exc:
+    except HostCommandTimeout as exc:
         duration = time.monotonic() - start
-        stdout_log.write_text(_timeout_stream_text(exc.stdout), encoding="utf-8")
+        stdout_log.write_text(exc.stdout, encoding="utf-8")
         stderr_log.write_text(
-            _timeout_stream_text(exc.stderr) + f"\nTIMEOUT after {timeout}s\n",
+            exc.stderr + f"\nTIMEOUT after {timeout}s\n",
             encoding="utf-8",
         )
         return RuntimeQaResult(
@@ -539,6 +760,17 @@ def runtime_output_contract(agent: str) -> str:
             "`source` must be a category such as `endorctl_api`, `endor_mcp`, `local_repository`, "
             "`source_provider`, or `user_input`, never a raw command; put selectors and fields in the summary columns."
         )
+    if "project_resolution" in required:
+        contract += (
+            " When `project_resolution.status` is `resolved`, include `project_uuid`, `namespace`, "
+            "`namespace_provenance`, `repo_full_name` or `normalized_repo_full_name`, branch provenance "
+            "such as `default_branch`, and `traverse_attempted`."
+        )
+    if agent in {"endor-troubleshooter", "probe-droid"}:
+        contract += (
+            " This is a read-only QA case: do not return executable mutation commands; put any mutating "
+            "next step in `future_action_contracts` or `recommended_actions` with `confirmation_required: true`."
+        )
     return contract
 
 
@@ -623,6 +855,64 @@ def detect_stale_codex_cache_paths(text: str) -> list[str]:
     return errors
 
 
+def run_host_command(
+    command: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    timeout: int,
+) -> HostCommandResult:
+    """Run a host command and kill the whole process group on timeout."""
+
+    process = subprocess.Popen(
+        command,
+        cwd=cwd,
+        env=env,
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
+    )
+    try:
+        stdout, stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        terminate_process_group(process)
+        try:
+            stdout, stderr = process.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            kill_process_group(process)
+            stdout, stderr = process.communicate()
+        raise HostCommandTimeout(stdout=stdout or "", stderr=stderr or "")
+    return HostCommandResult(
+        returncode=process.returncode if process.returncode is not None else 1,
+        stdout=stdout or "",
+        stderr=stderr or "",
+    )
+
+
+def terminate_process_group(process: subprocess.Popen) -> None:
+    """Terminate a timed-out process group, falling back to the direct process."""
+
+    try:
+        os.killpg(process.pid, signal.SIGTERM)
+    except ProcessLookupError:
+        return
+    except PermissionError:
+        process.terminate()
+
+
+def kill_process_group(process: subprocess.Popen) -> None:
+    """Kill a timed-out process group, falling back to the direct process."""
+
+    try:
+        os.killpg(process.pid, signal.SIGKILL)
+    except ProcessLookupError:
+        return
+    except PermissionError:
+        process.kill()
+
+
 def current_plugin_version() -> str:
     if package_version is None:
         return "0.2.0"
@@ -631,14 +921,6 @@ def current_plugin_version() -> str:
 
 def safe_name(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-") or "case"
-
-
-def _timeout_stream_text(value: str | bytes | None) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, bytes):
-        return value.decode("utf-8", errors="replace")
-    return value
 
 
 if __name__ == "__main__":
