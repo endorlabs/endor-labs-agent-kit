@@ -367,8 +367,8 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `troubleshooting_verdict`, `executive_summary`, `intake_classification`, `issue_lanes`, `affected_resources`, `evidence_queries`, `evidence_summary`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `support_escalation_packet`, `data_gaps`, `future_action_contracts`, `future_scope`
-Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
-Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
+Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
 ## Enterprise Edition Tools
 

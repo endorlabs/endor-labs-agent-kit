@@ -58,6 +58,10 @@ outputs:
   kind: object
   required: true
   description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- name: evidence_queries
+  kind: list[object]
+  required: true
+  description: Current Endor, repository, and local source evidence queries used for the remediation decision, including skipped or failed Finding and VersionUpgrade/UIA lookups.
 - name: selected_remediation
   kind: object
   required: true

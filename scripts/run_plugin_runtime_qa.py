@@ -22,8 +22,14 @@ if SRC_ROOT.is_dir():
 
 try:
     from endor_agent_kit.agent_output_lint import lint_agent_output
+    from endor_agent_kit.structured_output_contracts import (
+        json_schema_for_agent,
+        required_fields_for,
+    )
 except ModuleNotFoundError:  # pragma: no cover - generated mirror may omit src/
     lint_agent_output = None
+    json_schema_for_agent = None
+    required_fields_for = None
 
 
 SUPPORTED_HOSTS = ("claude", "codex", "antigravity", "gemini", "cursor")
@@ -47,6 +53,7 @@ class RuntimeQaResult:
     duration_seconds: float
     command: list[str]
     prompt_log: str
+    output_schema_log: str
     stdout_log: str
     stderr_log: str
 
@@ -184,10 +191,17 @@ def run_case(
     case_dir.mkdir(parents=True, exist_ok=True)
     prompt = build_prompt(host=host, agent=agent, workspace=workspace, namespace=namespace)
     prompt_log = case_dir / "prompt.txt"
+    output_schema_log = case_dir / "output-schema.json"
     stdout_log = case_dir / "stdout.txt"
     stderr_log = case_dir / "stderr.txt"
     command_log = case_dir / "command.json"
     prompt_log.write_text(prompt, encoding="utf-8")
+    output_schema = structured_output_schema(agent)
+    if output_schema is not None:
+        output_schema_log.write_text(
+            json.dumps(output_schema, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
 
     command_or_block = build_command(
         host=host,
@@ -195,6 +209,7 @@ def run_case(
         prompt=prompt,
         workspace=workspace,
         repo_root=repo_root,
+        output_schema=output_schema_log if output_schema is not None else None,
         command_overrides=command_overrides,
         codex_sandbox=codex_sandbox,
         claude_permission_mode=claude_permission_mode,
@@ -214,6 +229,7 @@ def run_case(
             duration_seconds=0.0,
             command=[],
             prompt_log=str(prompt_log),
+            output_schema_log=str(output_schema_log) if output_schema is not None else "",
             stdout_log=str(stdout_log),
             stderr_log=str(stderr_log),
         )
@@ -250,6 +266,7 @@ def run_case(
             duration_seconds=round(duration, 3),
             command=command,
             prompt_log=str(prompt_log),
+            output_schema_log=str(output_schema_log) if output_schema is not None else "",
             stdout_log=str(stdout_log),
             stderr_log=str(stderr_log),
         )
@@ -281,6 +298,7 @@ def run_case(
         duration_seconds=round(duration, 3),
         command=command,
         prompt_log=str(prompt_log),
+        output_schema_log=str(output_schema_log) if output_schema is not None else "",
         stdout_log=str(stdout_log),
         stderr_log=str(stderr_log),
     )
@@ -298,6 +316,7 @@ def build_command(
     prompt: str,
     workspace: Path,
     repo_root: Path,
+    output_schema: Path | None,
     command_overrides: dict[str, str],
     codex_sandbox: str,
     claude_permission_mode: str,
@@ -329,7 +348,7 @@ def build_command(
         ]
 
     if host == "codex":
-        return [
+        command = [
             executable,
             "exec",
             "-C",
@@ -338,8 +357,11 @@ def build_command(
             codex_sandbox,
             "--color",
             "never",
-            prompt,
         ]
+        if output_schema is not None:
+            command.extend(["--output-schema", str(output_schema)])
+        command.append(prompt)
+        return command
 
     if host == "antigravity":
         return [executable, "run", "--workspace", str(workspace), prompt]
@@ -381,7 +403,7 @@ def default_executable(host: str) -> str:
 
 def build_prompt(*, host: str, agent: str, workspace: Path, namespace: str) -> str:
     invocation = agent_invocation(host, agent)
-    return "\n".join([
+    lines = [
         "Endor Agent Kit runtime QA run.",
         f"Workspace: {workspace}",
         f"Namespace: {namespace}",
@@ -389,8 +411,35 @@ def build_prompt(*, host: str, agent: str, workspace: Path, namespace: str) -> s
         "Use current live evidence when host tools and credentials allow it. If required Endor evidence is unavailable, do not guess; return precise data_gaps and evidence_queries.",
         "Do not read or print Endor config file contents. Do not use remembered namespace, project UUID, repo URL, finding counts, UIA, or CIA evidence.",
         "",
-        invocation,
-    ])
+    ]
+    output_contract = runtime_output_contract(agent)
+    if output_contract:
+        lines.extend([output_contract, ""])
+    lines.append(invocation)
+    return "\n".join(lines)
+
+
+def structured_output_schema(agent: str) -> dict | None:
+    if json_schema_for_agent is None:
+        return None
+    try:
+        return json_schema_for_agent(agent)
+    except ValueError:
+        return None
+
+
+def runtime_output_contract(agent: str) -> str:
+    if required_fields_for is None:
+        return ""
+    required = required_fields_for(agent)
+    if not required:
+        return ""
+    return (
+        "Provider-neutral structured output contract: return exactly one parseable JSON object "
+        "with these required top-level fields in this order: "
+        + ", ".join(f"`{field}`" for field in required)
+        + ". Do not omit required fields; use empty arrays or null objects only with precise `data_gaps`."
+    )
 
 
 def agent_invocation(host: str, agent: str) -> str:

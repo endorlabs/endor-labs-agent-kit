@@ -394,6 +394,7 @@ extract; do not replace the JSON object with a table or prose summary.
     "repo_full_name": "string",
     "attempted_selectors": []
   },
+  "evidence_queries": [],
   "selected_remediation": {
     "package": "string",
     "from_version": "string",
@@ -490,6 +491,7 @@ Required top-level fields must appear in this order:
 - `summary` (`string`): Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.
 - `remediation_candidates` (`list[object]`): Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.
 - `project_resolution` (`object`): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- `evidence_queries` (`list[object]`): Current Endor, repository, and local source evidence queries used for the remediation decision, including skipped or failed Finding and VersionUpgrade/UIA lookups.
 - `selected_remediation` (`object`): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.
 - `uia_evidence` (`list[object]`): VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.
 - `risk_decision` (`object`): Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.
@@ -506,6 +508,7 @@ Use empty arrays for unavailable list evidence. Object fields may be `{}` or `nu
   "summary": "string",
   "remediation_candidates": [],
   "project_resolution": {},
+  "evidence_queries": [],
   "selected_remediation": {},
   "uia_evidence": [],
   "risk_decision": {},

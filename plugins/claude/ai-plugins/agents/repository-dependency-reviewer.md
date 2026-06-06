@@ -163,8 +163,8 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `risk_posture`, `manifests`, `dependencies_reviewed`, `findings`, `recommended_actions`, `summary`, `data_gaps`
-Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
-Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
+Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
 # Workflow: MCP + Read-Only File Inspection
 

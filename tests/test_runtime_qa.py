@@ -9,7 +9,7 @@ from pathlib import Path
 from conftest import repo_root
 
 sys.path.insert(0, str(repo_root() / "scripts"))
-from run_plugin_runtime_qa import build_prompt  # noqa: E402
+from run_plugin_runtime_qa import build_prompt, structured_output_schema  # noqa: E402
 
 
 def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
@@ -62,8 +62,24 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert {item["host"] for item in summary["results"]} == {"claude", "codex", "antigravity"}
     assert {item["status"] for item in summary["results"]} == {"passed"}
     assert all(Path(item["prompt_log"]).is_file() for item in summary["results"])
+    assert all(Path(item["output_schema_log"]).is_file() for item in summary["results"])
     assert all(Path(item["stdout_log"]).is_file() for item in summary["results"])
     assert "tenant-a" in Path(summary["results"][0]["prompt_log"]).read_text(encoding="utf-8")
+    schema = json.loads(Path(summary["results"][0]["output_schema_log"]).read_text(encoding="utf-8"))
+    assert schema["required"] == [
+        "summary",
+        "remediation_candidates",
+        "project_resolution",
+        "evidence_queries",
+        "selected_remediation",
+        "uia_evidence",
+        "risk_decision",
+        "patch_plan",
+        "validation",
+        "change_requests",
+        "tickets",
+        "data_gaps",
+    ]
 
     call_records = [json.loads(line) for line in calls.read_text(encoding="utf-8").splitlines()]
     assert len(call_records) == 3
@@ -82,6 +98,7 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "--ask-for-approval" not in argv_by_host["codex"]
     codex_argv = argv_by_host["codex"]
     assert codex_argv[codex_argv.index("--sandbox") + 1] == "danger-full-access"
+    assert codex_argv[codex_argv.index("--output-schema") + 1].endswith("output-schema.json")
     assert "run" in argv_by_host["antigravity"]
     assert summary["codex_sandbox"] == "danger-full-access"
     assert summary["claude_permission_mode"] == "default"
@@ -247,6 +264,16 @@ def test_runtime_qa_runner_requires_live_read_confirmation(tmp_path):
     assert "--allow-live-endor-read is required" in result.stdout
 
 
+def test_runtime_qa_runner_builds_provider_neutral_schema():
+    schema = structured_output_schema("sca-remediation")
+
+    assert schema is not None
+    assert schema["type"] == "object"
+    assert schema["additionalProperties"] is True
+    assert "evidence_queries" in schema["required"]
+    assert schema["properties"]["uia_evidence"]["type"] == "array"
+
+
 def _fake_command(tmp_path: Path, *, output: str | None = None) -> Path:
     fake = tmp_path / "fake_host.py"
     output_payload = output or json.dumps(_valid_sca_output())
@@ -283,6 +310,18 @@ def _valid_sca_output() -> dict:
             "namespace_provenance": "current_request",
             "repo_full_name": "example/workspace",
         },
+        "evidence_queries": [
+            {
+                "name": "Finding fixture",
+                "resource": "Finding",
+                "status": "success",
+            },
+            {
+                "name": "VersionUpgrade fixture",
+                "resource": "VersionUpgrade",
+                "status": "success",
+            },
+        ],
         "sca_findings": [{"uuid": "finding-fixture"}],
         "selected_remediation": {
             "package": "mvn://example:demo",

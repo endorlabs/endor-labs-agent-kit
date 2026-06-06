@@ -361,6 +361,12 @@
       "required": true
     },
     {
+      "description": "Current Endor, repository, and local source evidence queries used for the remediation decision, including skipped or failed Finding and VersionUpgrade/UIA lookups.",
+      "kind": "list[object]",
+      "name": "evidence_queries",
+      "required": true
+    },
+    {
       "description": "Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.",
       "kind": "object",
       "name": "selected_remediation",
