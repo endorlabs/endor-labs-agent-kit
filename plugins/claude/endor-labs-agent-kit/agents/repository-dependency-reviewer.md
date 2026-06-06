@@ -159,6 +159,13 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 ### Evidence Query Plans
 
 - Plans: `manifest-inventory`, `evidence-check`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
+### Evidence Query Recipes
+
+- `local-manifest-inventory`/evidence-check: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
+- `package-version-exact`/evidence-check: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata" -o json`
+- `selected-package-finding-evidence`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
+- `project-by-git`/manifest-inventory: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `RepositoryManifest`, `PackageRisk`, `Vulnerability`.
 - Retrieval: Identify the repository root from host context or an explicit repository path before asking for a path. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
 - Data gaps: Record missing repository access, unsupported manifest formats, unresolved versions, unavailable Endor risk tools, vulnerability enrichment gaps, and account capability gaps in `data_gaps`.

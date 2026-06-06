@@ -193,6 +193,56 @@ Verify whether package-specific Endor evidence is available.
 - Stop after: Stop after package evidence is available, unavailable, or ambiguous.
 - Data gaps: Record ambiguous coordinates, missing namespace, absent PackageVersion, and unavailable project-scoped Findings in data_gaps.
 
+### Evidence Query Recipes
+
+#### `package-version-exact` (explain)
+
+- Resource: `PackageVersion`
+- Purpose: Fetch exact package-version risk metadata for a named package only.
+- Template:
+
+```bash
+endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata" -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.version`, `spec.risk_score`, `spec.dependency_metadata`
+- Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
+
+#### `package-finding-evidence` (explain)
+
+- Resource: `Finding`
+- Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+- Template:
+
+```bash
+endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.target_dependency_version`, `spec.finding_categories`, `spec.level`
+- Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+
+#### `package-version-exact` (evidence-check)
+
+- Resource: `PackageVersion`
+- Purpose: Fetch exact package-version risk metadata for a named package only.
+- Template:
+
+```bash
+endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata" -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.version`, `spec.risk_score`, `spec.dependency_metadata`
+- Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
+
+#### `package-finding-evidence-check` (evidence-check)
+
+- Resource: `Finding`
+- Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+- Template:
+
+```bash
+endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.target_dependency_version`, `spec.finding_categories`, `spec.level`
+- Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+
 - Preferred evidence resources: `PackageVersion`, `Metric`, `Vulnerability`.
 - `PackageVersion`: Resolve the exact package-version UUID for package-level enrichment. Fields: `uuid`, `meta.name`.
 - `Metric`: Read scorecard and license signals for the exact package version. Fields: `spec.metric_values`.

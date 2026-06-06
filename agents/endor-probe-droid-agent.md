@@ -322,6 +322,13 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `prescribe-actions`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
+### Evidence Query Recipes
+
+- `project-branch-coverage`/evidence-check: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json`
+- `repo-setup-file-inventory`/evidence-check: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
+- `local-git-state`/resolve-scope: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
+- `missing-setup-file-check`/prescribe-actions: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`.
 - Retrieval: Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls. Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects.
 - Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`.

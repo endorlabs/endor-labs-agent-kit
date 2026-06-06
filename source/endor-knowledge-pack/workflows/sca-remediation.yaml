@@ -184,15 +184,13 @@ evidence_query_recipes:
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
       -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
       - spec.target_dependency_package_name
-      - spec.target_dependency_version
-      - spec.finding_categories
       - spec.level
     constraints:
       - Use for availability or selected-candidate reconciliation only.
@@ -202,18 +200,11 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files"
-      --list-all -o json
+      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info.is_best
-      - spec.upgrade_info.worth_it
-      - spec.upgrade_info.total_findings_fixed
-      - spec.upgrade_info.total_findings_introduced
-      - spec.upgrade_info.upgrade_risk
-      - spec.upgrade_info.cia_status
-      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info
     constraints:
       - Run before detailed Finding expansion for selection plans.
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
@@ -222,18 +213,11 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files"
-      --list-all -o json
+      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info.is_best
-      - spec.upgrade_info.worth_it
-      - spec.upgrade_info.total_findings_fixed
-      - spec.upgrade_info.total_findings_introduced
-      - spec.upgrade_info.upgrade_risk
-      - spec.upgrade_info.cia_status
-      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info
     constraints:
       - Run before detailed Finding expansion for selection plans.
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
@@ -270,15 +254,13 @@ evidence_query_recipes:
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
       -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
       - spec.target_dependency_package_name
-      - spec.target_dependency_version
-      - spec.finding_categories
       - spec.level
     constraints:
       - Use for availability or selected-candidate reconciliation only.

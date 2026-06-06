@@ -137,6 +137,12 @@ Summarize one explicit package version's risk posture without turning unavailabl
 ### Evidence Query Plans
 
 - Plans: `explain`, `evidence-check`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
+### Evidence Query Recipes
+
+- `package-version-exact`/explain: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata" -o json`
+- `package-finding-evidence`/explain: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
+- `package-finding-evidence-check`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `PackageVersion`, `Metric`, `Vulnerability`.
 - Retrieval: Require ecosystem, package name, and version before risk posture selection. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
 - Data gaps: Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`.

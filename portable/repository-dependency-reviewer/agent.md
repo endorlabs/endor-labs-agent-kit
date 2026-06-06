@@ -246,6 +246,68 @@ Attach Endor risk evidence only to discovered repository dependencies.
 - Stop after: Stop after reviewed dependencies are categorized with verified evidence or data_gaps.
 - Data gaps: Record missing project evidence, unavailable dependency metadata, packages without matching Endor evidence, and skipped broad Findings in data_gaps.
 
+### Evidence Query Recipes
+
+#### `local-manifest-inventory` (manifest-inventory)
+
+- Resource: `local-files`
+- Purpose: Inventory dependency manifests before scoped Endor expansion.
+- Template:
+
+```bash
+find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+```
+- Fields: `manifest_path`, `ecosystem_hint`
+- Constraints: Use local files as context only until Endor evidence backs project-scoped risk.
+
+#### `project-by-git` (manifest-inventory)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
+#### `local-manifest-inventory` (evidence-check)
+
+- Resource: `local-files`
+- Purpose: Inventory dependency manifests before scoped Endor expansion.
+- Template:
+
+```bash
+find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+```
+- Fields: `manifest_path`, `ecosystem_hint`
+- Constraints: Use local files as context only until Endor evidence backs project-scoped risk.
+
+#### `package-version-exact` (evidence-check)
+
+- Resource: `PackageVersion`
+- Purpose: Fetch exact package-version risk metadata for a named package only.
+- Template:
+
+```bash
+endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata" -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.version`, `spec.risk_score`, `spec.dependency_metadata`
+- Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
+
+#### `selected-package-finding-evidence` (evidence-check)
+
+- Resource: `Finding`
+- Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+- Template:
+
+```bash
+endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.target_dependency_version`, `spec.finding_categories`, `spec.level`
+- Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+
 - Preferred evidence resources: `RepositoryManifest`, `PackageRisk`, `Vulnerability`.
 - `RepositoryManifest`: Discover dependency files and exact direct package coordinates from read-only file inspection. Fields: `path`, `ecosystem`, `package_name`, `version`.
 - `PackageRisk`: Check exact dependency coordinates through available Endor risk evidence. Fields: `risk_flags`, `vulnerability_ids`, `recommendations`.

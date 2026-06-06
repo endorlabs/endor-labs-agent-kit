@@ -130,6 +130,13 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 
 - Plans: `resolve-scope`, `evidence-check`, `explain`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
+### Evidence Query Recipes
+
+- `version-upgrade-by-package`/evidence-check: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files" -o json`
+- `version-upgrade-detail`/evidence-check: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
+- `project-by-git`/resolve-scope: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `selected-source-usage`/explain: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `Project`, `VersionUpgrade`, `Finding`.
 - Retrieval: Resolve project and namespace provenance before project-scoped VersionUpgrade queries. Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor Patch availability.
 - Data gaps: Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`.

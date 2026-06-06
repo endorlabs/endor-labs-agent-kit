@@ -273,6 +273,80 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 - Stop after: Stop after one finding has a verified triage decision, patch plan or exception path, and validation requirements.
 - Data gaps: Record missing selected finding evidence, missing source ref, unavailable local files, and unverified exception approval in data_gaps.
 
+### Evidence Query Recipes
+
+#### `project-by-git` (resolve-scope)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
+#### `finding-by-uuid` (resolve-scope)
+
+- Resource: `Finding`
+- Purpose: Fetch one known Finding by UUID; api get does not accept filters.
+- Template:
+
+```bash
+endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.source_code_version`, `spec.finding_metadata`, `spec.explanation`
+- Constraints: Do not use --filter with api get. After get, report context.type and source ref before merging with project counts.
+
+#### `finding-by-uuid` (evidence-check)
+
+- Resource: `Finding`
+- Purpose: Fetch one known Finding by UUID; api get does not accept filters.
+- Template:
+
+```bash
+endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.source_code_version`, `spec.finding_metadata`, `spec.explanation`
+- Constraints: Do not use --filter with api get. After get, report context.type and source ref before merging with project counts.
+
+#### `ai-sast-list` (evidence-check)
+
+- Resource: `Finding`
+- Purpose: List only AI SAST findings for a resolved project when no Finding UUID was supplied.
+- Template:
+
+```bash
+endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_tags contains "AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.source_code_version,spec.finding_tags,spec.finding_metadata,spec.explanation" -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.source_code_version`, `spec.finding_tags`, `spec.finding_metadata`, `spec.explanation`
+- Constraints: Prefer finding-by-uuid when supplied. Do not list unrelated SAST findings.
+
+#### `selected-ai-sast-finding` (selection-plan)
+
+- Resource: `Finding`
+- Purpose: Fetch one known Finding by UUID; api get does not accept filters.
+- Template:
+
+```bash
+endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.source_code_version`, `spec.finding_metadata`, `spec.explanation`
+- Constraints: Do not use --filter with api get. After get, report context.type and source ref before merging with project counts.
+
+#### `selected-source-anchors` (selection-plan)
+
+- Resource: `local-files`
+- Purpose: Inspect only selected package usage for compatibility and validation planning.
+- Template:
+
+```bash
+rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>
+```
+- Fields: `file`, `line`, `symbol`, `selected_package`
+- Constraints: Run only after one package is selected. Do not scan unrelated source trees when the profile only needs a gate result.
+
 - Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`.
 - `Project`: Resolve the Endor project and repository identity from namespace-scoped metadata. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `Finding`: Query AI SAST findings with source context, severity, exploit reproduction, and remediation guidance. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.method`, `spec.source_code_version`, `spec.finding_metadata`.
