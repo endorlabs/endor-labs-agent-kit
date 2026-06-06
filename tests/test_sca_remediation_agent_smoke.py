@@ -131,6 +131,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "approved_low_risk" in prompt
     assert "approved_with_validation_required" in prompt
     assert "blocked_needs_compatibility_analysis" in prompt
+    assert "Do not invent variants such as" in prompt
     assert "Do not say \"not expected to break\"" in prompt
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt

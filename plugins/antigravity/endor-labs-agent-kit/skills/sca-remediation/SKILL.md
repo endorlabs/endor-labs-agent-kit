@@ -199,6 +199,10 @@ Return exactly one `risk_decision.status`:
 - `blocked_needs_compatibility_analysis`: do not apply or open a PR yet. Use this when source usage, conflicts, introduced findings, or CIA data require more analysis.
 - `rejected`: do not recommend this candidate because the evidence shows unacceptable introduced findings, conflicts, breaking changes, or required companion edits outside the requested scope.
 
+Use one of those four status strings exactly. Do not invent variants such as
+`blocked_validation_required`, `needs_validation`, `blocked`, or
+`requires_review`.
+
 The decision must include `evidence`, `source_usage`, `validation_required`, `companion_edits`, and `reason`. If evidence is unavailable, the deterministic verdict is not "safe"; it is `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`.
 
 For a plan-only request, the solver still produces the deterministic `risk_decision`; it does not need mutation approval to inspect source files or Endor evidence. If the solver cannot reach `approved_low_risk`, select a lower-risk candidate when one exists, or make the risk status explicit in the plan.
