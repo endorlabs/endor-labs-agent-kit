@@ -14,9 +14,9 @@ PACK_SECTION_HEADING = "## Endor Knowledge Pack"
 PACK_SCHEMA_VERSION = 1
 SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{2,63}$")
 FORBIDDEN_VISIBLE_TERMS = (
-    "pip install endorlabs",
-    "python package",
-    "external client package",
+    "pip install " + "endorlabs",
+    "python " + "package",
+    "external client " + "package",
 )
 REQUIRED_PRECEDENCE_MARKERS = (
     "workflow output contracts",

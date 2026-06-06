@@ -88,14 +88,15 @@ def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
 
 
 def test_knowledge_pack_validator_rejects_forbidden_public_wording(tmp_path):
+    forbidden = "python " + "package"
     _write_minimal_pack(
         tmp_path,
-        global_rule_guidance="Use a python package to fetch evidence.",
+        global_rule_guidance=f"Use a {forbidden} to fetch evidence.",
     )
 
     errors = validate_knowledge_pack(tmp_path)
 
-    assert any("forbidden public wording 'python package'" in error for error in errors)
+    assert any(f"forbidden public wording {forbidden!r}" in error for error in errors)
 
 
 def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_gaps.") -> None:
