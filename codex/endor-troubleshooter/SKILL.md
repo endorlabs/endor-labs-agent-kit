@@ -13,8 +13,7 @@ description: |
 # Endor Troubleshooter
 
 Generated from Endor Agent Kit recipe `endor-troubleshooter` v0.1.0 for Codex.
-Treat this skill as a source-first generated artifact; update the recipe and
-republish instead of hand-editing installed copies.
+Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract
 

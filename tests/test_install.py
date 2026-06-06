@@ -203,7 +203,44 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     dest = tmp_path / "endor-labs-agent-kit"
     publish_recipes(recipes, dest, include_plugins=True)
     script = dest / "plugins" / "codex" / "endor-labs-agent-kit" / "scripts" / "install_codex_agents.py"
+    plugin_manifest = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    package_version = plugin_manifest["version"]
+    generated_skill = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "skills" / "sca-remediation" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    generated_agent = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents" / "endor-sca-remediation-agent.toml"
+    ).read_text(encoding="utf-8")
+    assert f"package `endor-labs-agent-kit` v{package_version}." in generated_skill
+    assert '# endor_agent_kit_package_name = "endor-labs-agent-kit"' in generated_agent
+    assert f'# endor_agent_kit_package_version = "{package_version}"' in generated_agent
     codex_home = tmp_path / "codex-home"
+    stale_cache_manifest = (
+        codex_home
+        / "plugins"
+        / "cache"
+        / "endor-agent-kit-local"
+        / "endor-agent-kit-security-agents"
+        / "0.1.0"
+        / ".codex-plugin"
+        / "plugin.json"
+    )
+    stale_cache_manifest.parent.mkdir(parents=True)
+    stale_cache_manifest.write_text(
+        json.dumps(
+            {
+                "name": "endor-agent-kit-security-agents",
+                "version": "0.1.0",
+                "description": "Generated Endor Labs Agent Kit Codex skills.",
+                "interface": {"displayName": "Endor Agent Kit Security Agents"},
+            }
+        ),
+        encoding="utf-8",
+    )
 
     status = subprocess.run(
         [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
@@ -215,6 +252,11 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert "agent:endor-agent-kit-setup-agent.toml: missing" in status.stdout
     assert "skill:sca-remediation: missing" in status.stdout
     assert "skill:endor-agent-kit-setup: missing" in status.stdout
+    assert (
+        "plugin-cache:plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents/0.1.0: "
+        "stale-legacy-cache package=endor-agent-kit-security-agents version=0.1.0"
+    ) in status.stdout
+    assert "Remove/reinstall that plugin package or clear the host cache" in status.stdout
 
     subprocess.run(
         [

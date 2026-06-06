@@ -47,6 +47,8 @@ def render_codex_skill(
     *,
     generated_context: str = "Codex",
     compact_plugin: bool = False,
+    package_name: str | None = None,
+    package_version: str | None = None,
 ) -> str:
     """Render a Codex skill from a prepared Source Recipe."""
 
@@ -56,6 +58,8 @@ def render_codex_skill(
         prepared.actions,
         generated_context=generated_context,
         compact_plugin=compact_plugin,
+        package_name=package_name,
+        package_version=package_version,
     )
 
 
@@ -66,6 +70,8 @@ def _render_skill(
     *,
     generated_context: str = "Codex",
     compact_plugin: bool = False,
+    package_name: str | None = None,
+    package_version: str | None = None,
 ) -> str:
     body = _codex_instruction_text(
         instructions_for_edition(
@@ -78,29 +84,50 @@ def _render_skill(
     )
     action_contracts = _codex_instruction_text(render_action_contracts(actions, compact=compact_plugin))
     host_contract = _codex_host_contract(recipe, compact=compact_plugin)
+    notice = _codex_notice(
+        recipe,
+        generated_context=generated_context,
+        package_name=package_name,
+        package_version=package_version,
+    )
     return (
         "---\n"
         f"name: {recipe.id}\n"
         "description: |\n"
         f"{indent(recipe.description.strip(), 2)}\n"
         "---\n\n"
-        f"{_codex_notice(recipe, generated_context=generated_context)}\n\n"
+        f"{notice}\n\n"
         f"{host_contract}\n\n"
         f"{body.rstrip()}\n"
         f"{action_contracts}"
     )
 
 
-def _codex_notice(recipe: EndorAgentRecipe, *, generated_context: str) -> str:
-    return dedent(
-        f"""\
-        # {recipe.name}
-
-        Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version} for {generated_context}.
-        Treat this skill as a source-first generated artifact; update the recipe and
-        republish instead of hand-editing installed copies.
-        """
-    ).strip()
+def _codex_notice(
+    recipe: EndorAgentRecipe,
+    *,
+    generated_context: str,
+    package_name: str | None = None,
+    package_version: str | None = None,
+) -> str:
+    lines = [
+        f"# {recipe.name}",
+        "",
+    ]
+    if package_name and package_version:
+        lines.append(
+            f"Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version} "
+            f"for {generated_context}; package `{package_name}` v{package_version}."
+        )
+    else:
+        lines.append(
+            f"Generated from Endor Agent Kit recipe `{recipe.id}` v{recipe.version} "
+            f"for {generated_context}."
+        )
+    lines.extend([
+        "Source-first generated artifact; update source and republish instead of hand-editing installed copies.",
+    ])
+    return "\n".join(lines)
 
 
 def _codex_host_contract(recipe: EndorAgentRecipe, *, compact: bool = False) -> str:
