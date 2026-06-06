@@ -158,7 +158,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "A prose-only summary is" in prompt
     assert "exactly one syntactically valid top-level JSON object" in prompt
     assert "risk_decision.source_usage_summary" in prompt
-    assert '"uia_evidence": []' in prompt
+    assert '"uia_evidence": [' in prompt
+    assert "`uia_evidence` as an array" in prompt
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
     assert "### At a Glance" in prompt
     assert "### 🔎 Advisories This Upgrade Fixes" in prompt

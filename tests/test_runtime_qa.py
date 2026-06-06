@@ -123,6 +123,49 @@ def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):
     assert any("CLI not found" in item["reason"] for item in summary["results"])
 
 
+def test_runtime_qa_runner_marks_lint_failures_as_failed(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    fake = _fake_command(tmp_path, output="not json")
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "sca-remediation",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert result.returncode == 1
+    assert "output lint failed" in result.stdout
+    summary = _load_summary(log_root)
+    result_item = summary["results"][0]
+    assert result_item["status"] == "failed"
+    assert result_item["reason"] == "output lint failed (1 errors)"
+    stderr = Path(result_item["stderr_log"]).read_text(encoding="utf-8")
+    assert "sca-remediation output must include a JSON object" in stderr
+
+
 def test_runtime_qa_runner_requires_live_read_confirmation(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -147,8 +190,9 @@ def test_runtime_qa_runner_requires_live_read_confirmation(tmp_path):
     assert "--allow-live-endor-read is required" in result.stdout
 
 
-def _fake_command(tmp_path: Path) -> Path:
+def _fake_command(tmp_path: Path, *, output: str | None = None) -> Path:
     fake = tmp_path / "fake_host.py"
+    output_payload = output or json.dumps(_valid_sca_output())
     fake.write_text(
         "#!/usr/bin/env python3\n"
         "from __future__ import annotations\n"
@@ -164,11 +208,58 @@ def _fake_command(tmp_path: Path) -> Path:
         "record = {'host': host, 'argv': argv, 'stdin': sys.stdin.read(), 'cwd': os.getcwd()}\n"
         "with open(os.environ['FAKE_QA_CALLS'], 'a', encoding='utf-8') as handle:\n"
         "    handle.write(json.dumps(record, sort_keys=True) + '\\n')\n"
-        "print('fake runtime qa ok')\n",
+        f"print({output_payload!r})\n",
         encoding="utf-8",
     )
     fake.chmod(0o755)
     return fake
+
+
+def _valid_sca_output() -> dict:
+    return {
+        "summary": "Runtime QA fixture.",
+        "project_resolution": {
+            "status": "resolved",
+            "project_uuid": "project-fixture",
+            "namespace": "tenant-a",
+            "namespace_provenance": "current_request",
+            "repo_full_name": "example/workspace",
+        },
+        "sca_findings": [{"uuid": "finding-fixture"}],
+        "selected_remediation": {
+            "package": "mvn://example:demo",
+            "from_version": "1.0.0",
+            "to_version": "1.0.1",
+            "branch_name": "remediation/sca/demo-1.0.1",
+            "upgrade_risk": "low",
+            "cia_status": "no breaking changes",
+            "findings_introduced": 0,
+        },
+        "uia_evidence": [
+            {
+                "resource_type": "VersionUpgrade",
+                "uuid": "version-upgrade-fixture",
+                "upgrade_risk": "low",
+                "cia_status": "no breaking changes",
+                "findings_fixed": 1,
+                "findings_introduced": 0,
+            }
+        ],
+        "risk_decision": {
+            "status": "approved_low_risk",
+            "source_usage_summary": "Fixture source usage is compatible.",
+            "validation_requirements": ["mvn test"],
+        },
+        "validation": [{"command": "mvn test", "status": "planned"}],
+        "change_requests": [
+            {
+                "status": "not_created",
+                "base_branch": "main",
+                "proposed_branch": "remediation/sca/demo-1.0.1",
+            }
+        ],
+        "data_gaps": [],
+    }
 
 
 def _load_summary(log_root: Path) -> dict:

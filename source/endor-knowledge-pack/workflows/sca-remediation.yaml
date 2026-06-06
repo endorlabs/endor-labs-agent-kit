@@ -34,7 +34,9 @@ fallbacks:
   - If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap.
   - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk.
   - A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
+  - Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
 data_gaps:
   - Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.
   - Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output.
+  - Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object.
   - For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.

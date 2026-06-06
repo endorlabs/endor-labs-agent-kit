@@ -126,6 +126,36 @@ def test_lint_accepts_structured_data_gap_objects():
     assert lint_agent_output("remediation-planner", output) == []
 
 
+def test_lint_rejects_non_array_sca_uia_evidence():
+    output = json.dumps(
+        {
+            "summary": "Selected remediation.",
+            "project_resolution": {
+                "status": "resolved",
+                "project_uuid": "proj-123",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+            },
+            "selected_remediation": {
+                "package": "mvn://example:demo",
+                "from_version": "1.0.0",
+                "to_version": "1.0.1",
+                "branch_name": "remediation/sca/demo-1.0.1",
+            },
+            "uia_evidence": {"uuid": "version-upgrade-123"},
+            "risk_decision": {
+                "status": "approved_low_risk",
+            },
+            "data_gaps": [
+                "Finding evidence was not included in this fixture.",
+                "VersionUpgrade/UIA evidence was malformed.",
+            ],
+        }
+    )
+
+    assert "uia_evidence: must be an array" in lint_agent_output("sca-remediation", output)
+
+
 def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     errors = lint_agent_output(
         "vulnerability-explainer",

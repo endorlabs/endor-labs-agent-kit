@@ -52,6 +52,9 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
     if not isinstance(payload, dict):
         return ["payload: must be an object"]
 
+    if "uia_evidence" in payload and not isinstance(payload.get("uia_evidence"), list):
+        errors.append("uia_evidence: must be an array")
+
     risk_decision = payload.get("risk_decision")
     risk_status = ""
     if not isinstance(risk_decision, dict):

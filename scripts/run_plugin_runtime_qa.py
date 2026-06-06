@@ -16,6 +16,15 @@ import sys
 import time
 from typing import Sequence
 
+SRC_ROOT = Path(__file__).resolve().parents[1] / "src"
+if SRC_ROOT.is_dir():
+    sys.path.insert(0, str(SRC_ROOT))
+
+try:
+    from endor_agent_kit.agent_output_lint import lint_agent_output
+except ModuleNotFoundError:  # pragma: no cover - generated mirror may omit src/
+    lint_agent_output = None
+
 
 SUPPORTED_HOSTS = ("claude", "codex", "antigravity", "gemini", "cursor")
 DEFAULT_HOSTS = SUPPORTED_HOSTS
@@ -233,14 +242,28 @@ def run_case(
         )
 
     duration = time.monotonic() - start
+    stderr_text = completed.stderr
+    status = "passed" if completed.returncode == 0 else "failed"
+    reason = "" if completed.returncode == 0 else f"exit {completed.returncode}"
+    if completed.returncode == 0 and lint_agent_output is not None:
+        lint_errors = lint_agent_output(agent, completed.stdout)
+        if lint_errors:
+            status = "failed"
+            reason = f"output lint failed ({len(lint_errors)} errors)"
+            suffix = "\n" if stderr_text and not stderr_text.endswith("\n") else ""
+            stderr_text = (
+                f"{stderr_text}{suffix}\nOUTPUT LINT ERRORS:\n"
+                + "\n".join(f"ERROR: {error}" for error in lint_errors)
+                + "\n"
+            )
     stdout_log.write_text(completed.stdout, encoding="utf-8")
-    stderr_log.write_text(completed.stderr, encoding="utf-8")
+    stderr_log.write_text(stderr_text, encoding="utf-8")
     return RuntimeQaResult(
         host=host,
         agent=agent,
         workspace=str(workspace),
-        status="passed" if completed.returncode == 0 else "failed",
-        reason="" if completed.returncode == 0 else f"exit {completed.returncode}",
+        status=status,
+        reason=reason,
         returncode=completed.returncode,
         duration_seconds=round(duration, 3),
         command=command,
@@ -374,7 +397,7 @@ def agent_invocation(host: str, agent: str) -> str:
 
 def qa_task(agent: str) -> str:
     tasks = {
-        "sca-remediation": "resolve the Endor project for this repository and return exactly one parseable remediation gate JSON object, with project_resolution, selected_remediation, uia_evidence, risk_decision, validation, change_requests, evidence_queries, and data_gaps. Do not edit files. If Finding or VersionUpgrade/UIA evidence is unavailable, include non-empty data_gaps.",
+        "sca-remediation": "resolve the Endor project for this repository and return exactly one parseable remediation gate JSON object. The JSON must include project_resolution.status, project_resolution.project_uuid, project_resolution.namespace, project_resolution.namespace_provenance, project_resolution.repo_full_name, selected_remediation.package, selected_remediation.from_version, selected_remediation.to_version, selected_remediation.branch_name using remediation/sca/<package>-<target-version>, uia_evidence as an array, risk_decision.status, risk_decision.source_usage_summary, risk_decision.validation_requirements, validation, change_requests with proposed_branch, evidence_queries, and data_gaps. Do not edit files. If Finding or VersionUpgrade/UIA evidence is unavailable, include non-empty data_gaps and do not select a remediation from unverified counts.",
         "remediation-planner": "preview remediation options from verified Endor evidence only and return exactly one parseable JSON object. Refuse unproven SCA counts from local docs and report missing Finding or UIA evidence in data_gaps.",
         "ai-sast-triage": "triage available AI SAST findings for this repository. Do not edit files or create policies. If findings cannot be queried, return evidence_queries and data_gaps.",
         "endor-troubleshooter": "check Endor readiness and diagnose missing setup without running scans or printing config secrets.",
