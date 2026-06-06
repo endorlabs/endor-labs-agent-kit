@@ -6,9 +6,8 @@ description: |
 
 # AI SAST Triage
 
-Generated from Endor Agent Kit recipe `ai-sast-triage` v0.1.0 for Endor Labs Agent Kit Codex plugin.
-Treat this skill as a source-first generated artifact; update the recipe and
-republish instead of hand-editing installed copies.
+Generated from Endor Agent Kit recipe `ai-sast-triage` v0.1.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v0.2.0.
+Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract
 

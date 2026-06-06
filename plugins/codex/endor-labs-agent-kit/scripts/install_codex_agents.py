@@ -5,12 +5,19 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import shutil
 import sys
 from datetime import datetime, timezone
 
+CURRENT_PLUGIN_NAME = "endor-labs-agent-kit"
+CURRENT_PLUGIN_VERSION = "0.2.0"
+ENDOR_PLUGIN_CACHE_NAMES = {
+    CURRENT_PLUGIN_NAME,
+    "endor-agent-kit-security-agents",
+}
 MANAGED_AGENT_MARKER = "# endor_agent_kit_managed = true"
 MANAGED_SKILL_MARKERS = (
     "endor_agent_kit_managed=true",
@@ -146,6 +153,99 @@ def bundled_items(plugin_root: Path, home: Path, *, agents_only: bool, skills_on
     return items
 
 
+def read_json(path: Path) -> dict:
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def manifest_text(manifest: dict) -> str:
+    interface = manifest.get("interface")
+    interface = interface if isinstance(interface, dict) else {}
+    values = [
+        manifest.get("name"),
+        manifest.get("description"),
+        manifest.get("homepage"),
+        manifest.get("repository"),
+        interface.get("displayName"),
+        interface.get("shortDescription"),
+        interface.get("longDescription"),
+    ]
+    return " ".join(str(value) for value in values if value).lower()
+
+
+def is_endor_agent_kit_manifest(manifest: dict) -> bool:
+    name = str(manifest.get("name") or "")
+    if name in ENDOR_PLUGIN_CACHE_NAMES:
+        return True
+    text = manifest_text(manifest)
+    return "endor" in text and "agent kit" in text
+
+
+def relative_display(path: Path, root: Path) -> str:
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return str(path)
+
+
+def tree_or_file_matches(source: Path, cached: Path) -> bool:
+    if source.is_dir():
+        return cached.is_dir() and tree_digest(source) == tree_digest(cached)
+    if source.is_file():
+        return cached.is_file() and file_digest(source) == file_digest(cached)
+    return not cached.exists()
+
+
+def plugin_cache_status(plugin_root: Path, cache_root: Path, manifest: dict) -> str:
+    name = str(manifest.get("name") or "unknown")
+    version = str(manifest.get("version") or "unknown")
+    if name != CURRENT_PLUGIN_NAME:
+        return (
+            f"stale-legacy-cache package={name} version={version} "
+            f"expected={CURRENT_PLUGIN_NAME}@{CURRENT_PLUGIN_VERSION}"
+        )
+    if version != CURRENT_PLUGIN_VERSION:
+        return (
+            f"stale-version-cache package={name} version={version} "
+            f"expected={CURRENT_PLUGIN_VERSION}"
+        )
+
+    mismatches = []
+    for relative in ("skills", "agents", ".codex-plugin/plugin.json"):
+        source = plugin_root / relative
+        cached = cache_root / relative
+        if not tree_or_file_matches(source, cached):
+            mismatches.append(relative)
+    if mismatches:
+        return "stale-content-cache mismatched=" + ",".join(mismatches)
+    return f"current package={name} version={version}"
+
+
+def report_plugin_cache_status(plugin_root: Path, home: Path) -> None:
+    cache_base = home / "plugins" / "cache"
+    manifests = sorted(cache_base.glob("**/.codex-plugin/plugin.json"))
+    reported = False
+    for manifest_path in manifests:
+        manifest = read_json(manifest_path)
+        if not is_endor_agent_kit_manifest(manifest):
+            continue
+        cache_root = manifest_path.parents[1]
+        status = plugin_cache_status(plugin_root, cache_root, manifest)
+        print(f"plugin-cache:{relative_display(cache_root, home)}: {status}")
+        if status.startswith("stale"):
+            print(
+                "  warning: Codex may load stale Endor Agent Kit instructions from "
+                f"{cache_root}. Remove/reinstall that plugin package or clear the "
+                "host cache, then start a fresh Codex thread."
+            )
+        reported = True
+    if not reported:
+        print("plugin-cache: none")
+
+
 def describe_block(kind: str, target: Path, status: str) -> str:
     if status == "blocked-non-file":
         return "blocked-non-file"
@@ -207,6 +307,8 @@ def run(args: argparse.Namespace) -> int:
                 print(f"  installed {target}")
             else:
                 print(f"  would install/update {target}; rerun with --yes after approval")
+    if args.status and not args.agents_only and not args.skills_only:
+        report_plugin_cache_status(plugin_root, home)
     return exit_code
 
 

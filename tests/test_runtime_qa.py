@@ -245,6 +245,53 @@ def test_runtime_qa_runner_marks_lint_failures_as_failed(tmp_path):
     assert "sca-remediation output must include a JSON object" in stderr
 
 
+def test_runtime_qa_runner_fails_on_stale_codex_plugin_cache_paths(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    stale_path = (
+        "/Users/mattbrown/.codex/plugins/cache/endor-agent-kit-local/"
+        "endor-agent-kit-security-agents/0.1.0/skills/sca-remediation/SKILL.md"
+    )
+    fake = _fake_command(tmp_path, stderr=f"Loaded skill from {stale_path}\n")
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "sca-remediation",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert result.returncode == 1
+    assert "stale Codex plugin cache detected" in result.stdout
+    summary = _load_summary(log_root)
+    result_item = summary["results"][0]
+    assert result_item["status"] == "failed"
+    assert result_item["reason"] == "stale Codex plugin cache detected (1 paths)"
+    stderr = Path(result_item["stderr_log"]).read_text(encoding="utf-8")
+    assert "legacy Endor Agent Kit package endor-agent-kit-security-agents@0.1.0" in stderr
+
+
 def test_runtime_qa_runner_records_timeout_without_crashing(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -331,7 +378,7 @@ def test_runtime_qa_runner_builds_provider_neutral_schema():
     assert schema["properties"]["uia_evidence"]["type"] == "array"
 
 
-def _fake_command(tmp_path: Path, *, output: str | None = None) -> Path:
+def _fake_command(tmp_path: Path, *, output: str | None = None, stderr: str = "") -> Path:
     fake = tmp_path / "fake_host.py"
     output_payload = output or json.dumps(_valid_sca_output())
     fake.write_text(
@@ -349,6 +396,7 @@ def _fake_command(tmp_path: Path, *, output: str | None = None) -> Path:
         "record = {'host': host, 'argv': argv, 'stdin': sys.stdin.read(), 'cwd': os.getcwd()}\n"
         "with open(os.environ['FAKE_QA_CALLS'], 'a', encoding='utf-8') as handle:\n"
         "    handle.write(json.dumps(record, sort_keys=True) + '\\n')\n"
+        f"sys.stderr.write({stderr!r})\n"
         f"print({output_payload!r})\n",
         encoding="utf-8",
     )

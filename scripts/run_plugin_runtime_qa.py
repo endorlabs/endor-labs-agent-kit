@@ -30,12 +30,18 @@ try:
         json_schema_for_agent,
         required_fields_for,
     )
+    from endor_agent_kit.publication.plugin_package_common import (
+        PLUGIN_NAME,
+        package_version,
+    )
 except ModuleNotFoundError:  # pragma: no cover - generated mirror may omit src/
     lint_agent_output = None
     default_task_profile_for_agent = None
     render_task_profile_prompt = None
     json_schema_for_agent = None
     required_fields_for = None
+    PLUGIN_NAME = "endor-labs-agent-kit"
+    package_version = None
 
 
 SUPPORTED_HOSTS = ("claude", "codex", "antigravity", "gemini", "cursor")
@@ -45,6 +51,13 @@ DEFAULT_AGENTS = (
     "ai-sast-triage",
     "endor-troubleshooter",
     "probe-droid",
+)
+LEGACY_CODEX_PLUGIN_NAMES = ("endor-agent-kit-security-agents",)
+CODEX_PLUGIN_CACHE_PATH_RE = re.compile(
+    r"(?P<path>/[^\s'\"`<>]*?\.codex/plugins/cache/"
+    r"(?P<marketplace>[^/\s'\"`<>]+)/"
+    r"(?P<plugin>[^/\s'\"`<>]+)/"
+    r"(?P<version>[^/\s'\"`<>]+))"
 )
 
 
@@ -316,7 +329,17 @@ def run_case(
     stderr_text = completed.stderr
     status = "passed" if completed.returncode == 0 else "failed"
     reason = "" if completed.returncode == 0 else f"exit {completed.returncode}"
-    if completed.returncode == 0 and lint_agent_output is not None:
+    stale_cache_errors = detect_stale_codex_cache_paths(completed.stdout + "\n" + stderr_text)
+    if stale_cache_errors:
+        status = "failed"
+        reason = f"stale Codex plugin cache detected ({len(stale_cache_errors)} paths)"
+        suffix = "\n" if stderr_text and not stderr_text.endswith("\n") else ""
+        stderr_text = (
+            f"{stderr_text}{suffix}\nSTALE HOST PACKAGE CACHE:\n"
+            + "\n".join(f"ERROR: {error}" for error in stale_cache_errors)
+            + "\n"
+        )
+    elif completed.returncode == 0 and lint_agent_output is not None:
         lint_errors = lint_agent_output(agent, completed.stdout, task_profile=task_profile)
         if lint_errors:
             status = "failed"
@@ -561,6 +584,40 @@ def cursor_agent_name(agent: str) -> str:
     if agent.startswith("endor-"):
         return f"{agent}-agent"
     return f"endor-{agent}-agent"
+
+
+def detect_stale_codex_cache_paths(text: str) -> list[str]:
+    """Return stale Endor Agent Kit Codex plugin-cache paths mentioned by a host."""
+
+    expected_version = current_plugin_version()
+    errors: list[str] = []
+    seen: set[str] = set()
+    for match in CODEX_PLUGIN_CACHE_PATH_RE.finditer(text):
+        path = match.group("path")
+        if path in seen:
+            continue
+        seen.add(path)
+        plugin = match.group("plugin")
+        version = match.group("version")
+        if plugin == PLUGIN_NAME and version == expected_version:
+            continue
+        if plugin == PLUGIN_NAME:
+            errors.append(
+                f"{path} references {plugin}@{version}; expected {PLUGIN_NAME}@{expected_version}"
+            )
+            continue
+        if plugin in LEGACY_CODEX_PLUGIN_NAMES or ("endor" in plugin and "agent" in plugin):
+            errors.append(
+                f"{path} references legacy Endor Agent Kit package {plugin}@{version}; "
+                f"expected {PLUGIN_NAME}@{expected_version}"
+            )
+    return errors
+
+
+def current_plugin_version() -> str:
+    if package_version is None:
+        return "0.2.0"
+    return package_version()
 
 
 def safe_name(value: str) -> str:
