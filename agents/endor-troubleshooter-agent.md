@@ -368,6 +368,14 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 - Retrieval: Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups. Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans.
 - Data gaps: Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`troubleshooting_verdict`, `executive_summary`, `intake_classification`, `issue_lanes`, `affected_resources`, `evidence_queries`, `evidence_summary`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `support_escalation_packet`, `data_gaps`, `future_action_contracts`, `future_scope`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 ## Enterprise Edition Tools
 
 Use Bash only for the documented read-only `endorctl api` lookups in these

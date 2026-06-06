@@ -275,6 +275,7 @@ def _fake_command(tmp_path: Path, *, output: str | None = None) -> Path:
 def _valid_sca_output() -> dict:
     return {
         "summary": "Runtime QA fixture.",
+        "remediation_candidates": [],
         "project_resolution": {
             "status": "resolved",
             "project_uuid": "project-fixture",
@@ -307,6 +308,7 @@ def _valid_sca_output() -> dict:
             "source_usage_summary": "Fixture source usage is compatible.",
             "validation_requirements": ["mvn test"],
         },
+        "patch_plan": [],
         "validation": [{"command": "mvn test", "status": "planned"}],
         "change_requests": [
             {
@@ -315,6 +317,7 @@ def _valid_sca_output() -> dict:
                 "proposed_branch": "remediation/sca/demo-1.0.1",
             }
         ],
+        "tickets": [],
         "data_gaps": [],
     }
 

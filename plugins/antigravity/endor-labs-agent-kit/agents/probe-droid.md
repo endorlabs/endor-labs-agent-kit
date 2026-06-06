@@ -324,6 +324,14 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 - Retrieval: Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls. Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects.
 - Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`onboarding_verdict`, `executive_report`, `report_scope`, `coverage_summary`, `github_inventory_summary`, `github_app_coverage`, `not_onboarded_repositories`, `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`, `ambiguous_matches`, `excluded_repositories`, `recommended_actions`, `confirmed_org_wide_actions`, `sampled_prescription_hypotheses`, `requires_full_inventory_validation`, `validation_plan`, `evidence_queries`, `data_gaps`, `future_scope`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
 Use Bash only for documented read-only GitHub inventory/file calls,

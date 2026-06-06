@@ -4,6 +4,10 @@ import json
 
 from endor_agent_kit.agent_output_lint import extract_json_object, lint_agent_output
 from endor_agent_kit.cli import main
+from endor_agent_kit.structured_output_contracts import (
+    STRUCTURED_OUTPUT_CONTRACTS,
+    known_structured_agent_ids,
+)
 
 
 def test_lint_rejects_failed_sca_qa_patterns():
@@ -52,7 +56,27 @@ Prior context applied: only procedural memory that Probe Droid is read-only and
 Agent Kit QA must use live tenant/runtime evidence. I did not use it as proof.
 """
 
-    assert lint_agent_output("probe-droid", output) == []
+    assert lint_agent_output("unknown-agent", output) == []
+
+
+def test_lint_requires_json_object_for_every_structured_agent():
+    for agent_id in known_structured_agent_ids():
+        errors = lint_agent_output(agent_id, "I checked this and found no issues.")
+
+        assert f"{agent_id} output must include a JSON object" in errors
+
+
+def test_lint_rejects_missing_required_structured_fields():
+    output = json.dumps(
+        {
+            "verdict": "allow",
+            "conditions": [],
+            "alternatives": [],
+            "summary": "Missing data gaps.",
+        }
+    )
+
+    assert "data_gaps: required" in lint_agent_output("dependency-decision-helper", output)
 
 
 def test_lint_rejects_remediation_planner_unproven_counts_and_selection():
@@ -119,6 +143,7 @@ def test_lint_accepts_structured_data_gap_objects():
                 "namespace": "auri",
                 "namespace_provenance": "current_request",
             },
+            "evidence_queries": [],
             "remediation_options": [],
             "selected_remediation": None,
             "data_gaps": [
@@ -171,6 +196,7 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
     output = json.dumps(
         {
             "summary": "Selected a UIA-backed remediation.",
+            "remediation_candidates": [],
             "project_resolution": {
                 "status": "resolved",
                 "project_uuid": "proj-123",
@@ -202,6 +228,7 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
                 "source_usage_summary": "Source usage was inspected.",
                 "validation_requirements": ["mvn test"],
             },
+            "patch_plan": [],
             "validation": [{"command": "mvn test", "status": "planned"}],
             "change_requests": [
                 {
@@ -209,6 +236,7 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
                     "proposed_branch": "remediation/sca/demo-1.0.1",
                 }
             ],
+            "tickets": [],
             "data_gaps": [],
         }
     )
@@ -238,3 +266,28 @@ def test_lint_agent_output_cli_reports_errors(tmp_path, capsys):
 
     assert status == 1
     assert "unsafe Endor config read" in captured
+
+
+def test_lint_accepts_minimal_structured_payloads_for_non_project_gate_agents():
+    for agent_id, fields in STRUCTURED_OUTPUT_CONTRACTS.items():
+        if agent_id in {"sca-remediation", "remediation-planner"}:
+            continue
+        payload = {
+            field.name: _placeholder_value(field.kind)
+            for field in fields
+            if field.required
+        }
+        if "evidence_queries" in payload:
+            payload["evidence_queries"] = [{"resource": "Fixture", "status": "not_queried"}]
+
+        assert lint_agent_output(agent_id, json.dumps(payload)) == []
+
+
+def _placeholder_value(kind: str):
+    if kind.startswith("list["):
+        return []
+    if kind == "object":
+        return {}
+    if kind == "integer":
+        return 0
+    return "fixture"

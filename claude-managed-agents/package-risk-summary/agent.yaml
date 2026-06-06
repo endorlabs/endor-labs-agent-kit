@@ -159,6 +159,33 @@ system: |
   - Fallbacks: If only partial vulnerability evidence is available, summarize that evidence and label the posture as evidence-limited. If no usable Endor evidence is available, return `UNKNOWN` with precise missing signals.
   - Data gaps: Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`. Preserve exact package coordinate and evidence source in the final output.
 
+
+  ## Structured Output Contract
+
+  Return exactly one parseable JSON object in the final answer.
+  Keep any prose brief and do not emit multiple competing JSON objects.
+  Required top-level fields must appear in this order:
+
+  - `risk_posture` (`enum`): LOW, MODERATE, HIGH, CRITICAL, or UNKNOWN.
+  - `findings` (`list[string]`): Evidence-backed vulnerability, malware, typosquat, score, or license findings.
+  - `strengths` (`list[string]`): Positive evidence such as clean risk checks, good scores, or known safe alternatives.
+  - `next_checks` (`list[string]`): Follow-up checks, review areas, or upgrade/remediation actions.
+  - `summary` (`string`): One-paragraph human-readable assessment.
+  - `data_gaps` (`list[string]`): Signals that were unavailable because setup, auth, edition, or tooling was missing.
+
+  Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+  ```json
+  {
+    "risk_posture": "string",
+    "findings": [],
+    "strengths": [],
+    "next_checks": [],
+    "summary": "string",
+    "data_gaps": []
+  }
+  ```
+
   # Workflow: MCP + Read-Only endorctl api
 
   Use Endor risk evidence from tools actually exposed by the host. Prefer Endor MCP tools

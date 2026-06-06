@@ -128,6 +128,16 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 - Retrieval: Resolve project and namespace provenance before project-scoped VersionUpgrade queries. Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor Patch availability.
 - Data gaps: Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `data_gaps`
+Optional fields when verified:
+`upgrade_candidates`, `selected_upgrade`, `findings_fixed`, `findings_introduced`, `cia_status`, `breaking_changes`, `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, `score_explanation`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 # Workflow: Endor Platform VersionUpgrade UIA
 
 This artifact mirrors Endor's read-only Upgrade Impact Analysis workflow. Use

@@ -239,6 +239,48 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 - Fallbacks: If project resolution or VersionUpgrade evidence is unavailable, return `INSUFFICIENT_DATA` and do not infer upgrade safety from version numbers. If compatibility evidence is missing, put that in breaking-change notes and data_gaps.
 - Data gaps: Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`. Preserve `namespace_provenance`, project query attempts, upgrade UUIDs, and context scope in the final output.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `upgrade_recommendation` (`enum`): UPGRADE_NOW, UPGRADE_WITH_CAUTION, DEFER, or INSUFFICIENT_DATA.
+- `risk_delta` (`enum`): LOWER, SAME, HIGHER, or UNKNOWN.
+- `reasons` (`list[string]`): Evidence-backed reasons for the upgrade recommendation.
+- `breaking_change_notes` (`list[string]`): Known or suspected compatibility notes, or data gaps when unavailable.
+- `next_checks` (`list[string]`): Follow-up checks, tests, or review areas before merging the upgrade.
+- `summary` (`string`): One-paragraph human-readable upgrade assessment.
+- `data_gaps` (`list[string]`): Signals that were unavailable because setup, auth, edition, or tooling was missing.
+
+Optional top-level fields when verified:
+- `upgrade_candidates` (`list[object]`): VersionUpgrade candidates ranked by platform priority.
+- `selected_upgrade` (`object`): The selected Endor platform VersionUpgrade candidate, including UUID, package, from/to versions, risk, and recommendation flags.
+- `findings_fixed` (`integer`): Number of findings the selected VersionUpgrade fixes.
+- `findings_introduced` (`integer`): Number of findings the selected VersionUpgrade introduces.
+- `cia_status` (`string`): Endor Code Impact Analysis summary such as no breaking changes or api breaking changes.
+- `breaking_changes` (`list[string]`): CIA breaking-change details from VersionUpgrade detail records.
+- `manifest_files` (`list[string]`): Direct dependency manifest files reported by VersionUpgrade.
+- `dependency_delta` (`object`): deps_added, deps_removed, and conflicts from VersionUpgrade.
+- `fixed_cves` (`list[string]`): CVE or GHSA identifiers fixed by the selected VersionUpgrade.
+- `endor_patch` (`string`): Endor Patch target version when VersionUpgrade reports one.
+- `score_explanation` (`string`): Platform score explanation from VersionUpgrade.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "upgrade_recommendation": "string",
+  "risk_delta": "string",
+  "reasons": [],
+  "breaking_change_notes": [],
+  "next_checks": [],
+  "summary": "string",
+  "data_gaps": []
+}
+```
+
 # Workflow: Endor Platform VersionUpgrade UIA
 
 This artifact mirrors Endor's read-only Upgrade Impact Analysis workflow. Use

@@ -68,7 +68,12 @@ def compile_raw_prepared(prepared: PreparedSourceRecipe) -> list[Path]:
     outputs = [
         _write(
             out_dir / f"system-prompt-{edition}.md",
-            instructions_for_edition(prepared.instructions, edition, recipe_id=recipe.id)
+            instructions_for_edition(
+                prepared.instructions,
+                edition,
+                recipe_id=recipe.id,
+                structured_output_recipe=recipe,
+            )
             + render_action_contracts(prepared.actions),
         )
         for edition in editions_for_host(recipe, CLAUDE_CODE_HOST, EDITIONS)

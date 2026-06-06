@@ -216,6 +216,39 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 - Fallbacks: If project or finding lookup fails, retry eligible project discovery with traversal and keep source findings separate from PR or CI context. If source files, exploit reproduction, or remediation guidance are unavailable, continue only with verified evidence and mark the missing signal.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`. Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `summary` (`string`): Triage summary including confirmed TPs, likely FPs, inconclusive findings, exploit-driven priority, remediation-guidance usage, patches ready, and PR/MR counters.
+- `project_resolution` (`object`): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- `verdicts` (`list[object]`): Per-finding parsed AI SAST classification, finding UUID, source-location provenance, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.
+- `patches` (`list[object]`): Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and rendered PR/MR body for TRUE_POSITIVE findings with source context.
+- `change_requests` (`list[object]`): PR/MR URLs, branches, status, failure reason, and existing_change_request_check evidence for any requested change-request creation.
+- `approvals` (`list[object]`): Verified AppSec approval evidence for exception requests, including approver, evidence URL, status, and data gaps.
+- `exception_policies` (`list[object]`): Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL.
+- `tickets` (`list[object]`): Ticket IDs, URLs, status, and failure reasons for requested AI SAST triage, remediation, or exception follow-up ticket creation.
+- `data_gaps` (`list[string]`): Missing Endor, source, or host signals.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "summary": "string",
+  "project_resolution": {},
+  "verdicts": [],
+  "patches": [],
+  "change_requests": [],
+  "approvals": [],
+  "exception_policies": [],
+  "tickets": [],
+  "data_gaps": []
+}
+```
+
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require or start an Endor MCP server.
 Use local source-provider credentials, git, and the target workspace to fetch pinned source context, apply generated patches, and open the requested PR/MR.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, source contents, patch application, branch pushes, or change-request URLs.

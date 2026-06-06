@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+
 from endor_agent_kit.instruction_sections import (
     EDITIONS,
     LEGACY_EDITION_ALIASES,
@@ -13,7 +15,7 @@ from endor_agent_kit.prompt_compaction import (
     compact_marked_sections,
     strip_compaction_marker_lines,
 )
-from endor_agent_kit.recipe import ActionContract
+from endor_agent_kit.recipe import ActionContract, EndorAgentRecipe, RecipeField
 
 EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
 
@@ -35,12 +37,15 @@ After selecting a namespace, pass it explicitly with `-n <namespace>` or `--name
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
 """
 
+STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
+
 
 def instructions_for_edition(
     instructions: str,
     edition: str,
     *,
     recipe_id: str | None = None,
+    structured_output_recipe: EndorAgentRecipe | None = None,
     compact_plugin: bool = False,
 ) -> str:
     """Render the shared and edition-specific instruction sections."""
@@ -56,6 +61,13 @@ def instructions_for_edition(
     ]
     if knowledge_pack:
         sections_to_render.append(knowledge_pack)
+    if structured_output_recipe is not None:
+        structured_output = render_structured_output_contract(
+            structured_output_recipe,
+            compact=compact_plugin,
+        ).rstrip()
+        if structured_output:
+            sections_to_render.append(structured_output)
     sections_to_render.append(mode.rstrip())
     rendered = "\n\n".join(sections_to_render) + "\n"
     if compact_plugin:
@@ -68,6 +80,7 @@ def instructions_for_variant(
     variant: str,
     *,
     recipe_id: str | None = None,
+    structured_output_recipe: EndorAgentRecipe | None = None,
     compact_plugin: bool = False,
 ) -> str:
     """Compatibility wrapper for old variant names."""
@@ -76,8 +89,72 @@ def instructions_for_variant(
         instructions,
         variant,
         recipe_id=recipe_id,
+        structured_output_recipe=structured_output_recipe,
         compact_plugin=compact_plugin,
     )
+
+
+def render_structured_output_contract(
+    recipe: EndorAgentRecipe,
+    *,
+    compact: bool = False,
+) -> str:
+    """Render the recipe's required output shape into generated prompts."""
+
+    required = tuple(field for field in recipe.outputs if field.required)
+    optional = tuple(field for field in recipe.outputs if not field.required)
+    if not required:
+        return ""
+    if compact:
+        lines = [
+            "",
+            STRUCTURED_OUTPUT_HEADING,
+            "",
+            "Return exactly one parseable JSON object in the final answer.",
+            "Required top-level fields, in order:",
+            _inline_field_list(required),
+        ]
+        if optional:
+            lines.extend([
+                "Optional fields when verified:",
+                _inline_field_list(optional),
+            ])
+        lines.extend([
+            "Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.",
+            "Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.",
+            "",
+        ])
+        return "\n".join(lines)
+
+    skeleton = {
+        field.name: _json_placeholder(field.kind)
+        for field in required
+    }
+    lines = [
+        "",
+        STRUCTURED_OUTPUT_HEADING,
+        "",
+        "Return exactly one parseable JSON object in the final answer.",
+        "Keep any prose brief and do not emit multiple competing JSON objects.",
+        "Required top-level fields must appear in this order:",
+        "",
+    ]
+    for field in required:
+        lines.append(f"- `{field.name}` (`{field.kind}`): {field.description or 'Required by recipe output contract.'}")
+    if optional:
+        lines.extend(["", "Optional top-level fields when verified:"])
+        for field in optional:
+            lines.append(f"- `{field.name}` (`{field.kind}`): {field.description or 'Optional recipe output.'}")
+    lines.extend([
+        "",
+        "Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.",
+        "",
+        "```json",
+        json.dumps(skeleton, indent=2),
+        "```",
+        "",
+    ])
+    return "\n".join(lines)
 
 
 def render_action_contracts(
@@ -143,6 +220,20 @@ def render_action_contracts(
             lines.append(f"- notes: {action.notes}")
         lines.append("")
     return "\n".join(lines)
+
+
+def _inline_field_list(fields: tuple[RecipeField, ...]) -> str:
+    return ", ".join(f"`{field.name}`" for field in fields)
+
+
+def _json_placeholder(kind: str):
+    if kind.startswith("list["):
+        return []
+    if kind == "object":
+        return {}
+    if kind == "integer":
+        return 0
+    return "string"
 
 
 def indent(text: str, spaces: int) -> str:

@@ -222,6 +222,35 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 - Fallbacks: If the host cannot inspect files, ask for a repository path or manifest content and report the host capability gap. If exact versions cannot be resolved, return `UNKNOWN` or bounded risk posture with unresolved version data_gaps.
 - Data gaps: Record missing repository access, unsupported manifest formats, unresolved versions, unavailable Endor risk tools, vulnerability enrichment gaps, and account capability gaps in `data_gaps`. Preserve manifest paths, exact package coordinates reviewed, and skipped coordinates with reasons.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `risk_posture` (`enum`): LOW, MODERATE, HIGH, CRITICAL, or UNKNOWN.
+- `manifests` (`list[object]`): Manifest or lock files inspected with detected ecosystems and parsing notes.
+- `dependencies_reviewed` (`list[object]`): Exact dependency coordinates checked with Endor evidence.
+- `findings` (`list[object]`): Evidence-backed dependency risk findings with package, version, severity, and source file.
+- `recommended_actions` (`list[string]`): Follow-up actions such as upgrade, investigate reachability, or run a fuller Endor scan.
+- `summary` (`string`): One-paragraph human-readable repository dependency review.
+- `data_gaps` (`list[string]`): Signals unavailable because a manifest was unsupported, versions were unresolved, tools failed, or Endor data was unavailable.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "risk_posture": "string",
+  "manifests": [],
+  "dependencies_reviewed": [],
+  "findings": [],
+  "recommended_actions": [],
+  "summary": "string",
+  "data_gaps": []
+}
+```
+
 # Workflow: MCP + Read-Only File Inspection
 
 Use only Endor MCP tools and host read-only file tools. Do not use Bash or

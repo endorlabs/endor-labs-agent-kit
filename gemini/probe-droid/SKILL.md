@@ -1057,6 +1057,59 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 - Fallbacks: Retry Endor project inventory with traversal before classifying repositories as not onboarded. If GitHub App installation or GitHub API evidence is unavailable, continue with provided inventory and mark the gap.
 - Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`. Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `onboarding_verdict` (`enum`): READY_TO_ONBOARD, PARTIAL_COVERAGE, NOT_ONBOARDED, or INSUFFICIENT_DATA.
+- `executive_report` (`object`): Compact rollup with verdict, top counts, top 5 actions, top blockers, and drill-down pointers for large orgs.
+- `report_scope` (`object`): GitHub org, repository subset, sampling mode, sample size, sample seed, monitored branch policy, and explicit V1 exclusions.
+- `coverage_summary` (`object`): Executive rollup of repos in scope, excluded repos, matched Endor projects, onboarded healthy repos, onboarding gaps, dependency resolution gaps, reachability gaps, and repeated blockers.
+- `github_inventory_summary` (`object`): GitHub.com inventory source, permission limits, pagination or sampling status, archived/inactive counts, and manifest discovery summary.
+- `github_app_coverage` (`object`): Endor-side GitHub App evidence for installation, selected repos, scanner enablement, sync errors, and archived repo behavior when available.
+- `not_onboarded_repositories` (`list[object]`): GitHub repos with no strict Endor project or scan match, plus inferred setup prescriptions from GitHub evidence.
+- `onboarded_repositories_with_gaps` (`list[object]`): Strictly matched Endor projects with dependency resolution, reachability, scan profile, package manager, GitHub App, branch, stale scan, or evidence gaps.
+- `onboarded_healthy_repositories` (`list[object]`): Strictly matched repos with successful monitored-branch scan, dependency resolution, and reachability evidence for supported ecosystems.
+- `ambiguous_matches` (`list[object]`): GitHub repos that match multiple Endor projects or cannot be matched without human disambiguation.
+- `excluded_repositories` (`list[object]`): Archived, disabled, explicitly excluded, or optionally inactive repos kept out of the main denominator.
+- `recommended_actions` (`list[object]`): Prioritized human-readable setup actions with owner role, confidence, evidence, confirmation requirement, and expected coverage gain.
+- `confirmed_org_wide_actions` (`list[object]`): Setup actions backed by complete in-scope inventory rather than sample-only evidence.
+- `sampled_prescription_hypotheses` (`list[object]`): Large-org sampled findings that must not be treated as confirmed org-wide blockers until validated.
+- `requires_full_inventory_validation` (`list[object]`): Follow-up read-only checks needed before treating sampled hypotheses or truncated inventory as confirmed org-wide findings.
+- `validation_plan` (`list[object]`): Read-only checks humans can run after applying recommendations to verify onboarding health.
+- `evidence_queries` (`list[object]`): Exact GitHub and Endor read-only queries attempted, purpose, status, returned counts, fields used, and data gaps.
+- `data_gaps` (`list[string]`): Missing GitHub, GitHub App, Endor, scan, package manager, dependency resolution, or reachability evidence.
+- `future_scope` (`list[string]`): Explicitly out-of-scope V2 items, especially PR scan coverage and quick-vs-full reachability diagnostics.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "onboarding_verdict": "string",
+  "executive_report": {},
+  "report_scope": {},
+  "coverage_summary": {},
+  "github_inventory_summary": {},
+  "github_app_coverage": {},
+  "not_onboarded_repositories": [],
+  "onboarded_repositories_with_gaps": [],
+  "onboarded_healthy_repositories": [],
+  "ambiguous_matches": [],
+  "excluded_repositories": [],
+  "recommended_actions": [],
+  "confirmed_org_wide_actions": [],
+  "sampled_prescription_hypotheses": [],
+  "requires_full_inventory_validation": [],
+  "validation_plan": [],
+  "evidence_queries": [],
+  "data_gaps": [],
+  "future_scope": []
+}
+```
+
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
 Use Bash only for documented read-only GitHub inventory/file calls,

@@ -136,6 +136,14 @@ Summarize one explicit package version's risk posture without turning unavailabl
 - Retrieval: Require ecosystem, package name, and version before risk posture selection. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
 - Data gaps: Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`risk_posture`, `findings`, `strengths`, `next_checks`, `summary`, `data_gaps`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 # Workflow: MCP + Read-Only endorctl api
 
 Use Endor risk evidence from tools actually exposed by the host. Prefer Endor MCP tools

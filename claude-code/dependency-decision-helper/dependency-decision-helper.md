@@ -161,6 +161,31 @@ Decide whether to add, keep, or upgrade one explicit package version using only 
 - Fallbacks: If risk, vulnerability, score, license, or typosquat signals are unavailable, apply the decision ladder only to gathered evidence. If all Endor evidence is unavailable, return a blocked or degraded verdict with data_gaps instead of approving the package.
 - Data gaps: Record missing Endor credentials, unavailable MCP tools, package-version misses, score gaps, license gaps, typosquat lookup gaps, and vulnerability enrichment failures in `data_gaps`. Preserve exact package coordinate, evidence source, and host capability status in the final output.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `verdict` (`enum`): SAFE, SAFE_WITH_CONDITIONS, NOT_RECOMMENDED, or BLOCKED.
+- `conditions` (`list[string]`): Evidence-backed conditions that explain the verdict.
+- `alternatives` (`list[string]`): Safer package names or versions when available.
+- `summary` (`string`): One-paragraph human-readable assessment.
+- `data_gaps` (`list[string]`): Signals that were unavailable because setup, auth, edition, or tooling was missing.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "verdict": "string",
+  "conditions": [],
+  "alternatives": [],
+  "summary": "string",
+  "data_gaps": []
+}
+```
+
 # Workflow: MCP + Read-Only endorctl api
 
 Use Endor risk evidence from tools actually exposed by the host. Prefer Endor
