@@ -92,6 +92,7 @@ evidence_query_plans:
 evidence_query_recipes:
   - profile_id: explain
     id: package-version-exact
+    canonical_id: package-version-exact
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
     template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
@@ -107,6 +108,7 @@ evidence_query_recipes:
       - If version is unknown, ask for it or report data_gaps.
   - profile_id: explain
     id: package-finding-evidence
+    canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -123,6 +125,7 @@ evidence_query_recipes:
       - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
   - profile_id: evidence-check
     id: package-version-exact
+    canonical_id: package-version-exact
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
     template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
@@ -138,6 +141,7 @@ evidence_query_recipes:
       - If version is unknown, ask for it or report data_gaps.
   - profile_id: evidence-check
     id: package-finding-evidence-check
+    canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"

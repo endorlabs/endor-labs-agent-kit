@@ -1198,6 +1198,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 #### `project-by-git` (classify)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
@@ -1206,6 +1207,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 #### `project-by-git` (diagnose)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
@@ -1214,6 +1216,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 #### `scan-result-by-uuid` (diagnose)
 
+- Canonical: `scan-result-by-uuid`
 - Resource: `ScanResult`
 - Purpose: Fetch one scan result when troubleshooting a known scan or error lane.
 - Template: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
@@ -1222,6 +1225,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 #### `finding-by-uuid` (diagnose)
 
+- Canonical: `finding-by-uuid`
 - Resource: `Finding`
 - Purpose: Fetch one known Finding by UUID; api get does not accept filters.
 - Template: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
@@ -1230,6 +1234,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 #### `scan-result-by-uuid` (support-packet)
 
+- Canonical: `scan-result-by-uuid`
 - Resource: `ScanResult`
 - Purpose: Fetch one scan result when troubleshooting a known scan or error lane.
 - Template: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
@@ -1238,6 +1243,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 #### `project-by-git` (support-packet)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`

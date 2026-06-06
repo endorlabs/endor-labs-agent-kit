@@ -29,6 +29,25 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     pack = load_knowledge_pack()
 
     assert pack.name == "Endor Knowledge Pack"
+    assert sorted(pack.query_recipes) == [
+        "ai-sast-list",
+        "finding-by-uuid",
+        "local-git-state",
+        "local-manifest-inventory",
+        "mcp-finding-by-uuid-check",
+        "mcp-finding-by-uuid-full",
+        "mcp-vulnerability-by-id-check",
+        "mcp-vulnerability-by-id-full",
+        "package-version-exact",
+        "project-branch-coverage",
+        "project-by-git",
+        "sca-finding-availability",
+        "scan-result-by-uuid",
+        "selected-source-usage",
+        "version-upgrade-by-package",
+        "version-upgrade-detail",
+        "version-upgrade-summary",
+    ]
     assert set(pack.workflows) == {
         "ai-sast-triage",
         "dependency-decision-helper",
@@ -78,9 +97,15 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         for recipe in pack.workflow_for("ai-sast-triage").evidence_query_recipes
         if recipe.id == "ai-sast-list"
     )
+    assert ai_sast_recipe.canonical_id == "ai-sast-list"
     assert "SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST" in ai_sast_recipe.template
     assert 'finding_tags contains "AI_SAST"' not in ai_sast_recipe.template
     assert "--list-all" in ai_sast_recipe.template
+    assert all(
+        recipe.canonical_id in pack.query_recipes
+        for workflow in pack.workflows.values()
+        for recipe in workflow.evidence_query_recipes
+    )
 
 
 def test_knowledge_pack_renders_global_section_for_known_agent():
@@ -95,6 +120,7 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert "`selection-plan` - Selection Plan Query Plan" in section
     assert "Evidence Query Recipes" in section
     assert "`version-upgrade-summary` (selection-plan)" in section
+    assert "Canonical: `version-upgrade-summary`" in section
     assert "endorctl api list -r VersionUpgrade -n <namespace>" in section
     assert "narrowing through VersionUpgrade before detailed Finding expansion" in section
     assert "Never use memory" in section
@@ -118,6 +144,7 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "Do not enumerate broad Finding inventories" in prompt
     assert "Evidence query recipes:" in prompt
     assert "version-upgrade-summary" in prompt
+    assert "canonical `version-upgrade-summary`" in prompt
     assert "--field-mask" in prompt
     assert "Output focus:" in prompt
     assert default_task_profile_for_agent("sca-remediation") == "selection-plan"
@@ -274,6 +301,62 @@ def test_knowledge_pack_validator_rejects_unsafe_query_recipe_template(tmp_path)
     assert any("broad Finding --list-all templates are not allowed" in error for error in errors)
 
 
+def test_knowledge_pack_validator_rejects_unknown_canonical_query_recipe_ref(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["evidence_query_recipes"][0]["canonical_id"] = "missing-query"
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any(
+        "references unknown canonical query recipe 'missing-query'" in error
+        for error in errors
+    )
+
+
+def test_knowledge_pack_validator_rejects_canonical_query_recipe_template_drift(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["evidence_query_recipes"][0]["canonical_id"] = "project-by-git"
+    workflow["evidence_query_recipes"][0]["template"] = (
+        'endorctl api list -r Project -n <namespace> --field-mask "uuid" -o json'
+    )
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any(
+        "template does not match canonical query recipe 'project-by-git'" in error
+        for error in errors
+    )
+
+
+def test_knowledge_pack_validator_rejects_unsafe_canonical_query_recipe_template(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template="endorctl api list -r Finding --list-all -o json",
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert any("query-recipes.yaml recipes[0].template: endorctl api commands must include explicit namespace" in error for error in errors)
+    assert any("query-recipes.yaml recipes[0].template: endorctl api list commands must include --field-mask" in error for error in errors)
+    assert any("query-recipes.yaml recipes[0].template: broad Finding --list-all templates are not allowed" in error for error in errors)
+
+
 def test_knowledge_pack_validator_accepts_scoped_ai_sast_list_all_query(tmp_path):
     _write_minimal_pack(tmp_path)
     workflows = tmp_path / "workflows"
@@ -334,6 +417,34 @@ def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_
                         "title": "Data gaps",
                         "guidance": "Record data_gaps.",
                     },
+                ],
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+
+
+def _write_minimal_query_catalog(
+    root: Path,
+    *,
+    template: str = 'endorctl api list -r Project -n <namespace> --field-mask "uuid,meta.name" -o json',
+) -> None:
+    (root / "query-recipes.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": 1,
+                "recipes": [
+                    {
+                        "id": "project-by-git",
+                        "title": "Project By Git",
+                        "resource": "Project",
+                        "purpose": "Resolve project evidence.",
+                        "template": template,
+                        "fields": ["uuid", "meta.name"],
+                        "constraints": ["Use explicit namespace."],
+                        "completeness": "Complete for one selected namespace.",
+                    }
                 ],
             },
             sort_keys=False,

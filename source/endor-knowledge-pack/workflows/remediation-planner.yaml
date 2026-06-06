@@ -126,6 +126,7 @@ evidence_query_plans:
       - Record skipped Finding detail, missing UIA/CIA fields, unverified counts, and unavailable project evidence in data_gaps.
 evidence_query_recipes:
   - id: project-by-git
+    canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
@@ -141,6 +142,7 @@ evidence_query_recipes:
     profile_id: resolve-scope
   - profile_id: evidence-check
     id: finding-availability
+    canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -157,6 +159,7 @@ evidence_query_recipes:
       - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
   - profile_id: evidence-check
     id: version-upgrade-summary
+    canonical_id: version-upgrade-summary
     resource: VersionUpgrade
     purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -170,6 +173,7 @@ evidence_query_recipes:
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
   - profile_id: selection-plan
     id: version-upgrade-summary
+    canonical_id: version-upgrade-summary
     resource: VersionUpgrade
     purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -183,6 +187,7 @@ evidence_query_recipes:
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
   - profile_id: selection-plan
     id: version-upgrade-detail
+    canonical_id: version-upgrade-detail
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -198,6 +203,7 @@ evidence_query_recipes:
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
   - profile_id: selection-plan
     id: selected-finding-detail
+    canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"

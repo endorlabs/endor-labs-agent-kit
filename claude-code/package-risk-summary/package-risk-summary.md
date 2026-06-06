@@ -211,6 +211,7 @@ Verify whether package-specific Endor evidence is available.
 
 #### `package-version-exact` (explain)
 
+- Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
 - Template: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
@@ -219,6 +220,7 @@ Verify whether package-specific Endor evidence is available.
 
 #### `package-finding-evidence` (explain)
 
+- Canonical: `sca-finding-availability`
 - Resource: `Finding`
 - Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
@@ -227,6 +229,7 @@ Verify whether package-specific Endor evidence is available.
 
 #### `package-version-exact` (evidence-check)
 
+- Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
 - Template: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
@@ -235,6 +238,7 @@ Verify whether package-specific Endor evidence is available.
 
 #### `package-finding-evidence-check` (evidence-check)
 
+- Canonical: `sca-finding-availability`
 - Resource: `Finding`
 - Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`

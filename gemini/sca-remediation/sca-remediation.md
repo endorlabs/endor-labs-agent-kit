@@ -566,6 +566,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `local-git-state` (resolve-scope)
 
+- Canonical: `local-git-state`
 - Resource: `local-git`
 - Purpose: Capture local repository provenance without reading secrets.
 - Template: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
@@ -574,6 +575,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `project-by-git` (resolve-scope)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
@@ -582,6 +584,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `finding-availability` (evidence-check)
 
+- Canonical: `sca-finding-availability`
 - Resource: `Finding`
 - Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
@@ -590,6 +593,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `version-upgrade-summary` (evidence-check)
 
+- Canonical: `version-upgrade-summary`
 - Resource: `VersionUpgrade`
 - Purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json`
@@ -598,6 +602,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `version-upgrade-summary` (selection-plan)
 
+- Canonical: `version-upgrade-summary`
 - Resource: `VersionUpgrade`
 - Purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json`
@@ -606,6 +611,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `version-upgrade-detail` (selection-plan)
 
+- Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
@@ -614,6 +620,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `selected-source-usage` (selection-plan)
 
+- Canonical: `selected-source-usage`
 - Resource: `local-files`
 - Purpose: Inspect only selected package usage for compatibility and validation planning.
 - Template: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
@@ -622,6 +629,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 #### `selected-finding-detail` (selection-plan)
 
+- Canonical: `sca-finding-availability`
 - Resource: `Finding`
 - Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`

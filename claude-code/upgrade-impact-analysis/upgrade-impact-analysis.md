@@ -301,6 +301,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 
 #### `project-by-git` (resolve-scope)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
@@ -309,6 +310,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 
 #### `version-upgrade-by-package` (resolve-scope)
 
+- Canonical: `version-upgrade-by-package`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch UIA impact candidates for one package/from/to selector.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
@@ -317,6 +319,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 
 #### `version-upgrade-by-package` (evidence-check)
 
+- Canonical: `version-upgrade-by-package`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch UIA impact candidates for one package/from/to selector.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
@@ -325,6 +328,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 
 #### `version-upgrade-detail` (evidence-check)
 
+- Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
@@ -333,6 +337,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 
 #### `version-upgrade-detail` (explain)
 
+- Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
 - Template: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
@@ -341,6 +346,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 
 #### `selected-source-usage` (explain)
 
+- Canonical: `selected-source-usage`
 - Resource: `local-files`
 - Purpose: Inspect only selected package usage for compatibility and validation planning.
 - Template: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`

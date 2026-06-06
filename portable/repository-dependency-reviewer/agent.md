@@ -264,6 +264,7 @@ Attach Endor risk evidence only to discovered repository dependencies.
 
 #### `local-manifest-inventory` (manifest-inventory)
 
+- Canonical: `local-manifest-inventory`
 - Resource: `local-files`
 - Purpose: Inventory dependency manifests before scoped Endor expansion.
 - Template: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
@@ -272,6 +273,7 @@ Attach Endor risk evidence only to discovered repository dependencies.
 
 #### `project-by-git` (manifest-inventory)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
@@ -280,6 +282,7 @@ Attach Endor risk evidence only to discovered repository dependencies.
 
 #### `local-manifest-inventory` (evidence-check)
 
+- Canonical: `local-manifest-inventory`
 - Resource: `local-files`
 - Purpose: Inventory dependency manifests before scoped Endor expansion.
 - Template: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
@@ -288,6 +291,7 @@ Attach Endor risk evidence only to discovered repository dependencies.
 
 #### `package-version-exact` (evidence-check)
 
+- Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
 - Template: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
@@ -296,6 +300,7 @@ Attach Endor risk evidence only to discovered repository dependencies.
 
 #### `selected-package-finding-evidence` (evidence-check)
 
+- Canonical: `sca-finding-availability`
 - Resource: `Finding`
 - Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
