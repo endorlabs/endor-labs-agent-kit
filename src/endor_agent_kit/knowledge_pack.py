@@ -86,12 +86,24 @@ EVIDENCE_GATE_RULES = (
     "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.",
     "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.",
 )
+SCOPE_NORMALIZATION_RULES = (
+    "Normalize repository selectors to `owner/repo` or the equivalent source-provider full path before Endor project lookup.",
+    "Record branch provenance: GitHub default branch, selected branch, Endor monitored branch, and any mismatch that affects main-context evidence.",
+    "When `project_resolution.status` is `resolved`, include project UUID, namespace, namespace provenance, normalized repo identity, branch provenance, and whether `--traverse` was attempted.",
+    "If a parent namespace project lookup misses, retry the same selector with traversal before reporting the project missing.",
+)
+MUTABILITY_GATE_RULES = (
+    "Read-only agents must not edit files, create branches, push commits, open PRs, post comments, run scans, or perform Endor/source-provider writes.",
+    "When a useful next step is mutating, return a future action contract with owner, reason, expected effect, validation step, and `confirmation_required: true`.",
+    "Plan-capable agents must separate local edits, source-provider writes, and Endor writes; each requires explicit approval before action.",
+)
 COMPACT_EVIDENCE_GATE_RULES = (
     "Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.",
     "Never dump or `cat` Endor config files; extract only the namespace key.",
     "Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.",
-    "Local docs are context until backed by current Endor or user-provided evidence.",
-    "Record `namespace_provenance`; return required JSON with precise `data_gaps` for missing or blocked evidence.",
+    "Local docs need current Endor or user evidence.",
+    "Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.",
+    "Read-only means no edits/scans/PRs/comments/writes.",
 )
 
 
@@ -339,6 +351,11 @@ def render_knowledge_pack_section(
     lines.extend(["", "### Evidence Gate Contract", ""])
     gate_rules = COMPACT_EVIDENCE_GATE_RULES if compact else EVIDENCE_GATE_RULES
     lines.extend(f"- {rule}" for rule in gate_rules)
+    if not compact:
+        lines.extend(["", "### Scope Normalization Contract", ""])
+        lines.extend(f"- {rule}" for rule in SCOPE_NORMALIZATION_RULES)
+        lines.extend(["", "### Mutability Gate Contract", ""])
+        lines.extend(f"- {rule}" for rule in MUTABILITY_GATE_RULES)
 
     workflow = pack.workflow_for(agent_id)
     if workflow is not None:

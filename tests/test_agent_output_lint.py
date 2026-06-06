@@ -172,10 +172,7 @@ def test_lint_rejects_non_array_sca_uia_evidence():
         {
             "summary": "Selected remediation.",
             "project_resolution": {
-                "status": "resolved",
-                "project_uuid": "proj-123",
-                "namespace": "auri",
-                "namespace_provenance": "current_request",
+                **_resolved_project_resolution(),
             },
             "evidence_queries": [
                 _evidence_query("Finding", query_template_id="finding-detail"),
@@ -207,10 +204,7 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
             "summary": "Selected a UIA-backed remediation.",
             "remediation_candidates": [],
             "project_resolution": {
-                "status": "resolved",
-                "project_uuid": "proj-123",
-                "namespace": "auri",
-                "namespace_provenance": "current_request",
+                **_resolved_project_resolution(),
             },
             "evidence_queries": [
                 _evidence_query("Finding", query_template_id="finding-detail"),
@@ -263,10 +257,7 @@ def test_lint_rejects_broad_finding_inventory_for_sca_selection_plan():
             "summary": "Selected a remediation.",
             "remediation_candidates": [],
             "project_resolution": {
-                "status": "resolved",
-                "project_uuid": "proj-123",
-                "namespace": "auri",
-                "namespace_provenance": "current_request",
+                **_resolved_project_resolution(),
             },
             "evidence_queries": [
                 _evidence_query(
@@ -320,12 +311,7 @@ def test_lint_allows_selection_plan_after_version_upgrade_narrowing():
         {
             "summary": "Selected a remediation.",
             "remediation_candidates": [],
-            "project_resolution": {
-                "status": "resolved",
-                "project_uuid": "proj-123",
-                "namespace": "auri",
-                "namespace_provenance": "current_request",
-            },
+            "project_resolution": _resolved_project_resolution(),
             "evidence_queries": [
                 _evidence_query(
                     "VersionUpgrade",
@@ -380,6 +366,117 @@ def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     )
 
     assert "read-only workflow must not recommend running a new Endor scan as the default next step" in errors
+
+
+def test_lint_rejects_resolved_project_without_normalized_scope_fields():
+    output = json.dumps(
+        {
+            "summary": "Selected a UIA-backed remediation.",
+            "remediation_candidates": [],
+            "project_resolution": {
+                "status": "resolved",
+                "project_uuid": "proj-123",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+            },
+            "evidence_queries": [
+                _evidence_query("VersionUpgrade", query_template_id="version-upgrade-summary"),
+                _evidence_query("Finding", query_template_id="selected-finding-detail"),
+            ],
+            "selected_remediation": {},
+            "uia_evidence": [{"resource": "VersionUpgrade", "total_findings_fixed": 1}],
+            "risk_decision": {
+                "status": "blocked_needs_compatibility_analysis",
+                "source_usage_summary": "Source usage was inspected.",
+                "validation_requirements": [],
+            },
+            "patch_plan": [],
+            "validation": [],
+            "change_requests": [],
+            "tickets": [],
+            "data_gaps": [],
+        }
+    )
+
+    errors = lint_agent_output("sca-remediation", output)
+
+    assert "project_resolution.repo_full_name: normalized repository identity required when status is resolved" in errors
+    assert "project_resolution.default_branch: branch provenance required when status is resolved" in errors
+    assert "project_resolution.traverse_attempted: required when status is resolved" in errors
+
+
+def test_lint_rejects_read_only_payload_with_unconfirmed_mutation_command():
+    output = json.dumps(
+        {
+            "troubleshooting_verdict": "PARTIAL_DIAGNOSIS",
+            "executive_summary": {
+                "issue_title": "Scan failed",
+                "impact": "No current scan result",
+                "likely_owner": "repo_admin",
+                "confidence": "MEDIUM",
+                "next_best_action": "Run endorctl scan",
+                "confirmation_required": False,
+            },
+            "intake_classification": {
+                "issue_lanes": ["SCAN_EXECUTION_FAILURE"],
+                "affected_product_area": "scan",
+                "affected_ecosystem": None,
+                "affected_integration_type": None,
+                "resource_selectors_used": [],
+            },
+            "issue_lanes": [],
+            "affected_resources": [],
+            "evidence_queries": [
+                _evidence_query("user_input", source="user_input", query_template_id=None)
+            ],
+            "evidence_summary": {},
+            "root_cause_hypotheses": [],
+            "recommended_actions": [
+                {
+                    "action": "Run endorctl scan --languages=java",
+                    "validation": "Check ScanResult",
+                    "confirmation_required": False,
+                }
+            ],
+            "validation_plan": [],
+            "support_escalation_packet": {
+                "include": [],
+                "redactions_applied": [],
+                "reason_to_escalate": "",
+            },
+            "data_gaps": [],
+            "future_action_contracts": [],
+            "future_scope": [],
+        }
+    )
+
+    errors = lint_agent_output("endor-troubleshooter", output)
+
+    assert "$.recommended_actions[0]: mutation command requires confirmation_required=true and must remain a future action" in errors
+
+
+def test_lint_accepts_troubleshooter_future_action_contract_for_mutation():
+    output = json.dumps(_valid_troubleshooter_output())
+
+    assert lint_agent_output("endor-troubleshooter", output) == []
+
+
+def test_lint_rejects_probe_droid_rows_without_branch_and_project_normalization():
+    output = json.dumps(_valid_probe_droid_output())
+    payload = json.loads(output)
+    payload["report_scope"].pop("namespace_provenance")
+    payload["onboarded_repositories_with_gaps"][0].pop("endor_monitored_branch")
+    payload["onboarded_repositories_with_gaps"][0]["endor_project"].pop("project_uuid")
+
+    errors = lint_agent_output("probe-droid", json.dumps(payload))
+
+    assert "report_scope.namespace_provenance: required when Endor project evidence is queried" in errors
+    assert "onboarded_repositories_with_gaps[0].endor_project.project_uuid: required for onboarded repositories" in errors
+    assert "onboarded_repositories_with_gaps[0].endor_monitored_branch: required for onboarded repositories" in errors
+
+
+def test_lint_accepts_probe_droid_normalized_output():
+    assert lint_agent_output("probe-droid", json.dumps(_valid_probe_droid_output())) == []
 
 
 def test_lint_rejects_unsafe_endorctl_query_recipe_shapes():
@@ -492,7 +589,7 @@ def test_lint_agent_output_cli_accepts_task_profile(tmp_path, capsys):
 
 def test_lint_accepts_minimal_structured_payloads_for_non_project_gate_agents():
     for agent_id, fields in STRUCTURED_OUTPUT_CONTRACTS.items():
-        if agent_id in {"sca-remediation", "remediation-planner"}:
+        if agent_id in {"sca-remediation", "remediation-planner", "probe-droid", "endor-troubleshooter"}:
             continue
         payload = {
             field.name: _placeholder_value(field.kind)
@@ -521,6 +618,162 @@ def _placeholder_value(kind: str):
     if kind == "integer":
         return 0
     return "fixture"
+
+
+def _resolved_project_resolution() -> dict:
+    return {
+        "status": "resolved",
+        "project_uuid": "proj-123",
+        "namespace": "auri",
+        "namespace_provenance": "current_request",
+        "repo_full_name": "endor-matt/death-star",
+        "default_branch": "main",
+        "branch_provenance": "git_remote_default_branch",
+        "traverse_attempted": True,
+    }
+
+
+def _valid_troubleshooter_output() -> dict:
+    return {
+        "troubleshooting_verdict": "PARTIAL_DIAGNOSIS",
+        "executive_summary": {
+            "issue_title": "Scan failed",
+            "impact": "No current scan result",
+            "likely_owner": "repo_admin",
+            "confidence": "MEDIUM",
+            "next_best_action": "Human-approved scan rerun",
+            "confirmation_required": True,
+        },
+        "intake_classification": {
+            "issue_lanes": ["SCAN_EXECUTION_FAILURE"],
+            "affected_product_area": "scan",
+            "affected_ecosystem": None,
+            "affected_integration_type": None,
+            "resource_selectors_used": [],
+        },
+        "issue_lanes": [],
+        "affected_resources": [],
+        "evidence_queries": [
+            _evidence_query("user_input", source="user_input", query_template_id=None)
+        ],
+        "evidence_summary": {},
+        "root_cause_hypotheses": [],
+        "recommended_actions": [
+            {
+                "action": "Review the redacted scan error and confirm whether to rerun the scan.",
+                "validation": "A later ScanResult reaches a terminal status.",
+                "confirmation_required": True,
+            }
+        ],
+        "validation_plan": [],
+        "support_escalation_packet": {
+            "include": [],
+            "redactions_applied": [],
+            "reason_to_escalate": "",
+        },
+        "data_gaps": [],
+        "future_action_contracts": [
+            {
+                "action": "Run endorctl scan after user approval.",
+                "owner": "repo_admin",
+                "reason": "Need fresh scan evidence.",
+                "expected_effect": "New ScanResult.",
+                "confirmation_required": True,
+                "validation": "Check ScanResult status.",
+            }
+        ],
+        "future_scope": [],
+    }
+
+
+def _valid_probe_droid_output() -> dict:
+    return {
+        "onboarding_verdict": "PARTIAL_COVERAGE",
+        "executive_report": {
+            "verdict": "PARTIAL_COVERAGE",
+            "headline": "One repository has onboarding gaps.",
+            "top_counts": {"github_repositories_in_scope": 1},
+            "top_blockers": ["Monitored branch mismatch."],
+            "top_actions": [],
+            "drill_down_sections": ["onboarded_repositories_with_gaps"],
+        },
+        "report_scope": {
+            "github_org": "endor-matt",
+            "repositories_requested": ["endor-matt/death-star"],
+            "mode": "single-repo",
+            "namespace": "auri",
+            "namespace_provenance": "current_request",
+            "monitored_branch_policy": "github_default_branch",
+            "sampling_mode": "none",
+            "sample_size": 0,
+            "coverage_limitations": [],
+            "v1_exclusions": [],
+        },
+        "coverage_summary": {
+            "github_repositories_in_scope": 1,
+            "github_repositories_sampled": 0,
+            "endor_projects_matched": 1,
+            "repositories_not_onboarded": 0,
+            "repositories_with_dependency_resolution_gaps": 0,
+            "repositories_with_reachability_gaps": 0,
+            "repositories_with_github_app_gaps": 1,
+            "repositories_healthy": 0,
+            "repositories_ambiguous": 0,
+            "excluded_repositories": 0,
+            "top_repeated_blockers": [],
+        },
+        "github_inventory_summary": {
+            "source": "user_input",
+            "pagination_complete": True,
+            "inventory_limit": 1,
+            "archived_count": 0,
+            "inactive_count": 0,
+            "manifest_families_seen": [],
+            "data_gaps": [],
+        },
+        "github_app_coverage": {
+            "status": "APP_INSTALLED_SELECTED_REPOS",
+            "selected_repo_count": 1,
+            "selected_project_uuids": ["proj-123"],
+            "selected_repositories": ["endor-matt/death-star"],
+            "repositories_not_selected": [],
+            "selection_mapping_gaps": [],
+            "scanner_status": "enabled",
+            "sync_errors": [],
+            "evidence": [],
+        },
+        "not_onboarded_repositories": [],
+        "onboarded_repositories_with_gaps": [
+            {
+                "repository": "endor-matt/death-star",
+                "url": "https://github.com/endor-matt/death-star",
+                "default_branch": "main",
+                "endor_project": {
+                    "matched": True,
+                    "project_uuid": "proj-123",
+                    "project_name": "endor-matt/death-star",
+                    "namespace": "auri",
+                    "match_method": "owner_repo",
+                },
+                "endor_monitored_branch": "release",
+                "statuses": ["BRANCH_MISMATCH"],
+                "evidence": [],
+            }
+        ],
+        "onboarded_healthy_repositories": [],
+        "ambiguous_matches": [],
+        "excluded_repositories": [],
+        "recommended_actions": [],
+        "confirmed_org_wide_actions": [],
+        "sampled_prescription_hypotheses": [],
+        "requires_full_inventory_validation": [],
+        "validation_plan": [],
+        "evidence_queries": [
+            _evidence_query("Project", query_template_id="project-branch-coverage")
+        ],
+        "data_gaps": [],
+        "future_scope": [],
+    }
 
 
 def _evidence_query(

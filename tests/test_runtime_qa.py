@@ -9,7 +9,14 @@ from pathlib import Path
 from conftest import repo_root
 
 sys.path.insert(0, str(repo_root() / "scripts"))
-from run_plugin_runtime_qa import build_prompt, structured_output_schema  # noqa: E402
+from run_plugin_runtime_qa import (  # noqa: E402
+    HostCommandTimeout,
+    build_prompt,
+    codex_install_freshness_errors,
+    release_candidate_gate_specs,
+    run_host_command,
+    structured_output_schema,
+)
 
 
 def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
@@ -97,6 +104,7 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "Agent task profile `selection-plan`" in claude_prompt
     assert "Use only that profile's minimal evidence" in claude_prompt
     assert "`source` must be a category" in claude_prompt
+    assert "`traverse_attempted`" in claude_prompt
     assert "Evidence query plan:" in claude_prompt
     assert "Query VersionUpgrade/UIA candidate summaries" in claude_prompt
     assert "before any selected-candidate Finding detail" in claude_prompt
@@ -159,6 +167,74 @@ def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
     assert "Use only that profile's minimal evidence" in prompt
     assert "Evidence query plan:" in prompt
     assert "Evidence query recipes:" in prompt
+
+
+def test_runtime_qa_runner_records_parallel_jobs_and_skips_resumed_passed_cases(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    fake = _fake_command(tmp_path)
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+
+    first = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "sca-remediation",
+            "--jobs",
+            "2",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    summary = _load_summary(log_root)
+    assert summary["jobs"] == 2
+    assert summary["qa_profile"] == "runtime-smoke"
+    assert len(calls.read_text(encoding="utf-8").splitlines()) == 1
+
+    log_dir = Path(summary["log_dir"])
+    second = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "sca-remediation",
+            "--resume-log-dir",
+            str(log_dir),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert "skipped previous passed" in second.stdout
+    assert len(calls.read_text(encoding="utf-8").splitlines()) == 1
 
 
 def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):
@@ -392,6 +468,36 @@ def test_runtime_qa_runner_records_timeout_without_crashing(tmp_path):
     assert "TIMEOUT after 1s" in stderr
 
 
+def test_runtime_qa_kills_child_process_group_on_timeout(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    child_pid = tmp_path / "child.pid"
+    fake = tmp_path / "spawn_child.py"
+    fake.write_text(
+        "#!/usr/bin/env python3\n"
+        "import subprocess, sys, time\n"
+        f"child = subprocess.Popen(['sleep', '30'])\n"
+        f"open({str(child_pid)!r}, 'w', encoding='utf-8').write(str(child.pid))\n"
+        "sys.stdout.write('spawned child')\n"
+        "sys.stdout.flush()\n"
+        "time.sleep(30)\n",
+        encoding="utf-8",
+    )
+    fake.chmod(0o755)
+
+    try:
+        run_host_command([str(fake)], cwd=workspace, env=os.environ.copy(), timeout=1)
+    except HostCommandTimeout:
+        pass
+    else:  # pragma: no cover - defensive
+        raise AssertionError("expected HostCommandTimeout")
+
+    pid = child_pid.read_text(encoding="utf-8").strip()
+    status = subprocess.run(["ps", "-p", pid], check=False, capture_output=True, text=True)
+
+    assert status.returncode != 0
+
+
 def test_runtime_qa_runner_requires_live_read_confirmation(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -424,6 +530,33 @@ def test_runtime_qa_runner_builds_provider_neutral_schema():
     assert schema["additionalProperties"] is False
     assert "evidence_queries" in schema["required"]
     assert schema["properties"]["uia_evidence"]["type"] == "array"
+
+
+def test_release_candidate_profile_gate_specs_include_freshness_and_validators():
+    gate_names = [name for name, _command in release_candidate_gate_specs(repo_root())]
+
+    assert "pytest" in gate_names
+    assert "guardrails" in gate_names
+    assert "provenance" in gate_names
+    assert "codex-install-freshness" in gate_names
+    assert "claude-plugin-endor-labs-agent-kit" in gate_names
+    assert "antigravity-plugin" in gate_names
+
+
+def test_codex_install_freshness_errors_detect_stale_surfaces():
+    errors = codex_install_freshness_errors(
+        "\n".join(
+            [
+                "agent:endor-sca-remediation-agent.toml: stale",
+                "skill:sca-remediation: current",
+                "plugin-cache:plugins/cache/endor-agent-kit-local/old/0.1.0: stale",
+                "plugin-config: none",
+            ]
+        )
+    )
+
+    assert "Codex installed surface is not current: agent:endor-sca-remediation-agent.toml: stale" in errors
+    assert "Codex stale plugin cache/config risk: plugin-cache:plugins/cache/endor-agent-kit-local/old/0.1.0: stale" in errors
 
 
 def _fake_command(tmp_path: Path, *, output: str | None = None, stderr: str = "") -> Path:
@@ -462,6 +595,9 @@ def _valid_sca_output() -> dict:
             "namespace": "tenant-a",
             "namespace_provenance": "current_request",
             "repo_full_name": "example/workspace",
+            "default_branch": "main",
+            "branch_provenance": "git_remote_default_branch",
+            "traverse_attempted": True,
         },
         "evidence_queries": [
             _evidence_query("VersionUpgrade", query_template_id="version-upgrade-summary"),

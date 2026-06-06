@@ -258,6 +258,14 @@ def _nullable_integer() -> dict[str, Any]:
     return {"type": ["integer", "null"]}
 
 
+def _nullable_boolean() -> dict[str, Any]:
+    return {"type": ["boolean", "null"]}
+
+
+def _nullable_object() -> dict[str, Any]:
+    return {"type": ["object", "null"], "additionalProperties": True}
+
+
 def _nullable_string_array() -> dict[str, Any]:
     return {
         "type": ["array", "null"],
@@ -265,9 +273,18 @@ def _nullable_string_array() -> dict[str, Any]:
     }
 
 
+def _nullable_object_array() -> dict[str, Any]:
+    return {
+        "type": ["array", "null"],
+        "items": _generic_object_schema(),
+    }
+
+
 def _generic_object_schema() -> dict[str, Any]:
-    return _strict_object_schema(
-        {
+    return {
+        "type": "object",
+        "additionalProperties": True,
+        "properties": {
             "id": _nullable_string(),
             "name": _nullable_string(),
             "title": _nullable_string(),
@@ -279,8 +296,8 @@ def _generic_object_schema() -> dict[str, Any]:
             "url": _nullable_string(),
             "count": _nullable_integer(),
             "notes": _nullable_string_array(),
-        }
-    )
+        },
+    }
 
 
 def _project_resolution_schema() -> dict[str, Any]:
@@ -291,7 +308,142 @@ def _project_resolution_schema() -> dict[str, Any]:
             "namespace": _nullable_string(),
             "namespace_provenance": _nullable_string(),
             "repo_full_name": _nullable_string(),
+            "repo_url": _nullable_string(),
+            "normalized_repo_full_name": _nullable_string(),
+            "default_branch": _nullable_string(),
+            "selected_branch": _nullable_string(),
+            "monitored_branch": _nullable_string(),
+            "branch_provenance": _nullable_string(),
+            "traverse_attempted": _nullable_boolean(),
+            "traverse_result": _nullable_string(),
             "attempted_selectors": _nullable_string_array(),
+        }
+    )
+
+
+def _report_scope_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "namespace": _nullable_string(),
+            "namespace_provenance": _nullable_string(),
+            "repo_full_name": _nullable_string(),
+            "repo_url": _nullable_string(),
+            "normalized_repo_full_name": _nullable_string(),
+            "default_branch": _nullable_string(),
+            "selected_branch": _nullable_string(),
+            "monitored_branch": _nullable_string(),
+            "branch_provenance": _nullable_string(),
+            "traverse_attempted": _nullable_boolean(),
+            "traverse_result": _nullable_string(),
+            "attempted_selectors": _nullable_string_array(),
+            "github_org": _nullable_string(),
+            "repositories_requested": _nullable_string_array(),
+            "mode": _nullable_string(),
+            "monitored_branch_policy": _nullable_string(),
+            "sampling_mode": _nullable_string(),
+            "sample_size": _nullable_integer(),
+            "sample_seed": _nullable_string(),
+            "sampling_basis": _nullable_string(),
+            "coverage_limitations": _nullable_string_array(),
+            "v1_exclusions": _nullable_string_array(),
+        }
+    )
+
+
+def _executive_summary_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "issue_title": _nullable_string(),
+            "impact": _nullable_string(),
+            "likely_owner": _nullable_string(),
+            "confidence": _nullable_string(),
+            "next_best_action": _nullable_string(),
+            "confirmation_required": _nullable_boolean(),
+        }
+    )
+
+
+def _intake_classification_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "issue_lanes": _nullable_string_array(),
+            "affected_product_area": _nullable_string(),
+            "affected_ecosystem": _nullable_string(),
+            "affected_integration_type": _nullable_string(),
+            "resource_selectors_used": _nullable_string_array(),
+        }
+    )
+
+
+def _support_escalation_packet_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "include": _nullable_string_array(),
+            "redactions_applied": _nullable_string_array(),
+            "reason_to_escalate": _nullable_string(),
+        }
+    )
+
+
+def _executive_report_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "verdict": _nullable_string(),
+            "headline": _nullable_string(),
+            "top_counts": _nullable_object(),
+            "top_blockers": _nullable_string_array(),
+            "top_actions": _nullable_object_array(),
+            "drill_down_sections": _nullable_string_array(),
+        }
+    )
+
+
+def _coverage_summary_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "github_repositories_in_scope": _nullable_integer(),
+            "github_repositories_sampled": _nullable_integer(),
+            "endor_projects_matched": _nullable_integer(),
+            "repositories_not_onboarded": _nullable_integer(),
+            "repositories_with_dependency_resolution_gaps": _nullable_integer(),
+            "repositories_with_reachability_gaps": _nullable_integer(),
+            "repositories_with_github_app_gaps": _nullable_integer(),
+            "repositories_healthy": _nullable_integer(),
+            "repositories_ambiguous": _nullable_integer(),
+            "excluded_repositories": _nullable_integer(),
+            "top_repeated_blockers": _nullable_string_array(),
+        }
+    )
+
+
+def _github_inventory_summary_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "source": _nullable_string(),
+            "pagination_complete": _nullable_boolean(),
+            "inventory_limit": _nullable_integer(),
+            "archived_count": _nullable_integer(),
+            "inactive_count": _nullable_integer(),
+            "manifest_families_seen": _nullable_string_array(),
+            "data_gaps": _nullable_string_array(),
+        }
+    )
+
+
+def _github_app_coverage_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "selected_repo_count": _nullable_integer(),
+            "selected_project_uuids": _nullable_string_array(),
+            "selected_repositories": _nullable_string_array(),
+            "repositories_not_selected": _nullable_string_array(),
+            "selection_mapping_gaps": _nullable_string_array(),
+            "scanner_status": _nullable_string(),
+            "sync_errors": _nullable_string_array(),
+            "evidence": _nullable_object_array(),
         }
     )
 
@@ -461,8 +613,15 @@ def _tickets_schema() -> dict[str, Any]:
 
 
 FIELD_SCHEMA_OVERRIDES = {
+    "executive_report": _executive_report_schema,
+    "executive_summary": _executive_summary_schema,
+    "intake_classification": _intake_classification_schema,
+    "coverage_summary": _coverage_summary_schema,
+    "github_inventory_summary": _github_inventory_summary_schema,
+    "github_app_coverage": _github_app_coverage_schema,
+    "support_escalation_packet": _support_escalation_packet_schema,
     "project_resolution": _project_resolution_schema,
-    "report_scope": _project_resolution_schema,
+    "report_scope": _report_scope_schema,
     "selected_remediation": _selected_remediation_schema,
     "selected_upgrade": _selected_remediation_schema,
     "dependency_delta": _generic_object_schema,
