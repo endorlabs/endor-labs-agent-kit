@@ -29,6 +29,12 @@ Check installed Endor Codex agents and skills:
 python scripts/install_codex_agents.py --status
 ```
 
+Move stale Endor Agent Kit plugin-cache copies out of Codex's active cache after user approval:
+
+```bash
+python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes
+```
+
 Install or update all bundled Endor Codex agents and skills after user approval:
 
 ```bash
@@ -185,4 +191,5 @@ approval gates.
 - Do not write project-local `.codex/agents/` or `.codex/skills/` files unless the user explicitly requests that advanced option.
 - Use provenance-gated updates: missing files may be installed; managed stale files may be updated after approval; unknown files or directories must not be overwritten.
 - Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale plugin package and start a fresh Codex thread before judging agent behavior.
+- Use `--purge-stale-plugin-cache --yes` only after user approval; it moves stale Endor Agent Kit cache directories to `${CODEX_HOME:-~/.codex}/plugins/cache-backups/`.
 - Tell the user to start a new Codex thread after installing or updating custom agents or skills.

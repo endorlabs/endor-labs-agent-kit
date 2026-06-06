@@ -225,25 +225,70 @@ def plugin_cache_status(plugin_root: Path, cache_root: Path, manifest: dict) -> 
 
 
 def report_plugin_cache_status(plugin_root: Path, home: Path) -> None:
-    cache_base = home / "plugins" / "cache"
-    manifests = sorted(cache_base.glob("**/.codex-plugin/plugin.json"))
+    records = plugin_cache_records(plugin_root, home)
     reported = False
-    for manifest_path in manifests:
-        manifest = read_json(manifest_path)
-        if not is_endor_agent_kit_manifest(manifest):
-            continue
-        cache_root = manifest_path.parents[1]
-        status = plugin_cache_status(plugin_root, cache_root, manifest)
+    for cache_root, status in records:
         print(f"plugin-cache:{relative_display(cache_root, home)}: {status}")
         if status.startswith("stale"):
             print(
                 "  warning: Codex may load stale Endor Agent Kit instructions from "
                 f"{cache_root}. Remove/reinstall that plugin package or clear the "
-                "host cache, then start a fresh Codex thread."
+                "host cache, then start a fresh Codex thread. To move this cache "
+                "out of the active cache after approval, run "
+                "`python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes`."
             )
         reported = True
     if not reported:
         print("plugin-cache: none")
+
+
+def plugin_cache_records(plugin_root: Path, home: Path) -> list[tuple[Path, str]]:
+    cache_base = home / "plugins" / "cache"
+    records: list[tuple[Path, str]] = []
+    for manifest_path in sorted(cache_base.glob("**/.codex-plugin/plugin.json")):
+        manifest = read_json(manifest_path)
+        if not is_endor_agent_kit_manifest(manifest):
+            continue
+        cache_root = manifest_path.parents[1]
+        records.append((cache_root, plugin_cache_status(plugin_root, cache_root, manifest)))
+    return records
+
+
+def cache_backup_path(home: Path, cache_root: Path) -> Path:
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    try:
+        relative = cache_root.relative_to(home / "plugins" / "cache")
+    except ValueError:
+        relative = Path(cache_root.name)
+    name = "-".join(relative.parts) + f".bak-{stamp}"
+    base = home / "plugins" / "cache-backups" / name
+    candidate = base
+    counter = 1
+    while candidate.exists():
+        candidate = base.with_name(f"{base.name}-{counter}")
+        counter += 1
+    return candidate
+
+
+def purge_stale_plugin_cache(plugin_root: Path, home: Path, *, yes: bool) -> int:
+    stale = [
+        (cache_root, status)
+        for cache_root, status in plugin_cache_records(plugin_root, home)
+        if status.startswith("stale")
+    ]
+    if not stale:
+        print("plugin-cache: no stale Endor Agent Kit caches")
+        return 0
+    for cache_root, status in stale:
+        target = cache_backup_path(home, cache_root)
+        print(f"plugin-cache:{relative_display(cache_root, home)}: {status}")
+        if yes:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(cache_root), str(target))
+            print(f"  moved stale plugin cache to {target}")
+        else:
+            print(f"  would move stale plugin cache to {target}; rerun with --yes after approval")
+    return 0
 
 
 def describe_block(kind: str, target: Path, status: str) -> str:
@@ -257,6 +302,8 @@ def describe_block(kind: str, target: Path, status: str) -> str:
 def run(args: argparse.Namespace) -> int:
     plugin_root = Path(__file__).resolve().parents[1]
     home = codex_home(args.codex_home)
+    if args.purge_stale_plugin_cache:
+        return purge_stale_plugin_cache(plugin_root, home, yes=args.yes)
     items = bundled_items(
         plugin_root,
         home,
@@ -318,13 +365,14 @@ def main(argv: list[str] | None = None) -> int:
     action.add_argument("--status", action="store_true", help="Report installed agent and skill status")
     action.add_argument("--install", action="store_true", help="Install or update bundled agents and skills")
     action.add_argument("--uninstall", action="store_true", help="Remove managed installed agents and skills")
+    action.add_argument("--purge-stale-plugin-cache", action="store_true", help="Move stale Endor Agent Kit plugin-cache directories to cache-backups")
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--agents-only", action="store_true", help="Limit action to bundled Codex custom agents")
     scope.add_argument("--skills-only", action="store_true", help="Limit action to bundled Codex skills")
     parser.add_argument("--codex-home", help="Override CODEX_HOME")
     parser.add_argument("--yes", action="store_true", help="Apply install/update/uninstall actions")
     args = parser.parse_args(argv)
-    if not (args.status or args.install or args.uninstall):
+    if not (args.status or args.install or args.uninstall or args.purge_stale_plugin_cache):
         args.status = True
     return run(args)
 
