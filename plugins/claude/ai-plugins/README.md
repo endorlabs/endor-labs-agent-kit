@@ -16,6 +16,8 @@ Endor Labs Agent Kit repository.
 | Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |
 | Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |
 
+Content releases require a package version bump. If a host still shows old prompt content after reinstalling the same version, remove or reinstall the plugin, clear the host cache when supported, and start a fresh host session.
+
 This package is host-specific for Claude Code. Use the root README when choosing between hosts.
 
 ## Install And Upgrade Notice
@@ -52,6 +54,9 @@ From the Agent Kit repository root:
 
 Start a new Claude Code session or run `/reload-plugins` after installing
 or reinstalling the plugin.
+If Claude Code still shows stale same-version content, uninstall and
+reinstall the plugin id, run `/reload-plugins`, and start a new Claude
+Code session so host caches reload the generated agents and setup skill.
 
 ## Set Up This Machine
 

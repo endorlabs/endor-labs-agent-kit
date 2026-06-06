@@ -21,6 +21,10 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Outputs
 
 - `summary` (string, required): Concise result summary.
+- `project_resolution` (object, required): Project resolution status, namespace provenance, query attempts, and repository selector evidence.
+- `evidence_queries` (list[object], required): Read-only Endor query attempts, status, and missing lanes.
+- `remediation_options` (list[object], required): Verified Endor Finding and VersionUpgrade/UIA remediation options, or empty when evidence is unavailable.
+- `selected_remediation` (object, required): Selected remediation option, or null when evidence is insufficient.
 - `data_gaps` (list[string], required): Missing Endor, source, or runtime signals.
 
 ## Data Gaps
