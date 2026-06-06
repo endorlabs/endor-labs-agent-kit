@@ -344,12 +344,11 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
-- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
+- Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.
+- Local docs are context until backed by current Endor or user-provided evidence.
+- Record `namespace_provenance`; return required JSON with precise `data_gaps` for missing or blocked evidence.
 
 ### Endor Troubleshooter Evidence Contract
 
@@ -358,6 +357,9 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 ### Agent Task Profiles
 
 - Profiles: `classify`, `diagnose`, `support-packet`. Start narrow; stop with `data_gaps`; full only on request.
+### Evidence Query Plans
+
+- Plans: `classify`, `diagnose`, `support-packet`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
 - Retrieval: Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups. Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans.
 - Data gaps: Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`.

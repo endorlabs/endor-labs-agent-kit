@@ -59,12 +59,19 @@ REQUIRED_EVIDENCE_QUERY_PLAN_FIELDS = (
     "data_gaps",
 )
 EVIDENCE_GATE_RULES = (
-    "Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.",
-    "Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.",
+    "Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.",
+    "Never dump or `cat` Endor config files; extract only the namespace key.",
     "Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.",
-    "Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.",
-    "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.",
-    "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.",
+    "Treat local docs and repository files as context until current Endor or user-provided evidence backs them.",
+    "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.",
+    "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.",
+)
+COMPACT_EVIDENCE_GATE_RULES = (
+    "Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.",
+    "Never dump or `cat` Endor config files; extract only the namespace key.",
+    "Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.",
+    "Local docs are context until backed by current Endor or user-provided evidence.",
+    "Record `namespace_provenance`; return required JSON with precise `data_gaps` for missing or blocked evidence.",
 )
 
 
@@ -259,7 +266,8 @@ def render_knowledge_pack_section(
         for rule in pack.global_rules:
             lines.append(f"- {rule.title}: {rule.guidance}")
     lines.extend(["", "### Evidence Gate Contract", ""])
-    lines.extend(f"- {rule}" for rule in EVIDENCE_GATE_RULES)
+    gate_rules = COMPACT_EVIDENCE_GATE_RULES if compact else EVIDENCE_GATE_RULES
+    lines.extend(f"- {rule}" for rule in gate_rules)
 
     workflow = pack.workflow_for(agent_id)
     if workflow is not None:
@@ -286,12 +294,14 @@ def render_knowledge_pack_section(
         if workflow.evidence_query_plans:
             lines.extend(["### Evidence Query Plans", ""])
             if compact:
-                for plan in workflow.evidence_query_plans:
+                profiles = ", ".join(f"`{plan.profile_id}`" for plan in workflow.evidence_query_plans)
+                lines.append(
+                    f"- Plans: {profiles}. Exact/ranked evidence first; selected detail only; "
+                    "skipped lanes -> `data_gaps`."
+                )
+                if _workflow_uses_sca_upgrade_plan(workflow):
                     lines.append(
-                        f"- `{plan.profile_id}`: {plan.objective} "
-                        f"Order: {_compact_order(plan.query_order)} "
-                        f"Avoid: {_compact_list(plan.avoid)}. "
-                        "Skip blocked lanes with precise `data_gaps`."
+                        "- SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory."
                     )
             else:
                 for plan in workflow.evidence_query_plans:
@@ -660,6 +670,11 @@ def _compact_list(items: tuple[str, ...]) -> str:
     if not items:
         return "nothing extra"
     return "; ".join(items)
+
+
+def _workflow_uses_sca_upgrade_plan(workflow: KnowledgeWorkflow) -> bool:
+    resource_names = {resource.name.lower() for resource in workflow.resources}
+    return "finding" in resource_names and "versionupgrade" in resource_names
 
 
 def _validate_sca_query_order(

@@ -90,8 +90,8 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 ## Workflow
 
 1. Resolve the project and namespace from runtime repository adapter, user-supplied selectors, and Endor project metadata.
-2. Query main-context SCA vulnerability findings for the resolved project unless the user explicitly requested PR/CI-run or all-context evidence. Preserve context type, source ref, severity, finding category, finding tags, reachability, exploitability, direct/transitive signal, package name/version, affected manifests, package UUID, dependency UUID, fix availability, CVE/GHSA IDs, finding UUIDs, and any VersionUpgrade/UIA `vuln_finding_info.fixed_findings` entries.
-3. Group findings by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
+2. Follow the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection-plan gates, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion; fetch Finding detail only for selected-candidate advisory mapping, PR/MR body detail, or a required count/data_gaps reconciliation. For evidence-check gates, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
+3. Group verified evidence by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
 4. Query VersionUpgrade/UIA evidence before calling any remediation low-risk, safe, or best. A high finding count alone is not enough.
 5. Select the first remediation candidate using this order:
    - reachable or exploited critical/high findings with a fix;
@@ -469,12 +469,12 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
 ### SCA Remediation Evidence Contract
 
@@ -506,11 +506,37 @@ Select at most one UIA-backed remediation candidate and stop before mutation.
 - Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
 - Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`.
 
+### Evidence Query Plans
+
+#### `resolve-scope` - Resolve Scope Query Plan
+
+Prove namespace and project identity only; do not fetch vulnerability or upgrade inventories.
+- Query order: 1. Read current repository root, branch, remote URL, and user-provided selectors. 2. Resolve namespace from the current request before environment or default config key extraction. 3. Query Project by repository full name or git selector with a tight field mask, retrying traversal only for the same proven namespace.
+- Avoid: Do not query Finding, VersionUpgrade, PackageVersion, or dependency resources unless scope is already supplied and requested. Do not ask for a project UUID as the default path or reuse one from memory.
+- Stop after: Stop when project_resolution.status and namespace_provenance are known or a precise lookup data_gaps entry explains the blocker.
+- Data gaps: Record missing namespace, ambiguous repository selectors, project lookup failures, traversal misses, and host-blocked Endor access in data_gaps.
+
+#### `evidence-check` - Evidence Availability Query Plan
+
+Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without selecting a remediation.
+- Query order: 1. Resolve namespace and project first. 2. Query a narrow main-context Finding availability view with package, severity, and fixability fields only. 3. Query VersionUpgrade/UIA availability with rank, risk, findings fixed, findings introduced, CIA status, and manifest fields.
+- Avoid: Do not inspect local source files, fetch every finding body, or prepare branch names. Do not turn local README or dependency files into Endor finding counts.
+- Stop after: Stop after availability and counts are known or blocked; do not choose a remediation candidate.
+- Data gaps: Record unavailable Finding or VersionUpgrade/UIA lanes, stale context scope, and any missing namespace or project evidence in data_gaps.
+
+#### `selection-plan` - Selection Plan Query Plan
+
+Select at most one UIA-backed candidate by narrowing through VersionUpgrade before detailed Finding expansion.
+- Query order: 1. Resolve namespace, project, repository provenance, and dirty worktree state first. 2. Query VersionUpgrade/UIA candidate summaries with tight fields for worth_it, is_best, upgrade risk, findings fixed, findings introduced, CIA status, direct package, and manifest files. 3. Fetch detailed VersionUpgrade/UIA evidence only for the selected candidate. 4. Inspect only the selected package manifests and source usage needed for risk_decision.source_usage_summary. 5. Fetch Finding detail only for selected-candidate advisory mapping, PR body detail, or a required data_gaps reconciliation.
+- Avoid: Do not enumerate broad Finding inventories before VersionUpgrade narrowing. Do not fetch full advisory/finding lists when the current gate is only selecting or blocking one candidate. Do not edit files, create branches, run dependency-manager mutations, or open change requests without approval.
+- Stop after: Stop after one candidate is selected, blocked, or rejected with risk_decision.status and validation requirements.
+- Data gaps: Record skipped broad Finding detail, missing introduced-finding identity, missing advisory mapping, dirty worktree blockers, and unavailable UIA/CIA evidence in data_gaps.
+
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `Finding`: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
 - `VersionUpgrade`: Verify UIA/CIA upgrade evidence before making low-risk or compatibility claims. Fields: `uuid`, `meta.parent_uuid`, `spec.upgrade_info`, `spec.upgrade_impact`.
-- Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. 2. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path. 3. Query `Finding` with `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for PR, CI, or all-context findings. 4. Query `VersionUpgrade` for each candidate upgrade before labeling risk or choosing the first remediation branch.
+- Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. 2. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path. 3. For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion. 4. Query narrow main-context Finding availability for evidence checks, and fetch Finding detail only for selected-candidate advisory mapping, PR body detail, or count reconciliation.
 - Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output. Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object. For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
 

@@ -1024,12 +1024,12 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
 ### Probe Droid Evidence Contract
 
@@ -1060,6 +1060,32 @@ Produce safe human-action recommendations for selected onboarding gaps.
 - Minimal evidence: Repository classification, Endor Project match if any, and minimal scan profile/package-manager evidence for selected repositories.
 - Stop when: Each selected gap has a human action or an explicit data_gaps blocker. Do not create scans, edit scan profiles, change GitHub App selection, or write repository files.
 - Output focus: Return recommended_actions, confirmed_org_wide_actions when verified, validation_plan, and data_gaps.
+
+### Evidence Query Plans
+
+#### `resolve-scope` - Onboarding Scope Query Plan
+
+Resolve the GitHub inventory and Endor namespace/project scope before comparing coverage.
+- Query order: 1. Read user-provided org/repo selectors and current repository remote when available. 2. Resolve namespace provenance and Endor Project selectors. 3. Query only repository/project identity and monitored-branch metadata needed for scope.
+- Avoid: Do not scan repositories, clone missing repos, or mutate GitHub or Endor settings.
+- Stop after: Stop after GitHub and Endor scope are resolved or blocked.
+- Data gaps: Record missing GitHub org access, missing namespace, unresolved project selectors, and unavailable monitored-branch evidence in data_gaps.
+
+#### `evidence-check` - Onboarding Evidence Query Plan
+
+Check bounded onboarding coverage evidence without prescribing changes yet.
+- Query order: 1. Resolve GitHub repository list or selected repositories first. 2. Query Endor Project records and monitored branch evidence for only those repositories. 3. Compare repository default branches, Endor monitored branches, and required setup files.
+- Avoid: Do not enumerate unrelated organizations or all tenant projects unless the user selected that inventory. Do not run scans or update repo settings.
+- Stop after: Stop after each selected repository is covered, missing, ambiguous, or blocked.
+- Data gaps: Record missing GitHub permissions, missing Endor project records, unknown default branches, and unavailable branch-monitoring evidence in data_gaps.
+
+#### `prescribe-actions` - Onboarding Action Query Plan
+
+Prescribe read-only onboarding fixes from verified coverage gaps.
+- Query order: 1. Start from completed coverage evidence for selected repositories. 2. Fetch only missing setup-file or branch metadata needed to explain each gap. 3. Group actions by repository, branch, Endor project, and owner handoff.
+- Avoid: Do not create GitHub branches, edit files, install apps, or mutate Endor project settings.
+- Stop after: Stop after recommended actions are tied to verified coverage evidence or data_gaps.
+- Data gaps: Record unverified owner, unknown branch protection, missing setup-file evidence, and unavailable project metadata in data_gaps.
 
 - Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`.
 - `Project`: Map repositories to Endor projects and preserve parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.

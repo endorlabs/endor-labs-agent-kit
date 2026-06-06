@@ -210,12 +210,12 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
 ### AI SAST Triage Evidence Contract
 
@@ -246,6 +246,32 @@ Decide whether to patch, request approval, or block based on verified AI SAST an
 - Minimal evidence: AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, source file at pinned ref, and sibling-file context.
 - Stop when: A TRUE_POSITIVE, FALSE_POSITIVE, ACCEPT_RISK, or insufficient-evidence verdict is recorded. Do not open PRs or create policies without explicit approval.
 - Output focus: Return verdicts, patch plan or exception lane, validation plan, change_requests, and data_gaps.
+
+### Evidence Query Plans
+
+#### `resolve-scope` - AI SAST Scope Query Plan
+
+Resolve namespace, project, finding selector, and source ref before reading finding bodies.
+- Query order: 1. Read user-provided finding UUID, repository identity, branch/ref, and namespace provenance. 2. Resolve Project by scoped repository selector when a project is not already proven. 3. If a finding UUID is provided, get that Finding by UUID and confirm project_uuid, context.type, and source_code_version.ref.
+- Avoid: Do not list broad AI SAST findings when the user supplied a specific finding UUID. Do not mix CI/PR finding evidence into main-context counts unless requested.
+- Stop after: Stop when finding scope is resolved or a data_gaps entry explains which selector is missing.
+- Data gaps: Record missing namespace, missing finding UUID or selector, unresolved project, and source ref mismatch in data_gaps.
+
+#### `evidence-check` - AI SAST Evidence Query Plan
+
+Confirm AI SAST evidence and pinned source context without generating a patch.
+- Query order: 1. Resolve project and namespace first. 2. Get the selected Finding by UUID, or list only AI SAST findings for the resolved project with tight fields. 3. Extract classification, severity, verification scorecard, data-flow anchors, exploit reproduction, and remediation guidance from the selected finding. 4. Verify local source file and pinned commit/ref only for the selected finding path.
+- Avoid: Do not fetch unrelated SAST findings or inspect the whole repository. Do not create exception policies, branches, or source edits.
+- Stop after: Stop after selected finding evidence and source context are available or blocked.
+- Data gaps: Record missing finding body, missing exploit/remediation sections, source ref mismatch, unavailable file, and host-blocked Endor reads in data_gaps.
+
+#### `selection-plan` - AI SAST Selection Query Plan
+
+Choose one actionable AI SAST finding and produce a read-only triage/remediation plan.
+- Query order: 1. Resolve namespace, project, and requested finding selector. 2. Get or narrowly list AI SAST findings with severity, classification, source path, source ref, and finding UUID. 3. Fetch and parse detail only for the selected finding. 4. Inspect only the selected source file, sibling control files, and referenced data-flow anchors.
+- Avoid: Do not generate diffs or exception policies unless the user explicitly approves that lane. Do not use broad repository search beyond the selected finding's anchors unless data_gaps require it.
+- Stop after: Stop after one finding has a verified triage decision, patch plan or exception path, and validation requirements.
+- Data gaps: Record missing selected finding evidence, missing source ref, unavailable local files, and unverified exception approval in data_gaps.
 
 - Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`.
 - `Project`: Resolve the Endor project and repository identity from namespace-scoped metadata. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
