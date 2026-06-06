@@ -309,8 +309,8 @@ Attach Endor risk evidence only to discovered repository dependencies.
 - Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
-- Template: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
-- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.version`
+- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
+- Fields: `uuid`, `meta.name`
 - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
 
 #### `selected-package-finding-evidence` (evidence-check)

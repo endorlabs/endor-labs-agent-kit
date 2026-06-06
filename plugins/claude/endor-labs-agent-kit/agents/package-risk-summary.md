@@ -147,7 +147,7 @@ Summarize one explicit package version's risk posture without turning unavailabl
 - Plans: `explain`, `evidence-check`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
-- `package-version-exact`/explain: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
+- `package-version-exact`/explain: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
 
 ## Structured Output Contract
 
@@ -169,6 +169,16 @@ commands. The only allowed `endorctl api create` form is the
 `QuerySimilarPackages` query-service call shown below; Endor uses the same
 CreateQuerySimilarPackages service as a read-only lookup and does not persist a
 customer resource.
+
+## Fast Path: Exact PackageVersion Lookup
+
+For exact package coordinates, query package-level `oss` evidence before MCP or
+project discovery: `endorctl api list -r PackageVersion -n oss --filter
+'meta.name=="<prefix>://<package_name>@<version>"' --field-mask
+"uuid,meta.name" -o json`. Use the package URL prefix map from the Knowledge
+Pack. For `evidence-check`, stop after this lookup unless the user explicitly
+requested tenant project scope; on empty, denied, unavailable, or non-JSON
+results, return `UNKNOWN` with `data_gaps`.
 
 ## Step 1: MCP Risk Flags
 

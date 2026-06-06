@@ -192,7 +192,7 @@ system: |
 
   Summarize risk for one explicit package coordinate from available evidence only.
   - Use when: The user asks for a concise risk posture for a package version. Missing package coordinate details would make tenant lookups ambiguous.
-  - Minimal evidence: Ecosystem, package name, version, and namespace provenance for tenant-scoped evidence when available.
+  - Minimal evidence: Ecosystem, package name, version, and the package-level `oss` lookup path for exact package evidence.
   - Stop when: Package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps. Do not inspect repository manifests or run scans.
   - Output focus: Return risk_posture, findings, strengths, next_checks, summary, evidence_queries, and data_gaps.
 
@@ -209,7 +209,7 @@ system: |
   #### `explain` - Package Risk Summary Query Plan
 
   Summarize risk for one named package/version without whole-project expansion.
-  - Query order: 1. Resolve package coordinate, version, ecosystem, namespace, and optional repository context. 2. Query PackageVersion or package metadata for the named package/version. 3. Query scoped Finding or available Endor risk evidence only for that package when project context is present.
+  - Query order: 1. Resolve package coordinate, version, ecosystem, and package URL prefix. 2. Query PackageVersion in `oss` by exact `meta.name` for the named package/version. 3. Query scoped Finding or available Endor risk evidence only for that package when project context is present.
   - Avoid: Do not list all repository dependencies or all tenant package versions.
   - Stop after: Stop after the package risk summary has verified risk signals and caveats.
   - Data gaps: Record missing package version, unavailable package metadata, missing project scope, and absent finding evidence in data_gaps.
@@ -217,7 +217,7 @@ system: |
   #### `evidence-check` - Package Risk Evidence Query Plan
 
   Verify whether package-specific Endor evidence is available.
-  - Query order: 1. Resolve namespace and package coordinate first. 2. Query only exact package/version metadata. 3. If repository scope is supplied, query narrow package-linked Finding evidence.
+  - Query order: 1. Resolve package coordinate, version, ecosystem, and package URL prefix first. 2. Query only exact `oss` PackageVersion metadata by `meta.name`. 3. Query project-scoped Finding evidence only when the user explicitly requested project scope.
   - Avoid: Do not infer risk from local lockfiles alone or from unrelated package names.
   - Stop after: Stop after package evidence is available, unavailable, or ambiguous.
   - Data gaps: Record ambiguous coordinates, missing namespace, absent PackageVersion, and unavailable project-scoped Findings in data_gaps.
@@ -229,8 +229,8 @@ system: |
   - Canonical: `package-version-exact`
   - Resource: `PackageVersion`
   - Purpose: Fetch exact package-version risk metadata for a named package only.
-  - Template: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
-  - Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.version`
+  - Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
+  - Fields: `uuid`, `meta.name`
   - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
 
   #### `package-finding-evidence` (explain)
@@ -247,8 +247,8 @@ system: |
   - Canonical: `package-version-exact`
   - Resource: `PackageVersion`
   - Purpose: Fetch exact package-version risk metadata for a named package only.
-  - Template: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
-  - Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.version`
+  - Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
+  - Fields: `uuid`, `meta.name`
   - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
 
   #### `package-finding-evidence-check` (evidence-check)
@@ -264,7 +264,7 @@ system: |
   - `PackageVersion`: Resolve the exact package-version UUID for package-level enrichment. Fields: `uuid`, `meta.name`.
   - `Metric`: Read scorecard and license signals for the exact package version. Fields: `spec.metric_values`.
   - `Vulnerability`: Enrich exact vulnerability identifiers when the host exposes Endor vulnerability evidence. Fields: `uuid`, `spec`.
-  - Retrieval order: 1. Require ecosystem, package name, and version before risk posture selection. 2. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions. 3. Use host-exposed Endor MCP tools only when available; otherwise report unavailable Endor risk evidence in data_gaps. 4. Resolve exact PackageVersion evidence before score, license, and package-health claims.
+  - Retrieval order: 1. Require ecosystem, package name, and version before risk posture selection. 2. Map ecosystems to PackageVersion URL prefixes: `pypi/python/pip -> pypi`, `maven/java -> mvn`, `npm -> npm`, `go -> go`, `cargo/rust -> cargo`, `gem/rubygems/ruby -> gem`, `nuget -> nuget`, `packagist/composer/php -> packagist`. 3. Use package-level `oss` PackageVersion evidence for exact package/version lookups; resolve namespace provenance only for explicitly requested tenant-scoped Endor lookups. 4. Use host-exposed Endor MCP tools only when available; otherwise report unavailable Endor risk evidence in data_gaps. 5. Resolve exact PackageVersion evidence before score, license, and package-health claims.
   - Fallbacks: If only partial vulnerability evidence is available, summarize that evidence and label the posture as evidence-limited. If no usable Endor evidence is available, return `UNKNOWN` with precise missing signals.
   - Data gaps: Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`. Preserve exact package coordinate and evidence source in the final output. Treat missing host-exposed MCP tools as immediate data gaps; do not repeatedly search for or wait on unavailable tools. When evidence is missing, ask for existing package/version, finding, scan-result, project-scope, or user-provided evidence; do not recommend running a new Endor scan as the default next check.
 
@@ -323,6 +323,16 @@ system: |
   `QuerySimilarPackages` query-service call shown below; Endor uses the same
   CreateQuerySimilarPackages service as a read-only lookup and does not persist a
   customer resource.
+
+  ## Fast Path: Exact PackageVersion Lookup
+
+  For exact package coordinates, query package-level `oss` evidence before MCP or
+  project discovery: `endorctl api list -r PackageVersion -n oss --filter
+  'meta.name=="<prefix>://<package_name>@<version>"' --field-mask
+  "uuid,meta.name" -o json`. Use the package URL prefix map from the Knowledge
+  Pack. For `evidence-check`, stop after this lookup unless the user explicitly
+  requested tenant project scope; on empty, denied, unavailable, or non-JSON
+  results, return `UNKNOWN` with `data_gaps`.
 
   ## Step 1: MCP Risk Flags
 
