@@ -290,9 +290,9 @@
               "sha256": "5bf7f45a100e1a38610134b2ede30e0bc13bd7af9f80900aeec2819121e05e76"
             },
             {
-              "bytes": 49985,
+              "bytes": 50147,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "b84715f86f20600a10a1909f4a5b517602c8574f9626181bf5ccbd3fbf0ae9cf"
+              "sha256": "e92c950841a31dad46bd7c6f70a9ae5f7e23cd753ed4f39c6c7ffd378e097467"
             }
           ],
           "id": "enterprise-edition",
@@ -795,9 +795,9 @@
               "sha256": "f7c0045a2fab6b28e5dcdeb8b16c806825b1da4a1f9de71354e5b7ca56d6f2bc"
             },
             {
-              "bytes": 50769,
+              "bytes": 50931,
               "path": "codex/sca-remediation/SKILL.md",
-              "sha256": "f16dc1e267ed8e4f8f98b6d85c3334bfda460d9bd3da43c80b1370e38b2cf2d5"
+              "sha256": "b43a0b4490975e9c9af83d22e2f1bb90bd2f5be7e2d604912aa43b52ccf81063"
             },
             {
               "bytes": 6811,
@@ -980,9 +980,9 @@
               "sha256": "d33a530f0c953368c3b59e25bca8d667f11157e3f98e0f99a96f5a9c2e2d713b"
             },
             {
-              "bytes": 50785,
+              "bytes": 50947,
               "path": "gemini/sca-remediation/SKILL.md",
-              "sha256": "c6824d7a897c2e95c92607a9f5a400143ce00cf798a48d4ebd1b06304488c345"
+              "sha256": "d8f98bece7cf30f829669dd107446cbbafad997262878bc06227d3e2f6ef6879"
             },
             {
               "bytes": 6811,
@@ -1000,9 +1000,9 @@
               "sha256": "5bf7f45a100e1a38610134b2ede30e0bc13bd7af9f80900aeec2819121e05e76"
             },
             {
-              "bytes": 51080,
+              "bytes": 51242,
               "path": "gemini/sca-remediation/sca-remediation.md",
-              "sha256": "543eecb876c73dd9c77152b868daabc5cd09832edaada297bc38e49e07bdc17d"
+              "sha256": "efc6e43e963abb44718cb4899adc618a6a4764f61584d6d7c5d67cc6dc4bd51b"
             }
           ],
           "id": "gemini-cli",
@@ -1375,9 +1375,9 @@
               "sha256": "bc7317689f263a0115cba4ad0cd7b5842c236dddf38f14836548c26972b8d127"
             },
             {
-              "bytes": 50871,
+              "bytes": 51033,
               "path": "portable/sca-remediation/agent.md",
-              "sha256": "a2a47c3a246ed9a657812a954c09df87bd72631d385f2c90e1d236d9781e4e61"
+              "sha256": "02b4b012ca2caee337841c66fc616bfa433053004b4741a19e739644bfcdbaf6"
             },
             {
               "bytes": 9851,
@@ -1526,9 +1526,9 @@
           "sha256": "5dd71d18f7ec264471b0fff0a8e7b8a12f586167e832c55acb392372e3d0550b"
         },
         {
-          "bytes": 33464,
+          "bytes": 33626,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "07b675c01260c2fc17c8e81887f5f9167086e5b51bf4a9eb28946cb4251afa66"
+          "sha256": "181149a228bc5429a6e73ec94e8195989f1a8d50fbfd62f0da91a23847148cce"
         },
         {
           "bytes": 303,
@@ -1561,9 +1561,9 @@
           "sha256": "409f2405ce4e8fe421ca46aaceb62fcc09c3fde2beb259d6ba8642a83f3a1fe2"
         },
         {
-          "bytes": 33164,
+          "bytes": 33326,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "9536e9f1f45bacbb2f6e04e6326c376faabba09d660e499beb2a41f31a32f1e2"
+          "sha256": "59e29c53ce9537ca4d16cbf4d5bab72788a23465af6bc740e3a2c9159685f6da"
         },
         {
           "bytes": 2684,
@@ -1631,9 +1631,9 @@
           "sha256": "b1b07ee95420dcb6f0769795d542f72b13c1aeeffff6ff87dfdeafa8e2a9fe0e"
         },
         {
-          "bytes": 32464,
+          "bytes": 32626,
           "path": "plugins/claude/ai-plugins/agents/sca-remediation.md",
-          "sha256": "876b7328f5890e8fe50137c7a29cfd138c1c73c23e4766bbd183ca4b5d627bed"
+          "sha256": "5cc796c138fba7c67a718dfb02c5da2905302229ac49d62aff900845f156ecdd"
         },
         {
           "bytes": 11195,
@@ -1738,9 +1738,9 @@
           "sha256": "b1b07ee95420dcb6f0769795d542f72b13c1aeeffff6ff87dfdeafa8e2a9fe0e"
         },
         {
-          "bytes": 32464,
+          "bytes": 32626,
           "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "876b7328f5890e8fe50137c7a29cfd138c1c73c23e4766bbd183ca4b5d627bed"
+          "sha256": "5cc796c138fba7c67a718dfb02c5da2905302229ac49d62aff900845f156ecdd"
         },
         {
           "bytes": 11195,
@@ -1825,9 +1825,9 @@
           "sha256": "159a43ea4e0bfafde4ef1f6e0621aa35c000e4b7f40eb851efce60428ac0bbd7"
         },
         {
-          "bytes": 34037,
+          "bytes": 34203,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-sca-remediation-agent.toml",
-          "sha256": "ae6b89be29e04bbc22d9753b22fa21a10e0c265a097b93c511262db5fc68c0a4"
+          "sha256": "43d21b3e7be8622621c22c61a8fe26dfe8a640bf5e8ad236385499e7cb5c4454"
         },
         {
           "bytes": 20138,
@@ -1865,9 +1865,9 @@
           "sha256": "711faa21f4022cc9ec2e246b86e179c8e0f0f0a59ba353e5d55dd3cf8ee50073"
         },
         {
-          "bytes": 32841,
+          "bytes": 33003,
           "path": "plugins/codex/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "e491af8cec831ff988f71fb25d5c4762681cbfdb05200f4a4c70cda362f9df97"
+          "sha256": "7756a6816f55ee0be647ddd561554c47d7bd2353a23aaf5f94837e1433416b76"
         },
         {
           "bytes": 419,
@@ -1926,9 +1926,9 @@
           "sha256": "b7a2a991b2af235cddac7b7838b0873c54d28ec49bcd5c0ecf4841fa79bef094"
         },
         {
-          "bytes": 33286,
+          "bytes": 33448,
           "path": "agents/endor-sca-remediation-agent.md",
-          "sha256": "3df1cfaf509bba6045629b510dd018385a74e77f329841286fdd512aeae45b6c"
+          "sha256": "0734aab3e6b3cbf211b68983a39783baf4fc5f2ffe1ee734d83416aac14459de"
         },
         {
           "bytes": 19355,
@@ -1981,9 +1981,9 @@
           "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
         },
         {
-          "bytes": 32990,
+          "bytes": 33152,
           "path": "skills/sca-remediation/SKILL.md",
-          "sha256": "b47454db28906ecb04daf1882f43b927bc1db43f2fce17702fe75621ee3d6bd6"
+          "sha256": "0fed18338df95354af71fcc9777c3e88f38d83b3ef93cb432bcfce332bc6ec32"
         },
         {
           "bytes": 6811,
@@ -2062,9 +2062,9 @@
           "sha256": "b4f710b517dc3ed1e75d26db0241f3fcc13d4eaf993ab965f35a9362d57b15ff"
         },
         {
-          "bytes": 32886,
+          "bytes": 33048,
           "path": "cursor-sdk/agents/endor-sca-remediation-agent.md",
-          "sha256": "5c524f22d8ba419ec6404cef859762e7b68a3f5c9c79c78763b3a2031f7288eb"
+          "sha256": "6b22b2296f2f4432e759461c6faa383920ada514d2df35f88a943d64a4d9b99d"
         },
         {
           "bytes": 9834,
@@ -2127,9 +2127,9 @@
           "sha256": "acf699b6fdd875196c86c6aeea5fad8d05bca7eddd03d49258420f8d836a635b"
         },
         {
-          "bytes": 33155,
+          "bytes": 33317,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "370cae0b48e01beeeca18df32f07ec46f1f28e91ccaa42c8223cc7aa44d5a634"
+          "sha256": "fbff861547c7603d3026364f64cc720501ebdef2ff134ef060ffadd73a68ebf5"
         },
         {
           "bytes": 303,
@@ -2162,9 +2162,9 @@
           "sha256": "6d960394d152eb2ca92f95ca3dbe745445cbe1147829cdd8686440eb43741a37"
         },
         {
-          "bytes": 32860,
+          "bytes": 33022,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "87c5bd0657d46d3e484c6bbe31442b28048cf9480d25819c027aa7fbb048ee9e"
+          "sha256": "297e0284668e1d7e22e342b80db683f0742f5b2c5f6f812c9f0849302f453d43"
         },
         {
           "bytes": 2684,

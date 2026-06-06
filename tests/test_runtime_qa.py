@@ -74,6 +74,8 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     claude_prompt = build_prompt(host="claude", agent="sca-remediation", workspace=workspace, namespace="tenant-a")
     assert claude_argv[claude_argv.index("--agent") + 1] == "sca-remediation"
     assert claude_argv.index(claude_prompt) < claude_argv.index("--add-dir")
+    assert "blocked_needs_compatibility_analysis" in claude_prompt
+    assert "do not invent variants" in claude_prompt
     assert "exec" in argv_by_host["codex"]
     assert "--ask-for-approval" not in argv_by_host["codex"]
     codex_argv = argv_by_host["codex"]

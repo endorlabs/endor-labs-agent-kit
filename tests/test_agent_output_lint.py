@@ -44,6 +44,17 @@ Assuming the repository is https://github.com/endorlabs/death-star.
     assert "data_gaps: missing VersionUpgrade/UIA evidence gap" in errors
 
 
+def test_lint_allows_explicit_memory_non_provenance_wording():
+    output = """
+Namespace: `auri`, from your explicit prompt, not memory.
+
+Prior context applied: only procedural memory that Probe Droid is read-only and
+Agent Kit QA must use live tenant/runtime evidence. I did not use it as proof.
+"""
+
+    assert lint_agent_output("probe-droid", output) == []
+
+
 def test_lint_rejects_remediation_planner_unproven_counts_and_selection():
     output = json.dumps(
         {

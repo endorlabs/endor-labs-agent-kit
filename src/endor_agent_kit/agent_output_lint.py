@@ -53,7 +53,7 @@ def lint_agent_output(agent_id: str, text: str) -> list[str]:
         if "grep -A" in line and CONFIG_CONTEXT_RE.search(line):
             errors.append("unsafe Endor config read: grep -A around config may leak secrets")
             break
-    if MEMORY_PROVENANCE_RE.search(text):
+    if _has_invalid_memory_provenance(text):
         errors.append("invalid provenance: memory or older sessions cannot prove namespace, repository, or project scope")
     if GUESSED_REPOSITORY_RE.search(text):
         errors.append("invalid provenance: repository URLs and repo_full_name values must not be guessed")
@@ -183,6 +183,33 @@ def _uia_contains_fixed_finding_evidence(value: Any) -> bool:
                     reduction.get("fixed_count") or reduction.get("reachable_fixed_count")
                 ) > 0:
                     return True
+    return False
+
+
+def _has_invalid_memory_provenance(text: str) -> bool:
+    for match in MEMORY_PROVENANCE_RE.finditer(text):
+        snippet = text[max(0, match.start() - 80) : min(len(text), match.end() + 80)]
+        lower = snippet.lower()
+        if any(
+            phrase in lower
+            for phrase in (
+                "not memory",
+                "not from memory",
+                "not remembered",
+                "did not use",
+                "do not use",
+                "does not use",
+                "not use it",
+                "not use them",
+                "not used",
+                "cannot prove",
+                "can't prove",
+            )
+        ):
+            continue
+        if "procedural memory" in lower and "proof" in lower:
+            continue
+        return True
     return False
 
 
