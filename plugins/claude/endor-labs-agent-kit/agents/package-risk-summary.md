@@ -63,6 +63,9 @@ project-scoped read-only lookups from the parent namespace.
   continue.
 - If `data_gaps` is not empty, state that the summary is based only on
   available signals and explain what setup/account access would improve.
+- Do not recommend running a new Endor scan as the default next check. When
+  evidence is missing, ask for an existing finding, package/version record,
+  scan result, project scope, or user-provided evidence instead.
 - Do not convert the summary into an approval or rejection. If the user asks
   whether to use the package, direct them to the Dependency Decision Helper.
 
@@ -127,6 +130,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Local docs need current Endor or user evidence.
 - Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.
 - Read-only means no edits/scans/PRs/comments/writes.
+- No raw commands in final output.
 
 ### Package Risk Summary Evidence Contract
 
@@ -148,7 +152,7 @@ Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `risk_posture`, `findings`, `strengths`, `next_checks`, `summary`, `evidence_queries`, `data_gaps`
 `evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
-Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up.
+Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 

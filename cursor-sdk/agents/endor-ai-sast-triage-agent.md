@@ -173,6 +173,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Local docs need current Endor or user evidence.
 - Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.
 - Read-only means no edits/scans/PRs/comments/writes.
+- No raw commands in final output.
 
 ### AI SAST Triage Evidence Contract
 
@@ -194,7 +195,7 @@ Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `summary`, `project_resolution`, `evidence_queries`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, `data_gaps`
 `evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
-Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up.
+Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
