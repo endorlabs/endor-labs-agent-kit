@@ -200,6 +200,8 @@ def _has_invalid_memory_provenance(text: str) -> bool:
                 "not memory",
                 "not from memory",
                 "not remembered",
+                "no remembered",
+                "without remembered",
                 "did not use",
                 "do not use",
                 "does not use",

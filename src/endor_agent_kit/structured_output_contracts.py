@@ -159,16 +159,17 @@ def json_schema_for_agent(agent_id: str) -> dict[str, Any]:
     contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
     if not contract:
         raise ValueError(f"unknown structured output contract: {agent_id}")
+    properties = {
+        field.name: _json_schema_for_field(field)
+        for field in contract
+    }
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "title": f"Endor Agent Kit {agent_id} final output",
         "type": "object",
-        "additionalProperties": True,
-        "required": [field.name for field in contract if field.required],
-        "properties": {
-            field.name: _json_schema_for_kind(field.kind, nullable=field.kind == "object")
-            for field in contract
-        },
+        "additionalProperties": False,
+        "required": list(properties),
+        "properties": properties,
     }
 
 
@@ -189,34 +190,286 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
     return errors
 
 
+def _json_schema_for_field(field: StructuredOutputField) -> dict[str, Any]:
+    nullable = not field.required or field.kind == "object"
+    if field.name in FIELD_SCHEMA_OVERRIDES:
+        return _with_nullable(FIELD_SCHEMA_OVERRIDES[field.name](), nullable=nullable)
+    return _json_schema_for_kind(field.kind, nullable=nullable)
+
+
 def _json_schema_for_kind(kind: str, *, nullable: bool = False) -> dict[str, Any]:
     if kind.startswith("list["):
         item_kind = kind.removeprefix("list[").removesuffix("]")
-        return {
+        schema: dict[str, Any] = {
             "type": "array",
             "items": _json_schema_for_array_item_kind(item_kind),
         }
+        return _with_nullable(schema, nullable=nullable)
     if kind == "object":
-        schema: dict[str, Any] = {
-            "type": ["object", "null"] if nullable else "object",
-            "additionalProperties": True,
-        }
-        return schema
+        return _with_nullable(_generic_object_schema(), nullable=nullable)
     if kind == "integer":
-        return {"type": "integer"}
+        return _with_nullable({"type": "integer"}, nullable=nullable)
     if kind in {"string", "enum"}:
-        return {"type": "string"}
+        return _with_nullable({"type": "string"}, nullable=nullable)
     return {}
 
 
 def _json_schema_for_array_item_kind(kind: str) -> dict[str, Any]:
     if kind == "object":
-        return {"type": "object", "additionalProperties": True}
+        return _generic_object_schema()
     if kind in {"string", "enum"}:
         return {"type": "string"}
     if kind == "integer":
         return {"type": "integer"}
     return {}
+
+
+def _with_nullable(schema: dict[str, Any], *, nullable: bool) -> dict[str, Any]:
+    if not nullable:
+        return schema
+    result = dict(schema)
+    schema_type = result.get("type")
+    if isinstance(schema_type, str):
+        result["type"] = [schema_type, "null"]
+    return result
+
+
+def _strict_object_schema(properties: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": list(properties),
+        "properties": properties,
+    }
+
+
+def _nullable_string() -> dict[str, Any]:
+    return {"type": ["string", "null"]}
+
+
+def _nullable_integer() -> dict[str, Any]:
+    return {"type": ["integer", "null"]}
+
+
+def _nullable_string_array() -> dict[str, Any]:
+    return {
+        "type": ["array", "null"],
+        "items": {"type": "string"},
+    }
+
+
+def _generic_object_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "id": _nullable_string(),
+            "name": _nullable_string(),
+            "title": _nullable_string(),
+            "status": _nullable_string(),
+            "summary": _nullable_string(),
+            "description": _nullable_string(),
+            "source": _nullable_string(),
+            "reason": _nullable_string(),
+            "url": _nullable_string(),
+            "count": _nullable_integer(),
+            "notes": _nullable_string_array(),
+        }
+    )
+
+
+def _project_resolution_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "namespace": _nullable_string(),
+            "namespace_provenance": _nullable_string(),
+            "repo_full_name": _nullable_string(),
+            "attempted_selectors": _nullable_string_array(),
+        }
+    )
+
+
+def _selected_remediation_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "package": _nullable_string(),
+            "from_version": _nullable_string(),
+            "to_version": _nullable_string(),
+            "branch_name": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "namespace": _nullable_string(),
+            "namespace_provenance": _nullable_string(),
+            "uia_uuid": _nullable_string(),
+            "version_upgrade_uuid": _nullable_string(),
+            "upgrade_risk": _nullable_string(),
+            "risk": _nullable_string(),
+            "cia_status": _nullable_string(),
+            "cia": _nullable_string(),
+            "findings_fixed": _nullable_integer(),
+            "findings_introduced": _nullable_integer(),
+            "manifests": _nullable_string_array(),
+            "affected_manifests": _nullable_string_array(),
+        }
+    )
+
+
+def _risk_decision_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "summary": _nullable_string(),
+            "reason": _nullable_string(),
+            "source_usage_summary": _nullable_string(),
+            "validation_requirements": _nullable_string_array(),
+        }
+    )
+
+
+def _evidence_queries_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "name": _nullable_string(),
+                "resource": _nullable_string(),
+                "status": _nullable_string(),
+                "query": _nullable_string(),
+                "filter": _nullable_string(),
+                "result_count": _nullable_integer(),
+                "source": _nullable_string(),
+                "reason": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _uia_evidence_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "resource": _nullable_string(),
+                "resource_type": _nullable_string(),
+                "uuid": _nullable_string(),
+                "uia_uuid": _nullable_string(),
+                "version_upgrade_uuid": _nullable_string(),
+                "upgrade_risk": _nullable_string(),
+                "cia_status": _nullable_string(),
+                "findings_fixed": _nullable_integer(),
+                "total_findings_fixed": _nullable_integer(),
+                "findings_introduced": _nullable_integer(),
+                "total_findings_introduced": _nullable_integer(),
+                "fixed_findings": _nullable_string_array(),
+                "sample_fixed_findings": _nullable_string_array(),
+                "score_explanation": _nullable_string(),
+                "breaking_changes": _nullable_string_array(),
+            }
+        ),
+    }
+
+
+def _remediation_candidates_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "package": _nullable_string(),
+                "from_version": _nullable_string(),
+                "to_version": _nullable_string(),
+                "uia_uuid": _nullable_string(),
+                "version_upgrade_uuid": _nullable_string(),
+                "upgrade_risk": _nullable_string(),
+                "cia_status": _nullable_string(),
+                "findings_fixed": _nullable_integer(),
+                "findings_introduced": _nullable_integer(),
+                "reason": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _patch_plan_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "package": _nullable_string(),
+                "from_version": _nullable_string(),
+                "to_version": _nullable_string(),
+                "manifest": _nullable_string(),
+                "branch_name": _nullable_string(),
+                "change_type": _nullable_string(),
+                "status": _nullable_string(),
+                "reason": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _validation_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "command": _nullable_string(),
+                "status": _nullable_string(),
+                "reason": _nullable_string(),
+                "output": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _change_requests_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "status": _nullable_string(),
+                "base_branch": _nullable_string(),
+                "proposed_branch": _nullable_string(),
+                "title": _nullable_string(),
+                "body": _nullable_string(),
+                "url": _nullable_string(),
+                "reason": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _tickets_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "status": _nullable_string(),
+                "title": _nullable_string(),
+                "body": _nullable_string(),
+                "url": _nullable_string(),
+                "reason": _nullable_string(),
+            }
+        ),
+    }
+
+
+FIELD_SCHEMA_OVERRIDES = {
+    "project_resolution": _project_resolution_schema,
+    "report_scope": _project_resolution_schema,
+    "selected_remediation": _selected_remediation_schema,
+    "selected_upgrade": _selected_remediation_schema,
+    "dependency_delta": _generic_object_schema,
+    "risk_decision": _risk_decision_schema,
+    "evidence_queries": _evidence_queries_schema,
+    "uia_evidence": _uia_evidence_schema,
+    "remediation_candidates": _remediation_candidates_schema,
+    "remediation_options": _remediation_candidates_schema,
+    "upgrade_candidates": _remediation_candidates_schema,
+    "patch_plan": _patch_plan_schema,
+    "validation": _validation_schema,
+    "validation_plan": _validation_schema,
+    "change_requests": _change_requests_schema,
+    "tickets": _tickets_schema,
+}
 
 
 def _kind_errors(field: StructuredOutputField, value: Any) -> list[str]:

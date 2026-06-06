@@ -44,7 +44,7 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
     schema = json_schema_for_agent("sca-remediation")
 
     assert schema["type"] == "object"
-    assert schema["additionalProperties"] is True
+    assert schema["additionalProperties"] is False
     assert schema["required"] == list(required_fields_for("sca-remediation"))
     assert schema["properties"]["evidence_queries"]["type"] == "array"
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]

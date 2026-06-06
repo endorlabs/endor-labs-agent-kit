@@ -54,6 +54,9 @@ Namespace: `auri`, from your explicit prompt, not memory.
 
 Prior context applied: only procedural memory that Probe Droid is read-only and
 Agent Kit QA must use live tenant/runtime evidence. I did not use it as proof.
+
+Resolved the repository to a live Endor Project without remembered identifiers.
+No remembered project UUID or finding count was used.
 """
 
     assert lint_agent_output("unknown-agent", output) == []
