@@ -1,0 +1,41 @@
+agent_id: endor-troubleshooter
+title: Endor Troubleshooter Evidence Contract
+summary: Diagnose Endor scan, integration, identity, notification, and runtime issues with read-only namespace-scoped evidence and explicit support-escalation packets.
+resources:
+  - name: Project
+    purpose: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis.
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+  - name: ScanResult
+    purpose: Inspect scan lifecycle, exit code, toolchain, and failure state without creating scan log requests.
+    fields:
+      - uuid
+      - meta.name
+      - spec.exit_code
+      - spec.status
+  - name: ScanWorkflowResult
+    purpose: Connect scan workflow status to scheduler, CI, PR scan, and baseline behavior.
+    fields:
+      - uuid
+      - meta.name
+      - spec.status
+      - spec.workflow_id
+  - name: Integration
+    purpose: Inspect configured package managers, SCM credentials, identity providers, notifications, and exporters.
+    fields:
+      - uuid
+      - meta.name
+      - spec
+retrieval_steps:
+  - Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups.
+  - Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans.
+  - Query only the minimal resource lanes needed for the user-reported issue area and preserve command/error provenance.
+fallbacks:
+  - If project lookup misses, retry eligible read-only lookup with traversal before labeling `PROJECT_NOT_FOUND`.
+  - If a diagnostic lane cannot be queried, keep other lanes available and prepare a support packet with precise missing evidence.
+data_gaps:
+  - Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`.
+  - Preserve `namespace_provenance`, command attempts, issue lane, and support escalation evidence.
