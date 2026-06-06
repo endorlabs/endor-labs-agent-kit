@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "25aa16dfd794248f8548d9fd7d05cad57d69eb4433196925ac988c494ac15add"
+ENTERPRISE_EDITION_SHA256 = "bee180607e443917a5e9dd26b1eaf5ec2c9468edc28a0f7b9a6877ed6866a9e2"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -75,6 +75,7 @@ def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     assert "endorctl api list" in enterprise
     assert "data_gaps" in enterprise
     assert "## Endor Knowledge Pack" in enterprise
+    assert "## Structured Output Contract" in enterprise
     assert "Context first" in enterprise
 
 
@@ -96,6 +97,8 @@ def test_plugin_package_prompts_stay_within_compact_budgets(tmp_path):
                 "Evidence Gate Contract",
                 "Never use memory",
                 "Never dump or `cat` Endor config files",
+                "Structured Output Contract",
+                "Return exactly one parseable JSON object",
             ):
                 if required not in text:
                     errors.append(f"{relative}: missing {required!r}")
@@ -312,6 +315,7 @@ def test_codex_compiler_emits_skill_artifact(tmp_path):
     assert "Generated from Endor Agent Kit recipe `dependency-decision-helper`" in skill
     assert "## Codex Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
+    assert "## Structured Output Contract" in skill
     assert "endorctl api list" in skill
 
 
@@ -338,6 +342,7 @@ def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
     assert "Generated from Endor Agent Kit recipe `dependency-decision-helper`" in skill
     assert "## Gemini CLI Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
+    assert "## Structured Output Contract" in skill
     assert "endorctl api list" in skill
     assert "data_gaps" in skill
     assert agent_frontmatter["kind"] == "local"

@@ -144,7 +144,12 @@ def _managed_system(
     actions: tuple[ActionContract, ...],
     edition: str,
 ) -> str:
-    body = instructions_for_edition(instructions, edition, recipe_id=recipe.id)
+    body = instructions_for_edition(
+        instructions,
+        edition,
+        recipe_id=recipe.id,
+        structured_output_recipe=recipe,
+    )
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     posture = source_recipe_safety_posture(recipe)
     if edition == "developer-edition":

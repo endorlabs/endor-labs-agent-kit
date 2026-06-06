@@ -187,6 +187,14 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 - Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness. Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"` by default.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`summary`, `project_resolution`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, `data_gaps`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require or start an Endor MCP server.
 Use local source-provider credentials, git, and the target workspace to fetch pinned source context, apply generated patches, and open the requested PR/MR.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, source contents, patch application, branch pushes, or change-request URLs.

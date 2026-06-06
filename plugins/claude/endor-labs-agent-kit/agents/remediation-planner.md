@@ -125,6 +125,14 @@ Preview remediation options only from verified Endor findings and VersionUpgrade
 - Retrieval: Resolve namespace and project with provenance before reporting any finding count, remediation count, or selected option. Treat repository files, project docs, CLAUDE.md, README content, and local paths as unverified context until Endor evidence or user-provided evidence confirms them.
 - Data gaps: Record missing namespace, project resolution, Finding evidence, VersionUpgrade/UIA evidence, source-provider metadata, and host command capability in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`summary`, `project_resolution`, `evidence_queries`, `remediation_options`, `selected_remediation`, `data_gaps`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence.
 Use Bash only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
 If a signal is not available through the host, include it in `data_gaps`.

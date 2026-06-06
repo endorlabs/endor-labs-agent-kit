@@ -7,6 +7,10 @@ import re
 from typing import Any
 
 from endor_agent_kit.sca_remediation import validate_sca_gate_payload
+from endor_agent_kit.structured_output_contracts import (
+    known_structured_agent_ids,
+    validate_structured_output_payload,
+)
 
 READ_ONLY_SCAN_BLOCK_AGENTS = frozenset(
     {
@@ -20,6 +24,7 @@ READ_ONLY_SCAN_BLOCK_AGENTS = frozenset(
 )
 
 PROJECT_GATE_AGENTS = frozenset({"sca-remediation", "remediation-planner"})
+STRUCTURED_OUTPUT_AGENTS = frozenset(known_structured_agent_ids())
 
 UNSAFE_CONFIG_READ_RE = re.compile(
     r"\bcat\s+(?:~|\$HOME)/(?:\.config/endorctl/config\.yaml|\.endorctl/config\.yaml)\b",
@@ -61,17 +66,16 @@ def lint_agent_output(agent_id: str, text: str) -> list[str]:
         errors.append("read-only workflow must not recommend running a new Endor scan as the default next step")
 
     payload = extract_json_object(text)
-    if agent_id == "sca-remediation":
-        if payload is None:
-            errors.append("sca-remediation output must include a JSON object")
-        else:
-            errors.extend(validate_sca_gate_payload(payload))
-            errors.extend(_project_evidence_gap_errors(payload, require_options=False))
-    elif agent_id == "remediation-planner":
-        if payload is None:
-            errors.append("remediation-planner output must include a JSON object")
-        else:
-            errors.extend(_remediation_planner_errors(payload))
+    if agent_id in STRUCTURED_OUTPUT_AGENTS and payload is None:
+        errors.append(f"{agent_id} output must include a JSON object")
+    elif payload is not None:
+        errors.extend(validate_structured_output_payload(agent_id, payload))
+
+    if agent_id == "sca-remediation" and payload is not None:
+        errors.extend(validate_sca_gate_payload(payload))
+        errors.extend(_project_evidence_gap_errors(payload, require_options=False))
+    elif agent_id == "remediation-planner" and payload is not None:
+        errors.extend(_remediation_planner_errors(payload))
     elif payload is not None:
         errors.extend(_empty_data_gap_errors(payload))
     return _dedupe(errors)

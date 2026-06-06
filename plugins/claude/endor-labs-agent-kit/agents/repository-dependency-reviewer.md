@@ -158,6 +158,14 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 - Retrieval: Identify the repository root from host context or an explicit repository path before asking for a path. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
 - Data gaps: Record missing repository access, unsupported manifest formats, unresolved versions, unavailable Endor risk tools, vulnerability enrichment gaps, and account capability gaps in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`risk_posture`, `manifests`, `dependencies_reviewed`, `findings`, `recommended_actions`, `summary`, `data_gaps`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 # Workflow: MCP + Read-Only File Inspection
 
 Use only Endor MCP tools and host read-only file tools. Do not use Bash or

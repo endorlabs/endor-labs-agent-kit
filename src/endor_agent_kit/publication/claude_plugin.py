@@ -287,6 +287,7 @@ def _compact_claude_plugin_body(body: str, prepared: PreparedSourceRecipe) -> st
         prepared.instructions,
         _claude_plugin_edition(prepared),
         recipe_id=prepared.recipe.id,
+        structured_output_recipe=prepared.recipe,
         compact_plugin=True,
     )
     compact_actions = render_action_contracts(prepared.actions, compact=True)

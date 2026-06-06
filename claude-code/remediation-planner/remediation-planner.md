@@ -130,6 +130,33 @@ Preview remediation options only from verified Endor findings and VersionUpgrade
 - Fallbacks: If project resolution is missing, return `project_resolution.status` as `unresolved` and stop at data_gaps. If Finding or VersionUpgrade evidence is unavailable, return plan-only insufficient evidence and do not estimate counts, risk, review time, or touched files.
 - Data gaps: Record missing namespace, project resolution, Finding evidence, VersionUpgrade/UIA evidence, source-provider metadata, and host command capability in `data_gaps`. Preserve `project_resolution.status`, `namespace_provenance`, query attempts, and context scope in the final output.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `summary` (`string`): Concise result summary.
+- `project_resolution` (`object`): Project resolution status, namespace provenance, query attempts, and repository selector evidence.
+- `evidence_queries` (`list[object]`): Read-only Endor query attempts, status, and missing lanes.
+- `remediation_options` (`list[object]`): Verified Endor Finding and VersionUpgrade/UIA remediation options, or empty when evidence is unavailable.
+- `selected_remediation` (`object`): Selected remediation option, or null when evidence is insufficient.
+- `data_gaps` (`list[string]`): Missing Endor, source, or host signals.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "summary": "string",
+  "project_resolution": {},
+  "evidence_queries": [],
+  "remediation_options": [],
+  "selected_remediation": {},
+  "data_gaps": []
+}
+```
+
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence.
 Use Bash only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
 If a signal is not available through the host, include it in `data_gaps`.

@@ -1144,6 +1144,49 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 - Fallbacks: If project lookup misses, retry eligible read-only lookup with traversal before labeling `PROJECT_NOT_FOUND`. If a diagnostic lane cannot be queried, keep other lanes available and prepare a support packet with precise missing evidence.
 - Data gaps: Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`. Preserve `namespace_provenance`, command attempts, issue lane, and support escalation evidence.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `troubleshooting_verdict` (`enum`): ACTIONABLE_FIX_IDENTIFIED, LIKELY_ROOT_CAUSE_IDENTIFIED, PARTIAL_DIAGNOSIS, INSUFFICIENT_DATA, SUPPORT_ESCALATION_RECOMMENDED, or NO_ISSUE_FOUND.
+- `executive_summary` (`object`): Compact user-facing summary with issue title, likely owner, impact, confidence, next best action, and whether any confirmation is required.
+- `intake_classification` (`object`): Parsed issue summary, issue lanes, affected Endor objects, affected product area, and any inferred ecosystem or integration type.
+- `issue_lanes` (`list[object]`): Classified troubleshooting lanes with status, confidence, evidence used, reason codes, and lane-specific next steps.
+- `affected_resources` (`list[object]`): Endor resources, repository selectors, scan IDs, workflow IDs, integrations, and external systems relevant to the diagnosis.
+- `evidence_queries` (`list[object]`): Exact read-only Endor queries attempted, purpose, status, returned counts, fields used, and data gaps.
+- `evidence_summary` (`object`): Normalized facts from logs, statuses, exit codes, workflow errors, scan profiles, integrations, package managers, reachability, policy, or container evidence.
+- `root_cause_hypotheses` (`list[object]`): Ranked possible causes with confidence, supporting evidence, contradicting evidence, and the next observation that would confirm or falsify each one.
+- `recommended_actions` (`list[object]`): Prioritized human-readable repair steps with owner role, reason, friction level, validation step, confidence, and confirmation requirement.
+- `validation_plan` (`list[object]`): Read-only checks or safe rerun instructions a human can use after applying recommendations.
+- `support_escalation_packet` (`object`): Redacted evidence bundle to send to Endor Support when the issue cannot be resolved from tenant-visible evidence.
+- `data_gaps` (`list[string]`): Missing namespace, project, scan, workflow, log, integration, package manager, policy, container, or auth evidence.
+- `future_action_contracts` (`list[object]`): Mutating, scan-rerun, credential, configuration-write, comment, or create-style log-request steps that V1 must not perform without a future explicit user approval gate.
+- `future_scope` (`list[string]`): Explicitly out-of-scope V2 automation such as applying fixes, creating integrations, editing scan profiles, rerunning scans, posting comments, or creating support tickets.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "troubleshooting_verdict": "string",
+  "executive_summary": {},
+  "intake_classification": {},
+  "issue_lanes": [],
+  "affected_resources": [],
+  "evidence_queries": [],
+  "evidence_summary": {},
+  "root_cause_hypotheses": [],
+  "recommended_actions": [],
+  "validation_plan": [],
+  "support_escalation_packet": {},
+  "data_gaps": [],
+  "future_action_contracts": [],
+  "future_scope": []
+}
+```
+
 ## Enterprise Edition Tools
 
 Use Bash only for the documented read-only `endorctl api` lookups in these

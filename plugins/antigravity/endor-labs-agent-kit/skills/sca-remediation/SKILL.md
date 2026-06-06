@@ -356,6 +356,14 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 - Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.
 
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields, in order:
+`summary`, `remediation_candidates`, `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, `patch_plan`, `validation`, `change_requests`, `tickets`, `data_gaps`
+Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
+Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
 Use local git, read-only file tools, package-manager commands, and source-provider credentials only for the remediation workflow described above.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, UIA results, source contents, patch application, validation, branch pushes, PR/MR URLs, ticket IDs or URLs, or comment URLs.

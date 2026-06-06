@@ -8,13 +8,15 @@ from conftest import repo_root
 from endor_agent_kit.compilers import claude_code
 from endor_agent_kit.compilers.rendering import (
     ENDOR_NAMESPACE_PREFLIGHT,
+    STRUCTURED_OUTPUT_HEADING,
     indent,
     instructions_for_edition,
     normalize_edition,
     render_action_contracts,
+    render_structured_output_contract,
 )
 from endor_agent_kit.knowledge_pack import PACK_SECTION_HEADING
-from endor_agent_kit.recipe import ActionContract
+from endor_agent_kit.recipe import ActionContract, EndorAgentRecipe, HostCapabilities, RecipeField
 
 
 INSTRUCTIONS = """\
@@ -62,6 +64,23 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert rendered.index(PACK_SECTION_HEADING) < rendered.index("Enterprise rules.")
     assert "source recipe instructions remain authoritative" in rendered
     assert "Context first" in rendered
+
+
+def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
+    rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        recipe_id="sca-remediation",
+        structured_output_recipe=_recipe_with_outputs(
+            RecipeField("summary", "string", required=True),
+            RecipeField("data_gaps", "list[string]", required=True),
+        ),
+    )
+
+    assert rendered.count(STRUCTURED_OUTPUT_HEADING) == 1
+    assert rendered.index("## Endor Namespace Preflight") < rendered.index(PACK_SECTION_HEADING)
+    assert rendered.index(PACK_SECTION_HEADING) < rendered.index(STRUCTURED_OUTPUT_HEADING)
+    assert rendered.index(STRUCTURED_OUTPUT_HEADING) < rendered.index("Enterprise rules.")
 
 
 def test_shared_compiler_rendering_compact_plugin_profile_omits_marked_blocks():
@@ -165,6 +184,40 @@ def test_shared_compiler_rendering_renders_compact_action_contracts():
     assert "Long reference note" not in rendered
 
 
+def test_shared_compiler_rendering_renders_structured_output_contract():
+    recipe = _recipe_with_outputs(
+        RecipeField("verdict", "enum", required=True, description="Decision."),
+        RecipeField("conditions", "list[string]", required=True, description="Constraints."),
+        RecipeField("summary", "string", required=True, description="Operator summary."),
+        RecipeField("data_gaps", "list[string]", required=True, description="Missing evidence."),
+        RecipeField("optional_signal", "object", required=False, description="Extra evidence."),
+    )
+
+    rendered = render_structured_output_contract(recipe)
+
+    assert rendered.count(STRUCTURED_OUTPUT_HEADING) == 1
+    assert rendered.index("`verdict`") < rendered.index("`conditions`")
+    assert rendered.index("`conditions`") < rendered.index("`summary`")
+    assert "Optional top-level fields when verified" in rendered
+    assert '"verdict": "string"' in rendered
+    assert '"conditions": []' in rendered
+    assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
+
+
+def test_shared_compiler_rendering_renders_compact_structured_output_contract():
+    recipe = _recipe_with_outputs(
+        RecipeField("verdict", "enum", required=True),
+        RecipeField("conditions", "list[string]", required=True),
+        RecipeField("data_gaps", "list[string]", required=True),
+    )
+
+    rendered = render_structured_output_contract(recipe, compact=True)
+
+    assert "Required top-level fields, in order" in rendered
+    assert "`verdict`, `conditions`, `data_gaps`" in rendered
+    assert "```json" not in rendered
+
+
 def test_shared_compiler_rendering_indents_frontmatter_blocks():
     assert indent("one\n\ntwo", 2) == "  one\n  \n  two"
 
@@ -188,3 +241,22 @@ def test_non_claude_code_compilers_do_not_import_private_claude_code_rendering_h
         assert "_render_action_contracts" not in content
         assert "_normalize_edition" not in content
         assert "_indent" not in content
+
+
+def _recipe_with_outputs(*outputs: RecipeField) -> EndorAgentRecipe:
+    return EndorAgentRecipe(
+        recipe_schema_version=1,
+        id="structured-output-fixture",
+        name="Structured Output Fixture",
+        version="1.0.0",
+        description="Fixture",
+        safety_class="read_only",
+        supported_transports=("endorctl",),
+        host_capabilities_required=HostCapabilities(),
+        inputs=(),
+        outputs=outputs,
+        evals="evals/cases.yaml",
+        compatible_hosts=("claude-code",),
+        instructions_path="instructions.md",
+        model="sonnet",
+    )

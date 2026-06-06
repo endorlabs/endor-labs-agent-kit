@@ -163,6 +163,7 @@ def render_cursor_sdk_prompt(prepared: PreparedSourceRecipe) -> str:
             prepared.instructions,
             CURSOR_SECTION_EDITION,
             recipe_id=recipe.id,
+            structured_output_recipe=recipe,
             compact_plugin=True,
         )
     )

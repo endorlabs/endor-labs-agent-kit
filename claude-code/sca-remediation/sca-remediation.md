@@ -480,6 +480,43 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 - Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output. Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object. For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
 
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Keep any prose brief and do not emit multiple competing JSON objects.
+Required top-level fields must appear in this order:
+
+- `summary` (`string`): Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.
+- `remediation_candidates` (`list[object]`): Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.
+- `project_resolution` (`object`): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- `selected_remediation` (`object`): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.
+- `uia_evidence` (`list[object]`): VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.
+- `risk_decision` (`object`): Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.
+- `patch_plan` (`list[object]`): Files to edit, dependency-manager commands considered, companion source edits, branch/title/body draft, and explicit approval status.
+- `validation` (`list[object]`): Local validation commands considered or run, status, output summary, and blockers.
+- `change_requests` (`list[object]`): PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.
+- `tickets` (`list[object]`): Ticket IDs, URLs, status, and failure reasons for requested ticket creation.
+- `data_gaps` (`list[string]`): Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.
+
+Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+
+```json
+{
+  "summary": "string",
+  "remediation_candidates": [],
+  "project_resolution": {},
+  "selected_remediation": {},
+  "uia_evidence": [],
+  "risk_decision": {},
+  "patch_plan": [],
+  "validation": [],
+  "change_requests": [],
+  "tickets": [],
+  "data_gaps": []
+}
+```
+
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
 Use local git, read-only file tools, package-manager commands, and source-provider credentials only for the remediation workflow described above.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, UIA results, source contents, patch application, validation, branch pushes, PR/MR URLs, ticket IDs or URLs, or comment URLs.

@@ -72,9 +72,11 @@ def _render_skill(
             instructions,
             CODEX_SECTION_EDITION,
             recipe_id=recipe.id,
+            structured_output_recipe=recipe,
             compact_plugin=compact_plugin,
         )
     )
+    action_contracts = _codex_instruction_text(render_action_contracts(actions, compact=compact_plugin))
     return (
         "---\n"
         f"name: {recipe.id}\n"
@@ -84,7 +86,7 @@ def _render_skill(
         f"{_codex_notice(recipe, generated_context=generated_context)}\n\n"
         f"{_codex_host_contract(recipe)}\n\n"
         f"{body.rstrip()}\n"
-        f"{_codex_instruction_text(render_action_contracts(actions, compact=compact_plugin))}"
+        f"{action_contracts}"
     )
 
 

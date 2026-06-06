@@ -73,6 +73,7 @@ def render_gemini_agent(
             prepared.instructions,
             GEMINI_SECTION_EDITION,
             recipe_id=recipe.id,
+            structured_output_recipe=recipe,
             compact_plugin=compact_plugin,
         )
     )
@@ -121,9 +122,11 @@ def _render_skill(
             instructions,
             GEMINI_SECTION_EDITION,
             recipe_id=recipe.id,
+            structured_output_recipe=recipe,
             compact_plugin=compact_plugin,
         )
     )
+    action_contracts = _gemini_instruction_text(render_action_contracts(actions, compact=compact_plugin))
     return (
         "---\n"
         f"name: {recipe.id}\n"
@@ -133,7 +136,7 @@ def _render_skill(
         f"{_gemini_notice(recipe, generated_context=generated_context)}\n\n"
         f"{_gemini_host_contract(recipe)}\n\n"
         f"{body.rstrip()}\n"
-        f"{_gemini_instruction_text(render_action_contracts(actions, compact=compact_plugin))}"
+        f"{action_contracts}"
     )
 
 
