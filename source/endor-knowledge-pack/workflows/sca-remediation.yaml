@@ -33,6 +33,8 @@ retrieval_steps:
 fallbacks:
   - If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap.
   - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk.
+  - A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
 data_gaps:
   - Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.
   - Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output.
+  - For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.

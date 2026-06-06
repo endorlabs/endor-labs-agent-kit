@@ -114,7 +114,8 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 11. Present the supported delivery targets before any external mutation: plan-only output, source change request, ticket creation, or both source change request and ticket when the runtime supports them. Do not assume ticketing support; use `create-remediation-ticket` only when the user or runtime selects that target.
 12. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. Re-runs may update the same agent-owned branch when a change request already exists.
 13. Post or update one stable PR/MR comment when requested or when the host returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
-14. Return concise prose plus the required JSON object.
+14. Return concise prose plus the required JSON object. A prose-only summary is
+    not a valid gate result.
 
 Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, and `project_resolution.namespace_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` when evidence is missing, conflicting, or host-blocked, and include the exact blocker in `data_gaps`. If any project-resolution field is unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
 
@@ -377,7 +378,9 @@ Use a stable comment marker when posting a remediation comment:
 ```
 ## Output
 
-Return concise prose plus a JSON object with this shape:
+Return concise prose plus a JSON object with this shape. The final answer must
+include exactly one syntactically valid top-level JSON object that a parser can
+extract; do not replace the JSON object with a table or prose summary.
 
 ```json
 {
@@ -390,9 +393,15 @@ Return concise prose plus a JSON object with this shape:
     "repo_full_name": "string",
     "attempted_selectors": []
   },
-  "selected_remediation": {},
+  "selected_remediation": {
+    "branch_name": "remediation/sca/<package>-<target-version>"
+  },
   "uia_evidence": [],
-  "risk_decision": {},
+  "risk_decision": {
+    "status": "approved_low_risk | approved_with_validation_required | blocked_needs_compatibility_analysis | rejected",
+    "source_usage_summary": "required when CIA is indeterminate, risk is elevated, conflicts exist, or findings are introduced",
+    "validation_requirements": []
+  },
   "patch_plan": [],
   "validation": [],
   "change_requests": [],
@@ -402,6 +411,14 @@ Return concise prose plus a JSON object with this shape:
 ```
 
 The JSON object must be syntactically valid. If a PR/MR body draft is too large to duplicate inside JSON, put the full Markdown body in the prose section and set a compact field such as `"pr_body_draft": "included_above"`. Never leave arrays or objects unterminated.
+
+For runtime QA, plan-only gates, and read-only selection gates, include the
+JSON object even when no mutation is allowed. Include `uia_evidence[]` when
+VersionUpgrade/UIA records were queried, include a remediation branch name
+using `remediation/sca/<package>-<target-version>` for the selected candidate,
+and include `risk_decision.source_usage_summary` whenever the selected
+candidate has indeterminate CIA, elevated risk, conflicts, or introduced
+findings.
 
 ## Endor Namespace Preflight
 
@@ -450,8 +467,8 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 - `Finding`: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
 - `VersionUpgrade`: Verify UIA/CIA upgrade evidence before making low-risk or compatibility claims. Fields: `uuid`, `meta.parent_uuid`, `spec.upgrade_info`, `spec.upgrade_impact`.
 - Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. 2. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path. 3. Query `Finding` with `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for PR, CI, or all-context findings. 4. Query `VersionUpgrade` for each candidate upgrade before labeling risk or choosing the first remediation branch.
-- Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk.
-- Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output.
+- Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
+- Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output. For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
 
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
 Use local git, read-only file tools, package-manager commands, and source-provider credentials only for the remediation workflow described above.

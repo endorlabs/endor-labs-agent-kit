@@ -150,6 +150,14 @@ def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():
     assert validate_sca_gate_payload(_valid_netty_payload()) == []
 
 
+def test_sca_gate_validator_ignores_runtime_base_branch_metadata():
+    payload = _valid_netty_payload()
+    payload["runtime_qa"] = {"branch": "main"}
+    payload["change_requests"][0]["branch"] = "not_created"
+
+    assert validate_sca_gate_payload(payload) == []
+
+
 def test_sca_pr_renderer_outputs_auri_style_body_and_lints_cleanly():
     body = render_sca_pr_body(_valid_netty_payload())
 

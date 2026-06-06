@@ -8,6 +8,9 @@ from pathlib import Path
 
 from conftest import repo_root
 
+sys.path.insert(0, str(repo_root() / "scripts"))
+from run_plugin_runtime_qa import build_prompt  # noqa: E402
+
 
 def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     workspace = tmp_path / "workspace"
@@ -35,6 +38,8 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
             "antigravity",
             "--agent",
             "sca-remediation",
+            "--codex-sandbox",
+            "danger-full-access",
             "--log-root",
             str(log_root),
             "--timeout",
@@ -65,8 +70,16 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert all(record["stdin"] == "" for record in call_records)
     argv_by_host = {record["host"]: record["argv"] for record in call_records}
     assert "-p" in argv_by_host["claude"]
+    claude_argv = argv_by_host["claude"]
+    claude_prompt = build_prompt(host="claude", agent="sca-remediation", workspace=workspace, namespace="tenant-a")
+    assert claude_argv[claude_argv.index("--agent") + 1] == "sca-remediation"
+    assert claude_argv.index(claude_prompt) < claude_argv.index("--add-dir")
     assert "exec" in argv_by_host["codex"]
+    assert "--ask-for-approval" not in argv_by_host["codex"]
+    codex_argv = argv_by_host["codex"]
+    assert codex_argv[codex_argv.index("--sandbox") + 1] == "danger-full-access"
     assert "run" in argv_by_host["antigravity"]
+    assert summary["codex_sandbox"] == "danger-full-access"
 
 
 def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):

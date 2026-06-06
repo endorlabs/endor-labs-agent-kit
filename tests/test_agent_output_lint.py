@@ -99,6 +99,33 @@ def test_lint_accepts_remediation_planner_insufficient_evidence_payload():
     assert lint_agent_output("remediation-planner", output) == []
 
 
+def test_lint_accepts_structured_data_gap_objects():
+    output = json.dumps(
+        {
+            "summary": "Live evidence was unavailable.",
+            "project_resolution": {
+                "status": "unresolved",
+                "namespace": "auri",
+                "namespace_provenance": "current_request",
+            },
+            "remediation_options": [],
+            "selected_remediation": None,
+            "data_gaps": [
+                {
+                    "id": "main_context_findings_unavailable",
+                    "reason": "Finding evidence was not queried because project_uuid is unresolved.",
+                },
+                {
+                    "id": "version_upgrade_uia_unavailable",
+                    "reason": "VersionUpgrade/UIA evidence was not queried because project_uuid is unresolved.",
+                },
+            ],
+        }
+    )
+
+    assert lint_agent_output("remediation-planner", output) == []
+
+
 def test_lint_blocks_default_scan_recommendation_for_read_only_agents():
     errors = lint_agent_output(
         "vulnerability-explainer",
