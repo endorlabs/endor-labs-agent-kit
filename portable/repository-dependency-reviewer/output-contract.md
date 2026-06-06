@@ -23,6 +23,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `findings` (list[object], required): Evidence-backed dependency risk findings with package, version, severity, and source file.
 - `recommended_actions` (list[string], required): Follow-up actions such as upgrade, investigate reachability, or run a fuller Endor scan.
 - `summary` (string, required): One-paragraph human-readable repository dependency review.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (list[string], required): Signals unavailable because a manifest was unsupported, versions were unresolved, tools failed, or Endor data was unavailable.
 
 ## Data Gaps

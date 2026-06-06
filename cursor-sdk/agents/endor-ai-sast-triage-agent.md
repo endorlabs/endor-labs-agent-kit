@@ -162,7 +162,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
 
 ### Evidence Gate Contract
 
@@ -185,19 +185,13 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 ### Evidence Query Recipes
 
 - `finding-by-uuid`/evidence-check: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
-- `ai-sast-list`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_tags contains "AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.source_code_version,spec.finding_tags,spec.finding_metadata,spec.explanation" -o json`
-- `selected-ai-sast-finding`/selection-plan: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
-- `selected-source-anchors`/selection-plan: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
-- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
-- Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`.
-- Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness. Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"` by default.
-- Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`.
 
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
-`summary`, `project_resolution`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, `data_gaps`
+`summary`, `project_resolution`, `evidence_queries`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, `data_gaps`
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 

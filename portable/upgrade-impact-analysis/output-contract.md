@@ -31,6 +31,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `breaking_change_notes` (list[string], required): Known or suspected compatibility notes, or data gaps when unavailable.
 - `next_checks` (list[string], required): Follow-up checks, tests, or review areas before merging the upgrade.
 - `summary` (string, required): One-paragraph human-readable upgrade assessment.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (list[string], required): Signals that were unavailable because setup, auth, edition, or tooling was missing.
 - `upgrade_candidates` (list[object], optional): VersionUpgrade candidates ranked by platform priority.
 - `selected_upgrade` (object, optional): The selected Endor platform VersionUpgrade candidate, including UUID, package, from/to versions, risk, and recommendation flags.

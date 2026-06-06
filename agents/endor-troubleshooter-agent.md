@@ -203,14 +203,16 @@ resource for every request.
 
 Every response must include `evidence_queries[]`. Each entry records:
 
-- system: `endor`, `user_input`, or `public_docs`
-- command_or_query: exact read-only command, API path, public docs URL, or
-  provided-input field
-- purpose
-- status: `SUCCESS`, `PARTIAL`, `FAILED`, or `SKIPPED`
-- returned_count when known
-- fields_used
-- data_gaps
+- name: short human-readable evidence lane
+- resource: Endor resource, public-doc page, or provided-input field
+- source: `endorctl_api`, `endor_mcp`, `user_input`, `local_repository`, or
+  `public_docs`
+- status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
+- query_template_id: compact recipe id, API path id, or null
+- filter_summary: concise selector summary or null
+- field_mask_summary: concise field summary or null
+- result_count: integer count or null
+- reason: why the evidence was used, unavailable, or skipped
 
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
@@ -265,7 +267,19 @@ The JSON object must include:
     }
   ],
   "affected_resources": [],
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "Troubleshooting evidence lane",
+      "resource": "Project | ScanResult | Integration | user_input",
+      "source": "endorctl_api | endor_mcp | user_input | public_docs",
+      "status": "succeeded | partial | failed | skipped",
+      "query_template_id": "lane-specific-read | public-doc-reference | null",
+      "filter_summary": "Issue selector, resource id, or provided-input field",
+      "field_mask_summary": "Status, error, integration, workflow, and scan fields used",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "evidence_summary": {},
   "root_cause_hypotheses": [],
   "recommended_actions": [
@@ -349,7 +363,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
 
 ### Evidence Gate Contract
 
@@ -372,18 +386,13 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 ### Evidence Query Recipes
 
 - `project-by-git`/diagnose: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
-- `scan-result-by-uuid`/diagnose: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
-- `finding-by-uuid`/diagnose: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
-- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
-- Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
-- Retrieval: Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups. Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans.
-- Data gaps: Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`.
 
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `troubleshooting_verdict`, `executive_summary`, `intake_classification`, `issue_lanes`, `affected_resources`, `evidence_queries`, `evidence_summary`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `support_escalation_packet`, `data_gaps`, `future_action_contracts`, `future_scope`
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 

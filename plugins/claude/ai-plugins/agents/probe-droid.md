@@ -91,13 +91,16 @@ GitHub App without matching GitHub and Endor evidence.
 
 Every response must include `evidence_queries[]`. Each entry records:
 
-- system: `github` or `endor`
-- command_or_query: the exact read-only command, API path, or filter attempted
-- purpose
-- status: `SUCCESS`, `PARTIAL`, `FAILED`, or `SKIPPED`
-- returned_count when known
-- fields_used
-- data_gaps
+- name: short human-readable evidence lane
+- resource: GitHub, Endor, or local repository resource inspected
+- source: `github`, `endorctl_api`, `endor_mcp`, `user_input`, or
+  `local_repository`
+- status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
+- query_template_id: compact recipe id, API path id, or null
+- filter_summary: concise selector summary or null
+- field_mask_summary: concise field summary or null
+- result_count: integer count or null
+- reason: why the evidence was used, unavailable, or skipped
 
 Required evidence categories:
 
@@ -282,7 +285,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
 
 ### Evidence Gate Contract
 
@@ -305,19 +308,13 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 ### Evidence Query Recipes
 
 - `project-branch-coverage`/evidence-check: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json`
-- `repo-setup-file-inventory`/evidence-check: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
-- `local-git-state`/resolve-scope: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
-- `missing-setup-file-check`/prescribe-actions: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
-- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
-- Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`.
-- Retrieval: Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls. Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects.
-- Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`.
 
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `onboarding_verdict`, `executive_report`, `report_scope`, `coverage_summary`, `github_inventory_summary`, `github_app_coverage`, `not_onboarded_repositories`, `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`, `ambiguous_matches`, `excluded_repositories`, `recommended_actions`, `confirmed_org_wide_actions`, `sampled_prescription_hypotheses`, `requires_full_inventory_validation`, `validation_plan`, `evidence_queries`, `data_gaps`, `future_scope`
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
