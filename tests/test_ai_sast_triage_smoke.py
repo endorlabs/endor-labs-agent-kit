@@ -42,6 +42,11 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "<project_uuid>" not in agent_readme
     assert "<project_uuid>" not in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
+    assert "## Endor Knowledge Pack" in prompt
+    assert "AI SAST Triage Evidence Contract" in prompt
+    assert "Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`" in prompt
+    assert "Use exploit reproduction for prioritization and validation planning" in prompt
+    assert "Preserve `namespace_provenance`, source ref, finding UUID, and context scope" in prompt
     assert_mcp_free_generated_artifact(prompt)
     assert "ai-tools" not in prompt
     assert "Do not require or start an Endor MCP server" in prompt

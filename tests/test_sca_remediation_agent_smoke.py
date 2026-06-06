@@ -79,6 +79,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "MCP-free Claude Code artifact" in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Natural-Language Intake" in prompt
+    assert "## Endor Knowledge Pack" in prompt
+    assert "SCA Remediation Evidence Contract" in prompt
+    assert "Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`" in prompt
+    assert "Query `Finding` with `context.type==CONTEXT_TYPE_MAIN`" in prompt
+    assert "Record missing credentials, namespace conflicts, project lookup failures" in prompt
     assert "Project scoping is mandatory" in prompt
     assert "Default Endor Context Scope" in prompt
     assert "Default to `context.type==CONTEXT_TYPE_MAIN` for Endor Findings" in prompt

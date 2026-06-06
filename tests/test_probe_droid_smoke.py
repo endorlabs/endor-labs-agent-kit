@@ -98,6 +98,10 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     header = artifact.split("---", 2)[1]
 
     assert "Probe Droid" in artifact
+    assert "## Endor Knowledge Pack" in artifact
+    assert "Probe Droid Evidence Contract" in artifact
+    assert "Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`" in artifact
+    assert "Retry Endor project inventory with traversal" in artifact
     assert "GitHub Monitored-Branch Coverage Probe" in artifact
     assert "onboarding_verdict" in artifact
     assert "executive_report" in artifact

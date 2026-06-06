@@ -99,6 +99,10 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     header = artifact.split("---", 2)[1]
 
     assert "Endor Troubleshooter" in artifact
+    assert "## Endor Knowledge Pack" in artifact
+    assert "Endor Troubleshooter Evidence Contract" in artifact
+    assert "Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`" in artifact
+    assert "prepare a support packet with precise missing evidence" in artifact
     assert "troubleshooting_verdict" in artifact
     assert "ACTIONABLE_FIX_IDENTIFIED" in artifact
     assert "SUPPORT_ESCALATION_RECOMMENDED" in artifact

@@ -1,0 +1,39 @@
+agent_id: probe-droid
+title: Probe Droid Evidence Contract
+summary: Compare GitHub repository inventory with namespace-scoped Endor project and monitored-branch coverage using bounded read-only evidence.
+resources:
+  - name: Project
+    purpose: Map repositories to Endor projects and preserve parent namespace traversal evidence.
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+  - name: ScanProfile
+    purpose: Identify monitored-branch and scan profile coverage for onboarded repositories.
+    fields:
+      - uuid
+      - meta.name
+      - spec
+  - name: PackageManager
+    purpose: Detect package-manager integration and dependency-resolution blockers.
+    fields:
+      - uuid
+      - meta.name
+      - spec
+  - name: PackageVersion
+    purpose: Summarize package-version health and resolution errors without exposing full objects.
+    fields:
+      - uuid
+      - meta.name
+      - spec.resolution_errors
+retrieval_steps:
+  - Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls.
+  - Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects.
+  - Use bounded GitHub.com inventory lookups and one projected package-version summary before drilling into selected repositories.
+fallbacks:
+  - Retry Endor project inventory with traversal before classifying repositories as not onboarded.
+  - If GitHub App installation or GitHub API evidence is unavailable, continue with provided inventory and mark the gap.
+data_gaps:
+  - Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`.
+  - Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.

@@ -1,0 +1,38 @@
+agent_id: ai-sast-triage
+title: AI SAST Triage Evidence Contract
+summary: Use namespace-scoped main-context AI SAST findings, exploit reproduction, remediation guidance, and source evidence before proposing remediation or optional exception work.
+resources:
+  - name: Project
+    purpose: Resolve the Endor project and repository identity from namespace-scoped metadata.
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+  - name: Finding
+    purpose: Query AI SAST findings with source context, severity, exploit reproduction, and remediation guidance.
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.method
+      - spec.source_code_version
+      - spec.finding_metadata
+  - name: ExceptionPolicy
+    purpose: Check existing exception policies only when the user enters the optional exception lane.
+    fields:
+      - uuid
+      - meta.name
+      - spec.project_selector
+      - spec.rule
+retrieval_steps:
+  - Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness.
+  - Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"` by default.
+  - Use exploit reproduction for prioritization and validation planning while redacting concrete exploit strings from review-facing output.
+  - Treat remediation guidance as advisory evidence and verify source locations before proposing patches.
+fallbacks:
+  - If project or finding lookup fails, retry eligible project discovery with traversal and keep source findings separate from PR or CI context.
+  - If source files, exploit reproduction, or remediation guidance are unavailable, continue only with verified evidence and mark the missing signal.
+data_gaps:
+  - Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`.
+  - Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs.

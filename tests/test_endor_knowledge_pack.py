@@ -27,6 +27,12 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     pack = load_knowledge_pack()
 
     assert pack.name == "Endor Knowledge Pack"
+    assert set(pack.workflows) == {
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation",
+    }
     assert any("workflow output contracts" in item for item in pack.precedence)
     assert any("source recipe instructions" in item for item in pack.precedence)
     assert [rule.id for rule in pack.global_rules] == [
@@ -43,6 +49,8 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
 
     assert section.startswith(PACK_SECTION_HEADING)
     assert "Context first" in section
+    assert "SCA Remediation Evidence Contract" in section
+    assert "Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`" in section
     assert "namespace_provenance" in section
     assert "data_gaps" in section
     assert "Workflow output contracts" in section
