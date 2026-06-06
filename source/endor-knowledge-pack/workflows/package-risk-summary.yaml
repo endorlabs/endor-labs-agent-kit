@@ -1,6 +1,33 @@
 agent_id: package-risk-summary
 title: Package Risk Summary Evidence Contract
 summary: Summarize one explicit package version's risk posture without turning unavailable evidence into an approval or rejection.
+task_profiles:
+  - id: explain
+    title: Explain Package Risk
+    summary: Summarize risk for one explicit package coordinate from available evidence only.
+    when_to_use:
+      - The user asks for a concise risk posture for a package version.
+      - Missing package coordinate details would make tenant lookups ambiguous.
+    minimal_evidence:
+      - Ecosystem, package name, version, and namespace provenance for tenant-scoped evidence when available.
+    stop_when:
+      - Package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps.
+      - Do not inspect repository manifests or run scans.
+    output_focus:
+      - Return risk_posture, findings, strengths, next_checks, summary, and data_gaps.
+  - id: evidence-check
+    title: Exact Package Evidence Check
+    summary: Fetch only exact package-version enrichment before selecting a posture.
+    when_to_use:
+      - The host exposes Endor PackageVersion, Metric, or Vulnerability evidence.
+      - The user asks for evidence-backed risk, not a general explanation.
+    minimal_evidence:
+      - Exact PackageVersion match, available score/license signals, vulnerability enrichment, and data_gaps for unavailable evidence.
+    stop_when:
+      - Evidence-backed posture is known or evidence is insufficient.
+      - Do not substitute ecosystem-level assumptions for exact package-version evidence.
+    output_focus:
+      - Return bounded posture, evidence source summary, and data_gaps.
 resources:
   - name: PackageVersion
     purpose: Resolve the exact package-version UUID for package-level enrichment.

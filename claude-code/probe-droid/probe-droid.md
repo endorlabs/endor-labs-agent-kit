@@ -1023,16 +1023,42 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### Probe Droid Evidence Contract
 
 Compare GitHub repository inventory with namespace-scoped Endor project and monitored-branch coverage using bounded read-only evidence.
+
+### Agent Task Profiles
+
+#### `resolve-scope` - Resolve Inventory Scope
+
+Establish namespace, GitHub organization or repository scope, and inventory source only.
+- Use when: The user asks what inventory can be checked or supplies a repository list. GitHub or Endor scope is ambiguous.
+- Minimal evidence: Namespace provenance and either user-provided inventory, GitHub organization, or repository identity.
+- Stop when: Inventory scope is explicit or blocked with data_gaps. Do not query scan profiles or package-version details in this profile.
+- Output focus: Return report_scope, evidence_queries, sampling mode, and data_gaps.
+
+#### `evidence-check` - Coverage Evidence Check
+
+Compare a bounded GitHub inventory sample to Endor Project coverage.
+- Use when: The user asks for onboarding gaps or monitored-branch coverage. Runtime QA needs read-only onboarding evidence without full org analysis.
+- Minimal evidence: Namespace provenance, bounded GitHub inventory or supplied repository list, and projected Endor Project lookup with traversal when needed.
+- Stop when: Repositories are classified as onboarded, not onboarded, ambiguous, or evidence-blocked. Do not inspect full scan profile or package manager objects unless a selected repository requires it.
+- Output focus: Return coverage_summary, repository classifications, evidence_queries, and data_gaps.
+
+#### `prescribe-actions` - Prescribe Human Actions
+
+Produce safe human-action recommendations for selected onboarding gaps.
+- Use when: The user asks how to fix onboarding, monitored branch, scan profile, or package-manager gaps. Evidence-check has identified selected repositories with gaps.
+- Minimal evidence: Repository classification, Endor Project match if any, and minimal scan profile/package-manager evidence for selected repositories.
+- Stop when: Each selected gap has a human action or an explicit data_gaps blocker. Do not create scans, edit scan profiles, change GitHub App selection, or write repository files.
+- Output focus: Return recommended_actions, confirmed_org_wide_actions when verified, validation_plan, and data_gaps.
 
 - Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`.
 - `Project`: Map repositories to Endor projects and preserve parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.

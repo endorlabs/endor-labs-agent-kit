@@ -1102,16 +1102,42 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### Endor Troubleshooter Evidence Contract
 
 Diagnose Endor scan, integration, identity, notification, and runtime issues with read-only namespace-scoped evidence and explicit support-escalation packets.
+
+### Agent Task Profiles
+
+#### `classify` - Classify Issue
+
+Classify the reported Endor problem and choose the narrowest diagnostic lane.
+- Use when: The user provides an error, log excerpt, scan UUID, or vague Endor failure. The issue area is not yet known.
+- Minimal evidence: User-provided symptom, namespace provenance if scoped, and any supplied resource IDs.
+- Stop when: The issue lane and next minimal query are known, or the report is too sparse. Do not run scans or broad inventories in this profile.
+- Output focus: Return intake classification, evidence_queries, recommended next read-only checks, and data_gaps.
+
+#### `diagnose` - Diagnose Narrow Lane
+
+Query only the Endor resources needed for the classified issue lane.
+- Use when: The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue. Runtime QA needs a read-only troubleshooting result.
+- Minimal evidence: Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult, or Integration.
+- Stop when: A root-cause hypothesis and validation plan are supported, or the lane is blocked with data_gaps. Do not create scans, edit scan profiles, mutate integrations, or post support tickets.
+- Output focus: Return issue_lanes, evidence_summary, root_cause_hypotheses, recommended_actions, and data_gaps.
+
+#### `support-packet` - Support Packet
+
+Package verified facts and missing evidence for escalation without changing tenant state.
+- Use when: The user needs a support-ready summary after diagnosis. Required tenant or account-tier evidence is unavailable.
+- Minimal evidence: Issue lane, resource identifiers, command/error provenance, and data_gaps from failed lookups.
+- Stop when: The packet contains reproducible facts, attempted queries, and missing evidence. Do not claim escalation was created unless an approved host action returned evidence.
+- Output focus: Return support_escalation_packet, validation_plan, future_action_contracts, and data_gaps.
 
 - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
 - `Project`: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.

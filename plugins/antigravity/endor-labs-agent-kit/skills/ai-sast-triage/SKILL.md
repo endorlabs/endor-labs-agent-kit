@@ -173,17 +173,20 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### AI SAST Triage Evidence Contract
 
 Use namespace-scoped main-context AI SAST findings, exploit reproduction, remediation guidance, and source evidence before proposing remediation or optional exception work.
 
+### Agent Task Profiles
+
+- Profiles: `resolve-scope`, `evidence-check`, `selection-plan`. Start narrow; stop with `data_gaps`; full only on request.
 - Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`.
 - Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness. Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"` by default.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`.

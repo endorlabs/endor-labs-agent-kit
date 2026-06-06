@@ -1,6 +1,48 @@
 agent_id: remediation-planner
 title: Remediation Planner Evidence Contract
 summary: Preview remediation options only from verified Endor findings and VersionUpgrade/UIA evidence; local project docs are context, not evidence.
+task_profiles:
+  - id: resolve-scope
+    title: Resolve Scope
+    summary: Prove namespace, repository, and Endor project identity before planning.
+    when_to_use:
+      - The user asks whether a repository can be planned against Endor evidence.
+      - Project resolution is missing or ambiguous.
+    minimal_evidence:
+      - Repository identity from current workspace or explicit user input.
+      - Namespace provenance and Project lookup attempt.
+    stop_when:
+      - "`project_resolution.status` is resolved, unresolved, ambiguous, or lookup_unavailable."
+      - Do not report SCA counts or options in this profile.
+    output_focus:
+      - Return `project_resolution`, `evidence_queries`, and `data_gaps` without remediation options.
+  - id: evidence-check
+    title: Evidence Check
+    summary: Check whether verified Finding and VersionUpgrade/UIA evidence exists for planning.
+    when_to_use:
+      - The user asks why a plan cannot be trusted or whether remediation evidence exists.
+      - The request is exploratory and does not require a selected option.
+    minimal_evidence:
+      - Resolved project and namespace.
+      - One scoped Finding query and one scoped VersionUpgrade/UIA query, or data_gaps for each unavailable lane.
+    stop_when:
+      - Evidence availability is known and unproven local counts are rejected.
+      - Do not estimate counts, risk, review time, or touched files from local docs.
+    output_focus:
+      - Return evidence availability, empty or verified `remediation_options`, and precise `data_gaps`.
+  - id: selection-plan
+    title: Selection Plan
+    summary: Preview one or more verified remediation options without editing files.
+    when_to_use:
+      - The user asks for a remediation plan or ranked options.
+      - The host needs a read-only planning gate.
+    minimal_evidence:
+      - Resolved project, Finding evidence, VersionUpgrade/UIA evidence, and affected manifest context for each named option.
+    stop_when:
+      - Verified options are ranked, or missing evidence blocks selection.
+      - Do not mutate files, create branches, or open change requests.
+    output_focus:
+      - Return `remediation_options`, optional `selected_remediation`, `evidence_queries`, and `data_gaps`.
 resources:
   - name: Project
     purpose: Resolve repository-scoped project identity and namespace provenance before any remediation option.

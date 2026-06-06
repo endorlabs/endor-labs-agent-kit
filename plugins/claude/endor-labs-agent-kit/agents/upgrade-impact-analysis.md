@@ -113,17 +113,20 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.
-- Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.
-- Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.
-- Every scoped Endor evidence gate must record `namespace_provenance` from explicit user input, environment, default config key extraction, or resolved project metadata.
-- Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.
+- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
+- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
 
 ### Upgrade Impact Analysis Evidence Contract
 
 Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compatibility claims without platform or user-provided evidence.
 
+### Agent Task Profiles
+
+- Profiles: `resolve-scope`, `evidence-check`, `explain`. Start narrow; stop with `data_gaps`; full only on request.
 - Preferred evidence resources: `Project`, `VersionUpgrade`, `Finding`.
 - Retrieval: Resolve project and namespace provenance before project-scoped VersionUpgrade queries. Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor Patch availability.
 - Data gaps: Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`.
