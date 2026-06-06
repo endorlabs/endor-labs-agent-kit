@@ -218,6 +218,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
 - Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
 - Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
+- If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.
 
 ### Scope Normalization Contract
 
@@ -370,9 +371,10 @@ Required top-level fields must appear in this order:
 - `tickets` (`list[object]`): Ticket IDs, URLs, status, and failure reasons for requested AI SAST triage, remediation, or exception follow-up ticket creation.
 - `data_gaps` (`list[string]`): Missing Endor, source, or host signals.
 
-`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Use source categories, not raw commands; summarize selectors/fields; put gaps in `data_gaps`.
+`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
+Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up.
 
 ```json
 {
