@@ -370,8 +370,9 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.
 - Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.
-- Local docs are context until backed by current Endor or user-provided evidence.
-- Record `namespace_provenance`; return required JSON with precise `data_gaps` for missing or blocked evidence.
+- Local docs need current Endor or user evidence.
+- Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.
+- Read-only means no edits/scans/PRs/comments/writes.
 
 ### Endor Troubleshooter Evidence Contract
 
