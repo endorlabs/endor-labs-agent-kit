@@ -60,6 +60,15 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "evidence-check",
         "selection-plan",
     ]
+    assert [
+        recipe.id
+        for recipe in pack.workflow_for("sca-remediation").evidence_query_recipes_for("selection-plan")
+    ] == [
+        "version-upgrade-summary",
+        "version-upgrade-detail",
+        "selected-source-usage",
+        "selected-finding-detail",
+    ]
 
 
 def test_knowledge_pack_renders_global_section_for_known_agent():
@@ -72,6 +81,9 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert "`selection-plan` - Selection Plan" in section
     assert "Evidence Query Plans" in section
     assert "`selection-plan` - Selection Plan Query Plan" in section
+    assert "Evidence Query Recipes" in section
+    assert "`version-upgrade-summary` (selection-plan)" in section
+    assert "endorctl api list -r VersionUpgrade -n <namespace>" in section
     assert "narrowing through VersionUpgrade before detailed Finding expansion" in section
     assert "Never use memory" in section
     assert "Never dump or `cat` Endor config files" in section
@@ -92,6 +104,9 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "Evidence query plan:" in prompt
     assert "Query VersionUpgrade/UIA candidate summaries" in prompt
     assert "Do not enumerate broad Finding inventories" in prompt
+    assert "Evidence query recipes:" in prompt
+    assert "version-upgrade-summary" in prompt
+    assert "--field-mask" in prompt
     assert "Output focus:" in prompt
     assert default_task_profile_for_agent("sca-remediation") == "selection-plan"
 
@@ -136,6 +151,17 @@ def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
                         "avoid": ["Do not guess missing namespace evidence."],
                         "stop_after": ["Stop after evidence exists or data_gaps are recorded."],
                         "data_gaps": ["Record missing namespace evidence in data_gaps."],
+                    }
+                ],
+                "evidence_query_recipes": [
+                    {
+                        "profile_id": "evidence-check",
+                        "id": "project-by-git",
+                        "resource": "Project",
+                        "purpose": "Resolve namespace evidence.",
+                        "template": "endorctl api list -r Project -n <namespace> --field-mask \"uuid,meta.name\" -o json",
+                        "fields": ["uuid", "meta.name"],
+                        "constraints": ["Record missing namespace evidence in data_gaps."],
                     }
                 ],
             },
@@ -216,6 +242,24 @@ def test_knowledge_pack_validator_rejects_sca_selection_plan_finding_first(tmp_p
     errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
 
     assert any("selection-plan must narrow with VersionUpgrade before Finding detail expansion" in error for error in errors)
+
+
+def test_knowledge_pack_validator_rejects_unsafe_query_recipe_template(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["evidence_query_recipes"][0]["template"] = "endorctl api list -r Finding --list-all -o json"
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any("must include explicit namespace" in error for error in errors)
+    assert any("must include --field-mask" in error for error in errors)
+    assert any("broad Finding --list-all templates are not allowed" in error for error in errors)
 
 
 def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_gaps.") -> None:
@@ -300,6 +344,17 @@ def _minimal_workflow() -> dict:
                 "avoid": ["Do not guess missing namespace evidence."],
                 "stop_after": ["Stop after evidence exists or data_gaps are recorded."],
                 "data_gaps": ["Record missing namespace evidence in data_gaps."],
+            }
+        ],
+        "evidence_query_recipes": [
+            {
+                "profile_id": "evidence-check",
+                "id": "project-by-git",
+                "resource": "Project",
+                "purpose": "Resolve namespace evidence.",
+                "template": "endorctl api list -r Project -n <namespace> --field-mask \"uuid,meta.name\" -o json",
+                "fields": ["uuid", "meta.name"],
+                "constraints": ["Record missing namespace evidence in data_gaps."],
             }
         ],
     }

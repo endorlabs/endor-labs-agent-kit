@@ -127,3 +127,77 @@ evidence_query_plans:
       - Stop after the packet contains reproduction context, safe identifiers, evidence_queries, and open data_gaps.
     data_gaps:
       - Record withheld secrets, missing timestamps, inaccessible resource IDs, and unavailable logs in data_gaps.
+evidence_query_recipes:
+  - id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields: &id001
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints: &id002
+      - Use the namespace selected by the preflight.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
+    profile_id: classify
+  - id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields: *id001
+    constraints: *id002
+    profile_id: diagnose
+  - profile_id: diagnose
+    id: scan-result-by-uuid
+    resource: ScanResult
+    purpose: Fetch one scan result when troubleshooting a known scan or error lane.
+    template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.status
+      - spec.exit_code
+      - spec.project_uuid
+    constraints:
+      - Use only for a selected troubleshooting lane.
+      - Do not start or rerun scans.
+  - profile_id: diagnose
+    id: finding-by-uuid
+    resource: Finding
+    purpose: Fetch one known Finding by UUID; api get does not accept filters.
+    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.source_code_version
+      - spec.finding_metadata
+      - spec.explanation
+    constraints:
+      - Do not use --filter with api get.
+      - After get, report context.type and source ref before merging with project counts.
+  - profile_id: support-packet
+    id: scan-result-by-uuid
+    resource: ScanResult
+    purpose: Fetch one scan result when troubleshooting a known scan or error lane.
+    template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.status
+      - spec.exit_code
+      - spec.project_uuid
+    constraints:
+      - Use only for a selected troubleshooting lane.
+      - Do not start or rerun scans.
+  - id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields: *id001
+    constraints: *id002
+    profile_id: support-packet

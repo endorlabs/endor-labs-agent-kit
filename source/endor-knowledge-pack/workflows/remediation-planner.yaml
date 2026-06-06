@@ -124,3 +124,109 @@ evidence_query_plans:
       - Stop after selected_remediation is null or backed by verified remediation_options and precise data_gaps.
     data_gaps:
       - Record skipped Finding detail, missing UIA/CIA fields, unverified counts, and unavailable project evidence in data_gaps.
+evidence_query_recipes:
+  - id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use the namespace selected by the preflight.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
+    profile_id: resolve-scope
+  - profile_id: evidence-check
+    id: finding-availability
+    resource: Finding
+    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level"
+      -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.target_dependency_version
+      - spec.finding_categories
+      - spec.level
+    constraints:
+      - Use for availability or selected-candidate reconciliation only.
+      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+  - profile_id: evidence-check
+    id: version-upgrade-summary
+    resource: VersionUpgrade
+    purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+    template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files"
+      --list-all -o json
+    fields:
+      - uuid
+      - spec.name
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.direct_dependency_manifest_files
+    constraints:
+      - Run before detailed Finding expansion for selection plans.
+      - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
+  - profile_id: selection-plan
+    id: version-upgrade-summary
+    resource: VersionUpgrade
+    purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+    template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files"
+      --list-all -o json
+    fields:
+      - uuid
+      - spec.name
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.direct_dependency_manifest_files
+    constraints:
+      - Run before detailed Finding expansion for selection plans.
+      - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
+  - profile_id: selection-plan
+    id: version-upgrade-detail
+    resource: VersionUpgrade
+    purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
+    template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o
+      json
+    fields:
+      - uuid
+      - spec.name
+      - spec.upgrade_info
+      - spec.upgrade_info.cia_results
+    constraints:
+      - Use after candidate summary ranking.
+      - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
+  - profile_id: selection-plan
+    id: selected-finding-detail
+    resource: Finding
+    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level"
+      -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.target_dependency_version
+      - spec.finding_categories
+      - spec.level
+    constraints:
+      - Use for availability or selected-candidate reconciliation only.
+      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.

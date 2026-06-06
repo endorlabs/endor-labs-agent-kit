@@ -99,6 +99,9 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "Evidence query plan:" in claude_prompt
     assert "Query VersionUpgrade/UIA candidate summaries" in claude_prompt
     assert "before any selected-candidate Finding detail" in claude_prompt
+    assert "Evidence query recipes:" in claude_prompt
+    assert "version-upgrade-summary" in claude_prompt
+    assert "endorctl api list -r VersionUpgrade -n <namespace>" in claude_prompt
     assert "exec" in argv_by_host["codex"]
     assert "--ask-for-approval" not in argv_by_host["codex"]
     codex_argv = argv_by_host["codex"]
@@ -154,6 +157,7 @@ def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
     assert "Agent task profile `evidence-check`" in prompt
     assert "Use only that profile's minimal evidence" in prompt
     assert "Evidence query plan:" in prompt
+    assert "Evidence query recipes:" in prompt
 
 
 def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):

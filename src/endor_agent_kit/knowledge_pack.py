@@ -39,6 +39,7 @@ REQUIRED_WORKFLOW_FIELDS = (
     "fallbacks",
     "data_gaps",
     "evidence_query_plans",
+    "evidence_query_recipes",
 )
 REQUIRED_TASK_PROFILE_FIELDS = (
     "id",
@@ -57,6 +58,15 @@ REQUIRED_EVIDENCE_QUERY_PLAN_FIELDS = (
     "avoid",
     "stop_after",
     "data_gaps",
+)
+REQUIRED_EVIDENCE_QUERY_RECIPE_FIELDS = (
+    "profile_id",
+    "id",
+    "resource",
+    "purpose",
+    "template",
+    "fields",
+    "constraints",
 )
 EVIDENCE_GATE_RULES = (
     "Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.",
@@ -120,6 +130,19 @@ class KnowledgeEvidenceQueryPlan:
 
 
 @dataclass(frozen=True)
+class KnowledgeEvidenceQueryRecipe:
+    """One compact query template for a task profile."""
+
+    profile_id: str
+    id: str
+    resource: str
+    purpose: str
+    template: str
+    fields: tuple[str, ...]
+    constraints: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class KnowledgeWorkflow:
     """Per-agent workflow knowledge rendered only for the matching agent."""
 
@@ -132,6 +155,7 @@ class KnowledgeWorkflow:
     data_gaps: tuple[str, ...]
     task_profiles: tuple[KnowledgeTaskProfile, ...]
     evidence_query_plans: tuple[KnowledgeEvidenceQueryPlan, ...]
+    evidence_query_recipes: tuple[KnowledgeEvidenceQueryRecipe, ...]
 
     def task_profile_for(self, profile_id: str) -> KnowledgeTaskProfile | None:
         """Return a task profile by id."""
@@ -148,6 +172,15 @@ class KnowledgeWorkflow:
             if plan.profile_id == profile_id:
                 return plan
         return None
+
+    def evidence_query_recipes_for(self, profile_id: str) -> tuple[KnowledgeEvidenceQueryRecipe, ...]:
+        """Return evidence query recipes for a task profile."""
+
+        return tuple(
+            recipe
+            for recipe in self.evidence_query_recipes
+            if recipe.profile_id == profile_id
+        )
 
 
 @dataclass(frozen=True)
@@ -318,6 +351,30 @@ def render_knowledge_pack_section(
                         "- Data gaps: " + " ".join(plan.data_gaps),
                         "",
                     ])
+        if workflow.evidence_query_recipes:
+            lines.extend(["### Evidence Query Recipes", ""])
+            if compact:
+                for recipe in _compact_query_recipes(workflow):
+                    lines.append(
+                        f"- `{recipe.id}`/{recipe.profile_id}: `{recipe.template}`"
+                    )
+                lines.append("- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.")
+            else:
+                for recipe in workflow.evidence_query_recipes:
+                    lines.extend([
+                        f"#### `{recipe.id}` ({recipe.profile_id})",
+                        "",
+                        f"- Resource: `{recipe.resource}`",
+                        f"- Purpose: {recipe.purpose}",
+                        "- Template:",
+                        "",
+                        "```bash",
+                        recipe.template,
+                        "```",
+                        "- Fields: " + ", ".join(f"`{field}`" for field in recipe.fields),
+                        "- Constraints: " + " ".join(recipe.constraints),
+                        "",
+                    ])
         if workflow.resources:
             resources = ", ".join(f"`{resource.name}`" for resource in workflow.resources)
             lines.append(f"- Preferred evidence resources: {resources}.")
@@ -378,6 +435,7 @@ def render_task_profile_prompt(
     if profile is None:
         return ""
     plan = workflow.evidence_query_plan_for(selected_profile_id)
+    recipes = workflow.evidence_query_recipes_for(selected_profile_id)
     if compact:
         prompt = (
             f"Agent task profile `{profile.id}`: {profile.summary} "
@@ -388,6 +446,12 @@ def render_task_profile_prompt(
                 f" Evidence query plan: {_compact_order(plan.query_order)} "
                 f"Avoid {_compact_list(plan.avoid)}."
             )
+        if recipes:
+            rendered_recipes = "; ".join(
+                f"{recipe.id}: `{recipe.template}`"
+                for recipe in recipes[:4]
+            )
+            prompt += f" Evidence query recipes: {rendered_recipes}."
         return prompt
     lines = [
         f"Agent task profile: `{profile.id}` ({profile.title}).",
@@ -411,6 +475,15 @@ def render_task_profile_prompt(
             "Data gaps:",
             *[f"- {item}" for item in plan.data_gaps],
         ])
+    if recipes:
+        lines.append("Evidence query recipes:")
+        for recipe in recipes:
+            lines.extend([
+                f"- `{recipe.id}` ({recipe.resource}): {recipe.purpose}",
+                "  ```bash",
+                f"  {recipe.template}",
+                "  ```",
+            ])
     return "\n".join(lines)
 
 
@@ -512,6 +585,38 @@ def _validate_workflows(
             errors.append(f"{prefix}.evidence_query_plans: missing plan for task profile {profile_id!r}")
         if agent_id in {"sca-remediation", "remediation-planner"}:
             _validate_sca_query_order(prefix, evidence_query_plans, errors)
+        evidence_query_recipes = _mappings(data.get("evidence_query_recipes"))
+        if not evidence_query_recipes:
+            errors.append(f"{prefix}.evidence_query_recipes: must be a non-empty list")
+        recipe_profile_ids: set[str] = set()
+        recipe_keys: set[tuple[str, str]] = set()
+        for index, recipe in enumerate(evidence_query_recipes):
+            recipe_prefix = f"{prefix}.evidence_query_recipes[{index}]"
+            for field in REQUIRED_EVIDENCE_QUERY_RECIPE_FIELDS:
+                if field not in recipe:
+                    errors.append(f"{recipe_prefix}: missing required field {field!r}")
+            profile_id = _required_slug(recipe, "profile_id", recipe_prefix, errors)
+            if profile_id:
+                recipe_profile_ids.add(profile_id)
+                if profile_ids and profile_id not in profile_ids:
+                    errors.append(f"{recipe_prefix}.profile_id: references unknown task profile {profile_id!r}")
+            recipe_id = _required_slug(recipe, "id", recipe_prefix, errors)
+            if profile_id and recipe_id:
+                recipe_key = (profile_id, recipe_id)
+                if recipe_key in recipe_keys:
+                    errors.append(
+                        f"{recipe_prefix}.id: duplicate evidence query recipe id {recipe_id!r} for profile {profile_id!r}"
+                    )
+                recipe_keys.add(recipe_key)
+            _required_string(recipe, "resource", recipe_prefix, errors)
+            _required_string(recipe, "purpose", recipe_prefix, errors)
+            template = _required_string(recipe, "template", recipe_prefix, errors)
+            for field in ("fields", "constraints"):
+                if not _strings(recipe.get(field)):
+                    errors.append(f"{recipe_prefix}.{field}: must be a non-empty list")
+            _validate_query_recipe_template(recipe_prefix, template, errors)
+        for profile_id in sorted(profile_ids - recipe_profile_ids):
+            errors.append(f"{prefix}.evidence_query_recipes: missing recipe for task profile {profile_id!r}")
         visible = _visible_text(data)
         if "namespace" not in visible.lower():
             errors.append(f"{prefix}: workflow guidance must mention namespace handling")
@@ -540,6 +645,10 @@ def _workflow(data: dict[str, Any]) -> KnowledgeWorkflow:
         evidence_query_plans=tuple(
             _evidence_query_plan(item)
             for item in _mappings(data.get("evidence_query_plans"))
+        ),
+        evidence_query_recipes=tuple(
+            _evidence_query_recipe(item)
+            for item in _mappings(data.get("evidence_query_recipes"))
         ),
     )
 
@@ -573,6 +682,18 @@ def _evidence_query_plan(data: dict[str, Any]) -> KnowledgeEvidenceQueryPlan:
         avoid=tuple(_strings(data.get("avoid"))),
         stop_after=tuple(_strings(data.get("stop_after"))),
         data_gaps=tuple(_strings(data.get("data_gaps"))),
+    )
+
+
+def _evidence_query_recipe(data: dict[str, Any]) -> KnowledgeEvidenceQueryRecipe:
+    return KnowledgeEvidenceQueryRecipe(
+        profile_id=str(data.get("profile_id", "")),
+        id=str(data.get("id", "")),
+        resource=str(data.get("resource", "")),
+        purpose=str(data.get("purpose", "")),
+        template=str(data.get("template", "")),
+        fields=tuple(_strings(data.get("fields"))),
+        constraints=tuple(_strings(data.get("constraints"))),
     )
 
 
@@ -675,6 +796,56 @@ def _compact_list(items: tuple[str, ...]) -> str:
 def _workflow_uses_sca_upgrade_plan(workflow: KnowledgeWorkflow) -> bool:
     resource_names = {resource.name.lower() for resource in workflow.resources}
     return "finding" in resource_names and "versionupgrade" in resource_names
+
+
+def _compact_query_recipes(workflow: KnowledgeWorkflow) -> tuple[KnowledgeEvidenceQueryRecipe, ...]:
+    selected: list[KnowledgeEvidenceQueryRecipe] = []
+    seen: set[str] = set()
+    preferred_profiles = (
+        default_task_profile_for_agent(workflow.agent_id),
+        "selection-plan",
+        "evidence-check",
+        "resolve-scope",
+        "explain",
+        "diagnose",
+    )
+    for profile_id in preferred_profiles:
+        for recipe in workflow.evidence_query_recipes_for(profile_id):
+            if recipe.id in seen:
+                continue
+            selected.append(recipe)
+            seen.add(recipe.id)
+            if len(selected) >= 4:
+                return tuple(selected)
+    for recipe in workflow.evidence_query_recipes:
+        if recipe.id in seen:
+            continue
+        selected.append(recipe)
+        seen.add(recipe.id)
+        if len(selected) >= 4:
+            break
+    return tuple(selected)
+
+
+def _validate_query_recipe_template(
+    prefix: str,
+    template: str,
+    errors: list[str],
+) -> None:
+    if not template:
+        return
+    lower = template.lower()
+    if "endorctl api get" in lower and (" --filter " in lower or " -f " in lower):
+        errors.append(f"{prefix}.template: endorctl api get must not use filters")
+    if "endorctl api" in lower and " -n " not in lower and " --namespace " not in lower:
+        errors.append(f"{prefix}.template: endorctl api commands must include explicit namespace")
+    if "endorctl api list" in lower and " --field-mask " not in lower:
+        errors.append(f"{prefix}.template: endorctl api list commands must include --field-mask")
+    if "endorctl api list" in lower and "finding" in lower and "--list-all" in lower:
+        if "uuid==" not in lower and "spec.target" not in lower and "target_dependency" not in lower:
+            errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
+    if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:
+        errors.append(f"{prefix}.template: must not cat Endor config files")
 
 
 def _validate_sca_query_order(

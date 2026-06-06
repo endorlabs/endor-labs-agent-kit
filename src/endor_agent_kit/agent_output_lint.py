@@ -46,6 +46,7 @@ READ_ONLY_SCAN_RE = re.compile(
     r"\b(run|rerun|start|launch)\s+(?:a\s+|an\s+|your\s+)?(?:new\s+)?(?:endor\s+)?scan\b|`?endorctl\s+scan\b",
     re.IGNORECASE,
 )
+ENDORCTL_API_LINE_RE = re.compile(r"endorctl\s+api\s+(?:list|get)\b[^\n`]*", re.IGNORECASE)
 
 
 def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = None) -> list[str]:
@@ -64,6 +65,7 @@ def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = No
         errors.append("invalid provenance: repository URLs and repo_full_name values must not be guessed")
     if agent_id in READ_ONLY_SCAN_BLOCK_AGENTS and READ_ONLY_SCAN_RE.search(text):
         errors.append("read-only workflow must not recommend running a new Endor scan as the default next step")
+    errors.extend(_endorctl_command_shape_errors(text))
 
     payload = extract_json_object(text)
     if agent_id in STRUCTURED_OUTPUT_AGENTS and payload is None:
@@ -203,6 +205,23 @@ def _selection_plan_query_efficiency_errors(payload: dict[str, Any]) -> list[str
 def _item_mentions(item: dict[str, Any], terms: tuple[str, ...]) -> bool:
     lower = json.dumps(item, sort_keys=True).lower()
     return any(term.lower() in lower for term in terms)
+
+
+def _endorctl_command_shape_errors(text: str) -> list[str]:
+    errors: list[str] = []
+    for match in ENDORCTL_API_LINE_RE.finditer(text):
+        command = match.group(0)
+        lower = command.lower()
+        if "endorctl api get" in lower and (" --filter " in lower or " -f " in lower):
+            errors.append("endorctl query recipe: api get must not use filters; use --uuid or api list")
+        if (" -n " not in lower and " --namespace " not in lower):
+            errors.append("endorctl query recipe: api commands must include explicit namespace")
+        if "endorctl api list" in lower and " --field-mask " not in lower:
+            errors.append("endorctl query recipe: api list commands must include --field-mask")
+        if "endorctl api list" in lower and "finding" in lower and "--list-all" in lower:
+            if "uuid==" not in lower and "spec.target" not in lower and "target_dependency" not in lower:
+                errors.append("endorctl query recipe: broad Finding --list-all is not allowed")
+    return errors
 
 
 def _uia_contains_fixed_finding_evidence(value: Any) -> bool:
