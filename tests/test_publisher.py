@@ -475,6 +475,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.svg" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
@@ -545,7 +546,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "## Start Here" in codex_plugin_readme
     assert "Agent installer" in codex_plugin_readme
     assert "sync generated artifacts to `ai-plugins`" in codex_plugin_readme
+    assert "Content releases require a package version bump" in codex_plugin_readme
+    assert "endor-agent-kit-setup-agent" in codex_plugin_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert plugin_manifest["version"] == "0.2.0"
     assert plugin_manifest["skills"] == "./skills/"
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
@@ -559,6 +563,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
     )
     assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert claude_plugin_manifest["version"] == "0.2.0"
     assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert "agents" not in claude_plugin_manifest
     assert "skills" not in claude_plugin_manifest
@@ -601,6 +606,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
     assert antigravity_plugin_manifest["description"] == "Endor Labs workflow skills and subagents for Antigravity CLI."
     assert antigravity_plugin_manifest["version"] == gemini_plugin_manifest["version"]
+    assert antigravity_plugin_manifest["version"] == "0.2.0"
     assert "mcpServers" not in antigravity_plugin_manifest
     assert "settings" not in antigravity_plugin_manifest
     assert "license" not in antigravity_plugin_manifest
@@ -695,6 +701,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl host-check`" in setup
     assert "must not" in setup
     assert "provenance-gated updates" in setup
+    assert "agents and skills" in setup
+    assert "--agents-only" in setup
+    assert "--skills-only" in setup
+    codex_setup_agent = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-agent-kit-setup-agent.toml"
+    ).read_text()
+    assert "Codex Host Contract" in codex_setup_agent
+    assert "endor-agent-kit-setup" in codex_setup_agent
     claude_setup = (
         dest
         / "plugins"
@@ -762,7 +781,20 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl host-check`" in antigravity_setup
     assert "antigravity plugin validate" in antigravity_setup
     assert "Do not add plugin-wide MCP automatically" in antigravity_setup
+    assert "Invoke bundled subagents as `@agent-name`" in antigravity_setup
+    assert "evidence_queries" in antigravity_setup
     assert "Antigravity subagents are host-managed" in antigravity_setup
+    antigravity_agent = (
+        dest
+        / "plugins"
+        / "antigravity"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "sca-remediation.md"
+    ).read_text()
+    assert "Invoke workflow subagents as `@agent-name`" in antigravity_agent
+    assert "Do not narrate tool-planning chatter" in antigravity_agent
+    assert "non-empty `data_gaps`" in antigravity_agent
     cursor_setup = (
         dest / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     ).read_text()
@@ -1054,6 +1086,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     )
     assert "endor-sca-remediation-agent.toml: missing" in status.stdout
     assert "endor-troubleshooter-agent.toml: missing" in status.stdout
+    assert "skill:sca-remediation: missing" in status.stdout
+    assert "skill:endor-agent-kit-setup: missing" in status.stdout
 
     install = subprocess.run(
         [
@@ -1071,6 +1105,9 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     assert "installed" in install.stdout
     assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
     assert (codex_home / "agents" / "endor-troubleshooter-agent.toml").is_file()
+    assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
+    assert (codex_home / "skills" / "sca-remediation" / "SKILL.md").is_file()
+    assert (codex_home / "skills" / "endor-agent-kit-setup" / "SKILL.md").is_file()
 
     current = subprocess.run(
         [
@@ -1086,6 +1123,28 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     )
     assert "endor-sca-remediation-agent.toml: current" in current.stdout
     assert "endor-troubleshooter-agent.toml: current" in current.stdout
+    assert "skill:sca-remediation: current" in current.stdout
+    assert "skill:endor-agent-kit-setup: current" in current.stdout
+
+    unmanaged_skill = codex_home / "skills" / "sca-remediation" / "SKILL.md"
+    unmanaged_skill.write_text("# unmanaged user skill\n", encoding="utf-8")
+    blocked = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--yes",
+            "--skills-only",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert blocked.returncode == 1
+    assert "refusing to overwrite blocked unmanaged skill" in blocked.stdout
+    assert unmanaged_skill.read_text(encoding="utf-8") == "# unmanaged user skill\n"
 
 
 def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):

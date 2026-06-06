@@ -742,7 +742,9 @@ def _check_codex_plugin_package(
         codex_package / ".codex-plugin" / "plugin.json",
         errors,
     )
+    manifest_version = ""
     if manifest:
+        manifest_version = str(manifest.get("version") or "")
         if manifest.get("name") != "endor-labs-agent-kit":
             errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: name must be endor-labs-agent-kit")
         if "agents" in manifest:
@@ -811,6 +813,18 @@ def _check_codex_plugin_package(
     installer = codex_package / "scripts" / "install_codex_agents.py"
     if not installer.is_file():
         errors.append(f"{_rel(root, installer)}: missing Codex custom-agent installer")
+    else:
+        installer_text = installer.read_text(encoding="utf-8")
+        if manifest_version != "0.1.0":
+            for required in (
+                "--agents-only",
+                "--skills-only",
+                "MANAGED_SKILL_MARKERS",
+                "shutil.copytree",
+                "bundled agents and skills",
+            ):
+                if required not in installer_text:
+                    errors.append(f"{_rel(root, installer)}: missing required installer text {required!r}")
 
     for skill in sorted((codex_package / "skills").glob("*/SKILL.md")):
         if skill.parent.name == "endor-agent-kit-setup":
@@ -821,6 +835,17 @@ def _check_codex_plugin_package(
 
     for agent in sorted((codex_package / "agents").glob("*.toml")):
         text = agent.read_text(encoding="utf-8")
+        if agent.stem == "endor-agent-kit-setup-agent":
+            for required in (
+                "# endor_agent_kit_managed = true",
+                "developer_instructions = ",
+                "Codex Host Contract",
+                "Do not run",
+                "endorctl host-check",
+            ):
+                if required not in text:
+                    errors.append(f"{_rel(root, agent)}: missing required setup custom-agent text {required!r}")
+            continue
         for required in (
             "# endor_agent_kit_managed = true",
             "developer_instructions = ",

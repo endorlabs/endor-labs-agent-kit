@@ -206,6 +206,9 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "- Keep Antigravity plugin installs explicit. Do not install, link, update, enable, disable, or uninstall plugins without user approval.",
         "- Do not add plugin-wide MCP automatically. Only guide MCP setup when a selected workflow needs it and the user approves.",
         "- Do not collect, write, or persist Endor API credential values. Report credential presence by key name only.",
+        "- Invoke bundled subagents as `@agent-name` when delegating a workflow; do not invent alternate invocation names.",
+        "- Do not narrate tool-planning chatter. Return the requested evidence, decisions, and gaps.",
+        "- When required Endor evidence is unavailable, include `evidence_queries` and non-empty `data_gaps` instead of guessing.",
         "- Antigravity subagents are host-managed; if subagent delegation is unavailable, use the matching skill and report the limitation.",
         "- Tell the user to restart Antigravity CLI after installing or updating the plugin if newly installed skills or subagents are not visible.",
         "",
@@ -267,6 +270,9 @@ def _antigravity_plugin_readme(
         "",
         "Restart Antigravity CLI after installing or reinstalling the plugin if",
         "the newly installed skills or subagents are not visible.",
+        "If Antigravity still shows stale same-version content, uninstall and",
+        "reinstall the plugin directory, validate the package again, and start a",
+        "fresh Antigravity CLI session so host caches reload the generated prompts.",
         "",
         "## Set Up This Machine",
         "",
@@ -295,6 +301,9 @@ def _antigravity_plugin_readme(
         "## Boundaries And Rules",
         "",
         "- Always run readiness and namespace checks before live Endor lookups.",
+        "- Invoke workflow subagents as `@agent-name`, for example `@sca-remediation`.",
+        "- Do not narrate tool-planning chatter; return the workflow result, evidence, and precise gaps.",
+        "- Include `evidence_queries` and non-empty `data_gaps` whenever required Endor evidence is missing.",
         "- Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.",
         "- Never run setup scans or `endorctl host-check`.",
         "- Never auto-install `gh`, language runtimes, or package managers in v1.",
@@ -312,7 +321,7 @@ def _antigravity_plugin_readme(
 def antigravity_text(text: str) -> str:
     """Adapt Gemini-rendered package text for Antigravity CLI wording."""
 
-    return (
+    adapted = (
         text.replace("Gemini CLI extension subagent", "Antigravity CLI plugin subagent")
         .replace("Gemini CLI extension", "Antigravity CLI plugin")
         .replace("Gemini CLI Host Contract", "Antigravity CLI Host Contract")
@@ -329,6 +338,18 @@ def antigravity_text(text: str) -> str:
         .replace("host=gemini", "host=antigravity")
         .replace("Gemini CLI", "Antigravity CLI")
     )
+    host_contract = "Antigravity CLI Host Contract\n"
+    if host_contract in adapted and "Invoke workflow subagents as `@agent-name`" not in adapted:
+        adapted = adapted.replace(
+            host_contract,
+            host_contract
+            + "\n"
+            + "- Invoke workflow subagents as `@agent-name`; do not invent alternate invocation names.\n"
+            + "- Do not narrate tool-planning chatter. Return the requested evidence, decisions, and gaps.\n"
+            + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n",
+            1,
+        )
+    return adapted
 
 
 def _workflow_label(agent_id: str) -> str:
