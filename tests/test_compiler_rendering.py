@@ -216,6 +216,7 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
         RecipeField("verdict", "enum", required=True, description="Decision."),
         RecipeField("conditions", "list[string]", required=True, description="Constraints."),
         RecipeField("summary", "string", required=True, description="Operator summary."),
+        RecipeField("evidence_queries", "list[object]", required=True, description="Evidence ledger."),
         RecipeField("data_gaps", "list[string]", required=True, description="Missing evidence."),
         RecipeField("optional_signal", "object", required=False, description="Extra evidence."),
     )
@@ -228,6 +229,8 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert "Optional top-level fields when verified" in rendered
     assert '"verdict": "string"' in rendered
     assert '"conditions": []' in rendered
+    assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
+    assert "Row keys: `name`, `resource`, `source`, `status`" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
 
 
@@ -235,13 +238,15 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
     recipe = _recipe_with_outputs(
         RecipeField("verdict", "enum", required=True),
         RecipeField("conditions", "list[string]", required=True),
+        RecipeField("evidence_queries", "list[object]", required=True),
         RecipeField("data_gaps", "list[string]", required=True),
     )
 
     rendered = render_structured_output_contract(recipe, compact=True)
 
     assert "Required top-level fields, in order" in rendered
-    assert "`verdict`, `conditions`, `data_gaps`" in rendered
+    assert "`verdict`, `conditions`, `evidence_queries`, `data_gaps`" in rendered
+    assert "`evidence_queries` is the evidence ledger" in rendered
     assert "```json" not in rendered
 
 

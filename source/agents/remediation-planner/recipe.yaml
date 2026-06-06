@@ -49,7 +49,7 @@ outputs:
 - name: evidence_queries
   kind: list[object]
   required: true
-  description: Read-only Endor query attempts, status, and missing lanes.
+  description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - name: remediation_options
   kind: list[object]
   required: true

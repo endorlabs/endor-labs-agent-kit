@@ -15,7 +15,7 @@ task_profiles:
       - Manifest inventory is complete or unsupported formats are recorded in data_gaps.
       - Do not claim Endor risk or vulnerability state from local manifests alone.
     output_focus:
-      - Return manifests, dependencies_reviewed, skipped coordinates, summary, and data_gaps.
+      - Return manifests, dependencies_reviewed, skipped coordinates, summary, evidence_queries, and data_gaps.
   - id: evidence-check
     title: Dependency Risk Evidence Check
     summary: Check exact manifest coordinates against available Endor risk evidence.
@@ -29,7 +29,7 @@ task_profiles:
       - Reviewed coordinates have evidence-backed findings or precise data_gaps.
       - Do not expand into repository-wide remediation planning unless asked.
     output_focus:
-      - Return findings, recommended_actions, evidence source summary, and data_gaps.
+      - Return findings, recommended_actions, evidence_queries, evidence source summary, and data_gaps.
 resources:
   - name: RepositoryManifest
     purpose: Discover dependency files and exact direct package coordinates from read-only file inspection.

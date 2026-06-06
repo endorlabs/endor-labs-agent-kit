@@ -48,6 +48,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "namespace-provenance",
         "query-efficiency",
         "verified-evidence",
+        "evidence-ledger",
         "data-gaps",
     ]
     assert [profile.id for profile in pack.workflow_for("sca-remediation").task_profiles] == [

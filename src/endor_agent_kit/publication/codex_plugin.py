@@ -176,10 +176,8 @@ def _render_codex_agent_toml(prepared: PreparedSourceRecipe) -> str:
 
         ## Codex Custom Agent Setup Note
 
-        This custom agent is installed from the Endor Labs Agent Kit Codex plugin.
-        If `endorctl`, `gh`, Endor authentication, namespace selection, or
-        workflow-specific tooling is missing, ask the user to run the
-        `{CODEX_SETUP_SKILL}` skill before continuing live Endor work.
+        Installed from the Endor Labs Agent Kit plugin. If setup is incomplete,
+        ask the user to run `{CODEX_SETUP_SKILL}`.
         """
     )
     lines = [

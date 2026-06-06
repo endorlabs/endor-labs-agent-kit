@@ -163,14 +163,16 @@ resource for every request.
 
 Every response must include `evidence_queries[]`. Each entry records:
 
-- system: `endor`, `user_input`, or `public_docs`
-- command_or_query: exact read-only command, API path, public docs URL, or
-  provided-input field
-- purpose
-- status: `SUCCESS`, `PARTIAL`, `FAILED`, or `SKIPPED`
-- returned_count when known
-- fields_used
-- data_gaps
+- name: short human-readable evidence lane
+- resource: Endor resource, public-doc page, or provided-input field
+- source: `endorctl_api`, `endor_mcp`, `user_input`, `local_repository`, or
+  `public_docs`
+- status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
+- query_template_id: compact recipe id, API path id, or null
+- filter_summary: concise selector summary or null
+- field_mask_summary: concise field summary or null
+- result_count: integer count or null
+- reason: why the evidence was used, unavailable, or skipped
 
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
@@ -1001,7 +1003,19 @@ The JSON object must include:
     }
   ],
   "affected_resources": [],
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "Troubleshooting evidence lane",
+      "resource": "Project | ScanResult | Integration | user_input",
+      "source": "endorctl_api | endor_mcp | user_input | public_docs",
+      "status": "succeeded | partial | failed | skipped",
+      "query_template_id": "lane-specific-read | public-doc-reference | null",
+      "filter_summary": "Issue selector, resource id, or provided-input field",
+      "field_mask_summary": "Status, error, integration, workflow, and scan fields used",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "evidence_summary": {},
   "root_cause_hypotheses": [],
   "recommended_actions": [

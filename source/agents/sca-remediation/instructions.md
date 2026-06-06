@@ -395,7 +395,19 @@ extract; do not replace the JSON object with a table or prose summary.
     "repo_full_name": "string",
     "attempted_selectors": []
   },
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "VersionUpgrade/UIA evidence",
+      "resource": "VersionUpgrade",
+      "source": "endorctl_api | endor_mcp | user_input",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
+      "filter_summary": "Project and candidate package selector",
+      "field_mask_summary": "Risk, CIA, fixed findings, introduced findings, and manifest fields",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "selected_remediation": {
     "package": "string",
     "from_version": "string",

@@ -87,6 +87,19 @@ shape:
   "strengths": ["evidence-backed positive signal"],
   "next_checks": ["recommended review or follow-up"],
   "summary": "One-paragraph human-readable assessment.",
+  "evidence_queries": [
+    {
+      "name": "Exact package risk evidence",
+      "resource": "PackageVersion",
+      "source": "endor_mcp | endorctl_api | user_input",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "package-version-exact | risk-tool | null",
+      "filter_summary": "Exact ecosystem/package/version selector or null",
+      "field_mask_summary": "Risk, vulnerability, and score fields used or null",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": ["scores", "license", "typosquat_similarity"]
 }
 ```

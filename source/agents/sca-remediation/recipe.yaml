@@ -61,7 +61,7 @@ outputs:
 - name: evidence_queries
   kind: list[object]
   required: true
-  description: Current Endor, repository, and local source evidence queries used for the remediation decision, including skipped or failed Finding and VersionUpgrade/UIA lookups.
+  description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - name: selected_remediation
   kind: object
   required: true

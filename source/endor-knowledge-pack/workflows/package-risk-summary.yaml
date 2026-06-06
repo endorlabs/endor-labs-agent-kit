@@ -14,7 +14,7 @@ task_profiles:
       - Package coordinate is complete, or missing coordinate/evidence is recorded in data_gaps.
       - Do not inspect repository manifests or run scans.
     output_focus:
-      - Return risk_posture, findings, strengths, next_checks, summary, and data_gaps.
+      - Return risk_posture, findings, strengths, next_checks, summary, evidence_queries, and data_gaps.
   - id: evidence-check
     title: Exact Package Evidence Check
     summary: Fetch only exact package-version enrichment before selecting a posture.
@@ -28,7 +28,7 @@ task_profiles:
       - Evidence-backed posture is known or evidence is insufficient.
       - Do not substitute ecosystem-level assumptions for exact package-version evidence.
     output_focus:
-      - Return bounded posture, evidence source summary, and data_gaps.
+      - Return bounded posture, evidence_queries, evidence source summary, and data_gaps.
 resources:
   - name: PackageVersion
     purpose: Resolve the exact package-version UUID for package-level enrichment.
