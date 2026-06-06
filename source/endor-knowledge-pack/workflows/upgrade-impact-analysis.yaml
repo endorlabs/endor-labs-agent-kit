@@ -74,6 +74,8 @@ data_gaps:
   - Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context,
     and host command capability in `data_gaps`.
   - Preserve `namespace_provenance`, project query attempts, upgrade UUIDs, and context scope in the final output.
+  - Keep top-level `findings_fixed` and `findings_introduced` as integer counts, `fixed_cves` as advisory IDs, and `endor_patch`
+    as a string target, `none`, or `unknown`, never a boolean.
 evidence_query_plans:
   - profile_id: resolve-scope
     title: Upgrade Impact Scope Query Plan

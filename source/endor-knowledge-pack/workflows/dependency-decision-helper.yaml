@@ -60,6 +60,8 @@ data_gaps:
   - Record missing Endor credentials, unavailable MCP tools, package-version misses, score gaps, license gaps, typosquat lookup
     gaps, and vulnerability enrichment failures in `data_gaps`.
   - Preserve exact package coordinate, evidence source, and host capability status in the final output.
+  - When evidence is missing, ask for existing package/version, finding, scan-result, project-scope, or user-provided evidence;
+    do not recommend running a new Endor scan as the default next check.
 evidence_query_plans:
   - profile_id: explain
     title: Dependency Decision Explain Query Plan

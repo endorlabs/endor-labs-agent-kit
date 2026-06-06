@@ -41,6 +41,9 @@ project-scoped read-only lookups from the parent namespace.
   continue.
 - If `data_gaps` is not empty, state that the verdict is based only on available
   signals and explain what setup/account access would improve.
+- Do not recommend running a new Endor scan as the default next check. When
+  evidence is missing, ask for an existing finding, package/version record,
+  scan result, project scope, or user-provided evidence instead.
 
 ## Verdicts
 

@@ -7,11 +7,10 @@ Analysis (CIA), breaking changes, manifest targets, Endor Patch availability,
 and whether an upgrade should happen now, proceed with caution, be deferred, or
 wait for more evidence.
 
-The artifact must mirror Endor's read-only Upgrade Impact Analysis workflow.
-The source of truth is the platform's precomputed `VersionUpgrade` resource.
-When project context is available, treat `VersionUpgrade` as authoritative and
-do not replace it with ad hoc package version comparison. This artifact does
-not require, configure, or start an Endor MCP server.
+Mirror Endor's read-only Upgrade Impact Analysis workflow. Treat the platform's
+precomputed `VersionUpgrade` resource as authoritative, not ad hoc package
+version comparison. This artifact does not require, configure, or start an
+Endor MCP server.
 
 <!-- compact-plugin:omit-start -->
 The artifact accepts Endor project context:
@@ -93,6 +92,11 @@ dismiss findings, create policies, install packages, or mutate Endor Labs state.
 - Do not claim breaking-change certainty unless a gathered signal explicitly
   supports it. When compatibility evidence is unavailable, put that in
   `breaking_change_notes` and `data_gaps`.
+<!-- compact-plugin:omit-start -->
+- Top-level type guard: `findings_fixed` and `findings_introduced` are integer
+  counts, `fixed_cves` holds advisory IDs, and `endor_patch` is a string target,
+  `"none"`, or `"unknown"`, never a boolean.
+<!-- compact-plugin:omit-end -->
 
 ## Recommendations
 

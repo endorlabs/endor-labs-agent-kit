@@ -192,6 +192,8 @@ def _project_evidence_gap_errors(
         or _uia_contains_fixed_finding_evidence(payload.get("uia_evidence"))
     )
     has_uia_evidence = bool(_list(payload.get("uia_evidence")) or _list(payload.get("version_upgrades")))
+    if not has_uia_evidence:
+        has_uia_evidence = _remediation_options_contain_uia_evidence(payload.get("remediation_options"))
     evidence_queries = _list(payload.get("evidence_queries"))
     queried_finding = _evidence_query_mentions(evidence_queries, ("Finding", "findings"))
     queried_uia = _evidence_query_mentions(evidence_queries, ("VersionUpgrade", "UIA", "version_upgrades"))
@@ -431,6 +433,19 @@ def _uia_contains_fixed_finding_evidence(value: Any) -> bool:
                     reduction.get("fixed_count") or reduction.get("reachable_fixed_count")
                 ) > 0:
                     return True
+    return False
+
+
+def _remediation_options_contain_uia_evidence(value: Any) -> bool:
+    for item in _list(value):
+        if not isinstance(item, dict):
+            continue
+        if _text(item.get("version_upgrade_uuid") or item.get("uia_uuid")):
+            return True
+        if _item_mentions(item, ("VersionUpgrade", "UIA", "version_upgrade")):
+            return True
+        if _int(item.get("total_findings_fixed") or item.get("findings_fixed")) > 0:
+            return True
     return False
 
 
