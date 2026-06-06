@@ -256,7 +256,48 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
         "plugin-cache:plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents/0.1.0: "
         "stale-legacy-cache package=endor-agent-kit-security-agents version=0.1.0"
     ) in status.stdout
-    assert "Remove/reinstall that plugin package or clear the host cache" in status.stdout
+    assert "--purge-stale-plugin-cache --yes" in status.stdout
+
+    stale_cache_root = stale_cache_manifest.parents[1]
+    dry_purge = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--purge-stale-plugin-cache",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "would move stale plugin cache" in dry_purge.stdout
+    assert stale_cache_root.exists()
+
+    purge = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--purge-stale-plugin-cache",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "moved stale plugin cache" in purge.stdout
+    assert not stale_cache_root.exists()
+    assert list((codex_home / "plugins" / "cache-backups").glob("endor-agent-kit-local-endor-agent-kit-security-agents-0.1.0.bak-*"))
+
+    clean_cache_status = subprocess.run(
+        [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "plugin-cache: none" in clean_cache_status.stdout
 
     subprocess.run(
         [
