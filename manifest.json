@@ -55,9 +55,9 @@
               "sha256": "4deba009f1a57a564dfc6ed97ee9c6d1217cf3aad3dfdfb5e5256886f1d6a31b"
             },
             {
-              "bytes": 27278,
+              "bytes": 27581,
               "path": "claude-code/dependency-decision-helper/dependency-decision-helper.md",
-              "sha256": "a24bc20032087592501668cf1777a4a86aa93d054bbc555e4bdf6a1cf04f8d99"
+              "sha256": "048926f677a89c1ccdca6406594ca2677dfd4e96dc9a8031372f2aad3f75643b"
             },
             {
               "bytes": 1676,
@@ -135,9 +135,9 @@
               "sha256": "92aab202dc2006abb881dc84d2ba266bd11fa200a816bfaeeca0eac3ce60ac40"
             },
             {
-              "bytes": 27080,
+              "bytes": 27383,
               "path": "claude-code/package-risk-summary/package-risk-summary.md",
-              "sha256": "25209ec37eb767393c77f6d6f7d9f9a306cdc36900f3ef30c90139f9c51eaced"
+              "sha256": "bbb46dcedecdf5f49317d6eaf14a93f4c0602b66a4962eb9d1897b266cdc7694"
             }
           ],
           "id": "enterprise-edition",
@@ -175,9 +175,9 @@
               "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
             },
             {
-              "bytes": 70662,
+              "bytes": 71461,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "4343cf7bb60e225ed5a2bb45484bf4824480918c3485dced2e7b6b33824277bb"
+              "sha256": "34ef9d341d912370e34d181349e106adbcd44a62e7b14ca0773003d41819022c"
             }
           ],
           "id": "enterprise-edition",
@@ -390,9 +390,9 @@
               "sha256": "7da6082cdf57afa1a0958ddafe74418b9df534a2d654fe5be4449f18fa6319ff"
             },
             {
-              "bytes": 28738,
+              "bytes": 29047,
               "path": "claude-managed-agents/dependency-decision-helper/agent.yaml",
-              "sha256": "fac869dec9ae616c6ebb683759c6a6004c10414c3681bc7e6b8daf08c571a1a3"
+              "sha256": "c04da98eb73402d9df2c2b69e01fa42547eab0fc2c60719eac0794c1c0f5e917"
             },
             {
               "bytes": 1676,
@@ -485,9 +485,9 @@
               "sha256": "7f1999b4bb06168374aa4463c5d97a08612fdc5157808cde6c70f0a11343eb8c"
             },
             {
-              "bytes": 28551,
+              "bytes": 28860,
               "path": "claude-managed-agents/package-risk-summary/agent.yaml",
-              "sha256": "8d8d7634fe46532bfd50f3cd7917e678df879af6fc609e666603610bfad07184"
+              "sha256": "b7117baca840b3cf4c99609befca27db47a11da45557d571efe67caceded9b15"
             },
             {
               "bytes": 1681,
@@ -530,9 +530,9 @@
               "sha256": "8f3b950af1524a85c80e54f92b36ed31dca087ba977654d32701558f14e85ac7"
             },
             {
-              "bytes": 73566,
+              "bytes": 74381,
               "path": "claude-managed-agents/probe-droid/agent.yaml",
-              "sha256": "11fa013c9a0e753e4045a77f3134d9ed0354bd9b406fc2878ada5a8c9404617b"
+              "sha256": "5737afcc7a38123cbcfbb2e16acafb5411ddf1f06b3494ce0af65376aa1926d9"
             },
             {
               "bytes": 9818,
@@ -755,9 +755,9 @@
               "sha256": "9e6ac1c5838a16197681fdeb049a39cac1b501efb7218db1da9abc55cead366a"
             },
             {
-              "bytes": 71320,
+              "bytes": 72119,
               "path": "codex/probe-droid/SKILL.md",
-              "sha256": "d77582c0aaab0da1fc5352733fc183465f24eb27ef6b66a062787b72f3d6688b"
+              "sha256": "796e9e62da2e6c77b782d9651aafbf93a1a22abe167d2f2b913a29a44abdaad4"
             },
             {
               "bytes": 9818,
@@ -935,9 +935,9 @@
               "sha256": "77760bc453827530056c5eaa2a123344d14ca605f8d0681e3ba01667016e6472"
             },
             {
-              "bytes": 71349,
+              "bytes": 72148,
               "path": "gemini/probe-droid/SKILL.md",
-              "sha256": "1d163ab12919ab276bc17513a9da9b7daf97222f4996fae00b6e6fd1f9e58358"
+              "sha256": "501cb217c3d681c0fc481191c3432f44de44ccd7df388b1534c44bb9881a7341"
             },
             {
               "bytes": 9818,
@@ -950,9 +950,9 @@
               "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
             },
             {
-              "bytes": 71595,
+              "bytes": 72394,
               "path": "gemini/probe-droid/probe-droid.md",
-              "sha256": "a025cdcb3631f015c2b7dc838f15a655aa23ddde81b736953cae7a6fb0ef1021"
+              "sha256": "6a860d5b1037a5a1679137b40bcdcbf313a6bf5fe29f54ade0df690991be3cf3"
             }
           ],
           "id": "gemini-cli",
@@ -1090,9 +1090,9 @@
               "sha256": "fcd4b57b4be550f25bae2c5f0d50f2baa38b01154bcbd5b77e3f170163f39116"
             },
             {
-              "bytes": 25559,
+              "bytes": 25862,
               "path": "portable/dependency-decision-helper/agent.md",
-              "sha256": "d089720ee9099e1093dd9ac7707b87c30f2f993798744bebddfa8871317d6732"
+              "sha256": "bc1be2565c35452c2df391bdf9ac99d0724c6368699563ef5f09483935b31ec4"
             },
             {
               "bytes": 1676,
@@ -1185,9 +1185,9 @@
               "sha256": "9166cb84ed8e12a2acef914fd28a17f933d707d01a61b68a532a3e069389eb6c"
             },
             {
-              "bytes": 25015,
+              "bytes": 25318,
               "path": "portable/package-risk-summary/agent.md",
-              "sha256": "b05877510d4889a9b002c9aae355efec596ed0f262e9e8a1fa0211208c9409ef"
+              "sha256": "3234b67ca75a79fd39e7a18c4515e88a6bc1d22d1b65d4b11f95a9e6c4dcefcd"
             },
             {
               "bytes": 1681,
@@ -1230,9 +1230,9 @@
               "sha256": "f64394eec36b712123b5d6feb16cce8599994c5bd1b19e3f71d36d73eeca51ab"
             },
             {
-              "bytes": 66197,
+              "bytes": 66996,
               "path": "portable/probe-droid/agent.md",
-              "sha256": "aa45be4668981503870e277022a0705c9bc89a7846f107f7908584ae3f391455"
+              "sha256": "20866b4b7e99835a39f0a68a220ee87f165ac0b9013fb8ea878e5d80d63d7437"
             },
             {
               "bytes": 9819,
@@ -1601,9 +1601,9 @@
           "sha256": "fcfc8dbf66c235bbf52271664a571c607d43455345be817e7ff7824d7c369a38"
         },
         {
-          "bytes": 11177,
+          "bytes": 11360,
           "path": "plugins/claude/ai-plugins/agents/dependency-decision-helper.md",
-          "sha256": "218d47bedc59c3f4fadfe649152ddb3fb2b81348d8c07afe50f5d52c0c725638"
+          "sha256": "3271168fa1b05311e8e00c00e71a30089d71d2c716d85282b273bbeccfb57d03"
         },
         {
           "bytes": 19957,
@@ -1611,9 +1611,9 @@
           "sha256": "eb4a60a60f3b19f14d3ebd80d2b376e11f04a697f43babf96396e599f1417bed"
         },
         {
-          "bytes": 11246,
+          "bytes": 11429,
           "path": "plugins/claude/ai-plugins/agents/package-risk-summary.md",
-          "sha256": "504d738529278945ded0bc485e16fd792411965434a6722254bbb0e413658b37"
+          "sha256": "0dceee319766a7b09a74195d632198f8f30607c51deb100f4d9f3d6adf928c10"
         },
         {
           "bytes": 23023,
@@ -1708,9 +1708,9 @@
           "sha256": "fcfc8dbf66c235bbf52271664a571c607d43455345be817e7ff7824d7c369a38"
         },
         {
-          "bytes": 11177,
+          "bytes": 11360,
           "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-decision-helper.md",
-          "sha256": "218d47bedc59c3f4fadfe649152ddb3fb2b81348d8c07afe50f5d52c0c725638"
+          "sha256": "3271168fa1b05311e8e00c00e71a30089d71d2c716d85282b273bbeccfb57d03"
         },
         {
           "bytes": 19957,
@@ -1718,9 +1718,9 @@
           "sha256": "eb4a60a60f3b19f14d3ebd80d2b376e11f04a697f43babf96396e599f1417bed"
         },
         {
-          "bytes": 11246,
+          "bytes": 11429,
           "path": "plugins/claude/endor-labs-agent-kit/agents/package-risk-summary.md",
-          "sha256": "504d738529278945ded0bc485e16fd792411965434a6722254bbb0e413658b37"
+          "sha256": "0dceee319766a7b09a74195d632198f8f30607c51deb100f4d9f3d6adf928c10"
         },
         {
           "bytes": 23023,

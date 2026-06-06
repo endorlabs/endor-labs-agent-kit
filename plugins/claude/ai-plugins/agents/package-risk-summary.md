@@ -61,6 +61,9 @@ project-scoped read-only lookups from the parent namespace.
   edition, auth, or local setup problem prevents a signal from being gathered.
 - If a tool returns an error, preserve the usable evidence you already have and
   continue.
+- If an Endor MCP tool is not directly exposed by the host, record that tool as
+  unavailable in `data_gaps` immediately; do not repeatedly search for or wait
+  on missing MCP tools.
 - If `data_gaps` is not empty, state that the summary is based only on
   available signals and explain what setup/account access would improve.
 - Do not recommend running a new Endor scan as the default next check. When

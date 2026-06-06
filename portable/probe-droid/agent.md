@@ -297,6 +297,15 @@ Separate the workflow and output into these lanes:
 - `excluded_repositories`: archived, disabled, explicitly excluded, or
   optionally inactive repositories.
 
+`onboarded_healthy_repositories` is a strict lane. Use it only when the row has
+`repository` or `repo_full_name`, `default_branch`, `endor_project.project_uuid`
+or `project_uuid`, and a non-empty `endor_monitored_branch` backed by current
+evidence. If branch evidence, monitored-branch evidence, project UUID, or
+GitHub App evidence is missing or inferred, put the repository in
+`onboarded_repositories_with_gaps` and add the missing signal to `data_gaps`.
+Use `report_scope.namespace` for the selected Endor namespace; do not emit only
+`endor_namespace`.
+
 ## Endor Evidence Queries
 
 Use `<namespace_flag>` as `--namespace <namespace>` when the user provides
@@ -1181,7 +1190,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 - `PackageVersion`: Summarize package-version health and resolution errors without exposing full objects. Fields: `uuid`, `meta.name`, `spec.resolution_errors`.
 - Retrieval order: 1. Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls. 2. Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects. 3. Use bounded GitHub.com inventory lookups and one projected package-version summary before drilling into selected repositories.
 - Fallbacks: Retry Endor project inventory with traversal before classifying repositories as not onboarded. If GitHub App installation or GitHub API evidence is unavailable, continue with provided inventory and mark the gap.
-- Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`. Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.
+- Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`. Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence. Put repositories with inferred or missing monitored-branch, project UUID, or GitHub App evidence in `onboarded_repositories_with_gaps`, not `onboarded_healthy_repositories`; healthy rows require direct normalized branch and project evidence.
 
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
