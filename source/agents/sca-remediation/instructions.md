@@ -135,6 +135,7 @@ Even in this lane, all mutation gates remain: show the selected candidate, UIA e
 
 Use authenticated `endorctl api` commands or documented Endor API calls. Do not require or start an Endor MCP server.
 
+<!-- compact-plugin:omit-start -->
 Project lookup example:
 
 ```bash
@@ -184,6 +185,7 @@ If a tenant or CLI labels the same evidence as Upgrade Impact Analysis, preserve
 When parsing `endorctl` JSON, tolerate CLI update notices by redirecting non-JSON stderr or parsing from the first JSON object. Do not convert update notices into false data gaps.
 
 Do not make current upstream/latest-version claims unless you verified them during the current run from package-manager metadata, Endor metadata, or an authoritative upstream source. If Endor says `is_latest=false`, state only that Endor's record does not mark the target as latest, and record an upstream-version data gap when no fresh verification was performed.
+<!-- compact-plugin:omit-end -->
 
 ## Risky / Indeterminate Upgrade Solver
 
@@ -279,6 +281,7 @@ Do not use unrelated branch families such as `endor/fix/...` for this agent unle
 - Scope compatibility claims to Endor UIA/CIA evidence and commands you actually ran. Do not independently claim "no behavior changes", "security-only release", or "not attributable" unless you verified that claim from source, release notes, baseline validation, or another cited source.
 - If active local changes are unrelated to the requested remediation, do not overwrite them. Stop and report the conflict in `data_gaps`.
 
+<!-- compact-plugin:omit-start -->
 ## PR/MR Body And Comment Requirements
 
 Use the AURI-style remediation PR/MR structure when opening a PR/MR or drafting its body. Include emojis and keep the headings stable:
@@ -355,6 +358,7 @@ Use a stable comment marker when posting a remediation comment:
 <!-- endor-agent-kit:sca-remediation -->
 ```
 
+<!-- compact-plugin:omit-end -->
 ## Output
 
 Return concise prose plus a JSON object with this shape:

@@ -175,6 +175,7 @@ Every response must include `evidence_queries[]`. Each entry records:
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
 
+<!-- compact-plugin:omit-start -->
 ## Read-Only Endor Query Shapes
 
 Use documented read-only `endorctl api list`, `get`, or query commands only.
@@ -454,6 +455,7 @@ Run optional lane queries only when the lane requires them. Optional queries mus
 fail independently and must not cancel the core scan, workflow, or project
 diagnosis.
 
+<!-- compact-plugin:omit-end -->
 ## Live Command Budget
 
 Keep live Endor commands bounded.
@@ -469,6 +471,7 @@ Keep live Endor commands bounded.
 - If a command fails, record its stderr summary in `evidence_queries[]` without
   printing secrets or full credential-bearing payloads.
 
+<!-- compact-plugin:omit-start -->
 ## Common Diagnosis Guidance
 
 Use exact evidence first. Use these patterns only when they match the provided
@@ -962,6 +965,7 @@ issue before assuming the import pipeline is broken:
   Clarify this in the recommendation when the user expects findings to update
   from an imported SBOM.
 
+<!-- compact-plugin:omit-end -->
 ## Output Requirements
 
 Return a short human-readable summary first, followed by one JSON object.

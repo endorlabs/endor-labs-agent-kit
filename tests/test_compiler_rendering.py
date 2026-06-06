@@ -64,6 +64,35 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert "Context first" in rendered
 
 
+def test_shared_compiler_rendering_compact_plugin_profile_omits_marked_blocks():
+    instructions = """\
+<!-- shared:start -->
+Shared rules.
+<!-- compact-plugin:omit-start -->
+Reference-only details.
+<!-- compact-plugin:omit-end -->
+Shared tail.
+<!-- shared:end -->
+
+<!-- developer-edition:start -->
+Developer rules.
+<!-- developer-edition:end -->
+
+<!-- enterprise-edition:start -->
+Enterprise rules.
+<!-- enterprise-edition:end -->
+"""
+
+    full = instructions_for_edition(instructions, "enterprise-edition")
+    compact = instructions_for_edition(instructions, "enterprise-edition", compact_plugin=True)
+
+    assert "Reference-only details" in full
+    assert "compact-plugin:omit" not in full
+    assert "Reference-only details" not in compact
+    assert "Shared rules." in compact
+    assert "Shared tail." in compact
+
+
 def test_shared_compiler_rendering_reports_missing_instruction_sections():
     with pytest.raises(ValueError, match="enterprise-edition"):
         instructions_for_edition(
@@ -112,6 +141,28 @@ def test_shared_compiler_rendering_renders_action_contracts():
     assert "- inputs: `title`, `body`" in rendered
     assert "- outputs: `url`" in rendered
     assert "- notes: Requires explicit approval." in rendered
+
+
+def test_shared_compiler_rendering_renders_compact_action_contracts():
+    action = ActionContract(
+        id="open-change-request",
+        kind="source_provider",
+        safety_class="mutating",
+        confirmation_required=True,
+        providers=("github", "gitlab"),
+        required_host_capabilities=("open_pr",),
+        inputs=("title", "body"),
+        outputs=("url",),
+        availability="requires_adapter",
+        notes="Long reference note omitted from compact plugin prompts.",
+    )
+
+    rendered = render_action_contracts((action,), compact=True)
+
+    assert "Compact plugin profile" in rendered
+    assert "id=`open-change-request`" in rendered
+    assert "outputs=`url`" in rendered
+    assert "Long reference note" not in rendered
 
 
 def test_shared_compiler_rendering_indents_frontmatter_blocks():

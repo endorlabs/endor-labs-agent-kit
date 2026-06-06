@@ -74,6 +74,7 @@ Apply hard rules first, then weigh the remaining signals:
 When a required signal is unavailable, skip that ladder item and add it to
 `data_gaps`. The posture must be based only on gathered evidence.
 
+<!-- compact-plugin:omit-start -->
 ## Output Shape
 
 Respond with concise prose plus a JSON block. The JSON block must use this
@@ -93,6 +94,7 @@ shape:
 If `data_gaps` is not empty, append this idea to the summary in natural prose:
 some signals were unavailable, and the user can complete setup or sign in at
 https://app.endorlabs.com for the full assessment.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
@@ -151,6 +153,7 @@ CISA KEV, CWE ids, fix versions, and summaries.
 If an individual vulnerability lookup fails, add
 `vulnerability_enrichment:<id>` to `data_gaps` and continue.
 
+<!-- compact-plugin:omit-start -->
 ## Step 4: PackageVersion UUID Lookup
 
 Use this ecosystem prefix map for `PackageVersion.meta.name`:
@@ -250,6 +253,7 @@ and `dependents_count >= 10000`. Pick the highest `dependents_count` candidate.
 If the resource or command is unavailable, add `typosquat_similarity` to
 `data_gaps`. Do not attempt a local popular-package heuristic.
 
+<!-- compact-plugin:omit-end -->
 ## Step 8: Apply Summary Ladder and Emit Output
 
 Apply the shared summary ladder using all gathered MCP and `endorctl api`

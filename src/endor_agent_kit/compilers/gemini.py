@@ -46,6 +46,7 @@ def render_gemini_skill(
     prepared: PreparedSourceRecipe,
     *,
     generated_context: str = "Gemini CLI",
+    compact_plugin: bool = False,
 ) -> str:
     """Render a Gemini CLI Agent Skill from a prepared Source Recipe."""
 
@@ -54,6 +55,7 @@ def render_gemini_skill(
         prepared.instructions,
         prepared.actions,
         generated_context=generated_context,
+        compact_plugin=compact_plugin,
     )
 
 
@@ -61,6 +63,7 @@ def render_gemini_agent(
     prepared: PreparedSourceRecipe,
     *,
     generated_context: str = "Gemini CLI subagent",
+    compact_plugin: bool = False,
 ) -> str:
     """Render a Gemini CLI subagent from a prepared Source Recipe."""
 
@@ -70,9 +73,10 @@ def render_gemini_agent(
             prepared.instructions,
             GEMINI_SECTION_EDITION,
             recipe_id=recipe.id,
+            compact_plugin=compact_plugin,
         )
     )
-    body += _gemini_instruction_text(render_action_contracts(prepared.actions))
+    body += _gemini_instruction_text(render_action_contracts(prepared.actions, compact=compact_plugin))
     posture = source_recipe_safety_posture(recipe)
     tools = _gemini_tools(recipe)
     lines = [
@@ -110,9 +114,15 @@ def _render_skill(
     actions: tuple = (),
     *,
     generated_context: str,
+    compact_plugin: bool,
 ) -> str:
     body = _gemini_instruction_text(
-        instructions_for_edition(instructions, GEMINI_SECTION_EDITION, recipe_id=recipe.id)
+        instructions_for_edition(
+            instructions,
+            GEMINI_SECTION_EDITION,
+            recipe_id=recipe.id,
+            compact_plugin=compact_plugin,
+        )
     )
     return (
         "---\n"
@@ -123,7 +133,7 @@ def _render_skill(
         f"{_gemini_notice(recipe, generated_context=generated_context)}\n\n"
         f"{_gemini_host_contract(recipe)}\n\n"
         f"{body.rstrip()}\n"
-        f"{_gemini_instruction_text(render_action_contracts(actions))}"
+        f"{_gemini_instruction_text(render_action_contracts(actions, compact=compact_plugin))}"
     )
 
 

@@ -67,6 +67,7 @@ focus.
 - If no supported manifests are found, return `UNKNOWN` and name the searched
   patterns.
 
+<!-- compact-plugin:omit-start -->
 ## Ecosystem Coordinate Rules
 
 Map local dependencies to Endor coordinates:
@@ -82,6 +83,7 @@ Map local dependencies to Endor coordinates:
 
 For Maven, use `groupId:artifactId` as `package_name`. For Go, use the module
 path. For scoped npm packages, preserve the scope, such as `@scope/name`.
+<!-- compact-plugin:omit-end -->
 
 ## Risk Postures
 
@@ -114,6 +116,7 @@ Apply hard rules first, then weigh the remaining signals:
 When a required signal is unavailable, skip that ladder item and add it to
 `data_gaps`. The posture must be based only on gathered evidence.
 
+<!-- compact-plugin:omit-start -->
 ## Output Shape
 
 Respond with concise prose plus a JSON block. The JSON block must use this
@@ -154,6 +157,7 @@ shape:
 
 If `data_gaps` is not empty, state that the review is based only on available
 signals and explain what setup, lockfile, or Endor access would improve.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->

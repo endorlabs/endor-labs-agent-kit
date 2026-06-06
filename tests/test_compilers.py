@@ -14,13 +14,14 @@ from endor_agent_kit.compilers import (
     compile_gemini,
     compile_raw,
 )
+from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
 from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 
 from conftest import repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "c1406f356d8187896bbc1cd8961239fa26d2d555e902226657a0058261ccbb52"
+ENTERPRISE_EDITION_SHA256 = "d360b7fe6d9509dd5f36cf1300e2caf58509a2908eadd54eaf1fef8947422cd4"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -75,6 +76,30 @@ def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     assert "data_gaps" in enterprise
     assert "## Endor Knowledge Pack" in enterprise
     assert "Context first" in enterprise
+
+
+def test_plugin_package_prompts_stay_within_compact_budgets(tmp_path):
+    recipes = sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
+    dest = tmp_path / "catalog"
+
+    publish_recipes(recipes, dest, prune=True, include_plugins=True)
+
+    errors: list[str] = []
+    for path in _plugin_prompt_files(dest):
+        text = path.read_text(encoding="utf-8")
+        relative = path.relative_to(dest).as_posix()
+        budget = _prompt_budget(relative)
+        if len(text) > budget:
+            errors.append(f"{relative}: {len(text)} > {budget}")
+        if "endor-agent-kit-setup" not in relative:
+            for required in (
+                "Evidence Gate Contract",
+                "Never use memory",
+                "Never dump or `cat` Endor config files",
+            ):
+                if required not in text:
+                    errors.append(f"{relative}: missing {required!r}")
+    assert errors == []
 
 
 def test_claude_code_disallowed_tools_allow_read_only_file_access():
@@ -358,3 +383,50 @@ def _fenced_blocks(text: str, language: str) -> list[str]:
     for after_marker in text.split(marker)[1:]:
         blocks.append(after_marker.split("```", 1)[0])
     return blocks
+
+
+def _plugin_prompt_files(root: Path) -> list[Path]:
+    patterns = (
+        "plugins/claude/endor-labs-agent-kit/agents/*.md",
+        "plugins/claude/ai-plugins/agents/*.md",
+        "plugins/codex/endor-labs-agent-kit/skills/*/SKILL.md",
+        "plugins/codex/endor-labs-agent-kit/agents/*.toml",
+        "plugins/gemini/endor-labs-agent-kit/skills/*/SKILL.md",
+        "plugins/gemini/endor-labs-agent-kit/agents/*.md",
+        "plugins/antigravity/endor-labs-agent-kit/skills/*/SKILL.md",
+        "plugins/antigravity/endor-labs-agent-kit/agents/*.md",
+        "agents/*.md",
+        "skills/*/SKILL.md",
+        "cursor-sdk/agents/*.md",
+    )
+    paths: set[Path] = set()
+    for pattern in patterns:
+        paths.update(root.glob(pattern))
+    return sorted(paths)
+
+
+def _prompt_budget(relative_path: str) -> int:
+    agent_id = _agent_id_from_prompt_path(relative_path)
+    if agent_id == "endor-agent-kit-setup":
+        return 10_000
+    if agent_id in {"endor-troubleshooter", "probe-droid"}:
+        return 25_000
+    if agent_id in {"sca-remediation", "ai-sast-triage"}:
+        return 35_000
+    return 12_000
+
+
+def _agent_id_from_prompt_path(relative_path: str) -> str:
+    path = Path(relative_path)
+    if path.name == "SKILL.md":
+        return path.parent.name
+    stem = path.stem
+    if stem in {"endor-agent-kit-setup-agent", "endor-agent-kit-setup"}:
+        return "endor-agent-kit-setup"
+    if stem in {"endor-troubleshooter-agent", "endor-troubleshooter"}:
+        return "endor-troubleshooter"
+    if stem.startswith("endor-"):
+        stem = stem[len("endor-"):]
+    if stem.endswith("-agent"):
+        stem = stem[: -len("-agent")]
+    return stem

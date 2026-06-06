@@ -20,6 +20,7 @@ This artifact does not require, configure, or start an Endor MCP server.
 Accept ordinary requests. Do not make UUIDs or exact API filters a prerequisite
 for normal use.
 
+<!-- compact-plugin:omit-start -->
 Examples:
 
 - "Probe our GitHub org and tell me what we need for clean Endor onboarding."
@@ -27,6 +28,7 @@ Examples:
 - "Compare these GitHub repositories with Endor and tell me what setup is missing."
 - "Which onboarded repos still have dependency resolution or reachability gaps?"
 - "Show the private registry, scan profile, and toolchain setup needed before onboarding."
+<!-- compact-plugin:omit-end -->
 
 Use `github_org`, `repository_urls`, `github_inventory_json`,
 `endor_project_selector`, `namespace`, and `report_mode` when supplied.
@@ -131,6 +133,7 @@ documented resource does not expose a context filter. Keep non-main counts
 separate from main-context counts, and record `context.type` plus source ref
 details in `evidence_queries[]` whenever they are available.
 
+<!-- compact-plugin:omit-start -->
 ## GitHub Inventory
 
 Use authenticated `gh` CLI first. If live GitHub inventory is unavailable, use
@@ -493,6 +496,7 @@ Scan profiles define scan parameters and toolchains. Prescribe scan profile
 intent and assignment only. Do not emit final scan profile YAML or Endor API
 payloads.
 
+<!-- compact-plugin:omit-end -->
 ## Live Command Budget
 
 For org-wide live runs, complete a bounded first pass before any deep drill-down:
@@ -589,6 +593,7 @@ toolchain metadata. In particular:
   category, status error, rule name, and a short sanitized error excerpt only
   when it directly supports a prescription.
 
+<!-- compact-plugin:omit-start -->
 Good live-host command shapes pipe to `jq` immediately, for example:
 
 ```bash
@@ -606,7 +611,9 @@ set -o pipefail; endorctl api list --resource PackageManager <namespace_flag> --
 ```bash
 set -o pipefail; endorctl api list --resource PackageVersion <namespace_flag> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' --field-mask "uuid,meta.name,context,spec.ecosystem,spec.project_uuid,spec.resolution_errors" | jq '{count:(.list.objects|length), resolution_error_count:([.list.objects[] | select(.spec.resolution_errors != null)] | length), examples:[.list.objects[] | select(.spec.resolution_errors != null) | {package:.meta.name, ecosystem:.spec.ecosystem, project_uuid:.spec.project_uuid, best_category:.spec.resolution_errors.resolved.error_analysis_best_match.error_category, status_error:.spec.resolution_errors.resolved.status_error, rule:.spec.resolution_errors.resolved.rule}][0:10]}'
 ```
+<!-- compact-plugin:omit-end -->
 
+<!-- compact-plugin:omit-start -->
 ## Branch And Scan Scope
 
 V1 covers the monitored branch only. Treat the GitHub default branch as the
@@ -799,6 +806,7 @@ Example Python toolchain prescription:
 }
 ```
 
+<!-- compact-plugin:omit-end -->
 ## Output Shape
 
 Respond with concise prose plus one strict JSON block. The prose should include
@@ -817,6 +825,7 @@ intentionally incomplete because inventory is sampled or truncated, mark the
 run `PARTIAL` or `INSUFFICIENT_DATA`, add a `data_gaps` entry, and do not let
 the count imply exact complete lane membership.
 
+<!-- compact-plugin:omit-start -->
 ```json
 {
   "onboarding_verdict": "READY_TO_ONBOARD | PARTIAL_COVERAGE | NOT_ONBOARDED | INSUFFICIENT_DATA",
@@ -981,6 +990,7 @@ the count imply exact complete lane membership.
   "future_scope": ["pull_request_scan_coverage", "github_enterprise_server"]
 }
 ```
+<!-- compact-plugin:omit-end -->
 
 Keep the JSON keys stable even when lists are empty. Do not include final
 configuration snippets, YAML, API payloads, or write commands.

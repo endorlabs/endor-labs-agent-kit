@@ -9,6 +9,10 @@ from endor_agent_kit.instruction_sections import (
     parse_instruction_sections,
 )
 from endor_agent_kit.knowledge_pack import render_knowledge_pack_section
+from endor_agent_kit.prompt_compaction import (
+    compact_marked_sections,
+    strip_compaction_marker_lines,
+)
 from endor_agent_kit.recipe import ActionContract
 
 EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
@@ -37,6 +41,7 @@ def instructions_for_edition(
     edition: str,
     *,
     recipe_id: str | None = None,
+    compact_plugin: bool = False,
 ) -> str:
     """Render the shared and edition-specific instruction sections."""
 
@@ -44,7 +49,7 @@ def instructions_for_edition(
     sections = parse_instruction_sections(instructions)
     shared = sections.shared
     mode = sections.for_edition(edition)
-    knowledge_pack = render_knowledge_pack_section(recipe_id).rstrip()
+    knowledge_pack = render_knowledge_pack_section(recipe_id, compact=compact_plugin).rstrip()
     sections_to_render = [
         shared.rstrip(),
         ENDOR_NAMESPACE_PREFLIGHT.rstrip(),
@@ -52,7 +57,10 @@ def instructions_for_edition(
     if knowledge_pack:
         sections_to_render.append(knowledge_pack)
     sections_to_render.append(mode.rstrip())
-    return "\n\n".join(sections_to_render) + "\n"
+    rendered = "\n\n".join(sections_to_render) + "\n"
+    if compact_plugin:
+        return compact_marked_sections(rendered)
+    return strip_compaction_marker_lines(rendered)
 
 
 def instructions_for_variant(
@@ -60,17 +68,49 @@ def instructions_for_variant(
     variant: str,
     *,
     recipe_id: str | None = None,
+    compact_plugin: bool = False,
 ) -> str:
     """Compatibility wrapper for old variant names."""
 
-    return instructions_for_edition(instructions, variant, recipe_id=recipe_id)
+    return instructions_for_edition(
+        instructions,
+        variant,
+        recipe_id=recipe_id,
+        compact_plugin=compact_plugin,
+    )
 
 
-def render_action_contracts(actions: tuple[ActionContract, ...]) -> str:
+def render_action_contracts(
+    actions: tuple[ActionContract, ...],
+    *,
+    compact: bool = False,
+) -> str:
     """Render action contracts into the generated prompt body."""
 
     if not actions:
         return ""
+    if compact:
+        lines = [
+            "",
+            "## Action Contracts",
+            "",
+            "Compact plugin profile. These are the semantic side effects this agent may discuss or request.",
+            "Do not claim an action completed unless the host performed it and returned evidence.",
+            "",
+        ]
+        for action in actions:
+            parts = [
+                f"id=`{action.id}`",
+                f"kind=`{action.kind}`",
+                f"safety=`{action.safety_class}`",
+                f"confirm=`{str(action.confirmation_required).lower()}`",
+                f"availability=`{action.availability}`",
+            ]
+            if action.outputs:
+                parts.append("outputs=" + ",".join(f"`{item}`" for item in action.outputs))
+            lines.append("- " + "; ".join(parts) + ".")
+        lines.append("")
+        return "\n".join(lines)
     lines = [
         "",
         "## Action Contracts",

@@ -78,6 +78,7 @@ def publish_codex_plugin_package(
             render_codex_skill(
                 prepared,
                 generated_context="Endor Labs Agent Kit Codex plugin",
+                compact_plugin=True,
             ),
             encoding="utf-8",
         )
@@ -162,6 +163,7 @@ def _render_codex_agent_toml(prepared: PreparedSourceRecipe) -> str:
     skill_text = render_codex_skill(
         prepared,
         generated_context="Endor Labs Agent Kit Codex custom agent",
+        compact_plugin=True,
     )
     body = _strip_frontmatter(skill_text)
     body += dedent(

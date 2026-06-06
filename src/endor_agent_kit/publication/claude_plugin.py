@@ -12,6 +12,10 @@ import yaml
 
 from endor_agent_kit.catalog_schema import CatalogPluginPackage
 from endor_agent_kit.compilers.claude_code import EDITIONS, HOST as CLAUDE_CODE_HOST
+from endor_agent_kit.compilers.rendering import (
+    instructions_for_edition,
+    render_action_contracts,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_DISPLAY_NAME,
@@ -263,25 +267,34 @@ def _render_claude_plugin_agent(
         f"""\
         ## Claude Code Plugin Setup Note
 
-        This agent is installed from the Endor Labs Agent Kit Claude Code plugin.
-        If `endorctl`, `gh`, Endor authentication, namespace selection, Endor MCP,
-        or workflow-specific tooling is missing, ask the user to run the
-        `{CLAUDE_SETUP_SKILL}` skill before continuing live Endor work.
-
-        Claude Code plugin-shipped agents do not support `mcpServers`,
-        `permissionMode`, or `hooks` in agent frontmatter. This package omits
-        those fields and does not declare plugin-wide MCP. If an Endor MCP-only
-        signal is unavailable, report it in `data_gaps` rather than fabricating
-        evidence.
+        Run `{CLAUDE_SETUP_SKILL}` for missing setup, auth, namespace, MCP, or workflow tooling.
+        Plugin agents cannot declare `mcpServers`; use `data_gaps` for unavailable tools.
         """
     ).strip()
     return "\n\n".join([
         f"---\n{sanitized_frontmatter.rstrip()}\n---",
         provenance,
-        body.rstrip(),
+        _compact_claude_plugin_body(body, prepared).rstrip(),
         setup_note,
         "",
     ])
+
+
+def _compact_claude_plugin_body(body: str, prepared: PreparedSourceRecipe) -> str:
+    notice = body.split("\n\n", 1)[0].rstrip()
+    compact_body = instructions_for_edition(
+        prepared.instructions,
+        _claude_plugin_edition(prepared),
+        recipe_id=prepared.recipe.id,
+        compact_plugin=True,
+    )
+    compact_actions = render_action_contracts(prepared.actions, compact=True)
+    return f"{notice}\n\n{compact_body.rstrip()}\n{compact_actions}"
+
+
+def _claude_plugin_edition(prepared: PreparedSourceRecipe) -> str:
+    editions = editions_for_host(prepared.recipe, CLAUDE_CODE_HOST, EDITIONS)
+    return "enterprise-edition" if "enterprise-edition" in editions else editions[0]
 
 
 def _split_frontmatter(markdown: str) -> tuple[str, str]:
