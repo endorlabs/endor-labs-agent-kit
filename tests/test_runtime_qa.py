@@ -269,7 +269,7 @@ def test_runtime_qa_runner_builds_provider_neutral_schema():
 
     assert schema is not None
     assert schema["type"] == "object"
-    assert schema["additionalProperties"] is True
+    assert schema["additionalProperties"] is False
     assert "evidence_queries" in schema["required"]
     assert schema["properties"]["uia_evidence"]["type"] == "array"
 
