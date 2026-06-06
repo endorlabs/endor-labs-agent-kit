@@ -82,7 +82,10 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
         or project_resolution.get("namespace_provenance")
         or selected.get("namespace_provenance")
     )
+    project_status = _text(project_resolution.get("status"))
     if gate in {"selection-plan", "apply", "validate", "pr"}:
+        if not project_status:
+            errors.append("project_resolution.status: required for SCA workflow gates")
         if not project_uuid:
             errors.append("project_resolution.project_uuid: required for SCA workflow gates")
         if not namespace:

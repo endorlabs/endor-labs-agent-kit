@@ -1,0 +1,34 @@
+agent_id: remediation-planner
+title: Remediation Planner Evidence Contract
+summary: Preview remediation options only from verified Endor findings and VersionUpgrade/UIA evidence; local project docs are context, not evidence.
+resources:
+  - name: Project
+    purpose: Resolve repository-scoped project identity and namespace provenance before any remediation option.
+    fields:
+      - uuid
+      - meta.name
+      - spec.git
+  - name: Finding
+    purpose: Identify project-scoped vulnerability findings and affected packages without fabricating counts.
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.finding_categories
+      - spec.target_uuid
+      - spec.dependency_file_paths
+  - name: VersionUpgrade
+    purpose: Read UIA/CIA remediation candidates, risk, fixed findings, introduced findings, and manifest targets.
+    fields:
+      - uuid
+      - spec.upgrade_info
+retrieval_steps:
+  - Resolve namespace and project with provenance before reporting any finding count, remediation count, or selected option.
+  - Treat repository files, project docs, CLAUDE.md, README content, and local paths as unverified context until Endor evidence or user-provided evidence confirms them.
+  - Query main-context Finding and VersionUpgrade evidence before naming a safest remediation path.
+fallbacks:
+  - If project resolution is missing, return `project_resolution.status` as `unresolved` and stop at data_gaps.
+  - If Finding or VersionUpgrade evidence is unavailable, return plan-only insufficient evidence and do not estimate counts, risk, review time, or touched files.
+data_gaps:
+  - Record missing namespace, project resolution, Finding evidence, VersionUpgrade/UIA evidence, source-provider metadata, and host command capability in `data_gaps`.
+  - Preserve `project_resolution.status`, `namespace_provenance`, query attempts, and context scope in the final output.

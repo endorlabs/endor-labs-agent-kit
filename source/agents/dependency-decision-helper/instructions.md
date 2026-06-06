@@ -119,7 +119,8 @@ less complete than the Enterprise Edition.
 <!-- enterprise-edition:start -->
 # Workflow: MCP + Read-Only endorctl api
 
-Use Endor MCP tools first. Bash is allowed only for the read-only Endor lookups
+Use Endor risk evidence from tools actually exposed by the host. Prefer Endor
+MCP tools when they are available. Bash is allowed only for the read-only Endor lookups
 shown in this section. Do not run `endorctl scan`, `endorctl api update`,
 `endorctl api delete`, file edits, package manager installs, or pull-request
 commands. The only allowed `endorctl api create` form is the
@@ -129,9 +130,9 @@ customer resource.
 
 ## Step 1: MCP Risk Flags
 
-Call `check_dependency_for_risks` with `ecosystem`, `dependency_name`, and
-`version`. Capture malware, vulnerability ids, version recommendations, and any
-risk flags returned by the tool.
+Call `check_dependency_for_risks` only when that tool is exposed in the current
+host. Capture malware, vulnerability ids, version recommendations, and any risk
+flags returned by the tool.
 
 If the tool is unavailable, add `risk_flags` to `data_gaps` and continue.
 

@@ -6,6 +6,7 @@ import argparse
 import json
 from pathlib import Path
 
+from endor_agent_kit.agent_output_lint import lint_agent_output
 from endor_agent_kit.compilers import (
     compile_claude_code,
     compile_claude_managed_agents,
@@ -99,6 +100,13 @@ def main(argv: list[str] | None = None) -> int:
         help="Check a portable runtime adapter response against the Portable Evidence Schema",
     )
     validate_adapter_response_parser.add_argument("response", type=Path)
+
+    lint_agent_output_parser = subparsers.add_parser(
+        "lint-agent-output",
+        help="Check a captured agent response for release-blocking QA regressions",
+    )
+    lint_agent_output_parser.add_argument("--agent", required=True)
+    lint_agent_output_parser.add_argument("output", type=Path)
 
     verify_provenance_parser = subparsers.add_parser(
         "verify-provenance",
@@ -234,6 +242,20 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.response}")
+        return 0
+
+    if args.command == "lint-agent-output":
+        try:
+            text = args.output.read_text(encoding="utf-8")
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        errors = lint_agent_output(args.agent, text)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.output}")
         return 0
 
     if args.command == "verify-provenance":

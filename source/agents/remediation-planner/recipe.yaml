@@ -42,6 +42,22 @@ outputs:
   kind: string
   required: true
   description: Concise result summary.
+- name: project_resolution
+  kind: object
+  required: true
+  description: Project resolution status, namespace provenance, query attempts, and repository selector evidence.
+- name: evidence_queries
+  kind: list[object]
+  required: true
+  description: Read-only Endor query attempts, status, and missing lanes.
+- name: remediation_options
+  kind: list[object]
+  required: true
+  description: Verified Endor Finding and VersionUpgrade/UIA remediation options, or empty when evidence is unavailable.
+- name: selected_remediation
+  kind: object
+  required: true
+  description: Selected remediation option, or null when evidence is insufficient.
 - name: data_gaps
   kind: list[string]
   required: true
