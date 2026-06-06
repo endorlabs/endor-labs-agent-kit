@@ -3,9 +3,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from conftest import repo_root
+from endor_agent_kit.cli import main
 from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.structured_output_contracts import (
     STRUCTURED_OUTPUT_CONTRACTS,
+    json_schema_for_agent,
     required_fields_for,
     validate_structured_output_payload,
 )
@@ -36,6 +38,25 @@ def test_required_fields_for_preserves_recipe_order():
         "summary",
         "data_gaps",
     )
+
+
+def test_json_schema_for_agent_preserves_required_fields_and_shapes():
+    schema = json_schema_for_agent("sca-remediation")
+
+    assert schema["type"] == "object"
+    assert schema["additionalProperties"] is True
+    assert schema["required"] == list(required_fields_for("sca-remediation"))
+    assert schema["properties"]["evidence_queries"]["type"] == "array"
+    assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
+
+
+def test_json_schema_cli_prints_agent_schema(capsys):
+    status = main(["structured-output-schema", "--agent", "sca-remediation"])
+    output = capsys.readouterr().out
+
+    assert status == 0
+    assert '"title": "Endor Agent Kit sca-remediation final output"' in output
+    assert '"evidence_queries"' in output
 
 
 def test_structured_output_contract_rejects_missing_required_fields():

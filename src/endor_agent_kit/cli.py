@@ -28,6 +28,10 @@ from endor_agent_kit.provenance import build_provenance_statement, verify_catalo
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.recipe import load_yaml_file
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
+from endor_agent_kit.structured_output_contracts import (
+    json_schema_for_agent,
+    known_structured_agent_ids,
+)
 from endor_agent_kit.workflow_output_contracts.commands import (
     add_workflow_command_parsers,
     run_workflow_command,
@@ -107,6 +111,16 @@ def main(argv: list[str] | None = None) -> int:
     )
     lint_agent_output_parser.add_argument("--agent", required=True)
     lint_agent_output_parser.add_argument("output", type=Path)
+
+    structured_output_schema_parser = subparsers.add_parser(
+        "structured-output-schema",
+        help="Print the provider-neutral JSON Schema for an agent final output",
+    )
+    structured_output_schema_parser.add_argument(
+        "--agent",
+        required=True,
+        choices=known_structured_agent_ids(),
+    )
 
     verify_provenance_parser = subparsers.add_parser(
         "verify-provenance",
@@ -256,6 +270,10 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.output}")
+        return 0
+
+    if args.command == "structured-output-schema":
+        print(json.dumps(json_schema_for_agent(args.agent), indent=2, sort_keys=True))
         return 0
 
     if args.command == "verify-provenance":

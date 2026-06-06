@@ -172,6 +172,16 @@ def test_lint_rejects_non_array_sca_uia_evidence():
                 "namespace": "auri",
                 "namespace_provenance": "current_request",
             },
+            "evidence_queries": [
+                {
+                    "resource": "Finding",
+                    "status": "success",
+                },
+                {
+                    "resource": "VersionUpgrade",
+                    "status": "success",
+                },
+            ],
             "selected_remediation": {
                 "package": "mvn://example:demo",
                 "from_version": "1.0.0",
@@ -203,6 +213,16 @@ def test_lint_accepts_uia_fixed_finding_evidence_as_sca_evidence():
                 "namespace": "auri",
                 "namespace_provenance": "current_request",
             },
+            "evidence_queries": [
+                {
+                    "resource": "Finding",
+                    "status": "success",
+                },
+                {
+                    "resource": "VersionUpgrade",
+                    "status": "success",
+                },
+            ],
             "selected_remediation": {
                 "package": "mvn://example:demo",
                 "from_version": "1.0.0",

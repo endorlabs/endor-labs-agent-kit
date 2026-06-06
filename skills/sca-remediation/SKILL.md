@@ -277,6 +277,7 @@ extract; do not replace the JSON object with a table or prose summary.
     "repo_full_name": "string",
     "attempted_selectors": []
   },
+  "evidence_queries": [],
   "selected_remediation": {
     "package": "string",
     "from_version": "string",
@@ -359,9 +360,9 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
-`summary`, `remediation_candidates`, `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, `patch_plan`, `validation`, `change_requests`, `tickets`, `data_gaps`
-Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
-Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+`summary`, `remediation_candidates`, `project_resolution`, `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`, `patch_plan`, `validation`, `change_requests`, `tickets`, `data_gaps`
+Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
+Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
 Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
 Use local git, read-only file tools, package-manager commands, and source-provider credentials only for the remediation workflow described above.

@@ -395,6 +395,7 @@ extract; do not replace the JSON object with a table or prose summary.
     "repo_full_name": "string",
     "attempted_selectors": []
   },
+  "evidence_queries": [],
   "selected_remediation": {
     "package": "string",
     "from_version": "string",

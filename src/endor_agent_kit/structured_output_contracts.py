@@ -100,6 +100,7 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("summary", "string"),
         StructuredOutputField("remediation_candidates", "list[object]"),
         StructuredOutputField("project_resolution", "object"),
+        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("selected_remediation", "object"),
         StructuredOutputField("uia_evidence", "list[object]"),
         StructuredOutputField("risk_decision", "object"),
@@ -152,6 +153,25 @@ def required_fields_for(agent_id: str) -> tuple[str, ...]:
     return tuple(field.name for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()) if field.required)
 
 
+def json_schema_for_agent(agent_id: str) -> dict[str, Any]:
+    """Return a JSON Schema for the agent's final structured output."""
+
+    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
+    if not contract:
+        raise ValueError(f"unknown structured output contract: {agent_id}")
+    return {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": f"Endor Agent Kit {agent_id} final output",
+        "type": "object",
+        "additionalProperties": True,
+        "required": [field.name for field in contract if field.required],
+        "properties": {
+            field.name: _json_schema_for_kind(field.kind, nullable=field.kind == "object")
+            for field in contract
+        },
+    }
+
+
 def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -> list[str]:
     """Validate top-level field presence and basic JSON value shapes."""
 
@@ -167,6 +187,36 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
         errors.extend(_kind_errors(field, payload[field.name]))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
+
+
+def _json_schema_for_kind(kind: str, *, nullable: bool = False) -> dict[str, Any]:
+    if kind.startswith("list["):
+        item_kind = kind.removeprefix("list[").removesuffix("]")
+        return {
+            "type": "array",
+            "items": _json_schema_for_array_item_kind(item_kind),
+        }
+    if kind == "object":
+        schema: dict[str, Any] = {
+            "type": ["object", "null"] if nullable else "object",
+            "additionalProperties": True,
+        }
+        return schema
+    if kind == "integer":
+        return {"type": "integer"}
+    if kind in {"string", "enum"}:
+        return {"type": "string"}
+    return {}
+
+
+def _json_schema_for_array_item_kind(kind: str) -> dict[str, Any]:
+    if kind == "object":
+        return {"type": "object", "additionalProperties": True}
+    if kind in {"string", "enum"}:
+        return {"type": "string"}
+    if kind == "integer":
+        return {"type": "integer"}
+    return {}
 
 
 def _kind_errors(field: StructuredOutputField, value: Any) -> list[str]:

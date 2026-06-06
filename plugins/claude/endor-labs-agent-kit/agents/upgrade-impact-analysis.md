@@ -135,8 +135,8 @@ Required top-level fields, in order:
 `upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `data_gaps`
 Optional fields when verified:
 `upgrade_candidates`, `selected_upgrade`, `findings_fixed`, `findings_introduced`, `cia_status`, `breaking_changes`, `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, `score_explanation`
-Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.
-Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.
+Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
+Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
 # Workflow: Endor Platform VersionUpgrade UIA
 

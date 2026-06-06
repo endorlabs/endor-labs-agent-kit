@@ -120,8 +120,8 @@ def render_structured_output_contract(
                 _inline_field_list(optional),
             ])
         lines.extend([
-            "Do not omit required fields. Use empty arrays for unavailable list evidence and use `data_gaps` for missing evidence or blocked lookups.",
-            "Object fields may be `{}` or `null` only when no verified value exists and `data_gaps` explains why.",
+            "Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.",
+            "Object fields may be `{}` or `null` only when `data_gaps` explains why.",
             "",
         ])
         return "\n".join(lines)
