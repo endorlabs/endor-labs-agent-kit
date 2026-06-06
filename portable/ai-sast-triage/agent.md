@@ -273,6 +273,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 #### `project-by-git` (resolve-scope)
 
+- Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
@@ -281,6 +282,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 #### `finding-by-uuid` (resolve-scope)
 
+- Canonical: `finding-by-uuid`
 - Resource: `Finding`
 - Purpose: Fetch one known Finding by UUID; api get does not accept filters.
 - Template: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
@@ -289,6 +291,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 #### `finding-by-uuid` (evidence-check)
 
+- Canonical: `finding-by-uuid`
 - Resource: `Finding`
 - Purpose: Fetch one known Finding by UUID; api get does not accept filters.
 - Template: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
@@ -297,6 +300,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 #### `ai-sast-list` (evidence-check)
 
+- Canonical: `ai-sast-list`
 - Resource: `Finding`
 - Purpose: List only AI SAST findings for a resolved project when no Finding UUID was supplied.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata,spec.explanation" --list-all -o json`
@@ -305,6 +309,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 #### `selected-ai-sast-finding` (selection-plan)
 
+- Canonical: `finding-by-uuid`
 - Resource: `Finding`
 - Purpose: Fetch one known Finding by UUID; api get does not accept filters.
 - Template: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
@@ -313,6 +318,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 #### `selected-source-anchors` (selection-plan)
 
+- Canonical: `selected-source-usage`
 - Resource: `local-files`
 - Purpose: Inspect only selected package usage for compatibility and validation planning.
 - Template: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`

@@ -128,6 +128,7 @@ evidence_query_plans:
 evidence_query_recipes:
   - profile_id: resolve-scope
     id: local-git-state
+    canonical_id: local-git-state
     resource: local-git
     purpose: Capture local repository provenance without reading secrets.
     template: pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url
@@ -141,6 +142,7 @@ evidence_query_recipes:
       - Use as local context only; it does not prove Endor project, namespace, or finding counts.
   - profile_id: resolve-scope
     id: project-branch-coverage
+    canonical_id: project-branch-coverage
     resource: Project
     purpose: Read Endor project git and monitored branch metadata for selected repositories.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
@@ -155,6 +157,7 @@ evidence_query_recipes:
       - Do not run scans or mutate GitHub or Endor settings.
   - profile_id: evidence-check
     id: project-branch-coverage
+    canonical_id: project-branch-coverage
     resource: Project
     purpose: Read Endor project git and monitored branch metadata for selected repositories.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
@@ -169,6 +172,7 @@ evidence_query_recipes:
       - Do not run scans or mutate GitHub or Endor settings.
   - profile_id: evidence-check
     id: repo-setup-file-inventory
+    canonical_id: local-manifest-inventory
     resource: local-files
     purpose: Inventory dependency manifests before scoped Endor expansion.
     template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
@@ -180,6 +184,7 @@ evidence_query_recipes:
       - Use local files as context only until Endor evidence backs project-scoped risk.
   - profile_id: prescribe-actions
     id: project-branch-coverage
+    canonical_id: project-branch-coverage
     resource: Project
     purpose: Read Endor project git and monitored branch metadata for selected repositories.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
@@ -194,6 +199,7 @@ evidence_query_recipes:
       - Do not run scans or mutate GitHub or Endor settings.
   - profile_id: prescribe-actions
     id: missing-setup-file-check
+    canonical_id: local-manifest-inventory
     resource: local-files
     purpose: Inventory dependency manifests before scoped Endor expansion.
     template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'

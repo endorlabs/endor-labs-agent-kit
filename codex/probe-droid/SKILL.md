@@ -1119,6 +1119,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 
 #### `local-git-state` (resolve-scope)
 
+- Canonical: `local-git-state`
 - Resource: `local-git`
 - Purpose: Capture local repository provenance without reading secrets.
 - Template: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
@@ -1127,6 +1128,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 
 #### `project-branch-coverage` (resolve-scope)
 
+- Canonical: `project-branch-coverage`
 - Resource: `Project`
 - Purpose: Read Endor project git and monitored branch metadata for selected repositories.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json`
@@ -1135,6 +1137,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 
 #### `project-branch-coverage` (evidence-check)
 
+- Canonical: `project-branch-coverage`
 - Resource: `Project`
 - Purpose: Read Endor project git and monitored branch metadata for selected repositories.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json`
@@ -1143,6 +1146,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 
 #### `repo-setup-file-inventory` (evidence-check)
 
+- Canonical: `local-manifest-inventory`
 - Resource: `local-files`
 - Purpose: Inventory dependency manifests before scoped Endor expansion.
 - Template: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
@@ -1151,6 +1155,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 
 #### `project-branch-coverage` (prescribe-actions)
 
+- Canonical: `project-branch-coverage`
 - Resource: `Project`
 - Purpose: Read Endor project git and monitored branch metadata for selected repositories.
 - Template: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json`
@@ -1159,6 +1164,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 
 #### `missing-setup-file-check` (prescribe-actions)
 
+- Canonical: `local-manifest-inventory`
 - Resource: `local-files`
 - Purpose: Inventory dependency manifests before scoped Endor expansion.
 - Template: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`

@@ -129,6 +129,7 @@ evidence_query_plans:
       - Record withheld secrets, missing timestamps, inaccessible resource IDs, and unavailable logs in data_gaps.
 evidence_query_recipes:
   - id: project-by-git
+    canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
@@ -143,6 +144,7 @@ evidence_query_recipes:
       - Retry with --traverse only for the same proven namespace before reporting data_gaps.
     profile_id: classify
   - id: project-by-git
+    canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
@@ -152,6 +154,7 @@ evidence_query_recipes:
     profile_id: diagnose
   - profile_id: diagnose
     id: scan-result-by-uuid
+    canonical_id: scan-result-by-uuid
     resource: ScanResult
     purpose: Fetch one scan result when troubleshooting a known scan or error lane.
     template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
@@ -166,6 +169,7 @@ evidence_query_recipes:
       - Do not start or rerun scans.
   - profile_id: diagnose
     id: finding-by-uuid
+    canonical_id: finding-by-uuid
     resource: Finding
     purpose: Fetch one known Finding by UUID; api get does not accept filters.
     template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
@@ -181,6 +185,7 @@ evidence_query_recipes:
       - After get, report context.type and source ref before merging with project counts.
   - profile_id: support-packet
     id: scan-result-by-uuid
+    canonical_id: scan-result-by-uuid
     resource: ScanResult
     purpose: Fetch one scan result when troubleshooting a known scan or error lane.
     template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
@@ -194,6 +199,7 @@ evidence_query_recipes:
       - Use only for a selected troubleshooting lane.
       - Do not start or rerun scans.
   - id: project-by-git
+    canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"

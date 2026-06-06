@@ -68,6 +68,16 @@ REQUIRED_EVIDENCE_QUERY_RECIPE_FIELDS = (
     "fields",
     "constraints",
 )
+REQUIRED_CANONICAL_QUERY_RECIPE_FIELDS = (
+    "id",
+    "title",
+    "resource",
+    "purpose",
+    "template",
+    "fields",
+    "constraints",
+    "completeness",
+)
 EVIDENCE_GATE_RULES = (
     "Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.",
     "Never dump or `cat` Endor config files; extract only the namespace key.",
@@ -135,11 +145,27 @@ class KnowledgeEvidenceQueryRecipe:
 
     profile_id: str
     id: str
+    canonical_id: str | None
     resource: str
     purpose: str
     template: str
     fields: tuple[str, ...]
     constraints: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class KnowledgeCanonicalQueryRecipe:
+    """One source-of-truth Endor evidence query shape."""
+
+    id: str
+    title: str
+    resource: str
+    purpose: str
+    template: str
+    fields: tuple[str, ...]
+    constraints: tuple[str, ...]
+    completeness: str
+    forbidden: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -191,6 +217,7 @@ class EndorKnowledgePack:
     version: str
     precedence: tuple[str, ...]
     global_rules: tuple[KnowledgeRule, ...]
+    query_recipes: dict[str, KnowledgeCanonicalQueryRecipe]
     workflows: dict[str, KnowledgeWorkflow]
 
     def workflow_for(self, agent_id: str) -> KnowledgeWorkflow | None:
@@ -210,6 +237,10 @@ def load_knowledge_pack(root: str | Path | None = None) -> EndorKnowledgePack:
 
     pack_root = Path(root) if root is not None else default_knowledge_pack_root()
     pack_data = _load_yaml_mapping(pack_root / "pack.yaml")
+    query_recipes = {
+        recipe.id: recipe
+        for recipe in _load_canonical_query_recipes(pack_root)
+    }
     workflows = {
         workflow.agent_id: workflow
         for workflow in _load_workflows(pack_root)
@@ -219,6 +250,7 @@ def load_knowledge_pack(root: str | Path | None = None) -> EndorKnowledgePack:
         version=str(pack_data.get("version", "")),
         precedence=tuple(_strings(pack_data.get("precedence"))),
         global_rules=tuple(_rule(item) for item in _mappings(pack_data.get("global_rules"))),
+        query_recipes=query_recipes,
         workflows=workflows,
     )
 
@@ -269,7 +301,13 @@ def validate_knowledge_pack(
             errors.append(f"pack.yaml: missing global rule {rule_id!r}")
 
     _check_forbidden_visible_terms(pack_path, pack_data, errors)
-    _validate_workflows(pack_root, agent_ids=agent_ids, errors=errors)
+    canonical_query_recipes = _validate_canonical_query_recipes(pack_root, errors)
+    _validate_workflows(
+        pack_root,
+        agent_ids=agent_ids,
+        canonical_query_recipes=canonical_query_recipes,
+        errors=errors,
+    )
     return errors
 
 
@@ -360,9 +398,14 @@ def render_knowledge_pack_section(
                     )
             else:
                 for recipe in workflow.evidence_query_recipes:
+                    if recipe.canonical_id:
+                        canonical_line = f"- Canonical: `{recipe.canonical_id}`"
+                    else:
+                        canonical_line = "- Canonical: workflow-local"
                     lines.extend([
                         f"#### `{recipe.id}` ({recipe.profile_id})",
                         "",
+                        canonical_line,
                         f"- Resource: `{recipe.resource}`",
                         f"- Purpose: {recipe.purpose}",
                         f"- Template: `{recipe.template}`",
@@ -467,8 +510,13 @@ def render_task_profile_prompt(
     if recipes:
         lines.append("Evidence query recipes:")
         for recipe in recipes:
+            canonical = (
+                f", canonical `{recipe.canonical_id}`"
+                if recipe.canonical_id
+                else ""
+            )
             lines.extend([
-                f"- `{recipe.id}` ({recipe.resource}): {recipe.purpose}",
+                f"- `{recipe.id}` ({recipe.resource}{canonical}): {recipe.purpose}",
                 "  ```bash",
                 f"  {recipe.template}",
                 "  ```",
@@ -480,6 +528,7 @@ def _validate_workflows(
     pack_root: Path,
     *,
     agent_ids: set[str] | frozenset[str] | None,
+    canonical_query_recipes: dict[str, KnowledgeCanonicalQueryRecipe],
     errors: list[str],
 ) -> None:
     workflows_root = pack_root / "workflows"
@@ -604,6 +653,12 @@ def _validate_workflows(
                 if not _strings(recipe.get(field)):
                     errors.append(f"{recipe_prefix}.{field}: must be a non-empty list")
             _validate_query_recipe_template(recipe_prefix, template, errors)
+            _validate_canonical_query_recipe_reference(
+                recipe_prefix,
+                recipe,
+                canonical_query_recipes,
+                errors,
+            )
         for profile_id in sorted(profile_ids - recipe_profile_ids):
             errors.append(f"{prefix}.evidence_query_recipes: missing recipe for task profile {profile_id!r}")
         visible = _visible_text(data)
@@ -619,6 +674,17 @@ def _load_workflows(pack_root: Path) -> tuple[KnowledgeWorkflow, ...]:
     if not workflows_root.is_dir():
         return ()
     return tuple(_workflow(_load_yaml_mapping(path)) for path in sorted(workflows_root.glob("*.yaml")))
+
+
+def _load_canonical_query_recipes(pack_root: Path) -> tuple[KnowledgeCanonicalQueryRecipe, ...]:
+    catalog_path = pack_root / "query-recipes.yaml"
+    if not catalog_path.exists():
+        return ()
+    catalog = _load_yaml_mapping(catalog_path)
+    return tuple(
+        _canonical_query_recipe(item)
+        for item in _mappings(catalog.get("recipes"))
+    )
 
 
 def _workflow(data: dict[str, Any]) -> KnowledgeWorkflow:
@@ -678,11 +744,26 @@ def _evidence_query_recipe(data: dict[str, Any]) -> KnowledgeEvidenceQueryRecipe
     return KnowledgeEvidenceQueryRecipe(
         profile_id=str(data.get("profile_id", "")),
         id=str(data.get("id", "")),
+        canonical_id=_optional_slug_value(data.get("canonical_id")),
         resource=str(data.get("resource", "")),
         purpose=str(data.get("purpose", "")),
         template=str(data.get("template", "")),
         fields=tuple(_strings(data.get("fields"))),
         constraints=tuple(_strings(data.get("constraints"))),
+    )
+
+
+def _canonical_query_recipe(data: dict[str, Any]) -> KnowledgeCanonicalQueryRecipe:
+    return KnowledgeCanonicalQueryRecipe(
+        id=str(data.get("id", "")),
+        title=str(data.get("title", "")),
+        resource=str(data.get("resource", "")),
+        purpose=str(data.get("purpose", "")),
+        template=str(data.get("template", "")),
+        fields=tuple(_strings(data.get("fields"))),
+        constraints=tuple(_strings(data.get("constraints"))),
+        completeness=str(data.get("completeness", "")),
+        forbidden=tuple(_strings(data.get("forbidden"))),
     )
 
 
@@ -737,6 +818,14 @@ def _required_string(
     if not isinstance(value, str) or not value.strip():
         errors.append(f"{prefix}.{field}: must be a non-empty string")
         return ""
+    return value
+
+
+def _optional_slug_value(value: Any) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        return None
     return value
 
 
@@ -835,6 +924,94 @@ def _validate_query_recipe_template(
             errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
     if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:
         errors.append(f"{prefix}.template: must not cat Endor config files")
+
+
+def _validate_canonical_query_recipes(
+    pack_root: Path,
+    errors: list[str],
+) -> dict[str, KnowledgeCanonicalQueryRecipe]:
+    catalog_path = pack_root / "query-recipes.yaml"
+    if not catalog_path.exists():
+        return {}
+    try:
+        catalog = _load_yaml_mapping(catalog_path)
+    except Exception as exc:
+        errors.append(f"query-recipes.yaml: failed to read YAML: {exc}")
+        return {}
+
+    if catalog.get("schema_version") != PACK_SCHEMA_VERSION:
+        errors.append(f"query-recipes.yaml: schema_version must be {PACK_SCHEMA_VERSION}")
+
+    recipes = _mappings(catalog.get("recipes"))
+    if not recipes:
+        errors.append("query-recipes.yaml.recipes: must be a non-empty list")
+
+    seen: set[str] = set()
+    canonical_recipes: dict[str, KnowledgeCanonicalQueryRecipe] = {}
+    for index, recipe in enumerate(recipes):
+        prefix = f"query-recipes.yaml recipes[{index}]"
+        for field in REQUIRED_CANONICAL_QUERY_RECIPE_FIELDS:
+            if field not in recipe:
+                errors.append(f"{prefix}: missing required field {field!r}")
+        recipe_id = _required_slug(recipe, "id", prefix, errors)
+        if recipe_id:
+            if recipe_id in seen:
+                errors.append(f"{prefix}.id: duplicate canonical query recipe id {recipe_id!r}")
+            seen.add(recipe_id)
+        _required_string(recipe, "title", prefix, errors)
+        _required_string(recipe, "resource", prefix, errors)
+        _required_string(recipe, "purpose", prefix, errors)
+        template = _required_string(recipe, "template", prefix, errors)
+        if not _strings(recipe.get("fields")):
+            errors.append(f"{prefix}.fields: must be a non-empty list")
+        if not _strings(recipe.get("constraints")):
+            errors.append(f"{prefix}.constraints: must be a non-empty list")
+        _required_string(recipe, "completeness", prefix, errors)
+        _validate_query_recipe_template(prefix, template, errors)
+        if recipe_id:
+            canonical_recipes[recipe_id] = _canonical_query_recipe(recipe)
+    _check_forbidden_visible_terms(catalog_path, catalog, errors, root=pack_root)
+    return canonical_recipes
+
+
+def _validate_canonical_query_recipe_reference(
+    prefix: str,
+    recipe: dict[str, Any],
+    canonical_query_recipes: dict[str, KnowledgeCanonicalQueryRecipe],
+    errors: list[str],
+) -> None:
+    raw_canonical_id = recipe.get("canonical_id")
+    if raw_canonical_id is None:
+        return
+    if not isinstance(raw_canonical_id, str) or not SLUG_RE.match(raw_canonical_id):
+        errors.append(f"{prefix}.canonical_id: must match ^[a-z][a-z0-9-]{{2,63}}$")
+        return
+    canonical = canonical_query_recipes.get(raw_canonical_id)
+    if canonical is None:
+        errors.append(f"{prefix}.canonical_id: references unknown canonical query recipe {raw_canonical_id!r}")
+        return
+
+    resource = str(recipe.get("resource", ""))
+    if resource != canonical.resource:
+        errors.append(
+            f"{prefix}.canonical_id: resource {resource!r} does not match canonical {raw_canonical_id!r} resource {canonical.resource!r}"
+        )
+
+    fields = _strings(recipe.get("fields"))
+    if fields != canonical.fields:
+        errors.append(
+            f"{prefix}.canonical_id: fields do not match canonical query recipe {raw_canonical_id!r}"
+        )
+
+    template = str(recipe.get("template", ""))
+    if _normalize_query_template(template) != _normalize_query_template(canonical.template):
+        errors.append(
+            f"{prefix}.canonical_id: template does not match canonical query recipe {raw_canonical_id!r}"
+        )
+
+
+def _normalize_query_template(template: str) -> str:
+    return " ".join(template.split())
 
 
 def _is_scoped_finding_list_all_query(lower_template: str) -> bool:

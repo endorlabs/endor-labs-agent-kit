@@ -119,6 +119,7 @@ evidence_query_plans:
         claims in data_gaps.
 evidence_query_recipes:
   - id: project-by-git
+    canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
@@ -134,6 +135,7 @@ evidence_query_recipes:
     profile_id: resolve-scope
   - profile_id: resolve-scope
     id: version-upgrade-by-package
+    canonical_id: version-upgrade-by-package
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -148,6 +150,7 @@ evidence_query_recipes:
       - Do not query broad Findings to estimate upgrade impact.
   - profile_id: evidence-check
     id: version-upgrade-by-package
+    canonical_id: version-upgrade-by-package
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -162,6 +165,7 @@ evidence_query_recipes:
       - Do not query broad Findings to estimate upgrade impact.
   - profile_id: evidence-check
     id: version-upgrade-detail
+    canonical_id: version-upgrade-detail
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -177,6 +181,7 @@ evidence_query_recipes:
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
   - profile_id: explain
     id: version-upgrade-detail
+    canonical_id: version-upgrade-detail
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
@@ -192,6 +197,7 @@ evidence_query_recipes:
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
   - profile_id: explain
     id: selected-source-usage
+    canonical_id: selected-source-usage
     resource: local-files
     purpose: Inspect only selected package usage for compatibility and validation planning.
     template: rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>

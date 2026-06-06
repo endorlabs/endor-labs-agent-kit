@@ -97,6 +97,7 @@ evidence_query_plans:
 evidence_query_recipes:
   - profile_id: manifest-inventory
     id: local-manifest-inventory
+    canonical_id: local-manifest-inventory
     resource: local-files
     purpose: Inventory dependency manifests before scoped Endor expansion.
     template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
@@ -107,6 +108,7 @@ evidence_query_recipes:
     constraints:
       - Use local files as context only until Endor evidence backs project-scoped risk.
   - id: project-by-git
+    canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
     template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
@@ -122,6 +124,7 @@ evidence_query_recipes:
     profile_id: manifest-inventory
   - profile_id: evidence-check
     id: local-manifest-inventory
+    canonical_id: local-manifest-inventory
     resource: local-files
     purpose: Inventory dependency manifests before scoped Endor expansion.
     template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
@@ -133,6 +136,7 @@ evidence_query_recipes:
       - Use local files as context only until Endor evidence backs project-scoped risk.
   - profile_id: evidence-check
     id: package-version-exact
+    canonical_id: package-version-exact
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
     template: endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>"
@@ -148,6 +152,7 @@ evidence_query_recipes:
       - If version is unknown, ask for it or report data_gaps.
   - profile_id: evidence-check
     id: selected-package-finding-evidence
+    canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
     template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
