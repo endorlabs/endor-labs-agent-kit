@@ -57,7 +57,7 @@
             {
               "bytes": 28082,
               "path": "claude-code/dependency-decision-helper/dependency-decision-helper.md",
-              "sha256": "31cf0d9ea985c18d2bf72d59162e1b861621353db72d611c166d7c1fdc58a807"
+              "sha256": "fadabd51bf96919901170e7fa49c570b468d2f9089b17144e0953984326ae12f"
             },
             {
               "bytes": 1676,
@@ -137,7 +137,7 @@
             {
               "bytes": 27952,
               "path": "claude-code/package-risk-summary/package-risk-summary.md",
-              "sha256": "c3753984e9bebd561e5183c463781fd77d3e76881bd3150446856e5075ceaa43"
+              "sha256": "ba207e173da6e25a4ecba03275c695c944134de6679612c72ada0865a80a2c21"
             }
           ],
           "id": "enterprise-edition",
@@ -392,7 +392,7 @@
             {
               "bytes": 29564,
               "path": "claude-managed-agents/dependency-decision-helper/agent.yaml",
-              "sha256": "d594fdb675733bec9fa9ff063dabb495476e84ce522c6e77a8a6fdd314f46d79"
+              "sha256": "971ca4ff36b44e6ce9667cca149c2e6c157ed9885377d673448f57abc6bf582e"
             },
             {
               "bytes": 1676,
@@ -487,7 +487,7 @@
             {
               "bytes": 29445,
               "path": "claude-managed-agents/package-risk-summary/agent.yaml",
-              "sha256": "13232ec259197959d824763e580863701f6e4bc76c5711690afb4467a1bf65af"
+              "sha256": "ebacd1f91c2868e3934ebd55622f4a82c4b2861cda020371aa416c5365da862e"
             },
             {
               "bytes": 1681,
@@ -1092,7 +1092,7 @@
             {
               "bytes": 26363,
               "path": "portable/dependency-decision-helper/agent.md",
-              "sha256": "47f08f8e6ab81c0cd3ca54354690a8dc40df9aaea9cba61bc0b5456a1759a9d5"
+              "sha256": "af085df770b91b94fb9de292171a76b5f11dded2269a609956f0d15c45d7bd02"
             },
             {
               "bytes": 1676,
@@ -1187,7 +1187,7 @@
             {
               "bytes": 25887,
               "path": "portable/package-risk-summary/agent.md",
-              "sha256": "b51b2e3b11ff73f7f118807f68d52a0ed9b67b08c0dc84c586460ed153fe377d"
+              "sha256": "dcfdfcee5d9b39be6f9a863b8833ded315e9392519fbd1ab5a92570ef9acb14c"
             },
             {
               "bytes": 1681,
@@ -1601,9 +1601,9 @@
           "sha256": "fcfc8dbf66c235bbf52271664a571c607d43455345be817e7ff7824d7c369a38"
         },
         {
-          "bytes": 11818,
+          "bytes": 11026,
           "path": "plugins/claude/ai-plugins/agents/dependency-decision-helper.md",
-          "sha256": "5210b37bf3cd26688457a389d248b36ecc5b615ec56dc6c6326cebe3d350888a"
+          "sha256": "0e8f6d66a14c1e48b7f4f0799c0a59fd6d39e442d103e2aadcd294bf19848b2f"
         },
         {
           "bytes": 19957,
@@ -1611,9 +1611,9 @@
           "sha256": "eb4a60a60f3b19f14d3ebd80d2b376e11f04a697f43babf96396e599f1417bed"
         },
         {
-          "bytes": 11870,
+          "bytes": 11078,
           "path": "plugins/claude/ai-plugins/agents/package-risk-summary.md",
-          "sha256": "1ec2a6d9182c9d73bac3be62b13d05aec50acffc07ff1724fec68e227f12bff0"
+          "sha256": "a1e77273b086cb3e6a0ab0df92e4ac81062dce4c5919d734fa884656f2f03b10"
         },
         {
           "bytes": 23023,
@@ -1708,9 +1708,9 @@
           "sha256": "fcfc8dbf66c235bbf52271664a571c607d43455345be817e7ff7824d7c369a38"
         },
         {
-          "bytes": 11818,
+          "bytes": 11026,
           "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-decision-helper.md",
-          "sha256": "5210b37bf3cd26688457a389d248b36ecc5b615ec56dc6c6326cebe3d350888a"
+          "sha256": "0e8f6d66a14c1e48b7f4f0799c0a59fd6d39e442d103e2aadcd294bf19848b2f"
         },
         {
           "bytes": 19957,
@@ -1718,9 +1718,9 @@
           "sha256": "eb4a60a60f3b19f14d3ebd80d2b376e11f04a697f43babf96396e599f1417bed"
         },
         {
-          "bytes": 11870,
+          "bytes": 11078,
           "path": "plugins/claude/endor-labs-agent-kit/agents/package-risk-summary.md",
-          "sha256": "1ec2a6d9182c9d73bac3be62b13d05aec50acffc07ff1724fec68e227f12bff0"
+          "sha256": "a1e77273b086cb3e6a0ab0df92e4ac81062dce4c5919d734fa884656f2f03b10"
         },
         {
           "bytes": 23023,

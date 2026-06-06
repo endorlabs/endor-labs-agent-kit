@@ -180,29 +180,6 @@ Pack. For `evidence-check`, stop after this lookup unless the user explicitly
 requested tenant project scope; on empty, denied, unavailable, or non-JSON
 results, return `UNKNOWN` with `data_gaps`.
 
-## Step 1: MCP Risk Flags
-
-Call `check_dependency_for_risks` only when that tool is exposed in the current
-host. Capture malware, vulnerability ids, version recommendations, and any risk
-flags returned by the tool.
-
-If the tool is unavailable, add `risk_flags` to `data_gaps` and continue.
-
-## Step 2: MCP Vulnerability List
-
-If Step 1 did not return vulnerability ids, call
-`check_dependency_for_vulnerabilities` with the same coordinate.
-
-If this tool is unavailable, add `vulnerability_list` to `data_gaps`.
-
-## Step 3: MCP Vulnerability Enrichment
-
-For each vulnerability id, call `get_endor_vulnerability`. Capture CVSS, EPSS,
-CISA KEV, CWE ids, fix versions, and summaries.
-
-If an individual vulnerability lookup fails, add
-`vulnerability_enrichment:<id>` to `data_gaps` and continue.
-
 ## Step 8: Apply Summary Ladder and Emit Output
 
 Apply the shared summary ladder using all gathered MCP and `endorctl api`
