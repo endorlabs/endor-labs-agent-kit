@@ -285,6 +285,80 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Stop after: Stop after impact, confidence, validation needs, and caveats are explained.
 - Data gaps: Record missing VersionUpgrade detail, unavailable local usage, missing CIA evidence, and unverified upstream latest-version claims in data_gaps.
 
+### Evidence Query Recipes
+
+#### `project-by-git` (resolve-scope)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
+#### `version-upgrade-by-package` (resolve-scope)
+
+- Resource: `VersionUpgrade`
+- Purpose: Fetch UIA impact candidates for one package/from/to selector.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files" -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info.from_version`, `spec.upgrade_info.to_version`, `spec.upgrade_info.total_findings_fixed`, `spec.upgrade_info.total_findings_introduced`, `spec.upgrade_info.upgrade_risk`, `spec.upgrade_info.cia_status`
+- Constraints: Filter by the selected package or exact upgrade selector. Do not query broad Findings to estimate upgrade impact.
+
+#### `version-upgrade-by-package` (evidence-check)
+
+- Resource: `VersionUpgrade`
+- Purpose: Fetch UIA impact candidates for one package/from/to selector.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files" -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info.from_version`, `spec.upgrade_info.to_version`, `spec.upgrade_info.total_findings_fixed`, `spec.upgrade_info.total_findings_introduced`, `spec.upgrade_info.upgrade_risk`, `spec.upgrade_info.cia_status`
+- Constraints: Filter by the selected package or exact upgrade selector. Do not query broad Findings to estimate upgrade impact.
+
+#### `version-upgrade-detail` (evidence-check)
+
+- Resource: `VersionUpgrade`
+- Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
+
+#### `version-upgrade-detail` (explain)
+
+- Resource: `VersionUpgrade`
+- Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
+
+#### `selected-source-usage` (explain)
+
+- Resource: `local-files`
+- Purpose: Inspect only selected package usage for compatibility and validation planning.
+- Template:
+
+```bash
+rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>
+```
+- Fields: `file`, `line`, `symbol`, `selected_package`
+- Constraints: Run only after one package is selected. Do not scan unrelated source trees when the profile only needs a gate result.
+
 - Preferred evidence resources: `Project`, `VersionUpgrade`, `Finding`.
 - `Project`: Resolve namespace-scoped project identity before project upgrade recommendations. Fields: `uuid`, `meta.name`, `spec.git`.
 - `VersionUpgrade`: Read Endor UIA/CIA upgrade recommendations and selected upgrade details. Fields: `uuid`, `spec.upgrade_info`.

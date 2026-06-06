@@ -1165,6 +1165,80 @@ Prepare a minimal support packet without secrets or mutation.
 - Stop after: Stop after the packet contains reproduction context, safe identifiers, evidence_queries, and open data_gaps.
 - Data gaps: Record withheld secrets, missing timestamps, inaccessible resource IDs, and unavailable logs in data_gaps.
 
+### Evidence Query Recipes
+
+#### `project-by-git` (classify)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
+#### `project-by-git` (diagnose)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
+#### `scan-result-by-uuid` (diagnose)
+
+- Resource: `ScanResult`
+- Purpose: Fetch one scan result when troubleshooting a known scan or error lane.
+- Template:
+
+```bash
+endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.status`, `spec.exit_code`, `spec.project_uuid`
+- Constraints: Use only for a selected troubleshooting lane. Do not start or rerun scans.
+
+#### `finding-by-uuid` (diagnose)
+
+- Resource: `Finding`
+- Purpose: Fetch one known Finding by UUID; api get does not accept filters.
+- Template:
+
+```bash
+endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.source_code_version`, `spec.finding_metadata`, `spec.explanation`
+- Constraints: Do not use --filter with api get. After get, report context.type and source ref before merging with project counts.
+
+#### `scan-result-by-uuid` (support-packet)
+
+- Resource: `ScanResult`
+- Purpose: Fetch one scan result when troubleshooting a known scan or error lane.
+- Template:
+
+```bash
+endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.status`, `spec.exit_code`, `spec.project_uuid`
+- Constraints: Use only for a selected troubleshooting lane. Do not start or rerun scans.
+
+#### `project-by-git` (support-packet)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
 - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
 - `Project`: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `ScanResult`: Inspect scan lifecycle, exit code, toolchain, and failure state without creating scan log requests. Fields: `uuid`, `meta.name`, `spec.exit_code`, `spec.status`.

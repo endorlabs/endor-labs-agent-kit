@@ -358,7 +358,6 @@ def render_knowledge_pack_section(
                     lines.append(
                         f"- `{recipe.id}`/{recipe.profile_id}: `{recipe.template}`"
                     )
-                lines.append("- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.")
             else:
                 for recipe in workflow.evidence_query_recipes:
                     lines.extend([
@@ -366,28 +365,18 @@ def render_knowledge_pack_section(
                         "",
                         f"- Resource: `{recipe.resource}`",
                         f"- Purpose: {recipe.purpose}",
-                        "- Template:",
-                        "",
-                        "```bash",
-                        recipe.template,
-                        "```",
+                        f"- Template: `{recipe.template}`",
                         "- Fields: " + ", ".join(f"`{field}`" for field in recipe.fields),
                         "- Constraints: " + " ".join(recipe.constraints),
                         "",
                     ])
-        if workflow.resources:
+        if workflow.resources and not compact:
             resources = ", ".join(f"`{resource.name}`" for resource in workflow.resources)
             lines.append(f"- Preferred evidence resources: {resources}.")
-            if not compact:
-                for resource in workflow.resources:
-                    fields = ", ".join(f"`{field}`" for field in resource.fields)
-                    lines.append(f"- `{resource.name}`: {resource.purpose} Fields: {fields}.")
-        if compact:
-            if workflow.retrieval_steps:
-                lines.append("- Retrieval: " + " ".join(workflow.retrieval_steps[:2]))
-            if workflow.data_gaps:
-                lines.append("- Data gaps: " + " ".join(workflow.data_gaps[:1]))
-        elif workflow.retrieval_steps:
+            for resource in workflow.resources:
+                fields = ", ".join(f"`{field}`" for field in resource.fields)
+                lines.append(f"- `{resource.name}`: {resource.purpose} Fields: {fields}.")
+        if not compact and workflow.retrieval_steps:
             lines.append("- Retrieval order: " + " ".join(
                 f"{index}. {step}" for index, step in enumerate(workflow.retrieval_steps, start=1)
             ))
@@ -815,14 +804,14 @@ def _compact_query_recipes(workflow: KnowledgeWorkflow) -> tuple[KnowledgeEviden
                 continue
             selected.append(recipe)
             seen.add(recipe.id)
-            if len(selected) >= 4:
+            if len(selected) >= 1:
                 return tuple(selected)
     for recipe in workflow.evidence_query_recipes:
         if recipe.id in seen:
             continue
         selected.append(recipe)
         seen.add(recipe.id)
-        if len(selected) >= 4:
+        if len(selected) >= 1:
             break
     return tuple(selected)
 

@@ -137,17 +137,12 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files"
-      -o json
+      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info.from_version
-      - spec.upgrade_info.to_version
-      - spec.upgrade_info.total_findings_fixed
-      - spec.upgrade_info.total_findings_introduced
-      - spec.upgrade_info.upgrade_risk
-      - spec.upgrade_info.cia_status
+      - spec.upgrade_info
     constraints:
       - Filter by the selected package or exact upgrade selector.
       - Do not query broad Findings to estimate upgrade impact.
@@ -156,17 +151,12 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files"
-      -o json
+      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info.from_version
-      - spec.upgrade_info.to_version
-      - spec.upgrade_info.total_findings_fixed
-      - spec.upgrade_info.total_findings_introduced
-      - spec.upgrade_info.upgrade_risk
-      - spec.upgrade_info.cia_status
+      - spec.upgrade_info
     constraints:
       - Filter by the selected package or exact upgrade selector.
       - Do not query broad Findings to estimate upgrade impact.

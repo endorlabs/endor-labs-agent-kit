@@ -372,6 +372,12 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 ### Evidence Query Plans
 
 - Plans: `classify`, `diagnose`, `support-packet`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
+### Evidence Query Recipes
+
+- `project-by-git`/diagnose: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `scan-result-by-uuid`/diagnose: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
+- `finding-by-uuid`/diagnose: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
 - Retrieval: Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups. Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans.
 - Data gaps: Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures, and unsupported account-tier evidence in `data_gaps`.

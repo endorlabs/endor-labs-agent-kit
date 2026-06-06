@@ -352,6 +352,13 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 
 - Plans: `resolve-scope`, `evidence-check`, `selection-plan`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
+### Evidence Query Recipes
+
+- `version-upgrade-summary`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files" --list-all -o json`
+- `version-upgrade-detail`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
+- `selected-source-usage`/selection-plan: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
+- `selected-finding-detail`/selection-plan: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.

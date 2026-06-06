@@ -189,6 +189,13 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `selection-plan`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
+### Evidence Query Recipes
+
+- `finding-by-uuid`/evidence-check: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
+- `ai-sast-list`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_tags contains "AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.source_code_version,spec.finding_tags,spec.finding_metadata,spec.explanation" -o json`
+- `selected-ai-sast-finding`/selection-plan: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
+- `selected-source-anchors`/selection-plan: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
+- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
 - Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`.
 - Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness. Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"` by default.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`.

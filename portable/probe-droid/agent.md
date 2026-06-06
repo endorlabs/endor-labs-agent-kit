@@ -1087,6 +1087,80 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 - Stop after: Stop after recommended actions are tied to verified coverage evidence or data_gaps.
 - Data gaps: Record unverified owner, unknown branch protection, missing setup-file evidence, and unavailable project metadata in data_gaps.
 
+### Evidence Query Recipes
+
+#### `local-git-state` (resolve-scope)
+
+- Resource: `local-git`
+- Purpose: Capture local repository provenance without reading secrets.
+- Template:
+
+```bash
+pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url
+```
+- Fields: `cwd`, `branch`, `commit`, `remote.origin.url`, `dirty_files`
+- Constraints: Use as local context only; it does not prove Endor project, namespace, or finding counts.
+
+#### `project-branch-coverage` (resolve-scope)
+
+- Resource: `Project`
+- Purpose: Read Endor project git and monitored branch metadata for selected repositories.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.git`, `spec.monitored_branch`
+- Constraints: Compare only selected repositories. Do not run scans or mutate GitHub or Endor settings.
+
+#### `project-branch-coverage` (evidence-check)
+
+- Resource: `Project`
+- Purpose: Read Endor project git and monitored branch metadata for selected repositories.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.git`, `spec.monitored_branch`
+- Constraints: Compare only selected repositories. Do not run scans or mutate GitHub or Endor settings.
+
+#### `repo-setup-file-inventory` (evidence-check)
+
+- Resource: `local-files`
+- Purpose: Inventory dependency manifests before scoped Endor expansion.
+- Template:
+
+```bash
+find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+```
+- Fields: `manifest_path`, `ecosystem_hint`
+- Constraints: Use local files as context only until Endor evidence backs project-scoped risk.
+
+#### `project-branch-coverage` (prescribe-actions)
+
+- Resource: `Project`
+- Purpose: Read Endor project git and monitored branch metadata for selected repositories.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `spec.git`, `spec.monitored_branch`
+- Constraints: Compare only selected repositories. Do not run scans or mutate GitHub or Endor settings.
+
+#### `missing-setup-file-check` (prescribe-actions)
+
+- Resource: `local-files`
+- Purpose: Inventory dependency manifests before scoped Endor expansion.
+- Template:
+
+```bash
+find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+```
+- Fields: `manifest_path`, `ecosystem_hint`
+- Constraints: Use local files as context only until Endor evidence backs project-scoped risk.
+
 - Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`.
 - `Project`: Map repositories to Endor projects and preserve parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `ScanProfile`: Identify monitored-branch and scan profile coverage for onboarded repositories. Fields: `uuid`, `meta.name`, `spec`.

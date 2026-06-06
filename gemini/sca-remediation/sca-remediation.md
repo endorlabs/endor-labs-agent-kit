@@ -549,6 +549,104 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - Stop after: Stop after one candidate is selected, blocked, or rejected with risk_decision.status and validation requirements.
 - Data gaps: Record skipped broad Finding detail, missing introduced-finding identity, missing advisory mapping, dirty worktree blockers, and unavailable UIA/CIA evidence in data_gaps.
 
+### Evidence Query Recipes
+
+#### `local-git-state` (resolve-scope)
+
+- Resource: `local-git`
+- Purpose: Capture local repository provenance without reading secrets.
+- Template:
+
+```bash
+pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url
+```
+- Fields: `cwd`, `branch`, `commit`, `remote.origin.url`, `dirty_files`
+- Constraints: Use as local context only; it does not prove Endor project, namespace, or finding counts.
+
+#### `project-by-git` (resolve-scope)
+
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template:
+
+```bash
+endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+```
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
+#### `finding-availability` (evidence-check)
+
+- Resource: `Finding`
+- Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+- Template:
+
+```bash
+endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.target_dependency_version`, `spec.finding_categories`, `spec.level`
+- Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+
+#### `version-upgrade-summary` (evidence-check)
+
+- Resource: `VersionUpgrade`
+- Purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files" --list-all -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info.is_best`, `spec.upgrade_info.worth_it`, `spec.upgrade_info.total_findings_fixed`, `spec.upgrade_info.total_findings_introduced`, `spec.upgrade_info.upgrade_risk`, `spec.upgrade_info.cia_status`, `spec.upgrade_info.direct_dependency_manifest_files`
+- Constraints: Run before detailed Finding expansion for selection plans. Do not call a candidate safe without UIA/CIA evidence or data_gaps.
+
+#### `version-upgrade-summary` (selection-plan)
+
+- Resource: `VersionUpgrade`
+- Purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files" --list-all -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info.is_best`, `spec.upgrade_info.worth_it`, `spec.upgrade_info.total_findings_fixed`, `spec.upgrade_info.total_findings_introduced`, `spec.upgrade_info.upgrade_risk`, `spec.upgrade_info.cia_status`, `spec.upgrade_info.direct_dependency_manifest_files`
+- Constraints: Run before detailed Finding expansion for selection plans. Do not call a candidate safe without UIA/CIA evidence or data_gaps.
+
+#### `version-upgrade-detail` (selection-plan)
+
+- Resource: `VersionUpgrade`
+- Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
+- Template:
+
+```bash
+endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json
+```
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info`, `spec.upgrade_info.cia_results`
+- Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
+
+#### `selected-source-usage` (selection-plan)
+
+- Resource: `local-files`
+- Purpose: Inspect only selected package usage for compatibility and validation planning.
+- Template:
+
+```bash
+rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>
+```
+- Fields: `file`, `line`, `symbol`, `selected_package`
+- Constraints: Run only after one package is selected. Do not scan unrelated source trees when the profile only needs a gate result.
+
+#### `selected-finding-detail` (selection-plan)
+
+- Resource: `Finding`
+- Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+- Template:
+
+```bash
+endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json
+```
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.target_dependency_version`, `spec.finding_categories`, `spec.level`
+- Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `Finding`: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
