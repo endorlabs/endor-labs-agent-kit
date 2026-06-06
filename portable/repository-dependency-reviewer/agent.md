@@ -199,12 +199,12 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
 ### Repository Dependency Review Evidence Contract
 
@@ -227,6 +227,24 @@ Check exact manifest coordinates against available Endor risk evidence.
 - Minimal evidence: Exact direct coordinates, namespace provenance for tenant-scoped checks, and available PackageRisk or Vulnerability evidence.
 - Stop when: Reviewed coordinates have evidence-backed findings or precise data_gaps. Do not expand into repository-wide remediation planning unless asked.
 - Output focus: Return findings, recommended_actions, evidence source summary, and data_gaps.
+
+### Evidence Query Plans
+
+#### `manifest-inventory` - Manifest Inventory Query Plan
+
+Inventory local manifests before Endor expansion.
+- Query order: 1. Read repository root, package-manager files, lockfiles, and workspace layout. 2. Resolve namespace and project only when the user asks for Endor-backed risk evidence. 3. Map manifests to package ecosystems and likely direct dependencies.
+- Avoid: Do not query broad Endor Finding or PackageVersion inventories before manifest scope is known.
+- Stop after: Stop after manifest inventory and evidence needs are clear.
+- Data gaps: Record missing lockfiles, unreadable manifests, unresolved workspace layout, and unavailable namespace/project evidence in data_gaps.
+
+#### `evidence-check` - Repository Dependency Evidence Query Plan
+
+Attach Endor risk evidence only to discovered repository dependencies.
+- Query order: 1. Start from local manifest inventory and resolved project scope. 2. Query package or dependency summaries for dependencies present in the repository. 3. Query scoped Finding evidence only for risky or user-selected packages.
+- Avoid: Do not turn this into a tenant-wide package or finding export. Do not recommend running a new scan as the default next step.
+- Stop after: Stop after reviewed dependencies are categorized with verified evidence or data_gaps.
+- Data gaps: Record missing project evidence, unavailable dependency metadata, packages without matching Endor evidence, and skipped broad Findings in data_gaps.
 
 - Preferred evidence resources: `RepositoryManifest`, `PackageRisk`, `Vulnerability`.
 - `RepositoryManifest`: Discover dependency files and exact direct package coordinates from read-only file inspection. Fields: `path`, `ecosystem`, `package_name`, `version`.

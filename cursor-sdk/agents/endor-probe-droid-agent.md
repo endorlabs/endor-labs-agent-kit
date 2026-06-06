@@ -289,12 +289,11 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
-- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
+- Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.
+- Local docs are context until backed by current Endor or user-provided evidence.
+- Record `namespace_provenance`; return required JSON with precise `data_gaps` for missing or blocked evidence.
 
 ### Probe Droid Evidence Contract
 
@@ -303,6 +302,9 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 ### Agent Task Profiles
 
 - Profiles: `resolve-scope`, `evidence-check`, `prescribe-actions`. Start narrow; stop with `data_gaps`; full only on request.
+### Evidence Query Plans
+
+- Plans: `resolve-scope`, `evidence-check`, `prescribe-actions`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 - Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`.
 - Retrieval: Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls. Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects.
 - Data gaps: Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty, and package-version query gaps in `data_gaps`.

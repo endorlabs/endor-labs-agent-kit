@@ -139,12 +139,12 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
 ### Dependency Decision Evidence Contract
 
@@ -167,6 +167,24 @@ Query only exact package-version risk evidence needed for a decision.
 - Minimal evidence: Exact PackageVersion resolution, available Metric signals, vulnerability evidence, and data_gaps for missing signals.
 - Stop when: Allow, block, or conditional decision can be justified from exact evidence. Do not infer risk from popularity, local docs, or version heuristics.
 - Output focus: Return verdict with conditions, alternatives, evidence source summary, and data_gaps.
+
+### Evidence Query Plans
+
+#### `explain` - Dependency Decision Explain Query Plan
+
+Explain a named dependency decision using only scoped package and risk evidence.
+- Query order: 1. Identify the named package, version, ecosystem, repository scope, and namespace provenance. 2. Query package or PackageVersion evidence for that package/version only. 3. Fetch available Endor risk evidence such as reachable findings, maintained status, dependency metadata, or policy signals for that package only.
+- Avoid: Do not inventory the whole repository or claim MCP-specific checks unless host tools expose them.
+- Stop after: Stop after allow/avoid/needs-review guidance is backed by package-specific evidence or blocked.
+- Data gaps: Record missing package version, unavailable PackageVersion evidence, absent risk signals, and namespace/project uncertainty in data_gaps.
+
+#### `evidence-check` - Dependency Decision Evidence Query Plan
+
+Check whether enough evidence exists for a named dependency decision.
+- Query order: 1. Resolve package coordinate, version, ecosystem, namespace, and optional repository scope. 2. Query only the matching PackageVersion or dependency metadata record. 3. Check for scoped Findings or policy evidence tied to the named package when project context is supplied.
+- Avoid: Do not broaden to every dependency or repository finding when a package coordinate was supplied.
+- Stop after: Stop after required decision evidence is present or specific missing lanes are known.
+- Data gaps: Record missing coordinate, unresolved namespace, package not found, and missing project-scoped risk evidence in data_gaps.
 
 - Preferred evidence resources: `PackageVersion`, `Metric`, `Vulnerability`.
 - `PackageVersion`: Resolve the exact package-version UUID for score, license, and risk enrichment. Fields: `uuid`, `meta.name`.

@@ -53,7 +53,7 @@ local docs, repository names, cached notes, memory, or example paths.
 ## Workflow
 
 1. Resolve project context from the current repository, repository URL, owner/repo, Endor project name, finding UUID, or optional project UUID.
-2. Gather remediation options: use documented Endor API lookups or authenticated `endorctl api` commands to read main-context Finding, VersionUpgrade, and finding-fixing upgrade evidence for the resolved project.
+2. Gather remediation options through the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection plans, query VersionUpgrade/UIA summaries before detailed Finding expansion, then fetch Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation. For evidence checks, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
 3. Preview plan: Build a dry-run plan with the selected option and alternatives.
 
 Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
@@ -115,12 +115,12 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+- Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
 - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
 ### Remediation Planner Evidence Contract
 
@@ -152,11 +152,37 @@ Preview one or more verified remediation options without editing files.
 - Stop when: Verified options are ranked, or missing evidence blocks selection. Do not mutate files, create branches, or open change requests.
 - Output focus: Return `remediation_options`, optional `selected_remediation`, `evidence_queries`, and `data_gaps`.
 
+### Evidence Query Plans
+
+#### `resolve-scope` - Resolve Scope Query Plan
+
+Resolve the repository to a namespace-scoped Endor project and stop before remediation evidence.
+- Query order: 1. Read current repository identity or user-provided selectors. 2. Resolve namespace provenance from the current request, environment, or default config key extraction. 3. Query Project with a tight field mask and record attempted selectors.
+- Avoid: Do not query Finding, VersionUpgrade, package, or dependency evidence before project scope is proven.
+- Stop after: Stop after project_resolution.status is resolved, ambiguous, unresolved, or lookup_unavailable.
+- Data gaps: Record missing namespace, unresolved project selectors, and host-blocked Endor reads in data_gaps.
+
+#### `evidence-check` - Planner Evidence Query Plan
+
+Verify remediation evidence availability without choosing a preferred option.
+- Query order: 1. Resolve namespace and project first. 2. Query scoped VersionUpgrade/UIA summaries for candidate availability, risk, CIA, and manifest fields. 3. Query narrow main-context Finding availability only to confirm finding-backed remediation evidence.
+- Avoid: Do not trust local docs, repository paths, or remembered counts as remediation_options. Do not inspect source usage or draft a PR plan unless selection is requested.
+- Stop after: Stop after remediation evidence lanes are proven available or unavailable.
+- Data gaps: Record missing Finding evidence, missing VersionUpgrade/UIA evidence, unresolved project scope, and unavailable host tools in data_gaps.
+
+#### `selection-plan` - Planner Selection Query Plan
+
+Preview verified remediation options by ranking VersionUpgrade/UIA before Finding detail expansion.
+- Query order: 1. Resolve namespace and project first. 2. Query VersionUpgrade/UIA summaries for ranked remediation options with risk, CIA, findings fixed, findings introduced, and manifest fields. 3. Fetch detailed VersionUpgrade/UIA evidence only for selected or shortlisted options. 4. Query Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation.
+- Avoid: Do not enumerate broad Finding inventories as the default way to discover options. Do not select remediation from local SCA counts, README claims, or cached notes.
+- Stop after: Stop after selected_remediation is null or backed by verified remediation_options and precise data_gaps.
+- Data gaps: Record skipped Finding detail, missing UIA/CIA fields, unverified counts, and unavailable project evidence in data_gaps.
+
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve repository-scoped project identity and namespace provenance before any remediation option. Fields: `uuid`, `meta.name`, `spec.git`.
 - `Finding`: Identify project-scoped vulnerability findings and affected packages without fabricating counts. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
 - `VersionUpgrade`: Read UIA/CIA remediation candidates, risk, fixed findings, introduced findings, and manifest targets. Fields: `uuid`, `spec.upgrade_info`.
-- Retrieval order: 1. Resolve namespace and project with provenance before reporting any finding count, remediation count, or selected option. 2. Treat repository files, project docs, CLAUDE.md, README content, and local paths as unverified context until Endor evidence or user-provided evidence confirms them. 3. Query main-context Finding and VersionUpgrade evidence before naming a safest remediation path.
+- Retrieval order: 1. Resolve namespace and project with provenance before reporting any finding count, remediation count, or selected option. 2. Treat repository files, project docs, CLAUDE.md, README content, and local paths as unverified context until Endor evidence or user-provided evidence confirms them. 3. For selection plans, query VersionUpgrade/UIA summaries before detailed Finding expansion; use narrow Finding availability or detail only when the profile requires it.
 - Fallbacks: If project resolution is missing, return `project_resolution.status` as `unresolved` and stop at data_gaps. If Finding or VersionUpgrade evidence is unavailable, return plan-only insufficient evidence and do not estimate counts, risk, review time, or touched files.
 - Data gaps: Record missing namespace, project resolution, Finding evidence, VersionUpgrade/UIA evidence, source-provider metadata, and host command capability in `data_gaps`. Preserve `project_resolution.status`, `namespace_provenance`, query attempts, and context scope in the final output.
 

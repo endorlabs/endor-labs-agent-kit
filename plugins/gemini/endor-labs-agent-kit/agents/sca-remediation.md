@@ -107,8 +107,8 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 ## Workflow
 
 1. Resolve the project and namespace from local git, user-supplied selectors, and Endor project metadata.
-2. Query main-context SCA vulnerability findings for the resolved project unless the user explicitly requested PR/CI-run or all-context evidence. Preserve context type, source ref, severity, finding category, finding tags, reachability, exploitability, direct/transitive signal, package name/version, affected manifests, package UUID, dependency UUID, fix availability, CVE/GHSA IDs, finding UUIDs, and any VersionUpgrade/UIA `vuln_finding_info.fixed_findings` entries.
-3. Group findings by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
+2. Follow the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection-plan gates, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion; fetch Finding detail only for selected-candidate advisory mapping, PR/MR body detail, or a required count/data_gaps reconciliation. For evidence-check gates, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
+3. Group verified evidence by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
 4. Query VersionUpgrade/UIA evidence before calling any remediation low-risk, safe, or best. A high finding count alone is not enough.
 5. Select the first remediation candidate using this order:
    - reachable or exploited critical/high findings with a fix;
@@ -349,12 +349,11 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
-- Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-- Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-- Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-- Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+- Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.
+- Never dump or `cat` Endor config files; extract only the namespace key.
+- Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.
+- Local docs are context until backed by current Endor or user-provided evidence.
+- Record `namespace_provenance`; return required JSON with precise `data_gaps` for missing or blocked evidence.
 
 ### SCA Remediation Evidence Contract
 
@@ -363,6 +362,10 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 ### Agent Task Profiles
 
 - Profiles: `resolve-scope`, `evidence-check`, `selection-plan`. Start narrow; stop with `data_gaps`; full only on request.
+### Evidence Query Plans
+
+- Plans: `resolve-scope`, `evidence-check`, `selection-plan`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
+- SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.

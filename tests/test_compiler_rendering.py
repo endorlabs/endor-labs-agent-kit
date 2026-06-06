@@ -128,8 +128,9 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     assert "Profiles: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
     assert "full only on request" in compact
     assert "Evidence Query Plans" in compact
-    assert "Query VersionUpgrade/UIA candidate summaries" in compact
-    assert "Do not enumerate broad Finding inventories" in compact
+    assert "Plans: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
+    assert "Exact/ranked evidence first; selected detail only" in compact
+    assert "VersionUpgrade/UIA before Finding detail; no broad Finding inventory" in compact
     assert "#### `selection-plan` - Selection Plan" not in compact
 
 

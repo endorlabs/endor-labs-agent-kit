@@ -1102,12 +1102,12 @@ system: |
 
   ### Evidence Gate Contract
 
-  - Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.
-  - Never dump or `cat` Endor config files; extract only the namespace key with a field-specific command or parser.
+  - Never use memory, examples, older sessions, or prior repos as namespace, repo, project, finding, or package provenance.
+  - Never dump or `cat` Endor config files; extract only the namespace key.
   - Never guess repo URLs, project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.
-  - Treat local docs and repository files as context only until backed by current Endor or user-provided evidence.
-  - Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config key extraction, or project metadata.
-  - Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or host-blocked evidence.
+  - Treat local docs and repository files as context until current Endor or user-provided evidence backs them.
+  - Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
+  - Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 
   ### Endor Troubleshooter Evidence Contract
 
@@ -1138,6 +1138,32 @@ system: |
   - Minimal evidence: Issue lane, resource identifiers, command/error provenance, and data_gaps from failed lookups.
   - Stop when: The packet contains reproducible facts, attempted queries, and missing evidence. Do not claim escalation was created unless an approved host action returned evidence.
   - Output focus: Return support_escalation_packet, validation_plan, future_action_contracts, and data_gaps.
+
+  ### Evidence Query Plans
+
+  #### `classify` - Troubleshooting Classification Query Plan
+
+  Classify the issue lane before reading tenant resources.
+  - Query order: 1. Read only the user's error text, command, host, namespace claim, and repository context. 2. Identify whether the issue is auth, namespace/project resolution, scan execution, integration delivery, policy, findings, or package evidence. 3. Select the smallest read-only Endor resource family needed for the lane.
+  - Avoid: Do not run scans, mutate integrations, or fetch unrelated Endor resources during classification.
+  - Stop after: Stop after the lane, likely resource family, and required follow-up evidence are known.
+  - Data gaps: Record missing command output, namespace, project selector, integration name, scan identifier, or host access in data_gaps.
+
+  #### `diagnose` - Troubleshooting Diagnosis Query Plan
+
+  Diagnose one narrow Endor issue lane with read-only, lane-specific evidence.
+  - Query order: 1. Classify the issue lane and resolve namespace provenance. 2. Resolve Project, PackageVersion, Finding, ScanResult, integration, policy, or notification evidence only for that lane. 3. Correlate the user's exact error text with the selected resource evidence and local command context.
+  - Avoid: Do not run a new scan, create scan log requests, edit integrations, rotate credentials, or print config contents. Do not broaden to every troubleshooting domain when one lane has enough evidence.
+  - Stop after: Stop after root cause is supported, disproven, or blocked with concrete next evidence needs.
+  - Data gaps: Record missing resource access, unavailable scan or integration IDs, redacted logs, and host-blocked Endor reads in data_gaps.
+
+  #### `support-packet` - Support Packet Query Plan
+
+  Prepare a minimal support packet without secrets or mutation.
+  - Query order: 1. Classify the issue lane and list already-collected evidence. 2. Fetch only redaction-safe metadata for the affected Project, ScanResult, integration, Finding, or package resource. 3. Summarize exact commands, timestamps, resource UUIDs, and non-sensitive error snippets.
+  - Avoid: Do not include tokens, credential material, full config files, or unrelated tenant inventory.
+  - Stop after: Stop after the packet contains reproduction context, safe identifiers, evidence_queries, and open data_gaps.
+  - Data gaps: Record withheld secrets, missing timestamps, inaccessible resource IDs, and unavailable logs in data_gaps.
 
   - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
   - `Project`: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
