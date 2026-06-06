@@ -41,8 +41,8 @@ STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
     "`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, "
     "`source`, `status`, `query_template_id`, `filter_summary`, "
-    "`field_mask_summary`, `result_count`, `reason`. Summarize selectors and "
-    "fields; put missing, failed, stale, or unsupported evidence in `data_gaps`."
+    "`field_mask_summary`, `result_count`, `reason`. Use source categories, not "
+    "raw commands; summarize selectors/fields; put gaps in `data_gaps`."
 )
 
 
