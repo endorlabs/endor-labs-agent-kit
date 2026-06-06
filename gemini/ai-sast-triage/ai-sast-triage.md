@@ -361,7 +361,7 @@ Required top-level fields must appear in this order:
 - `tickets` (`list[object]`): Ticket IDs, URLs, status, and failure reasons for requested AI SAST triage, remediation, or exception follow-up ticket creation.
 - `data_gaps` (`list[string]`): Missing Endor, source, or host signals.
 
-`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Use source categories, not raw commands; summarize selectors/fields; put gaps in `data_gaps`.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 

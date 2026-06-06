@@ -231,6 +231,7 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"conditions": []' in rendered
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
     assert "Row keys: `name`, `resource`, `source`, `status`" in rendered
+    assert "Use source categories, not raw commands" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
 
 

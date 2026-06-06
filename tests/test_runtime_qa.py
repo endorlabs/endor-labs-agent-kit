@@ -96,6 +96,7 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "Task profile: selection-plan" in claude_prompt
     assert "Agent task profile `selection-plan`" in claude_prompt
     assert "Use only that profile's minimal evidence" in claude_prompt
+    assert "`source` must be a category" in claude_prompt
     assert "Evidence query plan:" in claude_prompt
     assert "Query VersionUpgrade/UIA candidate summaries" in claude_prompt
     assert "before any selected-candidate Finding detail" in claude_prompt

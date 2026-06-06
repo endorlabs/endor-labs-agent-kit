@@ -501,12 +501,20 @@ def runtime_output_contract(agent: str) -> str:
     required = required_fields_for(agent)
     if not required:
         return ""
-    return (
+    contract = (
         "Provider-neutral structured output contract: return exactly one parseable JSON object "
         "with these required top-level fields in this order: "
         + ", ".join(f"`{field}`" for field in required)
         + ". Do not omit required fields; use empty arrays or null objects only with precise `data_gaps`."
     )
+    if "evidence_queries" in required:
+        contract += (
+            " For `evidence_queries`, every row must include `name`, `resource`, `source`, `status`, "
+            "`query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, and `reason`. "
+            "`source` must be a category such as `endorctl_api`, `endor_mcp`, `local_repository`, "
+            "`source_provider`, or `user_input`, never a raw command; put selectors and fields in the summary columns."
+        )
+    return contract
 
 
 def agent_invocation(host: str, agent: str, task_profile: str | None = None) -> str:

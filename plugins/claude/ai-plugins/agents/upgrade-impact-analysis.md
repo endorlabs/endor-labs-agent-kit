@@ -141,7 +141,7 @@ Required top-level fields, in order:
 `upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `evidence_queries`, `data_gaps`
 Optional fields when verified:
 `upgrade_candidates`, `selected_upgrade`, `findings_fixed`, `findings_introduced`, `cia_status`, `breaking_changes`, `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, `score_explanation`
-`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Use source categories, not raw commands; summarize selectors/fields; put gaps in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
