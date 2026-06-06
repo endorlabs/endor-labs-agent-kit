@@ -292,6 +292,54 @@ def test_runtime_qa_runner_fails_on_stale_codex_plugin_cache_paths(tmp_path):
     assert "legacy Endor Agent Kit package endor-agent-kit-security-agents@0.1.0" in stderr
 
 
+def test_runtime_qa_runner_fails_on_stale_codex_plugin_config_warning(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    warning = (
+        'WARN codex_core_plugins::loader: failed to load plugin: plugin is not installed '
+        'plugin="endor-agent-kit-security-agents@endor-agent-kit-local" '
+        "path=/Users/mattbrown/.codex/plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents"
+    )
+    fake = _fake_command(tmp_path, stderr=f"{warning}\n")
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "sca-remediation",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert result.returncode == 1
+    assert "stale Codex plugin cache detected" in result.stdout
+    summary = _load_summary(log_root)
+    result_item = summary["results"][0]
+    assert result_item["status"] == "failed"
+    assert result_item["reason"] == "stale Codex plugin cache detected (1 paths)"
+    stderr = Path(result_item["stderr_log"]).read_text(encoding="utf-8")
+    assert "removed legacy Endor Agent Kit plugin endor-agent-kit-security-agents@endor-agent-kit-local" in stderr
+
+
 def test_runtime_qa_runner_records_timeout_without_crashing(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()

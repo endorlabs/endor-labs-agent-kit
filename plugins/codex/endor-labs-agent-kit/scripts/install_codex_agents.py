@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import shutil
 import sys
 from datetime import datetime, timezone
@@ -18,6 +19,10 @@ ENDOR_PLUGIN_CACHE_NAMES = {
     CURRENT_PLUGIN_NAME,
     "endor-agent-kit-security-agents",
 }
+LEGACY_CODEX_PLUGIN_IDS = {
+    "endor-agent-kit-security-agents@endor-agent-kit-local",
+}
+PLUGIN_TABLE_RE = re.compile(r'^\[plugins\."(?P<name>[^"]+)"\]\s*$')
 MANAGED_AGENT_MARKER = "# endor_agent_kit_managed = true"
 MANAGED_SKILL_MARKERS = (
     "endor_agent_kit_managed=true",
@@ -254,6 +259,91 @@ def plugin_cache_records(plugin_root: Path, home: Path) -> list[tuple[Path, str]
     return records
 
 
+def plugin_config_sections(config_path: Path) -> list[tuple[str, int, int, str]]:
+    try:
+        lines = config_path.read_text(encoding="utf-8").splitlines(keepends=True)
+    except (OSError, UnicodeDecodeError):
+        return []
+    sections: list[tuple[str, int, int, str]] = []
+    for index, line in enumerate(lines):
+        match = PLUGIN_TABLE_RE.match(line.strip())
+        if match is None:
+            continue
+        end = len(lines)
+        for cursor in range(index + 1, len(lines)):
+            if lines[cursor].lstrip().startswith("["):
+                end = cursor
+                break
+        enabled = "unknown"
+        for entry in lines[index + 1:end]:
+            stripped = entry.strip()
+            if stripped.startswith("enabled") and "=" in stripped:
+                enabled = stripped.split("=", 1)[1].strip()
+                break
+        sections.append((match.group("name"), index, end, enabled))
+    return sections
+
+
+def stale_plugin_config_records(home: Path) -> list[tuple[Path, str, str]]:
+    config_path = home / "config.toml"
+    if not config_path.is_file():
+        return []
+    records: list[tuple[Path, str, str]] = []
+    for plugin_id, _start, _end, enabled in plugin_config_sections(config_path):
+        if plugin_id in LEGACY_CODEX_PLUGIN_IDS:
+            records.append((
+                config_path,
+                plugin_id,
+                f"stale-legacy-config enabled={enabled}",
+            ))
+    return records
+
+
+def report_plugin_config_status(home: Path) -> None:
+    records = stale_plugin_config_records(home)
+    if not records:
+        print("plugin-config: none")
+        return
+    for config_path, plugin_id, status in records:
+        print(f"plugin-config:{relative_display(config_path, home)}:{plugin_id}: {status}")
+        print(
+            "  warning: Codex may try to load this removed legacy Endor Agent Kit "
+            "plugin on every run. To remove the stale config entry after approval, "
+            "run `python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes`."
+        )
+
+
+def purge_stale_plugin_config(home: Path, *, yes: bool) -> None:
+    config_path = home / "config.toml"
+    sections = [
+        (plugin_id, start, end)
+        for plugin_id, start, end, _enabled in plugin_config_sections(config_path)
+        if plugin_id in LEGACY_CODEX_PLUGIN_IDS
+    ]
+    if not sections:
+        print("plugin-config: no stale Endor Agent Kit config entries")
+        return
+    plugin_ids = ", ".join(plugin_id for plugin_id, _start, _end in sections)
+    if not yes:
+        print(
+            f"plugin-config:{relative_display(config_path, home)}: "
+            f"would remove stale legacy entries {plugin_ids}; rerun with --yes after approval"
+        )
+        return
+    backup_path = backup(config_path)
+    lines = config_path.read_text(encoding="utf-8").splitlines(keepends=True)
+    keep = [True] * len(lines)
+    for _plugin_id, start, end in sections:
+        for index in range(start, end):
+            keep[index] = False
+    config_path.write_text(
+        "".join(line for line, include in zip(lines, keep) if include),
+        encoding="utf-8",
+    )
+    print(f"plugin-config:{relative_display(config_path, home)}: removed stale legacy entries {plugin_ids}")
+    print(f"  backed up Codex config to {backup_path}")
+
+
 def cache_backup_path(home: Path, cache_root: Path) -> Path:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     try:
@@ -276,18 +366,24 @@ def purge_stale_plugin_cache(plugin_root: Path, home: Path, *, yes: bool) -> int
         for cache_root, status in plugin_cache_records(plugin_root, home)
         if status.startswith("stale")
     ]
+    stale_config = stale_plugin_config_records(home)
+    if not stale and not stale_config:
+        print("plugin-cache: no stale Endor Agent Kit caches")
+        print("plugin-config: no stale Endor Agent Kit config entries")
+        return 0
     if not stale:
         print("plugin-cache: no stale Endor Agent Kit caches")
-        return 0
-    for cache_root, status in stale:
-        target = cache_backup_path(home, cache_root)
-        print(f"plugin-cache:{relative_display(cache_root, home)}: {status}")
-        if yes:
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.move(str(cache_root), str(target))
-            print(f"  moved stale plugin cache to {target}")
-        else:
-            print(f"  would move stale plugin cache to {target}; rerun with --yes after approval")
+    else:
+        for cache_root, status in stale:
+            target = cache_backup_path(home, cache_root)
+            print(f"plugin-cache:{relative_display(cache_root, home)}: {status}")
+            if yes:
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.move(str(cache_root), str(target))
+                print(f"  moved stale plugin cache to {target}")
+            else:
+                print(f"  would move stale plugin cache to {target}; rerun with --yes after approval")
+    purge_stale_plugin_config(home, yes=yes)
     return 0
 
 
@@ -356,6 +452,7 @@ def run(args: argparse.Namespace) -> int:
                 print(f"  would install/update {target}; rerun with --yes after approval")
     if args.status and not args.agents_only and not args.skills_only:
         report_plugin_cache_status(plugin_root, home)
+        report_plugin_config_status(home)
     return exit_code
 
 
@@ -365,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
     action.add_argument("--status", action="store_true", help="Report installed agent and skill status")
     action.add_argument("--install", action="store_true", help="Install or update bundled agents and skills")
     action.add_argument("--uninstall", action="store_true", help="Remove managed installed agents and skills")
-    action.add_argument("--purge-stale-plugin-cache", action="store_true", help="Move stale Endor Agent Kit plugin-cache directories to cache-backups")
+    action.add_argument("--purge-stale-plugin-cache", action="store_true", help="Move stale Endor Agent Kit plugin-cache directories and remove stale plugin config entries")
     scope = parser.add_mutually_exclusive_group()
     scope.add_argument("--agents-only", action="store_true", help="Limit action to bundled Codex custom agents")
     scope.add_argument("--skills-only", action="store_true", help="Limit action to bundled Codex skills")
