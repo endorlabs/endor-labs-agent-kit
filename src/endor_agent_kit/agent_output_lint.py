@@ -48,7 +48,7 @@ READ_ONLY_SCAN_RE = re.compile(
 )
 
 
-def lint_agent_output(agent_id: str, text: str) -> list[str]:
+def lint_agent_output(agent_id: str, text: str, *, task_profile: str | None = None) -> list[str]:
     """Return release-blocking issues found in one captured agent output."""
 
     errors: list[str] = []
@@ -74,8 +74,12 @@ def lint_agent_output(agent_id: str, text: str) -> list[str]:
     if agent_id == "sca-remediation" and payload is not None:
         errors.extend(validate_sca_gate_payload(payload))
         errors.extend(_project_evidence_gap_errors(payload, require_options=False))
+        if task_profile == "selection-plan":
+            errors.extend(_selection_plan_query_efficiency_errors(payload))
     elif agent_id == "remediation-planner" and payload is not None:
         errors.extend(_remediation_planner_errors(payload))
+        if task_profile == "selection-plan":
+            errors.extend(_selection_plan_query_efficiency_errors(payload))
     elif payload is not None:
         errors.extend(_empty_data_gap_errors(payload))
     return _dedupe(errors)
@@ -169,6 +173,35 @@ def _empty_data_gap_errors(payload: dict[str, Any]) -> list[str]:
 def _evidence_query_mentions(items: list[Any], terms: tuple[str, ...]) -> bool:
     haystack = " ".join(json.dumps(item, sort_keys=True) for item in items)
     lower = haystack.lower()
+    return any(term.lower() in lower for term in terms)
+
+
+def _selection_plan_query_efficiency_errors(payload: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    evidence_queries = _list(payload.get("evidence_queries"))
+    saw_version_upgrade = False
+    for item in evidence_queries:
+        if not isinstance(item, dict):
+            continue
+        if _item_mentions(item, ("VersionUpgrade", "UIA", "version_upgrades")):
+            saw_version_upgrade = True
+            continue
+        if not _item_mentions(item, ("Finding", "findings")):
+            continue
+        result_count = _int(item.get("result_count") or item.get("count") or item.get("results"))
+        if result_count >= 1000:
+            errors.append(
+                "evidence_queries: selection-plan must not enumerate broad Finding inventories before VersionUpgrade/UIA narrowing"
+            )
+        if not saw_version_upgrade:
+            errors.append(
+                "evidence_queries: selection-plan must query VersionUpgrade/UIA before Finding detail expansion"
+            )
+    return errors
+
+
+def _item_mentions(item: dict[str, Any], terms: tuple[str, ...]) -> bool:
+    lower = json.dumps(item, sort_keys=True).lower()
     return any(term.lower() in lower for term in terms)
 
 

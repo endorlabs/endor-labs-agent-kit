@@ -1,6 +1,7 @@
 agent_id: ai-sast-triage
 title: AI SAST Triage Evidence Contract
-summary: Use namespace-scoped main-context AI SAST findings, exploit reproduction, remediation guidance, and source evidence before proposing remediation or optional exception work.
+summary: Use namespace-scoped main-context AI SAST findings, exploit reproduction, remediation guidance, and source evidence
+  before proposing remediation or optional exception work.
 task_profiles:
   - id: resolve-scope
     title: Resolve Scope
@@ -35,7 +36,8 @@ task_profiles:
       - The user asks for triage plus a remediation path.
       - The finding has source context and remediation guidance.
     minimal_evidence:
-      - AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, source file at pinned ref, and sibling-file context.
+      - AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, source file at pinned ref, and sibling-file
+        context.
     stop_when:
       - A TRUE_POSITIVE, FALSE_POSITIVE, ACCEPT_RISK, or insufficient-evidence verdict is recorded.
       - Do not open PRs or create policies without explicit approval.
@@ -66,13 +68,67 @@ resources:
       - spec.project_selector
       - spec.rule
 retrieval_steps:
-  - Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness.
-  - Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"` by default.
-  - Use exploit reproduction for prioritization and validation planning while redacting concrete exploit strings from review-facing output.
+  - Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace,
+    project UUID, source ref, and finding UUID freshness.
+  - Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN` and `spec.method=="AI_SAST"`
+    by default.
+  - Use exploit reproduction for prioritization and validation planning while redacting concrete exploit strings from review-facing
+    output.
   - Treat remediation guidance as advisory evidence and verify source locations before proposing patches.
 fallbacks:
-  - If project or finding lookup fails, retry eligible project discovery with traversal and keep source findings separate from PR or CI context.
-  - If source files, exploit reproduction, or remediation guidance are unavailable, continue only with verified evidence and mark the missing signal.
+  - If project or finding lookup fails, retry eligible project discovery with traversal and keep source findings separate
+    from PR or CI context.
+  - If source files, exploit reproduction, or remediation guidance are unavailable, continue only with verified evidence and
+    mark the missing signal.
 data_gaps:
-  - Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`.
+  - Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and
+    optional exception-policy lookup failures in `data_gaps`.
   - Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs.
+evidence_query_plans:
+  - profile_id: resolve-scope
+    title: AI SAST Scope Query Plan
+    objective: Resolve namespace, project, finding selector, and source ref before reading finding bodies.
+    query_order:
+      - Read user-provided finding UUID, repository identity, branch/ref, and namespace provenance.
+      - Resolve Project by scoped repository selector when a project is not already proven.
+      - If a finding UUID is provided, get that Finding by UUID and confirm project_uuid, context.type, and source_code_version.ref.
+    avoid:
+      - Do not list broad AI SAST findings when the user supplied a specific finding UUID.
+      - Do not mix CI/PR finding evidence into main-context counts unless requested.
+    stop_after:
+      - Stop when finding scope is resolved or a data_gaps entry explains which selector is missing.
+    data_gaps:
+      - Record missing namespace, missing finding UUID or selector, unresolved project, and source ref mismatch in data_gaps.
+  - profile_id: evidence-check
+    title: AI SAST Evidence Query Plan
+    objective: Confirm AI SAST evidence and pinned source context without generating a patch.
+    query_order:
+      - Resolve project and namespace first.
+      - Get the selected Finding by UUID, or list only AI SAST findings for the resolved project with tight fields.
+      - Extract classification, severity, verification scorecard, data-flow anchors, exploit reproduction, and remediation
+        guidance from the selected finding.
+      - Verify local source file and pinned commit/ref only for the selected finding path.
+    avoid:
+      - Do not fetch unrelated SAST findings or inspect the whole repository.
+      - Do not create exception policies, branches, or source edits.
+    stop_after:
+      - Stop after selected finding evidence and source context are available or blocked.
+    data_gaps:
+      - Record missing finding body, missing exploit/remediation sections, source ref mismatch, unavailable file, and host-blocked
+        Endor reads in data_gaps.
+  - profile_id: selection-plan
+    title: AI SAST Selection Query Plan
+    objective: Choose one actionable AI SAST finding and produce a read-only triage/remediation plan.
+    query_order:
+      - Resolve namespace, project, and requested finding selector.
+      - Get or narrowly list AI SAST findings with severity, classification, source path, source ref, and finding UUID.
+      - Fetch and parse detail only for the selected finding.
+      - Inspect only the selected source file, sibling control files, and referenced data-flow anchors.
+    avoid:
+      - Do not generate diffs or exception policies unless the user explicitly approves that lane.
+      - Do not use broad repository search beyond the selected finding's anchors unless data_gaps require it.
+    stop_after:
+      - Stop after one finding has a verified triage decision, patch plan or exception path, and validation requirements.
+    data_gaps:
+      - Record missing selected finding evidence, missing source ref, unavailable local files, and unverified exception approval
+        in data_gaps.

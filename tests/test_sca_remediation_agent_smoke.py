@@ -82,7 +82,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "## Endor Knowledge Pack" in prompt
     assert "SCA Remediation Evidence Contract" in prompt
     assert "Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`" in prompt
-    assert "Query `Finding` with `context.type==CONTEXT_TYPE_MAIN`" in prompt
+    assert "For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion" in prompt
+    assert "Do not enumerate broad Finding inventories before VersionUpgrade narrowing" in prompt
     assert "Record missing credentials, namespace conflicts, project lookup failures" in prompt
     assert "Project scoping is mandatory" in prompt
     assert "Default Endor Context Scope" in prompt

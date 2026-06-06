@@ -72,8 +72,8 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 ## Workflow
 
 1. Resolve the project and namespace from local git, user-supplied selectors, and Endor project metadata.
-2. Query main-context SCA vulnerability findings for the resolved project unless the user explicitly requested PR/CI-run or all-context evidence. Preserve context type, source ref, severity, finding category, finding tags, reachability, exploitability, direct/transitive signal, package name/version, affected manifests, package UUID, dependency UUID, fix availability, CVE/GHSA IDs, finding UUIDs, and any VersionUpgrade/UIA `vuln_finding_info.fixed_findings` entries.
-3. Group findings by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
+2. Follow the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection-plan gates, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion; fetch Finding detail only for selected-candidate advisory mapping, PR/MR body detail, or a required count/data_gaps reconciliation. For evidence-check gates, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
+3. Group verified evidence by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
 4. Query VersionUpgrade/UIA evidence before calling any remediation low-risk, safe, or best. A high finding count alone is not enough.
 5. Select the first remediation candidate using this order:
    - reachable or exploited critical/high findings with a fix;

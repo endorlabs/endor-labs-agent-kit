@@ -1,6 +1,7 @@
 agent_id: repository-dependency-reviewer
 title: Repository Dependency Review Evidence Contract
-summary: Inspect local dependency manifests read-only, resolve exact package coordinates, and use only host-exposed Endor risk evidence.
+summary: Inspect local dependency manifests read-only, resolve exact package coordinates, and use only host-exposed Endor
+  risk evidence.
 task_profiles:
   - id: manifest-inventory
     title: Manifest Inventory
@@ -22,7 +23,8 @@ task_profiles:
       - The user asks for dependency review with Endor evidence.
       - Exact package versions were resolved from manifests or user input.
     minimal_evidence:
-      - Exact direct coordinates, namespace provenance for tenant-scoped checks, and available PackageRisk or Vulnerability evidence.
+      - Exact direct coordinates, namespace provenance for tenant-scoped checks, and available PackageRisk or Vulnerability
+        evidence.
     stop_when:
       - Reviewed coordinates have evidence-backed findings or precise data_gaps.
       - Do not expand into repository-wide remediation planning unless asked.
@@ -53,10 +55,42 @@ retrieval_steps:
   - Identify the repository root from host context or an explicit repository path before asking for a path.
   - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
   - Review exact direct dependency coordinates first and do not send approximate or unresolved versions to Endor.
-  - Use Endor MCP/risk tools only when the host exposes them; otherwise record unavailable evidence and continue with manifest evidence only.
+  - Use Endor MCP/risk tools only when the host exposes them; otherwise record unavailable evidence and continue with manifest
+    evidence only.
 fallbacks:
   - If the host cannot inspect files, ask for a repository path or manifest content and report the host capability gap.
   - If exact versions cannot be resolved, return `UNKNOWN` or bounded risk posture with unresolved version data_gaps.
 data_gaps:
-  - Record missing repository access, unsupported manifest formats, unresolved versions, unavailable Endor risk tools, vulnerability enrichment gaps, and account capability gaps in `data_gaps`.
+  - Record missing repository access, unsupported manifest formats, unresolved versions, unavailable Endor risk tools, vulnerability
+    enrichment gaps, and account capability gaps in `data_gaps`.
   - Preserve manifest paths, exact package coordinates reviewed, and skipped coordinates with reasons.
+evidence_query_plans:
+  - profile_id: manifest-inventory
+    title: Manifest Inventory Query Plan
+    objective: Inventory local manifests before Endor expansion.
+    query_order:
+      - Read repository root, package-manager files, lockfiles, and workspace layout.
+      - Resolve namespace and project only when the user asks for Endor-backed risk evidence.
+      - Map manifests to package ecosystems and likely direct dependencies.
+    avoid:
+      - Do not query broad Endor Finding or PackageVersion inventories before manifest scope is known.
+    stop_after:
+      - Stop after manifest inventory and evidence needs are clear.
+    data_gaps:
+      - Record missing lockfiles, unreadable manifests, unresolved workspace layout, and unavailable namespace/project evidence
+        in data_gaps.
+  - profile_id: evidence-check
+    title: Repository Dependency Evidence Query Plan
+    objective: Attach Endor risk evidence only to discovered repository dependencies.
+    query_order:
+      - Start from local manifest inventory and resolved project scope.
+      - Query package or dependency summaries for dependencies present in the repository.
+      - Query scoped Finding evidence only for risky or user-selected packages.
+    avoid:
+      - Do not turn this into a tenant-wide package or finding export.
+      - Do not recommend running a new scan as the default next step.
+    stop_after:
+      - Stop after reviewed dependencies are categorized with verified evidence or data_gaps.
+    data_gaps:
+      - Record missing project evidence, unavailable dependency metadata, packages without matching Endor evidence, and skipped
+        broad Findings in data_gaps.

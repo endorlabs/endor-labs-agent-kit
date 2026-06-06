@@ -1,6 +1,7 @@
 agent_id: dependency-decision-helper
 title: Dependency Decision Evidence Contract
-summary: Decide whether to add, keep, or upgrade one explicit package version using only available Endor risk evidence and precise missing-signal reporting.
+summary: Decide whether to add, keep, or upgrade one explicit package version using only available Endor risk evidence and
+  precise missing-signal reporting.
 task_profiles:
   - id: explain
     title: Explain Decision Inputs
@@ -39,18 +40,52 @@ resources:
     fields:
       - spec.metric_values
   - name: Vulnerability
-    purpose: Enrich vulnerability identifiers with severity, EPSS, KEV, CWE, and fixed-version evidence when the host exposes that lookup.
+    purpose: Enrich vulnerability identifiers with severity, EPSS, KEV, CWE, and fixed-version evidence when the host exposes
+      that lookup.
     fields:
       - uuid
       - spec
 retrieval_steps:
   - Require explicit ecosystem, package name, and version before any risk decision.
   - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
-  - Use host-exposed Endor MCP tools only when they are actually available; otherwise rely on documented read-only Endor evidence and record tool gaps.
-  - Resolve exact package-version evidence before score or license claims, and never substitute local popularity or version heuristics.
+  - Use host-exposed Endor MCP tools only when they are actually available; otherwise rely on documented read-only Endor evidence
+    and record tool gaps.
+  - Resolve exact package-version evidence before score or license claims, and never substitute local popularity or version
+    heuristics.
 fallbacks:
-  - If risk, vulnerability, score, license, or typosquat signals are unavailable, apply the decision ladder only to gathered evidence.
+  - If risk, vulnerability, score, license, or typosquat signals are unavailable, apply the decision ladder only to gathered
+    evidence.
   - If all Endor evidence is unavailable, return a blocked or degraded verdict with data_gaps instead of approving the package.
 data_gaps:
-  - Record missing Endor credentials, unavailable MCP tools, package-version misses, score gaps, license gaps, typosquat lookup gaps, and vulnerability enrichment failures in `data_gaps`.
+  - Record missing Endor credentials, unavailable MCP tools, package-version misses, score gaps, license gaps, typosquat lookup
+    gaps, and vulnerability enrichment failures in `data_gaps`.
   - Preserve exact package coordinate, evidence source, and host capability status in the final output.
+evidence_query_plans:
+  - profile_id: explain
+    title: Dependency Decision Explain Query Plan
+    objective: Explain a named dependency decision using only scoped package and risk evidence.
+    query_order:
+      - Identify the named package, version, ecosystem, repository scope, and namespace provenance.
+      - Query package or PackageVersion evidence for that package/version only.
+      - Fetch available Endor risk evidence such as reachable findings, maintained status, dependency metadata, or policy
+        signals for that package only.
+    avoid:
+      - Do not inventory the whole repository or claim MCP-specific checks unless host tools expose them.
+    stop_after:
+      - Stop after allow/avoid/needs-review guidance is backed by package-specific evidence or blocked.
+    data_gaps:
+      - Record missing package version, unavailable PackageVersion evidence, absent risk signals, and namespace/project uncertainty
+        in data_gaps.
+  - profile_id: evidence-check
+    title: Dependency Decision Evidence Query Plan
+    objective: Check whether enough evidence exists for a named dependency decision.
+    query_order:
+      - Resolve package coordinate, version, ecosystem, namespace, and optional repository scope.
+      - Query only the matching PackageVersion or dependency metadata record.
+      - Check for scoped Findings or policy evidence tied to the named package when project context is supplied.
+    avoid:
+      - Do not broaden to every dependency or repository finding when a package coordinate was supplied.
+    stop_after:
+      - Stop after required decision evidence is present or specific missing lanes are known.
+    data_gaps:
+      - Record missing coordinate, unresolved namespace, package not found, and missing project-scoped risk evidence in data_gaps.

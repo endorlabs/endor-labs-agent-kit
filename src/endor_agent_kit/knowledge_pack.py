@@ -38,6 +38,7 @@ REQUIRED_WORKFLOW_FIELDS = (
     "retrieval_steps",
     "fallbacks",
     "data_gaps",
+    "evidence_query_plans",
 )
 REQUIRED_TASK_PROFILE_FIELDS = (
     "id",
@@ -47,6 +48,15 @@ REQUIRED_TASK_PROFILE_FIELDS = (
     "minimal_evidence",
     "stop_when",
     "output_focus",
+)
+REQUIRED_EVIDENCE_QUERY_PLAN_FIELDS = (
+    "profile_id",
+    "title",
+    "objective",
+    "query_order",
+    "avoid",
+    "stop_after",
+    "data_gaps",
 )
 EVIDENCE_GATE_RULES = (
     "Never use memory, older sessions, examples, or prior repos as namespace, repo, project, finding, or package provenance.",
@@ -90,6 +100,19 @@ class KnowledgeTaskProfile:
 
 
 @dataclass(frozen=True)
+class KnowledgeEvidenceQueryPlan:
+    """Ordered evidence lookups for one task profile."""
+
+    profile_id: str
+    title: str
+    objective: str
+    query_order: tuple[str, ...]
+    avoid: tuple[str, ...]
+    stop_after: tuple[str, ...]
+    data_gaps: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class KnowledgeWorkflow:
     """Per-agent workflow knowledge rendered only for the matching agent."""
 
@@ -101,6 +124,7 @@ class KnowledgeWorkflow:
     fallbacks: tuple[str, ...]
     data_gaps: tuple[str, ...]
     task_profiles: tuple[KnowledgeTaskProfile, ...]
+    evidence_query_plans: tuple[KnowledgeEvidenceQueryPlan, ...]
 
     def task_profile_for(self, profile_id: str) -> KnowledgeTaskProfile | None:
         """Return a task profile by id."""
@@ -108,6 +132,14 @@ class KnowledgeWorkflow:
         for profile in self.task_profiles:
             if profile.id == profile_id:
                 return profile
+        return None
+
+    def evidence_query_plan_for(self, profile_id: str) -> KnowledgeEvidenceQueryPlan | None:
+        """Return the evidence query plan for a task profile by id."""
+
+        for plan in self.evidence_query_plans:
+            if plan.profile_id == profile_id:
+                return plan
         return None
 
 
@@ -251,6 +283,31 @@ def render_knowledge_pack_section(
                         "- Output focus: " + " ".join(profile.output_focus),
                         "",
                     ])
+        if workflow.evidence_query_plans:
+            lines.extend(["### Evidence Query Plans", ""])
+            if compact:
+                for plan in workflow.evidence_query_plans:
+                    lines.append(
+                        f"- `{plan.profile_id}`: {plan.objective} "
+                        f"Order: {_compact_order(plan.query_order)} "
+                        f"Avoid: {_compact_list(plan.avoid)}. "
+                        "Skip blocked lanes with precise `data_gaps`."
+                    )
+            else:
+                for plan in workflow.evidence_query_plans:
+                    lines.extend([
+                        f"#### `{plan.profile_id}` - {plan.title}",
+                        "",
+                        plan.objective,
+                        "- Query order: " + " ".join(
+                            f"{index}. {step}"
+                            for index, step in enumerate(plan.query_order, start=1)
+                        ),
+                        "- Avoid: " + " ".join(plan.avoid),
+                        "- Stop after: " + " ".join(plan.stop_after),
+                        "- Data gaps: " + " ".join(plan.data_gaps),
+                        "",
+                    ])
         if workflow.resources:
             resources = ", ".join(f"`{resource.name}`" for resource in workflow.resources)
             lines.append(f"- Preferred evidence resources: {resources}.")
@@ -310,11 +367,18 @@ def render_task_profile_prompt(
     profile = workflow.task_profile_for(selected_profile_id)
     if profile is None:
         return ""
+    plan = workflow.evidence_query_plan_for(selected_profile_id)
     if compact:
-        return (
+        prompt = (
             f"Agent task profile `{profile.id}`: {profile.summary} "
             "Use only that profile's minimal evidence; stop with the selected gate or precise `data_gaps`."
         )
+        if plan is not None:
+            prompt += (
+                f" Evidence query plan: {_compact_order(plan.query_order)} "
+                f"Avoid {_compact_list(plan.avoid)}."
+            )
+        return prompt
     lines = [
         f"Agent task profile: `{profile.id}` ({profile.title}).",
         profile.summary,
@@ -326,6 +390,17 @@ def render_task_profile_prompt(
         "Output focus:",
         *[f"- {item}" for item in profile.output_focus],
     ]
+    if plan is not None:
+        lines.extend([
+            "Evidence query plan:",
+            *[f"{index}. {step}" for index, step in enumerate(plan.query_order, start=1)],
+            "Avoid:",
+            *[f"- {item}" for item in plan.avoid],
+            "Stop after:",
+            *[f"- {item}" for item in plan.stop_after],
+            "Data gaps:",
+            *[f"- {item}" for item in plan.data_gaps],
+        ])
     return "\n".join(lines)
 
 
@@ -399,6 +474,34 @@ def _validate_workflows(
             profile_text = _visible_text(profile).lower()
             if "data_gaps" not in profile_text:
                 errors.append(f"{profile_prefix}: task profile guidance must mention data_gaps")
+        evidence_query_plans = _mappings(data.get("evidence_query_plans"))
+        if not evidence_query_plans:
+            errors.append(f"{prefix}.evidence_query_plans: must be a non-empty list")
+        plan_profile_ids: set[str] = set()
+        for index, plan in enumerate(evidence_query_plans):
+            plan_prefix = f"{prefix}.evidence_query_plans[{index}]"
+            for field in REQUIRED_EVIDENCE_QUERY_PLAN_FIELDS:
+                if field not in plan:
+                    errors.append(f"{plan_prefix}: missing required field {field!r}")
+            profile_id = _required_slug(plan, "profile_id", plan_prefix, errors)
+            if profile_id:
+                if profile_id in plan_profile_ids:
+                    errors.append(f"{plan_prefix}.profile_id: duplicate evidence query plan for profile {profile_id!r}")
+                plan_profile_ids.add(profile_id)
+                if profile_ids and profile_id not in profile_ids:
+                    errors.append(f"{plan_prefix}.profile_id: references unknown task profile {profile_id!r}")
+            _required_string(plan, "title", plan_prefix, errors)
+            _required_string(plan, "objective", plan_prefix, errors)
+            for field in ("query_order", "avoid", "stop_after", "data_gaps"):
+                if not _strings(plan.get(field)):
+                    errors.append(f"{plan_prefix}.{field}: must be a non-empty list")
+            plan_text = _visible_text(plan).lower()
+            if "data_gaps" not in plan_text:
+                errors.append(f"{plan_prefix}: evidence query plan must mention data_gaps")
+        for profile_id in sorted(profile_ids - plan_profile_ids):
+            errors.append(f"{prefix}.evidence_query_plans: missing plan for task profile {profile_id!r}")
+        if agent_id in {"sca-remediation", "remediation-planner"}:
+            _validate_sca_query_order(prefix, evidence_query_plans, errors)
         visible = _visible_text(data)
         if "namespace" not in visible.lower():
             errors.append(f"{prefix}: workflow guidance must mention namespace handling")
@@ -424,6 +527,10 @@ def _workflow(data: dict[str, Any]) -> KnowledgeWorkflow:
         fallbacks=tuple(_strings(data.get("fallbacks"))),
         data_gaps=tuple(_strings(data.get("data_gaps"))),
         task_profiles=tuple(_task_profile(item) for item in _mappings(data.get("task_profiles"))),
+        evidence_query_plans=tuple(
+            _evidence_query_plan(item)
+            for item in _mappings(data.get("evidence_query_plans"))
+        ),
     )
 
 
@@ -444,6 +551,18 @@ def _task_profile(data: dict[str, Any]) -> KnowledgeTaskProfile:
         minimal_evidence=tuple(_strings(data.get("minimal_evidence"))),
         stop_when=tuple(_strings(data.get("stop_when"))),
         output_focus=tuple(_strings(data.get("output_focus"))),
+    )
+
+
+def _evidence_query_plan(data: dict[str, Any]) -> KnowledgeEvidenceQueryPlan:
+    return KnowledgeEvidenceQueryPlan(
+        profile_id=str(data.get("profile_id", "")),
+        title=str(data.get("title", "")),
+        objective=str(data.get("objective", "")),
+        query_order=tuple(_strings(data.get("query_order"))),
+        avoid=tuple(_strings(data.get("avoid"))),
+        stop_after=tuple(_strings(data.get("stop_after"))),
+        data_gaps=tuple(_strings(data.get("data_gaps"))),
     )
 
 
@@ -529,3 +648,36 @@ def _rel(root: Path | None, path: Path) -> str:
     if root is None:
         return path.name
     return path.relative_to(root).as_posix()
+
+
+def _compact_order(items: tuple[str, ...]) -> str:
+    if not items:
+        return "none."
+    return " ".join(f"{index}. {item}" for index, item in enumerate(items, start=1))
+
+
+def _compact_list(items: tuple[str, ...]) -> str:
+    if not items:
+        return "nothing extra"
+    return "; ".join(items)
+
+
+def _validate_sca_query_order(
+    prefix: str,
+    plans: tuple[dict[str, Any], ...],
+    errors: list[str],
+) -> None:
+    for index, plan in enumerate(plans):
+        if plan.get("profile_id") != "selection-plan":
+            continue
+        order = " ".join(_strings(plan.get("query_order"))).lower()
+        version_index = order.find("versionupgrade")
+        finding_index = order.find("finding")
+        if version_index == -1:
+            errors.append(
+                f"{prefix}.evidence_query_plans[{index}].query_order: selection-plan must query VersionUpgrade/UIA evidence"
+            )
+        if finding_index != -1 and version_index != -1 and finding_index < version_index:
+            errors.append(
+                f"{prefix}.evidence_query_plans[{index}].query_order: selection-plan must narrow with VersionUpgrade before Finding detail expansion"
+            )

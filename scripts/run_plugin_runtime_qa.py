@@ -317,7 +317,7 @@ def run_case(
     status = "passed" if completed.returncode == 0 else "failed"
     reason = "" if completed.returncode == 0 else f"exit {completed.returncode}"
     if completed.returncode == 0 and lint_agent_output is not None:
-        lint_errors = lint_agent_output(agent, completed.stdout)
+        lint_errors = lint_agent_output(agent, completed.stdout, task_profile=task_profile)
         if lint_errors:
             status = "failed"
             reason = f"output lint failed ({len(lint_errors)} errors)"
@@ -534,9 +534,9 @@ def qa_task(agent: str, task_profile: str | None = None) -> str:
     profile = task_profile or default_runtime_task_profile(agent)
     tasks = {
         ("sca-remediation", "resolve-scope"): "resolve this repository to an Endor project and stop. Return one JSON object with project_resolution, evidence_queries, and data_gaps; do not query Finding or VersionUpgrade unless scope is already provided.",
-        ("sca-remediation", "evidence-check"): "resolve this repository, query only scoped main-context Finding availability and VersionUpgrade/UIA availability, and stop. Do not select a remediation.",
-        ("sca-remediation", "selection-plan"): "resolve this repository, query only the main-context Finding and VersionUpgrade/UIA evidence needed to select at most one remediation candidate, inspect only the selected package's local manifest/source usage, then return one remediation gate JSON object. Do not edit files.",
-        ("remediation-planner", "selection-plan"): "preview verified remediation options from scoped Finding and VersionUpgrade/UIA evidence only. Refuse unproven SCA counts from local docs and return data_gaps for missing evidence.",
+        ("sca-remediation", "evidence-check"): "resolve this repository, query only scoped Finding availability and VersionUpgrade/UIA availability, and stop. Do not select a remediation.",
+        ("sca-remediation", "selection-plan"): "resolve this repository, follow the Evidence Query Plan to narrow through VersionUpgrade/UIA before any selected-candidate Finding detail, inspect only the selected package's local manifest/source usage, then return one remediation gate JSON object. Do not edit files.",
+        ("remediation-planner", "selection-plan"): "preview verified remediation options by ranking scoped VersionUpgrade/UIA evidence before any selected-option Finding detail. Refuse unproven SCA counts from local docs and return data_gaps for missing evidence.",
         ("ai-sast-triage", "evidence-check"): "resolve AI SAST finding availability and source context for this repository. Do not generate diffs, create policies, or edit files.",
         ("endor-troubleshooter", "diagnose"): "diagnose one narrow Endor issue lane with read-only evidence. Do not run scans, mutate integrations, or print config secrets.",
         ("probe-droid", "evidence-check"): "assess bounded onboarding coverage evidence for this repository or supplied inventory. Do not run scans or edit GitHub/Endor state.",
