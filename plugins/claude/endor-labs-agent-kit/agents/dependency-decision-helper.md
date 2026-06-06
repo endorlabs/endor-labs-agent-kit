@@ -114,7 +114,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
 
 ### Evidence Gate Contract
 
@@ -136,19 +136,14 @@ Decide whether to add, keep, or upgrade one explicit package version using only 
 - Plans: `explain`, `evidence-check`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
-- `package-version-exact`/explain: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version,spec.risk_score,spec.dependency_metadata" -o json`
-- `package-finding-evidence`/explain: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
-- `package-finding-evidence-check`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
-- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
-- Preferred evidence resources: `PackageVersion`, `Metric`, `Vulnerability`.
-- Retrieval: Require explicit ecosystem, package name, and version before any risk decision. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
-- Data gaps: Record missing Endor credentials, unavailable MCP tools, package-version misses, score gaps, license gaps, typosquat lookup gaps, and vulnerability enrichment failures in `data_gaps`.
+- `package-version-exact`/explain: `endorctl api list -r PackageVersion -n <namespace> --filter 'spec.ecosystem=="<ECOSYSTEM>" and spec.package_name=="<PACKAGE_NAME>" and spec.version=="<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.version" -o json`
 
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
-`verdict`, `conditions`, `alternatives`, `summary`, `data_gaps`
+`verdict`, `conditions`, `alternatives`, `summary`, `evidence_queries`, `data_gaps`
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 

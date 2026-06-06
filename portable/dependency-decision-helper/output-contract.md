@@ -21,6 +21,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `conditions` (list[string], required): Evidence-backed conditions that explain the verdict.
 - `alternatives` (list[string], required): Safer package names or versions when available.
 - `summary` (string, required): One-paragraph human-readable assessment.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (list[string], required): Signals that were unavailable because setup, auth, edition, or tooling was missing.
 
 ## Data Gaps

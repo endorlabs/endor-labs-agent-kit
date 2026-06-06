@@ -109,7 +109,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
 
 ### Evidence Gate Contract
 
@@ -132,22 +132,16 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 ### Evidence Query Recipes
 
-- `version-upgrade-by-package`/evidence-check: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files" -o json`
-- `version-upgrade-detail`/evidence-check: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
-- `project-by-git`/resolve-scope: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
-- `selected-source-usage`/explain: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
-- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
-- Preferred evidence resources: `Project`, `VersionUpgrade`, `Finding`.
-- Retrieval: Resolve project and namespace provenance before project-scoped VersionUpgrade queries. Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor Patch availability.
-- Data gaps: Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`.
+- `version-upgrade-by-package`/evidence-check: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
-`upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `data_gaps`
+`upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `evidence_queries`, `data_gaps`
 Optional fields when verified:
 `upgrade_candidates`, `selected_upgrade`, `findings_fixed`, `findings_introduced`, `cia_status`, `breaking_changes`, `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, `score_explanation`
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 

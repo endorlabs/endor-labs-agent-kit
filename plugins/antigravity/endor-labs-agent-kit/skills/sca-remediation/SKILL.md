@@ -278,7 +278,19 @@ extract; do not replace the JSON object with a table or prose summary.
     "repo_full_name": "string",
     "attempted_selectors": []
   },
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "VersionUpgrade/UIA evidence",
+      "resource": "VersionUpgrade",
+      "source": "endorctl_api | endor_mcp | user_input",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
+      "filter_summary": "Project and candidate package selector",
+      "field_mask_summary": "Risk, CIA, fixed findings, introduced findings, and manifest fields",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "selected_remediation": {
     "package": "string",
     "from_version": "string",
@@ -338,7 +350,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
 
 ### Evidence Gate Contract
 
@@ -361,20 +373,14 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 ### Evidence Query Recipes
 
-- `version-upgrade-summary`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.upgrade_risk,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files" --list-all -o json`
-- `version-upgrade-detail`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o json`
-- `selected-source-usage`/selection-plan: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
-- `selected-finding-detail`/selection-plan: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_categories,spec.level" -o json`
-- Use `-n <namespace>`, tight field masks, and selected-detail lookups; skipped recipe lanes go in `data_gaps`.
-- Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
-- Retrieval: Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path.
-- Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`.
+- `version-upgrade-summary`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json`
 
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `summary`, `remediation_candidates`, `project_resolution`, `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`, `patch_plan`, `validation`, `change_requests`, `tickets`, `data_gaps`
+`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, `source`, `status`, `query_template_id`, `filter_summary`, `field_mask_summary`, `result_count`, `reason`. Summarize selectors and fields; put missing, failed, stale, or unsupported evidence in `data_gaps`.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
