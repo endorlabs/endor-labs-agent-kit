@@ -86,6 +86,7 @@ EVIDENCE_GATE_RULES = (
     "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.",
     "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.",
     "If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.",
+    "Final answers must summarize query intent, selectors, and field masks instead of echoing raw `endorctl api` command strings.",
 )
 SCOPE_NORMALIZATION_RULES = (
     "Normalize repository selectors to `owner/repo` or the equivalent source-provider full path before Endor project lookup.",
@@ -105,6 +106,7 @@ COMPACT_EVIDENCE_GATE_RULES = (
     "Local docs need current Endor or user evidence.",
     "Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.",
     "Read-only means no edits/scans/PRs/comments/writes.",
+    "No raw commands in final output.",
 )
 
 

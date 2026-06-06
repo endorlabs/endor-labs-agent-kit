@@ -169,6 +169,46 @@ def test_runtime_qa_runner_accepts_task_profile_override(tmp_path):
     assert "Evidence query recipes:" in prompt
 
 
+def test_runtime_qa_prompts_use_bounded_exact_package_and_output_types(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    package_prompt = build_prompt(
+        host="claude",
+        agent="package-risk-summary",
+        workspace=workspace,
+        namespace="tenant-a",
+    )
+    dependency_prompt = build_prompt(
+        host="claude",
+        agent="dependency-decision-helper",
+        workspace=workspace,
+        namespace="tenant-a",
+    )
+    upgrade_prompt = build_prompt(
+        host="claude",
+        agent="upgrade-impact-analysis",
+        workspace=workspace,
+        namespace="tenant-a",
+    )
+    vulnerability_prompt = build_prompt(
+        host="claude",
+        agent="vulnerability-explainer",
+        workspace=workspace,
+        namespace="tenant-a",
+    )
+
+    assert "version `1.25.11`" in package_prompt
+    assert "version `1.25.11`" in dependency_prompt
+    assert "do not recommend a new scan as the default next check" in package_prompt
+    assert "do not inventory the repository" in dependency_prompt
+    assert "Top-level `findings_fixed` and `findings_introduced` are integer counts only" in upgrade_prompt
+    assert "Top-level `endor_patch` must be a string" in upgrade_prompt
+    assert "`severity` must be a string" in vulnerability_prompt
+    assert "Do not echo raw `endorctl api`" in package_prompt
+    assert "Optional fields, when returned, must use these types" in upgrade_prompt
+
+
 def test_runtime_qa_runner_records_parallel_jobs_and_skips_resumed_passed_cases(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()

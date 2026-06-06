@@ -42,7 +42,10 @@ EVIDENCE_LEDGER_GUIDANCE = (
     "`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands."
 )
 STRUCTURED_OUTPUT_TYPE_GUIDANCE = (
-    "Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up."
+    "Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON."
+)
+RAW_COMMAND_OUTPUT_GUIDANCE = (
+    "Final output: no raw shell or `endorctl api` strings; summarize intent, selectors, and fields."
 )
 
 
@@ -123,7 +126,7 @@ def render_structured_output_contract(
         if optional:
             lines.extend([
                 "Optional fields when verified:",
-                _inline_field_list(optional),
+                _inline_field_list_with_kinds(optional),
             ])
         if _has_required_field(required, "evidence_queries"):
             lines.append(EVIDENCE_LEDGER_GUIDANCE)
@@ -160,6 +163,7 @@ def render_structured_output_contract(
         "",
         "Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.",
         STRUCTURED_OUTPUT_TYPE_GUIDANCE,
+        RAW_COMMAND_OUTPUT_GUIDANCE,
         "",
         "```json",
         json.dumps(skeleton, indent=2),
@@ -236,6 +240,10 @@ def render_action_contracts(
 
 def _inline_field_list(fields: tuple[RecipeField, ...]) -> str:
     return ", ".join(f"`{field.name}`" for field in fields)
+
+
+def _inline_field_list_with_kinds(fields: tuple[RecipeField, ...]) -> str:
+    return ", ".join(f"`{field.name}`:{field.kind}" for field in fields)
 
 
 def _json_placeholder(field: RecipeField):

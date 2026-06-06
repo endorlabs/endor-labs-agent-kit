@@ -241,6 +241,7 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
         RecipeField("conditions", "list[string]", required=True),
         RecipeField("evidence_queries", "list[object]", required=True),
         RecipeField("data_gaps", "list[string]", required=True),
+        RecipeField("findings_fixed", "integer", required=False),
     )
 
     rendered = render_structured_output_contract(recipe, compact=True)
@@ -248,7 +249,9 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
     assert "Required top-level fields, in order" in rendered
     assert "`verdict`, `conditions`, `evidence_queries`, `data_gaps`" in rendered
     assert "`evidence_queries`: name/resource/source/status/query_template_id" in rendered
+    assert "`findings_fixed`:integer" in rendered
     assert "missing inputs return JSON" in rendered
+    assert "no raw commands" in rendered
     assert "```json" not in rendered
 
 

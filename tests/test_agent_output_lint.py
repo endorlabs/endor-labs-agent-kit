@@ -139,6 +139,46 @@ def test_lint_accepts_remediation_planner_insufficient_evidence_payload():
     assert lint_agent_output("remediation-planner", output) == []
 
 
+def test_lint_accepts_remediation_planner_version_upgrade_backed_options():
+    output = json.dumps(
+        {
+            "summary": "Selected a UIA-backed remediation option.",
+            "project_resolution": {
+                **_resolved_project_resolution(),
+            },
+            "evidence_queries": [
+                _evidence_query("Project", query_template_id="project-by-git"),
+                _evidence_query("VersionUpgrade", query_template_id="version-upgrade-summary"),
+                _evidence_query("Finding", query_template_id="selected-finding-detail"),
+            ],
+            "remediation_options": [
+                {
+                    "rank": 1,
+                    "version_upgrade_uuid": "version-upgrade-123",
+                    "package": "pypi://urllib3",
+                    "from_version": "1.25.11",
+                    "to_version": "2.7.0",
+                    "upgrade_risk": "low",
+                    "cia_status": "no breaking changes",
+                    "total_findings_fixed": 11,
+                    "total_findings_introduced": 0,
+                }
+            ],
+            "selected_remediation": {
+                "version_upgrade_uuid": "version-upgrade-123",
+                "package": "pypi://urllib3",
+                "from_version": "1.25.11",
+                "to_version": "2.7.0",
+                "findings_fixed": 11,
+                "findings_introduced": 0,
+            },
+            "data_gaps": [],
+        }
+    )
+
+    assert lint_agent_output("remediation-planner", output, task_profile="selection-plan") == []
+
+
 def test_lint_accepts_structured_data_gap_objects():
     output = json.dumps(
         {
