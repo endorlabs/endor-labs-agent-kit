@@ -84,6 +84,7 @@ def main(argv: list[str] | None = None) -> int:
                     timeout=args.timeout,
                     command_overrides=overrides,
                     codex_sandbox=args.codex_sandbox,
+                    claude_permission_mode=args.claude_permission_mode,
                     env=os.environ.copy(),
                 )
                 results.append(result)
@@ -97,6 +98,7 @@ def main(argv: list[str] | None = None) -> int:
         "hosts": list(hosts),
         "agents": list(agents),
         "codex_sandbox": args.codex_sandbox,
+        "claude_permission_mode": args.claude_permission_mode,
         "workspaces": [str(path) for path in workspaces],
         "results": [asdict(result) for result in results],
     }
@@ -123,6 +125,12 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
             "Sandbox mode for Codex runtime QA. Default is read-only; live Endor "
             "reads may require danger-full-access because Codex sandboxes can block DNS/network."
         ),
+    )
+    parser.add_argument(
+        "--claude-permission-mode",
+        choices=("acceptEdits", "auto", "bypassPermissions", "default", "dontAsk", "plan"),
+        default="default",
+        help="Permission mode for Claude runtime QA. Default mode returns reliably in noninteractive plugin-agent runs.",
     )
     parser.add_argument(
         "--command-override",
@@ -169,6 +177,7 @@ def run_case(
     timeout: int,
     command_overrides: dict[str, str],
     codex_sandbox: str,
+    claude_permission_mode: str,
     env: dict[str, str],
 ) -> RuntimeQaResult:
     case_dir = log_dir / safe_name(f"{host}-{agent}-{workspace.name}")
@@ -188,6 +197,7 @@ def run_case(
         repo_root=repo_root,
         command_overrides=command_overrides,
         codex_sandbox=codex_sandbox,
+        claude_permission_mode=claude_permission_mode,
         env=env,
     )
     if isinstance(command_or_block, BlockedCommand):
@@ -290,6 +300,7 @@ def build_command(
     repo_root: Path,
     command_overrides: dict[str, str],
     codex_sandbox: str,
+    claude_permission_mode: str,
     env: dict[str, str],
 ) -> list[str] | BlockedCommand:
     executable = command_overrides.get(host)
@@ -307,7 +318,7 @@ def build_command(
             executable,
             "-p",
             "--permission-mode",
-            "plan",
+            claude_permission_mode,
             "--plugin-dir",
             str(plugin_dir),
             "--agent",

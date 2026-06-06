@@ -73,6 +73,7 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     claude_argv = argv_by_host["claude"]
     claude_prompt = build_prompt(host="claude", agent="sca-remediation", workspace=workspace, namespace="tenant-a")
     assert claude_argv[claude_argv.index("--agent") + 1] == "sca-remediation"
+    assert claude_argv[claude_argv.index("--permission-mode") + 1] == "default"
     assert claude_argv.index(claude_prompt) < claude_argv.index("--add-dir")
     assert "blocked_needs_compatibility_analysis" in claude_prompt
     assert "do not invent variants" in claude_prompt
@@ -83,6 +84,7 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert codex_argv[codex_argv.index("--sandbox") + 1] == "danger-full-access"
     assert "run" in argv_by_host["antigravity"]
     assert summary["codex_sandbox"] == "danger-full-access"
+    assert summary["claude_permission_mode"] == "default"
 
 
 def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):
