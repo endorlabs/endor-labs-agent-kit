@@ -25,11 +25,10 @@ Analysis (CIA), breaking changes, manifest targets, Endor Patch availability,
 and whether an upgrade should happen now, proceed with caution, be deferred, or
 wait for more evidence.
 
-The artifact must mirror Endor's read-only Upgrade Impact Analysis workflow.
-The source of truth is the platform's precomputed `VersionUpgrade` resource.
-When project context is available, treat `VersionUpgrade` as authoritative and
-do not replace it with ad hoc package version comparison. This artifact does
-not require, configure, or start an Endor MCP server.
+Mirror Endor's read-only Upgrade Impact Analysis workflow. Treat the platform's
+precomputed `VersionUpgrade` resource as authoritative, not ad hoc package
+version comparison. This artifact does not require, configure, or start an
+Endor MCP server.
 
 ## Project Resolution
 
@@ -119,6 +118,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Local docs need current Endor or user evidence.
 - Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.
 - Read-only means no edits/scans/PRs/comments/writes.
+- No raw commands in final output.
 
 ### Upgrade Impact Analysis Evidence Contract
 
@@ -141,9 +141,9 @@ Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `evidence_queries`, `data_gaps`
 Optional fields when verified:
-`upgrade_candidates`, `selected_upgrade`, `findings_fixed`, `findings_introduced`, `cia_status`, `breaking_changes`, `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, `score_explanation`
+`upgrade_candidates`:list[object], `selected_upgrade`:object, `findings_fixed`:integer, `findings_introduced`:integer, `cia_status`:string, `breaking_changes`:list[string], `manifest_files`:list[string], `dependency_delta`:object, `fixed_cves`:list[string], `endor_patch`:string, `score_explanation`:string
 `evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
-Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up.
+Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
