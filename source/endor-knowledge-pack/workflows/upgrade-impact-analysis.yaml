@@ -1,0 +1,32 @@
+agent_id: upgrade-impact-analysis
+title: Upgrade Impact Analysis Evidence Contract
+summary: Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compatibility claims without platform or user-provided evidence.
+resources:
+  - name: Project
+    purpose: Resolve namespace-scoped project identity before project upgrade recommendations.
+    fields:
+      - uuid
+      - meta.name
+      - spec.git
+  - name: VersionUpgrade
+    purpose: Read Endor UIA/CIA upgrade recommendations and selected upgrade details.
+    fields:
+      - uuid
+      - spec.upgrade_info
+  - name: Finding
+    purpose: Cross-check finding-specific fixing upgrades when a finding UUID is supplied.
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_uuid
+retrieval_steps:
+  - Resolve project and namespace provenance before project-scoped VersionUpgrade queries.
+  - Use VersionUpgrade as the source of truth for risk, CIA, findings fixed, findings introduced, manifest targets, and Endor Patch availability.
+  - Keep current-version, target-version, and non-main-context evidence separate.
+fallbacks:
+  - If project resolution or VersionUpgrade evidence is unavailable, return `INSUFFICIENT_DATA` and do not infer upgrade safety from version numbers.
+  - If compatibility evidence is missing, put that in breaking-change notes and data_gaps.
+data_gaps:
+  - Record missing namespace, project resolution, VersionUpgrade records, CIA details, finding-specific fix maps, source context, and host command capability in `data_gaps`.
+  - Preserve `namespace_provenance`, project query attempts, upgrade UUIDs, and context scope in the final output.

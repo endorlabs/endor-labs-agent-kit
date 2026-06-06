@@ -97,7 +97,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Do not print or dump an entire Endor config file" in prompt
     assert "extract only the namespace key" in prompt
     assert "namespace_provenance" in prompt
-    assert "Every output gate must include `project_resolution.project_uuid`" in prompt
+    assert "Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`" in prompt
+    assert 'Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace' in prompt
     assert "project_resolution" in prompt
     assert "package-level remediation" in prompt
     assert "VersionUpgrade/UIA evidence before calling" in prompt

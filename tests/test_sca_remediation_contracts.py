@@ -50,6 +50,7 @@ def _valid_netty_payload() -> dict:
             ],
         },
         "project_resolution": {
+            "status": "resolved",
             "project_uuid": "project-fixture-webapp-001",
             "namespace": "tenant-a",
             "namespace_provenance": "~/.endorctl/config.yaml ENDOR_NAMESPACE",
@@ -130,9 +131,19 @@ def test_sca_gate_validator_requires_project_resolution():
 
     errors = validate_sca_gate_payload(payload)
 
+    assert "project_resolution.status: required for SCA workflow gates" in errors
     assert "project_resolution.project_uuid: required for SCA workflow gates" in errors
     assert "project_resolution.namespace: required for SCA workflow gates" in errors
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
+
+
+def test_sca_gate_validator_requires_project_resolution_status():
+    payload = _valid_netty_payload()
+    payload["project_resolution"].pop("status")
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert "project_resolution.status: required for SCA workflow gates" in errors
 
 
 def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():

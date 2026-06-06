@@ -92,7 +92,11 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 13. Post or update one stable PR/MR comment when requested or when the host returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
 14. Return concise prose plus the required JSON object.
 
-Every output gate must include `project_resolution.project_uuid`, `project_resolution.namespace`, and `project_resolution.namespace_provenance`. If any of those are unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
+Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, and `project_resolution.namespace_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` when evidence is missing, conflicting, or host-blocked, and include the exact blocker in `data_gaps`. If any project-resolution field is unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
+
+Local repository docs, CLAUDE.md files, README files, cached notes, prior agent memory, and generated project descriptions are context only. They cannot prove Endor finding counts, VersionUpgrade/UIA availability, project UUIDs, namespace provenance, repository URLs, review time, or touched files. Treat those claims as unverified until current Endor evidence or user-provided evidence supports them.
+
+If Finding or VersionUpgrade/UIA evidence was not queried successfully for the resolved project, `data_gaps` must include the missing lane, such as `main_context_findings_unavailable` or `version_upgrade_uia_unavailable`. Do not return `data_gaps: []` at a project-only gate.
 
 For plan-only requests that mention a PR/MR plan, include a `change_requests` entry with status `not_created`, reason `plan_only_awaiting_approval` or equivalent, proposed base branch, proposed branch, proposed title, and a reference to the included PR/MR body draft. Do not return an empty `change_requests` array when a PR/MR is part of the requested plan.
 

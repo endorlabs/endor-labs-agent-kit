@@ -1,0 +1,29 @@
+agent_id: dependency-decision-helper
+title: Dependency Decision Evidence Contract
+summary: Decide whether to add, keep, or upgrade one explicit package version using only available Endor risk evidence and precise missing-signal reporting.
+resources:
+  - name: PackageVersion
+    purpose: Resolve the exact package-version UUID for score, license, and risk enrichment.
+    fields:
+      - uuid
+      - meta.name
+  - name: Metric
+    purpose: Read package scorecard and license signals only after exact package-version resolution.
+    fields:
+      - spec.metric_values
+  - name: Vulnerability
+    purpose: Enrich vulnerability identifiers with severity, EPSS, KEV, CWE, and fixed-version evidence when the host exposes that lookup.
+    fields:
+      - uuid
+      - spec
+retrieval_steps:
+  - Require explicit ecosystem, package name, and version before any risk decision.
+  - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
+  - Use host-exposed Endor MCP tools only when they are actually available; otherwise rely on documented read-only Endor evidence and record tool gaps.
+  - Resolve exact package-version evidence before score or license claims, and never substitute local popularity or version heuristics.
+fallbacks:
+  - If risk, vulnerability, score, license, or typosquat signals are unavailable, apply the decision ladder only to gathered evidence.
+  - If all Endor evidence is unavailable, return a blocked or degraded verdict with data_gaps instead of approving the package.
+data_gaps:
+  - Record missing Endor credentials, unavailable MCP tools, package-version misses, score gaps, license gaps, typosquat lookup gaps, and vulnerability enrichment failures in `data_gaps`.
+  - Preserve exact package coordinate, evidence source, and host capability status in the final output.

@@ -1,0 +1,29 @@
+agent_id: package-risk-summary
+title: Package Risk Summary Evidence Contract
+summary: Summarize one explicit package version's risk posture without turning unavailable evidence into an approval or rejection.
+resources:
+  - name: PackageVersion
+    purpose: Resolve the exact package-version UUID for package-level enrichment.
+    fields:
+      - uuid
+      - meta.name
+  - name: Metric
+    purpose: Read scorecard and license signals for the exact package version.
+    fields:
+      - spec.metric_values
+  - name: Vulnerability
+    purpose: Enrich exact vulnerability identifiers when the host exposes Endor vulnerability evidence.
+    fields:
+      - uuid
+      - spec
+retrieval_steps:
+  - Require ecosystem, package name, and version before risk posture selection.
+  - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
+  - Use host-exposed Endor MCP tools only when available; otherwise report unavailable Endor risk evidence in data_gaps.
+  - Resolve exact PackageVersion evidence before score, license, and package-health claims.
+fallbacks:
+  - If only partial vulnerability evidence is available, summarize that evidence and label the posture as evidence-limited.
+  - If no usable Endor evidence is available, return `UNKNOWN` with precise missing signals.
+data_gaps:
+  - Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`.
+  - Preserve exact package coordinate and evidence source in the final output.

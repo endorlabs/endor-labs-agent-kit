@@ -39,6 +39,13 @@ REQUIRED_WORKFLOW_FIELDS = (
     "fallbacks",
     "data_gaps",
 )
+EVIDENCE_GATE_RULES = (
+    "Never use memory, older sessions, examples, or prior repositories as namespace, repository, project, finding, or package provenance.",
+    "Never dump or `cat` Endor config files. Extract only the namespace key from the default config with a field-specific command or parser.",
+    "Never guess repository URLs, Endor project UUIDs, finding counts, package versions, scan state, or VersionUpgrade/UIA/CIA evidence.",
+    "Treat local docs and repository files as context only until backed by current Endor evidence or user-provided evidence.",
+    "Every evidence gate must return the required JSON shape with precise `data_gaps` when evidence is missing, unavailable, stale, or host-blocked.",
+)
 
 
 @dataclass(frozen=True)
@@ -181,6 +188,8 @@ def render_knowledge_pack_section(
     ]
     for rule in pack.global_rules:
         lines.append(f"- {rule.title}: {rule.guidance}")
+    lines.extend(["", "### Evidence Gate Contract", ""])
+    lines.extend(f"- {rule}" for rule in EVIDENCE_GATE_RULES)
 
     workflow = pack.workflow_for(agent_id)
     if workflow is not None:

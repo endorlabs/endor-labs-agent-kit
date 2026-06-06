@@ -29,10 +29,16 @@ If multiple projects match, ask the user to choose among human-readable project
 names and repository URLs. If project context cannot be resolved, return
 `project_resolution` in `data_gaps` and keep the response read-only.
 
+Every output that mentions project state must include `project_resolution.status`.
+Use `resolved` only after current Endor project evidence proves the project and
+namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` when evidence
+is missing, conflicting, or host-blocked. Do not infer a resolved project from
+local docs, repository names, cached notes, memory, or example paths.
+
 ## Workflow
 
 1. Resolve project context from the current repository, repository URL, owner/repo, Endor project name, finding UUID, or optional project UUID.
-2. Gather remediation options: use documented Endor API lookups or authenticated `endorctl api` commands to read main-context VersionUpgrade and finding-fixing upgrade evidence for the resolved project.
+2. Gather remediation options: use documented Endor API lookups or authenticated `endorctl api` commands to read main-context Finding, VersionUpgrade, and finding-fixing upgrade evidence for the resolved project.
 3. Preview plan: Build a dry-run plan with the selected option and alternatives.
 
 Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
@@ -43,11 +49,25 @@ from main-context counts.
 ## Safety
 
 - Use Endor evidence only. If required data is unavailable, record it in data_gaps.
+- Treat local docs, README files, CLAUDE.md files, repository paths, project
+  descriptions, cached notes, and prior model memory as context only. They do
+  not prove finding counts, affected files, UIA candidates, review time,
+  project UUIDs, namespace, or repository URL.
+- If Finding or VersionUpgrade/UIA evidence is unavailable, do not estimate
+  counts, mark a project resolved, list touched files, choose a safest path, or
+  return `data_gaps: []`.
+- Do not recommend running a new scan as the default next step in this read-only
+  planner. Ask for existing Endor finding, scan, or VersionUpgrade evidence, or
+  report the exact missing lane in `data_gaps`.
 - Do not require, configure, or start an Endor MCP server.
 
 ## Output
 
-Return concise prose plus a JSON object matching `recipe.yaml` outputs.
+Return concise prose plus a JSON object matching `recipe.yaml` outputs. Include
+`project_resolution.status`, `evidence_queries`, `remediation_options`,
+`selected_remediation`, and `data_gaps`. If only context is available, set
+`selected_remediation` to `null`, keep `remediation_options` empty, and list the
+missing Endor evidence in `data_gaps`.
 <!-- shared:end -->
 
 <!-- developer-edition:start -->

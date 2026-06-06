@@ -1,0 +1,35 @@
+agent_id: repository-dependency-reviewer
+title: Repository Dependency Review Evidence Contract
+summary: Inspect local dependency manifests read-only, resolve exact package coordinates, and use only host-exposed Endor risk evidence.
+resources:
+  - name: RepositoryManifest
+    purpose: Discover dependency files and exact direct package coordinates from read-only file inspection.
+    fields:
+      - path
+      - ecosystem
+      - package_name
+      - version
+  - name: PackageRisk
+    purpose: Check exact dependency coordinates through available Endor risk evidence.
+    fields:
+      - risk_flags
+      - vulnerability_ids
+      - recommendations
+  - name: Vulnerability
+    purpose: Enrich vulnerability identifiers when the host exposes Endor vulnerability evidence.
+    fields:
+      - id
+      - severity
+      - epss
+      - cisa_kev
+retrieval_steps:
+  - Identify the repository root from host context or an explicit repository path before asking for a path.
+  - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
+  - Review exact direct dependency coordinates first and do not send approximate or unresolved versions to Endor.
+  - Use Endor MCP/risk tools only when the host exposes them; otherwise record unavailable evidence and continue with manifest evidence only.
+fallbacks:
+  - If the host cannot inspect files, ask for a repository path or manifest content and report the host capability gap.
+  - If exact versions cannot be resolved, return `UNKNOWN` or bounded risk posture with unresolved version data_gaps.
+data_gaps:
+  - Record missing repository access, unsupported manifest formats, unresolved versions, unavailable Endor risk tools, vulnerability enrichment gaps, and account capability gaps in `data_gaps`.
+  - Preserve manifest paths, exact package coordinates reviewed, and skipped coordinates with reasons.
