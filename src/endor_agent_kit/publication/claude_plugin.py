@@ -268,7 +268,8 @@ def _render_claude_plugin_agent(
         ## Claude Code Plugin Setup Note
 
         Run `{CLAUDE_SETUP_SKILL}` for missing setup, auth, namespace, MCP, or workflow tooling.
-        Plugin agents cannot declare `mcpServers`; use `data_gaps` for unavailable tools.
+        This package does not declare plugin-wide MCP. Plugin agents cannot declare
+        `mcpServers`; use `data_gaps` for unavailable tools.
         """
     ).strip()
     return "\n\n".join([
@@ -531,6 +532,9 @@ def _claude_plugin_readme(
         "",
         "Start a new Claude Code session or run `/reload-plugins` after installing",
         "or reinstalling the plugin.",
+        "If Claude Code still shows stale same-version content, uninstall and",
+        "reinstall the plugin id, run `/reload-plugins`, and start a new Claude",
+        "Code session so host caches reload the generated agents and setup skill.",
         "",
         "## Set Up This Machine",
         "",

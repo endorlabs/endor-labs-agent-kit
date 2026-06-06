@@ -1,6 +1,6 @@
 schema_version: 1
 name: Endor Knowledge Pack
-version: 0.1.0
+version: 0.2.0
 precedence:
   - workflow output contracts and hard guardrails remain authoritative
   - source recipe instructions remain authoritative over this pack

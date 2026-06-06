@@ -3,15 +3,26 @@
 from __future__ import annotations
 
 from importlib import metadata
+from pathlib import Path
+import re
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
-PLUGIN_VERSION_FALLBACK = "0.1.0"
+PLUGIN_VERSION_FALLBACK = "0.2.0"
 
 
 def package_version() -> str:
-    """Return the installed package version used for generated plugin packages."""
+    """Return the source package version used for generated plugin packages."""
 
+    pyproject = Path(__file__).resolve().parents[3] / "pyproject.toml"
+    if pyproject.is_file():
+        match = re.search(
+            r'^version = "([^"]+)"$',
+            pyproject.read_text(encoding="utf-8"),
+            flags=re.MULTILINE,
+        )
+        if match:
+            return match.group(1)
     try:
         return metadata.version("endor-labs-agent-kit")
     except metadata.PackageNotFoundError:
@@ -47,6 +58,8 @@ def plugin_readme_start_here(
         f"| Human installer | {install_summary} Then run setup: {setup_summary} |",
         "| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |",
         "| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |",
+        "",
+        "Content releases require a package version bump. If a host still shows old prompt content after reinstalling the same version, remove or reinstall the plugin, clear the host cache when supported, and start a fresh host session.",
         "",
         f"This package is host-specific for {host_label}. Use the root README when choosing between hosts.",
         "",
