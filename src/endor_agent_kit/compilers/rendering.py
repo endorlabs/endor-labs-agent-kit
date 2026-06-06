@@ -39,10 +39,10 @@ Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--conf
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
-    "`evidence_queries` is the evidence ledger. Row keys: `name`, `resource`, "
-    "`source`, `status`, `query_template_id`, `filter_summary`, "
-    "`field_mask_summary`, `result_count`, `reason`. Use source categories, not "
-    "raw commands; summarize selectors/fields; put gaps in `data_gaps`."
+    "`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands."
+)
+STRUCTURED_OUTPUT_TYPE_GUIDANCE = (
+    "Types: arrays stay arrays, counts are int/null, objects may be null with `data_gaps`; missing inputs return JSON, not prose-only follow-up."
 )
 
 
@@ -128,6 +128,7 @@ def render_structured_output_contract(
         if _has_required_field(required, "evidence_queries"):
             lines.append(EVIDENCE_LEDGER_GUIDANCE)
         lines.extend([
+            STRUCTURED_OUTPUT_TYPE_GUIDANCE,
             "Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.",
             "Object fields may be `{}` or `null` only when `data_gaps` explains why.",
             "",
@@ -158,6 +159,7 @@ def render_structured_output_contract(
     lines.extend([
         "",
         "Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.",
+        STRUCTURED_OUTPUT_TYPE_GUIDANCE,
         "",
         "```json",
         json.dumps(skeleton, indent=2),

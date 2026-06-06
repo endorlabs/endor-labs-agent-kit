@@ -184,7 +184,7 @@ Detailed UIA/CIA evidence example:
 ```bash
 endorctl api list -r VersionUpgrade -n <namespace> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<UPGRADE_UUID>"' \
-  --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" \
+  --field-mask "uuid,spec.name,spec.upgrade_info" \
   -o json
 ```
 

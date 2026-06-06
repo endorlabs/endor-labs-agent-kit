@@ -263,7 +263,7 @@ def _nullable_boolean() -> dict[str, Any]:
 
 
 def _nullable_object() -> dict[str, Any]:
-    return {"type": ["object", "null"], "additionalProperties": True}
+    return _with_nullable(_generic_object_schema(), nullable=True)
 
 
 def _nullable_string_array() -> dict[str, Any]:
@@ -281,11 +281,10 @@ def _nullable_object_array() -> dict[str, Any]:
 
 
 def _generic_object_schema() -> dict[str, Any]:
-    return {
-        "type": "object",
-        "additionalProperties": True,
-        "properties": {
+    return _strict_object_schema(
+        {
             "id": _nullable_string(),
+            "uuid": _nullable_string(),
             "name": _nullable_string(),
             "title": _nullable_string(),
             "status": _nullable_string(),
@@ -294,10 +293,50 @@ def _generic_object_schema() -> dict[str, Any]:
             "source": _nullable_string(),
             "reason": _nullable_string(),
             "url": _nullable_string(),
+            "resource": _nullable_string(),
+            "resource_type": _nullable_string(),
+            "action": _nullable_string(),
+            "validation": _nullable_string(),
+            "confirmation_required": _nullable_boolean(),
             "count": _nullable_integer(),
+            "result_count": _nullable_integer(),
+            "project_uuid": _nullable_string(),
+            "namespace": _nullable_string(),
+            "namespace_provenance": _nullable_string(),
+            "repo_full_name": _nullable_string(),
+            "normalized_repo_full_name": _nullable_string(),
+            "repo_url": _nullable_string(),
+            "default_branch": _nullable_string(),
+            "selected_branch": _nullable_string(),
+            "monitored_branch": _nullable_string(),
+            "package": _nullable_string(),
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "from_version": _nullable_string(),
+            "to_version": _nullable_string(),
+            "finding_uuid": _nullable_string(),
+            "version_upgrade_uuid": _nullable_string(),
+            "uia_uuid": _nullable_string(),
+            "severity": _nullable_string(),
+            "level": _nullable_string(),
+            "risk": _nullable_string(),
+            "upgrade_risk": _nullable_string(),
+            "cia_status": _nullable_string(),
+            "findings_fixed": _nullable_integer(),
+            "findings_introduced": _nullable_integer(),
+            "path": _nullable_string(),
+            "file": _nullable_string(),
+            "line": _nullable_integer(),
+            "branch_name": _nullable_string(),
+            "proposed_branch": _nullable_string(),
+            "base_branch": _nullable_string(),
             "notes": _nullable_string_array(),
-        },
-    }
+            "data_gaps": _nullable_string_array(),
+            "evidence": _nullable_string_array(),
+            "next_steps": _nullable_string_array(),
+        }
+    )
 
 
 def _project_resolution_schema() -> dict[str, Any]:

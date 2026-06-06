@@ -361,6 +361,21 @@ def test_knowledge_pack_validator_rejects_unsafe_canonical_query_recipe_template
     assert any("query-recipes.yaml recipes[0].template: broad Finding --list-all templates are not allowed" in error for error in errors)
 
 
+def test_knowledge_pack_validator_rejects_field_mask_parent_child_collisions(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            'endorctl api list -r VersionUpgrade -n <namespace> '
+            '--field-mask "uuid,spec.upgrade_info,spec.upgrade_info.cia_results" -o json'
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert any("field-mask must not include both a parent path and child path" in error for error in errors)
+
+
 def test_knowledge_pack_validator_accepts_scoped_ai_sast_list_all_query(tmp_path):
     _write_minimal_pack(tmp_path)
     workflows = tmp_path / "workflows"

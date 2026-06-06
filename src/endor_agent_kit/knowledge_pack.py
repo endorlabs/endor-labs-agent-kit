@@ -85,6 +85,7 @@ EVIDENCE_GATE_RULES = (
     "Treat local docs and repository files as context until current Endor or user-provided evidence backs them.",
     "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.",
     "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.",
+    "If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.",
 )
 SCOPE_NORMALIZATION_RULES = (
     "Normalize repository selectors to `owner/repo` or the equivalent source-provider full path before Endor project lookup.",
@@ -936,11 +937,34 @@ def _validate_query_recipe_template(
         errors.append(f"{prefix}.template: endorctl api commands must include explicit namespace")
     if "endorctl api list" in lower and " --field-mask " not in lower:
         errors.append(f"{prefix}.template: endorctl api list commands must include --field-mask")
+    field_mask_paths = _field_mask_paths(template)
+    if _has_field_mask_path_collision(field_mask_paths):
+        errors.append(f"{prefix}.template: field-mask must not include both a parent path and child path")
     if "endorctl api list" in lower and "finding" in lower and "--list-all" in lower:
         if not _is_scoped_finding_list_all_query(lower):
             errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
     if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:
         errors.append(f"{prefix}.template: must not cat Endor config files")
+
+
+def _field_mask_paths(template: str) -> tuple[str, ...]:
+    match = re.search(r"--field-mask\s+([\"'])(?P<mask>.+?)\1", template)
+    if not match:
+        return ()
+    return tuple(
+        path.strip()
+        for path in match.group("mask").split(",")
+        if path.strip()
+    )
+
+
+def _has_field_mask_path_collision(paths: tuple[str, ...]) -> bool:
+    for index, path in enumerate(paths):
+        prefix = path + "."
+        for other_index, other_path in enumerate(paths):
+            if index != other_index and other_path.startswith(prefix):
+                return True
+    return False
 
 
 def _validate_canonical_query_recipes(
