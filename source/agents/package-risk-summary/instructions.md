@@ -159,6 +159,7 @@ Pack. For `evidence-check`, stop after this lookup unless the user explicitly
 requested tenant project scope; on empty, denied, unavailable, or non-JSON
 results, return `UNKNOWN` with `data_gaps`.
 
+<!-- compact-plugin:omit-start -->
 ## Step 1: MCP Risk Flags
 
 Call `check_dependency_for_risks` only when that tool is exposed in the current
@@ -182,7 +183,6 @@ CISA KEV, CWE ids, fix versions, and summaries.
 If an individual vulnerability lookup fails, add
 `vulnerability_enrichment:<id>` to `data_gaps` and continue.
 
-<!-- compact-plugin:omit-start -->
 ## Step 4: PackageVersion UUID Lookup
 
 Use this ecosystem prefix map for `PackageVersion.meta.name`:
