@@ -239,8 +239,12 @@ Normalize package names by using the most specific package artifact name that wi
 - `maven://org.example:example-core` -> `remediation/sca/example-core-1.2.3`
 - `npm://example-library` -> `remediation/sca/example-library-4.5.6`
 - `pypi://example_package` -> `remediation/sca/example-package-7.8.9`
+- `go://golang.org/x/crypto` -> `remediation/sca/golang.org-x-crypto-v0.48.0`
 
-Do not use unrelated branch families such as `endor/fix/...` for this agent unless the user explicitly overrides the branch name in the current request.
+Do not keep package-path slashes after `remediation/sca/`; replace `/`, `:`,
+spaces, and underscores with `-`. Do not use unrelated branch families such as
+`endor/fix/...` for this agent unless the user explicitly overrides the branch
+name in the current request.
 
 ## Ranking Rules
 
