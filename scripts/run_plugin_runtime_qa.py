@@ -29,6 +29,7 @@ try:
         render_task_profile_prompt,
     )
     from endor_agent_kit.structured_output_contracts import (
+        STRUCTURED_OUTPUT_CONTRACTS,
         json_schema_for_agent,
         required_fields_for,
     )
@@ -42,6 +43,7 @@ except ModuleNotFoundError:  # pragma: no cover - generated mirror may omit src/
     render_task_profile_prompt = None
     json_schema_for_agent = None
     required_fields_for = None
+    STRUCTURED_OUTPUT_CONTRACTS = {}
     PLUGIN_NAME = "endor-labs-agent-kit"
     package_version = None
 
@@ -747,11 +749,21 @@ def runtime_output_contract(agent: str) -> str:
     required = required_fields_for(agent)
     if not required:
         return ""
+    field_kinds = {
+        field.name: field.kind
+        for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent, ())
+    }
     contract = (
         "Provider-neutral structured output contract: return exactly one parseable JSON object "
         "with these required top-level fields in this order: "
-        + ", ".join(f"`{field}`" for field in required)
+        + ", ".join(f"`{field}` ({field_kinds.get(field, 'value')})" for field in required)
         + ". Do not omit required fields; use empty arrays or null objects only with precise `data_gaps`."
+    )
+    contract += (
+        " Honor field types exactly: list fields are JSON arrays, integer fields are integers or null, "
+        "object fields are JSON objects or null only with a matching data_gaps entry, and string/enum fields are strings."
+        " If required inputs or selectors are missing, still return the JSON object with empty evidence arrays and precise data_gaps; "
+        "do not replace the JSON object with a prose-only clarification request."
     )
     if "evidence_queries" in required:
         contract += (
@@ -801,10 +813,15 @@ def qa_task(agent: str, task_profile: str | None = None) -> str:
         ("sca-remediation", "resolve-scope"): "resolve this repository to an Endor project and stop. Return one JSON object with project_resolution, evidence_queries, and data_gaps; do not query Finding or VersionUpgrade unless scope is already provided.",
         ("sca-remediation", "evidence-check"): "resolve this repository, query only scoped Finding availability and VersionUpgrade/UIA availability, and stop. Do not select a remediation.",
         ("sca-remediation", "selection-plan"): "resolve this repository, follow the Evidence Query Plan to narrow through VersionUpgrade/UIA before any selected-candidate Finding detail, inspect only the selected package's local manifest/source usage, then return one remediation gate JSON object. Do not edit files.",
-        ("remediation-planner", "selection-plan"): "preview verified remediation options by ranking scoped VersionUpgrade/UIA evidence before any selected-option Finding detail. Refuse unproven SCA counts from local docs and return data_gaps for missing evidence.",
+        ("remediation-planner", "selection-plan"): "preview verified remediation options by ranking scoped VersionUpgrade/UIA evidence before any selected-option Finding detail. Select at most one primary option plus two alternates, then stop. Refuse unproven SCA counts from local docs and return data_gaps for missing evidence.",
         ("ai-sast-triage", "evidence-check"): "resolve AI SAST finding availability and source context for this repository. For complete main-context AI SAST availability, use the full method enum `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST` plus a project-scoped `--list-all` query. Do not generate diffs, create policies, or edit files.",
-        ("endor-troubleshooter", "diagnose"): "diagnose one narrow Endor issue lane with read-only evidence. Do not run scans, mutate integrations, or print config secrets.",
-        ("probe-droid", "evidence-check"): "assess bounded onboarding coverage evidence for this repository or supplied inventory. Do not run scans or edit GitHub/Endor state.",
+        ("endor-troubleshooter", "diagnose"): "diagnose only this issue lane: `project or main-branch findings missing for the current repository`. Resolve namespace, project, branch evidence, and one relevant read-only evidence query, then stop. Do not run scans, mutate integrations, or print config secrets.",
+        ("probe-droid", "evidence-check"): "assess only this current repository's onboarding coverage, not the full org. Resolve local git repo identity, query the matching Endor Project/monitored branch when possible, inspect only setup files in this repo, then stop. Do not run scans or edit GitHub/Endor state.",
+        ("package-risk-summary", "explain"): "summarize package risk for ecosystem `pypi`, package `urllib3`, version `1.25` using available Endor evidence. If that exact PackageVersion or project-scoped evidence is unavailable, return UNKNOWN with evidence_queries and data_gaps.",
+        ("dependency-decision-helper", "explain"): "decide whether ecosystem `pypi`, package `urllib3`, version `1.25` is acceptable using available Endor package and vulnerability evidence. If evidence is unavailable, return a blocked or degraded verdict with data_gaps.",
+        ("upgrade-impact-analysis", "evidence-check"): "evaluate upgrade impact for package `pypi://jinja2` from `3.1.1` to `3.1.6` for this repository if a matching VersionUpgrade exists; otherwise return INSUFFICIENT_DATA with evidence_queries and data_gaps. Counts must be integers, and `breaking_change_notes` must be an array.",
+        ("vulnerability-explainer", "explain"): "explain `CVE-2021-44228` for package context ecosystem `maven`, package `org.apache.logging.log4j:log4j-core`, version `2.14.1`. If Endor MCP or vulnerability evidence is unavailable, return INSUFFICIENT_DATA as JSON with evidence_queries and data_gaps.",
+        ("repository-dependency-reviewer", "evidence-check"): "review a bounded dependency sample from this repository's manifests, then check available Endor evidence only for that sample. Do not inventory the entire tenant or turn this into a full SCA export.",
     }
     return tasks.get(
         (agent, profile),

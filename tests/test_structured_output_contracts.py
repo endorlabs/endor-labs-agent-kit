@@ -90,6 +90,12 @@ def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
     assert "redactions_applied" in support_packet["properties"]
 
 
+def test_json_schema_for_all_agents_is_codex_strict_object_compatible():
+    for agent_id in STRUCTURED_OUTPUT_CONTRACTS:
+        schema = json_schema_for_agent(agent_id)
+        _assert_strict_objects(schema)
+
+
 def test_json_schema_cli_prints_agent_schema(capsys):
     status = main(["structured-output-schema", "--agent", "sca-remediation"])
     output = capsys.readouterr().out
@@ -194,3 +200,16 @@ def _placeholder_value(kind: str):
     if kind == "integer":
         return 0
     return "fixture"
+
+
+def _assert_strict_objects(schema):
+    schema_type = schema.get("type")
+    type_values = schema_type if isinstance(schema_type, list) else [schema_type]
+    if "object" in type_values:
+        assert schema.get("additionalProperties") is False
+        assert set(schema.get("required", [])) == set(schema.get("properties", {}))
+    if "array" in type_values and isinstance(schema.get("items"), dict):
+        _assert_strict_objects(schema["items"])
+    for child in schema.get("properties", {}).values():
+        if isinstance(child, dict):
+            _assert_strict_objects(child)

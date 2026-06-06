@@ -232,13 +232,12 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info,spec.upgrade_info.cia_results" -o
+      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid
       - spec.name
       - spec.upgrade_info
-      - spec.upgrade_info.cia_results
     constraints:
       - Use after candidate summary ranking.
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
