@@ -64,6 +64,9 @@ project-scoped read-only lookups from the parent namespace.
   edition, auth, or local setup problem prevents a signal from being gathered.
 - If a tool returns an error, preserve the usable evidence you already have and
   continue.
+- If an Endor MCP tool is not directly exposed by the host, record that tool as
+  unavailable in `data_gaps` immediately; do not repeatedly search for or wait
+  on missing MCP tools.
 - If `data_gaps` is not empty, state that the summary is based only on
   available signals and explain what setup/account access would improve.
 - Do not recommend running a new Endor scan as the default next check. When
@@ -269,7 +272,7 @@ Verify whether package-specific Endor evidence is available.
 - `Vulnerability`: Enrich exact vulnerability identifiers when the host exposes Endor vulnerability evidence. Fields: `uuid`, `spec`.
 - Retrieval order: 1. Require ecosystem, package name, and version before risk posture selection. 2. Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions. 3. Use host-exposed Endor MCP tools only when available; otherwise report unavailable Endor risk evidence in data_gaps. 4. Resolve exact PackageVersion evidence before score, license, and package-health claims.
 - Fallbacks: If only partial vulnerability evidence is available, summarize that evidence and label the posture as evidence-limited. If no usable Endor evidence is available, return `UNKNOWN` with precise missing signals.
-- Data gaps: Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`. Preserve exact package coordinate and evidence source in the final output. When evidence is missing, ask for existing package/version, finding, scan-result, project-scope, or user-provided evidence; do not recommend running a new Endor scan as the default next check.
+- Data gaps: Record missing MCP tools, credentials, package-version UUID, scores, license, typosquat similarity, firewall history, vulnerability lists, and vulnerability enrichment in `data_gaps`. Preserve exact package coordinate and evidence source in the final output. Treat missing host-exposed MCP tools as immediate data gaps; do not repeatedly search for or wait on unavailable tools. When evidence is missing, ask for existing package/version, finding, scan-result, project-scope, or user-provided evidence; do not recommend running a new Endor scan as the default next check.
 
 
 ## Structured Output Contract
