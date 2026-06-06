@@ -568,7 +568,7 @@ def qa_task(agent: str, task_profile: str | None = None) -> str:
         ("sca-remediation", "evidence-check"): "resolve this repository, query only scoped Finding availability and VersionUpgrade/UIA availability, and stop. Do not select a remediation.",
         ("sca-remediation", "selection-plan"): "resolve this repository, follow the Evidence Query Plan to narrow through VersionUpgrade/UIA before any selected-candidate Finding detail, inspect only the selected package's local manifest/source usage, then return one remediation gate JSON object. Do not edit files.",
         ("remediation-planner", "selection-plan"): "preview verified remediation options by ranking scoped VersionUpgrade/UIA evidence before any selected-option Finding detail. Refuse unproven SCA counts from local docs and return data_gaps for missing evidence.",
-        ("ai-sast-triage", "evidence-check"): "resolve AI SAST finding availability and source context for this repository. Do not generate diffs, create policies, or edit files.",
+        ("ai-sast-triage", "evidence-check"): "resolve AI SAST finding availability and source context for this repository. For complete main-context AI SAST availability, use the full method enum `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST` plus a project-scoped `--list-all` query. Do not generate diffs, create policies, or edit files.",
         ("endor-troubleshooter", "diagnose"): "diagnose one narrow Endor issue lane with read-only evidence. Do not run scans, mutate integrations, or print config secrets.",
         ("probe-droid", "evidence-check"): "assess bounded onboarding coverage evidence for this repository or supplied inventory. Do not run scans or edit GitHub/Endor state.",
     }
