@@ -225,8 +225,11 @@ def run_case(
         )
     except subprocess.TimeoutExpired as exc:
         duration = time.monotonic() - start
-        stdout_log.write_text((exc.stdout or ""), encoding="utf-8")
-        stderr_log.write_text((exc.stderr or "") + f"\nTIMEOUT after {timeout}s\n", encoding="utf-8")
+        stdout_log.write_text(_timeout_stream_text(exc.stdout), encoding="utf-8")
+        stderr_log.write_text(
+            _timeout_stream_text(exc.stderr) + f"\nTIMEOUT after {timeout}s\n",
+            encoding="utf-8",
+        )
         return RuntimeQaResult(
             host=host,
             agent=agent,
@@ -416,6 +419,14 @@ def cursor_agent_name(agent: str) -> str:
 
 def safe_name(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]+", "-", value).strip("-") or "case"
+
+
+def _timeout_stream_text(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
 
 
 if __name__ == "__main__":

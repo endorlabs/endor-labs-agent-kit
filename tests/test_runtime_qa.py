@@ -169,6 +169,58 @@ def test_runtime_qa_runner_marks_lint_failures_as_failed(tmp_path):
     assert "sca-remediation output must include a JSON object" in stderr
 
 
+def test_runtime_qa_runner_records_timeout_without_crashing(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    fake = tmp_path / "sleep_host.py"
+    fake.write_text(
+        "#!/usr/bin/env python3\n"
+        "import sys, time\n"
+        "sys.stdout.buffer.write(b'partial stdout')\n"
+        "sys.stderr.buffer.write(b'partial stderr')\n"
+        "sys.stdout.flush(); sys.stderr.flush()\n"
+        "time.sleep(2)\n",
+        encoding="utf-8",
+    )
+    fake.chmod(0o755)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "codex",
+            "--agent",
+            "probe-droid",
+            "--timeout",
+            "1",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"codex={fake}",
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert result.returncode == 1
+    assert "timeout timed out after 1s" in result.stdout
+    summary = _load_summary(log_root)
+    result_item = summary["results"][0]
+    assert result_item["status"] == "timeout"
+    assert Path(result_item["stdout_log"]).read_text(encoding="utf-8") == "partial stdout"
+    stderr = Path(result_item["stderr_log"]).read_text(encoding="utf-8")
+    assert "partial stderr" in stderr
+    assert "TIMEOUT after 1s" in stderr
+
+
 def test_runtime_qa_runner_requires_live_read_confirmation(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
