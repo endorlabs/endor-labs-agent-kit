@@ -170,7 +170,7 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `risk_posture`, `manifests`, `dependencies_reviewed`, `findings`, `recommended_actions`, `summary`, `evidence_queries`, `data_gaps`
-`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
