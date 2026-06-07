@@ -103,6 +103,8 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "Task profile: evidence-check" in claude_prompt
     assert "Agent task profile `evidence-check`" in claude_prompt
     assert "Use only that profile's minimal evidence" in claude_prompt
+    assert "active workflow boundary" in claude_prompt
+    assert "do not continue into later workflow steps unless the user explicitly asks" in claude_prompt
     assert "`source` must be a category" in claude_prompt
     assert "`traverse_attempted`" in claude_prompt
     assert "Evidence query plan:" in claude_prompt

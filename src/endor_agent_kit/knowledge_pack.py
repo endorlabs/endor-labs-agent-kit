@@ -368,7 +368,9 @@ def render_knowledge_pack_section(
             if compact:
                 profiles = ", ".join(f"`{profile.id}`" for profile in workflow.task_profiles)
                 lines.append(
-                    f"- Profiles: {profiles}. Start narrow; stop with `data_gaps`; full only on request."
+                    f"- Profiles: {profiles}. The selected profile is the active workflow boundary: "
+                    "use its minimal evidence, obey its stop condition, and do not continue into later "
+                    "workflow steps unless the user explicitly asks for the full workflow."
                 )
             else:
                 for profile in workflow.task_profiles:
@@ -491,7 +493,9 @@ def render_task_profile_prompt(
     if compact:
         prompt = (
             f"Agent task profile `{profile.id}`: {profile.summary} "
-            "Use only that profile's minimal evidence; stop with the selected gate or precise `data_gaps`."
+            "Use only that profile's minimal evidence. Treat this profile as the active workflow boundary: "
+            "stop with the selected gate or precise `data_gaps`, and do not continue into later workflow "
+            "steps unless the user explicitly asks for the full workflow."
         )
         if plan is not None:
             prompt += (
