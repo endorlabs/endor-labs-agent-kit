@@ -321,7 +321,7 @@ installs from the generated plugin directory in v1.
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and public GitHub install behavior can change:
 
-Last checked for this checklist: 2026-06-03.
+Last checked for this checklist: 2026-06-07.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`
@@ -338,6 +338,6 @@ Last checked for this checklist: 2026-06-03.
 - Cursor plugin schema and package examples: `https://github.com/cursor/plugins`
 - Cursor Python SDK: `https://cursor.com/docs/sdk/python`
 - Endor Labs `endorctl` install and auth: `https://docs.endorlabs.com/developers-api/cli/install-and-configure`
-- Endor Labs `endorctl init`: `https://docs.endorlabs.com/endorctl/commands/init/`
+- Endor Labs `endorctl init`: `https://docs.endorlabs.com/developers-api/cli/commands/init`
 
 Record the provider doc check date in the release notes.

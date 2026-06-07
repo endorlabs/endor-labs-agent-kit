@@ -130,7 +130,7 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "resolved_dependency_count" in artifact
     assert "Do not `get` `CallGraphData`" in artifact
     assert "endorctl scan --pr --pr-baseline=<baseline_branch> --pr-incremental" in artifact
-    assert "https://docs.endorlabs.com/scan/pr-scans/" in artifact
+    assert "https://docs.endorlabs.com/scan/pr-scans" in artifact
     assert "--resource ScanResult" in artifact
     assert "--resource ScanWorkflowResult" in artifact
     assert "--resource PackageManager" in artifact

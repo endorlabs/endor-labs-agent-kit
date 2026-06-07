@@ -877,6 +877,6 @@ These paths are customer-facing and should stay stable.
 ### Release And License
 
 Before publishing a public release, verify that generated artifacts are fresh
-and that Endor Labs has selected and added the final open-source license.
+and that the MIT license text is present in `LICENSE` and package metadata.
 
-License information will be added before public release.
+Agent Kit is published under the MIT license.

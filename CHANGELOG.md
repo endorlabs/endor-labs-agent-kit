@@ -3,7 +3,7 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `0.1.0`. Merging to `main` does not
+The current generated package version is `0.2.0`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
@@ -25,6 +25,8 @@ package metadata.
 - Clarified that Agent Kit maintainer merges open generated `ai-plugins` sync
   PRs, but package version updates are explicit release actions.
 - Preserved AURI branding in agent prompts and generated package content.
+- Refreshed release-readiness docs for the current package version, MIT license
+  status, public mirror path wording, and canonical provider documentation URLs.
 
 ### Removed
 
