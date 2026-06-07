@@ -247,11 +247,11 @@ Prove namespace, repository, project, source ref, and AI SAST finding scope only
 
 #### `evidence-check` - Evidence Check
 
-Fetch only the AI SAST evidence needed to classify availability and source context.
+Fetch only the AI SAST evidence needed to classify availability; fetch detailed case-file context only for a selected finding.
 - Use when: The user asks whether a finding is actionable, reproducible, or has enough context. Runtime QA needs evidence discipline without patch generation.
-- Minimal evidence: Resolved Project, one main-context AI SAST Finding lookup, source ref, finding metadata, and source-file availability.
+- Minimal evidence: Resolved Project, main-context AI SAST Finding availability with metadata-only fields, and selected Finding detail only when a Finding UUID is supplied.
 - Stop when: Finding evidence and source availability are known. Do not generate diffs, policies, or change requests unless the user asks for remediation.
-- Output focus: Return verdict placeholders, evidence_queries, and data_gaps for missing finding, exploit, guidance, or source evidence.
+- Output focus: Return verdict placeholders, evidence_queries, availability counts, and data_gaps for missing finding detail or source evidence.
 
 #### `selection-plan` - Remediation Plan
 
@@ -274,10 +274,10 @@ Resolve namespace, project, finding selector, and source ref before reading find
 #### `evidence-check` - AI SAST Evidence Query Plan
 
 Confirm AI SAST evidence and pinned source context without generating a patch.
-- Query order: 1. Resolve project and namespace first. 2. Get the selected Finding by UUID, or list all main-context AI SAST findings for the resolved project with tight fields and `--list-all`. 3. Extract classification, severity, verification scorecard, data-flow anchors, exploit reproduction, and remediation guidance from the selected finding. 4. Verify local source file and pinned commit/ref only for the selected finding path.
-- Avoid: Do not fetch unrelated SAST findings or inspect the whole repository. Do not create exception policies, branches, or source edits.
-- Stop after: Stop after selected finding evidence and source context are available or blocked.
-- Data gaps: Record missing finding body, missing exploit/remediation sections, source ref mismatch, unavailable file, and host-blocked Endor reads in data_gaps.
+- Query order: 1. Resolve project and namespace first. 2. If the user supplied a Finding UUID, get that Finding by UUID and extract classification, severity, verification scorecard, data-flow anchors, exploit reproduction, and remediation guidance. 3. If no Finding UUID was supplied, list all main-context AI SAST findings for the resolved project with metadata-only fields and `--list-all`; do not include `spec.explanation` in the list query. 4. Verify local source file and pinned commit/ref only for the selected finding path when a selected finding exists.
+- Avoid: Do not fetch unrelated SAST finding bodies or inspect the whole repository. Do not include bulky `spec.explanation` fields in complete-list availability queries. Do not create exception policies, branches, or source edits.
+- Stop after: Stop after selected finding detail and source context are available or blocked, or after metadata-only availability is known when no Finding UUID was supplied.
+- Data gaps: Record missing finding body, missing selected Finding UUID, missing exploit/remediation sections, source ref mismatch, unavailable file, and host-blocked Endor reads in data_gaps.
 
 #### `selection-plan` - AI SAST Selection Query Plan
 
@@ -320,10 +320,10 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 
 - Canonical: `ai-sast-list`
 - Resource: `Finding`
-- Purpose: List only AI SAST findings for a resolved project when no Finding UUID was supplied.
-- Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata,spec.explanation" --list-all -o json`
-- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.method`, `spec.source_code_version`, `spec.finding_metadata`, `spec.explanation`
-- Constraints: Prefer finding-by-uuid when supplied. Use `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST`; do not use shorthand method values or finding-tags selectors. Use `--list-all` only with the resolved project UUID, main context, method filter, and field mask. Do not list unrelated SAST findings or broad namespace Finding inventories.
+- Purpose: List only AI SAST finding availability for a resolved project when no Finding UUID was supplied.
+- Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json`
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.method`, `spec.source_code_version`, `spec.finding_metadata`
+- Constraints: Prefer finding-by-uuid when supplied. Do not include spec.explanation in complete list queries; fetch it only for one selected Finding by UUID. Use `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST`; do not use shorthand method values or finding-tags selectors. Use `--list-all` only with the resolved project UUID, main context, method filter, and field mask. Do not list unrelated SAST findings or broad namespace Finding inventories.
 
 #### `selected-ai-sast-finding` (selection-plan)
 
