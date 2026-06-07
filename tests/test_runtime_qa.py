@@ -107,6 +107,8 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "do not continue into later workflow steps unless the user explicitly asks" in claude_prompt
     assert "`source` must be a category" in claude_prompt
     assert "`traverse_attempted`" in claude_prompt
+    assert "Do not omit branch/traverse fields on resolved project scope" in claude_prompt
+    assert "branch unknown: not queried" in claude_prompt
     assert "Evidence query plan:" in claude_prompt
     assert "Finding availability and VersionUpgrade/UIA availability" in claude_prompt
     assert "Do not inspect local source files" in claude_prompt
@@ -238,6 +240,41 @@ def test_runtime_qa_prompt_uses_supplied_workspace_without_hardcoded_project_nam
         assert forbidden not in prompt
 
 
+def test_runtime_qa_prompts_harden_account_backed_hosts(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    for host in ("antigravity", "gemini", "cursor"):
+        prompt = build_prompt(
+            host=host,
+            agent="sca-remediation",
+            workspace=workspace,
+            namespace="tenant-a",
+        )
+
+        assert "Do not ask questions" in prompt
+        assert "create a plan" in prompt
+        assert "still return the required JSON object with precise data_gaps" in prompt
+
+    cursor_prompt = build_prompt(
+        host="cursor",
+        agent="sca-remediation",
+        workspace=workspace,
+        namespace="tenant-a",
+    )
+    assert "Do not use Cursor plan/project creation" in cursor_prompt
+    assert "ask-question interactions" in cursor_prompt
+
+    antigravity_prompt = build_prompt(
+        host="antigravity",
+        agent="sca-remediation",
+        workspace=workspace,
+        namespace="tenant-a",
+    )
+    assert "Do not inspect Endor config files" in antigravity_prompt
+    assert "MCP config files, tokens, or credential material" in antigravity_prompt
+
+
 def test_runtime_qa_runner_records_parallel_jobs_and_skips_resumed_passed_cases(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -345,6 +382,148 @@ def test_runtime_qa_runner_records_blocked_environment_hosts(tmp_path):
     summary = _load_summary(log_root)
     assert {item["status"] for item in summary["results"]} == {"blocked"}
     assert any("CLI not found" in item["reason"] for item in summary["results"])
+
+
+def test_runtime_qa_runner_runs_gemini_without_api_key_env(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    fake = _fake_command(tmp_path)
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+    env.pop("GEMINI_API_KEY", None)
+    env.pop("GOOGLE_API_KEY", None)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "gemini",
+            "--agent",
+            "sca-remediation",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"gemini={fake}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert "gemini/sca-remediation" in result.stdout
+    summary = _load_summary(log_root)
+    result_item = summary["results"][0]
+    assert result_item["status"] == "passed"
+    call = json.loads(calls.read_text(encoding="utf-8"))
+    assert call["host"] == "gemini"
+    assert call["argv"][0] == "-p"
+    assert "Do not ask questions" in call["argv"][-1]
+
+
+def test_runtime_qa_runner_uses_cursor_cli_account_runner_without_api_key(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    calls = tmp_path / "calls.jsonl"
+    fake = _fake_command(tmp_path)
+    env = os.environ.copy()
+    env["FAKE_QA_CALLS"] = str(calls)
+    env.pop("CURSOR_API_KEY", None)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "cursor",
+            "--cursor-runner",
+            "cli",
+            "--agent",
+            "sca-remediation",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"cursor={fake}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert "cursor/sca-remediation" in result.stdout
+    summary = _load_summary(log_root)
+    assert summary["cursor_runner"] == "cli"
+    result_item = summary["results"][0]
+    assert result_item["status"] == "passed"
+    call = json.loads(calls.read_text(encoding="utf-8"))
+    assert call["host"] == "cursor"
+    assert call["argv"][:7] == [
+        "agent",
+        "--print",
+        "--output-format",
+        "text",
+        "--mode",
+        "ask",
+        "--trust",
+    ]
+    assert call["argv"][call["argv"].index("--workspace") + 1] == str(workspace)
+    assert call["argv"][call["argv"].index("--plugin-dir") + 1] == str(repo_root())
+    assert "Do not use Cursor plan/project creation" in call["argv"][-1]
+
+
+def test_runtime_qa_runner_keeps_cursor_sdk_api_key_requirement(tmp_path):
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    log_root = tmp_path / "logs"
+    fake = _fake_command(tmp_path)
+    env = os.environ.copy()
+    env.pop("CURSOR_API_KEY", None)
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(repo_root() / "scripts" / "run_plugin_runtime_qa.py"),
+            "--workspace",
+            str(workspace),
+            "--namespace",
+            "tenant-a",
+            "--allow-live-endor-read",
+            "--host",
+            "cursor",
+            "--agent",
+            "sca-remediation",
+            "--log-root",
+            str(log_root),
+            "--command-override",
+            f"cursor={fake}",
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+
+    assert "Cursor runtime QA requires CURSOR_API_KEY for Cursor SDK authentication" in result.stdout
+    summary = _load_summary(log_root)
+    assert summary["cursor_runner"] == "sdk"
+    result_item = summary["results"][0]
+    assert result_item["status"] == "blocked"
+    assert result_item["reason"] == "Cursor runtime QA requires CURSOR_API_KEY for Cursor SDK authentication"
 
 
 def test_runtime_qa_runner_marks_lint_failures_as_failed(tmp_path):
@@ -643,6 +822,10 @@ def _fake_command(tmp_path: Path, *, output: str | None = None, stderr: str = ""
         "    host = 'codex'\n"
         "elif '-p' in argv and '--add-dir' in argv:\n"
         "    host = 'antigravity'\n"
+        "elif '-p' in argv:\n"
+        "    host = 'gemini'\n"
+        "elif 'agent' in argv and '--print' in argv:\n"
+        "    host = 'cursor'\n"
         "record = {'host': host, 'argv': argv, 'stdin': sys.stdin.read(), 'cwd': os.getcwd()}\n"
         "with open(os.environ['FAKE_QA_CALLS'], 'a', encoding='utf-8') as handle:\n"
         "    handle.write(json.dumps(record, sort_keys=True) + '\\n')\n"
