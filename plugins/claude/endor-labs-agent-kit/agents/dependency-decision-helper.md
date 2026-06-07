@@ -138,7 +138,7 @@ Decide whether to add, keep, or upgrade one explicit package version using only 
 
 ### Agent Task Profiles
 
-- Profiles: `explain`, `evidence-check`. Start narrow; stop with `data_gaps`; full only on request.
+- Profiles: `explain`, `evidence-check`. Profile bounds workflow; obey stop; full only on request.
 ### Evidence Query Plans
 
 - Plans: `explain`, `evidence-check`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.

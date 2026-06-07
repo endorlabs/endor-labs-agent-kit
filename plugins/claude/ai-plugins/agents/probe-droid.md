@@ -303,7 +303,7 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 
 ### Agent Task Profiles
 
-- Profiles: `resolve-scope`, `evidence-check`, `prescribe-actions`. Start narrow; stop with `data_gaps`; full only on request.
+- Profiles: `resolve-scope`, `evidence-check`, `prescribe-actions`. Profile bounds workflow; obey stop; full only on request.
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `prescribe-actions`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.

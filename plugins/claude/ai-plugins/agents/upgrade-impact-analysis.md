@@ -126,7 +126,7 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 
 ### Agent Task Profiles
 
-- Profiles: `resolve-scope`, `evidence-check`, `explain`. Start narrow; stop with `data_gaps`; full only on request.
+- Profiles: `resolve-scope`, `evidence-check`, `explain`. Profile bounds workflow; obey stop; full only on request.
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `explain`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.

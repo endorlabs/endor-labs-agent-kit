@@ -157,7 +157,7 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 
 ### Agent Task Profiles
 
-- Profiles: `manifest-inventory`, `evidence-check`. Start narrow; stop with `data_gaps`; full only on request.
+- Profiles: `manifest-inventory`, `evidence-check`. Profile bounds workflow; obey stop; full only on request.
 ### Evidence Query Plans
 
 - Plans: `manifest-inventory`, `evidence-check`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.

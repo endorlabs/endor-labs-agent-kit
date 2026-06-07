@@ -345,7 +345,7 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 
 ### Agent Task Profiles
 
-- Profiles: `resolve-scope`, `evidence-check`, `selection-plan`. Start narrow; stop with `data_gaps`; full only on request.
+- Profiles: `resolve-scope`, `evidence-check`, `selection-plan`. Profile bounds workflow; obey stop; full only on request.
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `selection-plan`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
