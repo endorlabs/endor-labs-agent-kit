@@ -183,6 +183,9 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' in artifact
     assert "spec.resolution_errors" in artifact
     assert "confirmation_required: true" in artifact
+    assert "`evidence_queries[]` rows must contain only those fields" in artifact
+    assert "Repository lane rows describe current evidence only" in artifact
+    assert "Put those proposed actions in `recommended_actions[]` or\n`confirmed_org_wide_actions[]`" in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "documented read-only Endor and GitHub inventory lookups" in artifact
     assert "glab repo list" not in artifact

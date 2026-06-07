@@ -107,6 +107,9 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "ACTIONABLE_FIX_IDENTIFIED" in artifact
     assert "SUPPORT_ESCALATION_RECOMMENDED" in artifact
     assert "future_action_contracts" in artifact
+    assert "`evidence_queries[]` rows must contain only those fields" in artifact
+    assert "Do not put raw `endorctl api`, `endorctl scan`,\n`git`, or `gh` command strings" in artifact
+    assert "place it only in `future_action_contracts[]` with\n`confirmation_required: true`" in artifact
     assert "SCAN_EXECUTION_FAILURE" in artifact
     assert "PR_SCAN_AND_BASELINE" in artifact
     assert "IDENTITY_PROVIDER_AND_SSO" in artifact

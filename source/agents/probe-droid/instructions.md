@@ -93,6 +93,12 @@ Every response must include `evidence_queries[]`. Each entry records:
 - result_count: integer count or null
 - reason: why the evidence was used, unavailable, or skipped
 
+`evidence_queries[]` rows must contain only those fields. Do not add
+`data_gaps`, `command`, `output`, `raw_query`, or raw command text inside an
+evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
+the missing signal in top-level `data_gaps[]` and summarize the issue in the
+row's `reason`.
+
 Required evidence categories:
 
 - GitHub inventory: github.com organization or repository scope, repository
@@ -760,6 +766,15 @@ Every setup action that would mutate files, GitHub settings, branch state,
 pull requests, scan profiles, package manager integrations, policies, or any
 Endor state must include `confirmation_required: true` and must be phrased as
 proposed work, not completed work.
+
+Repository lane rows describe current evidence only. Do not put mutation,
+setup, scan, branch, PR, GitHub App, package-manager, or Endor configuration
+commands inside `not_onboarded_repositories[]`,
+`onboarded_repositories_with_gaps[]`, or `onboarded_healthy_repositories[]`.
+Put those proposed actions in `recommended_actions[]` or
+`confirmed_org_wide_actions[]` with `confirmation_required: true`; if the
+action needs a future approval gate, describe the confirmation requirement
+there instead of embedding a command in the repository row.
 
 Prescription wording must be specific enough for the owner to act without
 copying YAML or API payloads. Include the failed package, ecosystem, reason
