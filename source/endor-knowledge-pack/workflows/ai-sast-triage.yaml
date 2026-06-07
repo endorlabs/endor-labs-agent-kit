@@ -84,6 +84,8 @@ data_gaps:
   - Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and
     optional exception-policy lookup failures in `data_gaps`.
   - Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs.
+  - Final JSON fields must use concise evidence summaries, not raw `endorctl api`, `git`, `gh`, `curl`, or shell pipeline
+    strings. Keep exact commands in tool execution only.
 evidence_query_plans:
   - profile_id: resolve-scope
     title: AI SAST Scope Query Plan

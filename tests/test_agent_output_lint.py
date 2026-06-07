@@ -589,6 +589,24 @@ def test_lint_accepts_troubleshooter_future_action_contract_for_mutation():
     assert lint_agent_output("endor-troubleshooter", output) == []
 
 
+def test_lint_does_not_join_fields_into_synthetic_mutation_command():
+    payload = _valid_troubleshooter_output()
+    payload["recommended_actions"] = [
+        {
+            "priority": 1,
+            "owner_role": "Developer using endorctl API",
+            "action": "Update Finding list filters to use spec.project_uuid.",
+            "why": "Finding resources are project-scoped by spec.project_uuid.",
+            "friction": "LOW",
+            "validation": "Confirm the corrected Finding query returns expected results.",
+            "confidence": "HIGH",
+            "confirmation_required": False,
+        }
+    ]
+
+    assert lint_agent_output("endor-troubleshooter", json.dumps(payload)) == []
+
+
 def test_lint_rejects_probe_droid_rows_without_branch_and_project_normalization():
     output = json.dumps(_valid_probe_droid_output())
     payload = json.loads(output)
