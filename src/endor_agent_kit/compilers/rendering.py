@@ -39,7 +39,7 @@ Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--conf
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
-    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands; put gaps in top-level `data_gaps`."
+    "`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`."
 )
 STRUCTURED_OUTPUT_TYPE_GUIDANCE = (
     "Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON."

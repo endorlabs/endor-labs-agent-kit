@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "fadabd51bf96919901170e7fa49c570b468d2f9089b17144e0953984326ae12f"
+ENTERPRISE_EDITION_SHA256 = "523c5c6dd12c3978481e373c2a3be5899af82de14dc0ce8cc2169551b29707ca"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
