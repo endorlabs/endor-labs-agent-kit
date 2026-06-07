@@ -141,6 +141,7 @@ def test_knowledge_pack_renders_task_profile_prompt():
 
     assert "Agent task profile: `selection-plan`" in prompt
     assert "Use this compact profile instead of running the full workflow" in prompt
+    assert "Stop when:" in prompt
     assert "Minimal evidence:" in prompt
     assert "VersionUpgrade/UIA evidence" in prompt
     assert "Evidence query plan:" in prompt

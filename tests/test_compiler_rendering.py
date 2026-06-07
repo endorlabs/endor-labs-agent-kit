@@ -128,7 +128,8 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
 
     assert "Agent Task Profiles" in compact
     assert "Profiles: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
-    assert "full only on request" in compact
+    assert "selected profile is the active workflow boundary" in compact
+    assert "do not continue into later workflow steps unless the user explicitly asks" in compact
     assert "Evidence Query Plans" in compact
     assert "Plans: `resolve-scope`, `evidence-check`, `selection-plan`" in compact
     assert "Exact/ranked evidence first; selected detail only" in compact
