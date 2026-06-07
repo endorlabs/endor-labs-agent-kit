@@ -116,23 +116,6 @@ PR/MR bodies and exception-policy decision comments must be generated or linted 
 
 Do not delegate this workflow to another subagent or Task/Agent tool. The installed `ai-sast-triage` agent must perform the Endor lookup, source inspection, patch preparation, rendering, validation, and PR/MR gate itself so generated-artifact behavior can be tested directly.
 
-Mechanical checks are available when the host has Endor Agent Kit installed:
-
-```bash
-endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation
-endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md
-endor-agent-kit lint-ai-sast-pr-body pr-body.md
-endor-agent-kit render-ai-sast-approval-comment ai-sast-output.json > approval-comment.md
-endor-agent-kit lint-ai-sast-approval-comment approval-comment.md
-endor-agent-kit render-ai-sast-exception-policy-comment ai-sast-exception-output.json > policy-comment.md
-endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md
-endor-agent-kit validate-ai-sast-output ai-sast-exception-output.json --gate exception
-```
-
-When local file writes are allowed, write the normalized JSON to a temporary output path, render the PR/MR body with `render-ai-sast-pr-body`, lint it with `lint-ai-sast-pr-body`, inject the lint-clean rendered body into `change_requests[].body`, and then run `validate-ai-sast-output --gate remediation` on the final JSON before opening or updating a PR/MR. Use a host-allowed scratch path such as the current workspace or an explicitly added Agent Kit directory if the host blocks `/tmp` writes. When a local checkout at the source SHA is available, also write `patches[].patch_diff` to a temporary patch file and run `git apply --check` against that checkout; do not claim remediation readiness if the patch is structurally invalid or cannot apply. Do not run a known-incomplete remediation payload through the validator as a normal expected-failure step, and do not claim the remediation gate passed until the body is present and the final payload validates. Do not hand-render the body when the renderer is available. If the user explicitly forbids all file writes, do not create temporary files; leave `change_requests[].body` unset or mark it as renderer-required, report the no-write gate in `data_gaps`, and do not claim that mechanical checks ran.
-
-The validation gate rejects missing project or namespace provenance, missing finding/source-location provenance, nonstandard branch names, missing existing PR/MR/branch lookup evidence, PR/MR titles without severity visual indicators, PR/MR bodies without the AI SAST hidden context marker, self-approval, exception policies without verified AppSec approval plus explicit user confirmation, missing policy names, missing idempotency checks, duplicate-policy write attempts, and policy-decision comments that expose raw `$uuid=...` scope syntax.
-
 ## Endor Namespace Preflight
 
 Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.

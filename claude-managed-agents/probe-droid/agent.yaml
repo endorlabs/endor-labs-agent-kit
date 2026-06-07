@@ -1259,7 +1259,6 @@ system: |
     "future_scope": []
   }
   ```
-
   # Workflow: GitHub Monitored-Branch Coverage Probe
 
   Use Bash only for documented read-only GitHub inventory/file calls,
