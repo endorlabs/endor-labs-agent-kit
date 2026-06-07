@@ -368,9 +368,7 @@ def render_knowledge_pack_section(
             if compact:
                 profiles = ", ".join(f"`{profile.id}`" for profile in workflow.task_profiles)
                 lines.append(
-                    f"- Profiles: {profiles}. The selected profile is the active workflow boundary: "
-                    "use its minimal evidence, obey its stop condition, and do not continue into later "
-                    "workflow steps unless the user explicitly asks for the full workflow."
+                    f"- Profiles: {profiles}. Profile bounds workflow; obey stop; full only on request."
                 )
             else:
                 for profile in workflow.task_profiles:
