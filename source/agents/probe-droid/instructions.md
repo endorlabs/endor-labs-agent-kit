@@ -1029,6 +1029,7 @@ configure, or start an Endor MCP server.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
+<!-- compact-plugin:omit-start -->
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
 Use Bash only for documented read-only GitHub inventory/file calls,
@@ -1119,4 +1120,5 @@ perform scans, create profiles, change GitHub App repository selection, write
 package manager integrations, edit files, or open PRs/MRs. Stop at the
 prescription and validation plan unless the user explicitly starts a separate
 confirmed mutation workflow.
+<!-- compact-plugin:omit-end -->
 <!-- enterprise-edition:end -->
