@@ -77,9 +77,9 @@ recipes:
   - id: ai-sast-list
     title: Main-Context AI SAST Finding List
     resource: Finding
-    purpose: List AI SAST findings for one resolved project and main context.
+    purpose: List AI SAST finding availability for one resolved project and main context without fetching bulky case-file explanations.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata,spec.explanation" --list-all -o json
+      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json
     fields:
       - uuid
       - context.type
@@ -87,9 +87,9 @@ recipes:
       - spec.method
       - spec.source_code_version
       - spec.finding_metadata
-      - spec.explanation
     constraints:
       - Prefer finding-by-uuid when supplied.
+      - Do not include spec.explanation in complete list queries; fetch it only for one selected Finding by UUID.
       - Use `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST`; do not use shorthand method values or finding-tags selectors.
       - Use `--list-all` only with the resolved project UUID, main context, method filter, and field mask.
       - Do not list unrelated SAST findings or broad namespace Finding inventories.

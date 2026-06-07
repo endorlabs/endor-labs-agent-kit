@@ -101,6 +101,8 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     assert "SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST" in ai_sast_recipe.template
     assert 'finding_tags contains "AI_SAST"' not in ai_sast_recipe.template
     assert "--list-all" in ai_sast_recipe.template
+    assert "spec.explanation" not in ai_sast_recipe.template
+    assert "spec.explanation" not in ai_sast_recipe.fields
     assert all(
         recipe.canonical_id in pack.query_recipes
         for workflow in pack.workflows.values()
