@@ -176,6 +176,7 @@ def main(argv: list[str] | None = None) -> int:
                         "command_overrides": overrides,
                         "codex_sandbox": args.codex_sandbox,
                         "claude_permission_mode": args.claude_permission_mode,
+                        "cursor_runner": args.cursor_runner,
                         "env": os.environ.copy(),
                     }
                 )
@@ -209,6 +210,7 @@ def main(argv: list[str] | None = None) -> int:
         },
         "codex_sandbox": args.codex_sandbox,
         "claude_permission_mode": args.claude_permission_mode,
+        "cursor_runner": args.cursor_runner,
         "workspaces": [str(path) for path in workspaces],
         "gates": [asdict(gate) for gate in gates],
         "results": [asdict(result) for result in results],
@@ -260,6 +262,15 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
         choices=("acceptEdits", "auto", "bypassPermissions", "default", "dontAsk", "plan"),
         default="default",
         help="Permission mode for Claude runtime QA. Default mode returns reliably in noninteractive plugin-agent runs.",
+    )
+    parser.add_argument(
+        "--cursor-runner",
+        choices=("sdk", "cli"),
+        default="sdk",
+        help=(
+            "Cursor runtime launcher. 'sdk' preserves Cursor Python SDK automation and requires CURSOR_API_KEY. "
+            "'cli' uses the account-backed Cursor terminal agent with --print/--mode=ask."
+        ),
     )
     parser.add_argument(
         "--command-override",
@@ -467,6 +478,7 @@ def run_case(
     command_overrides: dict[str, str],
     codex_sandbox: str,
     claude_permission_mode: str,
+    cursor_runner: str,
     env: dict[str, str],
 ) -> RuntimeQaResult:
     case_dir = log_dir / safe_name(f"{host}-{agent}-{workspace.name}")
@@ -501,6 +513,7 @@ def run_case(
         command_overrides=command_overrides,
         codex_sandbox=codex_sandbox,
         claude_permission_mode=claude_permission_mode,
+        cursor_runner=cursor_runner,
         env=env,
     )
     if isinstance(command_or_block, BlockedCommand):
@@ -616,6 +629,7 @@ def build_command(
     command_overrides: dict[str, str],
     codex_sandbox: str,
     claude_permission_mode: str,
+    cursor_runner: str,
     env: dict[str, str],
 ) -> list[str] | BlockedCommand:
     executable = command_overrides.get(host)
@@ -663,11 +677,25 @@ def build_command(
         return [executable, "-p", "--add-dir", str(workspace), prompt]
 
     if host == "gemini":
-        if not (env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY")):
-            return BlockedCommand("Gemini CLI found but GEMINI_API_KEY or GOOGLE_API_KEY is not set")
         return [executable, "-p", prompt]
 
     if host == "cursor":
+        if cursor_runner == "cli":
+            return [
+                executable,
+                "agent",
+                "--print",
+                "--output-format",
+                "text",
+                "--mode",
+                "ask",
+                "--trust",
+                "--workspace",
+                str(workspace),
+                "--plugin-dir",
+                str(repo_root),
+                prompt,
+            ]
         runner = repo_root / "cursor-sdk" / "run_cursor_agent.py"
         if not runner.is_file():
             return BlockedCommand("Cursor SDK runner is not generated")
@@ -722,8 +750,12 @@ def build_prompt(
         "Do not consult memory, continuity notes, or prior runtime logs for evidence unless the selected profile explicitly requires setup or troubleshooting context.",
         "Do not echo raw `endorctl api`, `endorctl scan`, `git`, `gh`, or shell command strings in the final answer. Summarize query intent, selectors, and field masks in `evidence_queries` instead.",
         "Read-only QA tasks must not recommend running a new Endor scan as the default next step. Ask for existing project, finding, package, scan-result, or user-provided evidence instead.",
+        "Return the final answer directly. Do not ask questions, create a plan, create a task list, or emit only a host-specific plan artifact. If live evidence cannot be reached, still return the required JSON object with precise data_gaps.",
         "",
     ]
+    host_prompt = host_runtime_prompt(host)
+    if host_prompt:
+        lines.extend([host_prompt, ""])
     profile_prompt = runtime_task_profile_prompt(agent, selected_profile)
     if profile_prompt:
         lines.extend([profile_prompt, ""])
@@ -797,6 +829,11 @@ def runtime_output_contract(agent: str) -> str:
             " When `project_resolution.status` is `resolved`, include `project_uuid`, `namespace`, "
             "`namespace_provenance`, `repo_full_name` or `normalized_repo_full_name`, branch provenance "
             "such as `default_branch`, and `traverse_attempted`."
+            " Do not omit branch/traverse fields on resolved project scope: include a non-empty "
+            "`default_branch`, `selected_branch`, or `monitored_branch`; if branch evidence is unavailable, "
+            "include `branch_provenance` with a branch gap reason such as `branch unknown: not queried` "
+            "and add a matching `data_gaps` entry. Always include `traverse_attempted` as true, false, "
+            "or null with a matching `data_gaps` entry if unknown."
         )
     if agent in {"endor-troubleshooter", "probe-droid"}:
         contract += (
@@ -804,6 +841,25 @@ def runtime_output_contract(agent: str) -> str:
             "next step in `future_action_contracts` or `recommended_actions` with `confirmation_required: true`."
         )
     return contract
+
+
+def host_runtime_prompt(host: str) -> str:
+    if host == "cursor":
+        return (
+            "Cursor runtime QA: return exactly one parseable final JSON object on stdout. "
+            "Do not use Cursor plan/project creation, ask-question interactions, or markdown-only status text as the final answer."
+        )
+    if host == "gemini":
+        return (
+            "Gemini runtime QA: return exactly one parseable final JSON object in noninteractive mode. "
+            "Do not ask follow-up questions or rely on interactive approvals for the final result."
+        )
+    if host == "antigravity":
+        return (
+            "Antigravity runtime QA: return exactly one parseable final JSON object. "
+            "Do not inspect Endor config files, MCP config files, tokens, or credential material; if authentication or tool access is blocked, report precise data_gaps."
+        )
+    return ""
 
 
 def agent_invocation(host: str, agent: str, task_profile: str | None = None) -> str:
