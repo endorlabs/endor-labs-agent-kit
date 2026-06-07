@@ -214,6 +214,30 @@ def test_runtime_qa_prompts_use_bounded_exact_package_and_output_types(tmp_path)
     assert "Optional fields, when returned, must use these types" in upgrade_prompt
 
 
+def test_runtime_qa_prompt_uses_supplied_workspace_without_hardcoded_project_names(tmp_path):
+    workspace = tmp_path / "customer-service"
+    workspace.mkdir()
+
+    prompt = build_prompt(
+        host="claude",
+        agent="sca-remediation",
+        workspace=workspace,
+        namespace="customer-namespace",
+    )
+
+    assert str(workspace) in prompt
+    assert "customer-namespace" in prompt
+    for forbidden in (
+        "/Users/mattbrown/AURI",
+        "death-star",
+        "bailey-bakery",
+        "bailey-bakery-shop",
+        "imperial-common",
+        "endor-matt",
+    ):
+        assert forbidden not in prompt
+
+
 def test_runtime_qa_runner_records_parallel_jobs_and_skips_resumed_passed_cases(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()
