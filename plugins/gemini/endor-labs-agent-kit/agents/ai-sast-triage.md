@@ -125,6 +125,8 @@ evidence.
 
 Return concise prose plus a JSON object matching `recipe.yaml` outputs: `summary`, `project_resolution`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, and `data_gaps`. Do not substitute a different top-level key such as `findings`.
 
+Final JSON fields must summarize query evidence without raw shell or API command strings. Do not put literal `endorctl api`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`, `summary`, `project_resolution`, `verdicts`, `evidence_queries[].reason`, or verdict prose. Use compact summaries such as `project lookup by stored project name returned no results` or `selected Finding detail was unavailable`, while keeping the exact safe query recipe in internal tool use only.
+
 Every `patches[]` object for a generated remediation patch must include the mechanical fields required by the remediation validator: `finding_uuid`, `source_sha`, `patch_diff`, and `validation_plan`. Copy `source_sha` from the verified Endor finding / pinned source evidence; do not rely on the matching `verdicts[].source_sha` as an implicit substitute.
 
 Every `change_requests[]` object for a generated remediation patch must include `existing_change_request_check` before claiming that no PR/MR or branch exists. The check must include `status`, `lookup_method`, `finding_uuid`, `repo`, and `branch`; include matched PR/MR URLs, existing branches, or candidate records when the lookup finds anything.
