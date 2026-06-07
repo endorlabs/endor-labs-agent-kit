@@ -238,7 +238,7 @@ Prove namespace, repository, project, source ref, and AI SAST finding scope only
 #### `evidence-check` - Evidence Check
 
 Fetch only the AI SAST evidence needed to classify availability; fetch detailed case-file context only for a selected finding.
-- Use when: The user asks whether a finding is actionable, reproducible, or has enough context. Runtime QA needs evidence discipline without patch generation.
+- Use when: The user asks whether a finding is actionable, reproducible, or has enough context. A read-only host check needs evidence discipline without patch generation.
 - Minimal evidence: Resolved Project, main-context AI SAST Finding availability with metadata-only fields, and selected Finding detail only when a Finding UUID is supplied.
 - Stop when: Finding evidence and source availability are known. Do not generate diffs, policies, or change requests unless the user asks for remediation.
 - Output focus: Return verdict placeholders, evidence_queries, availability counts, and data_gaps for missing finding detail or source evidence.

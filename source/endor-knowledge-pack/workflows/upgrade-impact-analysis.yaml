@@ -21,7 +21,7 @@ task_profiles:
     summary: Query VersionUpgrade/UIA evidence for one explicit upgrade candidate.
     when_to_use:
       - The user asks whether an upgrade is safe, risky, or worth doing.
-      - Runtime QA needs upgrade-impact evidence without remediation planning.
+      - A read-only host check needs upgrade-impact evidence without remediation planning.
     minimal_evidence:
       - Resolved project, VersionUpgrade/UIA row for the candidate, and Finding cross-check when a finding UUID is supplied.
     stop_when:

@@ -21,7 +21,7 @@ task_profiles:
     summary: Compare a bounded GitHub inventory sample to Endor Project coverage.
     when_to_use:
       - The user asks for onboarding gaps or monitored-branch coverage.
-      - Runtime QA needs read-only onboarding evidence without full org analysis.
+      - A read-only host check needs onboarding evidence without full org analysis.
     minimal_evidence:
       - Namespace provenance, bounded GitHub inventory or supplied repository list, and projected Endor Project lookup with
         traversal when needed.

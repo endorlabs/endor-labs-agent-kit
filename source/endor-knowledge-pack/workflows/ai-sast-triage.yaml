@@ -21,7 +21,7 @@ task_profiles:
     summary: Fetch only the AI SAST evidence needed to classify availability; fetch detailed case-file context only for a selected finding.
     when_to_use:
       - The user asks whether a finding is actionable, reproducible, or has enough context.
-      - Runtime QA needs evidence discipline without patch generation.
+      - A read-only host check needs evidence discipline without patch generation.
     minimal_evidence:
       - Resolved Project, main-context AI SAST Finding availability with metadata-only fields, and selected Finding detail only when a Finding UUID is supplied.
     stop_when:

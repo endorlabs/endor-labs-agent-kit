@@ -276,7 +276,7 @@ Prove project, package, current version, and target version scope before impact 
 #### `evidence-check` - Upgrade Evidence Check
 
 Query VersionUpgrade/UIA evidence for one explicit upgrade candidate.
-- Use when: The user asks whether an upgrade is safe, risky, or worth doing. Runtime QA needs upgrade-impact evidence without remediation planning.
+- Use when: The user asks whether an upgrade is safe, risky, or worth doing. A read-only host check needs upgrade-impact evidence without remediation planning.
 - Minimal evidence: Resolved project, VersionUpgrade/UIA row for the candidate, and Finding cross-check when a finding UUID is supplied.
 - Stop when: Risk, CIA, fixed findings, introduced findings, and missing evidence are known. Do not edit manifests or create remediation branches.
 - Output focus: Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, evidence_queries, and data_gaps.
