@@ -305,7 +305,7 @@ extract; do not replace the JSON object with a table or prose summary.
 
 The JSON object must be syntactically valid. If a PR/MR body draft is too large to duplicate inside JSON, put the full Markdown body in the prose section and set a compact field such as `"pr_body_draft": "included_above"`. Never leave arrays or objects unterminated.
 
-For runtime QA, plan-only gates, and read-only selection gates, include the
+For plan-only gates and read-only selection gates, include the
 JSON object even when no mutation is allowed. `uia_evidence` must be a JSON
 array, not an object. Mirror the remediation branch in
 `change_requests[].proposed_branch`. Include `risk_decision.source_usage_summary`

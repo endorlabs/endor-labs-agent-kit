@@ -21,7 +21,7 @@ task_profiles:
     summary: Query only the Endor resources needed for the classified issue lane.
     when_to_use:
       - The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue.
-      - Runtime QA needs a read-only troubleshooting result.
+      - A read-only host check needs a troubleshooting result.
     minimal_evidence:
       - Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult,
         or Integration.

@@ -1106,7 +1106,7 @@ system: |
   #### `evidence-check` - Coverage Evidence Check
 
   Compare a bounded GitHub inventory sample to Endor Project coverage.
-  - Use when: The user asks for onboarding gaps or monitored-branch coverage. Runtime QA needs read-only onboarding evidence without full org analysis.
+  - Use when: The user asks for onboarding gaps or monitored-branch coverage. A read-only host check needs onboarding evidence without full org analysis.
   - Minimal evidence: Namespace provenance, bounded GitHub inventory or supplied repository list, and projected Endor Project lookup with traversal when needed.
   - Stop when: Repositories are classified as onboarded, not onboarded, ambiguous, or evidence-blocked. Do not inspect full scan profile or package manager objects unless a selected repository requires it.
   - Output focus: Return coverage_summary, repository classifications, evidence_queries, and data_gaps.

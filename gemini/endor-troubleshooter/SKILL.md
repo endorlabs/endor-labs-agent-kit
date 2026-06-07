@@ -1185,7 +1185,7 @@ Classify the reported Endor problem and choose the narrowest diagnostic lane.
 #### `diagnose` - Diagnose Narrow Lane
 
 Query only the Endor resources needed for the classified issue lane.
-- Use when: The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue. Runtime QA needs a read-only troubleshooting result.
+- Use when: The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue. A read-only host check needs a troubleshooting result.
 - Minimal evidence: Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult, or Integration.
 - Stop when: A root-cause hypothesis and validation plan are supported, or the lane is blocked with data_gaps. Do not create scans, edit scan profiles, mutate integrations, or post support tickets.
 - Output focus: Return issue_lanes, evidence_summary, root_cause_hypotheses, recommended_actions, and data_gaps.

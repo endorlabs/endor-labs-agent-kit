@@ -23,7 +23,7 @@ task_profiles:
     summary: Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choosing a remediation.
     when_to_use:
       - The user asks what evidence is available, why a recommendation is blocked, or whether findings/UIA can be queried.
-      - Runtime or host QA needs evidence discipline without a full plan.
+      - A read-only host check needs evidence discipline without a full plan.
     minimal_evidence:
       - Resolved project and namespace.
       - One main-context Finding query and one VersionUpgrade/UIA query, or precise data_gaps for each missing lane.
@@ -38,7 +38,7 @@ task_profiles:
     summary: Select at most one UIA-backed remediation candidate and stop before mutation.
     when_to_use:
       - The user asks for the best next remediation, a PR plan, or a read-only remediation gate.
-      - Runtime QA needs a complete remediation gate JSON object.
+      - A read-only remediation gate needs a complete remediation gate JSON object.
     minimal_evidence:
       - Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source
         usage for the selected package.
@@ -86,7 +86,7 @@ fallbacks:
   - If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap.
   - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling
     it low risk.
-  - A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`,
+  - A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`,
     `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
   - Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`,
     `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.

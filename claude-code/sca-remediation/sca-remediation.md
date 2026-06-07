@@ -433,7 +433,7 @@ extract; do not replace the JSON object with a table or prose summary.
 
 The JSON object must be syntactically valid. If a PR/MR body draft is too large to duplicate inside JSON, put the full Markdown body in the prose section and set a compact field such as `"pr_body_draft": "included_above"`. Never leave arrays or objects unterminated.
 
-For runtime QA, plan-only gates, and read-only selection gates, include the
+For plan-only gates and read-only selection gates, include the
 JSON object even when no mutation is allowed. `uia_evidence` must be a JSON
 array, not an object. Mirror the remediation branch in
 `change_requests[].proposed_branch`. Include `risk_decision.source_usage_summary`
@@ -510,7 +510,7 @@ Prove namespace, repository, and Endor project identity only.
 #### `evidence-check` - Evidence Check
 
 Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choosing a remediation.
-- Use when: The user asks what evidence is available, why a recommendation is blocked, or whether findings/UIA can be queried. Runtime or host QA needs evidence discipline without a full plan.
+- Use when: The user asks what evidence is available, why a recommendation is blocked, or whether findings/UIA can be queried. A read-only host check needs evidence discipline without a full plan.
 - Minimal evidence: Resolved project and namespace. One main-context Finding query and one VersionUpgrade/UIA query, or precise data_gaps for each missing lane.
 - Stop when: Finding and VersionUpgrade/UIA availability is known for the resolved project. Do not inspect source files or prepare branch names unless selection is requested.
 - Output focus: Return `evidence_queries`, high-level evidence counts, and `data_gaps`; leave selected remediation null when no selection was requested.
@@ -518,7 +518,7 @@ Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choo
 #### `selection-plan` - Selection Plan
 
 Select at most one UIA-backed remediation candidate and stop before mutation.
-- Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. Runtime QA needs a complete remediation gate JSON object.
+- Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. A read-only remediation gate needs a complete remediation gate JSON object.
 - Minimal evidence: Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source usage for the selected package. Dirty worktree state for affected manifests before proposing any branch.
 - Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
 - Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`.
@@ -628,7 +628,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - `Finding`: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
 - `VersionUpgrade`: Verify UIA/CIA upgrade evidence before making low-risk or compatibility claims. Fields: `uuid`, `meta.parent_uuid`, `spec.upgrade_info`, `spec.upgrade_impact`.
 - Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. 2. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path. 3. For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion. 4. Query narrow main-context Finding availability for evidence checks, and fetch Finding detail only for selected-candidate advisory mapping, PR body detail, or count reconciliation.
-- Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A runtime QA or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
+- Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output. Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object. For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
 
 
