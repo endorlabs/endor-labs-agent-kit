@@ -117,6 +117,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "inject the lint-clean rendered body into `change_requests[].body`" in prompt
     assert "Do not run a known-incomplete remediation payload through the validator" in prompt
     assert "Do not hand-render these review-facing artifacts" in prompt
+    assert "Do not put literal `endorctl api`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`" in prompt
+    assert "project lookup by stored project name returned no results" in prompt
     assert "Do not delegate this workflow to another subagent" in prompt
     assert "Never use bracket-only titles" in prompt
     header = prompt.split("---", 2)[1]

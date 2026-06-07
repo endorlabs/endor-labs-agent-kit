@@ -298,6 +298,10 @@ or `project_uuid`, and a non-empty `endor_monitored_branch` backed by current
 evidence. If branch evidence, monitored-branch evidence, project UUID, or
 GitHub App evidence is missing or inferred, put the repository in
 `onboarded_repositories_with_gaps` and add the missing signal to `data_gaps`.
+If `endor_monitored_branch` is null, `UNKNOWN`, unavailable, unqueryable,
+inferred, or only mentioned as a data gap, the repository is not healthy even
+when scan evidence exists; classify it under `onboarded_repositories_with_gaps`
+until direct normalized branch evidence is available.
 Use `report_scope.namespace` for the selected Endor namespace; do not emit only
 `endor_namespace`.
 

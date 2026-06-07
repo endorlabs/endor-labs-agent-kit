@@ -288,7 +288,7 @@ def _mutation_relevant_item_text(item: dict[str, Any]) -> str:
         "query_template_id",
         "reason",
     }
-    return " ".join(
+    return " | ".join(
         value
         for key, value in item.items()
         if key not in ignored_keys and isinstance(value, str)

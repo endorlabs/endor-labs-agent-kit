@@ -115,6 +115,8 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "selection_mapping_gaps" in artifact
     assert "not_onboarded_repositories" in artifact
     assert "onboarded_repositories_with_gaps" in artifact
+    assert "If `endor_monitored_branch` is null, `UNKNOWN`, unavailable, unqueryable" in artifact
+    assert "classify it under `onboarded_repositories_with_gaps`" in artifact
     assert "confirmed_org_wide_actions" in artifact
     assert "sampled_prescription_hypotheses" in artifact
     assert "requires_full_inventory_validation" in artifact

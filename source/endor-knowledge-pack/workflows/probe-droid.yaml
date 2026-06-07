@@ -83,6 +83,8 @@ data_gaps:
   - Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.
   - Put repositories with inferred or missing monitored-branch, project UUID, or GitHub App evidence in `onboarded_repositories_with_gaps`,
     not `onboarded_healthy_repositories`; healthy rows require direct normalized branch and project evidence.
+  - Treat null, `UNKNOWN`, unavailable, unqueryable, inferred, or data-gap-only monitored branch evidence as a gap even when scan
+    evidence exists.
 evidence_query_plans:
   - profile_id: resolve-scope
     title: Onboarding Scope Query Plan
