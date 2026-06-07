@@ -120,7 +120,10 @@ def test_runtime_qa_runner_writes_logs_and_closes_stdin_for_host_runs(tmp_path):
     assert "do not spawn or fork subagents" in codex_prompt
     assert codex_argv[codex_argv.index("--sandbox") + 1] == "danger-full-access"
     assert codex_argv[codex_argv.index("--output-schema") + 1].endswith("output-schema.json")
-    assert "run" in argv_by_host["antigravity"]
+    antigravity_argv = argv_by_host["antigravity"]
+    assert "-p" in antigravity_argv
+    assert "--add-dir" in antigravity_argv
+    assert antigravity_argv[antigravity_argv.index("--add-dir") + 1] == str(workspace)
     assert summary["codex_sandbox"] == "danger-full-access"
     assert summary["claude_permission_mode"] == "default"
 
@@ -610,11 +613,11 @@ def _fake_command(tmp_path: Path, *, output: str | None = None, stderr: str = ""
         "import json, os, sys\n"
         "argv = sys.argv[1:]\n"
         "host = 'unknown'\n"
-        "if '-p' in argv:\n"
+        "if '--agent' in argv:\n"
         "    host = 'claude'\n"
         "elif 'exec' in argv:\n"
         "    host = 'codex'\n"
-        "elif 'run' in argv:\n"
+        "elif '-p' in argv and '--add-dir' in argv:\n"
         "    host = 'antigravity'\n"
         "record = {'host': host, 'argv': argv, 'stdin': sys.stdin.read(), 'cwd': os.getcwd()}\n"
         "with open(os.environ['FAKE_QA_CALLS'], 'a', encoding='utf-8') as handle:\n"

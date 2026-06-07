@@ -623,9 +623,9 @@ def build_command(
         if not Path(executable).exists() and shutil.which(executable) is None:
             return BlockedCommand(f"{host} command override not found: {executable}")
     else:
-        executable = shutil.which(default_executable(host)) or ""
+        executable = next((found for candidate in default_executables(host) if (found := shutil.which(candidate))), "")
         if not executable:
-            return BlockedCommand(f"{default_executable(host)} CLI not found on PATH")
+            return BlockedCommand(f"{' or '.join(default_executables(host))} CLI not found on PATH")
 
     if host == "claude":
         plugin_dir = repo_root / "plugins" / "claude" / "endor-labs-agent-kit"
@@ -660,7 +660,7 @@ def build_command(
         return command
 
     if host == "antigravity":
-        return [executable, "run", "--workspace", str(workspace), prompt]
+        return [executable, "-p", "--add-dir", str(workspace), prompt]
 
     if host == "gemini":
         if not (env.get("GEMINI_API_KEY") or env.get("GOOGLE_API_KEY")):
@@ -688,12 +688,16 @@ def build_command(
 
 
 def default_executable(host: str) -> str:
+    return default_executables(host)[0]
+
+
+def default_executables(host: str) -> tuple[str, ...]:
     return {
-        "claude": "claude",
-        "codex": "codex",
-        "antigravity": "antigravity",
-        "gemini": "gemini",
-        "cursor": "cursor",
+        "claude": ("claude",),
+        "codex": ("codex",),
+        "antigravity": ("agy", "antigravity"),
+        "gemini": ("gemini",),
+        "cursor": ("cursor",),
     }[host]
 
 
