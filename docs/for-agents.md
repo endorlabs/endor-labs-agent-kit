@@ -59,6 +59,7 @@ endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-p
 python -m pytest -q
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
+endor-agent-kit verify-endor-context --upstream
 git diff --check
 ```
 

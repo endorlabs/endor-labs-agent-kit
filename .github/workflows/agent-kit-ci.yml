@@ -87,3 +87,8 @@ jobs:
         run: |
           . .venv/bin/activate
           endor-agent-kit verify-provenance --catalog-root .
+
+      - name: Verify Endor context freshness
+        run: |
+          . .venv/bin/activate
+          endor-agent-kit verify-endor-context --upstream

@@ -344,7 +344,8 @@ See `docs/plugin-packaging-design.md` for blast-radius notes.
 Use `docs/plugin-release-checklist.md` before tagging or publishing plugin
 packages. It records the provider-specific publish paths, local validation
 commands, public GitHub distribution steps, and external documentation
-freshness checks for Claude Code, Codex, Gemini, Antigravity, Cursor, and Cursor SDK.
+freshness checks for Claude Code, Codex, Gemini, Antigravity, Cursor, Cursor SDK,
+and Endor API/docs context.
 
 ## Editions
 
@@ -730,6 +731,7 @@ endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml --new-agent
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
+endor-agent-kit verify-endor-context --upstream
 python -m pytest -q
 git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini plugins portable skills
 ```
@@ -751,6 +753,9 @@ generated `ai-plugins` distribution PR.
 | `endor-agent-kit compile source/agents/<agent>/recipe.yaml --target <host> --edition <edition>` | Compile one edition for one host. |
 | `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune` | Regenerate the checked-in catalog and remove stale generated agents. |
 | `endor-agent-kit check-guardrails --catalog-root .` | Check generated catalog artifacts against guardrail policies. |
+| `endor-agent-kit verify-provenance --catalog-root .` | Verify generated catalog artifacts against recorded manifest checksums. |
+| `endor-agent-kit verify-endor-context --upstream` | Compare committed Endor OpenAPI/docs provenance with live upstream sources. |
+| `endor-agent-kit refresh-endor-context` | Refresh `source/endor-context/provenance.json` after intentional upstream Endor API/docs changes. |
 | `endor-agent-kit validate-sca-output sca-output.json --gate selection-plan` | Validate structured `sca-remediation` output before advancing a workflow gate. |
 | `endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md` | Render the AURI-style SCA remediation PR/MR body from normalized JSON. |
 | `endor-agent-kit lint-sca-pr-body pr-body.md` | Lint a rendered SCA remediation PR/MR body for required sections, advisory formatting, and severity suffixes. |
