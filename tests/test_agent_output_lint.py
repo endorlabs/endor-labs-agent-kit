@@ -630,7 +630,7 @@ def test_lint_accepts_probe_droid_aliases_for_gap_rows():
     payload["report_scope"].pop("namespace")
     payload["report_scope"]["endor_namespace"] = "auri"
     row = payload["onboarded_repositories_with_gaps"][0]
-    row["full_name"] = row.pop("repository")
+    row["owner_repo"] = row.pop("repository")
     row["github_default_branch"] = row.pop("default_branch")
     row["endor_project_uuid"] = row["endor_project"].pop("project_uuid")
     row["endor_monitored_branch"] = None
