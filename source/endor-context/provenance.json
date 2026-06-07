@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-06-07",
+  "openapi": {
+    "url": "https://api.endorlabs.com/download/openapiv2.swagger.json",
+    "sha256": "2fc220f7f4957e673c86129b47c5c5e407c2c9d30a1f84cae680ca2943ad1a88",
+    "bytes": 4244676,
+    "failure_mode": "blocking"
+  },
+  "meta_version": {
+    "url": "https://api.endorlabs.com/meta/version",
+    "client_version": "v1.7.994",
+    "service_version": "v1.7.994",
+    "service_sha": "129e5749ae0d301acddaf487e12cb513d5a2e593",
+    "failure_mode": "warning"
+  },
+  "docs": [
+    {
+      "id": "endorctl-install-auth",
+      "purpose": "endorctl installation, configuration, and authentication guidance",
+      "url": "https://docs.endorlabs.com/developers-api/cli/install-and-configure",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/developers-api/cli/install-and-configure"
+    },
+    {
+      "id": "endorctl-init",
+      "purpose": "endorctl init authentication command reference",
+      "url": "https://docs.endorlabs.com/developers-api/cli/commands/init",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/developers-api/cli/commands/init"
+    },
+    {
+      "id": "rest-api-authentication",
+      "purpose": "Endor Labs REST API authentication guidance",
+      "url": "https://docs.endorlabs.com/developers-api/rest-api/authentication",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/developers-api/rest-api/authentication"
+    },
+    {
+      "id": "api-query-builder",
+      "purpose": "endorctl API query builder guidance",
+      "url": "https://docs.endorlabs.com/developers-api/rest-api/api-query-builder",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/developers-api/rest-api/api-query-builder"
+    },
+    {
+      "id": "pr-scans",
+      "purpose": "pull request scan behavior and troubleshooting",
+      "url": "https://docs.endorlabs.com/scan/pr-scans",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/scan/pr-scans"
+    },
+    {
+      "id": "container-scanning",
+      "purpose": "container scan setup and troubleshooting",
+      "url": "https://docs.endorlabs.com/scan/containers",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/scan/containers"
+    },
+    {
+      "id": "artifact-signing",
+      "purpose": "artifact signing release validation reference",
+      "url": "https://docs.endorlabs.com/scan/containers/artifact-signing",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/scan/containers/artifact-signing"
+    },
+    {
+      "id": "endorctl-exit-codes",
+      "purpose": "endorctl exit-code troubleshooting reference",
+      "url": "https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes",
+      "status": 200,
+      "final_url": "https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes"
+    }
+  ]
+}

@@ -20,3 +20,9 @@ def test_ci_workflow_runs_guardrail_conformance_check():
     # The guardrail conformance gate must stay wired into CI; this test fails if
     # the step is removed or renamed so it cannot quietly disappear.
     assert "endor-agent-kit check-guardrails --catalog-root ." in workflow
+
+
+def test_ci_workflow_runs_endor_context_freshness_check():
+    workflow = (repo_root() / ".github" / "workflows" / "agent-kit-ci.yml").read_text()
+
+    assert "endor-agent-kit verify-endor-context --upstream" in workflow

@@ -15,6 +15,11 @@ from endor_agent_kit.compilers import (
     compile_raw,
 )
 from endor_agent_kit.compilers.rendering import EDITION_CHOICES
+from endor_agent_kit.endor_context import (
+    DEFAULT_CONTEXT_PATH,
+    refresh_endor_context,
+    verify_endor_context,
+)
 from endor_agent_kit.guardrails import check_catalog_guardrails
 from endor_agent_kit.install import (
     check_claude_code_install,
@@ -119,6 +124,37 @@ def main(argv: list[str] | None = None) -> int:
         help="Verify generated catalog artifacts against the manifest checksums",
     )
     verify_provenance_parser.add_argument("--catalog-root", default=Path("."), type=Path)
+
+    verify_endor_context_parser = subparsers.add_parser(
+        "verify-endor-context",
+        help="Verify committed Endor API/docs context provenance",
+    )
+    verify_endor_context_parser.add_argument(
+        "--context-file",
+        default=DEFAULT_CONTEXT_PATH,
+        type=Path,
+        help="Path to the Endor context provenance JSON",
+    )
+    verify_endor_context_parser.add_argument(
+        "--upstream",
+        action="store_true",
+        help="Compare committed provenance with live Endor OpenAPI and docs",
+    )
+
+    refresh_endor_context_parser = subparsers.add_parser(
+        "refresh-endor-context",
+        help="Refresh committed Endor API/docs context provenance from upstream",
+    )
+    refresh_endor_context_parser.add_argument(
+        "--context-file",
+        default=DEFAULT_CONTEXT_PATH,
+        type=Path,
+        help="Path to write the Endor context provenance JSON",
+    )
+    refresh_endor_context_parser.add_argument(
+        "--checked-at",
+        help="ISO date to record in provenance; defaults to today's date",
+    )
 
     provenance_statement_parser = subparsers.add_parser(
         "provenance-statement",
@@ -261,6 +297,34 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.catalog_root}")
+        return 0
+
+    if args.command == "verify-endor-context":
+        report = verify_endor_context(args.context_file, upstream=args.upstream)
+        for warning in report.warnings:
+            print(f"WARNING: {warning}")
+        if report.errors:
+            for error in report.errors:
+                print(f"ERROR: {error}")
+            return 1
+        suffix = " against upstream" if args.upstream else ""
+        print(f"OK: {args.context_file}{suffix}")
+        return 0
+
+    if args.command == "refresh-endor-context":
+        try:
+            payload = refresh_endor_context(
+                args.context_file,
+                checked_at=args.checked_at,
+            )
+        except (OSError, ValueError) as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(
+            "OK: refreshed "
+            f"{args.context_file} "
+            f"(OpenAPI {payload['openapi']['sha256']}, checked_at {payload['checked_at']})"
+        )
         return 0
 
     if args.command == "provenance-statement":

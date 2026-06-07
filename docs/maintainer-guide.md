@@ -8,6 +8,7 @@ shape, or release validation.
 | Area | Role |
 | --- | --- |
 | `source/agents/` | Source recipes, instructions, evals, action contracts, and architecture diagrams. |
+| `source/endor-context/` | Committed Endor OpenAPI/docs provenance used by freshness gates. |
 | `src/endor_agent_kit/` | Compiler, publisher, guardrail, provenance, install, and output-contract code. |
 | `docs/` | Maintainer, release, guardrail, runtime, and distribution documentation. |
 | `.github/workflows/publish-ai-plugins-pr.yml` | Post-merge publication workflow that opens generated `ai-plugins` PRs. |
@@ -71,6 +72,7 @@ python scripts/check_new_agent_authoring.py --base-ref origin/main --command end
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
+endor-agent-kit verify-endor-context --upstream
 git diff --check
 ```
 
@@ -80,6 +82,25 @@ without `--new-agent`, focused tests, and the generated-artifact/provenance
 checks that match the changed surface. CI runs
 `scripts/check_new_agent_authoring.py` only for recipes that are newly added in
 the pull request.
+
+## Refresh Endor API And Docs Context
+
+Agent Kit does not crawl Endor docs or fetch OpenAPI during normal agent
+runtime. Maintainers instead commit a small provenance file under
+`source/endor-context/` and let CI compare it with upstream.
+
+`endor-agent-kit verify-endor-context --upstream` treats OpenAPI SHA drift and
+canonical docs URL drift as blocking. The public `/meta/version` signal is
+warning-only because an Endor service/client release may not require prompt or
+query recipe changes.
+
+When the upstream drift is intentional, inspect affected Source Recipes,
+Knowledge Pack query recipes, setup guidance, and release docs first. If they
+still read correctly, refresh the provenance:
+
+```bash
+endor-agent-kit refresh-endor-context
+```
 
 For a full release, also follow `docs/plugin-release-checklist.md`.
 

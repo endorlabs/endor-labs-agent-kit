@@ -102,12 +102,23 @@ Run these from the repository root:
 pytest
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
+endor-agent-kit verify-endor-context --upstream
 git status --short --ignored plugins/gemini plugins/antigravity
 ```
 
 The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not
 show a Gemini zip artifact.
+
+If `verify-endor-context --upstream` fails with OpenAPI SHA drift, inspect
+`source/endor-knowledge-pack/query-recipes.yaml`, affected Source Recipes,
+workflow output contracts, and setup guidance before refreshing
+`source/endor-context/provenance.json`. If it fails with docs URL drift, update
+stale links first, then run:
+
+```bash
+endor-agent-kit refresh-endor-context
+```
 
 ## ai-plugins Publication
 
@@ -339,5 +350,7 @@ Last checked for this checklist: 2026-06-07.
 - Cursor Python SDK: `https://cursor.com/docs/sdk/python`
 - Endor Labs `endorctl` install and auth: `https://docs.endorlabs.com/developers-api/cli/install-and-configure`
 - Endor Labs `endorctl init`: `https://docs.endorlabs.com/developers-api/cli/commands/init`
+- Endor Labs REST API authentication: `https://docs.endorlabs.com/developers-api/rest-api/authentication`
+- Endor Labs API query builder: `https://docs.endorlabs.com/developers-api/rest-api/api-query-builder`
 
 Record the provider doc check date in the release notes.
