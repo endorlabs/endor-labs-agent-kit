@@ -151,6 +151,8 @@ evidence.
 
 Return concise prose plus a JSON object matching `recipe.yaml` outputs: `summary`, `project_resolution`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, and `data_gaps`. Do not substitute a different top-level key such as `findings`.
 
+Final JSON fields must summarize query evidence without raw shell or API command strings. Do not put literal `endorctl api`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`, `summary`, `project_resolution`, `verdicts`, `evidence_queries[].reason`, or verdict prose. Use compact summaries such as `project lookup by stored project name returned no results` or `selected Finding detail was unavailable`, while keeping the exact safe query recipe in internal tool use only.
+
 Every `patches[]` object for a generated remediation patch must include the mechanical fields required by the remediation validator: `finding_uuid`, `source_sha`, `patch_diff`, and `validation_plan`. Copy `source_sha` from the verified Endor finding / pinned source evidence; do not rely on the matching `verdicts[].source_sha` as an implicit substitute.
 
 Every `change_requests[]` object for a generated remediation patch must include `existing_change_request_check` before claiming that no PR/MR or branch exists. The check must include `status`, `lookup_method`, `finding_uuid`, `repo`, and `branch`; include matched PR/MR URLs, existing branches, or candidate records when the lookup finds anything.
@@ -350,7 +352,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 - `ExceptionPolicy`: Check existing exception policies only when the user enters the optional exception lane. Fields: `uuid`, `meta.name`, `spec.project_selector`, `spec.rule`.
 - Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace, project UUID, source ref, and finding UUID freshness. 2. Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN`, `spec.project_uuid`, and `spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"` by default. 3. Use exploit reproduction for prioritization and validation planning while redacting concrete exploit strings from review-facing output. 4. Treat remediation guidance as advisory evidence and verify source locations before proposing patches.
 - Fallbacks: If project or finding lookup fails, retry eligible project discovery with traversal and keep source findings separate from PR or CI context. If source files, exploit reproduction, or remediation guidance are unavailable, continue only with verified evidence and mark the missing signal.
-- Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`. Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs.
+- Data gaps: Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and optional exception-policy lookup failures in `data_gaps`. Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs. Final JSON fields must use concise evidence summaries, not raw `endorctl api`, `git`, `gh`, `curl`, or shell pipeline strings. Keep exact commands in tool execution only.
 
 
 ## Structured Output Contract
