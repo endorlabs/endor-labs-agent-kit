@@ -338,7 +338,7 @@ def _probe_droid_errors(payload: dict[str, Any]) -> list[str]:
             if not isinstance(row, dict):
                 errors.append(f"{field}[{index}]: must be an object")
                 continue
-            if not (_text(row.get("repository")) or _text(row.get("repo_full_name")) or _text(row.get("full_name"))):
+            if not _repo_row_identity(row):
                 errors.append(f"{field}[{index}].repository: normalized owner/repo required")
             if field != "excluded_repositories" and not _repo_row_default_branch(row):
                 errors.append(f"{field}[{index}].default_branch: required for monitored-branch comparison")
@@ -357,6 +357,16 @@ def _probe_droid_errors(payload: dict[str, Any]) -> list[str]:
 
 def _repo_row_default_branch(row: dict[str, Any]) -> str:
     return _text(row.get("default_branch") or row.get("github_default_branch") or row.get("branch"))
+
+
+def _repo_row_identity(row: dict[str, Any]) -> str:
+    return _text(
+        row.get("repository")
+        or row.get("repo_full_name")
+        or row.get("normalized_repo_full_name")
+        or row.get("owner_repo")
+        or row.get("full_name")
+    )
 
 
 def _repo_row_project_uuid(row: dict[str, Any], endor_project: dict[str, Any]) -> str:
