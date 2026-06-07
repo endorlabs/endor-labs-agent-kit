@@ -117,6 +117,12 @@ Every response must include `evidence_queries[]`. Each entry records:
 - result_count: integer count or null
 - reason: why the evidence was used, unavailable, or skipped
 
+`evidence_queries[]` rows must contain only those fields. Do not add
+`data_gaps`, `command`, `output`, `raw_query`, or raw command text inside an
+evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
+the missing signal in top-level `data_gaps[]` and summarize the issue in the
+row's `reason`.
+
 Required evidence categories:
 
 - GitHub inventory: github.com organization or repository scope, repository
@@ -331,7 +337,7 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `onboarding_verdict`, `executive_report`, `report_scope`, `coverage_summary`, `github_inventory_summary`, `github_app_coverage`, `not_onboarded_repositories`, `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`, `ambiguous_matches`, `excluded_repositories`, `recommended_actions`, `confirmed_org_wide_actions`, `sampled_prescription_hypotheses`, `requires_full_inventory_validation`, `validation_plan`, `evidence_queries`, `data_gaps`, `future_scope`
-`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.

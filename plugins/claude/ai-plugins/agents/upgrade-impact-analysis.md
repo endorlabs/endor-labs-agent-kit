@@ -142,7 +142,7 @@ Required top-level fields, in order:
 `upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `evidence_queries`, `data_gaps`
 Optional fields when verified:
 `upgrade_candidates`:list[object], `selected_upgrade`:object, `findings_fixed`:integer, `findings_introduced`:integer, `cia_status`:string, `breaking_changes`:list[string], `manifest_files`:list[string], `dependency_delta`:object, `fixed_cves`:list[string], `endor_patch`:string, `score_explanation`:string
-`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.

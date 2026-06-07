@@ -366,7 +366,7 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `summary`, `remediation_candidates`, `project_resolution`, `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`, `patch_plan`, `validation`, `change_requests`, `tickets`, `data_gaps`
-`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
