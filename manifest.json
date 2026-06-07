@@ -95,9 +95,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 73233,
+              "bytes": 73229,
               "path": "claude-code/endor-troubleshooter/endor-troubleshooter.md",
-              "sha256": "f58c5bc827d62579ba36ee69bb58cf91a8d29ec07d5c1b81abddb50a895c963d"
+              "sha256": "de37f2eb6d43fb7b0e6ed4768b370a94d20ad8465df2e6f43a112225a897cc8f"
             },
             {
               "bytes": 2235,
@@ -435,9 +435,9 @@
               "sha256": "e0bf7aecfd4fe3b3b96a7f914713533bb36d9eb69a65dc82738ee044520a4b2d"
             },
             {
-              "bytes": 76171,
+              "bytes": 76167,
               "path": "claude-managed-agents/endor-troubleshooter/agent.yaml",
-              "sha256": "e581d1f2039ec4c6f0463a4472eb62c7c58fea775bdbf6e92b683905e558a3c9"
+              "sha256": "acfcf82fa52ad7f58f14cd9f28fd4fa08a23ba838d4b8433b546e11a6bfc75cd"
             },
             {
               "bytes": 9834,
@@ -715,9 +715,9 @@
               "sha256": "ee0d1f5cc818a10c58c4429d45c232be727377ea1de036f0d16d1c0ac798202a"
             },
             {
-              "bytes": 73909,
+              "bytes": 73905,
               "path": "codex/endor-troubleshooter/SKILL.md",
-              "sha256": "2d18d1c9cf5e5dcccea97911f458930f8f5c86d91c4ea8efde774dcf7ee6e56e"
+              "sha256": "eb395dd95be80218908dc193ff6047bbc92cd0f4e93dca1676234df6d06be377"
             },
             {
               "bytes": 9834,
@@ -890,9 +890,9 @@
               "sha256": "cf2db5073f5176673c0ad4445219540306eb3a92c5ee2e261da64b3d476b3600"
             },
             {
-              "bytes": 73938,
+              "bytes": 73934,
               "path": "gemini/endor-troubleshooter/SKILL.md",
-              "sha256": "d525c09fd412b083ba0ff3e99e457e5b7294fad2d9b51db33d4c3a03863c98d3"
+              "sha256": "bc4606ed008cf68b61b093ce8e3928fc6337e290f12a798c478e39436961fb32"
             },
             {
               "bytes": 9834,
@@ -900,9 +900,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 74193,
+              "bytes": 74189,
               "path": "gemini/endor-troubleshooter/endor-troubleshooter.md",
-              "sha256": "756ed5181a807bb3a1d3522166dce8db15f88d5029d1a2f31cdd11ef9bb076d1"
+              "sha256": "f427b4d34425756a56ca2300938628fde894c4b3b54895ed5f92f733321180df"
             },
             {
               "bytes": 2235,
@@ -1135,9 +1135,9 @@
               "sha256": "daa2d0168cfa1cbb7b9f3b1b86577affd70f0885a0142bec36aee4db20a3a9c9"
             },
             {
-              "bytes": 69270,
+              "bytes": 69266,
               "path": "portable/endor-troubleshooter/agent.md",
-              "sha256": "3d0c4936407aaf65cb285fcc5afc79e0edb7a46fdd16acba6a9d6e68ba55f905"
+              "sha256": "caec06d53c2f7521d2b108f0b9f3e59cea02a8198a5aa5db262d86fcb678256c"
             },
             {
               "bytes": 9834,
@@ -1516,9 +1516,9 @@
           "sha256": "75c18ab0e1508bf080ac09d1573eab5eb9d8574371b5df9c0315d3bf95fb3d99"
         },
         {
-          "bytes": 21699,
+          "bytes": 21696,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/endor-troubleshooter.md",
-          "sha256": "f7e23bfad3cb663d77cc2da77b24ce1128e43d41f1997def887a37498a2d8b71"
+          "sha256": "86413de168c2754d69c1e8b8969da24b9524ba20f5229d896f090c1c864ebebe"
         },
         {
           "bytes": 20100,
@@ -1551,9 +1551,9 @@
           "sha256": "c44268943834e8a31cf2eb0fc79c7afa26cc30f18911fe226a5bd57e5223bda6"
         },
         {
-          "bytes": 21439,
+          "bytes": 21436,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
-          "sha256": "d91ea29b8d4fe36a160e51996dede54298ff1c2cc358c75dc5e2c86c87361e5f"
+          "sha256": "8371fe7596e56a56b64aceb82214e10d6f23fd19f4b20999796296ba3959eccd"
         },
         {
           "bytes": 19849,
@@ -1606,9 +1606,9 @@
           "sha256": "2aa82f4a606432a245fa18b036dd235d2460adb75419490cf5ad96fa89c2eb70"
         },
         {
-          "bytes": 20849,
+          "bytes": 20846,
           "path": "plugins/claude/ai-plugins/agents/endor-troubleshooter.md",
-          "sha256": "23420570ea2a5a1cb9a4e6c6939456159d6259b8faab15688be1cda40f1fadd0"
+          "sha256": "0f40a8f1356d1a4ac4ad2d91955c167a6c1f1817dbea998b2628969f87b4e123"
         },
         {
           "bytes": 11101,
@@ -1713,9 +1713,9 @@
           "sha256": "2aa82f4a606432a245fa18b036dd235d2460adb75419490cf5ad96fa89c2eb70"
         },
         {
-          "bytes": 20849,
+          "bytes": 20846,
           "path": "plugins/claude/endor-labs-agent-kit/agents/endor-troubleshooter.md",
-          "sha256": "23420570ea2a5a1cb9a4e6c6939456159d6259b8faab15688be1cda40f1fadd0"
+          "sha256": "0f40a8f1356d1a4ac4ad2d91955c167a6c1f1817dbea998b2628969f87b4e123"
         },
         {
           "bytes": 11101,
@@ -1830,9 +1830,9 @@
           "sha256": "31a207297a7d10bec40307b85b22c5b4f152a7cfe417095d3fb5ea1de6cf2c4b"
         },
         {
-          "bytes": 22052,
+          "bytes": 22049,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-troubleshooter-agent.toml",
-          "sha256": "a2e1385946ff53a41e5b5c44a4b1db8671316629bc5b8acf8ec409192fb604c5"
+          "sha256": "c88045e3683d6d5be422a5a90fcb8b28586bb6869fb0a9de0643be5ca7263ac6"
         },
         {
           "bytes": 303,
@@ -1855,9 +1855,9 @@
           "sha256": "7bbc27499d3814278818c94daf39dfd05915c1a39c49ff348276a3352193c431"
         },
         {
-          "bytes": 20912,
+          "bytes": 20909,
           "path": "plugins/codex/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
-          "sha256": "7e6ade9cd9c8c8ef029bdf52db19962a077adeb6733bb2c51d01a6bf79296353"
+          "sha256": "5eec1c7d5b19be039a705170fb4ef44fa7e037fe515938e3281592fb15343aee"
         },
         {
           "bytes": 19322,
@@ -1931,9 +1931,9 @@
           "sha256": "53ab1fdf7b58cabb0bf9d167117f1c31dc8d1c5efe9c386574691b79d17c7d61"
         },
         {
-          "bytes": 21584,
+          "bytes": 21581,
           "path": "agents/endor-troubleshooter-agent.md",
-          "sha256": "c7eac0297e540abb3de66a4ce3cb847f1c5fae2ba847770dc2df29f99fb6c52a"
+          "sha256": "f2a6fcbed937ee1be8b3faa8fefa76b2e631863c9ef4b5023d5292619b998e25"
         },
         {
           "bytes": 303,
@@ -1961,9 +1961,9 @@
           "sha256": "16f1f974e3020737170acb7b05c9d508e2a13915c1dcc3e11e78f4ba34503e34"
         },
         {
-          "bytes": 21291,
+          "bytes": 21288,
           "path": "skills/endor-troubleshooter/SKILL.md",
-          "sha256": "fe840c31e4d4594f990354df72d57890ae39b97e758224ccc9c81ea3f3e836b0"
+          "sha256": "2f77095c413329a4c9a5f205df1a27db6998b1715a5c8275197185c763fd5a22"
         },
         {
           "bytes": 9834,
@@ -2072,9 +2072,9 @@
           "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
         },
         {
-          "bytes": 20872,
+          "bytes": 20869,
           "path": "cursor-sdk/agents/endor-troubleshooter-agent.md",
-          "sha256": "7573203fd737d410b27531b67150f21fa889cfaeea3ece985cc603e2a378cfdb"
+          "sha256": "779d1e7d378bc2296fca2455670ba94dc1b5b57fff390237af6065aadc264cfc"
         },
         {
           "bytes": 11,
@@ -2117,9 +2117,9 @@
           "sha256": "7b098042ff3175ece17090a056e71a16f8c0148daaa3dcaa15e30cf91ed275ed"
         },
         {
-          "bytes": 21400,
+          "bytes": 21397,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/endor-troubleshooter.md",
-          "sha256": "cf86953a6fe3aa31309164f093e4f89bd1599064cf198ecc7017859802331739"
+          "sha256": "dd7cf5942a0b32614efd84d69e20925a27215beffe0238efb9e6ce7f8d2a0635"
         },
         {
           "bytes": 19801,
@@ -2152,9 +2152,9 @@
           "sha256": "0d0653ff2aa530a9a7dd26c298d26a3fd1d8fb44c9c848e8420c7963d78dd5db"
         },
         {
-          "bytes": 21145,
+          "bytes": 21142,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
-          "sha256": "129af714e14bdb1f8091bc1cd446e1214ce0be16d8478a3d278740c57181b6f0"
+          "sha256": "3f67a3261ada61000fdf3d89ce8abdd03e54417f487d10c749a2e5d1a2d9dfb2"
         },
         {
           "bytes": 19555,

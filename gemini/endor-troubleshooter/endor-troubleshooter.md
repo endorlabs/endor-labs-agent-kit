@@ -543,7 +543,7 @@ missing:
 If multiple surfaces are available, prefer the structured Endor evidence
 (`ScanResult.spec.exit_code`) over free-text. Surface both the numeric value
 and the `ENDORCTL_RC_*` name in `evidence_summary`. The public reference is
-`https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes/`.
+`https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes`.
 
 Canonical exit-code table (numeric value -> `ENDORCTL_RC_*` name -> product
 meaning):
@@ -1115,9 +1115,9 @@ When useful, include public docs links in `recommended_actions[]` or
 `support_escalation_packet.include[]`:
 
 - Endor docs LLM index: `https://docs.endorlabs.com/llms.txt`
-- PR scans: `https://docs.endorlabs.com/scan/pr-scans/`
-- Container scanning: `https://docs.endorlabs.com/scan/containers/`
-- Endorctl exit codes: `https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes/`
+- PR scans: `https://docs.endorlabs.com/scan/pr-scans`
+- Container scanning: `https://docs.endorlabs.com/scan/containers`
+- Endorctl exit codes: `https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes`
 
 Do not claim a public doc says something unless it is stable enough to cite or
 the user provided the doc text in the current run.

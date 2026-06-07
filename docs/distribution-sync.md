@@ -69,8 +69,7 @@ script is not installed.
 ## Mirror Sync
 
 Run from the `ai-plugins` repo after Agent Kit regeneration is clean. Set
-`AGENT_KIT_REPO` to your local checkout of
-[🐙 The Endor Labs Agent Kit](https://github.com/endorlabs/endor-labs-agent-kit/tree/main):
+`AGENT_KIT_REPO` to your local Endor Labs Agent Kit source checkout:
 
 ```bash
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
