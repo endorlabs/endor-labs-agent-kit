@@ -39,13 +39,13 @@ Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--conf
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
-    "`evidence_queries`: name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands."
+    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; no raw commands; put gaps in top-level `data_gaps`."
 )
 STRUCTURED_OUTPUT_TYPE_GUIDANCE = (
     "Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON."
 )
 RAW_COMMAND_OUTPUT_GUIDANCE = (
-    "Final output: no raw shell or `endorctl api` strings; summarize intent, selectors, and fields."
+    "Final output: no raw shell, `endorctl api`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields."
 )
 
 

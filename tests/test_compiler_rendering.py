@@ -231,8 +231,10 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"verdict": "string"' in rendered
     assert '"conditions": []' in rendered
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
-    assert "`evidence_queries`: name/resource/source/status/query_template_id" in rendered
+    assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
     assert "no raw commands" in rendered
+    assert "put gaps in top-level `data_gaps`" in rendered
+    assert "no raw shell, `endorctl api`, `endorctl scan`, `git`, or `gh` command strings" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
 
 
@@ -249,10 +251,11 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
 
     assert "Required top-level fields, in order" in rendered
     assert "`verdict`, `conditions`, `evidence_queries`, `data_gaps`" in rendered
-    assert "`evidence_queries`: name/resource/source/status/query_template_id" in rendered
+    assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
     assert "`findings_fixed`:integer" in rendered
     assert "missing inputs return JSON" in rendered
     assert "no raw commands" in rendered
+    assert "put gaps in top-level `data_gaps`" in rendered
     assert "```json" not in rendered
 
 

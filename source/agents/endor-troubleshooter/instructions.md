@@ -174,6 +174,12 @@ Every response must include `evidence_queries[]`. Each entry records:
 - result_count: integer count or null
 - reason: why the evidence was used, unavailable, or skipped
 
+`evidence_queries[]` rows must contain only those fields. Do not add
+`data_gaps`, `command`, `output`, `raw_query`, or raw command text inside an
+evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
+the missing signal in top-level `data_gaps[]` and summarize the issue in the
+row's `reason`.
+
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
 
@@ -1062,6 +1068,15 @@ For every recommended action, optimize for least friction:
 4. Integration or credential repair.
 5. Scan rerun or create-style log request, confirmation required.
 6. Endor Support escalation with a redacted evidence packet.
+
+Recommended actions and validation steps must be human-readable intent, not
+copy/paste shell commands. Do not put raw `endorctl api`, `endorctl scan`,
+`git`, or `gh` command strings in `recommended_actions[]`, `validation_plan[]`,
+or `future_action_contracts[]`. If a future action would require a scan rerun,
+repository write, support ticket, API create/update/delete, or source-provider
+mutation, place it only in `future_action_contracts[]` with
+`confirmation_required: true`; do not duplicate it as an unconfirmed repository
+or validation row.
 
 ## Public Reference Links
 
