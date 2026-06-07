@@ -149,10 +149,6 @@ When reporting this lane, include:
 - `p0_duplicates_hidden`: low-risk UIA recommendations omitted from this lane because they belong in the P0/exploited queue.
 - For each candidate: UIA rank, package, repository, source provider, from/to versions, findings fixed, findings introduced, manifest and lockfile paths, CIA status, upgrade risk, PR readiness reason, and any data gaps.
 
-Patch add-ons, vendor-specific patch streams, and entitlement-gated fixes may appear in this lane only when Endor UIA evidence exposes them. Label them clearly as patch add-ons or entitlement-dependent paths; do not make them the default unless the user asks for that path and the evidence supports it.
-
-Even in this lane, all mutation gates remain: show the selected candidate, UIA evidence, patch plan, validation plan, branch name, and PR/MR body before editing; ask again before pushing or opening the PR/MR.
-
 ## Required Endor Evidence
 
 Use authenticated `endorctl api` commands or documented Endor API calls. Do not require or start an Endor MCP server.
@@ -214,11 +210,6 @@ remediation/sca/<normalized-package-name>-<target-version>
 ```
 
 Normalize package names by using the most specific package artifact name that will be readable in a branch list. Examples:
-
-- `maven://org.example:example-core` -> `remediation/sca/example-core-1.2.3`
-- `npm://example-library` -> `remediation/sca/example-library-4.5.6`
-- `pypi://example_package` -> `remediation/sca/example-package-7.8.9`
-- `go://golang.org/x/crypto` -> `remediation/sca/golang.org-x-crypto-v0.48.0`
 
 Do not keep package-path slashes after `remediation/sca/`; replace `/`, `:`,
 spaces, and underscores with `-`. Do not use unrelated branch families such as

@@ -1281,7 +1281,6 @@ Final output: no raw shell or `endorctl api` strings; summarize intent, selector
   "future_scope": []
 }
 ```
-
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
 Use Bash only for documented read-only GitHub inventory/file calls,
