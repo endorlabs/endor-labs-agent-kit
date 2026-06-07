@@ -384,7 +384,7 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 
 ### Agent Task Profiles
 
-- Profiles: `classify`, `diagnose`, `support-packet`. Start narrow; stop with `data_gaps`; full only on request.
+- Profiles: `classify`, `diagnose`, `support-packet`. Profile bounds workflow; obey stop; full only on request.
 ### Evidence Query Plans
 
 - Plans: `classify`, `diagnose`, `support-packet`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
