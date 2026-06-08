@@ -11,6 +11,7 @@ Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 
 - `Triage AI SAST findings` -> skill `ai-sast-triage`, subagent `@ai-sast-triage`
 - `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`, subagent `@endor-troubleshooter`
+- `Malware Response` -> skill `malware-response`, subagent `@malware-response`
 - `Assess GitHub onboarding gaps` -> skill `probe-droid`, subagent `@probe-droid`
 - `Find safe SCA remediation paths` -> skill `sca-remediation`, subagent `@sca-remediation`
 

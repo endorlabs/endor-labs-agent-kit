@@ -19,6 +19,7 @@ Generated for the Endor Labs Agent Kit Claude Code plugin.
 - `Triage AI SAST findings` -> Claude Code agent `ai-sast-triage`
 - `Decide whether a dependency is safe to use` -> Claude Code agent `dependency-decision-helper`
 - `Diagnose Endor setup and scan issues` -> Claude Code agent `endor-troubleshooter`
+- `Malware Response` -> Claude Code agent `malware-response`
 - `Summarize package-version risk` -> Claude Code agent `package-risk-summary`
 - `Assess GitHub onboarding gaps` -> Claude Code agent `probe-droid`
 - `Plan remediation across findings` -> Claude Code agent `remediation-planner`
