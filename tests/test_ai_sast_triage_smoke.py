@@ -44,9 +44,9 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "## Endor Knowledge Pack" in prompt
     assert "AI SAST Triage Evidence Contract" in prompt
-    assert "Preferred evidence resources: `Project`, `Finding`, `ExceptionPolicy`" in prompt
+    assert "Preferred evidence resources: `Project`, `Finding`, `Policy`" in prompt
     assert "Use exploit reproduction for prioritization and validation planning" in prompt
-    assert "Preserve `namespace_provenance`, source ref, finding UUID, and context scope" in prompt
+    assert "Preserve `namespace_provenance`, source ref, finding UUID, stable exception_match, and context scope" in prompt
     assert_mcp_free_generated_artifact(prompt)
     assert "ai-tools" not in prompt
     assert "Do not require or start an Endor MCP server" in prompt
@@ -131,16 +131,22 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Treat main-context findings as the default and label PR/CI-run context explicitly" in prompt
     assert "write-exception-policy" in prompt
     assert "availability: `available`" in prompt
-    assert "checking existing Endor policies by generated policy name and finding UUID" in prompt
+    assert "checking existing Endor policies by generated policy name and stable match fingerprint" in prompt
+    assert "Finding UUID is current-scan evidence only" in prompt
+    assert "exception_match" in prompt
+    assert 'strategy: "ai_sast_fingerprint"' in prompt
+    assert 'strategy: "vulnerability_alias"' in prompt
     assert "If an active matching policy already exists" in prompt
     assert "policy_name" in prompt
     assert "idempotency_check" in prompt
+    assert "match_fingerprint" in prompt
     assert "Endor project label" in prompt
     assert "do not show `Scope: $uuid=...`" in prompt
     assert "not a webhook listener" in prompt
     assert "`rule` containing the full Rego source" in prompt
     assert "Never use a `rego` field" in prompt
     assert "Do not use `meta.parent_uuid` for project scoping" in prompt
+    assert "Do not compare `data.resources.Finding[i].uuid` to a literal Finding UUID" in prompt
     assert "Exception-gate JSON must still include a minimal `verdicts[]` entry" in prompt
     assert "approvals[].approved: true" in prompt
     assert "Do not use `expiration` as a substitute for `expiration_time`" in prompt

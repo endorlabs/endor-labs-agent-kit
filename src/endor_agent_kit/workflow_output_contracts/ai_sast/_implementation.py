@@ -12,6 +12,7 @@ EXCEPTION_REASONS = frozenset(
     {"EXCEPTION_REASON_FALSE_POSITIVE", "EXCEPTION_REASON_RISK_ACCEPTED"}
 )
 APPROVAL_REQUEST_TYPES = frozenset({"false_positive", "accepted_risk"})
+EXCEPTION_MATCH_STRATEGIES = frozenset({"ai_sast_fingerprint", "vulnerability_alias"})
 EXCEPTION_POLICY_IDEMPOTENCY_STATUSES = frozenset(
     {
         "none_found",
@@ -443,6 +444,15 @@ def render_ai_sast_exception_policy_comment(payload: dict[str, Any]) -> str:
         "policy_uuid": policy_uuid,
         "request_type": request_type,
     }
+    exception_match = _exception_match(policy)
+    match_strategy = _text(exception_match.get("strategy"))
+    match_fingerprint = _text(
+        exception_match.get("match_fingerprint") or exception_match.get("fingerprint")
+    )
+    if match_strategy:
+        marker["match_strategy"] = match_strategy
+    if match_fingerprint:
+        marker["match_fingerprint"] = match_fingerprint
     marker_json = json.dumps(
         {key: value for key, value in marker.items() if value and value != "not provided"},
         sort_keys=True,
@@ -460,6 +470,7 @@ def render_ai_sast_exception_policy_comment(payload: dict[str, Any]) -> str:
             f"- Policy: `{policy_name}`",
             f"- Policy UUID: `{policy_uuid}`",
             f"- Finding: {finding_name} (`{finding_uuid or 'not provided'}`)",
+            f"- Stable match: `{match_strategy or 'not provided'}` (`{match_fingerprint or 'not provided'}`)",
             f"- Endor project: `{project_label}`",
             f"- Namespace: `{namespace or 'not provided'}`",
             f"- Reason: {reason}",
@@ -490,6 +501,8 @@ def lint_ai_sast_exception_policy_comment(body: str) -> list[str]:
         else:
             for field in (
                 "finding_uuid",
+                "match_fingerprint",
+                "match_strategy",
                 "namespace",
                 "project_uuid",
                 "policy_name",
@@ -509,6 +522,7 @@ def lint_ai_sast_exception_policy_comment(body: str) -> list[str]:
         "- Policy:",
         "- Policy UUID:",
         "- Finding:",
+        "- Stable match:",
         "- Endor project:",
         "- Reason:",
         "- Expires:",
@@ -830,12 +844,20 @@ def _validate_exception_policies(payload: dict[str, Any], errors: list[str]) -> 
             errors.append(f"{prefix}.user_confirmation: required before Endor policy write")
         if "rendered_policy" in policy and not policy.get("policy_spec"):
             errors.append(f"{prefix}.policy_spec: required; do not use rendered_policy alias")
+        exception_match = _validate_exception_match(
+            policy,
+            prefix,
+            errors,
+            project_uuid=project_uuid,
+            approved_finding_uuids=approved_finding_uuids,
+        )
         _validate_policy_idempotency(
             policy,
             prefix,
             errors,
             project_uuid=project_uuid,
             approved_finding_uuids=approved_finding_uuids,
+            exception_match=exception_match,
         )
         spec = _policy_spec_payload(policy.get("policy_spec") or policy.get("spec"))
         _validate_policy_name(policy, prefix, errors)
@@ -862,7 +884,117 @@ def _validate_exception_policies(payload: dict[str, Any], errors: list[str]) -> 
             errors,
             project_uuid=project_uuid,
             approvals_by_request_type=approvals_by_request_type,
+            exception_match=exception_match,
         )
+
+
+def _validate_exception_match(
+    policy: dict[str, Any],
+    prefix: str,
+    errors: list[str],
+    *,
+    project_uuid: str,
+    approved_finding_uuids: set[str],
+) -> dict[str, Any]:
+    match = _exception_match(policy)
+    if not match:
+        errors.append(
+            f"{prefix}.exception_match: required for stable exception policy matching"
+        )
+        return {}
+
+    strategy = _text(match.get("strategy"))
+    if not strategy:
+        errors.append(f"{prefix}.exception_match.strategy: required")
+    elif strategy not in EXCEPTION_MATCH_STRATEGIES:
+        errors.append(
+            f"{prefix}.exception_match.strategy: must be one of "
+            f"{', '.join(sorted(EXCEPTION_MATCH_STRATEGIES))}"
+        )
+
+    fingerprint = _text(match.get("match_fingerprint") or match.get("fingerprint"))
+    if not fingerprint:
+        errors.append(f"{prefix}.exception_match.match_fingerprint: required")
+
+    match_project_uuid = _text(match.get("project_uuid"))
+    if not match_project_uuid:
+        errors.append(f"{prefix}.exception_match.project_uuid: required")
+    elif project_uuid and match_project_uuid != project_uuid:
+        errors.append(f"{prefix}.exception_match.project_uuid: must match resolved project UUID")
+
+    match_finding_uuid = _text(
+        match.get("finding_uuid") or match.get("current_finding_uuid")
+    )
+    if not match_finding_uuid:
+        errors.append(f"{prefix}.exception_match.current_finding_uuid: required")
+    elif approved_finding_uuids and match_finding_uuid not in approved_finding_uuids:
+        errors.append(
+            f"{prefix}.exception_match.current_finding_uuid: must match approved finding"
+        )
+
+    if strategy == "ai_sast_fingerprint":
+        _validate_ai_sast_exception_match_fields(match, prefix, errors)
+    elif strategy == "vulnerability_alias":
+        _validate_vulnerability_alias_match_fields(match, prefix, errors)
+
+    return match
+
+
+def _validate_ai_sast_exception_match_fields(
+    match: dict[str, Any],
+    prefix: str,
+    errors: list[str],
+) -> None:
+    if not _text(match.get("context_type")):
+        errors.append(f"{prefix}.exception_match.context_type: required")
+    elif _text(match.get("context_type")) != "CONTEXT_TYPE_MAIN":
+        errors.append(f"{prefix}.exception_match.context_type: must be CONTEXT_TYPE_MAIN")
+
+    if not _text(match.get("source_ref")):
+        errors.append(f"{prefix}.exception_match.source_ref: required")
+
+    cwes = _string_list(match.get("cwes") or match.get("cwe") or match.get("cwe_ids"))
+    if not cwes:
+        errors.append(f"{prefix}.exception_match.cwes: required")
+
+    if not _text(match.get("sast_rule_id")):
+        errors.append(f"{prefix}.exception_match.sast_rule_id: required")
+
+    location = _dict(
+        match.get("location")
+        or match.get("sink")
+        or match.get("sink_location")
+        or match.get("ai_sast_location")
+    )
+    if not location:
+        errors.append(f"{prefix}.exception_match.location: required")
+        return
+
+    if not _text(location.get("relative_path") or location.get("file_path")):
+        errors.append(f"{prefix}.exception_match.location.relative_path: required")
+    if not _text(location.get("type")):
+        errors.append(f"{prefix}.exception_match.location.type: required")
+    if not _text(location.get("function_name")):
+        errors.append(f"{prefix}.exception_match.location.function_name: required")
+    if _coerce_int(location.get("start_line")) is None:
+        errors.append(f"{prefix}.exception_match.location.start_line: required")
+    if _coerce_int(location.get("line_window")) is None:
+        errors.append(f"{prefix}.exception_match.location.line_window: required")
+
+
+def _validate_vulnerability_alias_match_fields(
+    match: dict[str, Any],
+    prefix: str,
+    errors: list[str],
+) -> None:
+    ids = _string_list(
+        match.get("vulnerability_ids")
+        or match.get("vulnerability_id")
+        or match.get("aliases")
+        or match.get("alias")
+    )
+    if not ids:
+        errors.append(f"{prefix}.exception_match.vulnerability_ids: required")
 
 
 def _validate_policy_idempotency(
@@ -872,6 +1004,7 @@ def _validate_policy_idempotency(
     *,
     project_uuid: str,
     approved_finding_uuids: set[str],
+    exception_match: dict[str, Any],
 ) -> None:
     check = _dict(policy.get("idempotency_check") or policy.get("existing_policy_lookup"))
     if not check:
@@ -893,10 +1026,26 @@ def _validate_policy_idempotency(
     elif "not checked" in lookup_method.lower():
         errors.append(f"{prefix}.idempotency_check.lookup_method: cannot be 'not checked'")
 
+    match_strategy = _text(exception_match.get("strategy"))
+    check_strategy = _text(check.get("match_strategy") or check.get("strategy"))
+    if not check_strategy:
+        errors.append(f"{prefix}.idempotency_check.match_strategy: required")
+    elif match_strategy and check_strategy != match_strategy:
+        errors.append(f"{prefix}.idempotency_check.match_strategy: must match exception_match.strategy")
+
+    match_fingerprint = _text(
+        exception_match.get("match_fingerprint") or exception_match.get("fingerprint")
+    )
+    check_fingerprint = _text(check.get("match_fingerprint") or check.get("fingerprint"))
+    if not check_fingerprint:
+        errors.append(f"{prefix}.idempotency_check.match_fingerprint: required")
+    elif match_fingerprint and check_fingerprint != match_fingerprint:
+        errors.append(
+            f"{prefix}.idempotency_check.match_fingerprint: must match exception_match.match_fingerprint"
+        )
+
     check_finding_uuid = _text(check.get("finding_uuid"))
-    if not check_finding_uuid:
-        errors.append(f"{prefix}.idempotency_check.finding_uuid: required")
-    elif approved_finding_uuids and check_finding_uuid not in approved_finding_uuids:
+    if check_finding_uuid and approved_finding_uuids and check_finding_uuid not in approved_finding_uuids:
         errors.append(f"{prefix}.idempotency_check.finding_uuid: must match approved finding")
 
     check_project_uuid = _text(check.get("project_uuid"))
@@ -945,6 +1094,7 @@ def _validate_policy_spec(
     *,
     project_uuid: str = "",
     approvals_by_request_type: dict[str, list[dict[str, Any]]] | None = None,
+    exception_match: dict[str, Any] | None = None,
 ) -> None:
     if not spec:
         errors.append(f"{prefix}.policy_spec: required")
@@ -993,6 +1143,13 @@ def _validate_policy_spec(
             )
         if "data.resources.Finding[i].meta.parent_uuid" in rule:
             errors.append(f"{prefix}.policy_spec.rule: must not use meta.parent_uuid for project scope")
+    if rule:
+        _validate_policy_rule_uses_exception_match(
+            rule,
+            prefix,
+            errors,
+            exception_match=exception_match or {},
+        )
 
     approvals_by_request_type = approvals_by_request_type or {}
     if request_type:
@@ -1007,12 +1164,108 @@ def _validate_policy_spec(
                 for approval in approvals
                 if _text(approval.get("finding_uuid"))
             ]
-            if approved_finding_uuids and not any(
+            if approved_finding_uuids and any(
                 finding_uuid in rule for finding_uuid in approved_finding_uuids
             ):
                 errors.append(
-                    f"{prefix}.policy_spec.rule: must match the approved finding UUID"
+                    f"{prefix}.policy_spec.rule: must not match volatile Finding UUID; use exception_match stable fields"
                 )
+
+
+def _validate_policy_rule_uses_exception_match(
+    rule: str,
+    prefix: str,
+    errors: list[str],
+    *,
+    exception_match: dict[str, Any],
+) -> None:
+    strategy = _text(exception_match.get("strategy"))
+    if strategy == "ai_sast_fingerprint":
+        _validate_ai_sast_fingerprint_rule(rule, prefix, errors, exception_match)
+    elif strategy == "vulnerability_alias":
+        _validate_vulnerability_alias_rule(rule, prefix, errors, exception_match)
+
+
+def _validate_ai_sast_fingerprint_rule(
+    rule: str,
+    prefix: str,
+    errors: list[str],
+    exception_match: dict[str, Any],
+) -> None:
+    required_tokens = {
+        'data.resources.Finding[i].context["type"]': "must scope main-context findings with context[\"type\"]",
+        "CONTEXT_TYPE_MAIN": "must match main-context findings",
+        "data.resources.Finding[i].spec.method": "must match AI SAST method",
+        "SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST": "must use the full AI SAST method enum",
+        "data.resources.Finding[i].spec.source_code_version.ref": "must match source ref",
+        "data.resources.Finding[i].spec.finding_metadata.custom.sast_rule_id": "must match SAST rule id",
+        "data.resources.Finding[i].spec.finding_metadata.ai_sast_data.location": "must match AI SAST sink/source location",
+    }
+    for token, message in required_tokens.items():
+        if token not in rule:
+            errors.append(f"{prefix}.policy_spec.rule: {message}")
+
+    source_ref = _text(exception_match.get("source_ref"))
+    if source_ref and source_ref not in rule:
+        errors.append(f"{prefix}.policy_spec.rule: must include exception_match.source_ref")
+
+    cwes = _string_list(
+        exception_match.get("cwes")
+        or exception_match.get("cwe")
+        or exception_match.get("cwe_ids")
+    )
+    if cwes:
+        if not (
+            "data.resources.Finding[i].spec.finding_metadata.custom.cwes" in rule
+            or "data.resources.Finding[i].spec.finding_metadata.ai_sast_data.cwes" in rule
+        ):
+            errors.append(f"{prefix}.policy_spec.rule: must match AI SAST CWE metadata")
+        if not any(cwe in rule for cwe in cwes):
+            errors.append(f"{prefix}.policy_spec.rule: must include an exception_match CWE")
+
+    sast_rule_id = _text(exception_match.get("sast_rule_id"))
+    if sast_rule_id and sast_rule_id not in rule:
+        errors.append(f"{prefix}.policy_spec.rule: must include exception_match.sast_rule_id")
+
+    location = _dict(
+        exception_match.get("location")
+        or exception_match.get("sink")
+        or exception_match.get("sink_location")
+        or exception_match.get("ai_sast_location")
+    )
+    relative_path = _text(location.get("relative_path") or location.get("file_path"))
+    location_type = _text(location.get("type"))
+    function_name = _text(location.get("function_name"))
+    for value, field in (
+        (relative_path, "location.relative_path"),
+        (location_type, "location.type"),
+        (function_name, "location.function_name"),
+    ):
+        if value and value not in rule:
+            errors.append(f"{prefix}.policy_spec.rule: must include exception_match.{field}")
+    if "location.start_line >=" not in rule or "location.start_line <=" not in rule:
+        errors.append(f"{prefix}.policy_spec.rule: must use a location.start_line window")
+
+
+def _validate_vulnerability_alias_rule(
+    rule: str,
+    prefix: str,
+    errors: list[str],
+    exception_match: dict[str, Any],
+) -> None:
+    if not (
+        "data.resources.Finding[i].spec.finding_metadata.vulnerability.spec.aliases" in rule
+        or "data.resources.Finding[i].spec.finding_metadata.vulnerability.meta.name" in rule
+    ):
+        errors.append(f"{prefix}.policy_spec.rule: must match vulnerability alias metadata")
+    ids = _string_list(
+        exception_match.get("vulnerability_ids")
+        or exception_match.get("vulnerability_id")
+        or exception_match.get("aliases")
+        or exception_match.get("alias")
+    )
+    if ids and not any(identifier in rule for identifier in ids):
+        errors.append(f"{prefix}.policy_spec.rule: must include an exception_match vulnerability ID")
 
 
 def _policy_spec_payload(value: Any) -> dict[str, Any]:
@@ -1029,6 +1282,14 @@ def _policy_name(policy: dict[str, Any]) -> str:
         return explicit
     resource = _dict(policy.get("policy_spec") or policy.get("spec"))
     return _text(_dict(resource.get("meta")).get("name"))
+
+
+def _exception_match(policy: dict[str, Any]) -> dict[str, Any]:
+    return _dict(
+        policy.get("exception_match")
+        or policy.get("stable_finding_key")
+        or policy.get("finding_stable_identity")
+    )
 
 
 def _request_type_for_exception_reason(reason: str) -> str:
@@ -1426,6 +1687,16 @@ def _unique_strings(values: list[str]) -> list[str]:
         seen.add(text)
         result.append(text)
     return result
+
+
+def _coerce_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    return None
 
 
 def _text(value: Any) -> str:
