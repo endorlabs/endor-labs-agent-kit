@@ -27,7 +27,6 @@ from endor_agent_kit.install import (
     check_codex_install,
     check_portable_install,
 )
-from endor_agent_kit.agent_output_lint import lint_agent_output
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
 from endor_agent_kit.provenance import build_provenance_statement, verify_catalog_provenance
 from endor_agent_kit.publisher import publish_recipes
@@ -119,14 +118,6 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         choices=known_structured_agent_ids(),
     )
-
-    lint_agent_output_parser = subparsers.add_parser(
-        "lint-agent-output",
-        help="Lint a captured agent output for runtime QA regressions",
-    )
-    lint_agent_output_parser.add_argument("output", type=Path)
-    lint_agent_output_parser.add_argument("--agent", required=True)
-    lint_agent_output_parser.add_argument("--task-profile")
 
     verify_provenance_parser = subparsers.add_parser(
         "verify-provenance",
@@ -297,20 +288,6 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "structured-output-schema":
         print(json.dumps(json_schema_for_agent(args.agent), indent=2, sort_keys=True))
-        return 0
-
-    if args.command == "lint-agent-output":
-        try:
-            text = args.output.read_text(encoding="utf-8")
-        except OSError as exc:
-            print(f"ERROR: {exc}")
-            return 1
-        errors = lint_agent_output(args.agent, text, task_profile=args.task_profile)
-        if errors:
-            for error in errors:
-                print(f"ERROR: {error}")
-            return 1
-        print(f"OK: {args.output}")
         return 0
 
     if args.command == "verify-provenance":
