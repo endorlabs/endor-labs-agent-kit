@@ -750,7 +750,7 @@ EVIDENCE_QUERY_LEDGER_FIELDS = (
     "reason",
 )
 
-EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("name", "resource", "source", "status")
+EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("resource", "status")
 EVIDENCE_QUERY_GAP_STATUSES = (
     "blocked",
     "error",
@@ -771,14 +771,17 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
         if not isinstance(item, dict):
             errors.append(f"evidence_queries[{index}]: must be an object")
             continue
+        has_unsupported_fields = False
         for field in item:
             if field not in EVIDENCE_QUERY_LEDGER_FIELDS:
+                has_unsupported_fields = True
                 errors.append(f"evidence_queries[{index}].{field}: unsupported ledger field")
-        for field in EVIDENCE_QUERY_LEDGER_FIELDS:
-            if field not in item:
-                errors.append(f"evidence_queries[{index}].{field}: required")
+        if has_unsupported_fields:
+            for field in ("name", "source"):
+                if not _text(item.get(field)):
+                    errors.append(f"evidence_queries[{index}].{field}: required")
         for field in EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS:
-            if field in item and not _text(item.get(field)):
+            if not _text(item.get(field)):
                 errors.append(f"evidence_queries[{index}].{field}: must be a non-empty string")
         for field in EVIDENCE_QUERY_LEDGER_FIELDS:
             if field == "result_count" or field not in item or item[field] is None:
