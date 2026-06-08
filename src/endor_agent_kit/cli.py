@@ -27,6 +27,7 @@ from endor_agent_kit.install import (
     check_codex_install,
     check_portable_install,
 )
+from endor_agent_kit.lifecycle import prepare_validation_request, validation_request_summary
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
 from endor_agent_kit.provenance import build_provenance_statement, verify_catalog_provenance
 from endor_agent_kit.publisher import publish_recipes
@@ -95,6 +96,47 @@ def main(argv: list[str] | None = None) -> int:
         "--include-plugins",
         action="store_true",
         help="Also generate opt-in plugin packages from published host artifacts",
+    )
+
+    lifecycle_parser = subparsers.add_parser("lifecycle", help="Prepare lifecycle handoff artifacts")
+    lifecycle_subparsers = lifecycle_parser.add_subparsers(dest="lifecycle_command", required=True)
+    lifecycle_prepare_parser = lifecycle_subparsers.add_parser(
+        "prepare",
+        help="Write a public-neutral validation-request.json for private validation consumers",
+    )
+    lifecycle_prepare_parser.add_argument(
+        "--agent",
+        action="append",
+        default=[],
+        help="Agent id to include. Repeatable.",
+    )
+    lifecycle_prepare_parser.add_argument(
+        "--scope",
+        choices=("changed", "release-candidate", "all"),
+        default="changed",
+        help="Agent selection scope when --agent is omitted.",
+    )
+    lifecycle_prepare_parser.add_argument(
+        "--base-ref",
+        default="origin/main",
+        help="Base ref used for changed-agent detection.",
+    )
+    lifecycle_prepare_parser.add_argument(
+        "--dest",
+        default=Path("."),
+        type=Path,
+        help="Catalog root used with --regenerate.",
+    )
+    lifecycle_prepare_parser.add_argument(
+        "--output",
+        required=True,
+        type=Path,
+        help="Path to write validation-request.json.",
+    )
+    lifecycle_prepare_parser.add_argument(
+        "--regenerate",
+        action="store_true",
+        help="Regenerate checked-in generated artifacts before writing the validation request.",
     )
 
     check_guardrails_parser = subparsers.add_parser(
@@ -256,6 +298,24 @@ def main(argv: list[str] | None = None) -> int:
         for output in outputs:
             print(output)
         return 0
+
+    if args.command == "lifecycle":
+        if args.lifecycle_command == "prepare":
+            try:
+                request = prepare_validation_request(
+                    repo_root=Path("."),
+                    output=args.output,
+                    agents=args.agent,
+                    scope=args.scope,
+                    base_ref=args.base_ref,
+                    dest=args.dest,
+                    regenerate=args.regenerate,
+                )
+            except (OSError, RuntimeError, ValueError) as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(validation_request_summary(request, output=args.output))
+            return 1 if request["errors"] else 0
 
     if args.command == "check-guardrails":
         errors = check_catalog_guardrails(args.catalog_root)
