@@ -60,12 +60,16 @@ resources:
       - spec.method
       - spec.source_code_version
       - spec.finding_metadata
-  - name: ExceptionPolicy
+      - spec.dependency_file_paths
+  - name: Policy
     purpose: Check existing exception policies only when the user enters the optional exception lane.
     fields:
       - uuid
       - meta.name
       - spec.project_selector
+      - spec.policy_type
+      - spec.exception
+      - spec.query_statements
       - spec.rule
 retrieval_steps:
   - Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace,
@@ -83,7 +87,7 @@ fallbacks:
 data_gaps:
   - Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and
     optional exception-policy lookup failures in `data_gaps`.
-  - Preserve `namespace_provenance`, source ref, finding UUID, and context scope in remediation and exception outputs.
+  - Preserve `namespace_provenance`, source ref, finding UUID, stable exception_match, and context scope in remediation and exception outputs.
   - Final JSON fields must use concise evidence summaries, not raw `endorctl api`, `git`, `gh`, `curl`, or shell pipeline
     strings. Keep exact commands in tool execution only.
 evidence_query_plans:

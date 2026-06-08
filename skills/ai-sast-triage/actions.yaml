@@ -56,10 +56,10 @@ actions:
     confirmation_required: true
     providers: ["endorctl-api", "endor-api"]
     required_host_capabilities: ["run_commands"]
-    inputs: ["finding_uuid", "project_uuid", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
+    inputs: ["finding_uuid", "project_uuid", "exception_match", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
     outputs: ["policy_name", "policy_uuid", "status", "idempotency_status"]
     availability: available
-    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and finding UUID, and receiving explicit user confirmation in the Cursor session. If an active matching policy already exists for the same finding, project, and reason, reuse it and do not create another policy."
+    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and stable match fingerprint, and receiving explicit user confirmation in the Cursor session. Finding UUID is current-scan evidence only; do not use it as the policy matcher. If an active matching policy already exists for the same stable match fingerprint, project, and reason, reuse it and do not create another policy."
 
   - id: post-decision-comment
     kind: scm.comment
