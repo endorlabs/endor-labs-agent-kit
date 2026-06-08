@@ -16,6 +16,7 @@ Generated for the Endor Labs Agent Kit Cursor plugin agent package.
 
 - `Triage AI SAST findings` -> agent `endor-ai-sast-triage-agent` and skill `ai-sast-triage`
 - `Diagnose Endor setup and scan issues` -> agent `endor-troubleshooter-agent` and skill `endor-troubleshooter`
+- `Malware Response` -> agent `endor-malware-response-agent` and skill `malware-response`
 - `Assess GitHub onboarding gaps` -> agent `endor-probe-droid-agent` and skill `probe-droid`
 - `Find safe SCA remediation paths` -> agent `endor-sca-remediation-agent` and skill `sca-remediation`
 

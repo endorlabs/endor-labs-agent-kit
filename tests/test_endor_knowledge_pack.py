@@ -31,6 +31,8 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     assert pack.name == "Endor Knowledge Pack"
     assert sorted(pack.query_recipes) == [
         "ai-sast-list",
+        "current-malware-intelligence",
+        "exposure-guidance-source",
         "finding-by-uuid",
         "local-git-state",
         "local-manifest-inventory",
@@ -44,6 +46,8 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "sca-finding-availability",
         "scan-result-by-uuid",
         "selected-source-usage",
+        "tenant-package-inventory",
+        "tenant-package-version-exact",
         "version-upgrade-by-package",
         "version-upgrade-detail",
         "version-upgrade-summary",
@@ -52,6 +56,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "ai-sast-triage",
         "dependency-decision-helper",
         "endor-troubleshooter",
+        "malware-response",
         "package-risk-summary",
         "probe-droid",
         "remediation-planner",

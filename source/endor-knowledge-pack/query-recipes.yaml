@@ -114,6 +114,90 @@ recipes:
     forbidden:
       - Do not guess package coordinates from unrelated local manifests.
 
+  - id: tenant-package-version-exact
+    title: Tenant Exact PackageVersion Exposure Lookup
+    resource: PackageVersion
+    purpose: Find exact affected package/version evidence across a proven namespace and child namespaces.
+    template: >-
+      endorctl api list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - meta.create_time
+      - meta.update_time
+      - context.type
+      - spec.project_uuid
+      - spec.relative_path
+    constraints:
+      - Use exact normalized package coordinates for confirmed exposure.
+      - Use traversal only from a proven namespace and record traversal status.
+      - Preserve PackageVersion as inventory evidence; do not claim Endor malware classification unless Endor explicitly returns it.
+    completeness: Uses --list-all and --traverse to check exact coordinates across namespace and child namespace scope.
+    forbidden:
+      - Do not classify NOT_OBSERVED when traversal, package inventory, or exact affected package evidence is unavailable.
+
+  - id: tenant-package-inventory
+    title: Tenant Bounded PackageVersion Inventory
+    resource: PackageVersion
+    purpose: Inventory bounded PackageVersion rows for a named affected package when exact filtering or version ranges require local correlation.
+    template: >-
+      endorctl api list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name matches "<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@.*"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - meta.create_time
+      - meta.update_time
+      - context.type
+      - spec.project_uuid
+      - spec.relative_path
+    constraints:
+      - Use only for named affected packages, selected ecosystems, or explicit project scope.
+      - Report inventory truncation or unsupported filters as data_gaps.
+      - Correlate range evidence locally and keep possible exposure separate from confirmed exact matches.
+    completeness: Complete only when namespace traversal, pagination, and the named package filter all succeed.
+    forbidden:
+      - Do not export broad tenant package inventory when exact affected package names are available.
+
+  - id: current-malware-intelligence
+    title: Current Malware Intelligence Collection
+    resource: external-intelligence
+    purpose: Capture current or user-supplied malware intelligence before tenant package correlation.
+    template: host_search_or_user_references(malware_name=<MALWARE_NAME>, reference_urls=<REFERENCE_URLS>)
+    fields:
+      - source
+      - url
+      - affected_package
+      - affected_version
+      - ioc
+      - confidence
+    constraints:
+      - Use live internet search only when the host supports it.
+      - Preserve unverified social or community reports with lower confidence until corroborated.
+      - Record data_gaps when current intelligence or user references are unavailable.
+    completeness: Complete only for the sources the host or user supplies; malware intelligence may change after the run.
+    forbidden:
+      - Do not fabricate affected packages, versions, IOCs, behavior, attribution, or references.
+
+  - id: exposure-guidance-source
+    title: Malware Response Guidance Source
+    resource: external-intelligence
+    purpose: Tie response guidance, IOCs, and remediation recommendations to the intelligence source that supports them.
+    template: host_search_or_user_references(malware_name=<MALWARE_NAME>, reference_urls=<REFERENCE_URLS>)
+    fields:
+      - source
+      - url
+      - ioc
+      - remediation
+      - confidence
+    constraints:
+      - Keep recommendations read-only unless represented as future_action_contracts with confirmation_required true.
+      - Separate confirmed IOCs from unconfirmed or source-limited indicators.
+    completeness: Complete only for gathered references; missing current intelligence must remain a data gap.
+    forbidden:
+      - Do not claim a response action was performed by the agent.
+
   - id: sca-finding-availability
     title: Scoped Vulnerability Finding Availability
     resource: Finding

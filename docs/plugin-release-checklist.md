@@ -85,12 +85,15 @@ test -f plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.m
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
 test -f .cursor-plugin/plugin.json
 test -f agents/endor-agent-kit-setup-agent.md
+test -f agents/endor-malware-response-agent.md
 test -f agents/endor-probe-droid-agent.md
 test -f skills/endor-agent-kit-setup/SKILL.md
 test -f skills/ai-sast-triage/architecture.svg
+test -f skills/malware-response/architecture.svg
 test -f cursor-sdk/README.md
 test -f cursor-sdk/run_cursor_agent.py
 test -f cursor-sdk/agent_definitions.json
+test -f cursor-sdk/agents/endor-malware-response-agent.md
 test -f cursor-sdk/agents/endor-probe-droid-agent.md
 ```
 
@@ -153,13 +156,13 @@ Local release validation:
 ```bash
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
-for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-troubleshooter-agent endor-probe-droid-agent endor-sca-remediation-agent; do
+for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-troubleshooter-agent endor-malware-response-agent endor-probe-droid-agent endor-sca-remediation-agent; do
   test -f "agents/$agent.md"
 done
-for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter probe-droid sca-remediation; do
+for skill in ai-sast-triage endor-agent-kit-setup endor-troubleshooter malware-response probe-droid sca-remediation; do
   test -f "skills/$skill/SKILL.md"
 done
-for skill in ai-sast-triage endor-troubleshooter probe-droid sca-remediation; do
+for skill in ai-sast-triage endor-troubleshooter malware-response probe-droid sca-remediation; do
   test -f "skills/$skill/architecture.svg"
 done
 ```

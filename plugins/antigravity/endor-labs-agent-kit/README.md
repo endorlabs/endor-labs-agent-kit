@@ -62,6 +62,7 @@ package managers.
 | --- | --- | --- | --- |
 | Triage AI SAST findings | `ai-sast-triage` | `@ai-sast-triage` | mutating, approval-gated |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `@endor-troubleshooter` | read-only |
+| Malware Response | `malware-response` | `@malware-response` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | `@probe-droid` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
 

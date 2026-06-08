@@ -78,6 +78,7 @@ package managers.
 | Triage AI SAST findings | `ai-sast-triage` | mutating, approval-gated |
 | Decide whether a dependency is safe to use | `dependency-decision-helper` | read-only |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | read-only |
+| Malware Response | `malware-response` | read-only |
 | Summarize package-version risk | `package-risk-summary` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | read-only |
 | Plan remediation across findings | `remediation-planner` | read-only |
