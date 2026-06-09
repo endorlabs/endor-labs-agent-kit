@@ -239,8 +239,8 @@ def report_plugin_cache_status(plugin_root: Path, home: Path) -> None:
                 "  warning: Codex may load stale Endor Agent Kit instructions from "
                 f"{cache_root}. Remove/reinstall that plugin package or clear the "
                 "host cache, then start a fresh Codex thread. To move this cache "
-                "out of the active cache after approval, run "
-                "`python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes`."
+                "out of the active cache after approval, rerun this installer with "
+                "`--purge-stale-plugin-cache --yes`."
             )
         reported = True
     if not reported:
@@ -309,7 +309,7 @@ def report_plugin_config_status(home: Path) -> None:
         print(
             "  warning: Codex may try to load this removed legacy Endor Agent Kit "
             "plugin on every run. To remove the stale config entry after approval, "
-            "run `python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes`."
+            "rerun this installer with `--purge-stale-plugin-cache --yes`."
         )
 
 

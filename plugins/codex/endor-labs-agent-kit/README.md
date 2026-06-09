@@ -47,7 +47,7 @@ codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
 
 Start a new Codex thread after installing or reinstalling the plugin.
 If Codex still shows stale same-version content, remove and reinstall
-the plugin, rerun `python scripts/install_codex_agents.py --install --yes`,
+the plugin, rerun `python plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --yes` from the checkout root,
 and start another fresh thread so host caches reload both skills and agents.
 
 ## Set Up This Machine

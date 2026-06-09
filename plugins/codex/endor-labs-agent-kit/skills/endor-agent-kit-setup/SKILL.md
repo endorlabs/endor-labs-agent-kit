@@ -24,35 +24,46 @@ Generated for the Endor Labs Agent Kit Codex plugin package `endor-labs-agent-ki
 
 ## Codex Install Commands
 
+Resolve the bundled installer from either the Agent Kit/`ai-plugins`
+checkout root or Codex's plugin cache:
+
+```bash
+ENDOR_CODEX_INSTALLER="plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py"
+if [ ! -f "$ENDOR_CODEX_INSTALLER" ]; then
+  ENDOR_CODEX_INSTALLER="$(find "${CODEX_HOME:-$HOME/.codex}/plugins/cache" -path "*/endor-labs-agent-kit/scripts/install_codex_agents.py" -print -quit)"
+fi
+test -f "$ENDOR_CODEX_INSTALLER"
+```
+
 Check installed Endor Codex agents and skills:
 
 ```bash
-python scripts/install_codex_agents.py --status
+python "$ENDOR_CODEX_INSTALLER" --status
 ```
 
 Move stale Endor Agent Kit plugin-cache copies out of Codex's active cache after user approval:
 
 ```bash
-python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes
+python "$ENDOR_CODEX_INSTALLER" --purge-stale-plugin-cache --yes
 ```
 
 Install or update all bundled Endor Codex agents and skills after user approval:
 
 ```bash
-python scripts/install_codex_agents.py --install --yes
+python "$ENDOR_CODEX_INSTALLER" --install --yes
 ```
 
 Install only one surface when diagnosing host discovery:
 
 ```bash
-python scripts/install_codex_agents.py --install --agents-only --yes
-python scripts/install_codex_agents.py --install --skills-only --yes
+python "$ENDOR_CODEX_INSTALLER" --install --agents-only --yes
+python "$ENDOR_CODEX_INSTALLER" --install --skills-only --yes
 ```
 
 Uninstall only Endor Agent Kit-managed Codex agents and skills after user approval:
 
 ```bash
-python scripts/install_codex_agents.py --uninstall --yes
+python "$ENDOR_CODEX_INSTALLER" --uninstall --yes
 ```
 
 # Endor Agent Kit Setup

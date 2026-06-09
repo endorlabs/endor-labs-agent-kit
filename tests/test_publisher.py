@@ -544,11 +544,39 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     codex_plugin_readme = (
         dest / "plugins" / "codex" / "endor-labs-agent-kit" / "README.md"
     ).read_text()
+    codex_setup_skill = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    codex_setup_agent = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-agent-kit-setup-agent.toml"
+    ).read_text()
+    codex_installer_path = "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py"
+    assert f"python {codex_installer_path}" in codex_plugin_readme
+    assert codex_installer_path in codex_setup_skill
+    assert 'python "$ENDOR_CODEX_INSTALLER"' in codex_setup_skill
+    assert codex_installer_path in codex_setup_agent
+    assert "ENDOR_CODEX_INSTALLER" in codex_setup_agent
+    for codex_setup_text in (codex_plugin_readme, codex_setup_skill, codex_setup_agent):
+        assert "python scripts/install_codex_agents.py" not in codex_setup_text
     assert "## Start Here" in codex_plugin_readme
     assert "Agent installer" in codex_plugin_readme
     assert "sync generated artifacts to `ai-plugins`" in codex_plugin_readme
     assert "Content releases require a package version bump" in codex_plugin_readme
     assert "endor-agent-kit-setup-agent" in codex_plugin_readme
+    plugins_readme = (dest / "plugins" / "README.md").read_text()
+    assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md" in plugins_readme
+    assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/maintainer-guide.md" in plugins_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
     assert plugin_manifest["version"] == "2.0.0"
     assert plugin_manifest["skills"] == "./skills/"

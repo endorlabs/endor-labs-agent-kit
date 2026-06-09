@@ -91,6 +91,13 @@ restart after extension installation or update. Gemini CLI installs a local
 extension directory and supports tagged GitHub repository installs for public
 distribution. The package does not generate or publish a zip artifact.
 
+The repository root compatibility surface is separate from the generated
+Gemini package. Root `.mcp.json` and root `gemini-extension.json` may include
+the source-approved `endor-cli-tools` MCP server metadata so users can opt into
+MCP setup. Generated Gemini package metadata under
+`plugins/gemini/endor-labs-agent-kit/` remains MCP-free unless provider
+validation explicitly changes that package contract.
+
 ## Implemented Antigravity CLI Plugin Shape
 
 The generated Antigravity CLI plugin package includes:
