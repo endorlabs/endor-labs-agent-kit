@@ -151,7 +151,7 @@ If you are an AI agent reading this repository:
 
 1. Decide whether the user is installing, reviewing, editing, or publishing.
 2. For installs, read the selected generated README and copy the generated artifact exactly. Keep sibling files such as `architecture.svg`, `actions.yaml`, and `endorctl-setup.md` with the artifact when present.
-3. For behavior changes, edit `source/agents/<agent>/recipe.yaml`, `instructions.md`, optional `actions.yaml`, evals, or publication templates. Do not hand-edit generated customer-facing copies as the source of truth.
+3. For behavior changes, edit `source/agents/<agent>/recipe.yaml`, `instructions.md`, evals, publication templates, and `actions.yaml` when the recipe is schema v2 mutating or explicitly adapter-backed. Do not hand-edit generated customer-facing copies as the source of truth.
 4. Regenerate with `endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins` when plugin packages are in scope.
 5. Validate with tests, guardrails, provenance checks, generated-artifact drift checks, and the provider checks listed in `docs/plugin-release-checklist.md`.
 6. Sync `ai-plugins` only after Agent Kit generation is clean; use `docs/distribution-sync.md` for the mirror boundary.
@@ -791,9 +791,10 @@ Supported compile targets are `claude-code`, `claude-managed-agents`,
 
 Recipes are YAML files with schema version `1` or `2`. They describe the agent's
 prompt, Endor access paths, host capabilities, inputs, outputs, evals, and
-published host editions. Schema v2 recipes may also point to `actions.yaml`
-for semantic side-effect contracts such as opening change requests or
-requesting exception-policy approval.
+published host editions. Simple read-only or dry-run recipes can omit
+`actions.yaml`; schema v2 mutating recipes must point to it, and schema v2
+adapter-backed recipes should use it when the runtime needs explicit action and
+evidence contracts.
 
 | Field | Purpose |
 | --- | --- |
@@ -801,7 +802,7 @@ requesting exception-policy approval.
 | `safety_class`, `mutations` | Safety contract. Recipes may be `read_only`, `dry_run`, or explicitly `mutating` with matching host capabilities. |
 | `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |
 | `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |
-| `action_contracts_path` | Optional schema v2 path to `actions.yaml`, which declares semantic side effects and adapter requirements. |
+| `action_contracts_path` | Schema v2 path to `actions.yaml`. Required for mutating recipes; omit for simple read-only or dry-run recipes unless explicit adapter-backed action and evidence contracts are needed. |
 | `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |
 | `compatible_hosts` | Hosts that should receive generated artifacts. |
 | `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |

@@ -46,7 +46,7 @@ Recipes declare:
 - `host_capabilities_required`: command execution, file reads, file writes, and change-request creation
 - `mutations`: the mutation types a mutating workflow may perform
 - `compatible_hosts`: the hosts intentionally published for that recipe
-- `action_contracts_path`: semantic side-effect contracts for schema v2 mutating recipes
+- `action_contracts_path`: semantic side-effect and adapter-evidence contracts for schema v2 recipes
 
 The recipe validator rejects unsafe combinations, including:
 
@@ -57,6 +57,10 @@ The recipe validator rejects unsafe combinations, including:
 - MCP recipes without declared public Endor MCP tools
 - schema v2 mutating recipes without `actions.yaml`
 - mutating actions that do not require confirmation
+
+Simple read-only or dry-run recipes can omit `actions.yaml`. Use it when a
+schema v2 recipe is mutating or when an explicitly adapter-backed workflow needs
+runtime action and evidence contracts.
 
 ## Endor Knowledge Pack Controls
 
@@ -252,7 +256,7 @@ Each bundle includes:
 - `agent.md`: generated runtime-neutral instructions
 - `agent.manifest.json`: machine-readable transports, capabilities, actions, wrappers, degradation, and runtime controls
 - `output-contract.md`: inputs, outputs, adapter contracts, and mechanical gates
-- optional `actions.yaml`, `endorctl-setup.md`, and `architecture.svg`
+- `actions.yaml` when the source recipe declares action contracts, plus optional `endorctl-setup.md` and `architecture.svg`
 
 Portable runtime integrations must enforce the controls in
 `docs/portable-runtime-conformance.md`. The portable agent must fail closed to

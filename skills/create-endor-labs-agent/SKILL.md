@@ -126,17 +126,18 @@ Create:
 ```text
   source/agents/<agent-id>/
   recipe.yaml
-  actions.yaml
+  actions.yaml        # schema v2 mutating or explicit adapter-backed workflows
   instructions.md
   evals/cases.yaml
   architecture.svg
 ```
 
 The exact source files are `source/agents/<agent-id>/recipe.yaml`,
-optional `source/agents/<agent-id>/actions.yaml`,
 `source/agents/<agent-id>/instructions.md`, and
 `source/agents/<agent-id>/evals/cases.yaml`, plus required
-`source/agents/<agent-id>/architecture.svg`.
+`source/agents/<agent-id>/architecture.svg`. Add
+`source/agents/<agent-id>/actions.yaml` only when the recipe is schema v2
+mutating or explicitly adapter-backed.
 
 Use a lowercase kebab-case `agent-id`.
 
@@ -161,8 +162,10 @@ host has exactly one selected edition, the generated public layout is flattened
 to `claude-code/<agent>/` or `claude-managed-agents/<agent>/`.
 
 For schema v2 mutating agents, create `actions.yaml` with one action per
-semantic side effect. Mutating actions must set `confirmation_required: true`.
-Use `availability: requires_adapter` when the prompt can describe or request an
+semantic side effect. For schema v2 adapter-backed read-only or dry-run agents,
+create `actions.yaml` only when the runtime needs explicit action and evidence
+contracts. Mutating actions must set `confirmation_required: true`. Use
+`availability: requires_adapter` when the prompt can describe or request an
 action but cannot complete it without a host service, such as Slack approval or
 Endor policy writeback.
 
@@ -273,7 +276,7 @@ For every new agent, test:
   repeatable Endor evidence
 - structured output contract coverage when the agent promises a strict final
   JSON shape
-- schema v2 action contracts validate when the agent is mutating or adapter-backed
+- schema v2 action contracts validate when the agent is mutating or explicitly adapter-backed
 - generated artifacts carry load-bearing prompt rules
 - generated tool restrictions match declared capabilities
 - MCP-free agents do not emit MCP frontmatter or Endor MCP setup text

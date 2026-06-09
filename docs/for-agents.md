@@ -12,7 +12,7 @@ approval gates.
 | Install the Cursor package | `.cursor-plugin/`, root `agents/`, and root `skills/` | Gemini extension files or generated package internals |
 | Run Cursor SDK automation | `cursor-sdk/README.md` | Cursor IDE plugin metadata or Gemini extension files |
 | Install one agent | `<host>/<agent>/README.md` | `source/agents/<agent>/` |
-| Change agent behavior | `source/agents/<agent>/recipe.yaml`, `instructions.md`, optional `actions.yaml`, evals, and `architecture.svg` | Generated host directories |
+| Change agent behavior | `source/agents/<agent>/recipe.yaml`, `instructions.md`, evals, `architecture.svg`, and `actions.yaml` when schema v2 mutating or explicitly adapter-backed | Generated host directories |
 | Change generated docs or package shape | `src/endor_agent_kit/publication/` and tests | Installed plugin cache copies |
 | Propose or create a new agent | `docs/contributing-agents.md` and `source/agents/<agent>/` | `ai-plugins` |
 | Publish or mirror packages | `docs/plugin-release-checklist.md` and `docs/distribution-sync.md` | `ai-plugins` generated packages before source regeneration |
