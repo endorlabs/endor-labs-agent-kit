@@ -14,13 +14,23 @@ def test_create_endor_labs_agent_skill_is_available_and_actionable():
     assert "source/agents/<agent-id>/instructions.md" in content
     assert "source/agents/<agent-id>/evals/cases.yaml" in content
     assert "source/agents/<agent-id>/architecture.svg" in content
+    assert "source/endor-knowledge-pack/workflows/<agent-id>.yaml" in content
+    assert "source/endor-knowledge-pack/query-recipes.yaml" in content
+    assert "src/endor_agent_kit/structured_output_contracts.py" in content
+    assert "codex" in content
+    assert "gemini" in content
+    assert "cursor-sdk" in content
     assert "Generic agent blueprint" in content
     assert "default to MCP-free `endorctl_api`" in content
+    assert "Do not introduce a runtime dependency on `endorlabs-sdk`" in content
     assert "must not depend on proprietary source" in content
     assert "endor-agent-kit validate source/agents/<agent-id>/recipe.yaml" in content
     assert "endor-agent-kit doctor-new-agent source/agents/<agent-id>/recipe.yaml" in content
     assert "endor-agent-kit authoring-check source/agents/<agent-id>/recipe.yaml --new-agent" in content
     assert "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune" in content
+    assert "endor-agent-kit lifecycle prepare" in content
+    assert "validation-request.json" in content
+    assert "private runtime QA mechanics" in content
     assert "Read`, `Glob`, `Grep`, and\n`LS`" in content
 
 
