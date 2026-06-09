@@ -505,8 +505,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/agent_definitions.json" in written_paths
     assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in written_paths
     assert "assets/logo.svg" in written_paths
-    assert "GEMINI.md" not in written_paths
-    assert "gemini-extension.json" not in written_paths
+    assert ".mcp.json" in written_paths
+    assert "GEMINI.md" in written_paths
+    assert "gemini-extension.json" in written_paths
     assert existing_creator_skill.read_text() == "# existing creator skill\n"
 
     for agent_id in codex_agent_ids:
@@ -600,6 +601,29 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "mcpServers" not in gemini_plugin_manifest
     assert "settings" not in gemini_plugin_manifest
     assert "license" not in gemini_plugin_manifest
+    root_mcp_config = json.loads((dest / ".mcp.json").read_text())
+    assert root_mcp_config == {
+        "mcpServers": {
+            "endor-cli-tools": {
+                "args": ["-y", "endorctl", "ai-tools", "mcp-server"],
+                "command": "npx",
+                "type": "stdio",
+            }
+        }
+    }
+    root_gemini_manifest = json.loads((dest / "gemini-extension.json").read_text())
+    assert root_gemini_manifest["name"] == "endor-labs-agent-kit"
+    assert root_gemini_manifest["contextFileName"] == "GEMINI.md"
+    assert root_gemini_manifest["skills"] == {"path": "./skills"}
+    assert root_gemini_manifest["mcpServers"] == {
+        "endor-cli-tools": {
+            "args": ["-y", "endorctl", "ai-tools", "mcp-server"],
+            "command": "npx",
+        }
+    }
+    root_gemini_context = (dest / "GEMINI.md").read_text()
+    assert "Prefer documented Endor API or `endorctl api` lookups" in root_gemini_context
+    assert "configure Endor MCP without explicit user approval" in root_gemini_context
     antigravity_plugin_manifest = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "plugin.json").read_text()
     )
@@ -767,6 +791,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "https://github.com/endorlabs/ai-plugins" in gemini_setup
     assert "zip archives" in gemini_setup
     assert "Do not add plugin-wide MCP automatically" in gemini_setup
+    assert "Prefer documented Endor API or `endorctl api` lookups" in gemini_setup
+    assert "npx -y endorctl ai-tools mcp-server" in gemini_setup
+    assert "validate in a fresh host session" in gemini_setup
     assert "Gemini subagents are preview functionality" in gemini_setup
     antigravity_setup = (
         dest
@@ -781,6 +808,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl host-check`" in antigravity_setup
     assert "antigravity plugin validate" in antigravity_setup
     assert "Do not add plugin-wide MCP automatically" in antigravity_setup
+    assert "Prefer documented Endor API or `endorctl api` lookups" in antigravity_setup
     assert "Invoke bundled subagents as `@agent-name`" in antigravity_setup
     assert "evidence_queries" in antigravity_setup
     assert "Antigravity subagents are host-managed" in antigravity_setup
@@ -803,6 +831,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl host-check`" in cursor_setup
     assert "separate from the Gemini CLI extension" in cursor_setup
     assert "Do not add plugin-wide MCP automatically" in cursor_setup
+    assert "Prefer documented Endor API or `endorctl api` lookups" in cursor_setup
     cursor_skill = (dest / "skills" / "probe-droid" / "SKILL.md").read_text()
     assert "Cursor Host Contract" in cursor_skill
     assert "Gemini CLI Host Contract" not in cursor_skill

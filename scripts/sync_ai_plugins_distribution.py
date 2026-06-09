@@ -16,10 +16,13 @@ SYNC_DIRECTORIES = (
 )
 
 SYNC_FILES = (
+    (".mcp.json", ".mcp.json"),
     ("CHANGELOG.md", "CHANGELOG.md"),
+    ("GEMINI.md", "GEMINI.md"),
     (".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"),
     (".agents/plugins/marketplace.json", ".agents/plugins/marketplace.json"),
     ("assets/logo.svg", "assets/logo.svg"),
+    ("gemini-extension.json", "gemini-extension.json"),
 )
 
 SOURCE_ONLY_ROOT_SKILLS = frozenset({

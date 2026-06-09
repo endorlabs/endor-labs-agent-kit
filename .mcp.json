@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "endor-cli-tools": {
+      "args": [
+        "-y",
+        "endorctl",
+        "ai-tools",
+        "mcp-server"
+      ],
+      "command": "npx",
+      "type": "stdio"
+    }
+  }
+}

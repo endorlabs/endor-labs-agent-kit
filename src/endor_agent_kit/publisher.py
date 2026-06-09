@@ -24,6 +24,7 @@ from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_packag
 from endor_agent_kit.publication.cursor_plugin import publish_cursor_plugin_package
 from endor_agent_kit.publication.cursor_sdk import publish_cursor_sdk_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
+from endor_agent_kit.publication.mcp_support import publish_root_mcp_support
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
@@ -130,6 +131,7 @@ def publish_recipes(
         if gemini_plugin is not None:
             written.extend(gemini_plugin.written)
             plugin_packages.append(gemini_plugin.package_record)
+            written.extend(publish_root_mcp_support(prepared_recipes, destination))
         antigravity_plugin = publish_antigravity_plugin_package(prepared_recipes, destination)
         if antigravity_plugin is not None:
             written.extend(antigravity_plugin.written)
