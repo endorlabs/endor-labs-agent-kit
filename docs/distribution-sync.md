@@ -80,10 +80,12 @@ python3 "$AGENT_KIT_REPO/scripts/sync_ai_plugins_distribution.py" \
 ```
 
 Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
-`ai-plugins`. Do not treat root `GEMINI.md` or root `gemini-extension.json` as
-Cursor package files; Gemini CLI uses `plugins/gemini/endor-labs-agent-kit/`.
-The sync script copies `CHANGELOG.md`; update it in Agent Kit source before
-opening a release-oriented distribution PR.
+`ai-plugins`. Do not treat root `GEMINI.md` as a Cursor package file or as an
+installable Gemini extension manifest; Gemini CLI uses
+`plugins/gemini/endor-labs-agent-kit/`. The sync script removes stale root
+`gemini-extension.json` files from `ai-plugins` because the multi-host repo root
+is not a Gemini extension root. The sync script copies `CHANGELOG.md`; update it
+in Agent Kit source before opening a release-oriented distribution PR.
 
 ## Mirror Validation
 
@@ -103,7 +105,7 @@ import py_compile
 
 py_compile.compile("cursor-sdk/run_cursor_agent.py", cfile="/tmp/run_cursor_agent.pyc", doraise=True)
 PY
-python3 -m json.tool gemini-extension.json >/dev/null
+test ! -e gemini-extension.json
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
 diff -qr "$AGENT_KIT_REPO/plugins" ./plugins
@@ -130,12 +132,12 @@ release matrix.
 - Do not enable both Claude package ids in the same profile for normal use.
 - Do not couple Cursor package sync to Gemini CLI extension files.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
-- The root `.mcp.json` file and root `gemini-extension.json` may declare the
-  source-approved `endor-cli-tools` MCP server so users can opt into Endor MCP
-  setup. The root Gemini manifest must point skills at
-  `./plugins/gemini/endor-labs-agent-kit/skills`, not the root Cursor skills.
-  Generated host package manifests under `plugins/*/endor-labs-agent-kit/` must
-  still stay MCP-free unless that host package explicitly validates MCP. Setup
-  guidance remains CLI-first and must not start, register, or rely on MCP without
-  explicit user approval.
+- The root `.mcp.json` file may declare the source-approved `endor-cli-tools`
+  MCP server so users can opt into Endor MCP setup. Do not generate a root
+  `gemini-extension.json`; Gemini discovers bundled skills from the installed
+  extension root's `skills/` directory, and the repository root's `skills/`
+  directory is the Cursor package surface. Generated host package manifests
+  under `plugins/*/endor-labs-agent-kit/` must still stay MCP-free unless that
+  host package explicitly validates MCP. Setup guidance remains CLI-first and
+  must not start, register, or rely on MCP without explicit user approval.
 - Do not run live `endorctl api` smoke tests without explicit user approval and namespace provenance.

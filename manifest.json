@@ -1801,9 +1801,9 @@
           "sha256": "6a8c4378a215a24c2b35d657a52db5ea9133456653e8a8a0e6c2dad204ed0e49"
         },
         {
-          "bytes": 3073,
+          "bytes": 3208,
           "path": "plugins/README.md",
-          "sha256": "4027dcda521b7704349be35db6cc23fc337a2ab32fc35265a0f70fa488891484"
+          "sha256": "e937753e5e7f31ce6f6cb257d50bc27b999aca4d0b8b1fdcef5b7449a49dbf64"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -1907,9 +1907,9 @@
           "sha256": "f8219674223a09172cb88b402826377722a6f72d41071540bc471cd218415e47"
         },
         {
-          "bytes": 3073,
+          "bytes": 3208,
           "path": "plugins/README.md",
-          "sha256": "4027dcda521b7704349be35db6cc23fc337a2ab32fc35265a0f70fa488891484"
+          "sha256": "e937753e5e7f31ce6f6cb257d50bc27b999aca4d0b8b1fdcef5b7449a49dbf64"
         }
       ],
       "display_name": "Endor Labs AI Plugins (Legacy)",
@@ -2020,9 +2020,9 @@
           "sha256": "f8219674223a09172cb88b402826377722a6f72d41071540bc471cd218415e47"
         },
         {
-          "bytes": 3073,
+          "bytes": 3208,
           "path": "plugins/README.md",
-          "sha256": "4027dcda521b7704349be35db6cc23fc337a2ab32fc35265a0f70fa488891484"
+          "sha256": "e937753e5e7f31ce6f6cb257d50bc27b999aca4d0b8b1fdcef5b7449a49dbf64"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -2058,9 +2058,9 @@
           "sha256": "1fc3510215e581212489bc3ece951fe50075b0cb8162d7d4ed6572ef22e02ea0"
         },
         {
-          "bytes": 11060,
+          "bytes": 3897,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml",
-          "sha256": "319a71dc2936456e44ee0083b508a2d135293124465b4b730b2499aac1392827"
+          "sha256": "4ea8ea4d9f9d2256f6d4ba677bdb36f94291266ab790c50487a618c6b7fcdb31"
         },
         {
           "bytes": 28033,
@@ -2138,9 +2138,9 @@
           "sha256": "61714d233f475253412a62d148ccb90c047ef0ca584422a1b58b5d9e2d67a934"
         },
         {
-          "bytes": 3073,
+          "bytes": 3208,
           "path": "plugins/README.md",
-          "sha256": "4027dcda521b7704349be35db6cc23fc337a2ab32fc35265a0f70fa488891484"
+          "sha256": "e937753e5e7f31ce6f6cb257d50bc27b999aca4d0b8b1fdcef5b7449a49dbf64"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -2160,14 +2160,14 @@
     {
       "artifacts": [
         {
-          "bytes": 711,
+          "bytes": 700,
           "path": ".cursor-plugin/marketplace.json",
-          "sha256": "f7f33d0e9be7971b293d611335984c78882df3744757840a269c04292deb1b1b"
+          "sha256": "b885851d2a886a302ea4c9efd61ce59d70e7c637a4bf9d1b33af561d002dd5d3"
         },
         {
-          "bytes": 668,
+          "bytes": 657,
           "path": ".cursor-plugin/plugin.json",
-          "sha256": "7280c94858ee357aa4990484933afa0e173372f31f020cc6a842aacf58403572"
+          "sha256": "40711829c0f7390dcf0746ad1e6254d134ee6d69d04b1fce8b0298f2fc33c2b2"
         },
         {
           "bytes": 8908,
@@ -2280,7 +2280,7 @@
         "sca-remediation"
       ],
       "marketplace_path": ".cursor-plugin/marketplace.json",
-      "name": "endor-labs-agent-kit",
+      "name": "endorlabs",
       "path": ".",
       "version": "2.0.0"
     },
@@ -2463,9 +2463,9 @@
           "sha256": "21cec7758ade91447649b6c48de1d574838a44ad0cadee351f7d1e4bf64140b5"
         },
         {
-          "bytes": 3073,
+          "bytes": 3208,
           "path": "plugins/README.md",
-          "sha256": "4027dcda521b7704349be35db6cc23fc337a2ab32fc35265a0f70fa488891484"
+          "sha256": "e937753e5e7f31ce6f6cb257d50bc27b999aca4d0b8b1fdcef5b7449a49dbf64"
         }
       ],
       "display_name": "Endor Labs Agent Kit",

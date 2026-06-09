@@ -467,6 +467,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     existing_creator_skill = dest / "skills" / "create-endor-labs-agent" / "SKILL.md"
     existing_creator_skill.parent.mkdir(parents=True)
     existing_creator_skill.write_text("# existing creator skill\n")
+    stale_root_gemini_manifest = dest / "gemini-extension.json"
+    stale_root_gemini_manifest.write_text("{}\n", encoding="utf-8")
 
     written = publish_recipes(recipes, dest, include_plugins=True)
 
@@ -507,7 +509,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "assets/logo.svg" in written_paths
     assert ".mcp.json" in written_paths
     assert "GEMINI.md" in written_paths
-    assert "gemini-extension.json" in written_paths
+    assert "gemini-extension.json" not in written_paths
+    assert not (dest / "gemini-extension.json").exists()
     assert existing_creator_skill.read_text() == "# existing creator skill\n"
 
     for agent_id in codex_agent_ids:
@@ -639,19 +642,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
             }
         }
     }
-    root_gemini_manifest = json.loads((dest / "gemini-extension.json").read_text())
-    assert root_gemini_manifest["name"] == "endor-labs-agent-kit"
-    assert root_gemini_manifest["version"] == "2.0.0"
-    assert root_gemini_manifest["contextFileName"] == "GEMINI.md"
-    assert root_gemini_manifest["skills"] == {"path": "./plugins/gemini/endor-labs-agent-kit/skills"}
-    assert root_gemini_manifest["mcpServers"] == {
-        "endor-cli-tools": {
-            "args": ["-y", "endorctl", "ai-tools", "mcp-server"],
-            "command": "npx",
-        }
-    }
     root_gemini_context = (dest / "GEMINI.md").read_text()
-    assert "Do not load the root Cursor skills as Gemini workflows" in root_gemini_context
+    assert "Do not install the repository root as a" in root_gemini_context
+    assert "Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/`" in root_gemini_context
+    assert "Do not load the root Cursor skills as Gemini" in root_gemini_context
     assert "Prefer documented Endor API or `endorctl api` lookups" in root_gemini_context
     assert "configure Endor MCP without explicit user approval" in root_gemini_context
     antigravity_plugin_manifest = json.loads(
@@ -666,7 +660,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "license" not in antigravity_plugin_manifest
     assert "hooks" not in antigravity_plugin_manifest
     cursor_plugin_manifest = json.loads((dest / ".cursor-plugin" / "plugin.json").read_text())
-    assert cursor_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert cursor_plugin_manifest["name"] == "endorlabs"
     assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
     assert cursor_plugin_manifest["author"]["url"] == "https://www.endorlabs.com/"
@@ -725,7 +719,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["keywords"])
     cursor_marketplace = json.loads((dest / ".cursor-plugin" / "marketplace.json").read_text())
     assert cursor_marketplace["name"] == "endorlabs"
-    assert cursor_marketplace["plugins"][0]["name"] == "endor-labs-agent-kit"
+    assert cursor_marketplace["plugins"][0]["name"] == "endorlabs"
     assert cursor_marketplace["plugins"][0]["source"] == "./"
     assert cursor_marketplace["plugins"][0]["version"] == cursor_plugin_manifest["version"]
     cursor_sdk_definitions = json.loads((dest / "cursor-sdk" / "agent_definitions.json").read_text())
@@ -991,13 +985,13 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     }
     assert set(packages) == {
         ("antigravity", "endor-labs-agent-kit"),
-        ("claude-code", "ai-plugins"),
-        ("claude-code", "endor-labs-agent-kit"),
-        ("codex", "endor-labs-agent-kit"),
-        ("cursor", "endor-labs-agent-kit"),
-        ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk"),
-        ("gemini", "endor-labs-agent-kit"),
-    }
+            ("claude-code", "ai-plugins"),
+            ("claude-code", "endor-labs-agent-kit"),
+            ("codex", "endor-labs-agent-kit"),
+            ("cursor", "endorlabs"),
+            ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk"),
+            ("gemini", "endor-labs-agent-kit"),
+        }
     assert packages[("codex", "endor-labs-agent-kit")] == {
         "artifacts": packages[("codex", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
@@ -1046,13 +1040,13 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "path": "plugins/antigravity/endor-labs-agent-kit",
         "version": antigravity_plugin_manifest["version"],
     }
-    assert packages[("cursor", "endor-labs-agent-kit")] == {
-        "artifacts": packages[("cursor", "endor-labs-agent-kit")]["artifacts"],
+    assert packages[("cursor", "endorlabs")] == {
+        "artifacts": packages[("cursor", "endorlabs")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
         "host": "cursor",
         "included_agents": list(cursor_agent_ids),
         "marketplace_path": ".cursor-plugin/marketplace.json",
-        "name": "endor-labs-agent-kit",
+        "name": "endorlabs",
         "path": ".",
         "version": cursor_plugin_manifest["version"],
     }
@@ -1105,7 +1099,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/README.md" in antigravity_artifact_paths
     cursor_artifact_paths = {
         artifact["path"]
-        for artifact in packages[("cursor", "endor-labs-agent-kit")]["artifacts"]
+        for artifact in packages[("cursor", "endorlabs")]["artifacts"]
     }
     assert ".cursor-plugin/plugin.json" in cursor_artifact_paths
     assert ".cursor-plugin/marketplace.json" in cursor_artifact_paths

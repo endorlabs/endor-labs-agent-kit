@@ -327,7 +327,10 @@ Generated plugin packages currently include:
   a root `plugin.json`.
 - `.cursor-plugin/` plus root `agents/` and `skills/`: Cursor plugin metadata,
   generated Cursor workflow agents, setup agent, and support skills. Cursor
-  does not generate or install `GEMINI.md` or `gemini-extension.json`.
+  does not install Gemini CLI extension files; use
+  `plugins/gemini/endor-labs-agent-kit/` for Gemini.
+- Root `.mcp.json` and `GEMINI.md`: optional MCP support context for the
+  multi-host repo root. The root must not contain `gemini-extension.json`.
 - `cursor-sdk/`: Cursor Python SDK automation package with generated prompt
   files, `agent_definitions.json`, `requirements.txt`, and a runnable
   `run_cursor_agent.py` launcher for local or cloud SDK agents.

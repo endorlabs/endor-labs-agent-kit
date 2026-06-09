@@ -93,10 +93,13 @@ and installs `plugins/gemini/endor-labs-agent-kit/` rather than installing the
 multi-host repository root. The package does not generate or publish a zip
 artifact.
 
-The repository root compatibility surface is separate from the generated
-Gemini package. Root `.mcp.json` and root `gemini-extension.json` may include
-the source-approved `endor-cli-tools` MCP server metadata so users can opt into
-MCP setup. Generated Gemini package metadata under
+The repository root MCP support surface is separate from the generated Gemini
+package. Root `.mcp.json` may include the source-approved `endor-cli-tools` MCP
+server metadata so users can opt into MCP setup, and root `GEMINI.md` can point
+agents at the correct package. The repository root must not generate
+`gemini-extension.json`: Gemini discovers bundled skills from the installed
+extension root's `skills/` directory, while the repository root `skills/`
+directory is the Cursor package surface. Generated Gemini package metadata under
 `plugins/gemini/endor-labs-agent-kit/` remains MCP-free unless provider
 validation explicitly changes that package contract.
 
@@ -140,9 +143,10 @@ The generated Cursor package includes:
   `source/plugin-support/setup/setup.md`.
 - `assets/logo.svg`.
 
-Cursor is intentionally not a Gemini wrapper. It does not generate `GEMINI.md`
-or `gemini-extension.json`; those remain part of the Gemini CLI package under
-`plugins/gemini/endor-labs-agent-kit/`.
+Cursor is intentionally not a Gemini wrapper. Its installable package does not
+depend on Gemini metadata; the Gemini CLI extension files live under
+`plugins/gemini/endor-labs-agent-kit/`. The repository root `GEMINI.md` is
+support context only, not an installable Gemini extension manifest.
 
 ## Implemented Cursor SDK Automation Shape
 

@@ -104,8 +104,9 @@ is the public distribution mirror. Normal package sync should be generated from
 this repo and byte-for-byte identical for `plugins/`. Cursor mirror sync should
 copy only `.cursor-plugin/`, generated root workflow `agents`, generated root
 workflow `skills/`, and `assets/logo.svg`. Cursor SDK mirror sync should copy
-`cursor-sdk/`. Do not copy Gemini root compatibility files as Cursor package
-output. Use `docs/distribution-sync.md` before editing or syncing that repo.
+`cursor-sdk/`. Do not copy root Gemini compatibility manifests as Cursor package
+output; the multi-host repo root is not a Gemini extension root. Use
+`docs/distribution-sync.md` before editing or syncing that repo.
 
 New agents, skills, hooks, and action contracts must be proposed and reviewed in
 this source repo with `docs/contributing-agents.md`. After a maintainer merges

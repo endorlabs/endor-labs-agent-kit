@@ -151,8 +151,13 @@ def _check_root_mcp_support(root: Path, errors: list[str]) -> None:
     root_files = (
         root / ".mcp.json",
         root / "GEMINI.md",
-        root / "gemini-extension.json",
     )
+    if (root / "gemini-extension.json").exists():
+        errors.append(
+            "gemini-extension.json: root Gemini extension manifest must not be generated; "
+            "install plugins/gemini/endor-labs-agent-kit instead"
+        )
+
     if not any(path.exists() for path in root_files):
         return
 
@@ -169,23 +174,13 @@ def _check_root_mcp_support(root: Path, errors: list[str]) -> None:
     if mcp_config and _dict(mcp_config.get("mcpServers")).get(ENDOR_MCP_SERVER_NAME) != expected_mcp_server:
         errors.append(f".mcp.json: must declare {ENDOR_MCP_SERVER_NAME} stdio server")
 
-    gemini_manifest = _load_json_mapping(root, root / "gemini-extension.json", errors)
-    if gemini_manifest:
-        if gemini_manifest.get("contextFileName") != "GEMINI.md":
-            errors.append("gemini-extension.json: contextFileName must be GEMINI.md")
-        if gemini_manifest.get("skills") != {"path": "./plugins/gemini/endor-labs-agent-kit/skills"}:
-            errors.append("gemini-extension.json: skills path must be ./plugins/gemini/endor-labs-agent-kit/skills")
-        expected_gemini_server = {
-            "args": ENDOR_MCP_SERVER_ARGS,
-            "command": ENDOR_MCP_SERVER_COMMAND,
-        }
-        if _dict(gemini_manifest.get("mcpServers")).get(ENDOR_MCP_SERVER_NAME) != expected_gemini_server:
-            errors.append(f"gemini-extension.json: must declare {ENDOR_MCP_SERVER_NAME} server")
-
     gemini_context = root / "GEMINI.md"
     if gemini_context.is_file():
         text = gemini_context.read_text(encoding="utf-8")
         for required in (
+            "Do not install the repository root as a",
+            "Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/`",
+            "Do not load the root Cursor skills as Gemini",
             "Prefer documented Endor API or `endorctl api` lookups",
             "Use Endor MCP only when a selected MCP-capable",
             "use the `endor-agent-kit-setup` skill",
@@ -562,8 +557,10 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
     manifest_path = root / ".cursor-plugin" / "plugin.json"
     manifest = _load_json_mapping(root, manifest_path, errors)
     if manifest:
-        if manifest.get("name") != "endor-labs-agent-kit":
-            errors.append(".cursor-plugin/plugin.json: name must be endor-labs-agent-kit")
+        if manifest.get("name") != "endorlabs":
+            errors.append(".cursor-plugin/plugin.json: name must be endorlabs")
+        if manifest.get("displayName") != "Endor Labs Agent Kit":
+            errors.append(".cursor-plugin/plugin.json: displayName must be Endor Labs Agent Kit")
         if manifest.get("version") != "2.0.0":
             errors.append(".cursor-plugin/plugin.json: version must be 2.0.0")
         if manifest.get("logo") != "assets/logo.svg":
@@ -586,12 +583,12 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             (
                 _dict(item)
                 for item in entries
-                if _dict(item).get("name") == "endor-labs-agent-kit"
+                if _dict(item).get("name") == "endorlabs"
             ),
             {},
         )
         if not entry:
-            errors.append(".cursor-plugin/marketplace.json: missing endor-labs-agent-kit plugin entry")
+            errors.append(".cursor-plugin/marketplace.json: missing endorlabs plugin entry")
         elif entry.get("source") != "./":
             errors.append(".cursor-plugin/marketplace.json: Cursor package source must be './'")
 

@@ -42,7 +42,9 @@ Current generated package slices:
 The Cursor package is generated at repository root as `.cursor-plugin/`,
 root `agents/`, root `skills/`, and `assets/logo.svg` because the public
 Cursor package source is `./`. It is intentionally separate from Gemini
-CLI extension files such as `GEMINI.md` and `gemini-extension.json`.
+CLI extension files under `gemini/endor-labs-agent-kit/`. The repository
+root may include `.mcp.json` and non-installable `GEMINI.md` support
+context, but must not include a root `gemini-extension.json`.
 
 The Cursor SDK automation package is generated under `cursor-sdk/` with
 Python SDK prompt definitions, a runnable `run_cursor_agent.py` launcher,
