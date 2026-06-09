@@ -65,7 +65,7 @@ test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version cursor-sdk/agent_definitions.json)"
-test "1.0.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
+test "1.1.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
 test -f CHANGELOG.md
 ```
 

@@ -45,7 +45,7 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     agent = persisted["agents"][0]
     assert request == persisted
     assert persisted["kind"] == lifecycle.VALIDATION_REQUEST_KIND
-    assert persisted["source"]["package_version"] == "0.2.0"
+    assert persisted["source"]["package_version"] == "2.0.0"
     assert persisted["request"]["scope"] == "explicit"
     assert persisted["request"]["publishable"] is True
     assert agent["id"] == "sca-remediation"
@@ -95,7 +95,7 @@ def test_cli_lifecycle_prepare_writes_request_and_summary(tmp_path, monkeypatch,
         return {
             "source": {
                 "package": "endor-labs-agent-kit",
-                "package_version": "0.2.0",
+                "package_version": "2.0.0",
                 "git": {"commit": "abc1234", "branch": "plugin-option"},
             },
             "request": {"scope": "explicit", "publishable": True},
