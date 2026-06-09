@@ -43,6 +43,7 @@ package metadata.
   the current `.cursor-plugin/`, root `agents/`, root `skills/`, and
   `assets/logo.svg` package.
 - Gemini CLI keeps the generated package at
-  `plugins/gemini/endor-labs-agent-kit/` and the root compatibility files
-  `GEMINI.md` and `gemini-extension.json` in `ai-plugins`. The old Gemini zip
-  artifact is intentionally not generated or supported.
+  `plugins/gemini/endor-labs-agent-kit/`, while the repository root keeps only
+  `.mcp.json` and non-installable `GEMINI.md` support context. Root
+  `gemini-extension.json` and the old Gemini zip artifact are intentionally not
+  generated or supported.

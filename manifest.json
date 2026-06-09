@@ -755,9 +755,9 @@
         {
           "artifacts": [
             {
-              "bytes": 4419,
+              "bytes": 4381,
               "path": "codex/ai-sast-triage/README.md",
-              "sha256": "06c9ac1fc2b78a588a5503b52a63962f9f1124007a22b060fd0a5c91f9cd8a57"
+              "sha256": "28f3799e05c7b871c719b7e79f61d04606b1c997079ea6b1575dc46046dcf417"
             },
             {
               "bytes": 64474,
@@ -800,9 +800,9 @@
         {
           "artifacts": [
             {
-              "bytes": 3952,
+              "bytes": 3914,
               "path": "codex/endor-troubleshooter/README.md",
-              "sha256": "ee0d1f5cc818a10c58c4429d45c232be727377ea1de036f0d16d1c0ac798202a"
+              "sha256": "2c838ee4569bda754d368659fa716843b8bac921e33b1ee76ba5e0e3b6242db4"
             },
             {
               "bytes": 73905,
@@ -840,9 +840,9 @@
         {
           "artifacts": [
             {
-              "bytes": 2494,
+              "bytes": 2456,
               "path": "codex/malware-response/README.md",
-              "sha256": "ecb79026feac5c68a660ba2409a9861f40064c35ec94466f990b72fe81571f52"
+              "sha256": "1bc1585a2317ddcf6abf271ea7df36bc54ff116e9055ad16811c045736901375"
             },
             {
               "bytes": 38580,
@@ -880,9 +880,9 @@
         {
           "artifacts": [
             {
-              "bytes": 3719,
+              "bytes": 3681,
               "path": "codex/probe-droid/README.md",
-              "sha256": "9e6ac1c5838a16197681fdeb049a39cac1b501efb7218db1da9abc55cead366a"
+              "sha256": "85615c0cdaa965fcbf7987f2ebc97c8c15274c032d6f74b8e835a7e36006949a"
             },
             {
               "bytes": 73634,
@@ -920,9 +920,9 @@
         {
           "artifacts": [
             {
-              "bytes": 3684,
+              "bytes": 3646,
               "path": "codex/sca-remediation/README.md",
-              "sha256": "f7c0045a2fab6b28e5dcdeb8b16c806825b1da4a1f9de71354e5b7ca56d6f2bc"
+              "sha256": "3239028d73792b888083ee139cab5afc41ed061881ca12e9dbcd61a3bbe8a487"
             },
             {
               "bytes": 68270,
@@ -2053,9 +2053,9 @@
           "sha256": "3207e92424628f20b77a658f4648e361ca6fa2877b609c43a5933c84723607d8"
         },
         {
-          "bytes": 4804,
+          "bytes": 4835,
           "path": "plugins/codex/endor-labs-agent-kit/README.md",
-          "sha256": "1fc3510215e581212489bc3ece951fe50075b0cb8162d7d4ed6572ef22e02ea0"
+          "sha256": "17001bfd5ae363302edfb9946f00468bb536c21859e86db5283cd1be01fb1e7f"
         },
         {
           "bytes": 3897,
@@ -2093,9 +2093,9 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 17333,
+          "bytes": 17630,
           "path": "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py",
-          "sha256": "afd4c8a3cc034aea1b109936cb8c3abaa5ea095bd0623262aa16c5e5086f1ce0"
+          "sha256": "1745f6397bca24da8670fa44c04c77ac7c0161b3e5be846ea11fb38e64acb34d"
         },
         {
           "bytes": 27304,
@@ -2103,9 +2103,9 @@
           "sha256": "c8598c03b4dbd04b7cf82e9d0aca33cb0b02d8175cf83bdf6fb6671c2e8cef01"
         },
         {
-          "bytes": 9930,
+          "bytes": 9937,
           "path": "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "e11a9b302f888921f3bc5f5635a23997c26c313d62bfe8efb56ee9e443b119f8"
+          "sha256": "aa8aa3560d2198cd51a64314a1b66d64808a5e97c442bbb19fc8be19b225b212"
         },
         {
           "bytes": 20909,

@@ -310,7 +310,7 @@ def root_catalog_readme(
         "| --- | --- | --- |",
         "| Claude Code | `plugins/claude/endor-labs-agent-kit/`, legacy `plugins/claude/ai-plugins/`, and `claude-code/<agent>/` | Claude Code plugin marketplace, or `.claude/agents/` for manual per-agent installs |",
         "| Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |",
-        "| Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$CODEX_HOME/skills/<agent>/` for manual skill installs |",
+        "| Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$HOME/.agents/skills/<agent>/` for manual skill installs |",
         "| Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |",
         "| Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |",
         "| Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.svg` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |",
@@ -598,7 +598,7 @@ def root_catalog_readme(
         "endor-agent-kit lint-sca-pr-body pr-body.md",
         "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo",
         "endor-agent-kit check-install --host claude-managed-agents --agent probe-droid",
-        "endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex",
+        "endor-agent-kit check-install --host codex --agent sca-remediation --skills-home ~/.agents/skills",
         "endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation",
         "endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation",
         "endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md",
@@ -794,7 +794,7 @@ def root_catalog_readme(
         "| `endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md` | Lint the policy decision comment for policy name/UUID, project label, evidence, and raw selector leakage. |",
         "| `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |",
         "| `endor-agent-kit check-install --host claude-managed-agents --agent probe-droid` | Check whether a staged Claude Managed Agents bundle matches the generated catalog bundle. |",
-        "| `endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex` | Check whether an installed Codex skill directory matches the generated catalog bundle. |",
+        "| `endor-agent-kit check-install --host codex --agent sca-remediation --skills-home ~/.agents/skills` | Check whether an installed Codex skill directory matches the generated catalog bundle. |",
         "| `endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation` | Check whether a copied portable bundle matches the generated catalog bundle. |",
         "",
         "Supported compile targets are `claude-code`, `claude-managed-agents`,",
@@ -1022,11 +1022,11 @@ def _agent_example(agent_id: str) -> str:
 def _codex_install_commands(catalog: list[_AgentCatalogEntry]) -> list[str]:
     if not catalog:
         return ["# No Codex skills are currently published."]
-    lines = ["mkdir -p \"${CODEX_HOME:-$HOME/.codex}/skills\""]
+    lines = ["mkdir -p \"$HOME/.agents/skills\""]
     for item in sorted(catalog, key=lambda value: value.name.lower()):
         lines.extend([
             f"cp -R /path/to/endor-labs-agent-kit/codex/{item.id} \\",
-            f"  \"${{CODEX_HOME:-$HOME/.codex}}/skills/{item.id}\"",
+            f"  \"$HOME/.agents/skills/{item.id}\"",
         ])
     return lines
 

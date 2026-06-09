@@ -253,15 +253,16 @@ codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
 codex plugin remove endor-labs-agent-kit@endor-labs-agent-kit
 ```
 
-Validate bundled custom-agent installation without touching the user's real
-Codex home:
+Validate bundled custom-agent and skill installation without touching the user's
+real Codex home or user skills directory:
 
 ```bash
 TMP_CODEX_HOME="$(mktemp -d)"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --yes --codex-home "$TMP_CODEX_HOME"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME"
-rm -rf "$TMP_CODEX_HOME"
+TMP_CODEX_SKILLS_HOME="$(mktemp -d)"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --yes --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
+rm -rf "$TMP_CODEX_HOME" "$TMP_CODEX_SKILLS_HOME"
 ```
 
 Public repository validation after tag push:

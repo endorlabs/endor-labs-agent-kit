@@ -233,8 +233,8 @@ approval gates.
 
 ## Codex-Specific Rules
 
-- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled skills under `${CODEX_HOME:-~/.codex}/skills`.
-- Do not write project-local `.codex/agents/` or `.codex/skills/` files unless the user explicitly requests that advanced option.
+- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills`.
+- Do not write project-local `.codex/agents/` or repo-local `.agents/skills/` files unless the user explicitly requests that advanced option.
 - Use provenance-gated updates: missing files may be installed; managed stale files may be updated after approval; unknown files or directories must not be overwritten.
 - Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale plugin package and start a fresh Codex thread before judging agent behavior.
 - Use `--purge-stale-plugin-cache --yes` only after user approval; it moves stale Endor Agent Kit cache directories to `${CODEX_HOME:-~/.codex}/plugins/cache-backups/`.

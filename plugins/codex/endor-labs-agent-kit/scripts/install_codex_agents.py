@@ -53,6 +53,12 @@ def codex_home(value: str | None) -> Path:
     return Path(os.environ.get("CODEX_HOME", "~/.codex")).expanduser()
 
 
+def codex_skills_home(value: str | None) -> Path:
+    if value:
+        return Path(value).expanduser()
+    return Path("~/.agents/skills").expanduser()
+
+
 def bundled_agents(plugin_root: Path) -> list[Path]:
     return sorted((plugin_root / "agents").glob("*.toml"))
 
@@ -141,7 +147,7 @@ def copy_item(kind: str, source: Path, target: Path) -> None:
         shutil.copytree(source, target)
 
 
-def bundled_items(plugin_root: Path, home: Path, *, agents_only: bool, skills_only: bool) -> list[tuple[str, Path, Path]]:
+def bundled_items(plugin_root: Path, home: Path, skills_home: Path, *, agents_only: bool, skills_only: bool) -> list[tuple[str, Path, Path]]:
     items: list[tuple[str, Path, Path]] = []
     if not skills_only:
         agents_root = home / "agents"
@@ -150,9 +156,8 @@ def bundled_items(plugin_root: Path, home: Path, *, agents_only: bool, skills_on
             for source in bundled_agents(plugin_root)
         )
     if not agents_only:
-        skills_root = home / "skills"
         items.extend(
-            ("skill", source, skills_root / source.name)
+            ("skill", source, skills_home / source.name)
             for source in bundled_skills(plugin_root)
         )
     return items
@@ -398,11 +403,13 @@ def describe_block(kind: str, target: Path, status: str) -> str:
 def run(args: argparse.Namespace) -> int:
     plugin_root = Path(__file__).resolve().parents[1]
     home = codex_home(args.codex_home)
+    skills_home = codex_skills_home(args.skills_home)
     if args.purge_stale_plugin_cache:
         return purge_stale_plugin_cache(plugin_root, home, yes=args.yes)
     items = bundled_items(
         plugin_root,
         home,
+        skills_home,
         agents_only=args.agents_only,
         skills_only=args.skills_only,
     )
@@ -467,6 +474,7 @@ def main(argv: list[str] | None = None) -> int:
     scope.add_argument("--agents-only", action="store_true", help="Limit action to bundled Codex custom agents")
     scope.add_argument("--skills-only", action="store_true", help="Limit action to bundled Codex skills")
     parser.add_argument("--codex-home", help="Override CODEX_HOME")
+    parser.add_argument("--skills-home", help="Override Codex user skills directory")
     parser.add_argument("--yes", action="store_true", help="Apply install/update/uninstall actions")
     args = parser.parse_args(argv)
     if not (args.status or args.install or args.uninstall or args.purge_stale_plugin_cache):

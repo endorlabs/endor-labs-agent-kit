@@ -42,7 +42,7 @@ def check_claude_code_install(
 
 def check_codex_install(
     agent_id: str,
-    codex_home: str | Path,
+    skills_home: str | Path,
     *,
     catalog_root: str | Path = ".",
 ) -> list[str]:
@@ -51,7 +51,7 @@ def check_codex_install(
     return _check_bundle_artifact_install(
         agent_id,
         CODEX_HOST,
-        Path(codex_home) / "skills" / agent_id,
+        Path(skills_home) / agent_id,
         catalog_root=catalog_root,
     )
 

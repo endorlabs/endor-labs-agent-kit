@@ -13,7 +13,7 @@ This is the Codex generated skill for `probe-droid`.
 
 | Reader | First move |
 | --- | --- |
-| Human operator | Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session. Then use the example prompt below: Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only. |
+| Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/probe-droid/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
@@ -22,9 +22,9 @@ This is the Codex generated skill for `probe-droid`.
 Copy this generated skill directory into your Codex skills directory:
 
 ```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$HOME/.agents/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/probe-droid \
-  "${CODEX_HOME:-$HOME/.codex}/skills/probe-droid"
+  "$HOME/.agents/skills/probe-droid"
 ```
 
 Start a new Codex session after installing or replacing the skill.

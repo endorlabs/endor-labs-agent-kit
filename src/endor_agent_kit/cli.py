@@ -218,6 +218,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     check_install_parser.add_argument("--repo", type=Path)
     check_install_parser.add_argument("--codex-home", type=Path)
+    check_install_parser.add_argument("--skills-home", type=Path)
     check_install_parser.add_argument("--managed-agent-dir", type=Path)
     check_install_parser.add_argument("--portable-dir", type=Path)
     check_install_parser.add_argument("--catalog-root", default=Path("."), type=Path)
@@ -402,13 +403,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.command == "check-install":
         if args.host == "codex":
-            codex_home = args.codex_home or Path.home() / ".codex"
+            if args.codex_home is not None and args.skills_home is None:
+                print("ERROR: --codex-home does not control Codex skill installs; use --skills-home")
+                return 1
+            skills_home = args.skills_home or Path.home() / ".agents" / "skills"
             errors = check_codex_install(
                 args.agent,
-                codex_home,
+                skills_home,
                 catalog_root=args.catalog_root,
             )
-            install_path = codex_home / "skills" / args.agent / "SKILL.md"
+            install_path = skills_home / args.agent / "SKILL.md"
         elif args.host == "portable":
             if args.portable_dir is None:
                 print("ERROR: --portable-dir is required for --host portable")

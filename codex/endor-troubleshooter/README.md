@@ -14,7 +14,7 @@ This is the Codex generated skill for `endor-troubleshooter`.
 
 | Reader | First move |
 | --- | --- |
-| Human operator | Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session. Then use the example prompt below: Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only. |
+| Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/endor-troubleshooter/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
@@ -23,9 +23,9 @@ This is the Codex generated skill for `endor-troubleshooter`.
 Copy this generated skill directory into your Codex skills directory:
 
 ```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$HOME/.agents/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/endor-troubleshooter \
-  "${CODEX_HOME:-$HOME/.codex}/skills/endor-troubleshooter"
+  "$HOME/.agents/skills/endor-troubleshooter"
 ```
 
 Start a new Codex session after installing or replacing the skill.

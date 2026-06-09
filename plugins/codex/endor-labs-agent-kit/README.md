@@ -59,7 +59,7 @@ Use the endor-agent-kit-setup skill, or the endor-agent-kit-setup-agent custom a
 ```
 
 The setup skill can install or update managed Endor Codex custom agents
-and bundled skills under `${CODEX_HOME:-~/.codex}` after explicit approval. It does
+under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills` after explicit approval. It does
 not run scans, run `endorctl host-check`, edit shell profiles, install
 `gh`, or install language runtimes and package managers.
 
@@ -90,7 +90,7 @@ approval gates. Setup never performs those workflow actions.
 
 If plugin installation is unavailable, install individual generated Codex
 skills from the repository-level `codex/<agent>/` directories into
-`${CODEX_HOME:-~/.codex}/skills/<agent>`.
+`$HOME/.agents/skills/<agent>`.
 
 ## Provider Docs
 
