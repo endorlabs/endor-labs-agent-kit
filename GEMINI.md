@@ -1,5 +1,9 @@
 # Endor Labs Agent Kit Root Package
 
+This root compatibility manifest points Gemini CLI at the generated
+Gemini extension skills under `plugins/gemini/endor-labs-agent-kit/skills`.
+Do not load the root Cursor skills as Gemini workflows.
+
 Use Endor Labs Agent Kit workflows only within their generated safety
 contracts. Prefer documented Endor API or `endorctl api` lookups when a
 workflow supports them. Use Endor MCP only when a selected MCP-capable

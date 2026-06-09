@@ -10,7 +10,8 @@
   "plugins": [
     {
       "author": {
-        "name": "Endor Labs"
+        "name": "Endor Labs",
+        "url": "https://www.endorlabs.com/"
       },
       "category": "Developer Tools",
       "description": "Endor Labs Agent Kit setup and security workflow agents and skills.",

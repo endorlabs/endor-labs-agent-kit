@@ -643,7 +643,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert root_gemini_manifest["name"] == "endor-labs-agent-kit"
     assert root_gemini_manifest["version"] == "2.0.0"
     assert root_gemini_manifest["contextFileName"] == "GEMINI.md"
-    assert root_gemini_manifest["skills"] == {"path": "./skills"}
+    assert root_gemini_manifest["skills"] == {"path": "./plugins/gemini/endor-labs-agent-kit/skills"}
     assert root_gemini_manifest["mcpServers"] == {
         "endor-cli-tools": {
             "args": ["-y", "endorctl", "ai-tools", "mcp-server"],
@@ -651,6 +651,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         }
     }
     root_gemini_context = (dest / "GEMINI.md").read_text()
+    assert "Do not load the root Cursor skills as Gemini workflows" in root_gemini_context
     assert "Prefer documented Endor API or `endorctl api` lookups" in root_gemini_context
     assert "configure Endor MCP without explicit user approval" in root_gemini_context
     antigravity_plugin_manifest = json.loads(
@@ -668,6 +669,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert cursor_plugin_manifest["name"] == "endor-labs-agent-kit"
     assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
+    assert cursor_plugin_manifest["author"]["url"] == "https://www.endorlabs.com/"
     assert cursor_plugin_manifest["logo"] == "assets/logo.svg"
     assert cursor_plugin_manifest["agents"] == "./agents/"
     assert cursor_plugin_manifest["skills"] == "./skills/"
@@ -818,6 +820,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "folder trust prompt" in gemini_setup
     assert "tagged GitHub repository" in gemini_setup
     assert "https://github.com/endorlabs/ai-plugins" in gemini_setup
+    assert "gemini extensions install https://github.com/endorlabs/ai-plugins" not in gemini_setup
+    assert "gemini extensions install ./ai-plugins/plugins/gemini/endor-labs-agent-kit" in gemini_setup
     assert "zip archives" in gemini_setup
     assert "Do not add plugin-wide MCP automatically" in gemini_setup
     assert "Prefer documented Endor API or `endorctl api` lookups" in gemini_setup
@@ -890,6 +894,11 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions" in cursor_sdk_runner
     assert "agent_definitions.json" in cursor_sdk_runner
     assert "CURSOR_API_KEY" in cursor_sdk_runner
+    assert "import sys" not in cursor_sdk_runner
+    assert "Cloud repository: {args.repo_url}" in cursor_sdk_runner
+    assert "Cloud ref: {args.ref}" in cursor_sdk_runner
+    assert "Local workspace: {workspace}" in cursor_sdk_runner
+    assert "Workspace: {workspace}" not in cursor_sdk_runner
     cursor_sdk_prompt = (dest / "cursor-sdk" / "agents" / "endor-probe-droid-agent.md").read_text()
     assert "Cursor SDK Host Contract" in cursor_sdk_prompt
     assert "host=cursor-sdk" in cursor_sdk_prompt

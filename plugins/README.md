@@ -49,7 +49,8 @@ Python SDK prompt definitions, a runnable `run_cursor_agent.py` launcher,
 and `agent_definitions.json`. Use it for CI, orchestration, and backend
 automation; use the root Cursor plugin for customer-facing Cursor IDE UX.
 
-Gemini installs from the generated extension directory for local validation
-or from the tagged GitHub repository for public distribution. Antigravity
-installs from the generated plugin directory; no release zip is generated
-for either target in v1.
+Gemini installs from the generated extension directory for local validation.
+For public distribution, clone the tagged GitHub repository and install
+`plugins/gemini/endor-labs-agent-kit/` rather than the multi-host repo root.
+Antigravity installs from the generated plugin directory; no release zip
+is generated for either target in v1.

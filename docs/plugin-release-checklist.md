@@ -303,14 +303,16 @@ gh release create "$VERSION" \
 Public repository validation after the release exists:
 
 ```bash
-gemini extensions install https://github.com/endorlabs/ai-plugins --ref "$VERSION"
+git clone --depth 1 --branch "$VERSION" https://github.com/endorlabs/ai-plugins ai-plugins-gemini-release
+gemini extensions install ./ai-plugins-gemini-release/plugins/gemini/endor-labs-agent-kit
 gemini extensions list
 gemini extensions uninstall endor-labs-agent-kit
 ```
 
 Do not create or attach a Gemini zip artifact. Use the local extension
-directory for local testing and the tagged GitHub repository for public release
-installs.
+directory for local testing. For public release installs, clone the tagged
+GitHub repository and install the generated extension directory, not the
+multi-host repository root.
 
 ## Antigravity CLI
 

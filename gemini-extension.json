@@ -31,7 +31,7 @@
     "url": "https://github.com/endorlabs/ai-plugins"
   },
   "skills": {
-    "path": "./skills"
+    "path": "./plugins/gemini/endor-labs-agent-kit/skills"
   },
   "version": "2.0.0"
 }
