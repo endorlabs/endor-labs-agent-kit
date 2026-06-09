@@ -8,7 +8,7 @@ This is the Codex generated skill for `ai-sast-triage`.
 
 | Reader | First move |
 | --- | --- |
-| Human operator | Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session. Then use the example prompt below: Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate. |
+| Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/ai-sast-triage/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
@@ -17,9 +17,9 @@ This is the Codex generated skill for `ai-sast-triage`.
 Copy this generated skill directory into your Codex skills directory:
 
 ```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$HOME/.agents/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \
-  "${CODEX_HOME:-$HOME/.codex}/skills/ai-sast-triage"
+  "$HOME/.agents/skills/ai-sast-triage"
 ```
 
 Start a new Codex session after installing or replacing the skill.

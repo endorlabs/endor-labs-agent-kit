@@ -1140,6 +1140,7 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     publish_recipes(recipes, dest, include_plugins=True)
     script = dest / "plugins" / "codex" / "endor-labs-agent-kit" / "scripts" / "install_codex_agents.py"
     codex_home = tmp_path / "codex-home"
+    skills_home = tmp_path / "agents-home" / "skills"
 
     status = subprocess.run(
         [
@@ -1148,6 +1149,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
             "--status",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=True,
         capture_output=True,
@@ -1166,6 +1169,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
             "--yes",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=True,
         capture_output=True,
@@ -1175,8 +1180,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
     assert (codex_home / "agents" / "endor-troubleshooter-agent.toml").is_file()
     assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
-    assert (codex_home / "skills" / "sca-remediation" / "SKILL.md").is_file()
-    assert (codex_home / "skills" / "endor-agent-kit-setup" / "SKILL.md").is_file()
+    assert (skills_home / "sca-remediation" / "SKILL.md").is_file()
+    assert (skills_home / "endor-agent-kit-setup" / "SKILL.md").is_file()
 
     current = subprocess.run(
         [
@@ -1185,6 +1190,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
             "--status",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=True,
         capture_output=True,
@@ -1195,7 +1202,7 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     assert "skill:sca-remediation: current" in current.stdout
     assert "skill:endor-agent-kit-setup: current" in current.stdout
 
-    unmanaged_skill = codex_home / "skills" / "sca-remediation" / "SKILL.md"
+    unmanaged_skill = skills_home / "sca-remediation" / "SKILL.md"
     unmanaged_skill.write_text("# unmanaged user skill\n", encoding="utf-8")
     blocked = subprocess.run(
         [
@@ -1206,6 +1213,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
             "--skills-only",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=False,
         capture_output=True,
@@ -1284,6 +1293,9 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "endor-agent-kit lint-sca-pr-body pr-body.md" in root_readme
     assert "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo" in root_readme
     assert "endor-agent-kit check-install --host claude-managed-agents --agent probe-droid" in root_readme
+    assert "endor-agent-kit check-install --host codex --agent sca-remediation --skills-home ~/.agents/skills" in root_readme
+    assert "$HOME/.agents/skills/<agent>" in root_readme
+    assert "$CODEX_HOME/skills" not in root_readme
     assert "Endor Labs Upgrade Impact Analysis" in root_readme
     assert "Endor Labs Package Risk Summary" in root_readme
     assert "claude-code/upgrade-impact-analysis/" in root_readme

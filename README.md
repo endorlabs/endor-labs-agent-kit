@@ -207,7 +207,7 @@ are the generated host directories listed in the catalog.
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/`, legacy `plugins/claude/ai-plugins/`, and `claude-code/<agent>/` | Claude Code plugin marketplace, or `.claude/agents/` for manual per-agent installs |
 | Claude Managed Agents | `claude-managed-agents/<agent>/` | Anthropic Console or `ant` CLI agent and environment creation |
-| Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$CODEX_HOME/skills/<agent>/` for manual skill installs |
+| Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$HOME/.agents/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
 | Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.svg` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |
@@ -442,17 +442,17 @@ Copy the generated skill directory into your Codex skills directory, then
 start a new Codex session so the skill loader can see it.
 
 ```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$HOME/.agents/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \
-  "${CODEX_HOME:-$HOME/.codex}/skills/ai-sast-triage"
+  "$HOME/.agents/skills/ai-sast-triage"
 cp -R /path/to/endor-labs-agent-kit/codex/endor-troubleshooter \
-  "${CODEX_HOME:-$HOME/.codex}/skills/endor-troubleshooter"
+  "$HOME/.agents/skills/endor-troubleshooter"
 cp -R /path/to/endor-labs-agent-kit/codex/malware-response \
-  "${CODEX_HOME:-$HOME/.codex}/skills/malware-response"
+  "$HOME/.agents/skills/malware-response"
 cp -R /path/to/endor-labs-agent-kit/codex/probe-droid \
-  "${CODEX_HOME:-$HOME/.codex}/skills/probe-droid"
+  "$HOME/.agents/skills/probe-droid"
 cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \
-  "${CODEX_HOME:-$HOME/.codex}/skills/sca-remediation"
+  "$HOME/.agents/skills/sca-remediation"
 ```
 
 Then invoke it from Codex:
@@ -586,7 +586,7 @@ endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md
 endor-agent-kit lint-sca-pr-body pr-body.md
 endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo
 endor-agent-kit check-install --host claude-managed-agents --agent probe-droid
-endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex
+endor-agent-kit check-install --host codex --agent sca-remediation --skills-home ~/.agents/skills
 endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation
 endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation
 endor-agent-kit render-ai-sast-pr-body ai-sast-output.json > pr-body.md
@@ -782,7 +782,7 @@ generated `ai-plugins` distribution PR.
 | `endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md` | Lint the policy decision comment for policy name/UUID, project label, evidence, and raw selector leakage. |
 | `endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo` | Check whether a copied repo-level Claude Code agent matches the generated catalog artifact. |
 | `endor-agent-kit check-install --host claude-managed-agents --agent probe-droid` | Check whether a staged Claude Managed Agents bundle matches the generated catalog bundle. |
-| `endor-agent-kit check-install --host codex --agent sca-remediation --codex-home ~/.codex` | Check whether an installed Codex skill directory matches the generated catalog bundle. |
+| `endor-agent-kit check-install --host codex --agent sca-remediation --skills-home ~/.agents/skills` | Check whether an installed Codex skill directory matches the generated catalog bundle. |
 | `endor-agent-kit check-install --host portable --agent sca-remediation --portable-dir /path/to/runtime/agents/sca-remediation` | Check whether a copied portable bundle matches the generated catalog bundle. |
 
 Supported compile targets are `claude-code`, `claude-managed-agents`,

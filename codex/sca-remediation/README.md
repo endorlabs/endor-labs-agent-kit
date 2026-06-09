@@ -8,7 +8,7 @@ This is the Codex generated skill for `sca-remediation`.
 
 | Reader | First move |
 | --- | --- |
-| Human operator | Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session. Then use the example prompt below: Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve. |
+| Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
@@ -17,9 +17,9 @@ This is the Codex generated skill for `sca-remediation`.
 Copy this generated skill directory into your Codex skills directory:
 
 ```bash
-mkdir -p "${CODEX_HOME:-$HOME/.codex}/skills"
+mkdir -p "$HOME/.agents/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \
-  "${CODEX_HOME:-$HOME/.codex}/skills/sca-remediation"
+  "$HOME/.agents/skills/sca-remediation"
 ```
 
 Start a new Codex session after installing or replacing the skill.

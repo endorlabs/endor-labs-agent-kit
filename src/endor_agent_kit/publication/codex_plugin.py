@@ -367,8 +367,8 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe], version: s
         "",
         "## Codex-Specific Rules",
         "",
-        "- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled skills under `${CODEX_HOME:-~/.codex}/skills`.",
-        "- Do not write project-local `.codex/agents/` or `.codex/skills/` files unless the user explicitly requests that advanced option.",
+        "- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills`.",
+        "- Do not write project-local `.codex/agents/` or repo-local `.agents/skills/` files unless the user explicitly requests that advanced option.",
         "- Use provenance-gated updates: missing files may be installed; managed stale files may be updated after approval; unknown files or directories must not be overwritten.",
         "- Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale plugin package and start a fresh Codex thread before judging agent behavior.",
         "- Use `--purge-stale-plugin-cache --yes` only after user approval; it moves stale Endor Agent Kit cache directories to `${CODEX_HOME:-~/.codex}/plugins/cache-backups/`.",
@@ -518,7 +518,7 @@ def _codex_plugin_readme(
         "```",
         "",
         "The setup skill can install or update managed Endor Codex custom agents",
-        "and bundled skills under `${CODEX_HOME:-~/.codex}` after explicit approval. It does",
+        "under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills` after explicit approval. It does",
         "not run scans, run `endorctl host-check`, edit shell profiles, install",
         "`gh`, or install language runtimes and package managers.",
         "",
@@ -545,7 +545,7 @@ def _codex_plugin_readme(
         "",
         "If plugin installation is unavailable, install individual generated Codex",
         "skills from the repository-level `codex/<agent>/` directories into",
-        "`${CODEX_HOME:-~/.codex}/skills/<agent>`.",
+        "`$HOME/.agents/skills/<agent>`.",
         "",
         "## Provider Docs",
         "",
@@ -627,6 +627,12 @@ def _codex_agent_installer_script(version: str) -> str:
             if value:
                 return Path(value).expanduser()
             return Path(os.environ.get("CODEX_HOME", "~/.codex")).expanduser()
+
+
+        def codex_skills_home(value: str | None) -> Path:
+            if value:
+                return Path(value).expanduser()
+            return Path("~/.agents/skills").expanduser()
 
 
         def bundled_agents(plugin_root: Path) -> list[Path]:
@@ -717,7 +723,7 @@ def _codex_agent_installer_script(version: str) -> str:
                 shutil.copytree(source, target)
 
 
-        def bundled_items(plugin_root: Path, home: Path, *, agents_only: bool, skills_only: bool) -> list[tuple[str, Path, Path]]:
+        def bundled_items(plugin_root: Path, home: Path, skills_home: Path, *, agents_only: bool, skills_only: bool) -> list[tuple[str, Path, Path]]:
             items: list[tuple[str, Path, Path]] = []
             if not skills_only:
                 agents_root = home / "agents"
@@ -726,9 +732,8 @@ def _codex_agent_installer_script(version: str) -> str:
                     for source in bundled_agents(plugin_root)
                 )
             if not agents_only:
-                skills_root = home / "skills"
                 items.extend(
-                    ("skill", source, skills_root / source.name)
+                    ("skill", source, skills_home / source.name)
                     for source in bundled_skills(plugin_root)
                 )
             return items
@@ -974,11 +979,13 @@ def _codex_agent_installer_script(version: str) -> str:
         def run(args: argparse.Namespace) -> int:
             plugin_root = Path(__file__).resolve().parents[1]
             home = codex_home(args.codex_home)
+            skills_home = codex_skills_home(args.skills_home)
             if args.purge_stale_plugin_cache:
                 return purge_stale_plugin_cache(plugin_root, home, yes=args.yes)
             items = bundled_items(
                 plugin_root,
                 home,
+                skills_home,
                 agents_only=args.agents_only,
                 skills_only=args.skills_only,
             )
@@ -1043,6 +1050,7 @@ def _codex_agent_installer_script(version: str) -> str:
             scope.add_argument("--agents-only", action="store_true", help="Limit action to bundled Codex custom agents")
             scope.add_argument("--skills-only", action="store_true", help="Limit action to bundled Codex skills")
             parser.add_argument("--codex-home", help="Override CODEX_HOME")
+            parser.add_argument("--skills-home", help="Override Codex user skills directory")
             parser.add_argument("--yes", action="store_true", help="Apply install/update/uninstall actions")
             args = parser.parse_args(argv)
             if not (args.status or args.install or args.uninstall or args.purge_stale_plugin_cache):

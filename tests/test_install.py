@@ -164,13 +164,14 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
     )
     assert not (catalog / "codex" / "sca-remediation" / "SKILL.md").exists()
 
-    installed_skill = tmp_path / "codex-home" / "skills" / "sca-remediation"
+    skills_home = tmp_path / "agents-home" / "skills"
+    installed_skill = skills_home / "sca-remediation"
     installed_skill.mkdir(parents=True)
     (installed_skill / "SKILL.md").write_text("current", encoding="utf-8")
 
     missing_errors = check_codex_install(
         "sca-remediation",
-        tmp_path / "codex-home",
+        skills_home,
         catalog_root=catalog,
     )
     assert any("README.md" in error for error in missing_errors)
@@ -181,7 +182,7 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
 
     stale_errors = check_codex_install(
         "sca-remediation",
-        tmp_path / "codex-home",
+        skills_home,
         catalog_root=catalog,
     )
     assert any("actions.yaml" in error and "is stale" in error for error in stale_errors)
@@ -190,7 +191,7 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
 
     assert check_codex_install(
         "sca-remediation",
-        tmp_path / "codex-home",
+        skills_home,
         catalog_root=catalog,
     ) == []
 
@@ -219,6 +220,7 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert '# endor_agent_kit_package_name = "endor-labs-agent-kit"' in generated_agent
     assert f'# endor_agent_kit_package_version = "{package_version}"' in generated_agent
     codex_home = tmp_path / "codex-home"
+    skills_home = tmp_path / "agents-home" / "skills"
     stale_cache_manifest = (
         codex_home
         / "plugins"
@@ -260,7 +262,15 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     )
 
     status = subprocess.run(
-        [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
         check=True,
         capture_output=True,
         text=True,
@@ -318,7 +328,15 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert list(codex_home.glob("config.toml.bak-*"))
 
     clean_cache_status = subprocess.run(
-        [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
         check=True,
         capture_output=True,
         text=True,
@@ -342,7 +360,7 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     )
     assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
     assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
-    assert not (codex_home / "skills" / "sca-remediation" / "SKILL.md").exists()
+    assert not (skills_home / "sca-remediation" / "SKILL.md").exists()
 
     subprocess.run(
         [
@@ -353,13 +371,15 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
             "--yes",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=True,
         capture_output=True,
         text=True,
     )
-    skill = codex_home / "skills" / "sca-remediation" / "SKILL.md"
-    setup_skill = codex_home / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    skill = skills_home / "sca-remediation" / "SKILL.md"
+    setup_skill = skills_home / "endor-agent-kit-setup" / "SKILL.md"
     assert skill.is_file()
     assert setup_skill.is_file()
 
@@ -373,13 +393,15 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
             "--yes",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=True,
         capture_output=True,
         text=True,
     )
     assert "backed up existing managed skill" in refresh.stdout
-    assert list((codex_home / "skills").glob("sca-remediation.bak-*"))
+    assert list(skills_home.glob("sca-remediation.bak-*"))
 
     setup_skill.write_text("# unmanaged user setup skill\n", encoding="utf-8")
     blocked = subprocess.run(
@@ -391,6 +413,8 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
             "--yes",
             "--codex-home",
             str(codex_home),
+            "--skills-home",
+            str(skills_home),
         ],
         check=False,
         capture_output=True,
@@ -567,6 +591,49 @@ def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_pa
     output = capsys.readouterr().out
     assert "OK:" in output
     assert str(managed_agent_dir) in output
+
+
+def test_cli_check_install_uses_codex_skills_home(tmp_path, capsys):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        host="codex",
+        bundle_path="codex/sca-remediation",
+        primary_artifact_name="SKILL.md",
+        primary_artifact_path="codex/sca-remediation/SKILL.md",
+    )
+    skills_home = tmp_path / "agents-home" / "skills"
+    installed_skill = skills_home / "sca-remediation"
+    installed_skill.mkdir(parents=True)
+    (installed_skill / "SKILL.md").write_text("current", encoding="utf-8")
+
+    assert main([
+        "check-install",
+        "--host",
+        "codex",
+        "--agent",
+        "sca-remediation",
+        "--skills-home",
+        str(skills_home),
+        "--catalog-root",
+        str(catalog),
+    ]) == 0
+    output = capsys.readouterr().out
+    assert "OK:" in output
+    assert str(installed_skill / "SKILL.md") in output
+
+
+def test_cli_check_install_rejects_legacy_codex_home_for_skills(tmp_path, capsys):
+    assert main([
+        "check-install",
+        "--host",
+        "codex",
+        "--agent",
+        "sca-remediation",
+        "--codex-home",
+        str(tmp_path / "codex-home"),
+    ]) == 1
+    assert "--codex-home does not control Codex skill installs" in capsys.readouterr().out
 
 
 def test_cli_check_install_requires_portable_dir(tmp_path, capsys):
