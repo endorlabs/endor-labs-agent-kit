@@ -89,7 +89,9 @@ def _run_agent(args: argparse.Namespace, definition: dict[str, Any], prompt: str
         from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions
     except ImportError as exc:
         raise SystemExit(
-            "cursor-sdk is not installed. Run: python3 -m pip install -r cursor-sdk/requirements.txt"
+            "cursor-sdk is not installed. From cursor-sdk, run: "
+            "python3 -m pip install -r requirements.txt. From the repo root, run: "
+            "python3 -m pip install -r cursor-sdk/requirements.txt"
         ) from exc
 
     create_kwargs: dict[str, Any] = {

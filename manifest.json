@@ -2287,9 +2287,9 @@
     {
       "artifacts": [
         {
-          "bytes": 4676,
+          "bytes": 4643,
           "path": "cursor-sdk/README.md",
-          "sha256": "f0279a147f5c1b2db9e54fa0ec00ad227271e282adedc7b0eb139cca099ff1b5"
+          "sha256": "1b4fbda066e3671157776bdf97f434b8bb15609c30c87d636c643482f153e7ae"
         },
         {
           "bytes": 4707,
@@ -2367,9 +2367,9 @@
           "sha256": "65d1e5c94c612731f7149c1e460ee4ac8a7f3f7752d07d35f4d2d456d6c94203"
         },
         {
-          "bytes": 5235,
+          "bytes": 5351,
           "path": "cursor-sdk/run_cursor_agent.py",
-          "sha256": "92007990ececd870ef9cbd2ddb44416b2e7c650effecdb038cabacd154133f7a"
+          "sha256": "26a112d85a0b08ccd30edb9988af6620c68dd24d30c66947bac67d3d944063ba"
         }
       ],
       "display_name": "Endor Labs Agent Kit Cursor SDK",

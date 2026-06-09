@@ -21,13 +21,13 @@ python run_cursor_agent.py endor-agent-kit-setup-agent --workspace /path/to/repo
 If `uv` is unavailable, use:
 
 ```bash
-python3 -m pip install -r cursor-sdk/requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 ## Run A Local Agent
 
 ```bash
-python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \
+python run_cursor_agent.py endor-probe-droid-agent \
   --workspace /path/to/repo \
   "Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only."
 ```
@@ -35,7 +35,7 @@ python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \
 ## Run A Cloud Agent
 
 ```bash
-python cursor-sdk/run_cursor_agent.py endor-sca-remediation-agent \
+python run_cursor_agent.py endor-sca-remediation-agent \
   --mode cloud \
   --repo-url https://github.com/your-org/your-repo \
   --ref main \
