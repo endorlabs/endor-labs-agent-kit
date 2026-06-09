@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timezone
 
 CURRENT_PLUGIN_NAME = "endor-labs-agent-kit"
-CURRENT_PLUGIN_VERSION = "0.2.0"
+CURRENT_PLUGIN_VERSION = "2.0.0"
 ENDOR_PLUGIN_CACHE_NAMES = {
     CURRENT_PLUGIN_NAME,
     "endor-agent-kit-security-agents",

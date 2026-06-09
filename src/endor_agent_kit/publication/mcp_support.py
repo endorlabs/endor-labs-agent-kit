@@ -7,6 +7,7 @@ from pathlib import Path
 
 from endor_agent_kit.compilers.gemini import HOST as GEMINI_HOST
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
+from endor_agent_kit.publication.plugin_package_common import package_version
 
 ENDOR_MCP_SERVER_NAME = "endor-cli-tools"
 ENDOR_MCP_SERVER_COMMAND = "npx"
@@ -58,7 +59,10 @@ def publish_root_mcp_support(
     written.append(mcp_config)
 
     gemini_context = destination / "GEMINI.md"
-    gemini_context.write_text(_root_gemini_context(sorted(gemini_recipes, key=lambda item: item.recipe.id)), encoding="utf-8")
+    gemini_context.write_text(
+        _root_gemini_context(sorted(gemini_recipes, key=lambda item: item.recipe.id)),
+        encoding="utf-8",
+    )
     written.append(gemini_context)
 
     gemini_manifest = destination / "gemini-extension.json"
@@ -99,7 +103,7 @@ def _root_gemini_extension_manifest() -> dict[str, object]:
         "skills": {
             "path": "./skills",
         },
-        "version": "0.1.0",
+        "version": package_version(),
     }
 
 

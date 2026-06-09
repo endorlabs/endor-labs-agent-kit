@@ -8,7 +8,7 @@ import re
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
-PLUGIN_VERSION_FALLBACK = "0.2.0"
+PLUGIN_VERSION_FALLBACK = "2.0.0"
 
 
 def package_version() -> str:

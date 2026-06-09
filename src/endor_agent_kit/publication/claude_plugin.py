@@ -163,7 +163,7 @@ def publish_claude_plugin_package(
 
 LEGACY_CLAUDE_PLUGIN_NAME = "ai-plugins"
 LEGACY_CLAUDE_PLUGIN_DISPLAY_NAME = "Endor Labs AI Plugins (Legacy)"
-LEGACY_CLAUDE_PLUGIN_VERSION = "1.0.1"
+LEGACY_CLAUDE_PLUGIN_VERSION = "1.1.1"
 PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY = "endorlabs/ai-plugins"
 
 
@@ -355,7 +355,7 @@ def _claude_marketplace_manifest(
         "description": "Endor Labs Agent Kit Claude Code plugin marketplace.",
         "owner": {
             "name": "Endor Labs",
-            "email": "support@endorlabs.com",
+            "email": "support@endor.ai",
         },
         "plugins": [
             _claude_marketplace_entry(spec, source_path=source_paths[spec.name])
