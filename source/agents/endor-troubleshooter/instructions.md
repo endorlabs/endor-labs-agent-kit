@@ -163,18 +163,27 @@ resource for every request.
 
 Every response must include `evidence_queries[]`. Each entry records:
 
-- system: `endor`, `user_input`, or `public_docs`
-- command_or_query: exact read-only command, API path, public docs URL, or
-  provided-input field
-- purpose
-- status: `SUCCESS`, `PARTIAL`, `FAILED`, or `SKIPPED`
-- returned_count when known
-- fields_used
-- data_gaps
+- name: short human-readable evidence lane
+- resource: Endor resource, public-doc page, or provided-input field
+- source: `endorctl_api`, `endor_mcp`, `user_input`, `local_repository`, or
+  `public_docs`
+- status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
+- query_template_id: compact recipe id, API path id, or null
+- filter_summary: concise selector summary or null
+- field_mask_summary: concise field summary or null
+- result_count: integer count or null
+- reason: why the evidence was used, unavailable, or skipped
+
+`evidence_queries[]` rows must contain only those fields. Do not add
+`data_gaps`, `command`, `output`, `raw_query`, or raw command text inside an
+evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
+the missing signal in top-level `data_gaps[]` and summarize the issue in the
+row's `reason`.
 
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
 
+<!-- compact-plugin:omit-start -->
 ## Read-Only Endor Query Shapes
 
 Use documented read-only `endorctl api list`, `get`, or query commands only.
@@ -191,6 +200,15 @@ print full `resolved_dependencies`, deleted finding maps, full finding maps,
 credential-bearing integration specs, or every scan log entry unless the user
 explicitly asks for a raw export.
 
+Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`
+when the resource supports context filters. This matches the normal Endor
+project UI view. Use PR refs, commit SHA refs, `CONTEXT_TYPE_CI_RUN`, or
+all-context queries only when the user explicitly asks for PR/CI-run evidence
+or the troubleshooting lane is specifically about a PR/CI scan. When non-main
+context is intentional, label the scope in the answer and preserve
+`context.type` plus `spec.source_code_version.ref` in `evidence_queries[]`.
+Never merge PR/CI-run finding counts into main-context finding counts.
+
 Project or repository selector resolution:
 
 ```bash
@@ -199,6 +217,26 @@ endorctl api list --resource Project --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
 ```
+
+If that project or repository selector query returns no matching project in a
+proven namespace, retry the same read-only query with `--traverse` before
+reporting `PROJECT_NOT_FOUND`. This handles active `endorctl` configurations
+that point at a parent namespace while the repository project lives in a child
+namespace.
+
+```bash
+endorctl api list --resource Project --namespace <namespace> --traverse \
+  --filter '<name_or_repository_selector_filter>' \
+  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
+  -o json
+```
+
+When traverse finds the project in a child namespace, use the returned project
+namespace for later scoped reads when available. If the child namespace is not
+returned, keep `--traverse` on later project-scoped read-only lookups and label
+that evidence as parent namespace plus traverse. Record both the original and
+traverse query attempts in `evidence_queries[]`; never say a project is missing
+until both attempts have been evaluated.
 
 Scan execution evidence:
 
@@ -273,8 +311,8 @@ Package and dependency evidence:
 
 ```bash
 endorctl api list --resource PackageVersion --namespace <namespace> \
-  --filter 'meta.parent_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
+  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
+  --field-mask "uuid,context,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
 
@@ -395,8 +433,8 @@ Policy and finding evidence:
 
 ```bash
 endorctl api list --resource Finding --namespace <namespace> \
-  --filter 'meta.parent_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
+  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
+  --field-mask "uuid,context,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
 
@@ -425,6 +463,7 @@ Run optional lane queries only when the lane requires them. Optional queries mus
 fail independently and must not cancel the core scan, workflow, or project
 diagnosis.
 
+<!-- compact-plugin:omit-end -->
 ## Live Command Budget
 
 Keep live Endor commands bounded.
@@ -440,6 +479,7 @@ Keep live Endor commands bounded.
 - If a command fails, record its stderr summary in `evidence_queries[]` without
   printing secrets or full credential-bearing payloads.
 
+<!-- compact-plugin:omit-start -->
 ## Common Diagnosis Guidance
 
 Use exact evidence first. Use these patterns only when they match the provided
@@ -470,7 +510,7 @@ missing:
 If multiple surfaces are available, prefer the structured Endor evidence
 (`ScanResult.spec.exit_code`) over free-text. Surface both the numeric value
 and the `ENDORCTL_RC_*` name in `evidence_summary`. The public reference is
-`https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes/`.
+`https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes`.
 
 Canonical exit-code table (numeric value -> `ENDORCTL_RC_*` name -> product
 meaning):
@@ -933,6 +973,7 @@ issue before assuming the import pipeline is broken:
   Clarify this in the recommendation when the user expects findings to update
   from an imported SBOM.
 
+<!-- compact-plugin:omit-end -->
 ## Output Requirements
 
 Return a short human-readable summary first, followed by one JSON object.
@@ -968,7 +1009,19 @@ The JSON object must include:
     }
   ],
   "affected_resources": [],
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "Troubleshooting evidence lane",
+      "resource": "Project | ScanResult | Integration | user_input",
+      "source": "endorctl_api | endor_mcp | user_input | public_docs",
+      "status": "succeeded | partial | failed | skipped",
+      "query_template_id": "lane-specific-read | public-doc-reference | null",
+      "filter_summary": "Issue selector, resource id, or provided-input field",
+      "field_mask_summary": "Status, error, integration, workflow, and scan fields used",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "evidence_summary": {},
   "root_cause_hypotheses": [],
   "recommended_actions": [
@@ -1016,15 +1069,24 @@ For every recommended action, optimize for least friction:
 5. Scan rerun or create-style log request, confirmation required.
 6. Endor Support escalation with a redacted evidence packet.
 
+Recommended actions and validation steps must be human-readable intent, not
+copy/paste shell commands. Do not put raw `endorctl api`, `endorctl scan`,
+`git`, or `gh` command strings in `recommended_actions[]`, `validation_plan[]`,
+or `future_action_contracts[]`. If a future action would require a scan rerun,
+repository write, support ticket, API create/update/delete, or source-provider
+mutation, place it only in `future_action_contracts[]` with
+`confirmation_required: true`; do not duplicate it as an unconfirmed repository
+or validation row.
+
 ## Public Reference Links
 
 When useful, include public docs links in `recommended_actions[]` or
 `support_escalation_packet.include[]`:
 
 - Endor docs LLM index: `https://docs.endorlabs.com/llms.txt`
-- PR scans: `https://docs.endorlabs.com/scan/pr-scans/`
-- Container scanning: `https://docs.endorlabs.com/scan/containers/`
-- Endorctl exit codes: `https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes/`
+- PR scans: `https://docs.endorlabs.com/scan/pr-scans`
+- Container scanning: `https://docs.endorlabs.com/scan/containers`
+- Endorctl exit codes: `https://docs.endorlabs.com/best-practices/troubleshooting/endorctl-exitcodes`
 
 Do not claim a public doc says something unless it is stable enough to cite or
 the user provided the doc text in the current run.

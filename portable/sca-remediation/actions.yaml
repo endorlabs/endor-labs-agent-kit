@@ -23,9 +23,10 @@ actions:
   - namespace_provenance
   availability: available
   notes: Resolve from the current repository and human-readable selectors first. Resolve
-    namespace provenance from the current request, environment, or active endorctl
-    config before using -n. Do not use namespaces from prior sessions or ask for a
-    project UUID unless selectors are missing or ambiguous.
+    namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml
+    namespace key, or resolved project metadata before using -n. Do not use namespaces
+    from prior sessions or ask for a project UUID unless selectors are missing or
+    ambiguous.
 - id: query-sca-findings
   kind: endor.query
   portable_kind: endor.query
@@ -49,9 +50,11 @@ actions:
   - affected_packages
   - affected_manifests
   availability: available
-  notes: Query only repository-scoped SCA vulnerability findings. Preserve reachability,
-    exploitability, direct/transitive, fix availability, and package evidence for
-    ranking.
+  notes: Query only main-context repository-scoped SCA vulnerability findings by default.
+    Preserve context type, source ref, reachability, exploitability, direct/transitive,
+    fix availability, package UUID, dependency UUID, location, and package evidence
+    for ranking. Use PR/CI-run or all-context findings only when the user explicitly
+    asks and label that scope separately.
 - id: query-uia-evidence
   kind: endor.query
   portable_kind: endor.query

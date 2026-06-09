@@ -118,7 +118,12 @@ def _render_subagent(
     *,
     edition: str,
 ) -> str:
-    body = _instructions_for_edition(instructions, edition)
+    body = _instructions_for_edition(
+        instructions,
+        edition,
+        recipe_id=recipe.id,
+        structured_output_recipe=recipe,
+    )
     action_contracts = _render_action_contracts(actions)
     disallowed_tools = _disallowed_tools(recipe)
     posture = source_recipe_safety_posture(recipe)

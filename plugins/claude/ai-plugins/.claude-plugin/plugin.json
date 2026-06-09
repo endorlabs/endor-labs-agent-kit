@@ -1,0 +1,24 @@
+{
+  "author": {
+    "name": "Endor Labs",
+    "url": "https://www.endorlabs.com/"
+  },
+  "description": "Legacy Claude Code plugin id for Endor Labs Agent Kit workflows.",
+  "displayName": "Endor Labs AI Plugins (Legacy)",
+  "homepage": "https://github.com/endorlabs/ai-plugins",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "sca",
+    "sast",
+    "claude-code",
+    "agentic remediation",
+    "SAST remediation",
+    "agentic AppSec",
+    "AppSec",
+    "Upgrade Impact Analysis"
+  ],
+  "name": "ai-plugins",
+  "repository": "https://github.com/endorlabs/ai-plugins",
+  "version": "1.0.1"
+}

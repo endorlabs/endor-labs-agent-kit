@@ -22,9 +22,10 @@ actions:
   - namespace_provenance
   availability: available
   notes: Resolve the project from repository context first. Resolve namespace provenance
-    from the current request, environment, or active endorctl config before using
-    -n. Do not use namespaces from prior sessions or ask the user for a project UUID
-    unless human selectors are ambiguous or absent.
+    from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml
+    namespace key, or resolved project metadata before using -n. Do not use namespaces
+    from prior sessions or ask the user for a project UUID unless human selectors
+    are ambiguous or absent.
 - id: fetch-pinned-source
   kind: scm.source_read
   portable_kind: repository.read
@@ -53,8 +54,9 @@ actions:
   - source_location_provenance
   availability: available
   notes: Fetch source at the Endor finding's pinned SHA before generating a patch,
-    using finding UUID, source location, data-flow, exploit reproduction, and remediation
-    guidance to decide which sibling files may be needed.
+    using finding UUID, source location, context type, source ref, data-flow, exploit
+    reproduction, and remediation guidance to decide which sibling files may be needed.
+    Treat main-context findings as the default and label PR/CI-run context explicitly.
 - id: open-change-request
   kind: scm.change_request
   portable_kind: source.change_request.create
@@ -159,6 +161,7 @@ actions:
   inputs:
   - finding_uuid
   - project_uuid
+  - exception_match
   - policy_name
   - exception_reason
   - expiration_time
@@ -173,9 +176,11 @@ actions:
   availability: available
   notes: Create the scoped Endor exception policy only after rendering the policy
     spec, verifying AppSec approval evidence, checking existing Endor policies by
-    generated policy name and finding UUID, and receiving explicit user confirmation
-    in the runtime session. If an active matching policy already exists for the same
-    finding, project, and reason, reuse it and do not create another policy.
+    generated policy name and stable match fingerprint, and receiving explicit user
+    confirmation in the runtime session. Finding UUID is current-scan evidence only;
+    do not use it as the policy matcher. If an active matching policy already exists
+    for the same stable match fingerprint, project, and reason, reuse it and do not
+    create another policy.
 - id: post-decision-comment
   kind: scm.comment
   portable_kind: source.comment.create

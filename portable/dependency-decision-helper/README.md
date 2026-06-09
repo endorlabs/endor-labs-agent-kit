@@ -5,6 +5,16 @@ package version. Examples: "Is lodash 4.17.20 safe?", "Should I use requests
 2.28.0?", "Check log4j-core 2.14.1 before I add it." Returns a dependency
 verdict with evidence, conditions, alternatives, and any data gaps.
 
+## Start Here
+
+This is the portable runtime generated agent bundle for `dependency-decision-helper`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Load `agent.md` and `agent.manifest.json` into your runtime and wire only the adapters your policy allows. Then use the example prompt below: Use this agent to analyze repository <repo> with `dependency-decision-helper`. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/dependency-decision-helper/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Use This When
 
 Use this bundle when your organization already has an agent runtime, source-provider workflow, ticketing workflow, approval system, credential controls, and audit pipeline. The bundle supplies the generated agent and runtime contract; your platform supplies adapters.

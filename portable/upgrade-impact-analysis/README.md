@@ -6,6 +6,16 @@ Analysis, breaking changes, manifest targeting, or whether a dependency
 upgrade should happen now. The artifact queries Endor's read-only
 VersionUpgrade workflow through documented Endor API or endorctl paths.
 
+## Start Here
+
+This is the portable runtime generated agent bundle for `upgrade-impact-analysis`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Load `agent.md` and `agent.manifest.json` into your runtime and wire only the adapters your policy allows. Then use the example prompt below: Use this agent to analyze repository <repo> with `upgrade-impact-analysis`. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/upgrade-impact-analysis/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Use This When
 
 Use this bundle when your organization already has an agent runtime, source-provider workflow, ticketing workflow, approval system, credential controls, and audit pipeline. The bundle supplies the generated agent and runtime contract; your platform supplies adapters.

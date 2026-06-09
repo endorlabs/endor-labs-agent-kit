@@ -79,24 +79,44 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "MCP-free Claude Code artifact" in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
     assert "Natural-Language Intake" in prompt
+    assert "## Endor Knowledge Pack" in prompt
+    assert "SCA Remediation Evidence Contract" in prompt
+    assert "Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`" in prompt
+    assert "For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion" in prompt
+    assert "Do not enumerate broad Finding inventories before VersionUpgrade narrowing" in prompt
+    assert "Record missing credentials, namespace conflicts, project lookup failures" in prompt
     assert "Project scoping is mandatory" in prompt
+    assert "Default Endor Context Scope" in prompt
+    assert "Default to `context.type==CONTEXT_TYPE_MAIN` for Endor Findings" in prompt
+    assert "PR/CI-run findings" in prompt
+    assert "main-branch remediation counts" in prompt
     assert "Namespace Provenance" in prompt
     assert "Do not invent or reuse a namespace from unrelated examples" in prompt
     assert "Before running an Endor query with `-n <namespace>`" in prompt
+    assert "retry that same candidate with `--traverse`" in prompt
+    assert "Traverse fallback when the first project lookup has no match" in prompt
     assert "Do not print or dump an entire Endor config file" in prompt
     assert "extract only the namespace key" in prompt
     assert "namespace_provenance" in prompt
-    assert "Every output gate must include `project_resolution.project_uuid`" in prompt
+    assert "Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`" in prompt
+    assert 'Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace' in prompt
     assert "project_resolution" in prompt
     assert "package-level remediation" in prompt
     assert "VersionUpgrade/UIA evidence before calling" in prompt
     assert "A high finding count alone is not enough" in prompt
     assert "Do not require, configure, or start an Endor MCP server" in prompt
     assert "endorctl api list -r Finding" in prompt
+    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY' in prompt
+    assert "uuid,context,meta.name,meta.description,meta.parent_uuid" in prompt
+    assert "spec.source_code_version" in prompt
+    assert "spec.target_uuid" in prompt
+    assert "spec.dependency_file_paths" in prompt
     assert "endorctl api list -r VersionUpgrade" in prompt
     assert "Do not make current upstream/latest-version claims unless you verified them during the current run" in prompt
     assert "prepare-remediation-diff" in prompt
     assert "post-remediation-comment" in prompt
+    assert "Query only main-context repository-scoped SCA vulnerability findings by default" in prompt
+    assert "Use PR/CI-run or all-context findings only when the user explicitly asks" in prompt
     assert "resolve-upgrade-risk" in prompt
     assert "Risky / Indeterminate Upgrade Solver" in prompt
     assert "Other Non-Breaking / Low-Risk UIA-Backed PR Lane" in prompt
@@ -112,6 +132,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "approved_low_risk" in prompt
     assert "approved_with_validation_required" in prompt
     assert "blocked_needs_compatibility_analysis" in prompt
+    assert "Do not invent variants such as" in prompt
     assert "Do not say \"not expected to break\"" in prompt
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
@@ -127,7 +148,10 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "project-specific layout" not in prompt
     assert "services/api-gateway/pom.xml dependency:resolve" not in prompt
     assert "remediation/sca/<normalized-package-name>-<target-version>" in prompt
-    assert "Do not use unrelated branch families such as `endor/fix/...`" in prompt
+    assert "remediation/sca/golang.org-x-crypto-v0.48.0" in prompt
+    assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
+    assert "Do not use unrelated branch families such as" in prompt
+    assert "`endor/fix/...`" in prompt
     assert "complete AURI-style PR/MR body draft" in prompt
     assert "Do not stop at a PR title or patch plan only" in prompt
     assert "Do not return an empty `change_requests` array when a PR/MR is part of the requested plan" in prompt
@@ -136,6 +160,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "render `### 🔎 Advisories This Upgrade Fixes` as an actual heading" in prompt
     assert "markdown link syntax" in prompt
     assert "The JSON object must be syntactically valid" in prompt
+    assert "A prose-only summary is" in prompt
+    assert "exactly one syntactically valid top-level JSON object" in prompt
+    assert "risk_decision.source_usage_summary" in prompt
+    assert '"uia_evidence": [' in prompt
+    assert "`uia_evidence` as an array" in prompt
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
     assert "### At a Glance" in prompt
     assert "### 🔎 Advisories This Upgrade Fixes" in prompt

@@ -25,6 +25,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `summary` (string, required): Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.
 - `remediation_candidates` (list[object], required): Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.
 - `project_resolution` (object, required): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `selected_remediation` (object, required): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.
 - `uia_evidence` (list[object], required): VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.
 - `risk_decision` (object, required): Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.

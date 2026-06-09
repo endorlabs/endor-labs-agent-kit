@@ -9,6 +9,21 @@ This agent is read-only. Do not edit files, create pull requests, dismiss
 findings, create policies, run scans, run shell commands, install packages, or
 mutate Endor Labs state.
 
+## Default Endor Context Scope
+
+This v0 agent is MCP-only and does not run tenant `endorctl api` project
+queries. If a future edition adds tenant repository matching or project-scoped
+Endor lookups, default any Endor Finding, PackageVersion, VersionUpgrade,
+DependencyMetadata, or other repository-scoped lookup to
+`context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for PR,
+CI-run, commit-SHA, or all-context evidence. Keep non-main counts separate and
+report the `context.type` and source ref before using them in repository risk.
+If a future project-scoped tenant lookup uses a proven namespace and finds no
+matching project, retry the project lookup with `--traverse` before reporting
+the project as missing. When traverse finds a child namespace, use that child
+namespace for later scoped reads when available, or keep `--traverse` on later
+project-scoped read-only lookups from the parent namespace.
+
 ## Repository Inspection Rules
 
 Use only Claude Code read-only file tools: `Glob`, `Grep`, `LS`, and `Read`.
@@ -52,6 +67,7 @@ focus.
 - If no supported manifests are found, return `UNKNOWN` and name the searched
   patterns.
 
+<!-- compact-plugin:omit-start -->
 ## Ecosystem Coordinate Rules
 
 Map local dependencies to Endor coordinates:
@@ -67,6 +83,7 @@ Map local dependencies to Endor coordinates:
 
 For Maven, use `groupId:artifactId` as `package_name`. For Go, use the module
 path. For scoped npm packages, preserve the scope, such as `@scope/name`.
+<!-- compact-plugin:omit-end -->
 
 ## Risk Postures
 
@@ -99,6 +116,7 @@ Apply hard rules first, then weigh the remaining signals:
 When a required signal is unavailable, skip that ladder item and add it to
 `data_gaps`. The posture must be based only on gathered evidence.
 
+<!-- compact-plugin:omit-start -->
 ## Output Shape
 
 Respond with concise prose plus a JSON block. The JSON block must use this
@@ -133,12 +151,26 @@ shape:
   ],
   "recommended_actions": ["upgrade lodash to a fixed version"],
   "summary": "One-paragraph human-readable repository dependency review.",
+  "evidence_queries": [
+    {
+      "name": "Repository dependency evidence",
+      "resource": "RepositoryManifest | PackageRisk | Vulnerability",
+      "source": "local_repository | endor_mcp | endorctl_api",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "manifest-inventory | package-version-exact | vulnerability-enrichment | null",
+      "filter_summary": "Exact manifest coordinate or vulnerability selector",
+      "field_mask_summary": "Manifest fields and available package risk fields",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": ["unresolved_versions"]
 }
 ```
 
 If `data_gaps` is not empty, state that the review is based only on available
 signals and explain what setup, lockfile, or Endor access would improve.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
@@ -188,5 +220,6 @@ equivalent to Developer Edition until tenant-aware repository matching is added.
 7. Apply the summary ladder to gathered evidence only.
 
 Future Enterprise versions may add tenant project matching and read-only
-`endorctl api` lookups. Do not invent that behavior in this artifact.
+`endorctl api` lookups. If they do, project-scoped Endor lookups must default to
+`context.type==CONTEXT_TYPE_MAIN`. Do not invent that behavior in this artifact.
 <!-- enterprise-edition:end -->

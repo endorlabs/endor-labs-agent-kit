@@ -21,7 +21,7 @@ def _valid_payload() -> dict:
         "project_resolution": {
             "project_uuid": "proj-123",
             "namespace": "tenant-a",
-            "namespace_provenance": "active endorctl config namespace",
+            "namespace_provenance": "~/.endorctl/config.yaml ENDOR_NAMESPACE",
             "repo_full_name": "example/app",
             "project_name": "example-app",
         },
@@ -35,6 +35,8 @@ def _valid_payload() -> dict:
                 "source_location": "src/web/redirect_handler.ext:42",
                 "file_path": "src/web/redirect_handler.ext",
                 "source_sha": "abc123",
+                "source_ref": "main",
+                "sast_rule_id": "CWE-601",
                 "data_flow_summary": "User-controlled redirect target reaches response generation.",
                 "scorecard_summary": "Source, propagation, and sink evidence are present.",
                 "exploit_reproduction_summary": "Reproduction is concrete but PR prose remains sanitized.",
@@ -122,13 +124,39 @@ def _valid_payload() -> dict:
         "exception_policies": [
             {
                 "status": "created",
-                "policy_name": "ai-sast-exception-finding-12345678",
+                "policy_name": "ai-sast-exception-ai-sast-fingerprint-12345678",
                 "policy_uuid": "policy-123",
                 "user_confirmation": "approved",
+                "exception_match": {
+                    "strategy": "ai_sast_fingerprint",
+                    "match_fingerprint": (
+                        "ai_sast_fingerprint:proj-123:main:"
+                        "src/web/redirect_handler.ext:CWE-601:CWE-601:"
+                        "example.web.RedirectHandler.handle:42"
+                    ),
+                    "current_finding_uuid": "finding-12345678",
+                    "project_uuid": "proj-123",
+                    "context_type": "CONTEXT_TYPE_MAIN",
+                    "source_ref": "main",
+                    "cwes": ["CWE-601"],
+                    "sast_rule_id": "CWE-601",
+                    "location": {
+                        "relative_path": "src/web/redirect_handler.ext",
+                        "type": "LOCATION_TYPE_SINK",
+                        "function_name": "example.web.RedirectHandler.handle(java.lang.String)",
+                        "start_line": 42,
+                        "line_window": 50,
+                    },
+                },
                 "idempotency_check": {
                     "status": "none_found",
-                    "lookup_method": "endorctl api list -r Policy -n tenant-a filtered by generated policy name and finding UUID",
-                    "finding_uuid": "finding-12345678",
+                    "lookup_method": "listed Policy resources by policy name, stable match fingerprint, project, and reason",
+                    "match_strategy": "ai_sast_fingerprint",
+                    "match_fingerprint": (
+                        "ai_sast_fingerprint:proj-123:main:"
+                        "src/web/redirect_handler.ext:CWE-601:CWE-601:"
+                        "example.web.RedirectHandler.handle:42"
+                    ),
                     "project_uuid": "proj-123",
                 },
                 "policy_spec": {
@@ -142,8 +170,19 @@ def _valid_payload() -> dict:
                     "rule": (
                         "package endor_agent_kit_ai_sast_exception\n"
                         "match_finding[result] {\n"
-                        "  data.resources.Finding[i].uuid == \"finding-12345678\"\n"
+                        "  some i\n"
+                        "  location := data.resources.Finding[i].spec.finding_metadata.ai_sast_data.location\n"
                         "  data.resources.Finding[i].spec.project_uuid == \"proj-123\"\n"
+                        "  data.resources.Finding[i].context[\"type\"] == \"CONTEXT_TYPE_MAIN\"\n"
+                        "  data.resources.Finding[i].spec.method == \"SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST\"\n"
+                        "  data.resources.Finding[i].spec.source_code_version.ref == \"main\"\n"
+                        "  data.resources.Finding[i].spec.finding_metadata.custom.cwes[_] == \"CWE-601\"\n"
+                        "  data.resources.Finding[i].spec.finding_metadata.custom.sast_rule_id == \"CWE-601\"\n"
+                        "  location.relative_path == \"src/web/redirect_handler.ext\"\n"
+                        "  location.type == \"LOCATION_TYPE_SINK\"\n"
+                        "  location.function_name == \"example.web.RedirectHandler.handle(java.lang.String)\"\n"
+                        "  location.start_line >= 1\n"
+                        "  location.start_line <= 92\n"
                         "  result := {\"Endor\": {\"Finding\": data.resources.Finding[i].uuid}}\n"
                         "}"
                     ),
@@ -465,11 +504,14 @@ def test_ai_sast_exception_gate_rejects_duplicate_policy_write():
     payload = _valid_payload()
     payload["exception_policies"][0]["idempotency_check"] = {
         "status": "existing_reused",
-        "lookup_method": "endorctl api list -r Policy -n tenant-a filtered by generated policy name and finding UUID",
-        "finding_uuid": "finding-12345678",
+        "lookup_method": "listed Policy resources by policy name, stable match fingerprint, project, and reason",
+        "match_strategy": "ai_sast_fingerprint",
+        "match_fingerprint": payload["exception_policies"][0]["exception_match"][
+            "match_fingerprint"
+        ],
         "project_uuid": "proj-123",
         "existing_policy_uuid": "policy-123",
-        "existing_policy_name": "ai-sast-exception-finding-12345678",
+        "existing_policy_name": "ai-sast-exception-ai-sast-fingerprint-12345678",
     }
 
     errors = validate_ai_sast_gate_payload(payload, gate="exception")
@@ -483,11 +525,14 @@ def test_ai_sast_exception_gate_accepts_reused_existing_policy_without_new_write
     payload["exception_policies"][0]["user_confirmation"] = "not_required_existing_policy"
     payload["exception_policies"][0]["idempotency_check"] = {
         "status": "existing_reused",
-        "lookup_method": "endorctl api list -r Policy -n tenant-a filtered by generated policy name and finding UUID",
-        "finding_uuid": "finding-12345678",
+        "lookup_method": "listed Policy resources by policy name, stable match fingerprint, project, and reason",
+        "match_strategy": "ai_sast_fingerprint",
+        "match_fingerprint": payload["exception_policies"][0]["exception_match"][
+            "match_fingerprint"
+        ],
         "project_uuid": "proj-123",
         "existing_policy_uuid": "policy-123",
-        "existing_policy_name": "ai-sast-exception-finding-12345678",
+        "existing_policy_name": "ai-sast-exception-ai-sast-fingerprint-12345678",
     }
     payload["exception_policies"][0]["decision_comment"] = (
         render_ai_sast_exception_policy_comment(payload)
@@ -521,6 +566,72 @@ def test_ai_sast_exception_gate_rejects_policy_reason_without_matching_approval(
     assert any("no verified approval for accepted_risk" in error for error in errors)
 
 
+def test_ai_sast_exception_gate_requires_stable_exception_match():
+    payload = _valid_payload()
+    payload["exception_policies"][0].pop("exception_match")
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert (
+        "exception_policies[0].exception_match: required for stable exception policy matching"
+        in errors
+    )
+
+
+def test_ai_sast_exception_gate_rejects_uuid_based_policy_rule():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["policy_spec"]["rule"] = (
+        "package endor_agent_kit_ai_sast_exception\n"
+        "match_finding[result] {\n"
+        "  some i\n"
+        "  data.resources.Finding[i].uuid == \"finding-12345678\"\n"
+        "  data.resources.Finding[i].spec.project_uuid == \"proj-123\"\n"
+        "  result := {\"Endor\": {\"Finding\": data.resources.Finding[i].uuid}}\n"
+        "}"
+    )
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert any("must not match volatile Finding UUID" in error for error in errors)
+
+
+def test_ai_sast_exception_gate_requires_idempotency_match_fingerprint():
+    payload = _valid_payload()
+    payload["exception_policies"][0]["idempotency_check"].pop("match_fingerprint")
+
+    errors = validate_ai_sast_gate_payload(payload, gate="exception")
+
+    assert "exception_policies[0].idempotency_check.match_fingerprint: required" in errors
+
+
+def test_ai_sast_exception_gate_accepts_vulnerability_alias_strategy():
+    payload = _valid_payload()
+    policy = payload["exception_policies"][0]
+    policy["exception_match"] = {
+        "strategy": "vulnerability_alias",
+        "match_fingerprint": "vulnerability_alias:proj-123:GHSA-1234-5678-9012",
+        "current_finding_uuid": "finding-12345678",
+        "project_uuid": "proj-123",
+        "vulnerability_ids": ["GHSA-1234-5678-9012"],
+    }
+    policy["idempotency_check"]["match_strategy"] = "vulnerability_alias"
+    policy["idempotency_check"]["match_fingerprint"] = (
+        "vulnerability_alias:proj-123:GHSA-1234-5678-9012"
+    )
+    policy["policy_spec"]["rule"] = (
+        "package endor_agent_kit_ai_sast_exception\n"
+        "match_finding[result] {\n"
+        "  some i\n"
+        "  data.resources.Finding[i].spec.project_uuid == \"proj-123\"\n"
+        "  data.resources.Finding[i].spec.finding_metadata.vulnerability.spec.aliases[_] == \"GHSA-1234-5678-9012\"\n"
+        "  result := {\"Endor\": {\"Finding\": data.resources.Finding[i].uuid}}\n"
+        "}"
+    )
+    policy["decision_comment"] = render_ai_sast_exception_policy_comment(payload)
+
+    assert validate_ai_sast_gate_payload(payload, gate="exception") == []
+
+
 def test_ai_sast_exception_gate_rejects_policy_scope_that_does_not_match_approval():
     payload = _valid_payload()
     payload["exception_policies"][0]["policy_spec"]["project_selector"] = ["$uuid=other-project"]
@@ -532,7 +643,7 @@ def test_ai_sast_exception_gate_rejects_policy_scope_that_does_not_match_approva
     errors = validate_ai_sast_gate_payload(payload, gate="exception")
 
     assert any("must include '$uuid=proj-123'" in error for error in errors)
-    assert any("must match the approved finding UUID" in error for error in errors)
+    assert any("must match the approved project UUID" in error for error in errors)
 
 
 def test_ai_sast_exception_gate_rejects_policy_rule_without_project_scope():
@@ -588,7 +699,7 @@ def test_ai_sast_exception_gate_accepts_full_policy_resource_shape():
     policy_spec = payload["exception_policies"][0]["policy_spec"]
     payload["exception_policies"][0]["policy_spec"] = {
         "meta": {
-            "name": "ai-sast-exception-finding-12345678",
+            "name": "ai-sast-exception-ai-sast-fingerprint-12345678",
             "description": "Exception for finding finding-12345678.",
             "tags": ["endor-agent-kit", "ai-sast", "exception"],
         },
@@ -621,8 +732,9 @@ def test_ai_sast_exception_policy_comment_renderer_outputs_human_scope():
     comment = render_ai_sast_exception_policy_comment(_accepted_risk_payload())
 
     assert "## Endor Exception Policy Created" in comment
-    assert "- Policy: `ai-sast-exception-finding-12345678`" in comment
+    assert "- Policy: `ai-sast-exception-ai-sast-fingerprint-12345678`" in comment
     assert "- Policy UUID: `policy-123`" in comment
+    assert "- Stable match: `ai_sast_fingerprint`" in comment
     assert "- Endor project: `example-app (proj-123)`" in comment
     assert "- Reason: `Accepted risk`" in comment
     assert "$uuid=" not in comment

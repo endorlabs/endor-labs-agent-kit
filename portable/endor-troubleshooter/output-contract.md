@@ -29,7 +29,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `intake_classification` (object, required): Parsed issue summary, issue lanes, affected Endor objects, affected product area, and any inferred ecosystem or integration type.
 - `issue_lanes` (list[object], required): Classified troubleshooting lanes with status, confidence, evidence used, reason codes, and lane-specific next steps.
 - `affected_resources` (list[object], required): Endor resources, repository selectors, scan IDs, workflow IDs, integrations, and external systems relevant to the diagnosis.
-- `evidence_queries` (list[object], required): Exact read-only Endor queries attempted, purpose, status, returned counts, fields used, and data gaps.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `evidence_summary` (object, required): Normalized facts from logs, statuses, exit codes, workflow errors, scan profiles, integrations, package managers, reachability, policy, or container evidence.
 - `root_cause_hypotheses` (list[object], required): Ranked possible causes with confidence, supporting evidence, contradicting evidence, and the next observation that would confirm or falsify each one.
 - `recommended_actions` (list[object], required): Prioritized human-readable repair steps with owner role, reason, friction level, validation step, confidence, and confirmation requirement.

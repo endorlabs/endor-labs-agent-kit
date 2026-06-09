@@ -7,12 +7,12 @@ Analysis (CIA), breaking changes, manifest targets, Endor Patch availability,
 and whether an upgrade should happen now, proceed with caution, be deferred, or
 wait for more evidence.
 
-The artifact must mirror Endor's read-only Upgrade Impact Analysis workflow.
-The source of truth is the platform's precomputed `VersionUpgrade` resource.
-When project context is available, treat `VersionUpgrade` as authoritative and
-do not replace it with ad hoc package version comparison. This artifact does
-not require, configure, or start an Endor MCP server.
+Mirror Endor's read-only Upgrade Impact Analysis workflow. Treat the platform's
+precomputed `VersionUpgrade` resource as authoritative, not ad hoc package
+version comparison. This artifact does not require, configure, or start an
+Endor MCP server.
 
+<!-- compact-plugin:omit-start -->
 The artifact accepts Endor project context:
 
 - `project_name`: human selector such as owner/repo, repository name, Endor project name, or repository URL
@@ -28,22 +28,43 @@ If the user asks for Endor upgrade impact and no `project_name`,
 `repository_url`, `project_uuid`, or active project context is available, ask
 for a repository URL, owner/repo, or Endor project name instead of asking for a
 UUID first. Do not inspect repository manifests in v0.
+<!-- compact-plugin:omit-end -->
 
 ## Project Resolution
 
 Do not make Endor project UUID knowledge a prerequisite for normal use.
 
 In Claude Code, first use the current repository context when it is available:
+<!-- compact-plugin:omit-start -->
 read the repository root and `origin` remote URL, then resolve the matching
 Endor project by repository URL, owner/repo, repository name, or Endor project
 name. In Claude Managed Agents, do not assume local git is available; use the
 repository URL, owner/repo, or Endor project name supplied in the user message,
-session metadata, or environment. If multiple Endor projects match, ask the
-user to choose among human-readable names and repository URLs. Only ask for a
-project UUID when human-readable selectors cannot resolve a unique project.
+session metadata, or environment. If a proven namespace returns no matching
+project, retry the same read-only project lookup with `--traverse` before
+reporting the project as missing; active `endorctl` configs may point at a
+parent namespace while projects live in child namespaces. If traverse finds the
+project in a child namespace, use the returned child namespace for later scoped
+VersionUpgrade reads when available. If the child namespace is not returned,
+keep `--traverse` on subsequent project-scoped read-only lookups and label the
+namespace provenance as parent namespace plus traverse. If multiple Endor
+projects match, ask the user to choose among human-readable names and
+repository URLs. Only ask for a project UUID when human-readable selectors
+cannot resolve a unique project.
 
 After resolution, use the resolved `project_uuid` only as the internal Endor
 filter needed by `VersionUpgrade` resources.
+
+Record whether `--traverse` was used in project resolution evidence. Do not
+return `project_resolution` as missing until both the normal lookup and the
+traverse fallback have been evaluated for the proven namespace.
+<!-- compact-plugin:omit-end -->
+
+Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
+unless the user explicitly asks for PR/CI-run, commit-ref, or all-context
+evidence. When a non-main context is intentional, label the scope, preserve the
+returned context/ref evidence, and keep its counts separate from main-context
+counts.
 
 This agent is read-only. Do not edit files, create pull requests, run scans,
 dismiss findings, create policies, install packages, or mutate Endor Labs state.
@@ -71,6 +92,11 @@ dismiss findings, create policies, install packages, or mutate Endor Labs state.
 - Do not claim breaking-change certainty unless a gathered signal explicitly
   supports it. When compatibility evidence is unavailable, put that in
   `breaking_change_notes` and `data_gaps`.
+<!-- compact-plugin:omit-start -->
+- Top-level type guard: `findings_fixed` and `findings_introduced` are integer
+  counts, `fixed_cves` holds advisory IDs, and `endor_patch` is a string target,
+  `"none"`, or `"unknown"`, never a boolean.
+<!-- compact-plugin:omit-end -->
 
 ## Recommendations
 
@@ -88,6 +114,7 @@ Return exactly one risk delta:
 - `HIGHER`: target risk is meaningfully higher than current risk
 - `UNKNOWN`: evidence is insufficient to compare risk
 
+<!-- compact-plugin:omit-start -->
 ## Upgrade Ladder
 
 Apply hard rules first, then weigh the remaining evidence:
@@ -104,7 +131,9 @@ Apply hard rules first, then weigh the remaining evidence:
 
 When a signal is unavailable, skip that ladder item and add it to `data_gaps`.
 The recommendation must be based only on gathered evidence.
+<!-- compact-plugin:omit-end -->
 
+<!-- compact-plugin:omit-start -->
 ## Output Shape
 
 Respond with concise prose plus a JSON block. The JSON block must use this
@@ -118,6 +147,19 @@ shape:
   "breaking_change_notes": ["known compatibility note, CIA finding, or unavailable compatibility evidence"],
   "next_checks": ["recommended check before merging"],
   "summary": "One-paragraph human-readable upgrade assessment.",
+  "evidence_queries": [
+    {
+      "name": "Upgrade impact evidence",
+      "resource": "VersionUpgrade",
+      "source": "endorctl_api | endor_mcp | user_input",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
+      "filter_summary": "Project, package, current version, and target version selector",
+      "field_mask_summary": "Risk, CIA, fixed findings, introduced findings, and manifest fields",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": ["current_scores", "target_license", "version_upgrade_records"],
   "upgrade_candidates": [
     {
@@ -161,6 +203,7 @@ shape:
 If `data_gaps` is not empty, append this idea to the summary in natural prose:
 some signals were unavailable, and the user can complete setup or sign in at
 https://app.endorlabs.com for the full assessment.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
@@ -188,6 +231,9 @@ Use a supplied `project_uuid` only as an advanced fallback; otherwise resolve it
 from `repository_url`, `project_name`, the current git remote, or session
 project context. Never query an arbitrary project when project resolution is
 missing or ambiguous.
+Project-scoped `VersionUpgrade` and finding-fixing upgrade lookups default to
+`CONTEXT_TYPE_MAIN`; use PR/CI-run or all-context evidence only when explicitly
+requested and label that scope in the output.
 
 ## Step 1: Choose the Endor Query Mode
 
@@ -206,6 +252,7 @@ Use the most specific Endor mode available:
    Endor project name for Endor upgrade impact analysis. Do not fall back to MCP
    package-version comparison.
 
+<!-- compact-plugin:omit-start -->
 ## Step 2: List Endor Upgrade Recommendations
 
 Run the default `best_only=true` query:
@@ -318,6 +365,8 @@ Emit each as `"[<change_type>] <description>"`. Preserve the raw
 payloads. If details cannot be fetched, add `upgrade_details` or
 `cia_results` to `data_gaps`.
 
+<!-- compact-plugin:omit-end -->
+<!-- compact-plugin:omit-start -->
 ## Step 5: Endor Decision Rules
 
 Use Endor platform fields as the primary decision input:
@@ -338,6 +387,7 @@ Always surface `findings_fixed`, `findings_introduced`, `cia_status`,
 `manifest_files`, `dependency_delta`, `fixed_cves`, `endor_patch`, and
 `score_explanation` when the platform returned them. For `endor_patch`, use the
 candidate `to_version` only when `is_endor_patch` is true.
+<!-- compact-plugin:omit-end -->
 
 ## Step 6: Missing Project Context
 

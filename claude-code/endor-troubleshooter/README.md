@@ -8,6 +8,16 @@ authentication, dependency resolution, container, reachability, policy, and
 workflow lanes, then returns low-friction repair guidance without mutating
 Endor, source-provider, or repository state.
 
+## Start Here
+
+This is the Claude Code generated agent for `endor-troubleshooter`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed. Then use the example prompt below: @agent-endor-troubleshooter diagnose this Endor scan failure from redacted error text and read-only tenant evidence |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/endor-troubleshooter/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy `endor-troubleshooter.md` into your target repository's `.claude/agents/` directory,

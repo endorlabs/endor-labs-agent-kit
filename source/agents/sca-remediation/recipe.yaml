@@ -58,6 +58,10 @@ outputs:
   kind: object
   required: true
   description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- name: evidence_queries
+  kind: list[object]
+  required: true
+  description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - name: selected_remediation
   kind: object
   required: true
@@ -94,9 +98,12 @@ evals: evals/cases.yaml
 compatible_hosts:
 - claude-code
 - codex
+- gemini
 - portable
 host_editions:
   claude-code:
+  - enterprise-edition
+  gemini:
   - enterprise-edition
 action_contracts_path: actions.yaml
 mutations:

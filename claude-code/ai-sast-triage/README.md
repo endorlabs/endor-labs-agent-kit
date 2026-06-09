@@ -2,6 +2,16 @@
 
 Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
 
+## Start Here
+
+This is the Claude Code generated agent for `ai-sast-triage`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed. Then use the example prompt below: @agent-ai-sast-triage triage AI SAST findings for this repository. Do not open a PR until I approve the patch. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/ai-sast-triage/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy `ai-sast-triage.md` into your target repository's `.claude/agents/` directory,

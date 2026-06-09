@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Endor Labs Agent Kit">
+  <rect width="128" height="128" rx="24" fill="#111827"/>
+  <path d="M32 36h64v14H49v17h39v14H49v17h47v14H32z" fill="#ffffff"/>
+  <path d="M81 32h18v64h-18z" fill="#4F46E5" opacity=".9"/>
+</svg>

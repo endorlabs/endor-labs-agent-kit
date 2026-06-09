@@ -1,46 +1,192 @@
 # Plugin Packaging Design
 
 This is a blast-radius note for adding an Endor Labs Agent Kit plugin route.
-It is not an implementation contract yet.
+The Codex, Claude Code, Gemini, Antigravity, Cursor, and Cursor SDK package
+slices are implemented behind `--include-plugins`.
 
 ## Current Decision
 
-Codex support is implemented first as generated skills under `codex/<agent>/`.
-That keeps the source-first recipe model intact and avoids inventing a plugin
-runtime before the host contract is confirmed.
+Claude Code, Codex, and Gemini support still publish generated artifacts under
+`claude-code/<agent>/`, `codex/<agent>/`, and `gemini/<agent>/`. The plugin
+package slices now wrap host-compatible public workflows under:
+
+- `plugins/codex/endor-labs-agent-kit/`
+- `plugins/claude/endor-labs-agent-kit/`
+- `plugins/claude/ai-plugins/` for legacy Claude Code compatibility
+- `plugins/gemini/endor-labs-agent-kit/`
+- `plugins/antigravity/endor-labs-agent-kit/`
+- `.cursor-plugin/` plus root generated `agents/` and `skills/` for Cursor
+- `cursor-sdk/` for Cursor Python SDK automation
 
 The plugin route should sit alongside generated host artifacts. It should not
 replace `.claude/agents/` installs, Claude Managed Agents YAML, or Codex skill
 installs until the target plugin host has a stable installation, permission, and
 metadata contract.
 
-## Likely Codex Plugin Shape
+## Implemented Codex Plugin Shape
 
-A Codex plugin package would wrap one or more generated skills:
+The generated Codex plugin package includes:
 
 - `.codex-plugin/plugin.json` for plugin metadata.
-- `skills/<agent>/SKILL.md` copied from the generated Codex skill artifact.
-- Optional `assets/` for logos and screenshots.
-- Optional marketplace metadata outside the plugin when publishing through a
-  marketplace.
+- `skills/<agent>/SKILL.md` rendered from the same source recipe body as the
+  generated Codex skill artifact.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `agents/endor-*-agent.toml` custom-agent files generated from the same recipe
+  body, with provenance comments and read-only sandbox hints only for read-only
+  workflows.
+- `scripts/install_codex_agents.py` for provenance-gated global install, update,
+  status, and uninstall of bundled Codex custom agents.
+- `assets/logo.svg`.
+- Public repository marketplace metadata at `.agents/plugins/marketplace.json`.
+- Package-local marketplace metadata at
+  `plugins/codex/.agents/plugins/marketplace.json` for local validation.
 
 Do not add MCP servers to the plugin manifest by default. `sca-remediation` and
 `ai-sast-triage` are `endorctl_api` workflows, and their safety contract depends
 on local terminal/source-provider state plus explicit approval gates.
 
+## Implemented Claude Code Plugin Shape
+
+The generated Claude Code plugin packages include:
+
+- `.claude-plugin/plugin.json` for plugin metadata.
+- `agents/<agent>.md` files generated from the existing Claude Code artifacts.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `assets/logo.svg`.
+- Public-repo marketplace metadata at `.claude-plugin/marketplace.json`.
+- Package-local marketplace metadata at
+  `plugins/claude/.claude-plugin/marketplace.json` for local validation.
+
+The preferred package id is `endor-labs-agent-kit@endorlabs`. The legacy
+`ai-plugins@endorlabs` package is retained as a real generated package so
+existing Claude Code users pinned to that id can continue to install and update
+without a breaking rename. Both packages expose the same setup skill and agents;
+normal users should not enable both ids in the same Claude profile.
+
+Claude Code plugin-shipped agents do not support `mcpServers`,
+`permissionMode`, or `hooks` in agent frontmatter. The generated package strips
+those unsupported fields from packaged agents and makes MCP setup explicit in
+the setup skill and agent setup note. It does not add plugin-wide MCP by
+default.
+
+## Implemented Gemini CLI Extension Shape
+
+The generated Gemini CLI extension package includes:
+
+- `gemini-extension.json` for extension metadata.
+- `GEMINI.md` for minimal package context.
+- `skills/<agent>/SKILL.md` rendered from the same source recipe body as the
+  generated Gemini skill artifact.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `agents/<agent>.md` preview subagents generated from the same recipe body,
+  with provenance comments and Gemini host-contract text.
+- `assets/logo.svg`.
+
+Gemini packages do not declare plugin-wide MCP by default. Setup documents the
+observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
+restart after extension installation or update. Gemini CLI installs a local
+extension directory and supports tagged GitHub repository installs for public
+distribution. The package does not generate or publish a zip artifact.
+
+## Implemented Antigravity CLI Plugin Shape
+
+The generated Antigravity CLI plugin package includes:
+
+- `plugin.json` for plugin metadata.
+- `skills/<agent>/SKILL.md` rendered from the Gemini-compatible source recipe
+  body with Antigravity host-contract text.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `agents/<agent>.md` subagents generated from the same recipe body, with
+  provenance comments and Antigravity host-contract text.
+- `assets/logo.svg`.
+
+Antigravity packages do not declare plugin-wide MCP by default. The setup skill
+keeps `antigravity plugin validate`, installation, update, enable/disable, and
+uninstall steps explicit and evidence-backed. In v1, Antigravity package
+contents are derived from the Gemini-compatible recipe set because Google's
+transition guidance says Gemini extensions become Antigravity plugins while
+retaining skills and subagents.
+
+## Implemented Cursor Package Shape
+
+The generated Cursor package includes:
+
+- `.cursor-plugin/plugin.json` for Cursor package metadata.
+- `.cursor-plugin/marketplace.json` for public marketplace metadata.
+- `agents/<agent>.md` rendered from the source recipe body with Cursor
+  plugin-agent frontmatter and host-contract text.
+- `agents/endor-agent-kit-setup-agent.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `skills/<agent>/SKILL.md` rendered from the source recipe body with Cursor
+  host-contract text and support material.
+- `skills/<agent>/architecture.svg` copied from the source agent diagram when
+  present.
+- `skills/<agent>/actions.yaml` when the source recipe declares action
+  contracts.
+- `skills/endor-agent-kit-setup/SKILL.md` rendered from
+  `source/plugin-support/setup/setup.md`.
+- `assets/logo.svg`.
+
+Cursor is intentionally not a Gemini wrapper. It does not generate `GEMINI.md`
+or `gemini-extension.json`; those remain part of the Gemini CLI package under
+`plugins/gemini/endor-labs-agent-kit/`.
+
+## Implemented Cursor SDK Automation Shape
+
+The generated Cursor SDK automation package includes:
+
+- `cursor-sdk/README.md` for local and cloud run instructions.
+- `cursor-sdk/requirements.txt` with the `cursor-sdk` Python dependency.
+- `cursor-sdk/agent_definitions.json` as the machine-readable agent map.
+- `cursor-sdk/run_cursor_agent.py` as the runnable Python launcher.
+- `cursor-sdk/agents/<agent>.md` generated from the same recipe body with
+  Cursor SDK host-contract text.
+- `cursor-sdk/agents/<agent>.architecture.svg` when the source recipe has an
+  architecture diagram.
+- `cursor-sdk/agents/<agent>.actions.yaml` when the source recipe declares
+  action contracts.
+
+Cursor SDK automation is a separate lane from Cursor plugin delivery. Use it
+for CI, orchestration, backend services, scripted local runs, or Cursor cloud
+agents. Use the root Cursor plugin agents under `agents/` for
+customer-facing Cursor IDE UX. The SDK package is still generated from Agent
+Kit source recipes and mirrored into `ai-plugins` as a distribution artifact.
+
 ## Blast Radius
 
 Adding first-class plugin publishing would touch:
 
-- `src/endor_agent_kit/validator.py` for a plugin host or package target.
 - `src/endor_agent_kit/publisher.py` and `src/endor_agent_kit/publication/`
-  for generated plugin directories, Host Adapters, manifest records, pruning,
-  README rows, and artifact checksums.
-- `src/endor_agent_kit/install.py` for drift checks against plugin-installed
-  skills.
-- `manifest.json` schema expectations, because a plugin package is not the
-  same shape as an edition or a single skill artifact.
-- Tests for publisher output, pruning, install drift, and generated metadata.
+  for generated plugin directories, manifest records, pruning, README rows, and
+  artifact checksums.
+- `manifest.json` schema expectations, because a plugin package is not the same
+  shape as an edition or a single skill artifact. Plugin packages are recorded
+  in the separate `plugin_packages` section.
+- Tests for publisher output, guardrails, provenance, installer behavior, and
+  generated metadata.
+
+The Gemini package follows the same source-first publication model rather than
+introducing hand-assembled packages. Gemini local validation installs from
+`plugins/gemini/endor-labs-agent-kit`; public validation installs from the
+tagged GitHub repository.
+
+The Antigravity package also follows the source-first publication model. It
+installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
+the package root; no release archive is generated for either target in v1.
+
+The Cursor package follows the same source-first publication model, but it is
+root-shaped because Cursor package metadata uses `.cursor-plugin/`, a root
+`agents/` directory, and a root `skills/` directory. Generation updates managed
+workflow agents and managed workflow skill directories, while preserving
+unrelated root skills such as `skills/create-endor-labs-agent/`.
+
+The Cursor SDK package follows the same source-first publication model under
+`cursor-sdk/`. It does not install anything into the Cursor IDE; it launches
+Cursor's Python SDK with generated Agent Kit prompts and an explicit user task.
 
 ## Safety Requirements
 
@@ -53,12 +199,39 @@ approval verification, and Endor policy writes must remain separate gates. A
 plugin can improve installation and discovery, but it must not flatten those
 gates into a single broad authorization.
 
-## Recommended Next Step
+## Release Validation Status
 
-Create a small prototype plugin package outside the published catalog first,
-using `codex/ai-sast-triage/` and `codex/sca-remediation/` as inputs. Validate
-it through Codex plugin installation and skill invocation before adding a
-general `publish-plugin` command or changing the manifest schema.
+The release gate is now `docs/plugin-release-checklist.md`. Keep this design
+note focused on package shape and blast radius.
+
+Validated locally:
+
+- Codex local marketplace installation from `plugins/codex`.
+- Codex repo-root marketplace metadata at `.agents/plugins/marketplace.json`.
+- Codex custom-agent installer status/install flow with a temporary
+  `CODEX_HOME`.
+- Gemini extension package install from the generated local extension
+  directory.
+- Gemini package structure with `gemini-extension.json` at the extension root
+  and no zip artifact.
+- Antigravity plugin package validation with `antigravity plugin validate`.
+- Cursor metadata JSON validation and root skill validation.
+- Cursor SDK `agent_definitions.json` validation and launcher `py_compile`.
+
+Still release-critical:
+
+- Claude Code package validation with `claude plugin validate`, local
+  marketplace install, and fresh-session agent/skill visibility when the
+  `claude` CLI is available.
+- Codex public GitHub sparse marketplace validation after the repo is public,
+  pushed, and tagged.
+- Gemini public GitHub install after the repo is public, pushed, and tagged.
+- Antigravity install/list/uninstall validation after the package is generated
+  and the installed CLI version is available.
+- Cursor public package install validation after the repo is public, pushed,
+  and tagged.
+- Cursor SDK local or cloud smoke validation after API-key use, target repo,
+  namespace provenance, and side-effect boundaries are explicitly approved.
 
 ## Prototype Result - 2026-05-24
 
@@ -82,12 +255,13 @@ Validation covered:
 - recursive directory diffs against the generated catalog skill directories.
 - absence of plugin-level MCP or app declarations.
 
-Still unproven:
+Previously unproven and still requiring release validation:
 
 - Codex UI installation from the local marketplace deeplink.
-- skill discovery and invocation after plugin installation.
-- whether the plugin host expects a single bundled plugin, one plugin per
-  agent, or a repo-owned marketplace with multiple entries.
+- skill discovery and invocation after plugin installation in a fresh thread.
+- bundled custom-agent visibility after setup installs TOML files into
+  `${CODEX_HOME:-~/.codex}/agents`.
 
-Do not promote this to `publish-plugin` until the unproven host behavior is
-validated in Codex without weakening the existing approval gates.
+Do not promote this from opt-in `--include-plugins` to default publication until
+the unproven host behavior is validated in Codex without weakening the existing
+approval gates.

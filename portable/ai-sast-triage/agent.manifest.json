@@ -155,6 +155,7 @@
       "inputs": [
         "finding_uuid",
         "project_uuid",
+        "exception_match",
         "policy_name",
         "exception_reason",
         "expiration_time",
@@ -311,6 +312,12 @@
       "required": true
     },
     {
+      "description": "Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.",
+      "kind": "list[object]",
+      "name": "evidence_queries",
+      "required": true
+    },
+    {
       "description": "Per-finding parsed AI SAST classification, finding UUID, source-location provenance, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.",
       "kind": "list[object]",
       "name": "verdicts",
@@ -335,7 +342,7 @@
       "required": true
     },
     {
-      "description": "Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL.",
+      "description": "Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, stable exception_match, match-fingerprint idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL. Finding UUID is current-scan evidence, not the durable policy matcher.",
       "kind": "list[object]",
       "name": "exception_policies",
       "required": true

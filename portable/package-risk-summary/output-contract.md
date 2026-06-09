@@ -22,6 +22,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `strengths` (list[string], required): Positive evidence such as clean risk checks, good scores, or known safe alternatives.
 - `next_checks` (list[string], required): Follow-up checks, review areas, or upgrade/remediation actions.
 - `summary` (string, required): One-paragraph human-readable assessment.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (list[string], required): Signals that were unavailable because setup, auth, edition, or tooling was missing.
 
 ## Data Gaps

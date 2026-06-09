@@ -54,6 +54,10 @@ outputs:
   kind: object
   required: true
   description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- name: evidence_queries
+  kind: list[object]
+  required: true
+  description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - name: verdicts
   kind: list[object]
   required: true
@@ -73,7 +77,7 @@ outputs:
 - name: exception_policies
   kind: list[object]
   required: true
-  description: Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL.
+  description: Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, stable exception_match, match-fingerprint idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL. Finding UUID is current-scan evidence, not the durable policy matcher.
 - name: tickets
   kind: list[object]
   required: true
@@ -86,9 +90,12 @@ evals: evals/cases.yaml
 compatible_hosts:
 - claude-code
 - codex
+- gemini
 - portable
 host_editions:
   claude-code:
+  - enterprise-edition
+  gemini:
   - enterprise-edition
 action_contracts_path: actions.yaml
 mutations:

@@ -288,24 +288,149 @@ def catalog_agents_from_manifest_payload(
     return tuple(CatalogAgent.from_manifest_record(agent) for agent in agents)
 
 
+@dataclass(frozen=True)
+class CatalogPluginPackage:
+    """One generated plugin package recorded in the Catalog Manifest."""
+
+    host: str
+    name: str
+    version: str
+    path: str
+    included_agents: tuple[str, ...]
+    artifacts: tuple[CatalogArtifact, ...]
+    display_name: str = ""
+    marketplace_path: str = ""
+    extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
+
+    @classmethod
+    def from_manifest_record(cls, record: Any) -> "CatalogPluginPackage":
+        """Parse one plugin package record from Catalog Manifest JSON."""
+
+        if not isinstance(record, dict):
+            raise ValueError("manifest.json: expected plugin package records to be objects")
+        artifacts = record.get("artifacts", [])
+        if not isinstance(artifacts, list):
+            raise ValueError("manifest.json: expected plugin package artifacts to be a list")
+        included_agents = record.get("included_agents", [])
+        if not isinstance(included_agents, list):
+            raise ValueError("manifest.json: expected plugin package included_agents to be a list")
+        extra_fields = _extra_fields(
+            record,
+            {
+                "host",
+                "name",
+                "display_name",
+                "version",
+                "path",
+                "marketplace_path",
+                "included_agents",
+                "artifacts",
+            },
+        )
+        return cls(
+            host=str(record.get("host") or ""),
+            name=str(record.get("name") or ""),
+            display_name=str(record.get("display_name") or ""),
+            version=str(record.get("version") or ""),
+            path=str(record.get("path") or ""),
+            marketplace_path=str(record.get("marketplace_path") or ""),
+            included_agents=tuple(str(item) for item in included_agents),
+            artifacts=tuple(CatalogArtifact.from_manifest_record(artifact) for artifact in artifacts),
+            extra_fields=extra_fields,
+        )
+
+    @classmethod
+    def from_published_package(
+        cls,
+        destination: Path,
+        *,
+        host: str,
+        name: str,
+        display_name: str,
+        version: str,
+        package_dir: Path,
+        included_agents: tuple[str, ...],
+        marketplace_path: str = "",
+        extra_artifacts: tuple[Path, ...] = (),
+    ) -> "CatalogPluginPackage":
+        """Return manifest metadata for one generated plugin package."""
+
+        files = sorted(path for path in package_dir.rglob("*") if path.is_file())
+        files.extend(path for path in extra_artifacts if path.is_file())
+        return cls(
+            host=host,
+            name=name,
+            display_name=display_name,
+            version=version,
+            path=package_dir.relative_to(destination).as_posix(),
+            marketplace_path=marketplace_path,
+            included_agents=tuple(sorted(included_agents)),
+            artifacts=tuple(CatalogArtifact.from_published_file(destination, path) for path in files),
+        )
+
+    def to_manifest_record(self) -> dict[str, Any]:
+        """Serialize this plugin package to Catalog Manifest JSON shape."""
+
+        record = dict(self.extra_fields)
+        record["host"] = self.host
+        record["name"] = self.name
+        if self.display_name:
+            record["display_name"] = self.display_name
+        record["version"] = self.version
+        record["path"] = self.path
+        if self.marketplace_path:
+            record["marketplace_path"] = self.marketplace_path
+        record["included_agents"] = list(self.included_agents)
+        record["artifacts"] = [artifact.to_manifest_record() for artifact in self.artifacts]
+        return record
+
+
+def catalog_plugin_packages_from_manifest_payload(
+    data: Any,
+    *,
+    manifest_path: str = MANIFEST_PATH,
+) -> tuple[CatalogPluginPackage, ...]:
+    """Parse Catalog Manifest plugin package records from loaded JSON."""
+
+    if not isinstance(data, dict):
+        raise ValueError(f"{manifest_path}: expected a JSON object")
+    packages = data.get("plugin_packages", [])
+    if not isinstance(packages, list) or not all(isinstance(package, dict) for package in packages):
+        raise ValueError(f"{manifest_path}: expected plugin_packages to be a list of objects")
+    return tuple(CatalogPluginPackage.from_manifest_record(package) for package in packages)
+
+
 def catalog_manifest_payload(
     agents: tuple[CatalogAgent, ...],
     *,
+    plugin_packages: tuple[CatalogPluginPackage, ...] = (),
     generator_name: str = GENERATOR_NAME,
 ) -> dict[str, Any]:
     """Return the JSON payload for a Catalog Manifest."""
 
-    return {
+    payload = {
         "schema_version": 1,
         "generated_by": generator_name,
         "agents": [agent.to_manifest_record() for agent in agents],
     }
+    if plugin_packages:
+        payload["plugin_packages"] = [
+            package.to_manifest_record()
+            for package in sorted(plugin_packages, key=catalog_plugin_package_sort_key)
+        ]
+    return payload
 
 
 def catalog_agent_sort_key(agent: CatalogAgent) -> tuple[str, str]:
     """Return the stable Catalog Manifest sort key for one agent."""
 
     return (agent.host, agent.id)
+
+
+def catalog_plugin_package_sort_key(package: CatalogPluginPackage) -> tuple[str, str]:
+    """Return the stable Catalog Manifest sort key for one plugin package."""
+
+    return (package.host, package.name)
 
 
 def _extra_fields(record: dict[str, Any], known: set[str]) -> dict[str, Any]:

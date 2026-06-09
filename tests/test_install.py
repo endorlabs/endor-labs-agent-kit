@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import json
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
+from conftest import repo_root
 from endor_agent_kit.catalog_manifest import CatalogManifest
 from endor_agent_kit.cli import main
 from endor_agent_kit.install import (
@@ -12,10 +16,18 @@ from endor_agent_kit.install import (
     check_codex_install,
     check_portable_install,
 )
+from endor_agent_kit.publisher import publish_recipes
 
 
 def _sha256_text(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+
+def _copy_agent_source(tmp_path: Path, agent_id: str) -> Path:
+    source = repo_root() / "source" / "agents" / agent_id
+    target = tmp_path / agent_id
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+    return target / "recipe.yaml"
 
 
 def _write_catalog_manifest(
@@ -181,6 +193,212 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
         tmp_path / "codex-home",
         catalog_root=catalog,
     ) == []
+
+
+def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
+    recipes = [
+        _copy_agent_source(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent_source(tmp_path / "sca", "sca-remediation"),
+    ]
+    dest = tmp_path / "endor-labs-agent-kit"
+    publish_recipes(recipes, dest, include_plugins=True)
+    script = dest / "plugins" / "codex" / "endor-labs-agent-kit" / "scripts" / "install_codex_agents.py"
+    plugin_manifest = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    package_version = plugin_manifest["version"]
+    generated_skill = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "skills" / "sca-remediation" / "SKILL.md"
+    ).read_text(encoding="utf-8")
+    generated_agent = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents" / "endor-sca-remediation-agent.toml"
+    ).read_text(encoding="utf-8")
+    assert f"package `endor-labs-agent-kit` v{package_version}." in generated_skill
+    assert '# endor_agent_kit_package_name = "endor-labs-agent-kit"' in generated_agent
+    assert f'# endor_agent_kit_package_version = "{package_version}"' in generated_agent
+    codex_home = tmp_path / "codex-home"
+    stale_cache_manifest = (
+        codex_home
+        / "plugins"
+        / "cache"
+        / "endor-agent-kit-local"
+        / "endor-agent-kit-security-agents"
+        / "0.1.0"
+        / ".codex-plugin"
+        / "plugin.json"
+    )
+    stale_cache_manifest.parent.mkdir(parents=True)
+    stale_cache_manifest.write_text(
+        json.dumps(
+            {
+                "name": "endor-agent-kit-security-agents",
+                "version": "0.1.0",
+                "description": "Generated Endor Labs Agent Kit Codex skills.",
+                "interface": {"displayName": "Endor Agent Kit Security Agents"},
+            }
+        ),
+        encoding="utf-8",
+    )
+    config = codex_home / "config.toml"
+    config.write_text(
+        "\n".join(
+            [
+                '[plugins."presentations@openai-primary-runtime"]',
+                "enabled = true",
+                "",
+                '[plugins."endor-agent-kit-security-agents@endor-agent-kit-local"]',
+                "enabled = true",
+                "",
+                '[plugins."notion@openai-curated"]',
+                "enabled = true",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    status = subprocess.run(
+        [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "agent:endor-sca-remediation-agent.toml: missing" in status.stdout
+    assert "agent:endor-agent-kit-setup-agent.toml: missing" in status.stdout
+    assert "skill:sca-remediation: missing" in status.stdout
+    assert "skill:endor-agent-kit-setup: missing" in status.stdout
+    assert (
+        "plugin-cache:plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents/0.1.0: "
+        "stale-legacy-cache package=endor-agent-kit-security-agents version=0.1.0"
+    ) in status.stdout
+    assert (
+        "plugin-config:config.toml:endor-agent-kit-security-agents@endor-agent-kit-local: "
+        "stale-legacy-config enabled=true"
+    ) in status.stdout
+    assert "--purge-stale-plugin-cache --yes" in status.stdout
+
+    stale_cache_root = stale_cache_manifest.parents[1]
+    dry_purge = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--purge-stale-plugin-cache",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "would move stale plugin cache" in dry_purge.stdout
+    assert "would remove stale legacy entries endor-agent-kit-security-agents@endor-agent-kit-local" in dry_purge.stdout
+    assert stale_cache_root.exists()
+    assert "endor-agent-kit-security-agents@endor-agent-kit-local" in config.read_text(encoding="utf-8")
+
+    purge = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--purge-stale-plugin-cache",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "moved stale plugin cache" in purge.stdout
+    assert "removed stale legacy entries endor-agent-kit-security-agents@endor-agent-kit-local" in purge.stdout
+    assert not stale_cache_root.exists()
+    assert list((codex_home / "plugins" / "cache-backups").glob("endor-agent-kit-local-endor-agent-kit-security-agents-0.1.0.bak-*"))
+    assert "endor-agent-kit-security-agents@endor-agent-kit-local" not in config.read_text(encoding="utf-8")
+    assert list(codex_home.glob("config.toml.bak-*"))
+
+    clean_cache_status = subprocess.run(
+        [sys.executable, str(script), "--status", "--codex-home", str(codex_home)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "plugin-cache: none" in clean_cache_status.stdout
+    assert "plugin-config: none" in clean_cache_status.stdout
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--agents-only",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
+    assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
+    assert not (codex_home / "skills" / "sca-remediation" / "SKILL.md").exists()
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--skills-only",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    skill = codex_home / "skills" / "sca-remediation" / "SKILL.md"
+    setup_skill = codex_home / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    assert skill.is_file()
+    assert setup_skill.is_file()
+
+    skill.write_text(skill.read_text(encoding="utf-8") + "\nmanaged local edit\n", encoding="utf-8")
+    refresh = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--skills-only",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "backed up existing managed skill" in refresh.stdout
+    assert list((codex_home / "skills").glob("sca-remediation.bak-*"))
+
+    setup_skill.write_text("# unmanaged user setup skill\n", encoding="utf-8")
+    blocked = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--skills-only",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert blocked.returncode == 1
+    assert "refusing to overwrite blocked unmanaged skill" in blocked.stdout
+    assert setup_skill.read_text(encoding="utf-8") == "# unmanaged user setup skill\n"
 
 
 def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(tmp_path):

@@ -12,9 +12,12 @@ from endor_agent_kit.catalog_schema import (
     MANIFEST_PATH,
     CatalogAgent,
     CatalogBundle,
+    CatalogPluginPackage,
     catalog_agent_sort_key,
     catalog_agents_from_manifest_payload,
     catalog_manifest_payload,
+    catalog_plugin_package_sort_key,
+    catalog_plugin_packages_from_manifest_payload,
 )
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 
@@ -107,6 +110,31 @@ class HostArtifactPublication:
 
         return self._existing_agents(self.catalog_manifest_path(destination))
 
+    def catalog_plugin_packages(self, destination: Path) -> list[CatalogPluginPackage]:
+        """Return plugin packages currently recorded in the Catalog Manifest."""
+
+        return self._existing_plugin_packages(self.catalog_manifest_path(destination))
+
+    def write_plugin_packages(
+        self,
+        destination: Path,
+        packages: tuple[CatalogPluginPackage, ...],
+        *,
+        replace_hosts: set[str],
+    ) -> Path:
+        """Write plugin package records while preserving unrelated package hosts."""
+
+        path = self.catalog_manifest_path(destination)
+        agents = self._existing_agents(path)
+        existing_packages = [
+            package
+            for package in self._existing_plugin_packages(path)
+            if package.host not in replace_hosts
+        ]
+        merged = existing_packages + list(packages)
+        merged.sort(key=catalog_plugin_package_sort_key)
+        return self._write_manifest_payload(destination, agents, merged)
+
     def catalog_manifest_path(self, destination: Path) -> Path:
         """Return the Catalog Manifest path for a destination."""
 
@@ -132,8 +160,21 @@ class HostArtifactPublication:
         return self._write_agents(destination, agents)
 
     def _write_agents(self, destination: Path, agents: list[CatalogAgent]) -> Path:
+        packages = self._existing_plugin_packages(self.catalog_manifest_path(destination))
+        return self._write_manifest_payload(destination, agents, packages)
+
+    def _write_manifest_payload(
+        self,
+        destination: Path,
+        agents: list[CatalogAgent],
+        plugin_packages: list[CatalogPluginPackage],
+    ) -> Path:
         path = self.catalog_manifest_path(destination)
-        payload = catalog_manifest_payload(tuple(agents), generator_name=self._generator_name)
+        payload = catalog_manifest_payload(
+            tuple(agents),
+            plugin_packages=tuple(plugin_packages),
+            generator_name=self._generator_name,
+        )
         path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return path
 
@@ -142,3 +183,9 @@ class HostArtifactPublication:
             return []
         data = json.loads(path.read_text(encoding="utf-8"))
         return list(catalog_agents_from_manifest_payload(data, manifest_path=self._manifest_path))
+
+    def _existing_plugin_packages(self, path: Path) -> list[CatalogPluginPackage]:
+        if not path.exists():
+            return []
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return list(catalog_plugin_packages_from_manifest_payload(data, manifest_path=self._manifest_path))

@@ -135,7 +135,7 @@ outputs:
   - name: evidence_queries
     kind: list[object]
     required: true
-    description: Exact GitHub and Endor read-only queries attempted, purpose, status, returned counts, fields used, and data gaps.
+    description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
   - name: data_gaps
     kind: list[string]
     required: true
@@ -149,11 +149,14 @@ compatible_hosts:
   - claude-code
   - claude-managed-agents
   - codex
+  - gemini
   - portable
 host_editions:
   claude-code:
     - enterprise-edition
   claude-managed-agents:
+    - enterprise-edition
+  gemini:
     - enterprise-edition
 mutations: []
 required_endor_mcp_tools: []
