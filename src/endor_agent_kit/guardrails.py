@@ -509,7 +509,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 root,
                 claude_package,
                 expected_name="endor-labs-agent-kit",
-                expected_version="0.2.0",
+                expected_version="2.0.0",
                 errors=errors,
             )
         if not legacy_claude_package.is_dir():
@@ -519,7 +519,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 root,
                 legacy_claude_package,
                 expected_name="ai-plugins",
-                expected_version="1.0.1",
+                expected_version="1.1.1",
                 errors=errors,
             )
         _check_claude_marketplace(
@@ -530,8 +530,8 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 "ai-plugins": "./plugins/claude/ai-plugins",
             },
             {
-                "endor-labs-agent-kit": "0.2.0",
-                "ai-plugins": "1.0.1",
+                "endor-labs-agent-kit": "2.0.0",
+                "ai-plugins": "1.1.1",
             },
             errors,
         )
@@ -543,8 +543,8 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 "ai-plugins": "./ai-plugins",
             },
             {
-                "endor-labs-agent-kit": "0.2.0",
-                "ai-plugins": "1.0.1",
+                "endor-labs-agent-kit": "2.0.0",
+                "ai-plugins": "1.1.1",
             },
             errors,
         )
@@ -564,8 +564,8 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
     if manifest:
         if manifest.get("name") != "endor-labs-agent-kit":
             errors.append(".cursor-plugin/plugin.json: name must be endor-labs-agent-kit")
-        if manifest.get("version") != "0.2.0":
-            errors.append(".cursor-plugin/plugin.json: version must be 0.2.0")
+        if manifest.get("version") != "2.0.0":
+            errors.append(".cursor-plugin/plugin.json: version must be 2.0.0")
         if manifest.get("logo") != "assets/logo.svg":
             errors.append(".cursor-plugin/plugin.json: logo must be assets/logo.svg")
         if manifest.get("agents") != "./agents/":

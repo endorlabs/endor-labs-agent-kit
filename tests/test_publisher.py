@@ -550,7 +550,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Content releases require a package version bump" in codex_plugin_readme
     assert "endor-agent-kit-setup-agent" in codex_plugin_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert plugin_manifest["version"] == "0.2.0"
+    assert plugin_manifest["version"] == "2.0.0"
     assert plugin_manifest["skills"] == "./skills/"
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
@@ -564,7 +564,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
     )
     assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert claude_plugin_manifest["version"] == "0.2.0"
+    assert claude_plugin_manifest["version"] == "2.0.0"
     assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert "agents" not in claude_plugin_manifest
     assert "skills" not in claude_plugin_manifest
@@ -583,7 +583,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     )
     assert legacy_claude_plugin_manifest["name"] == "ai-plugins"
     assert legacy_claude_plugin_manifest["displayName"] == "Endor Labs AI Plugins (Legacy)"
-    assert legacy_claude_plugin_manifest["version"] == "1.0.1"
+    assert legacy_claude_plugin_manifest["version"] == "1.1.1"
     assert "agents" not in legacy_claude_plugin_manifest
     assert "skills" not in legacy_claude_plugin_manifest
     assert "license" not in legacy_claude_plugin_manifest
@@ -613,6 +613,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     }
     root_gemini_manifest = json.loads((dest / "gemini-extension.json").read_text())
     assert root_gemini_manifest["name"] == "endor-labs-agent-kit"
+    assert root_gemini_manifest["version"] == "2.0.0"
     assert root_gemini_manifest["contextFileName"] == "GEMINI.md"
     assert root_gemini_manifest["skills"] == {"path": "./skills"}
     assert root_gemini_manifest["mcpServers"] == {
@@ -630,7 +631,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
     assert antigravity_plugin_manifest["description"] == "Endor Labs workflow skills and subagents for Antigravity CLI."
     assert antigravity_plugin_manifest["version"] == gemini_plugin_manifest["version"]
-    assert antigravity_plugin_manifest["version"] == "0.2.0"
+    assert antigravity_plugin_manifest["version"] == "2.0.0"
     assert "mcpServers" not in antigravity_plugin_manifest
     assert "settings" not in antigravity_plugin_manifest
     assert "license" not in antigravity_plugin_manifest
