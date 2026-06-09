@@ -389,6 +389,7 @@ def _cursor_plugin_manifest(version: str) -> dict[str, object]:
         "author": {
             "name": "Endor Labs",
             "email": "support@endor.ai",
+            "url": "https://www.endorlabs.com/",
         },
         "homepage": "https://endorlabs.com",
         "repository": "https://github.com/endorlabs/ai-plugins",
@@ -427,6 +428,7 @@ def _cursor_marketplace_manifest(version: str) -> dict[str, object]:
                 "version": version,
                 "author": {
                     "name": "Endor Labs",
+                    "url": "https://www.endorlabs.com/",
                 },
                 "category": "Developer Tools",
                 "keywords": [

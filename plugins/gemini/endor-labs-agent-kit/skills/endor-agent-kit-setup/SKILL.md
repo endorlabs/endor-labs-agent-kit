@@ -26,7 +26,8 @@ gemini extensions install /path/to/endor-labs-agent-kit/plugins/gemini/endor-lab
 Install from the public GitHub repository after a release tag is published:
 
 ```bash
-gemini extensions install https://github.com/endorlabs/ai-plugins --ref <tag>
+git clone --depth 1 --branch <tag> https://github.com/endorlabs/ai-plugins ai-plugins
+gemini extensions install ./ai-plugins/plugins/gemini/endor-labs-agent-kit
 ```
 
 Observed local validation on Gemini CLI 0.44.1: local installs may still
@@ -34,8 +35,8 @@ show a folder trust prompt even when `--consent` is supplied. Inspect the
 extension package, approve only the expected Agent Kit folder,
 then restart Gemini CLI so skills and subagents become visible.
 Do not create or install zip archives for Gemini CLI; use the local extension
-directory for local testing and the tagged GitHub repository for release
-installs.
+directory for local testing and clone the tagged GitHub repository before
+installing the generated extension directory for release installs.
 
 # Endor Agent Kit Setup
 

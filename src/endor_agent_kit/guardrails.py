@@ -173,8 +173,8 @@ def _check_root_mcp_support(root: Path, errors: list[str]) -> None:
     if gemini_manifest:
         if gemini_manifest.get("contextFileName") != "GEMINI.md":
             errors.append("gemini-extension.json: contextFileName must be GEMINI.md")
-        if gemini_manifest.get("skills") != {"path": "./skills"}:
-            errors.append("gemini-extension.json: skills path must be ./skills")
+        if gemini_manifest.get("skills") != {"path": "./plugins/gemini/endor-labs-agent-kit/skills"}:
+            errors.append("gemini-extension.json: skills path must be ./plugins/gemini/endor-labs-agent-kit/skills")
         expected_gemini_server = {
             "args": ENDOR_MCP_SERVER_ARGS,
             "command": ENDOR_MCP_SERVER_COMMAND,

@@ -29,6 +29,13 @@ GEMINI_SETUP_SKILL = "endor-agent-kit-setup"
 PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY = "https://github.com/endorlabs/ai-plugins"
 
 
+def _public_gemini_install_lines(ref: str) -> list[str]:
+    return [
+        f"git clone --depth 1 --branch {ref} {PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY} ai-plugins",
+        "gemini extensions install ./ai-plugins/plugins/gemini/endor-labs-agent-kit",
+    ]
+
+
 @dataclass(frozen=True)
 class PluginPackagePublication:
     """Result of publishing one generated plugin package."""
@@ -170,7 +177,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "Install from the public GitHub repository after a release tag is published:",
         "",
         "```bash",
-        f"gemini extensions install {PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY} --ref <tag>",
+        *_public_gemini_install_lines("<tag>"),
         "```",
         "",
         "Observed local validation on Gemini CLI 0.44.1: local installs may still",
@@ -178,8 +185,8 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "extension package, approve only the expected Agent Kit folder,",
         "then restart Gemini CLI so skills and subagents become visible.",
         "Do not create or install zip archives for Gemini CLI; use the local extension",
-        "directory for local testing and the tagged GitHub repository for release",
-        "installs.",
+        "directory for local testing and clone the tagged GitHub repository before",
+        "installing the generated extension directory for release installs.",
         "",
         setup_source.rstrip(),
         "",
@@ -272,15 +279,15 @@ def _gemini_plugin_readme(
         "Install from the public GitHub repository after a release tag is published:",
         "",
         "```bash",
-        f"gemini extensions install {PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY} --ref <tag>",
+        *_public_gemini_install_lines("<tag>"),
         "```",
         "",
         "Gemini CLI 0.44.1 local validation showed a folder trust prompt for local",
         "paths even with `--consent`. Inspect the package and approve only the",
         "expected Endor Agent Kit extension source.",
         "Do not create or install zip archives for Gemini CLI; use the local extension",
-        "directory for local testing and the tagged GitHub repository for published",
-        "installs.",
+        "directory for local testing and clone the tagged GitHub repository before",
+        "installing the generated extension directory for published installs.",
         "",
         "Restart Gemini CLI after installing or reinstalling the extension.",
         "",

@@ -88,8 +88,10 @@ The generated Gemini CLI extension package includes:
 Gemini packages do not declare plugin-wide MCP by default. Setup documents the
 observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
 restart after extension installation or update. Gemini CLI installs a local
-extension directory and supports tagged GitHub repository installs for public
-distribution. The package does not generate or publish a zip artifact.
+extension directory; public distribution clones the tagged GitHub repository
+and installs `plugins/gemini/endor-labs-agent-kit/` rather than installing the
+multi-host repository root. The package does not generate or publish a zip
+artifact.
 
 The repository root compatibility surface is separate from the generated
 Gemini package. Root `.mcp.json` and root `gemini-extension.json` may include
@@ -178,8 +180,8 @@ Adding first-class plugin publishing would touch:
 
 The Gemini package follows the same source-first publication model rather than
 introducing hand-assembled packages. Gemini local validation installs from
-`plugins/gemini/endor-labs-agent-kit`; public validation installs from the
-tagged GitHub repository.
+`plugins/gemini/endor-labs-agent-kit`; public validation clones the tagged
+GitHub repository and installs that generated extension directory.
 
 The Antigravity package also follows the source-first publication model. It
 installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
