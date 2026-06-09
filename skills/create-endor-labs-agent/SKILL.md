@@ -57,10 +57,16 @@ Read these files before designing the agent:
 - `README.md`
 - `src/endor_agent_kit/recipe.py`
 - `src/endor_agent_kit/validator.py`
+- `src/endor_agent_kit/structured_output_contracts.py` when the agent needs a
+  strict final JSON contract
+- `source/endor-knowledge-pack/query-recipes.yaml` when the agent depends on
+  repeatable Endor evidence
 - one similar `source/agents/*/recipe.yaml`
 - one similar `source/agents/*/actions.yaml` when the new agent is mutating or
   adapter-backed
 - one similar `source/agents/*/instructions.md`
+- one similar `source/endor-knowledge-pack/workflows/*.yaml` when the agent has
+  a multi-step Endor evidence workflow
 - one similar `tests/test_*_smoke.py`
 
 ## Pick The Agent Shape
@@ -77,6 +83,11 @@ Choose the smallest safe host set:
   local developer assistant
 - `claude-managed-agents` for Anthropic-hosted agents that do not need local
   repository file access
+- `codex` for Codex skills and bundled custom-agent plugin output
+- `gemini` for Gemini CLI skills and subagent output
+- `portable` for provider-neutral generated artifacts and manifests
+- root `agents/`, `skills/`, `.cursor-plugin/`, and `cursor-sdk/` outputs are
+  generated publication surfaces, not separate source agent definitions
 
 Choose capabilities conservatively:
 
@@ -101,6 +112,12 @@ data is needed. If a blueprint mentions MCP, treat it as source material and
 remove the MCP dependency unless the agent specifically requires a public MCP
 tool that cannot be expressed through documented Endor API or `endorctl api`
 commands.
+
+Do not introduce a runtime dependency on `endorlabs-sdk` or other private SDK
+code while authoring public Agent Kit agents unless the maintainer explicitly
+approves that dependency. Use source recipes, documented `endorctl_api`
+invocation shapes, Knowledge Pack query recipes, and generated prompt contracts
+as the default public surface.
 
 ## Create Source Files
 
@@ -148,6 +165,27 @@ semantic side effect. Mutating actions must set `confirmation_required: true`.
 Use `availability: requires_adapter` when the prompt can describe or request an
 action but cannot complete it without a host service, such as Slack approval or
 Endor policy writeback.
+
+## Add Knowledge Pack And Output Contracts
+
+For agents that depend on repeatable Endor evidence, add or update public
+Knowledge Pack source:
+
+```text
+source/endor-knowledge-pack/workflows/<agent-id>.yaml
+source/endor-knowledge-pack/query-recipes.yaml
+```
+
+Use these files to describe resource kinds, field masks, bounded query shapes,
+namespace/traversal rules, completeness limits, and data-gap behavior. Keep the
+workflow public and product-safe. Do not include private runtime QA logs,
+private tenant details, local checkout paths, or proprietary extractor output.
+
+For agents with structured runtime reports, add or update
+`src/endor_agent_kit/structured_output_contracts.py` so generated prompts,
+runtime validation, and future private QA consumers can agree on required
+fields. The contract should encode the public final-output shape, not private
+execution policy.
 
 ## Write Architecture
 
@@ -231,6 +269,10 @@ For every new agent, test:
 
 - the recipe compiles for intended hosts and editions
 - `architecture.svg` is published with every generated catalog artifact
+- Knowledge Pack workflow/query recipe coverage when the agent depends on
+  repeatable Endor evidence
+- structured output contract coverage when the agent promises a strict final
+  JSON shape
 - schema v2 action contracts validate when the agent is mutating or adapter-backed
 - generated artifacts carry load-bearing prompt rules
 - generated tool restrictions match declared capabilities
@@ -277,6 +319,24 @@ recipe.
 Agent Kit PR. It is read-only and reports missing source layout, eval,
 architecture, transport, and action-contract requirements before CI does.
 
+## Prepare Lifecycle Handoff
+
+When a private validation consumer needs to QA the generated agent, create a
+public-neutral validation request from Agent Kit:
+
+```bash
+endor-agent-kit lifecycle prepare \
+  --agent <agent-id> \
+  --base-ref origin/main \
+  --output /tmp/validation-request.json
+```
+
+The request may include source commit, branch, package version, agent ids,
+provider targets, task profile ids, structured output contract ids, generated
+drift status, warnings, and errors. It must not include absolute local checkout
+paths, private runtime QA mechanics, raw logs, credentials, or machine-specific
+host policy. Keep publish-readiness reports outside this public repository.
+
 ## Final Report
 
 Report:
@@ -285,8 +345,10 @@ Report:
 - source files created or changed
 - generated catalog paths
 - host and edition/layout support
+- Knowledge Pack and structured output contract changes, when present
 - safety capabilities
 - tests and validation commands run
+- validation-request path or status when a lifecycle handoff was prepared
 - any remaining data gaps or release blockers
 
 Do not claim the agent works in a host until its generated artifact was inspected
