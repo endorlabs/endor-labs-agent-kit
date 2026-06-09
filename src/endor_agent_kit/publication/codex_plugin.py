@@ -29,6 +29,9 @@ CODEX_SETUP_SKILL = "endor-agent-kit-setup"
 CODEX_SETUP_AGENT = "endor-agent-kit-setup-agent"
 CODEX_AGENT_SUFFIX = "-agent"
 CODEX_SECTION_EDITION = "enterprise-edition"
+CODEX_INSTALLER_REPO_PATH = CODEX_PLUGIN_PACKAGE_ROOT / "scripts" / "install_codex_agents.py"
+CODEX_INSTALLER_REPO_COMMAND = f"python {CODEX_INSTALLER_REPO_PATH.as_posix()}"
+CODEX_INSTALLER_COMMAND = 'python "$ENDOR_CODEX_INSTALLER"'
 
 
 @dataclass(frozen=True)
@@ -278,35 +281,46 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe], version: s
         "",
         "## Codex Install Commands",
         "",
+        "Resolve the bundled installer from either the Agent Kit/`ai-plugins`",
+        "checkout root or Codex's plugin cache:",
+        "",
+        "```bash",
+        f"ENDOR_CODEX_INSTALLER=\"{CODEX_INSTALLER_REPO_PATH.as_posix()}\"",
+        'if [ ! -f "$ENDOR_CODEX_INSTALLER" ]; then',
+        '  ENDOR_CODEX_INSTALLER="$(find "${CODEX_HOME:-$HOME/.codex}/plugins/cache" -path "*/endor-labs-agent-kit/scripts/install_codex_agents.py" -print -quit)"',
+        "fi",
+        'test -f "$ENDOR_CODEX_INSTALLER"',
+        "```",
+        "",
         "Check installed Endor Codex agents and skills:",
         "",
         "```bash",
-        "python scripts/install_codex_agents.py --status",
+        f"{CODEX_INSTALLER_COMMAND} --status",
         "```",
         "",
         "Move stale Endor Agent Kit plugin-cache copies out of Codex's active cache after user approval:",
         "",
         "```bash",
-        "python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes",
+        f"{CODEX_INSTALLER_COMMAND} --purge-stale-plugin-cache --yes",
         "```",
         "",
         "Install or update all bundled Endor Codex agents and skills after user approval:",
         "",
         "```bash",
-        "python scripts/install_codex_agents.py --install --yes",
+        f"{CODEX_INSTALLER_COMMAND} --install --yes",
         "```",
         "",
         "Install only one surface when diagnosing host discovery:",
         "",
         "```bash",
-        "python scripts/install_codex_agents.py --install --agents-only --yes",
-        "python scripts/install_codex_agents.py --install --skills-only --yes",
+        f"{CODEX_INSTALLER_COMMAND} --install --agents-only --yes",
+        f"{CODEX_INSTALLER_COMMAND} --install --skills-only --yes",
         "```",
         "",
         "Uninstall only Endor Agent Kit-managed Codex agents and skills after user approval:",
         "",
         "```bash",
-        "python scripts/install_codex_agents.py --uninstall --yes",
+        f"{CODEX_INSTALLER_COMMAND} --uninstall --yes",
         "```",
         "",
         setup_source.rstrip(),
@@ -452,7 +466,7 @@ def _codex_plugin_readme(
         "",
         "Start a new Codex thread after installing or reinstalling the plugin.",
         "If Codex still shows stale same-version content, remove and reinstall",
-        "the plugin, rerun `python scripts/install_codex_agents.py --install --yes`,",
+        f"the plugin, rerun `{CODEX_INSTALLER_REPO_COMMAND} --install --yes` from the checkout root,",
         "and start another fresh thread so host caches reload both skills and agents.",
         "",
         "## Set Up This Machine",
@@ -761,8 +775,8 @@ def _codex_agent_installer_script(version: str) -> str:
                         "  warning: Codex may load stale Endor Agent Kit instructions from "
                         f"{cache_root}. Remove/reinstall that plugin package or clear the "
                         "host cache, then start a fresh Codex thread. To move this cache "
-                        "out of the active cache after approval, run "
-                        "`python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes`."
+                        "out of the active cache after approval, rerun this installer with "
+                        "`--purge-stale-plugin-cache --yes`."
                     )
                 reported = True
             if not reported:
@@ -831,7 +845,7 @@ def _codex_agent_installer_script(version: str) -> str:
                 print(
                     "  warning: Codex may try to load this removed legacy Endor Agent Kit "
                     "plugin on every run. To remove the stale config entry after approval, "
-                    "run `python scripts/install_codex_agents.py --purge-stale-plugin-cache --yes`."
+                    "rerun this installer with `--purge-stale-plugin-cache --yes`."
                 )
 
 

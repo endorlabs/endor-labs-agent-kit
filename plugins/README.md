@@ -13,9 +13,12 @@ Read the host package README first when installing or validating a plugin.
 For release publication, use `docs/plugin-release-checklist.md` from the
 repository root.
 
-Use `README.md`, `docs/getting-started.md`, `docs/for-agents.md`,
-`docs/maintainer-guide.md`, and `docs/distribution-sync.md` from the
-Agent Kit source repo for the two-audience documentation map.
+Use the Agent Kit source repo for the full two-audience documentation
+map: <https://github.com/endorlabs/endor-labs-agent-kit/blob/main/README.md>,
+<https://github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md>,
+<https://github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/for-agents.md>,
+<https://github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/maintainer-guide.md>,
+and <https://github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/distribution-sync.md>.
 
 Current generated package slices:
 

@@ -130,4 +130,10 @@ release matrix.
 - Do not enable both Claude package ids in the same profile for normal use.
 - Do not couple Cursor package sync to Gemini CLI extension files.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
+- The root `.mcp.json` file and root `gemini-extension.json` may declare the
+  source-approved `endor-cli-tools` MCP server so users can opt into Endor MCP
+  setup. Generated host package manifests under `plugins/*/endor-labs-agent-kit/`
+  must still stay MCP-free unless that host package explicitly validates MCP.
+  Setup guidance remains CLI-first and must not start, register, or rely on MCP
+  without explicit user approval.
 - Do not run live `endorctl api` smoke tests without explicit user approval and namespace provenance.
