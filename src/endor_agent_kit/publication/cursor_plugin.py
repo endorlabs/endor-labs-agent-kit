@@ -388,7 +388,7 @@ def _cursor_plugin_manifest(version: str) -> dict[str, object]:
         "description": "Endor Labs Agent Kit setup and security workflow agents and skills for Cursor.",
         "author": {
             "name": "Endor Labs",
-            "email": "support@endorlabs.com",
+            "email": "support@endor.ai",
         },
         "homepage": "https://endorlabs.com",
         "repository": "https://github.com/endorlabs/ai-plugins",
@@ -414,7 +414,7 @@ def _cursor_marketplace_manifest(version: str) -> dict[str, object]:
         "name": "endorlabs",
         "owner": {
             "name": "Endor Labs",
-            "email": "support@endorlabs.com",
+            "email": "support@endor.ai",
         },
         "metadata": {
             "description": "Endor Labs Agent Kit plugin marketplace for Cursor.",
