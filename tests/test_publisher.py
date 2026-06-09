@@ -881,6 +881,11 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "separate from the Gemini CLI extension" in cursor_setup_agent
     cursor_sdk_readme = (dest / "cursor-sdk" / "README.md").read_text()
     assert "uv pip install -r requirements.txt" in cursor_sdk_readme
+    assert "python3 -m pip install -r requirements.txt" in cursor_sdk_readme
+    assert "python run_cursor_agent.py endor-probe-droid-agent" in cursor_sdk_readme
+    assert "python run_cursor_agent.py endor-sca-remediation-agent" in cursor_sdk_readme
+    assert "python3 -m pip install -r cursor-sdk/requirements.txt" not in cursor_sdk_readme
+    assert "python cursor-sdk/run_cursor_agent.py" not in cursor_sdk_readme
     assert "Cursor Python SDK" in cursor_sdk_readme
     assert "Filter > Source > SDK" in cursor_sdk_readme
     assert "must not run `endorctl scan` or `endorctl host-check`" in cursor_sdk_readme
@@ -893,6 +898,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Cloud ref: {args.ref}" in cursor_sdk_runner
     assert "Local workspace: {workspace}" in cursor_sdk_runner
     assert "Workspace: {workspace}" not in cursor_sdk_runner
+    assert "From cursor-sdk, run: " in cursor_sdk_runner
+    assert "python3 -m pip install -r requirements.txt" in cursor_sdk_runner
+    assert "python3 -m pip install -r cursor-sdk/requirements.txt" in cursor_sdk_runner
     cursor_sdk_prompt = (dest / "cursor-sdk" / "agents" / "endor-probe-droid-agent.md").read_text()
     assert "Cursor SDK Host Contract" in cursor_sdk_prompt
     assert "host=cursor-sdk" in cursor_sdk_prompt

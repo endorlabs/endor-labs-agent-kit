@@ -329,13 +329,13 @@ def _render_readme(prepared_recipes: list[PreparedSourceRecipe], version: str) -
         "If `uv` is unavailable, use:",
         "",
         "```bash",
-        "python3 -m pip install -r cursor-sdk/requirements.txt",
+        "python3 -m pip install -r requirements.txt",
         "```",
         "",
         "## Run A Local Agent",
         "",
         "```bash",
-        "python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \\",
+        "python run_cursor_agent.py endor-probe-droid-agent \\",
         "  --workspace /path/to/repo \\",
         "  \"Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only.\"",
         "```",
@@ -343,7 +343,7 @@ def _render_readme(prepared_recipes: list[PreparedSourceRecipe], version: str) -
         "## Run A Cloud Agent",
         "",
         "```bash",
-        "python cursor-sdk/run_cursor_agent.py endor-sca-remediation-agent \\",
+        "python run_cursor_agent.py endor-sca-remediation-agent \\",
         "  --mode cloud \\",
         "  --repo-url https://github.com/your-org/your-repo \\",
         "  --ref main \\",
@@ -475,7 +475,9 @@ def _runner_script() -> str:
                 from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions
             except ImportError as exc:
                 raise SystemExit(
-                    "cursor-sdk is not installed. Run: python3 -m pip install -r cursor-sdk/requirements.txt"
+                    "cursor-sdk is not installed. From cursor-sdk, run: "
+                    "python3 -m pip install -r requirements.txt. From the repo root, run: "
+                    "python3 -m pip install -r cursor-sdk/requirements.txt"
                 ) from exc
 
             create_kwargs: dict[str, Any] = {
