@@ -1776,9 +1776,9 @@
           "sha256": "16c86bcea1f5a5ddf5152536fbec6a55d0700aedf3740b2918e17fdd8425fe08"
         },
         {
-          "bytes": 7760,
+          "bytes": 9311,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "013cbfcdee12018556cb75196e1709fa9d301e57f86d144382fa84123108ea60"
+          "sha256": "1709f54baf71cd5df0acf6edf7d82e0b2e106952d8828120917fb4b00d007c91"
         },
         {
           "bytes": 21436,
@@ -1892,9 +1892,9 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 8154,
+          "bytes": 9705,
           "path": "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "152e65dd18170801ad83cf2a72051f88143a7892fd9a169a9ab966f409e8edc0"
+          "sha256": "472792a48e924eb25b944b479b576d014de20d961c6641d1f765bd467caf06a7"
         },
         {
           "bytes": 1938,
@@ -2005,9 +2005,9 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 8118,
+          "bytes": 9669,
           "path": "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "9d2a4ac8c484b7354acbe1eb7ca9b1f843d65b9feae9371115163c68852dfa97"
+          "sha256": "e304d3e92b8c822f2d4d42c731443d2f4155f36a7a9370de95c9f66b440e6b83"
         },
         {
           "bytes": 1938,
@@ -2058,9 +2058,9 @@
           "sha256": "807ad28046c56695018209b5ac680354610014e36065120ae10be300752bce78"
         },
         {
-          "bytes": 9036,
+          "bytes": 10621,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml",
-          "sha256": "a2b4e3dcf745d785a2f45829879a18d6ae9e4d3320e6d6a3611439b032c529fb"
+          "sha256": "b178b5b460f0a6165fb25a401f9c48f849dafffb412cbfe709a52de6230f66ac"
         },
         {
           "bytes": 28033,
@@ -2103,9 +2103,9 @@
           "sha256": "ad7f5f237d6dcc92e08ee0392082a31c1b9addd5849d9b60ada3cb714bb92a2e"
         },
         {
-          "bytes": 7975,
+          "bytes": 9526,
           "path": "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "2e5cdd7c748cd855f086a038b0cea8034aa733a134cc3fd4f2edf911a7fa4331"
+          "sha256": "0d807e2a12010f1fbbe207ec775a746cd7ee63c9bacb825d507c21361259ecf8"
         },
         {
           "bytes": 20909,
@@ -2170,9 +2170,9 @@
           "sha256": "57ddf9ff614bd8d8f1200faddf00c10c4bbd118a66ed461f105cecd362c6ad31"
         },
         {
-          "bytes": 7357,
+          "bytes": 8908,
           "path": "agents/endor-agent-kit-setup-agent.md",
-          "sha256": "afaaa9ba42fcb21eb7065bef4a94ee0d0a9f0705e61b7015668c960b355768b3"
+          "sha256": "8220589225016c0ffdd8232b41732fa5d9e1b919484ae01b8339e761eae5d39e"
         },
         {
           "bytes": 28192,
@@ -2220,9 +2220,9 @@
           "sha256": "43cee084b3fd84a06253bdcaf577f2db2f0f0b2a2edfcd48fb17c8a4d8348032"
         },
         {
-          "bytes": 7165,
+          "bytes": 8716,
           "path": "skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "d09c90baa342121a16a60a1a18461e6bd03d3fd0ddae1a5025708419846dc016"
+          "sha256": "7a7b567c4b59205879c640925096c92c660a31bd729a520ad5802d8f1433f9e6"
         },
         {
           "bytes": 21288,
@@ -2297,9 +2297,9 @@
           "sha256": "f4c5078cc7bdf7572626145f8ac405911d84c69e3b6a772ce33dddbcc78d56de"
         },
         {
-          "bytes": 6882,
+          "bytes": 8433,
           "path": "cursor-sdk/agents/endor-agent-kit-setup-agent.md",
-          "sha256": "82950109112ee1d321f0c295f7718c66729aaef7bde73d313cc3a2ad2e61bfd9"
+          "sha256": "34cc16b8e0759fad0ec3e7f49363d237d21abd7d7de3c188ebfed7c2e8306c8e"
         },
         {
           "bytes": 6454,
@@ -2438,9 +2438,9 @@
           "sha256": "574a25fda7cf90ac2f0587a30666c28e3e86402ee06a88a6b3819f691fa05a82"
         },
         {
-          "bytes": 7468,
+          "bytes": 9019,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "06722d6b1fc4a244c63389d2ef0833239f8f71821f976e9cd5a4811f68d8c3ce"
+          "sha256": "99d490c3853f4c218f4d175989411ebbdfdcddab51af92af887b0813aa0762be"
         },
         {
           "bytes": 21142,

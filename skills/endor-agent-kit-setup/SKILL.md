@@ -52,6 +52,10 @@ Setup may:
   are present.
 - Offer re-authentication when verification fails.
 - Check `gh` authentication and point to official installation guidance.
+- Inspect Endor MCP support when a selected workflow needs MCP or the user asks
+  for MCP setup.
+- Offer host-specific Endor MCP configuration only after explaining the exact
+  file, command, and validation step.
 - Install, update, or uninstall host-specific Agent Kit support files only after
   explicit approval.
 
@@ -68,7 +72,8 @@ Setup must not:
 - Edit shell profile files such as `.zshrc`, `.bashrc`, or PowerShell profile.
 - Install `gh`, package managers, language runtimes, Docker, JDKs, or build
   tooling.
-- Configure MCP globally. MCP remains opt-in per recipe/workflow.
+- Configure MCP globally without explicit user approval. MCP remains opt-in per
+  recipe/workflow.
 
 ## Readiness Report
 
@@ -130,6 +135,35 @@ mechanism.
 When browser or SSO authentication is requested, confirm the namespace first.
 Use non-interactive flags where supported. If multi-tenant selection appears,
 summarize the available tenant choices and ask the user before retrying.
+
+## Endor MCP
+
+Prefer documented Endor API or `endorctl api` lookups for workflows that support
+them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
+the user explicitly asks for it.
+
+The distribution may include ready-to-use Endor MCP config snippets such as
+root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
+inputs, not permission to start or register MCP without approval.
+
+When MCP setup is requested:
+
+1. Check whether `npx` is available.
+2. Check whether `endorctl` is available.
+3. Verify the proposed server command is:
+   `npx -y endorctl ai-tools mcp-server`.
+4. Inspect the host-specific MCP config location or installed plugin metadata.
+5. If `endor-cli-tools` is already registered, report it and ask before
+   changing anything.
+6. If it is missing, show the exact config that would be added and ask for
+   approval before writing host config files.
+7. After approval and configuration, validate in a fresh host session when the
+   host supports tool visibility checks.
+
+Do not claim Endor MCP tools are available to a workflow until the host exposes
+them in the current session. If MCP tools are unavailable, continue with
+CLI-first workflows when they support `endorctl api`; otherwise record the
+missing MCP capability in `data_gaps`.
 
 ## GitHub CLI
 

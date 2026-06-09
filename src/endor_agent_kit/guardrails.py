@@ -13,6 +13,11 @@ from endor_agent_kit.portable_runtime_conformance import (
     assert_portable_text,
     portable_manifest_conformance_errors,
 )
+from endor_agent_kit.publication.mcp_support import (
+    ENDOR_MCP_SERVER_ARGS,
+    ENDOR_MCP_SERVER_COMMAND,
+    ENDOR_MCP_SERVER_NAME,
+)
 from endor_agent_kit.recipe import load_recipe, load_yaml_file
 from endor_agent_kit.safety_posture import (
     SourceRecipeSafetyPosture,
@@ -96,6 +101,7 @@ def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     _check_managed_agents(root, errors)
     _check_codex(root, errors)
     _check_gemini(root, errors)
+    _check_root_mcp_support(root, errors)
     _check_plugins(root, errors)
     _check_portable(root, errors)
     _check_credentials(root, errors)
@@ -138,7 +144,55 @@ def _check_knowledge_pack_source(root: Path, errors: list[str]) -> None:
     if not pack_root.exists():
         return
     for error in validate_knowledge_pack(pack_root, agent_ids=_source_agent_ids(root)):
-        errors.append(f"source/endor-knowledge-pack: {error}")
+            errors.append(f"source/endor-knowledge-pack: {error}")
+
+
+def _check_root_mcp_support(root: Path, errors: list[str]) -> None:
+    root_files = (
+        root / ".mcp.json",
+        root / "GEMINI.md",
+        root / "gemini-extension.json",
+    )
+    if not any(path.exists() for path in root_files):
+        return
+
+    for path in root_files:
+        if not path.is_file():
+            errors.append(f"{_rel(root, path)}: missing root MCP support file")
+
+    expected_mcp_server = {
+        "args": ENDOR_MCP_SERVER_ARGS,
+        "command": ENDOR_MCP_SERVER_COMMAND,
+        "type": "stdio",
+    }
+    mcp_config = _load_json_mapping(root, root / ".mcp.json", errors)
+    if mcp_config and _dict(mcp_config.get("mcpServers")).get(ENDOR_MCP_SERVER_NAME) != expected_mcp_server:
+        errors.append(f".mcp.json: must declare {ENDOR_MCP_SERVER_NAME} stdio server")
+
+    gemini_manifest = _load_json_mapping(root, root / "gemini-extension.json", errors)
+    if gemini_manifest:
+        if gemini_manifest.get("contextFileName") != "GEMINI.md":
+            errors.append("gemini-extension.json: contextFileName must be GEMINI.md")
+        if gemini_manifest.get("skills") != {"path": "./skills"}:
+            errors.append("gemini-extension.json: skills path must be ./skills")
+        expected_gemini_server = {
+            "args": ENDOR_MCP_SERVER_ARGS,
+            "command": ENDOR_MCP_SERVER_COMMAND,
+        }
+        if _dict(gemini_manifest.get("mcpServers")).get(ENDOR_MCP_SERVER_NAME) != expected_gemini_server:
+            errors.append(f"gemini-extension.json: must declare {ENDOR_MCP_SERVER_NAME} server")
+
+    gemini_context = root / "GEMINI.md"
+    if gemini_context.is_file():
+        text = gemini_context.read_text(encoding="utf-8")
+        for required in (
+            "Prefer documented Endor API or `endorctl api` lookups",
+            "Use Endor MCP only when a selected MCP-capable",
+            "use the `endor-agent-kit-setup` skill",
+            "configure Endor MCP without explicit user approval",
+        ):
+            if required not in text:
+                errors.append(f"GEMINI.md: missing root MCP support text {required!r}")
 
 
 def _source_agent_ids(root: Path) -> set[str]:
@@ -627,9 +681,6 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             if required not in setup_agent_text:
                 errors.append(f"{_rel(root, setup_agent)}: missing required setup agent text {required!r}")
         _check_namespace_setup_guidance(root, setup_agent, setup_agent_text, errors)
-
-    if (root / "GEMINI.md").exists() or (root / "gemini-extension.json").exists():
-        errors.append("Cursor package generation must not create root Gemini files")
 
 
 def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
