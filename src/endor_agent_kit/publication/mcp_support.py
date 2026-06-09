@@ -7,7 +7,6 @@ from pathlib import Path
 
 from endor_agent_kit.compilers.gemini import HOST as GEMINI_HOST
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
-from endor_agent_kit.publication.plugin_package_common import package_version
 
 ENDOR_MCP_SERVER_NAME = "endor-cli-tools"
 ENDOR_MCP_SERVER_COMMAND = "npx"
@@ -30,7 +29,7 @@ def publish_root_mcp_support(
     prepared_recipes: list[PreparedSourceRecipe],
     destination: Path,
 ) -> tuple[Path, ...]:
-    """Publish root compatibility files that expose optional Endor MCP setup."""
+    """Publish root support files that document optional Endor MCP setup."""
 
     gemini_recipes = [
         prepared
@@ -65,46 +64,12 @@ def publish_root_mcp_support(
     )
     written.append(gemini_context)
 
-    gemini_manifest = destination / "gemini-extension.json"
-    gemini_manifest.write_text(
-        json.dumps(_root_gemini_extension_manifest(), indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
-    written.append(gemini_manifest)
+    # The repository root is a multi-host distribution, not a Gemini extension
+    # root. A root manifest would make Gemini discover Cursor-flavored root
+    # skills, so remove any stale generated compatibility manifest.
+    (destination / "gemini-extension.json").unlink(missing_ok=True)
 
     return tuple(written)
-
-
-def _root_gemini_extension_manifest() -> dict[str, object]:
-    return {
-        "contextFileName": "GEMINI.md",
-        "description": "Endor Labs Agent Kit setup and security workflow skills.",
-        "displayName": "Endor Labs Agent Kit",
-        "homepage": "https://www.endorlabs.com",
-        "keywords": [
-            "endor-labs",
-            "security",
-            "endorctl",
-            "sca",
-            "sast",
-            "agentic remediation",
-            "AppSec",
-        ],
-        "license": "MIT",
-        "mcpServers": {
-            ENDOR_MCP_SERVER_NAME: endor_mcp_server_config(include_type=False),
-        },
-        "name": "endor-labs-agent-kit",
-        "publisher": "endorlabs",
-        "repository": {
-            "type": "git",
-            "url": "https://github.com/endorlabs/ai-plugins",
-        },
-        "skills": {
-            "path": "./plugins/gemini/endor-labs-agent-kit/skills",
-        },
-        "version": package_version(),
-    }
 
 
 def _root_gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
@@ -115,9 +80,14 @@ def _root_gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     return "\n".join([
         "# Endor Labs Agent Kit Root Package",
         "",
-        "This root compatibility manifest points Gemini CLI at the generated",
-        "Gemini extension skills under `plugins/gemini/endor-labs-agent-kit/skills`.",
-        "Do not load the root Cursor skills as Gemini workflows.",
+        "This repository root is a multi-host distribution surface, not a",
+        "Gemini CLI extension root. Do not install the repository root as a",
+        "Gemini extension.",
+        "",
+        "Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/` so",
+        "Gemini discovers the generated Gemini skills from that extension's",
+        "`skills/` directory. Do not load the root Cursor skills as Gemini",
+        "workflows.",
         "",
         "Use Endor Labs Agent Kit workflows only within their generated safety",
         "contracts. Prefer documented Endor API or `endorctl api` lookups when a",

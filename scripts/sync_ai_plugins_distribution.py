@@ -22,7 +22,10 @@ SYNC_FILES = (
     (".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"),
     (".agents/plugins/marketplace.json", ".agents/plugins/marketplace.json"),
     ("assets/logo.svg", "assets/logo.svg"),
-    ("gemini-extension.json", "gemini-extension.json"),
+)
+
+STALE_GENERATED_FILES = (
+    "gemini-extension.json",
 )
 
 SOURCE_ONLY_ROOT_SKILLS = frozenset({
@@ -91,6 +94,9 @@ def sync_distribution(
             operations=operations,
         )
 
+    for relative in STALE_GENERATED_FILES:
+        _remove_file(target / relative, dry_run=dry_run, operations=operations)
+
     return operations
 
 
@@ -109,6 +115,14 @@ def _remove_tree(target: Path, *, dry_run: bool, operations: list[str]) -> None:
     operations.append(f"remove stale {target}")
     if not dry_run:
         shutil.rmtree(target)
+
+
+def _remove_file(target: Path, *, dry_run: bool, operations: list[str]) -> None:
+    if not target.exists():
+        return
+    operations.append(f"remove stale {target}")
+    if not dry_run:
+        target.unlink()
 
 
 def _sync_file(source: Path, target: Path, *, dry_run: bool, operations: list[str]) -> None:

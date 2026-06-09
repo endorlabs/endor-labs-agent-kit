@@ -20,7 +20,7 @@
   ],
   "license": "MIT",
   "logo": "assets/logo.svg",
-  "name": "endor-labs-agent-kit",
+  "name": "endorlabs",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",
   "version": "2.0.0"

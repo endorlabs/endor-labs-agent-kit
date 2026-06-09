@@ -1,8 +1,13 @@
 # Endor Labs Agent Kit Root Package
 
-This root compatibility manifest points Gemini CLI at the generated
-Gemini extension skills under `plugins/gemini/endor-labs-agent-kit/skills`.
-Do not load the root Cursor skills as Gemini workflows.
+This repository root is a multi-host distribution surface, not a
+Gemini CLI extension root. Do not install the repository root as a
+Gemini extension.
+
+Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/` so
+Gemini discovers the generated Gemini skills from that extension's
+`skills/` directory. Do not load the root Cursor skills as Gemini
+workflows.
 
 Use Endor Labs Agent Kit workflows only within their generated safety
 contracts. Prefer documented Endor API or `endorctl api` lookups when a

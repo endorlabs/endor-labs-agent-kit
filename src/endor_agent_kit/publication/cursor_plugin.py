@@ -19,7 +19,6 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_DISPLAY_NAME,
-    PLUGIN_NAME,
     logo_svg,
     package_version,
 )
@@ -36,6 +35,7 @@ CURSOR_PLUGIN_MANIFEST_PATH = CURSOR_PLUGIN_ROOT / "plugin.json"
 CURSOR_SETUP_SKILL = "endor-agent-kit-setup"
 CURSOR_SETUP_AGENT = "endor-agent-kit-setup-agent"
 CURSOR_SECTION_EDITION = "enterprise-edition"
+CURSOR_PLUGIN_NAME = "endorlabs"
 
 
 @dataclass(frozen=True)
@@ -142,7 +142,7 @@ def publish_cursor_plugin_package(
 
     package_record = CatalogPluginPackage(
         host=CURSOR_HOST,
-        name=PLUGIN_NAME,
+        name=CURSOR_PLUGIN_NAME,
         display_name=PLUGIN_DISPLAY_NAME,
         version=version,
         path=".",
@@ -382,7 +382,7 @@ def _setup_source(prepared_recipes: list[PreparedSourceRecipe]) -> str:
 
 def _cursor_plugin_manifest(version: str) -> dict[str, object]:
     return {
-        "name": PLUGIN_NAME,
+        "name": CURSOR_PLUGIN_NAME,
         "displayName": PLUGIN_DISPLAY_NAME,
         "version": version,
         "description": "Endor Labs Agent Kit setup and security workflow agents and skills for Cursor.",
@@ -422,7 +422,7 @@ def _cursor_marketplace_manifest(version: str) -> dict[str, object]:
         },
         "plugins": [
             {
-                "name": PLUGIN_NAME,
+                "name": CURSOR_PLUGIN_NAME,
                 "source": "./",
                 "description": "Endor Labs Agent Kit setup and security workflow agents and skills.",
                 "version": version,
