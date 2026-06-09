@@ -58,8 +58,9 @@ A new public agent must include:
 - `source/agents/<agent>/instructions.md`
 - `source/agents/<agent>/evals/cases.yaml`
 - `source/agents/<agent>/architecture.svg`
-- `source/agents/<agent>/actions.yaml` when it can create PRs/MRs, comments,
-  tickets, policies, or other side-effecting outputs
+- `source/agents/<agent>/actions.yaml` when the recipe is schema v2 mutating or
+  explicitly adapter-backed, including PRs/MRs, comments, tickets, policies, or
+  other side-effecting outputs
 - tests or output-contract helpers when the agent returns structured data or
   renders review-facing artifacts
 - sanitized examples with no customer names, user paths, tenant-specific config
