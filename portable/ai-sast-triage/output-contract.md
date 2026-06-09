@@ -24,11 +24,12 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 
 - `summary` (string, required): Triage summary including confirmed TPs, likely FPs, inconclusive findings, exploit-driven priority, remediation-guidance usage, patches ready, and PR/MR counters.
 - `project_resolution` (object, required): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `verdicts` (list[object], required): Per-finding parsed AI SAST classification, finding UUID, source-location provenance, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.
 - `patches` (list[object], required): Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and rendered PR/MR body for TRUE_POSITIVE findings with source context.
 - `change_requests` (list[object], required): PR/MR URLs, branches, status, failure reason, and existing_change_request_check evidence for any requested change-request creation.
 - `approvals` (list[object], required): Verified AppSec approval evidence for exception requests, including approver, evidence URL, status, and data gaps.
-- `exception_policies` (list[object], required): Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL.
+- `exception_policies` (list[object], required): Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, stable exception_match, match-fingerprint idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL. Finding UUID is current-scan evidence, not the durable policy matcher.
 - `tickets` (list[object], required): Ticket IDs, URLs, status, and failure reasons for requested AI SAST triage, remediation, or exception follow-up ticket creation.
 - `data_gaps` (list[string], required): Missing Endor, source, or runtime signals.
 
@@ -89,7 +90,7 @@ If an expected signal is unavailable because of credentials, account tier, runti
 
 - portable_kind: `endor.policy.write`
 - confirmation_required: `true`
-- inputs: `finding_uuid`, `project_uuid`, `policy_name`, `exception_reason`, `expiration_time`, `approver`, `approval_evidence_url`, `idempotency_check`
+- inputs: `finding_uuid`, `project_uuid`, `exception_match`, `policy_name`, `exception_reason`, `expiration_time`, `approver`, `approval_evidence_url`, `idempotency_check`
 - runtime_returns: `policy_name`, `policy_uuid`, `status`, `idempotency_status`
 
 ### post-decision-comment

@@ -7,7 +7,7 @@ actions:
     required_host_capabilities: ["run_commands"]
     inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
     outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
-    notes: "Resolve the project from repository context first. Resolve namespace provenance from the current request, environment, or active endorctl config before using -n. Do not use namespaces from prior sessions or ask the user for a project UUID unless human selectors are ambiguous or absent."
+    notes: "Resolve the project from repository context first. Resolve namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml namespace key, or resolved project metadata before using -n. Do not use namespaces from prior sessions or ask the user for a project UUID unless human selectors are ambiguous or absent."
 
   - id: fetch-pinned-source
     kind: scm.source_read
@@ -17,7 +17,7 @@ actions:
     required_host_capabilities: ["run_commands", "read_files"]
     inputs: ["repo", "finding_uuid", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
     outputs: ["source_text", "source_sha", "source_url", "source_location_provenance"]
-    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed."
+    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, context type, source ref, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed. Treat main-context findings as the default and label PR/CI-run context explicitly."
 
   - id: open-change-request
     kind: scm.change_request
@@ -56,10 +56,10 @@ actions:
     confirmation_required: true
     providers: ["endorctl-api", "endor-api"]
     required_host_capabilities: ["run_commands"]
-    inputs: ["finding_uuid", "project_uuid", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
+    inputs: ["finding_uuid", "project_uuid", "exception_match", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
     outputs: ["policy_name", "policy_uuid", "status", "idempotency_status"]
     availability: available
-    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and finding UUID, and receiving explicit user confirmation in the Claude Code session. If an active matching policy already exists for the same finding, project, and reason, reuse it and do not create another policy."
+    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and stable match fingerprint, and receiving explicit user confirmation in the Claude Code session. Finding UUID is current-scan evidence only; do not use it as the policy matcher. If an active matching policy already exists for the same stable match fingerprint, project, and reason, reuse it and do not create another policy."
 
   - id: post-decision-comment
     kind: scm.comment

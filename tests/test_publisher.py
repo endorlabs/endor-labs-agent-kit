@@ -3,7 +3,14 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import subprocess
+import sys
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
+    import tomli as tomllib
 
 from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.cli import main
@@ -429,6 +436,746 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
 
 
+def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_path):
+    claude_agent_ids = (
+        "ai-sast-triage",
+        "dependency-decision-helper",
+        "endor-troubleshooter",
+        "package-risk-summary",
+        "probe-droid",
+        "remediation-planner",
+        "repository-dependency-reviewer",
+        "sca-remediation",
+        "upgrade-impact-analysis",
+        "vulnerability-explainer",
+    )
+    codex_agent_ids = (
+        "ai-sast-triage",
+        "endor-troubleshooter",
+        "probe-droid",
+        "sca-remediation",
+    )
+    gemini_agent_ids = codex_agent_ids
+    antigravity_agent_ids = gemini_agent_ids
+    cursor_agent_ids = codex_agent_ids
+    cursor_sdk_agent_ids = cursor_agent_ids
+    recipes = [
+        _copy_agent(tmp_path / agent_id, agent_id)
+        for agent_id in claude_agent_ids
+    ]
+    dest = tmp_path / "endor-labs-agent-kit"
+    existing_creator_skill = dest / "skills" / "create-endor-labs-agent" / "SKILL.md"
+    existing_creator_skill.parent.mkdir(parents=True)
+    existing_creator_skill.write_text("# existing creator skill\n")
+
+    written = publish_recipes(recipes, dest, include_plugins=True)
+
+    written_paths = {path.relative_to(dest).as_posix() for path in written}
+    assert "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json" in written_paths
+    assert ".agents/plugins/marketplace.json" in written_paths
+    assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
+    assert ".claude-plugin/marketplace.json" in written_paths
+    assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
+    assert "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/claude/ai-plugins/assets/logo.svg" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit.zip" not in written_paths
+    assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
+    assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert ".cursor-plugin/plugin.json" in written_paths
+    assert ".cursor-plugin/marketplace.json" in written_paths
+    assert "skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "agents/endor-agent-kit-setup-agent.md" in written_paths
+    assert "cursor-sdk/README.md" in written_paths
+    assert "cursor-sdk/requirements.txt" in written_paths
+    assert "cursor-sdk/run_cursor_agent.py" in written_paths
+    assert "cursor-sdk/agent_definitions.json" in written_paths
+    assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in written_paths
+    assert "assets/logo.svg" in written_paths
+    assert ".mcp.json" in written_paths
+    assert "GEMINI.md" in written_paths
+    assert "gemini-extension.json" in written_paths
+    assert existing_creator_skill.read_text() == "# existing creator skill\n"
+
+    for agent_id in codex_agent_ids:
+        assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        agent_name = (
+            f"{agent_id}-agent"
+            if agent_id.startswith("endor-")
+            else f"endor-{agent_id}-agent"
+        )
+        assert f"plugins/codex/endor-labs-agent-kit/agents/{agent_name}.toml" in written_paths
+    for agent_id in claude_agent_ids:
+        assert f"plugins/claude/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+        assert f"plugins/claude/ai-plugins/agents/{agent_id}.md" in written_paths
+    for agent_id in gemini_agent_ids:
+        assert f"plugins/gemini/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        assert f"plugins/gemini/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+    for agent_id in antigravity_agent_ids:
+        assert f"plugins/antigravity/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        assert f"plugins/antigravity/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
+    for agent_id in cursor_agent_ids:
+        assert f"skills/{agent_id}/SKILL.md" in written_paths
+        assert f"skills/{agent_id}/architecture.svg" in written_paths
+        cursor_agent_name = (
+            f"{agent_id}-agent"
+            if agent_id.startswith("endor-")
+            else f"endor-{agent_id}-agent"
+        )
+        assert f"agents/{cursor_agent_name}.md" in written_paths
+        assert f"cursor-sdk/agents/{cursor_agent_name}.md" in written_paths
+
+    plugin_manifest = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".codex-plugin" / "plugin.json").read_text()
+    )
+    codex_plugin_readme = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "README.md"
+    ).read_text()
+    assert "## Start Here" in codex_plugin_readme
+    assert "Agent installer" in codex_plugin_readme
+    assert "sync generated artifacts to `ai-plugins`" in codex_plugin_readme
+    assert "Content releases require a package version bump" in codex_plugin_readme
+    assert "endor-agent-kit-setup-agent" in codex_plugin_readme
+    assert plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert plugin_manifest["version"] == "0.2.0"
+    assert plugin_manifest["skills"] == "./skills/"
+    assert "agents" not in plugin_manifest
+    assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
+    assert plugin_manifest["interface"]["defaultPrompt"] == [
+        "Set up Endor Agent Kit for this machine.",
+        "Triage AI SAST findings for this repository.",
+        "Find the safest SCA remediation path.",
+    ]
+    assert "license" not in plugin_manifest
+    claude_plugin_manifest = json.loads(
+        (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
+    )
+    assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert claude_plugin_manifest["version"] == "0.2.0"
+    assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
+    assert "agents" not in claude_plugin_manifest
+    assert "skills" not in claude_plugin_manifest
+    assert "license" not in claude_plugin_manifest
+    assert "mcpServers" not in claude_plugin_manifest
+    claude_discovery_terms = {
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis",
+    }
+    assert claude_discovery_terms <= set(claude_plugin_manifest["keywords"])
+    legacy_claude_plugin_manifest = json.loads(
+        (dest / "plugins" / "claude" / "ai-plugins" / ".claude-plugin" / "plugin.json").read_text()
+    )
+    assert legacy_claude_plugin_manifest["name"] == "ai-plugins"
+    assert legacy_claude_plugin_manifest["displayName"] == "Endor Labs AI Plugins (Legacy)"
+    assert legacy_claude_plugin_manifest["version"] == "1.0.1"
+    assert "agents" not in legacy_claude_plugin_manifest
+    assert "skills" not in legacy_claude_plugin_manifest
+    assert "license" not in legacy_claude_plugin_manifest
+    assert "mcpServers" not in legacy_claude_plugin_manifest
+    assert claude_discovery_terms <= set(legacy_claude_plugin_manifest["keywords"])
+    gemini_plugin_manifest = json.loads(
+        (dest / "plugins" / "gemini" / "endor-labs-agent-kit" / "gemini-extension.json").read_text()
+    )
+    assert gemini_plugin_manifest == {
+        "contextFileName": "GEMINI.md",
+        "description": "Endor Labs workflow skills and subagents for Gemini CLI.",
+        "name": "endor-labs-agent-kit",
+        "version": gemini_plugin_manifest["version"],
+    }
+    assert "mcpServers" not in gemini_plugin_manifest
+    assert "settings" not in gemini_plugin_manifest
+    assert "license" not in gemini_plugin_manifest
+    root_mcp_config = json.loads((dest / ".mcp.json").read_text())
+    assert root_mcp_config == {
+        "mcpServers": {
+            "endor-cli-tools": {
+                "args": ["-y", "endorctl", "ai-tools", "mcp-server"],
+                "command": "npx",
+                "type": "stdio",
+            }
+        }
+    }
+    root_gemini_manifest = json.loads((dest / "gemini-extension.json").read_text())
+    assert root_gemini_manifest["name"] == "endor-labs-agent-kit"
+    assert root_gemini_manifest["contextFileName"] == "GEMINI.md"
+    assert root_gemini_manifest["skills"] == {"path": "./skills"}
+    assert root_gemini_manifest["mcpServers"] == {
+        "endor-cli-tools": {
+            "args": ["-y", "endorctl", "ai-tools", "mcp-server"],
+            "command": "npx",
+        }
+    }
+    root_gemini_context = (dest / "GEMINI.md").read_text()
+    assert "Prefer documented Endor API or `endorctl api` lookups" in root_gemini_context
+    assert "configure Endor MCP without explicit user approval" in root_gemini_context
+    antigravity_plugin_manifest = json.loads(
+        (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "plugin.json").read_text()
+    )
+    assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert antigravity_plugin_manifest["description"] == "Endor Labs workflow skills and subagents for Antigravity CLI."
+    assert antigravity_plugin_manifest["version"] == gemini_plugin_manifest["version"]
+    assert antigravity_plugin_manifest["version"] == "0.2.0"
+    assert "mcpServers" not in antigravity_plugin_manifest
+    assert "settings" not in antigravity_plugin_manifest
+    assert "license" not in antigravity_plugin_manifest
+    assert "hooks" not in antigravity_plugin_manifest
+    cursor_plugin_manifest = json.loads((dest / ".cursor-plugin" / "plugin.json").read_text())
+    assert cursor_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
+    assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
+    assert cursor_plugin_manifest["logo"] == "assets/logo.svg"
+    assert cursor_plugin_manifest["agents"] == "./agents/"
+    assert cursor_plugin_manifest["skills"] == "./skills/"
+    assert "gemini-extension.json" not in cursor_plugin_manifest
+    assert "mcpServers" not in cursor_plugin_manifest
+    assert "settings" not in cursor_plugin_manifest
+
+    local_codex_marketplace = json.loads(
+        (dest / "plugins" / "codex" / ".agents" / "plugins" / "marketplace.json").read_text()
+    )
+    assert local_codex_marketplace["name"] == "endor-labs-agent-kit"
+    assert local_codex_marketplace["plugins"][0]["source"]["path"] == "./endor-labs-agent-kit"
+    assert local_codex_marketplace["plugins"][0]["policy"] == {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+    }
+    public_codex_marketplace = json.loads((dest / ".agents" / "plugins" / "marketplace.json").read_text())
+    assert public_codex_marketplace["name"] == "endor-labs-agent-kit"
+    assert public_codex_marketplace["plugins"][0]["source"]["path"] == "./plugins/codex/endor-labs-agent-kit"
+    assert public_codex_marketplace["plugins"][0]["policy"] == {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL",
+    }
+    claude_marketplace = json.loads((dest / ".claude-plugin" / "marketplace.json").read_text())
+    assert claude_marketplace["name"] == "endorlabs"
+    assert claude_marketplace["owner"]["name"] == "Endor Labs"
+    claude_marketplace_plugins = {
+        plugin["name"]: plugin for plugin in claude_marketplace["plugins"]
+    }
+    assert claude_marketplace_plugins["endor-labs-agent-kit"]["source"] == "./plugins/claude/endor-labs-agent-kit"
+    assert claude_marketplace_plugins["endor-labs-agent-kit"]["version"] == claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["endor-labs-agent-kit"]["tags"])
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["endor-labs-agent-kit"]["keywords"])
+    assert claude_marketplace_plugins["ai-plugins"]["source"] == "./plugins/claude/ai-plugins"
+    assert claude_marketplace_plugins["ai-plugins"]["version"] == legacy_claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["ai-plugins"]["tags"])
+    assert claude_discovery_terms <= set(claude_marketplace_plugins["ai-plugins"]["keywords"])
+    local_claude_marketplace = json.loads(
+        (dest / "plugins" / "claude" / ".claude-plugin" / "marketplace.json").read_text()
+    )
+    assert local_claude_marketplace["name"] == "endorlabs"
+    assert local_claude_marketplace["owner"]["name"] == "Endor Labs"
+    local_claude_marketplace_plugins = {
+        plugin["name"]: plugin for plugin in local_claude_marketplace["plugins"]
+    }
+    assert local_claude_marketplace_plugins["endor-labs-agent-kit"]["source"] == "./endor-labs-agent-kit"
+    assert local_claude_marketplace_plugins["endor-labs-agent-kit"]["version"] == claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["endor-labs-agent-kit"]["tags"])
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["endor-labs-agent-kit"]["keywords"])
+    assert local_claude_marketplace_plugins["ai-plugins"]["source"] == "./ai-plugins"
+    assert local_claude_marketplace_plugins["ai-plugins"]["version"] == legacy_claude_plugin_manifest["version"]
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["tags"])
+    assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["keywords"])
+    cursor_marketplace = json.loads((dest / ".cursor-plugin" / "marketplace.json").read_text())
+    assert cursor_marketplace["name"] == "endorlabs"
+    assert cursor_marketplace["plugins"][0]["name"] == "endor-labs-agent-kit"
+    assert cursor_marketplace["plugins"][0]["source"] == "./"
+    assert cursor_marketplace["plugins"][0]["version"] == cursor_plugin_manifest["version"]
+    cursor_sdk_definitions = json.loads((dest / "cursor-sdk" / "agent_definitions.json").read_text())
+    assert cursor_sdk_definitions["sdk"] == "cursor-python"
+    assert cursor_sdk_definitions["default_model"] == "composer-2.5"
+    cursor_sdk_agents = {
+        agent["id"]: agent
+        for agent in cursor_sdk_definitions["agents"]
+    }
+    assert set(cursor_sdk_agents) == set(cursor_sdk_agent_ids) | {"endor-agent-kit-setup"}
+    assert cursor_sdk_agents["endor-agent-kit-setup"]["agent_name"] == "endor-agent-kit-setup-agent"
+    assert cursor_sdk_agents["endor-agent-kit-setup"]["readonly"] is True
+    assert cursor_sdk_agents["ai-sast-triage"]["readonly"] is False
+    assert cursor_sdk_agents["sca-remediation"]["readonly"] is False
+    assert cursor_sdk_agents["probe-droid"]["readonly"] is True
+    assert cursor_sdk_agents["probe-droid"]["prompt_file"] == "agents/endor-probe-droid-agent.md"
+
+    setup = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in setup
+    assert "Run `endorctl host-check`" in setup
+    assert "must not" in setup
+    assert "provenance-gated updates" in setup
+    assert "agents and skills" in setup
+    assert "--agents-only" in setup
+    assert "--skills-only" in setup
+    codex_setup_agent = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-agent-kit-setup-agent.toml"
+    ).read_text()
+    assert "Codex Host Contract" in codex_setup_agent
+    assert "endor-agent-kit-setup" in codex_setup_agent
+    claude_setup = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in claude_setup
+    assert "Run `endorctl host-check`" in claude_setup
+    assert "Do not add plugin-wide MCP automatically" in claude_setup
+    legacy_claude_setup = (
+        dest
+        / "plugins"
+        / "claude"
+        / "ai-plugins"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "retained for existing Claude Code users and pinned installs" in legacy_claude_setup
+    assert "Do not enable both Claude plugin ids in the same profile" in legacy_claude_setup
+    assert "does not auto-disable, uninstall, or edit Claude settings" in legacy_claude_setup
+    assert "/plugin install ai-plugins@endorlabs" in legacy_claude_setup
+    primary_claude_setup = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "preferred Claude Code plugin id for new installs" in primary_claude_setup
+    assert "Existing `ai-plugins@endorlabs` users can keep using" in primary_claude_setup
+    assert "does not auto-disable, uninstall, or edit Claude settings" in primary_claude_setup
+    gemini_setup = (
+        dest
+        / "plugins"
+        / "gemini"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in gemini_setup
+    assert "Run `endorctl host-check`" in gemini_setup
+    assert "folder trust prompt" in gemini_setup
+    assert "tagged GitHub repository" in gemini_setup
+    assert "https://github.com/endorlabs/ai-plugins" in gemini_setup
+    assert "zip archives" in gemini_setup
+    assert "Do not add plugin-wide MCP automatically" in gemini_setup
+    assert "Prefer documented Endor API or `endorctl api` lookups" in gemini_setup
+    assert "npx -y endorctl ai-tools mcp-server" in gemini_setup
+    assert "validate in a fresh host session" in gemini_setup
+    assert "Gemini subagents are preview functionality" in gemini_setup
+    antigravity_setup = (
+        dest
+        / "plugins"
+        / "antigravity"
+        / "endor-labs-agent-kit"
+        / "skills"
+        / "endor-agent-kit-setup"
+        / "SKILL.md"
+    ).read_text()
+    assert "Run `endorctl scan`" in antigravity_setup
+    assert "Run `endorctl host-check`" in antigravity_setup
+    assert "antigravity plugin validate" in antigravity_setup
+    assert "Do not add plugin-wide MCP automatically" in antigravity_setup
+    assert "Prefer documented Endor API or `endorctl api` lookups" in antigravity_setup
+    assert "Invoke bundled subagents as `@agent-name`" in antigravity_setup
+    assert "evidence_queries" in antigravity_setup
+    assert "Antigravity subagents are host-managed" in antigravity_setup
+    antigravity_agent = (
+        dest
+        / "plugins"
+        / "antigravity"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "sca-remediation.md"
+    ).read_text()
+    assert "Invoke workflow subagents as `@agent-name`" in antigravity_agent
+    assert "Do not narrate tool-planning chatter" in antigravity_agent
+    assert "non-empty `data_gaps`" in antigravity_agent
+    cursor_setup = (
+        dest / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    ).read_text()
+    assert "Endor Agent Kit Setup For Cursor" in cursor_setup
+    assert "Run `endorctl scan`" in cursor_setup
+    assert "Run `endorctl host-check`" in cursor_setup
+    assert "separate from the Gemini CLI extension" in cursor_setup
+    assert "Do not add plugin-wide MCP automatically" in cursor_setup
+    assert "Prefer documented Endor API or `endorctl api` lookups" in cursor_setup
+    cursor_skill = (dest / "skills" / "probe-droid" / "SKILL.md").read_text()
+    assert "Cursor Host Contract" in cursor_skill
+    assert "Gemini CLI Host Contract" not in cursor_skill
+    cursor_agent = (dest / "agents" / "endor-probe-droid-agent.md").read_text()
+    assert "endor_agent_kit_managed=true" in cursor_agent
+    assert "name: endor-probe-droid-agent" in cursor_agent.split("---", 2)[1]
+    assert "model: inherit" in cursor_agent.split("---", 2)[1]
+    assert "readonly: true" in cursor_agent.split("---", 2)[1]
+    assert "Cursor Host Contract" in cursor_agent
+    assert "matching support skill `skills/probe-droid/`" in cursor_agent
+    assert "Gemini CLI Host Contract" not in cursor_agent
+    cursor_sast_agent = (dest / "agents" / "endor-ai-sast-triage-agent.md").read_text()
+    assert "readonly: false" in cursor_sast_agent.split("---", 2)[1]
+    cursor_mutating_agent = (dest / "agents" / "endor-sca-remediation-agent.md").read_text()
+    assert "readonly: false" in cursor_mutating_agent.split("---", 2)[1]
+    cursor_setup_agent = (dest / "agents" / "endor-agent-kit-setup-agent.md").read_text()
+    assert "Endor Agent Kit Setup Agent For Cursor" in cursor_setup_agent
+    assert "agents/" in cursor_setup_agent
+    assert "skills/" in cursor_setup_agent
+    assert "separate from the Gemini CLI extension" in cursor_setup_agent
+    cursor_sdk_readme = (dest / "cursor-sdk" / "README.md").read_text()
+    assert "uv pip install -r requirements.txt" in cursor_sdk_readme
+    assert "Cursor Python SDK" in cursor_sdk_readme
+    assert "Filter > Source > SDK" in cursor_sdk_readme
+    assert "must not run `endorctl scan` or `endorctl host-check`" in cursor_sdk_readme
+    cursor_sdk_runner = (dest / "cursor-sdk" / "run_cursor_agent.py").read_text()
+    assert "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions" in cursor_sdk_runner
+    assert "agent_definitions.json" in cursor_sdk_runner
+    assert "CURSOR_API_KEY" in cursor_sdk_runner
+    cursor_sdk_prompt = (dest / "cursor-sdk" / "agents" / "endor-probe-droid-agent.md").read_text()
+    assert "Cursor SDK Host Contract" in cursor_sdk_prompt
+    assert "host=cursor-sdk" in cursor_sdk_prompt
+    assert "Gemini CLI Host Contract" not in cursor_sdk_prompt
+    cursor_sdk_setup = (dest / "cursor-sdk" / "agents" / "endor-agent-kit-setup-agent.md").read_text()
+    assert "Endor Agent Kit Setup Agent For Cursor SDK" in cursor_sdk_setup
+    assert "Run `endorctl scan`" in cursor_sdk_setup
+    assert "Run `endorctl host-check`" in cursor_sdk_setup
+
+    toml = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-probe-droid-agent.toml"
+    ).read_text()
+    assert "# endor_agent_kit_managed = true" in toml
+    assert 'name = "endor-probe-droid-agent"' in toml
+    assert 'sandbox_mode = "read-only"' in toml
+    assert "Codex Host Contract" in toml
+    assert "developer_instructions = " in toml
+
+    mutating_toml = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-sca-remediation-agent.toml"
+    ).read_text()
+    assert 'name = "endor-sca-remediation-agent"' in mutating_toml
+    assert "sandbox_mode" not in mutating_toml
+    for agent_toml in sorted((dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents").glob("*.toml")):
+        parsed_agent = tomllib.loads(agent_toml.read_text())
+        assert parsed_agent["name"].startswith("endor-")
+        assert parsed_agent["developer_instructions"]
+    claude_mcp_agent = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "package-risk-summary.md"
+    ).read_text()
+    assert "mcpServers:" not in claude_mcp_agent.split("---", 2)[1]
+    assert "Claude Code Plugin Setup Note" in claude_mcp_agent
+    assert "does not declare plugin-wide MCP" in claude_mcp_agent
+    claude_mcp_only_agent = (
+        dest
+        / "plugins"
+        / "claude"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "vulnerability-explainer.md"
+    ).read_text()
+    assert "mcpServers:" not in claude_mcp_only_agent.split("---", 2)[1]
+    assert "disallowedTools: Bash" in claude_mcp_only_agent.split("---", 2)[1]
+    gemini_agent = (
+        dest
+        / "plugins"
+        / "gemini"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "probe-droid.md"
+    ).read_text()
+    assert "endor_agent_kit_managed=true" in gemini_agent
+    assert "Gemini CLI Host Contract" in gemini_agent
+    assert "data_gaps" in gemini_agent
+    assert "kind: local" in gemini_agent.split("---", 2)[1]
+    assert "mcpServers:" not in gemini_agent.split("---", 2)[1]
+    antigravity_agent = (
+        dest
+        / "plugins"
+        / "antigravity"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "probe-droid.md"
+    ).read_text()
+    assert "endor_agent_kit_managed=true" in antigravity_agent
+    assert "Antigravity CLI Host Contract" in antigravity_agent
+    assert "data_gaps" in antigravity_agent
+    assert "kind: local" in antigravity_agent.split("---", 2)[1]
+    assert "mcpServers:" not in antigravity_agent.split("---", 2)[1]
+
+    manifest = json.loads((dest / "manifest.json").read_text())
+    packages = {
+        (package["host"], package["name"]): package
+        for package in manifest["plugin_packages"]
+    }
+    assert set(packages) == {
+        ("antigravity", "endor-labs-agent-kit"),
+        ("claude-code", "ai-plugins"),
+        ("claude-code", "endor-labs-agent-kit"),
+        ("codex", "endor-labs-agent-kit"),
+        ("cursor", "endor-labs-agent-kit"),
+        ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk"),
+        ("gemini", "endor-labs-agent-kit"),
+    }
+    assert packages[("codex", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("codex", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "codex",
+        "included_agents": list(codex_agent_ids),
+        "marketplace_path": ".agents/plugins/marketplace.json",
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/codex/endor-labs-agent-kit",
+        "version": plugin_manifest["version"],
+    }
+    assert packages[("claude-code", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("claude-code", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "claude-code",
+        "included_agents": list(claude_agent_ids),
+        "marketplace_path": ".claude-plugin/marketplace.json",
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/claude/endor-labs-agent-kit",
+        "version": claude_plugin_manifest["version"],
+    }
+    assert packages[("claude-code", "ai-plugins")] == {
+        "artifacts": packages[("claude-code", "ai-plugins")]["artifacts"],
+        "display_name": "Endor Labs AI Plugins (Legacy)",
+        "host": "claude-code",
+        "included_agents": list(claude_agent_ids),
+        "marketplace_path": ".claude-plugin/marketplace.json",
+        "name": "ai-plugins",
+        "path": "plugins/claude/ai-plugins",
+        "version": legacy_claude_plugin_manifest["version"],
+    }
+    assert packages[("gemini", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("gemini", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "gemini",
+        "included_agents": list(gemini_agent_ids),
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/gemini/endor-labs-agent-kit",
+        "version": gemini_plugin_manifest["version"],
+    }
+    assert packages[("antigravity", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("antigravity", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "antigravity",
+        "included_agents": list(antigravity_agent_ids),
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/antigravity/endor-labs-agent-kit",
+        "version": antigravity_plugin_manifest["version"],
+    }
+    assert packages[("cursor", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("cursor", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "cursor",
+        "included_agents": list(cursor_agent_ids),
+        "marketplace_path": ".cursor-plugin/marketplace.json",
+        "name": "endor-labs-agent-kit",
+        "path": ".",
+        "version": cursor_plugin_manifest["version"],
+    }
+    assert packages[("cursor-sdk", "endor-labs-agent-kit-cursor-sdk")] == {
+        "artifacts": packages[("cursor-sdk", "endor-labs-agent-kit-cursor-sdk")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit Cursor SDK",
+        "host": "cursor-sdk",
+        "included_agents": list(cursor_sdk_agent_ids),
+        "name": "endor-labs-agent-kit-cursor-sdk",
+        "path": "cursor-sdk",
+        "version": cursor_plugin_manifest["version"],
+    }
+    package_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("codex", "endor-labs-agent-kit")]["artifacts"]
+    }
+    assert "plugins/codex/endor-labs-agent-kit/README.md" in package_artifact_paths
+    assert ".agents/plugins/marketplace.json" in package_artifact_paths
+    assert "plugins/codex/.agents/plugins/marketplace.json" in package_artifact_paths
+    assert "plugins/README.md" in package_artifact_paths
+    claude_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("claude-code", "endor-labs-agent-kit")]["artifacts"]
+    }
+    assert "plugins/claude/endor-labs-agent-kit/README.md" in claude_artifact_paths
+    assert ".claude-plugin/marketplace.json" in claude_artifact_paths
+    assert "plugins/claude/.claude-plugin/marketplace.json" in claude_artifact_paths
+    assert "plugins/README.md" in claude_artifact_paths
+    legacy_claude_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("claude-code", "ai-plugins")]["artifacts"]
+    }
+    assert "plugins/claude/ai-plugins/README.md" in legacy_claude_artifact_paths
+    assert ".claude-plugin/marketplace.json" in legacy_claude_artifact_paths
+    assert "plugins/claude/.claude-plugin/marketplace.json" in legacy_claude_artifact_paths
+    assert "plugins/README.md" in legacy_claude_artifact_paths
+    gemini_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("gemini", "endor-labs-agent-kit")]["artifacts"]
+    }
+    assert "plugins/gemini/endor-labs-agent-kit/README.md" in gemini_artifact_paths
+    assert "plugins/gemini/endor-labs-agent-kit.zip" not in gemini_artifact_paths
+    assert "plugins/README.md" in gemini_artifact_paths
+    antigravity_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("antigravity", "endor-labs-agent-kit")]["artifacts"]
+    }
+    assert "plugins/antigravity/endor-labs-agent-kit/README.md" in antigravity_artifact_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in antigravity_artifact_paths
+    assert "plugins/README.md" in antigravity_artifact_paths
+    cursor_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("cursor", "endor-labs-agent-kit")]["artifacts"]
+    }
+    assert ".cursor-plugin/plugin.json" in cursor_artifact_paths
+    assert ".cursor-plugin/marketplace.json" in cursor_artifact_paths
+    assert "agents/endor-probe-droid-agent.md" in cursor_artifact_paths
+    assert "agents/endor-sca-remediation-agent.md" in cursor_artifact_paths
+    assert "agents/endor-agent-kit-setup-agent.md" in cursor_artifact_paths
+    assert "skills/probe-droid/SKILL.md" in cursor_artifact_paths
+    assert "skills/probe-droid/architecture.svg" in cursor_artifact_paths
+    assert "GEMINI.md" not in cursor_artifact_paths
+    assert "gemini-extension.json" not in cursor_artifact_paths
+    cursor_sdk_artifact_paths = {
+        artifact["path"]
+        for artifact in packages[("cursor-sdk", "endor-labs-agent-kit-cursor-sdk")]["artifacts"]
+    }
+    assert "cursor-sdk/README.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/run_cursor_agent.py" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agent_definitions.json" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-probe-droid-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-sca-remediation-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in cursor_sdk_artifact_paths
+    assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
+
+
+def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
+    recipes = [
+        _copy_agent(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent(tmp_path / "sca", "sca-remediation"),
+    ]
+    dest = tmp_path / "endor-labs-agent-kit"
+    publish_recipes(recipes, dest, include_plugins=True)
+    script = dest / "plugins" / "codex" / "endor-labs-agent-kit" / "scripts" / "install_codex_agents.py"
+    codex_home = tmp_path / "codex-home"
+
+    status = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "endor-sca-remediation-agent.toml: missing" in status.stdout
+    assert "endor-troubleshooter-agent.toml: missing" in status.stdout
+    assert "skill:sca-remediation: missing" in status.stdout
+    assert "skill:endor-agent-kit-setup: missing" in status.stdout
+
+    install = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "installed" in install.stdout
+    assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
+    assert (codex_home / "agents" / "endor-troubleshooter-agent.toml").is_file()
+    assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
+    assert (codex_home / "skills" / "sca-remediation" / "SKILL.md").is_file()
+    assert (codex_home / "skills" / "endor-agent-kit-setup" / "SKILL.md").is_file()
+
+    current = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "endor-sca-remediation-agent.toml: current" in current.stdout
+    assert "endor-troubleshooter-agent.toml: current" in current.stdout
+    assert "skill:sca-remediation: current" in current.stdout
+    assert "skill:endor-agent-kit-setup: current" in current.stdout
+
+    unmanaged_skill = codex_home / "skills" / "sca-remediation" / "SKILL.md"
+    unmanaged_skill.write_text("# unmanaged user skill\n", encoding="utf-8")
+    blocked = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--yes",
+            "--skills-only",
+            "--codex-home",
+            str(codex_home),
+        ],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert blocked.returncode == 1
+    assert "refusing to overwrite blocked unmanaged skill" in blocked.stdout
+    assert unmanaged_skill.read_text(encoding="utf-8") == "# unmanaged user skill\n"
+
+
 def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-decision-helper")
     upgrade_recipe = _copy_agent(tmp_path / "upgrade", "upgrade-impact-analysis")
@@ -475,6 +1222,13 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         ("portable", "vulnerability-explainer"),
     ]
     root_readme = (dest / "README.md").read_text()
+    assert "## Start Here" in root_readme
+    assert "docs/getting-started.md" in root_readme
+    assert "docs/for-agents.md" in root_readme
+    assert "docs/maintainer-guide.md" in root_readme
+    assert "docs/distribution-sync.md" in root_readme
+    assert "## Agent Quick Start" in root_readme
+    assert "llms.txt" in root_readme
     assert "## Table Of Contents" in root_readme
     assert "## Contribute An Agent" in root_readme
     assert "## Recipe Reference" in root_readme

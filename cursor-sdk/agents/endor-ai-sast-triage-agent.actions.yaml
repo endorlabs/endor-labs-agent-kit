@@ -1,0 +1,84 @@
+actions:
+  - id: resolve-endor-project
+    kind: endor.query
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["endorctl-api", "endor-api"]
+    required_host_capabilities: ["run_commands"]
+    inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
+    outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
+    notes: "Resolve the project from repository context first. Resolve namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml namespace key, or resolved project metadata before using -n. Do not use namespaces from prior sessions or ask the user for a project UUID unless human selectors are ambiguous or absent."
+
+  - id: fetch-pinned-source
+    kind: scm.source_read
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
+    required_host_capabilities: ["run_commands", "read_files"]
+    inputs: ["repo", "finding_uuid", "source_sha", "file_path", "data_flow_anchors", "exploit_reproduction", "remediation_guidance"]
+    outputs: ["source_text", "source_sha", "source_url", "source_location_provenance"]
+    notes: "Fetch source at the Endor finding's pinned SHA before generating a patch, using finding UUID, source location, context type, source ref, data-flow, exploit reproduction, and remediation guidance to decide which sibling files may be needed. Treat main-context findings as the default and label PR/CI-run context explicitly."
+
+  - id: open-change-request
+    kind: scm.change_request
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["local-git", "gh-cli", "glab-cli", "github", "gitlab"]
+    required_host_capabilities: ["run_commands", "read_files", "write_files", "open_pr"]
+    inputs: ["repo", "base_branch", "patch_diff", "title", "body", "exploit_context", "remediation_guidance_usage", "validation_plan", "existing_change_request_check"]
+    outputs: ["url", "branch", "status", "title", "body", "existing_change_request_check"]
+    notes: "Prepare the diff and AURI-style PR/MR body first, include sanitized evidence, severity indicator emoji, hidden finding/project context metadata, validation status, and read-only existing PR/MR/branch lookup evidence. Use none_found only after checking the proposed branch, finding UUID, and remote branch; use lookup_unavailable plus data_gaps when credentials or tooling block the lookup. Ask for explicit approval before pushing or opening the change request."
+
+  - id: request-exception-review
+    kind: approval.request
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["github-pr-comment", "github-pr-review", "gitlab-mr-note", "gitlab-approval"]
+    required_host_capabilities: ["run_commands", "open_pr"]
+    inputs: ["finding_uuid", "request_type", "request_comment", "expiration_time", "pr_url", "approver_instructions"]
+    outputs: ["approval_request_url", "status"]
+    availability: available
+    notes: "Standalone Agent Kit mode creates or updates a PR/MR comment that asks an AppSec approver to approve the exception. This action only requests approval; it does not create the Endor policy."
+
+  - id: verify-appsec-approval
+    kind: approval.verify
+    safety_class: read_only
+    confirmation_required: false
+    providers: ["gh-cli", "glab-cli", "github-api", "gitlab-api"]
+    required_host_capabilities: ["run_commands"]
+    inputs: ["pr_url", "finding_uuid", "request_type", "allowed_approvers", "approval_phrase"]
+    outputs: ["approved", "approver", "approval_evidence_url", "approved_at"]
+    notes: "Before creating an Endor exception policy, verify a GitHub/GitLab review or comment from a configured AppSec approver. The developer requesting the exception is not sufficient approval evidence."
+
+  - id: write-exception-policy
+    kind: endor.policy_write
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["endorctl-api", "endor-api"]
+    required_host_capabilities: ["run_commands"]
+    inputs: ["finding_uuid", "project_uuid", "exception_match", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
+    outputs: ["policy_name", "policy_uuid", "status", "idempotency_status"]
+    availability: available
+    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and stable match fingerprint, and receiving explicit user confirmation in the Cursor session. Finding UUID is current-scan evidence only; do not use it as the policy matcher. If an active matching policy already exists for the same stable match fingerprint, project, and reason, reuse it and do not create another policy."
+
+  - id: post-decision-comment
+    kind: scm.comment
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["github", "gitlab"]
+    required_host_capabilities: ["run_commands", "open_pr"]
+    inputs: ["pr_url", "decision", "policy_name", "policy_uuid", "body"]
+    outputs: ["comment_url", "status"]
+    availability: available
+    notes: "After the Endor policy is created or an existing active policy is reused, post a PR/MR comment with the policy name, policy UUID, human-readable Endor project label, finding UUID, approver, approval evidence URL, and expiration. Do not show raw '$uuid=...' project_selector syntax as the review-facing scope."
+
+  - id: create-triage-ticket
+    kind: ticket.create
+    safety_class: mutating
+    confirmation_required: true
+    providers: ["jira", "servicenow", "linear", "internal-ticketing"]
+    required_host_capabilities: []
+    inputs: ["finding_uuid", "classification", "severity", "project_resolution", "patch_summary", "change_request_url", "exception_policy", "ticket_body", "data_gaps"]
+    outputs: ["ticket_id", "ticket_url", "status", "failure_reason"]
+    availability: available
+    notes: "Create an AI SAST triage or remediation ticket only when the user or runtime selects ticket creation at the mutation gate. Include verified finding metadata, sanitized exploit/remediation evidence, patch or manual-fix status, change-request or exception-policy links when available, and remaining data gaps. Ask for explicit confirmation first, and do not claim ticket creation until the ticket adapter returns a ticket ID or URL."

@@ -7,6 +7,16 @@ App, package, scan, scan profile, package manager integration, dependency
 resolution, and reachability evidence, then returns human-readable setup
 actions without mutating source, GitHub, or Endor state.
 
+## Start Here
+
+This is the Codex generated skill for `probe-droid`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session. Then use the example prompt below: Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/probe-droid/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy this generated skill directory into your Codex skills directory:

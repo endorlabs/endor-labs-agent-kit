@@ -22,14 +22,17 @@ copying portable policy facts.
 | Control | Agent Kit status | Primary enforcement |
 | --- | --- | --- |
 | Safety classification | Enforced | `recipe.yaml`, recipe validator, generated prompts |
-| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, portable manifest |
+| Least privilege tools | Enforced where host supports it | Claude Code frontmatter, Managed Agents tool config, Codex/Gemini/Antigravity/Cursor/Cursor SDK host contracts, portable manifest |
 | Mutating action approval | Enforced in recipe schema and prompts | `actions.yaml`, validator, generated action contracts |
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
+| Namespace provenance and conflict surfacing | Enforced in prompts and setup guidance | shared prompt preflight, setup support files, catalog guardrails |
+| Endor Knowledge Pack rendering | Enforced in source and generated artifacts | `source/endor-knowledge-pack/`, shared renderer, catalog guardrails |
+| Endor upstream context freshness | Enforced in CI and release gates | `source/endor-context/provenance.json`, `verify-endor-context --upstream` |
 | Missing data handling | Enforced in prompts | required `data_gaps` behavior |
 | Output structure | Enforced for workflow gates | SCA and AI SAST validators/renderers/linters |
 | Portable runtime controls | Declared and tested | `agent.manifest.json`, `output-contract.md`, portable docs |
 | Secret minimization | Enforced in prompts, partially in validators | source instructions, AI SAST/SCA renderers |
-| Artifact integrity | Enforced locally | root `manifest.json`, install checksum checks |
+| Artifact integrity | Enforced locally | root `manifest.json`, install checksum checks, plugin package records |
 | Runtime audit and authorization | Delegated | host runtime or customer portable runtime |
 | Prompt-injection tripwires | Partially covered | least privilege, untrusted-data instructions, planned evals |
 
@@ -43,7 +46,7 @@ Recipes declare:
 - `host_capabilities_required`: command execution, file reads, file writes, and change-request creation
 - `mutations`: the mutation types a mutating workflow may perform
 - `compatible_hosts`: the hosts intentionally published for that recipe
-- `action_contracts_path`: semantic side-effect contracts for schema v2 mutating recipes
+- `action_contracts_path`: semantic side-effect and adapter-evidence contracts for schema v2 recipes
 
 The recipe validator rejects unsafe combinations, including:
 
@@ -54,6 +57,24 @@ The recipe validator rejects unsafe combinations, including:
 - MCP recipes without declared public Endor MCP tools
 - schema v2 mutating recipes without `actions.yaml`
 - mutating actions that do not require confirmation
+
+Simple read-only or dry-run recipes can omit `actions.yaml`. Use it when a
+schema v2 recipe is mutating or when an explicitly adapter-backed workflow needs
+runtime action and evidence contracts.
+
+## Endor Knowledge Pack Controls
+
+The Endor Knowledge Pack under `source/endor-knowledge-pack/` is structured
+source data for compact Endor workflow guidance. It augments generated prompts;
+it does not replace Source Recipes, workflow output contracts, namespace
+preflight, action contracts, or host runtime policy.
+
+Generated agent instructions must include exactly one `## Endor Knowledge Pack`
+section after namespace preflight and before workflow execution details. The
+section keeps global rules short and renders per-agent workflow contracts only
+when a matching pack file exists. Catalog guardrails validate the source pack
+and require generated workflow surfaces to preserve the pack section, context
+first behavior, `namespace_provenance`, and `data_gaps` guidance.
 
 ## Catalog Posture
 
@@ -81,6 +102,27 @@ Mutating agents use explicit action contracts for semantic side effects such as:
 `ticket.create` is part of the portable vocabulary. `sca-remediation` and
 `ai-sast-triage` declare it as an agent-owned action; other portable bundles
 can use it as a runtime wrapper after final output.
+
+## Endor Namespace Guardrails
+
+Generated agents must resolve and report namespace provenance before any
+project-, finding-, package-, version-upgrade-, policy-, or repository-scoped
+Endor lookup. The valid namespace sources are the current user request, the
+current process `ENDOR_NAMESPACE`, the `ENDOR_NAMESPACE` key from the default
+`~/.endorctl/config.yaml`, or already-resolved Endor project metadata.
+
+Environment-variable auth remains supported. Agents and setup workflows may use
+`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*`, but they must not silently
+trust a namespace when the process environment and default config disagree. If
+both namespace values exist and differ, generated guidance requires surfacing
+both values with provenance and stopping for user confirmation before scoped
+Endor or Endor MCP lookups.
+
+Generated setup and workflow guidance must not read, cat, source, recurse
+through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific,
+customer-specific, production, backup, or other non-default Endor config
+directories. When a namespace is selected, scoped `endorctl api` lookups must
+pass it explicitly with `-n <namespace>` or `--namespace <namespace>`.
 
 ## Host Guardrails
 
@@ -123,15 +165,98 @@ the action and captured evidence.
 Codex tool enforcement is runtime-owned; Agent Kit supplies the generated skill
 contract and recipe-specific approval/evidence rules.
 
+The Codex plugin package also ships custom-agent TOML files. The setup skill
+installs them globally under `${CODEX_HOME:-~/.codex}/agents` only after
+explicit approval. The installer refuses to overwrite unmanaged files and marks
+read-only custom agents with `sandbox_mode = "read-only"`.
+
+### Gemini
+
+Gemini CLI artifacts include generated skills, generated subagent preview files,
+and a host contract that preserves the same recipe safety posture as the source
+recipe.
+
+The Gemini extension package declares `gemini-extension.json`, `GEMINI.md`,
+skills, preview subagents, and minimal assets. It does not declare extension-wide
+MCP by default. If Gemini subagent delegation is unavailable, the matching skill
+remains the fallback and the agent must report the limitation.
+
+Gemini extension setup must remain explicit: install, update, and uninstall
+steps require user approval. Setup guidance must not run scans, run
+`endorctl host-check`, edit shell profiles, auto-install `gh`, install language
+tooling, or collect/write API secrets.
+
+### Antigravity
+
+Antigravity CLI plugin artifacts include generated skills, generated subagent
+files, and a host contract derived from the Gemini-compatible recipe set with
+Antigravity-specific wording.
+
+The Antigravity plugin package declares root `plugin.json`, skills, subagents,
+and minimal assets. It does not declare plugin-wide MCP by default. Setup keeps
+`antigravity plugin validate`, install, enable/disable, and uninstall steps
+explicit and evidence-backed. If Antigravity subagent delegation is unavailable,
+the matching skill remains the fallback and the agent must report the
+limitation.
+
+Antigravity plugin setup must not run scans, run `endorctl host-check`, edit
+shell profiles, auto-install `gh`, install language tooling, or collect/write
+API secrets.
+
+### Cursor
+
+Cursor package artifacts include generated root agents, generated root support
+skills, and a host contract that preserves the same recipe safety posture as
+the source recipe.
+
+The Cursor package declares `.cursor-plugin/` metadata, root generated
+`agents/`, root generated `skills/`, and `assets/logo.svg`. It does not declare
+plugin-wide MCP by default and does not use Gemini extension files. Setup keeps
+install, update, and uninstall steps explicit and evidence-backed. Cursor agents
+are the customer-facing workflow entry points; matching skills remain bundled
+support material and fallback workflow reference.
+
+Cursor package setup must not run scans, run `endorctl host-check`, edit shell
+profiles, auto-install `gh`, install language tooling, or collect/write API
+secrets.
+
+### Cursor SDK
+
+Cursor SDK artifacts include generated prompt files, a machine-readable agent
+definition map, Python requirements, and a runnable SDK launcher. The SDK lane
+uses the same recipe safety posture as the Cursor plugin lane, but it is for
+automation, CI, orchestration, backend services, and Cursor cloud agents rather
+than Cursor IDE plugin installation.
+
+The Cursor SDK package must not hide API-key use or live workspace/cloud side
+effects. Local or cloud SDK runs require explicit approval for the target
+workspace or repository, `CURSOR_API_KEY` use, Endor namespace provenance, and
+any mutation gate. Setup remains readiness guidance only and must not run
+scans, run `endorctl host-check`, edit shell profiles, auto-install tooling, or
+collect/write API secrets.
+
+### Plugin Packages
+
+Plugin packages are package records, not new agent editions. They wrap generated
+host artifacts and setup guidance while preserving the recipe action contracts,
+approval gates, output contracts, and artifact provenance.
+
+All plugin setup skills may guide installation and authentication work, but
+every write, install, and authentication step must be explicit and
+evidence-backed. Setup may offer re-authentication and namespace changes, but it
+must report that namespace selection is required before live Endor lookups and
+must surface environment/config namespace conflicts before scoped Endor work.
+
 ### Portable
 
 Portable bundles are runtime-neutral. They do not depend on Claude Code, Claude
-Managed Agents, Codex, or a specific source-provider CLI. Each bundle includes:
+Managed Agents, Codex, Gemini, Antigravity, or a specific source-provider CLI.
+Each bundle includes:
 
 - `agent.md`: generated runtime-neutral instructions
 - `agent.manifest.json`: machine-readable transports, capabilities, actions, wrappers, degradation, and runtime controls
 - `output-contract.md`: inputs, outputs, adapter contracts, and mechanical gates
-- optional `actions.yaml`, `endorctl-setup.md`, and `architecture.svg`
+- `actions.yaml` when the source recipe declares action contracts, plus optional `endorctl-setup.md` and `architecture.svg`
 
 Portable runtime integrations must enforce the controls in
 `docs/portable-runtime-conformance.md`. The portable agent must fail closed to
@@ -187,6 +312,23 @@ Install checks compare copied artifacts with the catalog manifest. Generated
 files should not be edited directly; maintainers edit Source Recipes and
 regenerate the catalog.
 
+## Endor Context Freshness
+
+`source/endor-context/provenance.json` records the public Endor OpenAPI SHA,
+the warning-only `/meta/version` signal, and selected canonical Endor docs URLs
+used by Agent Kit prompts and release documentation. It is a maintainer
+freshness gate, not runtime agent context.
+
+`endor-agent-kit verify-endor-context --upstream` compares the committed
+OpenAPI SHA and docs URLs against live upstream sources. OpenAPI drift and docs
+URL drift are blocking because they can mean query recipes, setup guidance, or
+docs links are stale. Meta version drift is warning-only because a service or
+client release does not always require an Agent Kit change.
+
+When upstream drift is intentional, maintainers inspect Source Recipes, Endor
+Knowledge Pack query recipes, setup guidance, and release docs before running
+`endor-agent-kit refresh-endor-context`.
+
 ## Release Provenance
 
 `manifest.json` is the integrity record and the signable subject: it commits to
@@ -200,10 +342,12 @@ catalog. Two mechanical controls build on it:
   statement whose subject is `manifest.json`; it carries no timestamp so it is
   reproducible from catalog content alone.
 
-Cryptographic signing stays a release-pipeline concern: CI signs the statement
-(for example with cosign, the SLSA generator, or `gh attestation`) over the
-manifest digest. Agent Kit produces and verifies the attestable subject; it does
-not hold signing keys.
+Cryptographic signing stays a release-pipeline concern. The
+`publish-ai-plugins-pr` workflow packages the deterministic statement and
+manifest checksum into the generated `ai-plugins` PR. When
+`ENDOR_ARTIFACT_SIGNING_ENABLED=true`, CI signs the provenance bundle with the
+Endor Labs artifact signing GitHub Action. Agent Kit produces and verifies the
+attestable subject; it does not hold signing keys.
 
 ## Remaining Gaps
 
@@ -214,7 +358,7 @@ production agent platform:
 - no universal pre-tool and post-tool tripwire framework
 - credential/secret scanning is mechanical and pattern-based in the catalog guardrails, not a full DLP service with entropy analysis or allowlist management
 - no centralized audit log store
-- the in-toto provenance statement and offline verification exist, but release signing over the manifest digest is still a CI step
+- the in-toto provenance statement and offline verification exist, but Endor Labs artifact signing requires repository-level signing variables and authorization policy setup
 - adversarial eval coverage is seeded and mechanically validated for the mutating agents, but is not yet complete across all agents or executed against a live runtime
 - no runtime sandbox for portable bundles, because portable intentionally delegates runtime execution
 

@@ -81,7 +81,7 @@ cases:
   expected:
     action: resolve_namespace_before_project_query
     required_evidence:
-    - namespace candidate comes from current user input, ENDOR_NAMESPACE, active endorctl config, or resolved project metadata
+    - namespace candidate comes from current user input, ENDOR_NAMESPACE, default ~/.endorctl/config.yaml, or resolved project metadata
     - no namespace borrowed from unrelated prior sessions or examples
     - first Endor query using -n has namespace provenance
     - failed namespace candidates recorded in data_gaps before trying another proven candidate

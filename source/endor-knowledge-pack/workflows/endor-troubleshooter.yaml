@@ -1,0 +1,209 @@
+agent_id: endor-troubleshooter
+title: Endor Troubleshooter Evidence Contract
+summary: Diagnose Endor scan, integration, identity, notification, and runtime issues with read-only namespace-scoped evidence
+  and explicit support-escalation packets.
+task_profiles:
+  - id: classify
+    title: Classify Issue
+    summary: Classify the reported Endor problem and choose the narrowest diagnostic lane.
+    when_to_use:
+      - The user provides an error, log excerpt, scan UUID, or vague Endor failure.
+      - The issue area is not yet known.
+    minimal_evidence:
+      - User-provided symptom, namespace provenance if scoped, and any supplied resource IDs.
+    stop_when:
+      - The issue lane and next minimal query are known, or the report is too sparse.
+      - Do not run scans or broad inventories in this profile.
+    output_focus:
+      - Return intake classification, evidence_queries, recommended next read-only checks, and data_gaps.
+  - id: diagnose
+    title: Diagnose Narrow Lane
+    summary: Query only the Endor resources needed for the classified issue lane.
+    when_to_use:
+      - The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue.
+      - A read-only host check needs a troubleshooting result.
+    minimal_evidence:
+      - Namespace provenance, relevant Project or supplied resource ID, and one issue-lane query such as ScanResult, ScanWorkflowResult,
+        or Integration.
+    stop_when:
+      - A root-cause hypothesis and validation plan are supported, or the lane is blocked with data_gaps.
+      - Do not create scans, edit scan profiles, mutate integrations, or post support tickets.
+    output_focus:
+      - Return issue_lanes, evidence_summary, root_cause_hypotheses, recommended_actions, and data_gaps.
+  - id: support-packet
+    title: Support Packet
+    summary: Package verified facts and missing evidence for escalation without changing tenant state.
+    when_to_use:
+      - The user needs a support-ready summary after diagnosis.
+      - Required tenant or account-tier evidence is unavailable.
+    minimal_evidence:
+      - Issue lane, resource identifiers, command/error provenance, and data_gaps from failed lookups.
+    stop_when:
+      - The packet contains reproducible facts, attempted queries, and missing evidence.
+      - Do not claim escalation was created unless an approved host action returned evidence.
+    output_focus:
+      - Return support_escalation_packet, validation_plan, future_action_contracts, and data_gaps.
+resources:
+  - name: Project
+    purpose: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis.
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+  - name: ScanResult
+    purpose: Inspect scan lifecycle, exit code, toolchain, and failure state without creating scan log requests.
+    fields:
+      - uuid
+      - meta.name
+      - spec.exit_code
+      - spec.status
+  - name: ScanWorkflowResult
+    purpose: Connect scan workflow status to scheduler, CI, PR scan, and baseline behavior.
+    fields:
+      - uuid
+      - meta.name
+      - spec.status
+      - spec.workflow_id
+  - name: Integration
+    purpose: Inspect configured package managers, SCM credentials, identity providers, notifications, and exporters.
+    fields:
+      - uuid
+      - meta.name
+      - spec
+retrieval_steps:
+  - Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups.
+  - Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is
+    explicitly about PR or CI scans.
+  - Query only the minimal resource lanes needed for the user-reported issue area and preserve command/error provenance.
+fallbacks:
+  - If project lookup misses, retry eligible read-only lookup with traversal before labeling `PROJECT_NOT_FOUND`.
+  - If a diagnostic lane cannot be queried, keep other lanes available and prepare a support packet with precise missing evidence.
+data_gaps:
+  - Record missing credentials, namespace conflicts, project misses, unavailable scan records, integration lookup failures,
+    and unsupported account-tier evidence in `data_gaps`.
+  - Preserve `namespace_provenance`, command attempts, issue lane, and support escalation evidence.
+evidence_query_plans:
+  - profile_id: classify
+    title: Troubleshooting Classification Query Plan
+    objective: Classify the issue lane before reading tenant resources.
+    query_order:
+      - Read only the user's error text, command, host, namespace claim, and repository context.
+      - Identify whether the issue is auth, namespace/project resolution, scan execution, integration delivery, policy, findings,
+        or package evidence.
+      - Select the smallest read-only Endor resource family needed for the lane.
+    avoid:
+      - Do not run scans, mutate integrations, or fetch unrelated Endor resources during classification.
+    stop_after:
+      - Stop after the lane, likely resource family, and required follow-up evidence are known.
+    data_gaps:
+      - Record missing command output, namespace, project selector, integration name, scan identifier, or host access in data_gaps.
+  - profile_id: diagnose
+    title: Troubleshooting Diagnosis Query Plan
+    objective: Diagnose one narrow Endor issue lane with read-only, lane-specific evidence.
+    query_order:
+      - Classify the issue lane and resolve namespace provenance.
+      - Resolve Project, PackageVersion, Finding, ScanResult, integration, policy, or notification evidence only for that
+        lane.
+      - Correlate the user's exact error text with the selected resource evidence and local command context.
+    avoid:
+      - Do not run a new scan, create scan log requests, edit integrations, rotate credentials, or print config contents.
+      - Do not broaden to every troubleshooting domain when one lane has enough evidence.
+    stop_after:
+      - Stop after root cause is supported, disproven, or blocked with concrete next evidence needs.
+    data_gaps:
+      - Record missing resource access, unavailable scan or integration IDs, redacted logs, and host-blocked Endor reads in
+        data_gaps.
+  - profile_id: support-packet
+    title: Support Packet Query Plan
+    objective: Prepare a minimal support packet without secrets or mutation.
+    query_order:
+      - Classify the issue lane and list already-collected evidence.
+      - Fetch only redaction-safe metadata for the affected Project, ScanResult, integration, Finding, or package resource.
+      - Summarize exact commands, timestamps, resource UUIDs, and non-sensitive error snippets.
+    avoid:
+      - Do not include tokens, credential material, full config files, or unrelated tenant inventory.
+    stop_after:
+      - Stop after the packet contains reproduction context, safe identifiers, evidence_queries, and open data_gaps.
+    data_gaps:
+      - Record withheld secrets, missing timestamps, inaccessible resource IDs, and unavailable logs in data_gaps.
+evidence_query_recipes:
+  - id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields: &id001
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints: &id002
+      - Use the namespace selected by the preflight.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
+    profile_id: classify
+  - id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields: *id001
+    constraints: *id002
+    profile_id: diagnose
+  - profile_id: diagnose
+    id: scan-result-by-uuid
+    canonical_id: scan-result-by-uuid
+    resource: ScanResult
+    purpose: Fetch one scan result when troubleshooting a known scan or error lane.
+    template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.status
+      - spec.exit_code
+      - spec.project_uuid
+    constraints:
+      - Use only for a selected troubleshooting lane.
+      - Do not start or rerun scans.
+  - profile_id: diagnose
+    id: finding-by-uuid
+    canonical_id: finding-by-uuid
+    resource: Finding
+    purpose: Fetch one known Finding by UUID; api get does not accept filters.
+    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.source_code_version
+      - spec.finding_metadata
+      - spec.explanation
+    constraints:
+      - Do not use --filter with api get.
+      - After get, report context.type and source ref before merging with project counts.
+  - profile_id: support-packet
+    id: scan-result-by-uuid
+    canonical_id: scan-result-by-uuid
+    resource: ScanResult
+    purpose: Fetch one scan result when troubleshooting a known scan or error lane.
+    template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.status
+      - spec.exit_code
+      - spec.project_uuid
+    constraints:
+      - Use only for a selected troubleshooting lane.
+      - Do not start or rerun scans.
+  - id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+      --list-all -o json
+    fields: *id001
+    constraints: *id002
+    profile_id: support-packet

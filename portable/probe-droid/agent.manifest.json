@@ -205,7 +205,7 @@
       "required": true
     },
     {
-      "description": "Exact GitHub and Endor read-only queries attempted, purpose, status, returned counts, fields used, and data gaps.",
+      "description": "Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.",
       "kind": "list[object]",
       "name": "evidence_queries",
       "required": true

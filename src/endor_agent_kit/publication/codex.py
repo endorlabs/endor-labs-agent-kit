@@ -11,7 +11,7 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
-from .readme import architecture_readme_section
+from .readme import agent_readme_start_here, architecture_readme_section
 from .records import (
     BundleRecord,
     artifact_bundle_record,
@@ -133,12 +133,21 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
     notes.append(
         "- Keep host-specific approval gates intact: local edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes are separate decisions."
     )
+    start_here = agent_readme_start_here(
+        recipe,
+        host_label="Codex",
+        artifact_label="skill",
+        install_summary="Copy this generated skill directory into `${CODEX_HOME:-~/.codex}/skills/` and start a new Codex session.",
+        run_summary=codex_example_prompt(recipe),
+        has_architecture=has_architecture,
+    )
     return "\n".join(
         [
             f"# {recipe.name} Codex Skill",
             "",
             recipe.description.strip(),
             "",
+            *start_here,
             "## Install",
             "",
             "Copy this generated skill directory into your Codex skills directory:",

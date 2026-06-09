@@ -52,6 +52,9 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
     if not isinstance(payload, dict):
         return ["payload: must be an object"]
 
+    if "uia_evidence" in payload and not isinstance(payload.get("uia_evidence"), list):
+        errors.append("uia_evidence: must be an array")
+
     risk_decision = payload.get("risk_decision")
     risk_status = ""
     if not isinstance(risk_decision, dict):
@@ -82,7 +85,10 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
         or project_resolution.get("namespace_provenance")
         or selected.get("namespace_provenance")
     )
+    project_status = _text(project_resolution.get("status"))
     if gate in {"selection-plan", "apply", "validate", "pr"}:
+        if not project_status:
+            errors.append("project_resolution.status: required for SCA workflow gates")
         if not project_uuid:
             errors.append("project_resolution.project_uuid: required for SCA workflow gates")
         if not namespace:
@@ -530,12 +536,9 @@ def _collect_branch_names(value: Any) -> list[str]:
 
 def _is_remediation_branch_key(key: str) -> bool:
     return key in {
-        "branch",
         "branch_name",
-        "head_branch",
         "proposed_branch",
         "proposed_branch_name",
-        "source_branch",
     } or key.endswith("_branch_name")
 
 

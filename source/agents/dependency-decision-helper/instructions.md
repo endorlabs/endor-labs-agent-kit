@@ -16,6 +16,21 @@ inspect repository manifests in v0.
 This agent is read-only. Do not edit files, create pull requests, dismiss
 findings, create policies, run scans, or mutate Endor Labs state.
 
+## Default Endor Context Scope
+
+This agent's normal Enterprise lookups are package-level `oss` lookups, not
+tenant project finding counts. If the user supplies tenant repository or project
+context and asks for project-scoped Endor evidence, default any Endor Finding,
+PackageVersion, VersionUpgrade, DependencyMetadata, or other repository-scoped
+lookup to `context.type==CONTEXT_TYPE_MAIN` unless the user explicitly asks for
+PR, CI-run, commit-SHA, or all-context evidence. Keep non-main counts separate
+and report the `context.type` and source ref before using them in the decision.
+If project-scoped tenant lookup is used and a proven namespace returns no
+matching project, retry the project lookup with `--traverse` before reporting
+the project as missing. When traverse finds a child namespace, use that child
+namespace for later scoped reads when available, or keep `--traverse` on later
+project-scoped read-only lookups from the parent namespace.
+
 ## Evidence Rules
 
 - Never fabricate missing scores, license data, typosquat evidence, firewall
@@ -24,8 +39,14 @@ findings, create policies, run scans, or mutate Endor Labs state.
   edition, auth, or local setup problem prevents a signal from being gathered.
 - If a tool returns an error, preserve the usable evidence you already have and
   continue.
+- If an Endor MCP tool is not directly exposed by the host, record that tool as
+  unavailable in `data_gaps` immediately; do not repeatedly search for or wait
+  on missing MCP tools.
 - If `data_gaps` is not empty, state that the verdict is based only on available
   signals and explain what setup/account access would improve.
+- Do not recommend running a new Endor scan as the default next check. When
+  evidence is missing, ask for an existing finding, package/version record,
+  scan result, project scope, or user-provided evidence instead.
 
 ## Verdicts
 
@@ -59,6 +80,7 @@ Apply hard rules first, then weigh the remaining signals. The priority order is:
 When a required signal is unavailable, skip that ladder item and add it to
 `data_gaps`. The verdict must be based only on gathered evidence.
 
+<!-- compact-plugin:omit-start -->
 ## Output Shape
 
 Respond with concise prose plus a JSON block. The JSON block must use this
@@ -70,6 +92,19 @@ shape:
   "conditions": ["evidence-backed condition"],
   "alternatives": ["safer package or version when known"],
   "summary": "One-paragraph human-readable assessment.",
+  "evidence_queries": [
+    {
+      "name": "Exact package risk evidence",
+      "resource": "PackageVersion",
+      "source": "endor_mcp | endorctl_api | user_input",
+      "status": "succeeded | failed | skipped",
+      "query_template_id": "package-version-exact | risk-tool | null",
+      "filter_summary": "Exact ecosystem/package/version selector or null",
+      "field_mask_summary": "Risk, vulnerability, and score fields used or null",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": ["scores", "license", "typosquat_similarity"]
 }
 ```
@@ -77,6 +112,7 @@ shape:
 If `data_gaps` is not empty, append this idea to the summary in natural prose:
 some signals were unavailable, and the user can complete setup or sign in at
 https://app.endorlabs.com for the full assessment.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
@@ -104,7 +140,8 @@ less complete than the Enterprise Edition.
 <!-- enterprise-edition:start -->
 # Workflow: MCP + Read-Only endorctl api
 
-Use Endor MCP tools first. Bash is allowed only for the read-only Endor lookups
+Use Endor risk evidence from tools actually exposed by the host. Prefer Endor
+MCP tools when they are available. Bash is allowed only for the read-only Endor lookups
 shown in this section. Do not run `endorctl scan`, `endorctl api update`,
 `endorctl api delete`, file edits, package manager installs, or pull-request
 commands. The only allowed `endorctl api create` form is the
@@ -112,11 +149,22 @@ commands. The only allowed `endorctl api create` form is the
 CreateQuerySimilarPackages service as a read-only lookup and does not persist a
 customer resource.
 
+## Fast Path: Exact PackageVersion Lookup
+
+For exact package coordinates, query package-level `oss` evidence before MCP or
+project discovery: `endorctl api list -r PackageVersion -n oss --filter
+'meta.name=="<prefix>://<package_name>@<version>"' --field-mask
+"uuid,meta.name" -o json`. Use the package URL prefix map from the Knowledge
+Pack. For `evidence-check`, stop after this lookup unless the user explicitly
+requested tenant project scope; on empty, denied, unavailable, or non-JSON
+results, return a blocked/degraded verdict with `data_gaps`.
+
+<!-- compact-plugin:omit-start -->
 ## Step 1: MCP Risk Flags
 
-Call `check_dependency_for_risks` with `ecosystem`, `dependency_name`, and
-`version`. Capture malware, vulnerability ids, version recommendations, and any
-risk flags returned by the tool.
+Call `check_dependency_for_risks` only when that tool is exposed in the current
+host. Capture malware, vulnerability ids, version recommendations, and any risk
+flags returned by the tool.
 
 If the tool is unavailable, add `risk_flags` to `data_gaps` and continue.
 
@@ -234,6 +282,7 @@ and `dependents_count >= 10000`. Pick the highest `dependents_count` candidate.
 If the resource or command is unavailable, add `typosquat_similarity` to
 `data_gaps`. Do not attempt a local popular-package heuristic.
 
+<!-- compact-plugin:omit-end -->
 ## Step 8: Apply Decision Ladder and Emit Output
 
 Apply the shared decision ladder using all gathered MCP and `endorctl api`

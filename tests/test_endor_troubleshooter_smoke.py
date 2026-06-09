@@ -49,10 +49,11 @@ def test_endor_troubleshooter_recipe_is_read_only_and_mcp_free(tmp_path):
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
-    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex", "portable"]
+    assert data["compatible_hosts"] == ["claude-code", "claude-managed-agents", "codex", "gemini", "portable"]
     assert data["host_editions"] == {
         "claude-code": ["enterprise-edition"],
         "claude-managed-agents": ["enterprise-edition"],
+        "gemini": ["enterprise-edition"],
     }
     assert data["host_capabilities_required"] == {
         "run_commands": True,
@@ -98,10 +99,17 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     header = artifact.split("---", 2)[1]
 
     assert "Endor Troubleshooter" in artifact
+    assert "## Endor Knowledge Pack" in artifact
+    assert "Endor Troubleshooter Evidence Contract" in artifact
+    assert "Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`" in artifact
+    assert "prepare a support packet with precise missing evidence" in artifact
     assert "troubleshooting_verdict" in artifact
     assert "ACTIONABLE_FIX_IDENTIFIED" in artifact
     assert "SUPPORT_ESCALATION_RECOMMENDED" in artifact
     assert "future_action_contracts" in artifact
+    assert "`evidence_queries[]` rows must contain only those fields" in artifact
+    assert "Do not put raw `endorctl api`, `endorctl scan`,\n`git`, or `gh` command strings" in artifact
+    assert "place it only in `future_action_contracts[]` with\n`confirmation_required: true`" in artifact
     assert "SCAN_EXECUTION_FAILURE" in artifact
     assert "PR_SCAN_AND_BASELINE" in artifact
     assert "IDENTITY_PROVIDER_AND_SSO" in artifact
@@ -114,10 +122,15 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "`ScanLogRequest` is a create-style API" in artifact
     assert "Use `endorctl --version`" in artifact
     assert "Do not use\n`endorctl version`" in artifact
+    assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
+    assert "retry the same read-only query with `--traverse`" in artifact
+    assert "PROJECT_NOT_FOUND" in artifact
+    assert "Record both the original and\ntraverse query attempts" in artifact
+    assert "Never merge PR/CI-run finding counts into main-context finding counts" in artifact
     assert "resolved_dependency_count" in artifact
     assert "Do not `get` `CallGraphData`" in artifact
     assert "endorctl scan --pr --pr-baseline=<baseline_branch> --pr-incremental" in artifact
-    assert "https://docs.endorlabs.com/scan/pr-scans/" in artifact
+    assert "https://docs.endorlabs.com/scan/pr-scans" in artifact
     assert "--resource ScanResult" in artifact
     assert "--resource ScanWorkflowResult" in artifact
     assert "--resource PackageManager" in artifact
@@ -127,6 +140,7 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "--resource NotificationTarget" in artifact
     assert "--resource Exporter" in artifact
     assert "Do not generalize them into create, update, delete, scan" in artifact
+    assert '--filter \'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"\'' in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "Scan Lifecycle And Stuck States" in artifact
     assert "Stuck `STATUS_RUNNING`" in artifact
@@ -220,6 +234,11 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
         "codex/endor-troubleshooter/README.md",
         "codex/endor-troubleshooter/architecture.svg",
         "codex/endor-troubleshooter/endorctl-setup.md",
+        "gemini/endor-troubleshooter/SKILL.md",
+        "gemini/endor-troubleshooter/endor-troubleshooter.md",
+        "gemini/endor-troubleshooter/README.md",
+        "gemini/endor-troubleshooter/architecture.svg",
+        "gemini/endor-troubleshooter/endorctl-setup.md",
         "portable/endor-troubleshooter/README.md",
         "portable/endor-troubleshooter/agent.md",
         "portable/endor-troubleshooter/agent.manifest.json",
@@ -232,6 +251,7 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
     agent_dir = dest / "claude-code" / "endor-troubleshooter"
     managed_dir = dest / "claude-managed-agents" / "endor-troubleshooter"
     codex_dir = dest / "codex" / "endor-troubleshooter"
+    gemini_dir = dest / "gemini" / "endor-troubleshooter"
     portable_dir = dest / "portable" / "endor-troubleshooter"
     assert_host_bundle_files(
         agent_dir,
@@ -252,17 +272,24 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
         ),
     )
     assert_host_bundle_files(
+        gemini_dir,
+        {"SKILL.md", "endor-troubleshooter.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
+    assert_host_bundle_files(
         portable_dir,
         {"README.md", "agent.md", "agent.manifest.json", "output-contract.md", "architecture.svg", "endorctl-setup.md"},
     )
     assert_no_nested_edition_dirs(agent_dir)
     assert_no_nested_edition_dirs(managed_dir)
+    assert_no_nested_edition_dirs(gemini_dir)
 
     root_readme = (dest / "README.md").read_text(encoding="utf-8")
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
     managed_readme = (managed_dir / "README.md").read_text(encoding="utf-8")
     codex_skill = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
     codex_readme = (codex_dir / "README.md").read_text(encoding="utf-8")
+    gemini_skill = (gemini_dir / "SKILL.md").read_text(encoding="utf-8")
+    gemini_readme = (gemini_dir / "README.md").read_text(encoding="utf-8")
     setup = (agent_dir / "endorctl-setup.md").read_text(encoding="utf-8")
     architecture = (agent_dir / "architecture.svg").read_text(encoding="utf-8")
 
@@ -271,6 +298,7 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
     assert "claude-code/endor-troubleshooter/" in root_readme
     assert "claude-managed-agents/endor-troubleshooter/" in root_readme
     assert "codex/endor-troubleshooter/" in root_readme
+    assert "gemini/endor-troubleshooter/" in root_readme
     assert "portable/endor-troubleshooter/" in root_readme
     assert "@agent-endor-troubleshooter diagnose this Endor scan failure from redacted error text" in root_readme
     assert "@agent-endor-troubleshooter diagnose this Endor scan failure" in agent_readme
@@ -280,10 +308,13 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
     assert "Use the endor-troubleshooter skill to diagnose this Endor scan failure" in codex_readme
     assert "## Codex Host Contract" in codex_skill
     assert "future_action_contracts" in codex_skill
+    assert "Endor Troubleshooter Gemini CLI Bundle" in gemini_readme
+    assert "## Gemini CLI Host Contract" in gemini_skill
+    assert "future_action_contracts" in gemini_skill
     assert "Endor Troubleshooter uses only read-only Endor lookups" in setup
     assert "PUBLISHED CONTRACT" in architecture
 
-    for text in (root_readme, agent_readme, managed_readme, codex_skill, codex_readme, setup, architecture):
+    for text in (root_readme, agent_readme, managed_readme, codex_skill, codex_readme, gemini_skill, gemini_readme, setup, architecture):
         _assert_no_private_source_references(text)
         assert_mcp_free_generated_artifact(text)
 

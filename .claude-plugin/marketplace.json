@@ -1,0 +1,80 @@
+{
+  "description": "Endor Labs Agent Kit Claude Code plugin marketplace.",
+  "name": "endorlabs",
+  "owner": {
+    "email": "support@endorlabs.com",
+    "name": "Endor Labs"
+  },
+  "plugins": [
+    {
+      "author": {
+        "name": "Endor Labs"
+      },
+      "category": "Developer Tools",
+      "description": "Endor Labs workflow agents and setup for Claude Code.",
+      "displayName": "Endor Labs Agent Kit",
+      "keywords": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
+      "name": "endor-labs-agent-kit",
+      "source": "./plugins/claude/endor-labs-agent-kit",
+      "tags": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
+      "version": "0.2.0"
+    },
+    {
+      "author": {
+        "name": "Endor Labs"
+      },
+      "category": "Developer Tools",
+      "description": "Legacy Claude Code plugin id for Endor Labs Agent Kit workflows.",
+      "displayName": "Endor Labs AI Plugins (Legacy)",
+      "keywords": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
+      "name": "ai-plugins",
+      "source": "./plugins/claude/ai-plugins",
+      "tags": [
+        "endor-labs",
+        "security",
+        "sca",
+        "sast",
+        "claude-code",
+        "agentic remediation",
+        "SAST remediation",
+        "agentic AppSec",
+        "AppSec",
+        "Upgrade Impact Analysis"
+      ],
+      "version": "1.0.1"
+    }
+  ]
+}

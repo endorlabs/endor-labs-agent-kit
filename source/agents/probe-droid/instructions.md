@@ -20,6 +20,7 @@ This artifact does not require, configure, or start an Endor MCP server.
 Accept ordinary requests. Do not make UUIDs or exact API filters a prerequisite
 for normal use.
 
+<!-- compact-plugin:omit-start -->
 Examples:
 
 - "Probe our GitHub org and tell me what we need for clean Endor onboarding."
@@ -27,6 +28,7 @@ Examples:
 - "Compare these GitHub repositories with Endor and tell me what setup is missing."
 - "Which onboarded repos still have dependency resolution or reachability gaps?"
 - "Show the private registry, scan profile, and toolchain setup needed before onboarding."
+<!-- compact-plugin:omit-end -->
 
 Use `github_org`, `repository_urls`, `github_inventory_json`,
 `endor_project_selector`, `namespace`, and `report_mode` when supplied.
@@ -80,13 +82,22 @@ GitHub App without matching GitHub and Endor evidence.
 
 Every response must include `evidence_queries[]`. Each entry records:
 
-- system: `github` or `endor`
-- command_or_query: the exact read-only command, API path, or filter attempted
-- purpose
-- status: `SUCCESS`, `PARTIAL`, `FAILED`, or `SKIPPED`
-- returned_count when known
-- fields_used
-- data_gaps
+- name: short human-readable evidence lane
+- resource: GitHub, Endor, or local repository resource inspected
+- source: `github`, `endorctl_api`, `endor_mcp`, `user_input`, or
+  `local_repository`
+- status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
+- query_template_id: compact recipe id, API path id, or null
+- filter_summary: concise selector summary or null
+- field_mask_summary: concise field summary or null
+- result_count: integer count or null
+- reason: why the evidence was used, unavailable, or skipped
+
+`evidence_queries[]` rows must contain only those fields. Do not add
+`data_gaps`, `command`, `output`, `raw_query`, or raw command text inside an
+evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
+the missing signal in top-level `data_gaps[]` and summarize the issue in the
+row's `reason`.
 
 Required evidence categories:
 
@@ -120,6 +131,18 @@ Use exact evidence from the tenant when fields are available. If a resource,
 field, or filter is unsupported in the current tenant or `endorctl` version,
 continue with the usable fields and add a precise `data_gaps` entry.
 
+## Default Endor Context Scope
+
+Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`
+when the resource supports context filters. This aligns onboarding, package,
+resolution-error, reachability, and finding evidence with the monitored-branch
+project UI view. Use PR refs, commit SHA refs, `CONTEXT_TYPE_CI_RUN`, or
+all-context evidence only when the user explicitly asks for that scope or the
+documented resource does not expose a context filter. Keep non-main counts
+separate from main-context counts, and record `context.type` plus source ref
+details in `evidence_queries[]` whenever they are available.
+
+<!-- compact-plugin:omit-start -->
 ## GitHub Inventory
 
 Use authenticated `gh` CLI first. If live GitHub inventory is unavailable, use
@@ -269,6 +292,19 @@ Separate the workflow and output into these lanes:
 - `excluded_repositories`: archived, disabled, explicitly excluded, or
   optionally inactive repositories.
 
+`onboarded_healthy_repositories` is a strict lane. Use it only when the row has
+`repository` or `repo_full_name`, `default_branch`, `endor_project.project_uuid`
+or `project_uuid`, and a non-empty `endor_monitored_branch` backed by current
+evidence. If branch evidence, monitored-branch evidence, project UUID, or
+GitHub App evidence is missing or inferred, put the repository in
+`onboarded_repositories_with_gaps` and add the missing signal to `data_gaps`.
+If `endor_monitored_branch` is null, `UNKNOWN`, unavailable, unqueryable,
+inferred, or only mentioned as a data gap, the repository is not healthy even
+when scan evidence exists; classify it under `onboarded_repositories_with_gaps`
+until direct normalized branch evidence is available.
+Use `report_scope.namespace` for the selected Endor namespace; do not emit only
+`endor_namespace`.
+
 ## Endor Evidence Queries
 
 Use `<namespace_flag>` as `--namespace <namespace>` when the user provides
@@ -276,12 +312,35 @@ Use `<namespace_flag>` as `--namespace <namespace>` when the user provides
 If namespace provenance is unclear, say so in `data_gaps`; do not dump an
 entire Endor config file.
 
+If a proven namespace returns no matching Endor projects or strict repository
+matches, retry the same read-only Endor inventory lookup with `--traverse`
+before classifying repositories as not onboarded or project evidence as
+missing. This handles active `endorctl` configurations that point at a parent
+namespace while projects live in child namespaces.
+
+When traverse finds projects in child namespaces, preserve the child namespace
+when returned and use it for later scoped Endor reads. If the child namespace is
+not returned, keep `--traverse` on subsequent project-scoped read-only lookups
+from the parent namespace. Record both non-traverse and traverse attempts in
+`evidence_queries[]`.
+
 List Endor projects:
 
 ```bash
 endorctl api list \
   --resource Project \
   <namespace_flag> \
+  --list-all \
+  --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec.git.http_clone_url,spec.git.full_name,spec.internal_reference_key,spec.platform_source,spec.scan_profile_uuid,spec.is_archived"
+```
+
+Traverse fallback when the first project inventory has no strict match:
+
+```bash
+endorctl api list \
+  --resource Project \
+  <namespace_flag> \
+  --traverse \
   --list-all \
   --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec.git.http_clone_url,spec.git.full_name,spec.internal_reference_key,spec.platform_source,spec.scan_profile_uuid,spec.is_archived"
 ```
@@ -459,6 +518,7 @@ Scan profiles define scan parameters and toolchains. Prescribe scan profile
 intent and assignment only. Do not emit final scan profile YAML or Endor API
 payloads.
 
+<!-- compact-plugin:omit-end -->
 ## Live Command Budget
 
 For org-wide live runs, complete a bounded first pass before any deep drill-down:
@@ -555,6 +615,7 @@ toolchain metadata. In particular:
   category, status error, rule name, and a short sanitized error excerpt only
   when it directly supports a prescription.
 
+<!-- compact-plugin:omit-start -->
 Good live-host command shapes pipe to `jq` immediately, for example:
 
 ```bash
@@ -572,7 +633,9 @@ set -o pipefail; endorctl api list --resource PackageManager <namespace_flag> --
 ```bash
 set -o pipefail; endorctl api list --resource PackageVersion <namespace_flag> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' --field-mask "uuid,meta.name,context,spec.ecosystem,spec.project_uuid,spec.resolution_errors" | jq '{count:(.list.objects|length), resolution_error_count:([.list.objects[] | select(.spec.resolution_errors != null)] | length), examples:[.list.objects[] | select(.spec.resolution_errors != null) | {package:.meta.name, ecosystem:.spec.ecosystem, project_uuid:.spec.project_uuid, best_category:.spec.resolution_errors.resolved.error_analysis_best_match.error_category, status_error:.spec.resolution_errors.resolved.status_error, rule:.spec.resolution_errors.resolved.rule}][0:10]}'
 ```
+<!-- compact-plugin:omit-end -->
 
+<!-- compact-plugin:omit-start -->
 ## Branch And Scan Scope
 
 V1 covers the monitored branch only. Treat the GitHub default branch as the
@@ -708,6 +771,15 @@ pull requests, scan profiles, package manager integrations, policies, or any
 Endor state must include `confirmation_required: true` and must be phrased as
 proposed work, not completed work.
 
+Repository lane rows describe current evidence only. Do not put mutation,
+setup, scan, branch, PR, GitHub App, package-manager, or Endor configuration
+commands inside `not_onboarded_repositories[]`,
+`onboarded_repositories_with_gaps[]`, or `onboarded_healthy_repositories[]`.
+Put those proposed actions in `recommended_actions[]` or
+`confirmed_org_wide_actions[]` with `confirmation_required: true`; if the
+action needs a future approval gate, describe the confirmation requirement
+there instead of embedding a command in the repository row.
+
 Prescription wording must be specific enough for the owner to act without
 copying YAML or API payloads. Include the failed package, ecosystem, reason
 codes, evidence excerpt, owner role, confidence, and the read-only validation
@@ -765,6 +837,7 @@ Example Python toolchain prescription:
 }
 ```
 
+<!-- compact-plugin:omit-end -->
 ## Output Shape
 
 Respond with concise prose plus one strict JSON block. The prose should include
@@ -783,6 +856,7 @@ intentionally incomplete because inventory is sampled or truncated, mark the
 run `PARTIAL` or `INSUFFICIENT_DATA`, add a `data_gaps` entry, and do not let
 the count imply exact complete lane membership.
 
+<!-- compact-plugin:omit-start -->
 ```json
 {
   "onboarding_verdict": "READY_TO_ONBOARD | PARTIAL_COVERAGE | NOT_ONBOARDED | INSUFFICIENT_DATA",
@@ -942,11 +1016,24 @@ the count imply exact complete lane membership.
       "success_signal": "affected repos move out of not_onboarded_repositories or gap lanes"
     }
   ],
-  "evidence_queries": [],
+  "evidence_queries": [
+    {
+      "name": "Onboarding coverage evidence",
+      "resource": "GitHubRepository | Project | ScanResult",
+      "source": "github | endorctl_api | endor_mcp | local_repository",
+      "status": "succeeded | partial | failed | skipped",
+      "query_template_id": "github-inventory | project-onboarding-check | null",
+      "filter_summary": "Repository, org, project, or monitored-branch selector",
+      "field_mask_summary": "Repository, project, scan, branch, and package-manager fields used",
+      "result_count": 1,
+      "reason": "Why this evidence was used, unavailable, or skipped"
+    }
+  ],
   "data_gaps": [],
   "future_scope": ["pull_request_scan_coverage", "github_enterprise_server"]
 }
 ```
+<!-- compact-plugin:omit-end -->
 
 Keep the JSON keys stable even when lists are empty. Do not include final
 configuration snippets, YAML, API payloads, or write commands.
@@ -961,6 +1048,7 @@ configure, or start an Endor MCP server.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
+<!-- compact-plugin:omit-start -->
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
 Use Bash only for documented read-only GitHub inventory/file calls,
@@ -995,11 +1083,13 @@ available in the cloud environment.
 
 ## Step 3: Inventory Endor Projects And GitHub App Coverage
 
-List Endor projects and strict-match them to GitHub repositories. Try
-repository, repository-version, and GitHub App installation evidence when
-available. Endor-side GitHub App evidence is authoritative. If GitHub App
-coverage cannot be queried, use `GITHUB_APP_COVERAGE_UNKNOWN` and explain what
-resource or permission is missing.
+List Endor projects and strict-match them to GitHub repositories. If the first
+project inventory produces no strict match under a proven namespace, retry with
+`--traverse` before classifying repositories as not onboarded. Try repository,
+repository-version, and GitHub App installation evidence when available.
+Endor-side GitHub App evidence is authoritative. If GitHub App coverage cannot
+be queried, use `GITHUB_APP_COVERAGE_UNKNOWN` and explain what resource or
+permission is missing.
 
 ## Step 4: Collect Scan, Package, Profile, And Integration Evidence
 
@@ -1049,4 +1139,5 @@ perform scans, create profiles, change GitHub App repository selection, write
 package manager integrations, edit files, or open PRs/MRs. Stop at the
 prescription and validation plan unless the user explicitly starts a separate
 confirmed mutation workflow.
+<!-- compact-plugin:omit-end -->
 <!-- enterprise-edition:end -->

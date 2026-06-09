@@ -91,7 +91,9 @@ def _render_agent(
     instructions: str,
     actions: tuple[ActionContract, ...],
 ) -> str:
-    body = _portable_text(instructions_for_edition(instructions, PORTABLE_SECTION_EDITION))
+    body = _portable_text(
+        instructions_for_edition(instructions, PORTABLE_SECTION_EDITION, recipe_id=recipe.id)
+    )
     return (
         f"# {recipe.name}\n\n"
         f"{_portable_notice(recipe)}\n\n"

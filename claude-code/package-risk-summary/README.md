@@ -8,6 +8,16 @@ review it?" Returns an evidence-backed package risk summary with
 vulnerabilities, malware or typosquat signals, package scores, license notes,
 recommended next checks, and any data gaps.
 
+## Start Here
+
+This is the Claude Code generated agent for `package-risk-summary`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed. Then use the example prompt below: @agent-package-risk-summary summarize npm lodash version 4.17.20 |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/package-risk-summary/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
 ## Install
 
 Copy `package-risk-summary.md` into your target repository's `.claude/agents/` directory,

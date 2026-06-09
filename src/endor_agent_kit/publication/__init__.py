@@ -5,6 +5,7 @@ from endor_agent_kit.publication.claude_managed_agents import ClaudeManagedAgent
 from endor_agent_kit.publication.catalog import RootCatalogAggregate
 from endor_agent_kit.publication.codex import CodexHostAdapter
 from endor_agent_kit.publication.coordinator import HostArtifactPublication
+from endor_agent_kit.publication.gemini import GeminiHostAdapter
 from endor_agent_kit.publication.portable import PortableHostAdapter
 from endor_agent_kit.publication.records import BundleRecord, PublicationRecord
 
@@ -13,6 +14,7 @@ __all__ = [
     "ClaudeCodeHostAdapter",
     "ClaudeManagedAgentsHostAdapter",
     "CodexHostAdapter",
+    "GeminiHostAdapter",
     "HostArtifactPublication",
     "PortableHostAdapter",
     "PublicationRecord",

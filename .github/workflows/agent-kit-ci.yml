@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
@@ -44,22 +46,49 @@ jobs:
             endor-agent-kit authoring-check "$recipe"
           done
 
+      - name: Check new agent authoring
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          . .venv/bin/activate
+          python scripts/check_new_agent_authoring.py \
+            --base-ref "origin/${{ github.base_ref }}" \
+            --command endor-agent-kit
+
       - name: Regenerate catalog
         run: |
           . .venv/bin/activate
-          endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune
+          endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 
       - name: Check generated artifacts
         run: |
           git diff --exit-code -- \
             README.md \
             manifest.json \
+            .agents/plugins \
+            .claude-plugin \
+            .cursor-plugin \
+            agents \
+            assets \
             claude-code \
             claude-managed-agents \
             codex \
-            portable
+            cursor-sdk \
+            gemini \
+            plugins \
+            portable \
+            skills
 
       - name: Check guardrails
         run: |
           . .venv/bin/activate
           endor-agent-kit check-guardrails --catalog-root .
+
+      - name: Verify provenance
+        run: |
+          . .venv/bin/activate
+          endor-agent-kit verify-provenance --catalog-root .
+
+      - name: Verify Endor context freshness
+        run: |
+          . .venv/bin/activate
+          endor-agent-kit verify-endor-context --upstream

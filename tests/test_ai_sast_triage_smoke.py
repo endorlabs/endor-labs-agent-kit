@@ -35,16 +35,34 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     architecture = (agent_dir / "architecture.svg").read_text()
 
     assert "@agent-ai-sast-triage triage AI SAST findings for this repository" in root_readme
+    assert "## Start Here" in agent_readme
+    assert "Agent installer" in agent_readme
+    assert "Do not hand-edit generated copies" in agent_readme
     assert "Do not open a PR until I approve the patch" in agent_readme
     assert "<project_uuid>" not in agent_readme
     assert "<project_uuid>" not in prompt
     assert "Do not require the user to know an Endor project UUID" in prompt
+    assert "## Endor Knowledge Pack" in prompt
+    assert "AI SAST Triage Evidence Contract" in prompt
+    assert "Preferred evidence resources: `Project`, `Finding`, `Policy`" in prompt
+    assert "Use exploit reproduction for prioritization and validation planning" in prompt
+    assert "Preserve `namespace_provenance`, source ref, finding UUID, stable exception_match, and context scope" in prompt
     assert_mcp_free_generated_artifact(prompt)
     assert "ai-tools" not in prompt
     assert "Do not require or start an Endor MCP server" in prompt
     assert "read the current repository root and `origin` remote URL" in prompt
     assert "ask the user to choose one" in prompt
+    assert "retry the same read-only project lookup with `--traverse`" in prompt
+    assert "Never collapse parent-namespace lookup failures into \"project not\nfound\"" in prompt
     assert "Project scoping is mandatory" in prompt
+    assert "Default Endor Context Scope" in prompt
+    assert "Default Endor Finding list queries to `context.type==CONTEXT_TYPE_MAIN`" in prompt
+    assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' in prompt
+    assert 'spec.method=="AI_SAST"' not in prompt
+    assert 'spec.finding_tags contains "AI_SAST"' not in prompt
+    assert "add `--list-all` when the output needs a complete scoped finding list or count" in prompt
+    assert "inspect and report the returned `context.type` and `spec.source_code_version.ref`" in prompt
+    assert "do not merge a CI/PR-run finding into main-context counts" in prompt
     assert "Namespace Provenance" in prompt
     assert "If the user supplied a namespace in the current request" in prompt
     assert "Never print or dump an entire Endor config file" in prompt
@@ -99,6 +117,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "inject the lint-clean rendered body into `change_requests[].body`" in prompt
     assert "Do not run a known-incomplete remediation payload through the validator" in prompt
     assert "Do not hand-render these review-facing artifacts" in prompt
+    assert "Do not put literal `endorctl api`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`" in prompt
+    assert "project lookup by stored project name returned no results" in prompt
     assert "Do not delegate this workflow to another subagent" in prompt
     assert "Never use bracket-only titles" in prompt
     header = prompt.split("---", 2)[1]
@@ -107,18 +127,26 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "Do not claim that an Endor exception policy was created" in prompt
     assert "## Action Contracts" in prompt
     assert "open-change-request" in prompt
+    assert "using finding UUID, source location, context type, source ref" in prompt
+    assert "Treat main-context findings as the default and label PR/CI-run context explicitly" in prompt
     assert "write-exception-policy" in prompt
     assert "availability: `available`" in prompt
-    assert "checking existing Endor policies by generated policy name and finding UUID" in prompt
+    assert "checking existing Endor policies by generated policy name and stable match fingerprint" in prompt
+    assert "Finding UUID is current-scan evidence only" in prompt
+    assert "exception_match" in prompt
+    assert 'strategy: "ai_sast_fingerprint"' in prompt
+    assert 'strategy: "vulnerability_alias"' in prompt
     assert "If an active matching policy already exists" in prompt
     assert "policy_name" in prompt
     assert "idempotency_check" in prompt
+    assert "match_fingerprint" in prompt
     assert "Endor project label" in prompt
     assert "do not show `Scope: $uuid=...`" in prompt
     assert "not a webhook listener" in prompt
     assert "`rule` containing the full Rego source" in prompt
     assert "Never use a `rego` field" in prompt
     assert "Do not use `meta.parent_uuid` for project scoping" in prompt
+    assert "Do not compare `data.resources.Finding[i].uuid` to a literal Finding UUID" in prompt
     assert "Exception-gate JSON must still include a minimal `verdicts[]` entry" in prompt
     assert "approvals[].approved: true" in prompt
     assert "Do not use `expiration` as a substitute for `expiration_time`" in prompt

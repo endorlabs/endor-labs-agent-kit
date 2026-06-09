@@ -50,6 +50,7 @@ def _valid_netty_payload() -> dict:
             ],
         },
         "project_resolution": {
+            "status": "resolved",
             "project_uuid": "project-fixture-webapp-001",
             "namespace": "tenant-a",
             "namespace_provenance": "~/.endorctl/config.yaml ENDOR_NAMESPACE",
@@ -64,6 +65,16 @@ def _valid_netty_payload() -> dict:
                 "mvn test",
             ],
         },
+        "uia_evidence": [
+            {
+                "resource_type": "VersionUpgrade",
+                "uuid": "version-upgrade-fixture-001",
+                "upgrade_risk": "low",
+                "cia_status": "indeterminate",
+                "findings_fixed": 25,
+                "findings_introduced": 0,
+            }
+        ],
         "patch_plan": [
             {
                 "file": "services/api-gateway/pom.xml",
@@ -130,13 +141,40 @@ def test_sca_gate_validator_requires_project_resolution():
 
     errors = validate_sca_gate_payload(payload)
 
+    assert "project_resolution.status: required for SCA workflow gates" in errors
     assert "project_resolution.project_uuid: required for SCA workflow gates" in errors
     assert "project_resolution.namespace: required for SCA workflow gates" in errors
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
 
 
+def test_sca_gate_validator_requires_project_resolution_status():
+    payload = _valid_netty_payload()
+    payload["project_resolution"].pop("status")
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert "project_resolution.status: required for SCA workflow gates" in errors
+
+
+def test_sca_gate_validator_rejects_non_array_uia_evidence():
+    payload = _valid_netty_payload()
+    payload["uia_evidence"] = {"uuid": "version-upgrade-fixture-001"}
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert "uia_evidence: must be an array" in errors
+
+
 def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():
     assert validate_sca_gate_payload(_valid_netty_payload()) == []
+
+
+def test_sca_gate_validator_ignores_runtime_base_branch_metadata():
+    payload = _valid_netty_payload()
+    payload["runtime_qa"] = {"branch": "main"}
+    payload["change_requests"][0]["branch"] = "not_created"
+
+    assert validate_sca_gate_payload(payload) == []
 
 
 def test_sca_pr_renderer_outputs_auri_style_body_and_lints_cleanly():

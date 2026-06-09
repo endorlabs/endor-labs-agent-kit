@@ -42,7 +42,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `sampled_prescription_hypotheses` (list[object], required): Large-org sampled findings that must not be treated as confirmed org-wide blockers until validated.
 - `requires_full_inventory_validation` (list[object], required): Follow-up read-only checks needed before treating sampled hypotheses or truncated inventory as confirmed org-wide findings.
 - `validation_plan` (list[object], required): Read-only checks humans can run after applying recommendations to verify onboarding health.
-- `evidence_queries` (list[object], required): Exact GitHub and Endor read-only queries attempted, purpose, status, returned counts, fields used, and data gaps.
+- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (list[string], required): Missing GitHub, GitHub App, Endor, scan, package manager, dependency resolution, or reachability evidence.
 - `future_scope` (list[string], required): Explicitly out-of-scope V2 items, especially PR scan coverage and quick-vs-full reachability diagnostics.
 

@@ -1,0 +1,37 @@
+{
+  "contextFileName": "GEMINI.md",
+  "description": "Endor Labs Agent Kit setup and security workflow skills.",
+  "displayName": "Endor Labs Agent Kit",
+  "homepage": "https://www.endorlabs.com",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "endorctl",
+    "sca",
+    "sast",
+    "agentic remediation",
+    "AppSec"
+  ],
+  "license": "MIT",
+  "mcpServers": {
+    "endor-cli-tools": {
+      "args": [
+        "-y",
+        "endorctl",
+        "ai-tools",
+        "mcp-server"
+      ],
+      "command": "npx"
+    }
+  },
+  "name": "endor-labs-agent-kit",
+  "publisher": "endorlabs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/endorlabs/ai-plugins"
+  },
+  "skills": {
+    "path": "./skills"
+  },
+  "version": "0.1.0"
+}
