@@ -1,7 +1,7 @@
 {
   "agents": "./agents/",
   "author": {
-    "email": "support@endorlabs.com",
+    "email": "support@endor.ai",
     "name": "Endor Labs"
   },
   "description": "Endor Labs Agent Kit setup and security workflow agents and skills for Cursor.",

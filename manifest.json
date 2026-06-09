@@ -2160,14 +2160,14 @@
     {
       "artifacts": [
         {
-          "bytes": 671,
+          "bytes": 666,
           "path": ".cursor-plugin/marketplace.json",
-          "sha256": "c892ffa582bfd6b659476942a3041b28859d793254da6c4b5870f2e3330f3b4a"
+          "sha256": "d639b11be9d5d6656c9d91d00d7ea1c6a3ccf35f8c6374ea3d15ef5b36aec394"
         },
         {
-          "bytes": 632,
+          "bytes": 627,
           "path": ".cursor-plugin/plugin.json",
-          "sha256": "9f4525b0a457d066765d980d2218ecf91629855f567b458d86b5e52c517600fd"
+          "sha256": "dd5168cf9430d8d1b7839e363479b7bc313938e3873b5a99199b6583d459756c"
         },
         {
           "bytes": 8908,
