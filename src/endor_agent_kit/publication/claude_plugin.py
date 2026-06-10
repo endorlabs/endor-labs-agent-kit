@@ -277,8 +277,7 @@ def _render_claude_plugin_agent(
         provenance,
         _compact_claude_plugin_body(body, prepared).rstrip(),
         setup_note,
-        "",
-    ])
+    ]) + "\n"
 
 
 def _compact_claude_plugin_body(body: str, prepared: PreparedSourceRecipe) -> str:
