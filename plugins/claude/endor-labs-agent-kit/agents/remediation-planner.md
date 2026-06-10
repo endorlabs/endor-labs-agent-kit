@@ -153,4 +153,3 @@ Do not require, configure, or start an Endor MCP server.
 Run `endor-agent-kit-setup` for missing setup, auth, namespace, MCP, or workflow tooling.
 This package does not declare plugin-wide MCP. Plugin agents cannot declare
 `mcpServers`; use `data_gaps` for unavailable tools.
-

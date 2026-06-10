@@ -424,4 +424,3 @@ Not allowed:
 If `endorctl` is unavailable, unauthenticated, or lacks the needed tenant
 access, record the missing signal in `data_gaps` and continue with user-provided
 error text and safe public guidance. Do not fabricate tenant evidence.
-
