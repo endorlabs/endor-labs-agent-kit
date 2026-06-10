@@ -91,4 +91,21 @@ jobs:
       - name: Verify Endor context freshness
         run: |
           . .venv/bin/activate
-          endor-agent-kit verify-endor-context --upstream
+          endor-agent-kit verify-endor-context
+          if endor-agent-kit verify-endor-context --upstream; then
+            echo "Endor context pin matches upstream."
+          else
+            echo "::warning title=Endor context drift (non-blocking)::Upstream Endor OpenAPI/docs moved since source/endor-context/provenance.json was pinned. This is external drift, not caused by this commit. Merge the automated 'Refresh Endor context provenance' PR, or run 'endor-agent-kit refresh-endor-context', review per docs/maintainer-guide.md, and commit the refreshed pin."
+            {
+              echo "## Endor context drift detected (non-blocking)"
+              echo ""
+              echo "Upstream Endor OpenAPI/docs moved since \`source/endor-context/provenance.json\` was pinned."
+              echo "This is external drift, not a failure introduced by this commit."
+              echo ""
+              echo "To refresh the pin:"
+              echo ""
+              echo "1. Merge the automated **Refresh Endor context provenance** PR if one is open (created daily by \`.github/workflows/refresh-endor-context.yml\`), or run \`endor-agent-kit refresh-endor-context\` locally."
+              echo "2. Review affected Source Recipes, Knowledge Pack query recipes, and setup guidance per \`docs/maintainer-guide.md\` (\"Refresh Endor API And Docs Context\")."
+              echo "3. Commit the updated \`source/endor-context/provenance.json\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
