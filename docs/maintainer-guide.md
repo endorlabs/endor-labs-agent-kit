@@ -89,14 +89,29 @@ Agent Kit does not crawl Endor docs or fetch OpenAPI during normal agent
 runtime. Maintainers instead commit a small provenance file under
 `source/endor-context/` and let CI compare it with upstream.
 
-`endor-agent-kit verify-endor-context --upstream` treats OpenAPI SHA drift and
-canonical docs URL drift as blocking. The public `/meta/version` signal is
+`endor-agent-kit verify-endor-context --upstream` reports OpenAPI SHA drift and
+canonical docs URL drift as errors. The public `/meta/version` signal is
 warning-only because an Endor service/client release may not require prompt or
 query recipe changes.
 
-When the upstream drift is intentional, inspect affected Source Recipes,
-Knowledge Pack query recipes, setup guidance, and release docs first. If they
-still read correctly, refresh the provenance:
+In CI (`agent-kit-ci.yml`), the offline payload validation
+(`endor-agent-kit verify-endor-context` without `--upstream`) stays blocking,
+but upstream drift is reported as a non-blocking warning with refresh
+instructions in the job summary. Upstream drift is caused by Endor releases,
+not by the commit under test, so it must not fail unrelated PRs or pushes.
+
+Freshness is automated by `.github/workflows/refresh-endor-context.yml`, which
+runs daily (and on manual dispatch), re-pins the provenance from upstream,
+verifies it, and opens or updates a **Refresh Endor context provenance** PR on
+branch `endor-context-refresh` when anything moved. Creating that PR with the
+default `GITHUB_TOKEN` requires the repository setting "Allow GitHub Actions to
+create and approve pull requests"; note that PRs opened by `GITHUB_TOKEN` do
+not trigger CI runs themselves — the refresh workflow validates the new pin
+before opening the PR.
+
+Before merging a refresh (automated or manual), inspect affected Source
+Recipes, Knowledge Pack query recipes, setup guidance, and release docs first.
+If they still read correctly, merge the automated PR or refresh locally:
 
 ```bash
 endor-agent-kit refresh-endor-context

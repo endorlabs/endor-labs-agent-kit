@@ -25,4 +25,22 @@ def test_ci_workflow_runs_guardrail_conformance_check():
 def test_ci_workflow_runs_endor_context_freshness_check():
     workflow = (repo_root() / ".github" / "workflows" / "agent-kit-ci.yml").read_text()
 
+    # Offline payload validation stays blocking; the upstream freshness check
+    # stays wired in but reports drift as a non-blocking warning because
+    # upstream Endor releases are not failures of the commit under test.
+    assert "endor-agent-kit verify-endor-context\n" in workflow
     assert "endor-agent-kit verify-endor-context --upstream" in workflow
+    assert "Endor context drift" in workflow
+
+
+def test_refresh_endor_context_workflow_automates_freshness():
+    workflow = (
+        repo_root() / ".github" / "workflows" / "refresh-endor-context.yml"
+    ).read_text()
+
+    # The scheduled refresh lane must keep re-pinning provenance from upstream
+    # and verifying it before opening the review PR.
+    assert "schedule" in workflow
+    assert "endor-agent-kit refresh-endor-context" in workflow
+    assert "endor-agent-kit verify-endor-context --upstream" in workflow
+    assert "endor-context-refresh" in workflow
