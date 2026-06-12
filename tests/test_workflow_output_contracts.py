@@ -49,6 +49,7 @@ def test_workflow_commands_are_registered_for_existing_cli_contracts():
         "validate-sca-output",
         "render-sca-pr-body",
         "lint-sca-pr-body",
+        "validate-cicd-posture-output",
         "validate-ai-sast-output",
         "render-ai-sast-pr-body",
         "lint-ai-sast-pr-body",

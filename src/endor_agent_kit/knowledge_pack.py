@@ -456,6 +456,7 @@ def default_task_profile_for_agent(agent_id: str) -> str:
 
     defaults = {
         "ai-sast-triage": "evidence-check",
+        "cicd-posture": "posture",
         "dependency-decision-helper": "explain",
         "endor-troubleshooter": "diagnose",
         "findings-browser": "browse",

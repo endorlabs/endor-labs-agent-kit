@@ -108,6 +108,7 @@ The SDK package includes `cursor-sdk/agent_definitions.json`, generated prompt f
 | Agent | What it does | Invoke | Safety | First prompt |
 | --- | --- | --- | --- | --- |
 | 🔎 AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `endor-ai-sast-triage-agent` | `approval-gated mutating` | `Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.` |
+| 🧭 CI/CD And Supply Chain Posture | Assess CI/CD and supply chain posture from existing Endor findings and read-only GitHub configuration evidence | `endor-cicd-posture-agent` | `read-only` | `Assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score.` |
 | ⚖️ Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `@agent-dependency-decision-helper` | `read-only` | `Assess whether we should use npm lodash version 4.17.20. Keep it read-only.` |
 | 📊 Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `@agent-package-risk-summary` | `read-only` | `Summarize npm lodash version 4.17.20 with verified Endor evidence. Keep it read-only.` |
 | 📚 Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `@agent-repository-dependency-reviewer` | `read-only` | `Review this repository's dependency manifests with read-only evidence only.` |
@@ -129,6 +130,7 @@ map to the generated skill or agent name.
 | --- | --- | --- | --- | --- | --- |
 | Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Agent `endor-agent-kit-setup-agent`, skill `endor-agent-kit-setup` |
 | Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` | Skill/subagent `ai-sast-triage` | Agent `endor-ai-sast-triage-agent`, skill `ai-sast-triage` |
+| Assess CI/CD and supply chain posture | Agent `cicd-posture` | Skill `cicd-posture`, custom agent `endor-cicd-posture-agent` | Skill/subagent `cicd-posture` | Skill/subagent `cicd-posture` | Agent `endor-cicd-posture-agent`, skill `cicd-posture` |
 | Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` | Skill/subagent `endor-troubleshooter` | Agent `endor-troubleshooter-agent`, skill `endor-troubleshooter` |
 | Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` | Skill/subagent `probe-droid` | Agent `endor-probe-droid-agent`, skill `probe-droid` |
 | Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` | Skill/subagent `sca-remediation` | Agent `endor-sca-remediation-agent`, skill `sca-remediation` |
@@ -169,6 +171,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Agent | Use it when you want to... | Claude Code | Claude Managed Agents | Codex | Gemini | Cursor | Cursor SDK | Portable |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `gemini/ai-sast-triage/` | `agents/endor-ai-sast-triage-agent.md` + `skills/ai-sast-triage/` | `cursor-sdk/agents/endor-ai-sast-triage-agent.md` | `portable/ai-sast-triage/` |
+| CI/CD And Supply Chain Posture | Assess CI/CD and supply chain posture from existing Endor findings and read-only GitHub configuration evidence | `claude-code/cicd-posture/` | `claude-managed-agents/cicd-posture/` | `codex/cicd-posture/` | `gemini/cicd-posture/` | `agents/endor-cicd-posture-agent.md` + `skills/cicd-posture/` | `cursor-sdk/agents/endor-cicd-posture-agent.md` | `portable/cicd-posture/` |
 | Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | - | - | - | `portable/dependency-decision-helper/` |
 | Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | - | - | - | `portable/package-risk-summary/` |
 | Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | - | - | - | `portable/repository-dependency-reviewer/` |
@@ -447,6 +450,8 @@ start a new Codex session so the skill loader can see it.
 mkdir -p "$HOME/.agents/skills"
 cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \
   "$HOME/.agents/skills/ai-sast-triage"
+cp -R /path/to/endor-labs-agent-kit/codex/cicd-posture \
+  "$HOME/.agents/skills/cicd-posture"
 cp -R /path/to/endor-labs-agent-kit/codex/endor-troubleshooter \
   "$HOME/.agents/skills/endor-troubleshooter"
 cp -R /path/to/endor-labs-agent-kit/codex/findings-browser \
@@ -463,6 +468,7 @@ Then invoke it from Codex:
 
 ```text
 Use the ai-sast-triage skill to triage AI SAST findings for this repository.
+Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>.
 Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence.
 Use the findings-browser skill to help with this Endor Labs workflow.
 Use the malware-response skill to help with this Endor Labs workflow.
@@ -502,6 +508,12 @@ AI SAST Triage:
 
 ```text
 @agent-ai-sast-triage triage AI SAST findings for this repository
+```
+
+CI/CD And Supply Chain Posture:
+
+```text
+@agent-cicd-posture assess CI/CD and supply chain posture for namespace <namespace>
 ```
 
 Dependency Decision Helper:

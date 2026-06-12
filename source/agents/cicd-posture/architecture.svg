@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Geist, sans-serif">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#173f4a" stop-opacity="0.48"/>
+      <stop offset="100%" stop-color="#020607" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlow2" cx="84%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#443057" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#020607" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d171b" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#091114" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="cardGlassActive" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#132126" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#0a1518" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="hairline" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#5bd7ff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#5bd7ff" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#5bd7ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hairlinePink" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#d084ff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#d084ff" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#d084ff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.40"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5bd7ff"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="700" fill="#020607"/>
+  <rect width="1280" height="700" fill="url(#bgGlow)"/>
+  <rect width="1280" height="700" fill="url(#bgGlow2)"/>
+  <g transform="translate(42, 38)">
+    <text x="0" y="28" font-size="25" font-weight="700" fill="#e8f6f7">CI/CD And Supply Chain Posture - Read-Only Agent</text>
+    <text x="0" y="56" font-size="13" fill="#a6b9c0">Endor posture findings plus GitHub configuration evidence to deterministic scores and data gaps</text>
+    <text x="0" y="78" font-size="11" fill="#80949b">No scans, workflow dispatches, repository writes, GitHub writes, PRs, or Endor writes.</text>
+  </g>
+  <g transform="translate(48, 154)">
+    <g filter="url(#cardShadow)">
+      <rect width="205" height="140" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="157" height="2" fill="url(#hairline)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#5bd7ff" letter-spacing="1.4">SCOPE</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Namespace Or Repos</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">default namespace-wide</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">subset via repository_urls</text>
+    </g>
+    <line x1="218" y1="70" x2="265" y2="70" stroke="#5bd7ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g transform="translate(285,0)" filter="url(#cardShadow)">
+      <rect width="205" height="140" rx="12" fill="url(#cardGlassActive)" stroke="#23525e"/>
+      <rect x="24" y="0" width="157" height="2" fill="url(#hairlinePink)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#d084ff" letter-spacing="1.4">ENDOR</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Posture Findings</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">SCPM, CICD</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">GHACTIONS, supply chain</text>
+    </g>
+    <line x1="503" y1="70" x2="550" y2="70" stroke="#5bd7ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g transform="translate(570,0)" filter="url(#cardShadow)">
+      <rect width="205" height="140" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="157" height="2" fill="url(#hairline)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#5bd7ff" letter-spacing="1.4">GITHUB</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Config Evidence</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">rulesets, workflows</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">pinning, runners</text>
+    </g>
+    <line x1="788" y1="70" x2="835" y2="70" stroke="#5bd7ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g transform="translate(855,0)" filter="url(#cardShadow)">
+      <rect width="205" height="140" rx="12" fill="url(#cardGlassActive)" stroke="#4b2c61"/>
+      <rect x="24" y="0" width="157" height="2" fill="url(#hairlinePink)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#d084ff" letter-spacing="1.4">SCORE</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Deterministic Band</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">raw counts</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">validated formula</text>
+    </g>
+  </g>
+  <g transform="translate(74, 368)">
+    <g filter="url(#cardShadow)">
+      <rect width="345" height="162" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="26" y="0" width="293" height="2" fill="url(#hairline)"/>
+      <text x="26" y="34" font-size="11" font-weight="700" fill="#5bd7ff" letter-spacing="1.5">EVIDENCE LANES</text>
+      <text x="26" y="64" font-size="17" font-weight="700" fill="#e8f6f7">Branch, Workflow, Runner</text>
+      <text x="26" y="94" font-size="12" fill="#a6b9c0">- protection and CODEOWNERS</text>
+      <text x="26" y="118" font-size="12" fill="#a6b9c0">- action pinning and permissions</text>
+      <text x="26" y="142" font-size="12" fill="#a6b9c0">- risky triggers and runners</text>
+    </g>
+    <g transform="translate(424,0)" filter="url(#cardShadow)">
+      <rect width="345" height="162" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="26" y="0" width="293" height="2" fill="url(#hairlinePink)"/>
+      <text x="26" y="34" font-size="11" font-weight="700" fill="#d084ff" letter-spacing="1.5">SCORING CONTRACT</text>
+      <text x="26" y="64" font-size="17" font-weight="700" fill="#e8f6f7">Recomputable Output</text>
+      <text x="26" y="94" font-size="12" fill="#a6b9c0">- raw_counts integer keys</text>
+      <text x="26" y="118" font-size="12" fill="#a6b9c0">- six dimension scores</text>
+      <text x="26" y="142" font-size="12" fill="#a6b9c0">- overall score and band</text>
+    </g>
+    <g transform="translate(848,0)" filter="url(#cardShadow)">
+      <rect width="345" height="162" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="26" y="0" width="293" height="2" fill="url(#hairline)"/>
+      <text x="26" y="34" font-size="11" font-weight="700" fill="#5bd7ff" letter-spacing="1.5">OUTPUT CONTRACT</text>
+      <text x="26" y="64" font-size="17" font-weight="700" fill="#e8f6f7">Verdict And Data Gaps</text>
+      <text x="26" y="94" font-size="12" fill="#a6b9c0">- critical overrides</text>
+      <text x="26" y="118" font-size="12" fill="#a6b9c0">- evidence_queries ledger</text>
+      <text x="26" y="142" font-size="12" fill="#a6b9c0">- future action recommendations</text>
+    </g>
+  </g>
+  <g transform="translate(50, 592)">
+    <rect width="1180" height="70" rx="12" fill="#071112" stroke="#22414a"/>
+    <text x="28" y="29" font-size="11" font-weight="700" fill="#d084ff" letter-spacing="1.5">CONTRACT</text>
+    <text x="28" y="52" font-size="13" fill="#cfe9eb">Read-only CI/CD posture. Return scope, raw counts, dimension scores, validation, overrides, evidence rows, recommendations, and data_gaps. Mutations require separate approval.</text>
+  </g>
+</svg>

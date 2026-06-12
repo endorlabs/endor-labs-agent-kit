@@ -17,6 +17,10 @@ from endor_agent_kit.workflow_output_contracts.ai_sast import (
     render_ai_sast_pr_body,
     validate_ai_sast_gate_payload,
 )
+from endor_agent_kit.workflow_output_contracts.cicd_posture import (
+    load_json_payload as load_cicd_posture_json_payload,
+    validate_cicd_posture_payload,
+)
 from endor_agent_kit.workflow_output_contracts.sca import (
     lint_sca_pr_body,
     load_json_payload as load_sca_json_payload,
@@ -132,6 +136,15 @@ WORKFLOW_COMMANDS: tuple[WorkflowCommand, ...] = (
         help="Lint an AURI-style SCA remediation PR body",
         operation="lint",
         linter=lint_sca_pr_body,
+    ),
+    WorkflowCommand(
+        name="validate-cicd-posture-output",
+        help="Validate structured cicd-posture output and deterministic scores",
+        operation="validate",
+        payload_loader=load_cicd_posture_json_payload,
+        validator=validate_cicd_posture_payload,
+        gate_choices=("posture",),
+        default_gate="posture",
     ),
     WorkflowCommand(
         name="validate-ai-sast-output",

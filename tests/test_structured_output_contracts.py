@@ -70,6 +70,11 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
 
 
 def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
+    cicd_schema = json_schema_for_agent("cicd-posture")
+    assert cicd_schema["properties"]["posture_verdict"]["type"] == "string"
+    assert "raw_counts" in cicd_schema["properties"]
+    assert "score_validation" in cicd_schema["properties"]
+
     probe_schema = json_schema_for_agent("probe-droid")
     report_scope = probe_schema["properties"]["report_scope"]
     executive_report = probe_schema["properties"]["executive_report"]

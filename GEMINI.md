@@ -21,6 +21,7 @@ before live Endor work.
 User jobs mapped to root skills:
 
 - Triage AI SAST findings: use skill `ai-sast-triage`.
+- Assess CI/CD and supply chain posture: use skill `cicd-posture`.
 - Diagnose Endor setup and scan issues: use skill `endor-troubleshooter`.
 - Browse existing Endor findings: use skill `findings-browser`.
 - Malware Response: use skill `malware-response`.
