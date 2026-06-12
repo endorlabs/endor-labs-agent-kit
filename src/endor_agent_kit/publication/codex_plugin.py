@@ -209,6 +209,9 @@ def _hook_source() -> Path:
 
 
 def _codex_hooks_config() -> dict[str, object]:
+    # ${PLUGIN_ROOT} is the Codex-native hook variable; CLAUDE_PLUGIN_ROOT is only a
+    # compatibility alias. Both are injected per https://developers.openai.com/codex/plugins/build
+    # (openai/codex codex-rs/hooks/src/engine/discovery.rs).
     def command(filename: str, event_name: str) -> dict[str, object]:
         return {
             "type": "command",

@@ -2080,12 +2080,12 @@
         {
           "bytes": 600,
           "path": "plugins/claude/ai-plugins/.claude-plugin/plugin.json",
-          "sha256": "006cd865c4dffc6ad9fa1e0923d574876804dd372caa136b207ad86957276393"
+          "sha256": "76d4dd973a6fd8f28c28eed70f6f011c9f1111b5d8301b5d4cf5570553e06b2a"
         },
         {
           "bytes": 5490,
           "path": "plugins/claude/ai-plugins/README.md",
-          "sha256": "5e6c7cb7bed8cf0e27753ea0e23c563e5323677367376e7ecfd6de631b4e6d6d"
+          "sha256": "3e064d99034a0cbfb8009c29448fddba245abc5b0777bf8cf8abaeac0b7ce077"
         },
         {
           "bytes": 27359,
@@ -2160,12 +2160,12 @@
         {
           "bytes": 1933,
           "path": ".claude-plugin/marketplace.json",
-          "sha256": "1312af6541b7fbbb6c72a58be04c7a8337576edb9e6317b73b64f90c27981844"
+          "sha256": "c5796c1cdafaeb7ba6fde01f8fc42da7c78282db75d64edb3af1098c43c26d27"
         },
         {
           "bytes": 1903,
           "path": "plugins/claude/.claude-plugin/marketplace.json",
-          "sha256": "f8219674223a09172cb88b402826377722a6f72d41071540bc471cd218415e47"
+          "sha256": "7592917931b68b48bd05bef54f1e6d94d750895c553a0ee070221704f96c476e"
         },
         {
           "bytes": 3309,
@@ -2192,7 +2192,7 @@
       "marketplace_path": ".claude-plugin/marketplace.json",
       "name": "ai-plugins",
       "path": "plugins/claude/ai-plugins",
-      "version": "1.1.1"
+      "version": "1.2.0"
     },
     {
       "artifacts": [
@@ -2299,12 +2299,12 @@
         {
           "bytes": 1933,
           "path": ".claude-plugin/marketplace.json",
-          "sha256": "1312af6541b7fbbb6c72a58be04c7a8337576edb9e6317b73b64f90c27981844"
+          "sha256": "c5796c1cdafaeb7ba6fde01f8fc42da7c78282db75d64edb3af1098c43c26d27"
         },
         {
           "bytes": 1903,
           "path": "plugins/claude/.claude-plugin/marketplace.json",
-          "sha256": "f8219674223a09172cb88b402826377722a6f72d41071540bc471cd218415e47"
+          "sha256": "7592917931b68b48bd05bef54f1e6d94d750895c553a0ee070221704f96c476e"
         },
         {
           "bytes": 3309,

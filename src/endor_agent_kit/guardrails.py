@@ -545,7 +545,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 root,
                 legacy_claude_package,
                 expected_name="ai-plugins",
-                expected_version="1.1.1",
+                expected_version="1.2.0",
                 errors=errors,
             )
         _check_claude_marketplace(
@@ -557,7 +557,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
             },
             {
                 "endor-labs-agent-kit": "2.0.0",
-                "ai-plugins": "1.1.1",
+                "ai-plugins": "1.2.0",
             },
             errors,
         )
@@ -570,7 +570,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
             },
             {
                 "endor-labs-agent-kit": "2.0.0",
-                "ai-plugins": "1.1.1",
+                "ai-plugins": "1.2.0",
             },
             errors,
         )
@@ -912,6 +912,8 @@ def _check_codex_plugin_package(
         hooks_json_path=codex_package / "hooks" / "hooks.json",
         hooks_dir=codex_package / "hooks",
         expected_events=CODEX_PLUGIN_HOOK_EVENTS,
+        # Codex-native variable; CLAUDE_PLUGIN_ROOT is only a compat alias
+        # (https://developers.openai.com/codex/plugins/build).
         command_prefix='bash "${PLUGIN_ROOT}/hooks/',
         command_uses_quoted_script=True,
         errors=errors,
