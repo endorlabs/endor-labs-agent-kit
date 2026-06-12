@@ -70,6 +70,7 @@ not run scans, run `endorctl host-check`, edit shell profiles, install
 | --- | --- | --- | --- |
 | Set up this machine | `endor-agent-kit-setup` | `endor-agent-kit-setup-agent` | read-only setup |
 | Triage AI SAST findings | `ai-sast-triage` | `endor-ai-sast-triage-agent` | mutating, approval-gated |
+| Assess CI/CD and supply chain posture | `cicd-posture` | `endor-cicd-posture-agent` | read-only |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `endor-troubleshooter-agent` | read-only |
 | Browse existing Endor findings | `findings-browser` | `endor-findings-browser-agent` | read-only |
 | Malware Response | `malware-response` | `endor-malware-response-agent` | read-only |

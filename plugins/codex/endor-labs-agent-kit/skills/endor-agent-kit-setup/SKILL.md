@@ -11,11 +11,12 @@ description: |
 
 # Endor Agent Kit Setup For Codex
 
-Generated for the Endor Labs Agent Kit Codex plugin package `endor-labs-agent-kit` v2.0.0.
+Generated for Endor Labs Agent Kit Codex plugin `endor-labs-agent-kit` v2.0.0.
 
-## Bundled Codex Custom Agents And Skills
+## Bundled Codex Agents And Skills
 
 - `ai-sast-triage` -> `endor-ai-sast-triage-agent`
+- `cicd-posture` -> `endor-cicd-posture-agent`
 - `endor-troubleshooter` -> `endor-troubleshooter-agent`
 - `findings-browser` -> `endor-findings-browser-agent`
 - `malware-response` -> `endor-malware-response-agent`
@@ -42,7 +43,7 @@ Check installed Endor Codex agents and skills:
 python "$ENDOR_CODEX_INSTALLER" --status
 ```
 
-Move stale Endor Agent Kit plugin-cache copies out of Codex's active cache after user approval:
+Move stale Endor Agent Kit plugin-cache copies after user approval:
 
 ```bash
 python "$ENDOR_CODEX_INSTALLER" --purge-stale-plugin-cache --yes
@@ -237,6 +238,6 @@ approval gates.
 - Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills`.
 - Do not write project-local `.codex/agents/` or repo-local `.agents/skills/` files unless the user explicitly requests that advanced option.
 - Use provenance-gated updates: missing files may be installed; managed stale files may be updated after approval; unknown files or directories must not be overwritten.
-- Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale plugin package and start a fresh Codex thread before judging agent behavior.
-- Use `--purge-stale-plugin-cache --yes` only after user approval; it moves stale Endor Agent Kit cache directories to `${CODEX_HOME:-~/.codex}/plugins/cache-backups/`.
+- Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale package and start a fresh Codex thread before judging agent behavior.
+- Use `--purge-stale-plugin-cache --yes` only after user approval; it moves stale cache directories to `${CODEX_HOME:-~/.codex}/plugins/cache-backups/`.
 - Tell the user to start a new Codex thread after installing or updating custom agents or skills.

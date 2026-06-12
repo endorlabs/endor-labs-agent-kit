@@ -10,6 +10,7 @@ Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 ## Bundled Antigravity CLI Workflows
 
 - `Triage AI SAST findings` -> skill `ai-sast-triage`, subagent `@ai-sast-triage`
+- `Assess CI/CD and supply chain posture` -> skill `cicd-posture`, subagent `@cicd-posture`
 - `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`, subagent `@endor-troubleshooter`
 - `Browse existing Endor findings` -> skill `findings-browser`, subagent `@findings-browser`
 - `Malware Response` -> skill `malware-response`, subagent `@malware-response`

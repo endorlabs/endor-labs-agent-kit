@@ -439,6 +439,7 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
 def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_path):
     claude_agent_ids = (
         "ai-sast-triage",
+        "cicd-posture",
         "dependency-decision-helper",
         "endor-troubleshooter",
         "findings-browser",
@@ -452,6 +453,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     )
     codex_agent_ids = (
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "probe-droid",
@@ -803,6 +805,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert cursor_sdk_agents["endor-agent-kit-setup"]["agent_name"] == "endor-agent-kit-setup-agent"
     assert cursor_sdk_agents["endor-agent-kit-setup"]["readonly"] is True
     assert cursor_sdk_agents["ai-sast-triage"]["readonly"] is False
+    assert cursor_sdk_agents["cicd-posture"]["readonly"] is True
+    assert cursor_sdk_agents["cicd-posture"]["prompt_file"] == "agents/endor-cicd-posture-agent.md"
     assert cursor_sdk_agents["sca-remediation"]["readonly"] is False
     assert cursor_sdk_agents["probe-droid"]["readonly"] is True
     assert cursor_sdk_agents["probe-droid"]["prompt_file"] == "agents/endor-probe-droid-agent.md"
@@ -941,6 +945,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     cursor_findings_skill = (dest / "skills" / "findings-browser" / "SKILL.md").read_text()
     assert "Cursor Host Contract" in cursor_findings_skill
     assert "findings_verdict" in cursor_findings_skill
+    cursor_cicd_skill = (dest / "skills" / "cicd-posture" / "SKILL.md").read_text()
+    assert "Cursor Host Contract" in cursor_cicd_skill
+    assert "CI/CD Posture Evidence Contract" in cursor_cicd_skill
     cursor_agent = (dest / "agents" / "endor-probe-droid-agent.md").read_text()
     assert "endor_agent_kit_managed=true" in cursor_agent
     assert "name: endor-probe-droid-agent" in cursor_agent.split("---", 2)[1]
@@ -949,6 +956,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Cursor Host Contract" in cursor_agent
     assert "matching support skill `skills/probe-droid/`" in cursor_agent
     assert "Gemini CLI Host Contract" not in cursor_agent
+    cursor_cicd_agent = (dest / "agents" / "endor-cicd-posture-agent.md").read_text()
+    assert "readonly: true" in cursor_cicd_agent.split("---", 2)[1]
+    assert "matching support skill `skills/cicd-posture/`" in cursor_cicd_agent
+    assert "score_validation" in cursor_cicd_agent
     cursor_sast_agent = (dest / "agents" / "endor-ai-sast-triage-agent.md").read_text()
     assert "readonly: false" in cursor_sast_agent.split("---", 2)[1]
     cursor_mutating_agent = (dest / "agents" / "endor-sca-remediation-agent.md").read_text()
@@ -962,6 +973,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "uv pip install -r requirements.txt" in cursor_sdk_readme
     assert "python3 -m pip install -r requirements.txt" in cursor_sdk_readme
     assert "python run_cursor_agent.py endor-probe-droid-agent" in cursor_sdk_readme
+    assert "endor-cicd-posture-agent" in cursor_sdk_readme
     assert "python run_cursor_agent.py endor-sca-remediation-agent" in cursor_sdk_readme
     assert "python3 -m pip install -r cursor-sdk/requirements.txt" not in cursor_sdk_readme
     assert "python cursor-sdk/run_cursor_agent.py" not in cursor_sdk_readme
@@ -984,6 +996,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Cursor SDK Host Contract" in cursor_sdk_prompt
     assert "host=cursor-sdk" in cursor_sdk_prompt
     assert "Gemini CLI Host Contract" not in cursor_sdk_prompt
+    cursor_sdk_cicd_prompt = (dest / "cursor-sdk" / "agents" / "endor-cicd-posture-agent.md").read_text()
+    assert "Cursor SDK Host Contract" in cursor_sdk_cicd_prompt
+    assert "host=cursor-sdk" in cursor_sdk_cicd_prompt
+    assert "score_validation" in cursor_sdk_cicd_prompt
     cursor_sdk_setup = (dest / "cursor-sdk" / "agents" / "endor-agent-kit-setup-agent.md").read_text()
     assert "Endor Agent Kit Setup Agent For Cursor SDK" in cursor_sdk_setup
     assert "Run `endorctl scan`" in cursor_sdk_setup
@@ -1200,12 +1216,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "hooks/hooks.json" in cursor_artifact_paths
     assert "agents/endor-probe-droid-agent.md" in cursor_artifact_paths
     assert "agents/endor-findings-browser-agent.md" in cursor_artifact_paths
+    assert "agents/endor-cicd-posture-agent.md" in cursor_artifact_paths
     assert "agents/endor-sca-remediation-agent.md" in cursor_artifact_paths
     assert "agents/endor-agent-kit-setup-agent.md" in cursor_artifact_paths
     assert "skills/probe-droid/SKILL.md" in cursor_artifact_paths
     assert "skills/probe-droid/architecture.svg" in cursor_artifact_paths
     assert "skills/findings-browser/SKILL.md" in cursor_artifact_paths
     assert "skills/findings-browser/architecture.svg" in cursor_artifact_paths
+    assert "skills/cicd-posture/SKILL.md" in cursor_artifact_paths
+    assert "skills/cicd-posture/architecture.svg" in cursor_artifact_paths
     assert "GEMINI.md" not in cursor_artifact_paths
     assert "gemini-extension.json" not in cursor_artifact_paths
     cursor_sdk_artifact_paths = {
@@ -1217,6 +1236,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/agent_definitions.json" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-probe-droid-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-findings-browser-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-cicd-posture-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-sca-remediation-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in cursor_sdk_artifact_paths
     assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()

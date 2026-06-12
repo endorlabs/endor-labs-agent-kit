@@ -526,6 +526,7 @@ def _runner_script() -> str:
 def _recommended_prompt(agent_id: str) -> str:
     prompts = {
         "ai-sast-triage": "Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.",
+        "cicd-posture": "Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workflow read-only and validate the deterministic score.",
         "endor-troubleshooter": "Diagnose this Endor issue from redacted error text and read-only local evidence. Keep the workflow read-only.",
         "probe-droid": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
         "sca-remediation": "Inspect this repository and prepare a remediation plan only. Do not edit files, create branches, push, open a PR/MR, create a ticket, or write Endor policy.",

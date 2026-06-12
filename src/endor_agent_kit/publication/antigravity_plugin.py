@@ -435,6 +435,7 @@ def antigravity_text(text: str) -> str:
 def _workflow_label(agent_id: str) -> str:
     labels = {
         "ai-sast-triage": "Triage AI SAST findings",
+        "cicd-posture": "Assess CI/CD and supply chain posture",
         "endor-troubleshooter": "Diagnose Endor setup and scan issues",
         "findings-browser": "Browse existing Endor findings",
         "probe-droid": "Assess GitHub onboarding gaps",

@@ -15,6 +15,7 @@ Generated for the Endor Labs Agent Kit Cursor plugin agent package.
 ## Bundled Cursor Workflows
 
 - `Triage AI SAST findings` -> agent `endor-ai-sast-triage-agent` and skill `ai-sast-triage`
+- `Assess CI/CD and supply chain posture` -> agent `endor-cicd-posture-agent` and skill `cicd-posture`
 - `Diagnose Endor setup and scan issues` -> agent `endor-troubleshooter-agent` and skill `endor-troubleshooter`
 - `Findings Browser` -> agent `endor-findings-browser-agent` and skill `findings-browser`
 - `Malware Response` -> agent `endor-malware-response-agent` and skill `malware-response`

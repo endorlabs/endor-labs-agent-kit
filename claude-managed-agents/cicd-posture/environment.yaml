@@ -1,0 +1,14 @@
+name: endor-cicd-posture
+config:
+  type: cloud
+  networking:
+    type: limited
+    allowed_hosts:
+    - https://api.endorlabs.com
+    - https://api.github.com
+    - https://github.com
+    allow_mcp_servers: false
+    allow_package_managers: true
+  packages:
+    npm:
+    - endorctl

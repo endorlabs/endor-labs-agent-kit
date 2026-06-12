@@ -31,10 +31,13 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     assert pack.name == "Endor Knowledge Pack"
     assert sorted(pack.query_recipes) == [
         "ai-sast-list",
+        "cicd-posture-findings",
         "current-malware-intelligence",
         "exposure-guidance-source",
         "finding-browser-filtered",
         "finding-by-uuid",
+        "github-branch-protection",
+        "github-workflow-files",
         "local-git-state",
         "local-manifest-inventory",
         "mcp-finding-by-uuid-check",
@@ -55,6 +58,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     ]
     assert set(pack.workflows) == {
         "ai-sast-triage",
+        "cicd-posture",
         "dependency-decision-helper",
         "endor-troubleshooter",
         "findings-browser",

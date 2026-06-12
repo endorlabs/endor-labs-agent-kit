@@ -77,6 +77,7 @@ package managers.
 | Job | Claude Code agent | Safety |
 | --- | --- | --- |
 | Triage AI SAST findings | `ai-sast-triage` | mutating, approval-gated |
+| Assess CI/CD and supply chain posture | `cicd-posture` | read-only |
 | Decide whether a dependency is safe to use | `dependency-decision-helper` | read-only |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | read-only |
 | Browse existing Endor findings | `findings-browser` | read-only |

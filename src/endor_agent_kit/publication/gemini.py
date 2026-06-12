@@ -185,6 +185,8 @@ def gemini_example_prompt(recipe: EndorAgentRecipe) -> str:
 
     if recipe.id == "ai-sast-triage":
         return "Use @ai-sast-triage to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
+    if recipe.id == "cicd-posture":
+        return "Use @cicd-posture to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score."
     if recipe.id == "probe-droid":
         return "Use @probe-droid to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
     if recipe.id == "endor-troubleshooter":
@@ -237,6 +239,19 @@ def gemini_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "",
             "```text",
             "Use @probe-droid to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only, do not run scans, do not clone repositories, and separate not-onboarded repositories from already-onboarded repositories with dependency resolution or reachability gaps.",
+            "```",
+            "",
+        ]
+    if recipe.id == "cicd-posture":
+        return [
+            "## Example Workflow",
+            "",
+            "```text",
+            "Use @cicd-posture to assess CI/CD and supply chain posture for Endor namespace <namespace> and GitHub org <org>. Include Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN findings, branch protection, CODEOWNERS, action pinning, permissions, risky triggers, self-hosted runners, update automation, deterministic scores, critical overrides, evidence_queries, and data_gaps. Do not run scans or mutate anything.",
+            "```",
+            "",
+            "```text",
+            "Use @cicd-posture for these repositories only: <owner/repo>, <owner/repo>. Compute raw_counts, dimension_scores, score_validation, and recommended human actions without editing workflows or branch protection.",
             "```",
             "",
         ]
