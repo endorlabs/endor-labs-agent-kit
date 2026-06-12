@@ -682,7 +682,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     )
     assert legacy_claude_plugin_manifest["name"] == "ai-plugins"
     assert legacy_claude_plugin_manifest["displayName"] == "Endor Labs AI Plugins (Legacy)"
-    assert legacy_claude_plugin_manifest["version"] == "1.1.1"
+    assert legacy_claude_plugin_manifest["version"] == "1.2.0"
     assert "agents" not in legacy_claude_plugin_manifest
     assert "skills" not in legacy_claude_plugin_manifest
     assert "license" not in legacy_claude_plugin_manifest
