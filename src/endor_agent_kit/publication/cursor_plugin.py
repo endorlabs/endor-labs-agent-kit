@@ -36,6 +36,12 @@ CURSOR_SETUP_SKILL = "endor-agent-kit-setup"
 CURSOR_SETUP_AGENT = "endor-agent-kit-setup-agent"
 CURSOR_SECTION_EDITION = "enterprise-edition"
 CURSOR_PLUGIN_NAME = "endorlabs"
+CURSOR_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
+CURSOR_HOOK_FILENAMES = (
+    "suggest-endor-tools.sh",
+    "check-dep-install.sh",
+    "check-manifest-edit.sh",
+)
 
 
 @dataclass(frozen=True)
@@ -82,6 +88,10 @@ def publish_cursor_plugin_package(
     assets_root = destination / "assets"
     assets_root.mkdir(parents=True, exist_ok=True)
 
+    hooks_root = destination / "hooks"
+    if hooks_root.exists():
+        shutil.rmtree(hooks_root)
+
     for prepared in sorted_recipes:
         skill_dir = skills_root / prepared.recipe.id
         skill_dir.mkdir(parents=True)
@@ -126,6 +136,8 @@ def publish_cursor_plugin_package(
     logo.write_text(logo_svg(), encoding="utf-8")
     written.append(logo)
 
+    written.extend(_write_cursor_plugin_hooks(destination))
+
     plugin_manifest = destination / CURSOR_PLUGIN_MANIFEST_PATH
     plugin_manifest.write_text(
         json.dumps(_cursor_plugin_manifest(version), indent=2, sort_keys=True) + "\n",
@@ -154,6 +166,68 @@ def publish_cursor_plugin_package(
         ),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
+
+
+def _write_cursor_plugin_hooks(destination: Path) -> tuple[Path, ...]:
+    source_dir = _hook_source()
+    hooks_dir = destination / "hooks"
+    hooks_dir.mkdir()
+    written: list[Path] = []
+    for filename in CURSOR_HOOK_FILENAMES:
+        source = source_dir / filename
+        target = hooks_dir / filename
+        shutil.copy2(source, target)
+        written.append(target)
+    hooks_json = hooks_dir / "hooks.json"
+    hooks_json.write_text(
+        json.dumps(_cursor_hooks_config(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    written.append(hooks_json)
+    return tuple(written)
+
+
+def _hook_source() -> Path:
+    candidates = [
+        Path(__file__).resolve().parents[3] / CURSOR_HOOK_SOURCE_DIR,
+        Path.cwd() / CURSOR_HOOK_SOURCE_DIR,
+    ]
+    for candidate in candidates:
+        if candidate.is_dir():
+            missing = [
+                filename
+                for filename in CURSOR_HOOK_FILENAMES
+                if not (candidate / filename).is_file()
+            ]
+            if missing:
+                raise FileNotFoundError(
+                    f"{candidate}: missing Cursor hook source files {missing}"
+                )
+            return candidate
+    raise FileNotFoundError(CURSOR_HOOK_SOURCE_DIR.as_posix())
+
+
+def _cursor_hooks_config() -> dict[str, object]:
+    def command(filename: str, event_name: str) -> dict[str, object]:
+        return {
+            "type": "command",
+            "command": f"bash ./hooks/{filename} {event_name}",
+            "timeout": 10,
+        }
+
+    return {
+        "hooks": {
+            "beforeSubmitPrompt": [
+                command("suggest-endor-tools.sh", "beforeSubmitPrompt"),
+            ],
+            "beforeShellExecution": [
+                command("check-dep-install.sh", "beforeShellExecution"),
+            ],
+            "afterFileEdit": [
+                command("check-manifest-edit.sh", "afterFileEdit"),
+            ],
+        }
+    }
 
 
 def render_cursor_skill(prepared: PreparedSourceRecipe) -> str:
@@ -251,6 +325,8 @@ def _cursor_host_contract(recipe: EndorAgentRecipe) -> str:
     lines = [
         "## Cursor Host Contract",
         "",
+        "These instructions apply only when this skill is used through the Cursor host integration.",
+        "",
         "Use Cursor file and shell tools only within the recipe safety contract.",
         "Do not claim that a command, file edit, branch push, PR/MR, comment, approval,",
         "or Endor policy write happened unless Cursor performed it and captured evidence.",
@@ -308,7 +384,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "## Cursor Package Install Notes",
         "",
-        "Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor package uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, and `assets/logo.svg`.",
+        "Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor package uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.svg`.",
         "",
         "This Cursor package is separate from the Gemini CLI extension under `plugins/gemini/endor-labs-agent-kit/`. Do not use Cursor installation steps to install Gemini CLI files, and do not use Gemini extension files as Cursor package metadata.",
         "",
@@ -352,7 +428,7 @@ def _render_setup_agent(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "## Cursor Plugin Install Notes",
         "",
-        "Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor plugin uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, and `assets/logo.svg`.",
+        "Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor plugin uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.svg`.",
         "",
         "This Cursor plugin is separate from the Gemini CLI extension under `plugins/gemini/endor-labs-agent-kit/`. Do not use Cursor installation steps to install Gemini CLI files, and do not use Gemini extension files as Cursor package metadata.",
         "",
@@ -407,6 +483,7 @@ def _cursor_plugin_manifest(version: str) -> dict[str, object]:
         "logo": "assets/logo.svg",
         "agents": "./agents/",
         "skills": "./skills/",
+        "hooks": "./hooks/hooks.json",
     }
 
 

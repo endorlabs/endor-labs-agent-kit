@@ -54,6 +54,10 @@ The generated Claude Code plugin packages include:
 - `agents/<agent>.md` files generated from the existing Claude Code artifacts.
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
+- `hooks/hooks.json` plus fail-open advisory hook scripts in the primary
+  `endor-labs-agent-kit` package only. These hooks add Claude context for
+  prompt routing, dependency installs, and dependency manifest edits; they do
+  not block work, call Endor, use the network, run scans, or write files.
 - `assets/logo.svg`.
 - Public-repo marketplace metadata at `.claude-plugin/marketplace.json`.
 - Package-local marketplace metadata at
@@ -63,7 +67,8 @@ The preferred package id is `endor-labs-agent-kit@endorlabs`. The legacy
 `ai-plugins@endorlabs` package is retained as a real generated package so
 existing Claude Code users pinned to that id can continue to install and update
 without a breaking rename. Both packages expose the same setup skill and agents;
-normal users should not enable both ids in the same Claude profile.
+normal users should not enable both ids in the same Claude profile. The legacy
+package intentionally does not include hooks.
 
 Claude Code plugin-shipped agents do not support `mcpServers`,
 `permissionMode`, or `hooks` in agent frontmatter. The generated package strips

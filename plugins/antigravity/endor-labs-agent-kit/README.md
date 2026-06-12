@@ -25,6 +25,7 @@ This package is host-specific for Antigravity CLI. Use the root README when choo
 - Manifest: `plugin.json`.
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Subagents: `agents/<agent>.md`.
+- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
 - Model/runtime: generated skills and subagents inherit Antigravity CLI defaults; the plugin does not set a plugin-wide default model.
 - MCP: no plugin-wide MCP server is declared by default.
 
@@ -62,6 +63,7 @@ package managers.
 | --- | --- | --- | --- |
 | Triage AI SAST findings | `ai-sast-triage` | `@ai-sast-triage` | mutating, approval-gated |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `@endor-troubleshooter` | read-only |
+| Browse existing Endor findings | `findings-browser` | `@findings-browser` | read-only |
 | Malware Response | `malware-response` | `@malware-response` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | `@probe-droid` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
@@ -84,5 +86,6 @@ approval gates. Setup never performs those workflow actions.
 ## Provider Docs
 
 - https://antigravity.google/docs/cli-plugins
+- https://antigravity.google/docs/hooks
 - https://antigravity.google/docs/gcli-migration
 - https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/

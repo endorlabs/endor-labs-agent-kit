@@ -27,6 +27,12 @@ from endor_agent_kit.safety_posture import source_recipe_safety_posture
 ANTIGRAVITY_HOST = "antigravity"
 ANTIGRAVITY_PLUGIN_PACKAGE_ROOT = Path("plugins") / ANTIGRAVITY_HOST / PLUGIN_NAME
 ANTIGRAVITY_SETUP_SKILL = "endor-agent-kit-setup"
+ANTIGRAVITY_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
+ANTIGRAVITY_HOOK_FILENAMES = (
+    "suggest-endor-tools.sh",
+    "check-dep-install.sh",
+    "check-manifest-edit.sh",
+)
 
 
 @dataclass(frozen=True)
@@ -58,6 +64,7 @@ def publish_antigravity_plugin_package(
     (package_dir / "skills").mkdir()
     (package_dir / "agents").mkdir()
     (package_dir / "assets").mkdir()
+    (package_dir / "hooks").mkdir()
 
     written: list[Path] = []
     version = package_version()
@@ -102,6 +109,8 @@ def publish_antigravity_plugin_package(
     logo.write_text(logo_svg(), encoding="utf-8")
     written.append(logo)
 
+    written.extend(_write_antigravity_plugin_hooks(package_dir))
+
     manifest = package_dir / "plugin.json"
     manifest.write_text(
         json.dumps(_antigravity_plugin_manifest(version), indent=2, sort_keys=True) + "\n",
@@ -128,6 +137,75 @@ def publish_antigravity_plugin_package(
         extra_artifacts=(plugins_readme,),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
+
+
+def _write_antigravity_plugin_hooks(package_dir: Path) -> tuple[Path, ...]:
+    source_dir = _hook_source()
+    hooks_dir = package_dir / "hooks"
+    written: list[Path] = []
+    for filename in ANTIGRAVITY_HOOK_FILENAMES:
+        source = source_dir / filename
+        target = hooks_dir / filename
+        shutil.copy2(source, target)
+        written.append(target)
+    hooks_json = package_dir / "hooks.json"
+    hooks_json.write_text(
+        json.dumps(_antigravity_hooks_config(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    written.append(hooks_json)
+    return tuple(written)
+
+
+def _hook_source() -> Path:
+    candidates = [
+        Path(__file__).resolve().parents[3] / ANTIGRAVITY_HOOK_SOURCE_DIR,
+        Path.cwd() / ANTIGRAVITY_HOOK_SOURCE_DIR,
+    ]
+    for candidate in candidates:
+        if candidate.is_dir():
+            missing = [
+                filename
+                for filename in ANTIGRAVITY_HOOK_FILENAMES
+                if not (candidate / filename).is_file()
+            ]
+            if missing:
+                raise FileNotFoundError(
+                    f"{candidate}: missing Antigravity hook source files {missing}"
+                )
+            return candidate
+    raise FileNotFoundError(ANTIGRAVITY_HOOK_SOURCE_DIR.as_posix())
+
+
+def _antigravity_hooks_config() -> dict[str, object]:
+    def command(filename: str, event_name: str) -> dict[str, object]:
+        return {
+            "type": "command",
+            "command": f"bash ./hooks/{filename} {event_name}",
+            "timeout": 10,
+        }
+
+    return {
+        "hooks": {
+            "PreInvocation": [
+                {
+                    "hooks": [command("suggest-endor-tools.sh", "PreInvocation")],
+                }
+            ],
+            "PreToolUse": [
+                {
+                    "matcher": "run_command",
+                    "hooks": [command("check-dep-install.sh", "PreToolUse")],
+                }
+            ],
+            "PostToolUse": [
+                {
+                    "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+                    "hooks": [command("check-manifest-edit.sh", "PostToolUse")],
+                }
+            ],
+        }
+    }
 
 
 def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
@@ -257,6 +335,7 @@ def _antigravity_plugin_readme(
         "- Manifest: `plugin.json`.",
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Subagents: `agents/<agent>.md`.",
+        "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
         "- Model/runtime: generated skills and subagents inherit Antigravity CLI defaults; the plugin does not set a plugin-wide default model.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
@@ -312,6 +391,7 @@ def _antigravity_plugin_readme(
         "## Provider Docs",
         "",
         "- https://antigravity.google/docs/cli-plugins",
+        "- https://antigravity.google/docs/hooks",
         "- https://antigravity.google/docs/gcli-migration",
         "- https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/",
         "",
@@ -356,6 +436,7 @@ def _workflow_label(agent_id: str) -> str:
     labels = {
         "ai-sast-triage": "Triage AI SAST findings",
         "endor-troubleshooter": "Diagnose Endor setup and scan issues",
+        "findings-browser": "Browse existing Endor findings",
         "probe-droid": "Assess GitHub onboarding gaps",
         "sca-remediation": "Find safe SCA remediation paths",
     }

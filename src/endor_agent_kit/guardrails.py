@@ -86,6 +86,37 @@ KNOWLEDGE_PACK_REQUIRED_TEXT = (
     "data_gaps",
 )
 
+PRIMARY_CLAUDE_PLUGIN_HOOKS = (
+    "suggest-endor-tools.sh",
+    "check-dep-install.sh",
+    "check-manifest-edit.sh",
+)
+
+CLAUDE_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PostToolUse"})
+CODEX_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PostToolUse"})
+CURSOR_PLUGIN_HOOK_EVENTS = frozenset({
+    "beforeSubmitPrompt",
+    "beforeShellExecution",
+    "afterFileEdit",
+})
+GEMINI_PLUGIN_HOOK_EVENTS = frozenset({"BeforeAgent", "BeforeTool", "AfterTool"})
+ANTIGRAVITY_PLUGIN_HOOK_EVENTS = frozenset({
+    "PreInvocation",
+    "PreToolUse",
+    "PostToolUse",
+})
+
+CLAUDE_PLUGIN_HOOK_FORBIDDEN_TOKENS = (
+    "curl ",
+    "wget ",
+    "nc ",
+    "ssh ",
+    "sudo ",
+    "endorctl scan",
+    "endorctl host-check",
+    "rm -rf",
+)
+
 
 def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     """Return guardrail conformance errors for a generated catalog root."""
@@ -552,6 +583,22 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     if antigravity_package.is_dir():
         _check_antigravity_plugin_package(root, antigravity_package, errors)
 
+    _check_unexpected_plugin_hooks(root, plugins_root, errors)
+
+
+def _check_unexpected_plugin_hooks(root: Path, plugins_root: Path, errors: list[str]) -> None:
+    allowed = {
+        root / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks",
+        root / "plugins" / "codex" / "endor-labs-agent-kit" / "hooks",
+        root / "plugins" / "gemini" / "endor-labs-agent-kit" / "hooks",
+        root / "plugins" / "antigravity" / "endor-labs-agent-kit" / "hooks",
+    }
+    for hooks_dir in sorted(plugins_root.rglob("hooks")):
+        if hooks_dir in allowed:
+            continue
+        if hooks_dir.is_dir():
+            errors.append(f"{_rel(root, hooks_dir)}: unexpected plugin hook directory")
+
 
 def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
     manifest_path = root / ".cursor-plugin" / "plugin.json"
@@ -569,6 +616,8 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             errors.append(".cursor-plugin/plugin.json: agents must point at ./agents/")
         if manifest.get("skills") != "./skills/":
             errors.append(".cursor-plugin/plugin.json: skills must point at ./skills/")
+        if manifest.get("hooks") != "./hooks/hooks.json":
+            errors.append(".cursor-plugin/plugin.json: hooks must point at ./hooks/hooks.json")
         for forbidden in ("mcpServers", "settings", "gemini-extension.json"):
             if forbidden in manifest:
                 errors.append(f".cursor-plugin/plugin.json: must not declare {forbidden}")
@@ -610,6 +659,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
     expected_skills = (
         "ai-sast-triage",
         "endor-troubleshooter",
+        "findings-browser",
         "probe-droid",
         "sca-remediation",
     )
@@ -633,6 +683,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
     expected_agents = {
         "ai-sast-triage": "endor-ai-sast-triage-agent",
         "endor-troubleshooter": "endor-troubleshooter-agent",
+        "findings-browser": "endor-findings-browser-agent",
         "probe-droid": "endor-probe-droid-agent",
         "sca-remediation": "endor-sca-remediation-agent",
     }
@@ -679,6 +730,16 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
                 errors.append(f"{_rel(root, setup_agent)}: missing required setup agent text {required!r}")
         _check_namespace_setup_guidance(root, setup_agent, setup_agent_text, errors)
 
+    _check_advisory_plugin_hooks(
+        root,
+        hooks_json_path=root / "hooks" / "hooks.json",
+        hooks_dir=root / "hooks",
+        expected_events=CURSOR_PLUGIN_HOOK_EVENTS,
+        command_prefix='bash ./hooks/',
+        errors=errors,
+        host_label="Cursor",
+    )
+
 
 def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     sdk_root = root / "cursor-sdk"
@@ -724,6 +785,7 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
         "endor-agent-kit-setup": "endor-agent-kit-setup-agent",
         "ai-sast-triage": "endor-ai-sast-triage-agent",
         "endor-troubleshooter": "endor-troubleshooter-agent",
+        "findings-browser": "endor-findings-browser-agent",
         "probe-droid": "endor-probe-droid-agent",
         "sca-remediation": "endor-sca-remediation-agent",
     }
@@ -753,6 +815,7 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     expected_prompt_files = {
         "endor-agent-kit-setup-agent": "Endor Agent Kit Setup Agent For Cursor SDK",
         "endor-ai-sast-triage-agent": "## Cursor SDK Host Contract",
+        "endor-findings-browser-agent": "## Cursor SDK Host Contract",
         "endor-troubleshooter-agent": "## Cursor SDK Host Contract",
         "endor-probe-droid-agent": "## Cursor SDK Host Contract",
         "endor-sca-remediation-agent": "## Cursor SDK Host Contract",
@@ -799,6 +862,8 @@ def _check_codex_plugin_package(
             errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: Codex plugin manifest must not declare unsupported agents field")
         if manifest.get("skills") != "./skills/":
             errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: skills must point at ./skills/")
+        if manifest.get("hooks") != "./hooks/hooks.json":
+            errors.append("plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json: hooks must point at ./hooks/hooks.json")
         interface = _dict(manifest.get("interface"))
         prompts = _list(interface.get("defaultPrompt"))
         if len(prompts) > 3:
@@ -841,6 +906,17 @@ def _check_codex_plugin_package(
             errors.append(".agents/plugins/marketplace.json: missing endor-labs-agent-kit plugin entry")
         elif _dict(entry.get("source")).get("path") != "./plugins/codex/endor-labs-agent-kit":
             errors.append(".agents/plugins/marketplace.json: plugin source path must be './plugins/codex/endor-labs-agent-kit'")
+
+    _check_advisory_plugin_hooks(
+        root,
+        hooks_json_path=codex_package / "hooks" / "hooks.json",
+        hooks_dir=codex_package / "hooks",
+        expected_events=CODEX_PLUGIN_HOOK_EVENTS,
+        command_prefix='bash "${PLUGIN_ROOT}/hooks/',
+        command_uses_quoted_script=True,
+        errors=errors,
+        host_label="Codex",
+    )
 
     setup = codex_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
@@ -939,6 +1015,8 @@ def _check_claude_plugin_package(
         if "mcpServers" in manifest:
             errors.append(f"{manifest_rel}: must not declare plugin-wide MCP")
 
+    _check_claude_plugin_hooks(root, claude_package, expected_name=expected_name, errors=errors)
+
     setup = claude_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
         errors.append(f"{_rel(root, setup)}: missing Claude setup skill")
@@ -1001,6 +1079,218 @@ def _check_claude_plugin_package(
     for path in claude_package.rglob("*"):
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+
+def _check_claude_plugin_hooks(
+    root: Path,
+    claude_package: Path,
+    *,
+    expected_name: str,
+    errors: list[str],
+) -> None:
+    hooks_dir = claude_package / "hooks"
+    if expected_name == "ai-plugins":
+        if hooks_dir.exists():
+            errors.append(f"{_rel(root, hooks_dir)}: legacy Claude compatibility package must not include hooks")
+        return
+
+    hooks_json_path = hooks_dir / "hooks.json"
+    hooks = _load_json_mapping(root, hooks_json_path, errors)
+    if not hooks:
+        return
+
+    hook_events = _dict(hooks.get("hooks"))
+    if set(hook_events) != CLAUDE_PLUGIN_HOOK_EVENTS:
+        errors.append(
+            f"{_rel(root, hooks_json_path)}: hook events must be {sorted(CLAUDE_PLUGIN_HOOK_EVENTS)}"
+        )
+
+    referenced_scripts: set[str] = set()
+    for event_name, entries in hook_events.items():
+        if event_name not in CLAUDE_PLUGIN_HOOK_EVENTS:
+            continue
+        for entry_index, entry in enumerate(_list(entries)):
+            entry_map = _dict(entry)
+            commands = _list(entry_map.get("hooks"))
+            if not commands:
+                errors.append(
+                    f"{_rel(root, hooks_json_path)}: {event_name}[{entry_index}] must declare hook commands"
+                )
+                continue
+            for command_index, command_data in enumerate(commands):
+                command_map = _dict(command_data)
+                if command_map.get("type") != "command":
+                    errors.append(
+                        f"{_rel(root, hooks_json_path)}: {event_name}[{entry_index}].hooks[{command_index}] must be a command hook"
+                    )
+                command = str(command_map.get("command") or "")
+                script = _claude_hook_script_from_command(command)
+                if script is None:
+                    errors.append(
+                        f"{_rel(root, hooks_json_path)}: hook command must use bash \"${{CLAUDE_PLUGIN_ROOT}}/hooks/<script>.sh\""
+                    )
+                    continue
+                referenced_scripts.add(script)
+                if command_map.get("timeout") != 10:
+                    errors.append(
+                        f"{_rel(root, hooks_json_path)}: {script} timeout must be 10"
+                    )
+
+    expected_scripts = set(PRIMARY_CLAUDE_PLUGIN_HOOKS)
+    if referenced_scripts != expected_scripts:
+        errors.append(
+            f"{_rel(root, hooks_json_path)}: referenced hook scripts must be {sorted(expected_scripts)}"
+        )
+
+    for script in PRIMARY_CLAUDE_PLUGIN_HOOKS:
+        path = hooks_dir / script
+        if not path.is_file():
+            errors.append(f"{_rel(root, path)}: missing Claude advisory hook script")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if not text.startswith("#!/usr/bin/env bash"):
+            errors.append(f"{_rel(root, path)}: hook script must start with bash shebang")
+        if "endor_agent_kit_managed=true" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must include managed marker")
+        if "exit 0" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must fail open with exit 0")
+        if "hookSpecificOutput" not in text or "additionalContext" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must return Claude hook JSON context")
+        if "json.dumps" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must use structured JSON output")
+        if not (path.stat().st_mode & 0o111):
+            errors.append(f"{_rel(root, path)}: hook script must be executable")
+        lowered = text.lower()
+        for token in CLAUDE_PLUGIN_HOOK_FORBIDDEN_TOKENS:
+            if token in lowered:
+                errors.append(f"{_rel(root, path)}: hook script must not contain {token!r}")
+
+
+def _check_advisory_plugin_hooks(
+    root: Path,
+    *,
+    hooks_json_path: Path,
+    hooks_dir: Path,
+    expected_events: frozenset[str],
+    command_prefix: str,
+    errors: list[str],
+    host_label: str,
+    command_uses_quoted_script: bool = False,
+) -> None:
+    hooks = _load_json_mapping(root, hooks_json_path, errors)
+    if not hooks:
+        return
+
+    hook_events = _dict(hooks.get("hooks"))
+    if set(hook_events) != expected_events:
+        errors.append(
+            f"{_rel(root, hooks_json_path)}: {host_label} hook events must be {sorted(expected_events)}"
+        )
+
+    referenced_scripts: set[str] = set()
+    for event_name, entries in hook_events.items():
+        if event_name not in expected_events:
+            continue
+        for entry_index, entry in enumerate(_list(entries)):
+            entry_map = _dict(entry)
+            commands = _advisory_hook_command_maps(entry_map)
+            if not commands:
+                errors.append(
+                    f"{_rel(root, hooks_json_path)}: {event_name}[{entry_index}] must declare hook commands"
+                )
+                continue
+            for command_index, command_map in enumerate(commands):
+                if command_map.get("type") != "command":
+                    errors.append(
+                        f"{_rel(root, hooks_json_path)}: {event_name}[{entry_index}].hooks[{command_index}] must be a command hook"
+                    )
+                command = str(command_map.get("command") or "")
+                script = _advisory_hook_script_from_command(
+                    command,
+                    event_name,
+                    command_prefix=command_prefix,
+                    command_uses_quoted_script=command_uses_quoted_script,
+                )
+                if script is None:
+                    errors.append(
+                        f"{_rel(root, hooks_json_path)}: {event_name} command must use {command_prefix}<script>.sh {event_name}"
+                    )
+                    continue
+                referenced_scripts.add(script)
+                if command_map.get("timeout") != 10:
+                    errors.append(
+                        f"{_rel(root, hooks_json_path)}: {script} timeout must be 10"
+                    )
+
+    expected_scripts = set(PRIMARY_CLAUDE_PLUGIN_HOOKS)
+    if referenced_scripts != expected_scripts:
+        errors.append(
+            f"{_rel(root, hooks_json_path)}: referenced hook scripts must be {sorted(expected_scripts)}"
+        )
+
+    _check_advisory_hook_scripts(root, hooks_dir, errors, host_label=host_label)
+
+
+def _advisory_hook_command_maps(entry_map: dict[str, Any]) -> list[dict[str, Any]]:
+    if "command" in entry_map:
+        return [entry_map]
+    return [_dict(item) for item in _list(entry_map.get("hooks"))]
+
+
+def _advisory_hook_script_from_command(
+    command: str,
+    event_name: str,
+    *,
+    command_prefix: str,
+    command_uses_quoted_script: bool,
+) -> str | None:
+    suffix = f'" {event_name}' if command_uses_quoted_script else f" {event_name}"
+    if command.startswith(command_prefix) and command.endswith(suffix):
+        script = command[len(command_prefix):-len(suffix)]
+        if script in PRIMARY_CLAUDE_PLUGIN_HOOKS:
+            return script
+    return None
+
+
+def _check_advisory_hook_scripts(
+    root: Path,
+    hooks_dir: Path,
+    errors: list[str],
+    *,
+    host_label: str,
+) -> None:
+    for script in PRIMARY_CLAUDE_PLUGIN_HOOKS:
+        path = hooks_dir / script
+        if not path.is_file():
+            errors.append(f"{_rel(root, path)}: missing {host_label} advisory hook script")
+            continue
+        text = path.read_text(encoding="utf-8")
+        if not text.startswith("#!/usr/bin/env bash"):
+            errors.append(f"{_rel(root, path)}: hook script must start with bash shebang")
+        if "endor_agent_kit_managed=true" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must include managed marker")
+        if "exit 0" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must fail open with exit 0")
+        if "hookSpecificOutput" not in text or "additionalContext" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must return advisory hook JSON context")
+        if "json.dumps" not in text:
+            errors.append(f"{_rel(root, path)}: hook script must use structured JSON output")
+        if not (path.stat().st_mode & 0o111):
+            errors.append(f"{_rel(root, path)}: hook script must be executable")
+        lowered = text.lower()
+        for token in CLAUDE_PLUGIN_HOOK_FORBIDDEN_TOKENS:
+            if token in lowered:
+                errors.append(f"{_rel(root, path)}: hook script must not contain {token!r}")
+
+
+def _claude_hook_script_from_command(command: str) -> str | None:
+    prefix = 'bash "${CLAUDE_PLUGIN_ROOT}/hooks/'
+    suffix = '"'
+    if command.startswith(prefix) and command.endswith(suffix):
+        script = command[len(prefix):-len(suffix)]
+        if script in PRIMARY_CLAUDE_PLUGIN_HOOKS:
+            return script
+    return None
 
 
 def _check_claude_marketplace(
@@ -1121,6 +1411,16 @@ def _check_gemini_plugin_package(
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
+    _check_advisory_plugin_hooks(
+        root,
+        hooks_json_path=gemini_package / "hooks" / "hooks.json",
+        hooks_dir=gemini_package / "hooks",
+        expected_events=GEMINI_PLUGIN_HOOK_EVENTS,
+        command_prefix='bash ./hooks/',
+        errors=errors,
+        host_label="Gemini",
+    )
+
     archive_path = root / "plugins" / "gemini" / "endor-labs-agent-kit.zip"
     if archive_path.exists():
         errors.append(f"{_rel(root, archive_path)}: Gemini plugin packaging must not generate a zip archive")
@@ -1188,6 +1488,16 @@ def _check_antigravity_plugin_package(
     for path in antigravity_package.rglob("*"):
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+    _check_advisory_plugin_hooks(
+        root,
+        hooks_json_path=antigravity_package / "hooks.json",
+        hooks_dir=antigravity_package / "hooks",
+        expected_events=ANTIGRAVITY_PLUGIN_HOOK_EVENTS,
+        command_prefix='bash ./hooks/',
+        errors=errors,
+        host_label="Antigravity",
+    )
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:

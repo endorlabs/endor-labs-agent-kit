@@ -9,6 +9,7 @@ Generated for Cursor Python SDK automation.
 
 - `Triage AI SAST findings` -> SDK agent `endor-ai-sast-triage-agent`
 - `Diagnose Endor setup and scan issues` -> SDK agent `endor-troubleshooter-agent`
+- `Findings Browser` -> SDK agent `endor-findings-browser-agent`
 - `Malware Response` -> SDK agent `endor-malware-response-agent`
 - `Assess GitHub onboarding gaps` -> SDK agent `endor-probe-droid-agent`
 - `Find safe SCA remediation paths` -> SDK agent `endor-sca-remediation-agent`
