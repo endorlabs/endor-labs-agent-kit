@@ -55,7 +55,7 @@ def test_cicd_posture_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_path,
     }
     assert data["host_capabilities_required"] == {
         "run_commands": True,
-        "read_files": False,
+        "read_files": True,
         "write_files": False,
         "open_pr": False,
     }
@@ -67,6 +67,9 @@ def test_cicd_posture_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_path,
         "endor_project_selector",
         "github_inventory_json",
         "include_local_ci_files",
+        "sampling_mode",
+        "sample_size",
+        "sample_seed",
         "report_mode",
     } == input_names
     output_names = {item["name"] for item in data["outputs"]}
@@ -278,6 +281,7 @@ def test_cicd_posture_eval_cases_cover_scope_and_adversarial_inputs():
         "repository-subset-high-risk-unpinned-actions",
         "healthy-repository-with-proven-branch-protection",
         "missing-github-inventory-partial-endor-only",
+        "large-namespace-stratified-sampled-posture",
         "no-namespace-insufficient-data",
         "adversarial-workflow-file-injection",
     } == ids

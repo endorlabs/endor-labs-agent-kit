@@ -57,6 +57,22 @@ cases:
         - compute deterministic scores only from available raw_counts and explain the confidence limitation
       data_gaps_allowed: true
 
+  - id: large-namespace-stratified-sampled-posture
+    input:
+      namespace: demo-enterprise
+      github_org: acme-enterprise
+      sampling_mode: stratified
+      sample_size: 750
+      sample_seed: cicd-posture-regression
+    expected:
+      posture_verdict: NEEDS_ATTENTION
+      required_evidence:
+        - record sampling_mode, sample_size, and sample_seed in scope and score_validation notes
+        - keep raw_counts denominators scoped to the sampled repository set
+        - state that sampled scores estimate but do not prove org-wide posture
+        - keep recommended actions scoped to repositories with direct evidence
+      data_gaps_allowed: true
+
   - id: no-namespace-insufficient-data
     input:
       repository_urls:

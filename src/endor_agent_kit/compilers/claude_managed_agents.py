@@ -19,11 +19,13 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 HOST = "claude-managed-agents"
-GITHUB_EVIDENCE_AGENT_IDS = frozenset({"probe-droid", "cicd-posture"})
 ENDOR_MCP_SERVER_NAME = "endor"
 ENDOR_MCP_SERVER_URL_PLACEHOLDER = "https://YOUR-ENDOR-MCP-SERVER.example.com/mcp"
 MODEL_ALIASES = {

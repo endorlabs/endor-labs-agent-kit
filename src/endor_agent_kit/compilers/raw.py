@@ -17,11 +17,13 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
-GITHUB_EVIDENCE_AGENT_IDS = frozenset({"probe-droid", "cicd-posture"})
 
 ENDOR_NAMESPACE_SETUP_GUIDANCE = """\
 ## Namespace Guardrails

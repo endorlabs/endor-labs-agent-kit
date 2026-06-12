@@ -89,7 +89,10 @@ package managers, or write credentials.
 | Job | Workflow |
 | --- | --- |
 | Triage Endor AI SAST findings | `ai-sast-triage` |
+| Assess CI/CD and supply chain posture | `cicd-posture` |
 | Diagnose Endor setup, scan, auth, policy, or integration issues | `endor-troubleshooter` |
+| Browse, filter, and summarize existing Endor findings | `findings-browser` |
+| Correlate supply-chain malware intelligence against tenant inventory | `malware-response` |
 | Probe GitHub onboarding and monitored-branch coverage gaps | `probe-droid` |
 | Find safe dependency remediation paths with Endor SCA evidence | `sca-remediation` |
 | Review package risk, repository dependencies, upgrade impact, or vulnerability context | Claude-only helper agents in `plugins/claude/endor-labs-agent-kit/agents/` |
@@ -110,6 +113,14 @@ Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch o
 
 ```text
 Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only.
+```
+
+```text
+Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score.
+```
+
+```text
+Use the findings-browser skill to show the critical and high reachable findings for namespace <namespace>. Keep it read-only.
 ```
 
 ## Safety Expectations

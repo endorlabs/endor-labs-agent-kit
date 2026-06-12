@@ -239,6 +239,11 @@ recipes:
     forbidden:
       - Do not use this as a broad unfiltered namespace Finding inventory.
 
+  # FINDING_CATEGORY_SCPM, FINDING_CATEGORY_CICD, FINDING_CATEGORY_GHACTIONS,
+  # and FINDING_CATEGORY_SUPPLY_CHAIN are all present in the FindingCategory
+  # enum of the pinned Endor OpenAPI (source/endor-context/provenance.json
+  # sha256 663e91e0cccc57d543bc0117d687d735eb90b28b9d1ea0acde28801b47633556,
+  # verified against the live download on 2026-06-12).
   - id: cicd-posture-findings
     title: CI/CD And Supply Chain Posture Findings
     resource: Finding

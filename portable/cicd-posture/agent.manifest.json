@@ -62,6 +62,24 @@
       "required": false
     },
     {
+      "description": "none, random, or stratified. Defaults to none; stratified is recommended for organizations with more than 1000 repositories.",
+      "kind": "enum",
+      "name": "sampling_mode",
+      "required": false
+    },
+    {
+      "description": "Repository sample size for sampling mode. Recommended range is 500 to 1000 for very large organizations.",
+      "kind": "integer",
+      "name": "sample_size",
+      "required": false
+    },
+    {
+      "description": "Optional stable seed for reproducible random or stratified sampling.",
+      "kind": "string",
+      "name": "sample_seed",
+      "required": false
+    },
+    {
       "description": "summary, table, or full. Defaults to summary for namespace-wide posture and table for repository subset mode.",
       "kind": "enum",
       "name": "report_mode",
@@ -152,7 +170,8 @@
   "portable_schema_version": 1,
   "recipe_schema_version": 1,
   "required_capabilities": [
-    "endor.query"
+    "endor.query",
+    "repository.read"
   ],
   "required_endor_mcp_tools": [],
   "required_runtime_controls": [
@@ -240,8 +259,8 @@
       "status": "declared"
     },
     {
-      "confirmation_required": null,
-      "declared_by_recipe": false,
+      "confirmation_required": false,
+      "declared_by_recipe": true,
       "description": "Read repository files, manifests, lockfiles, or pinned source context.",
       "kind": "repository.read",
       "provider_examples": [
@@ -249,7 +268,7 @@
         "source-index",
         "local-checkout"
       ],
-      "status": "unavailable"
+      "status": "declared"
     },
     {
       "confirmation_required": null,

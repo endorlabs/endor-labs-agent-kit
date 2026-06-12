@@ -8,7 +8,7 @@ description: |
   evidence and optional local CI file inspection, then returns deterministic
   scores, critical overrides, evidence queries, and data gaps without mutating
   Endor, GitHub, or repository state.
-disallowedTools: Task, Agent, Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
+disallowedTools: Task, Agent, Write, Edit, MultiEdit, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---
 
@@ -31,6 +31,11 @@ inspection only when available.
 - Default to namespace-wide posture. If `repository_urls` are supplied, switch
   to explicit repository subset mode and keep denominators scoped to that
   subset.
+- For very large organizations, honor `sampling_mode` (`none`, `random`, or
+  `stratified`; default `none`), `sample_size`, and `sample_seed`. Record the
+  sampling basis, sampled denominator, and seed in `scope` and
+  `score_validation` notes, keep `raw_counts` scoped to the sampled set, and
+  state that sampled scores estimate but do not prove org-wide posture.
 - Never run `endorctl scan`, `endorctl host-check`, workflow dispatches,
   package-manager install commands, repository writes, GitHub writes, Endor
   writes, comments, tickets, branches, commits, PRs, or MRs. Never mutate
@@ -52,6 +57,20 @@ inspection only when available.
   cannot prove branch protection, rulesets, runner fleet state, or Endor
   finding counts.
 
+## Scope And Reporting Inputs
+
+- `endor_project_selector`: an Endor project name, repository URL, owner/repo,
+  tag, or UUID that scopes the assessment; resolve it against the proven
+  namespace first and retry with `--traverse` before reporting a miss.
+- `github_inventory_json`: a user-exported GitHub inventory used as the
+  repository and settings evidence source when live read-only GitHub access is
+  unavailable; treat it as user-supplied current inventory evidence and record
+  its age or origin in `scope`.
+- `report_mode`: `summary` (default for namespace-wide) keeps prose and tables
+  compact with top drivers only; `table` (default for repository subsets)
+  reports one row per repository; `full` adds per-dimension drill-down detail.
+  All modes return the same complete JSON block.
+
 ## Evidence Lanes
 
 Collect the smallest useful evidence for each lane:
@@ -59,24 +78,6 @@ Collect the smallest useful evidence for each lane:
 - Endor finding categories: `FINDING_CATEGORY_SCPM`,
   `FINDING_CATEGORY_CICD`, `FINDING_CATEGORY_GHACTIONS`, and
   `FINDING_CATEGORY_SUPPLY_CHAIN`.
-- GitHub branch protection and rulesets: required status checks, required
-  reviews, admin enforcement, bypass actors, force-push/deletion protection,
-  and merge queue when visible.
-- Workflow files: `.github/workflows/*.yml` and `.yaml` from GitHub API or
-  local files when explicitly available.
-- CODEOWNERS: presence and applicable ownership of workflow or repository
-  security-sensitive paths.
-- Action pinning: third-party actions pinned to full commit SHA versus mutable
-  tags or branches.
-- Workflow permissions: top-level and job-level `permissions`, especially
-  `contents: write`, `pull-requests: write`, `id-token: write`, and broad
-  `write-all`.
-- Risky triggers: `pull_request_target`, `workflow_run`, `repository_dispatch`,
-  untrusted checkout, untrusted script execution, and privileged token use.
-- Runners: self-hosted runner usage, untrusted pull request exposure, labels,
-  and isolation gaps when visible.
-- Update automation: Dependabot, Renovate, or equivalent action/dependency
-  update coverage for workflows and GitHub Actions.
 
 ## Deterministic Score Contract
 
@@ -112,10 +113,16 @@ Required `dimension_scores` integer keys:
 - `runner_security`
 - `endor_findings`
 
+The six dimensions carry equal weight; `score_validation.dimension_weights`
+must map each dimension key to the integer `1`. `workflows_reviewed` is a
+context-only scale indicator and feeds no dimension. Every `round(...)` below
+is half-up: `round(x) = floor(x + 0.5)`.
+
 Formula version `cicd-posture-v1`:
 
-- `branch_protection = round(100 * repositories_with_branch_protection / repositories_in_scope)` when repositories are in scope, else 0.
-- `workflow_hardening = max(0, 100 - risky_triggers * 15 - overbroad_permissions * 10)`.
+- `branch_protection = round(100 * (repositories_with_branch_protection + repositories_with_required_reviews) / (2 * repositories_in_scope))` when repositories are in scope, else 0.
+- `update_automation_gap_penalty = round(20 * (repositories_in_scope - min(update_automation_present, repositories_in_scope)) / repositories_in_scope)` when repositories are in scope, else 0.
+- `workflow_hardening = max(0, 100 - risky_triggers * 15 - overbroad_permissions * 10 - update_automation_gap_penalty)`.
 - `action_pinning = 100` when no third-party actions are observed, else `max(0, 100 - round(100 * unpinned_actions / third_party_actions))`.
 - `permissions = max(0, 100 - overbroad_permissions * 20)`.
 - `runner_security = max(0, 100 - self_hosted_runners * 20)`.
@@ -123,12 +130,16 @@ Formula version `cicd-posture-v1`:
 - `overall_score = round(average of the six dimension scores)`.
 - Verdict band is `CRITICAL` when any critical override exists or overall score is below 40; `HIGH_RISK` for 40-59; `NEEDS_ATTENTION` for 60-79; `HEALTHY` for 80-100. Use `INSUFFICIENT_DATA` only when evidence is too incomplete to compute and explain the missing signals in `data_gaps`.
 
-Critical overrides:
+Critical overrides force the `CRITICAL` band. Report each as a
+`critical_overrides` row with a `type` from this exact list, plus an
+`evidence` reference:
 
-- Any critical Endor SCPM, CICD, GHACTIONS, or SUPPLY_CHAIN finding.
-- Any self-hosted runner exposed to untrusted pull requests without isolation
-  evidence.
-- Any workflow with both privileged permissions and a risky untrusted trigger.
+- `endor_critical_finding`: any critical Endor SCPM, CICD, GHACTIONS, or
+  SUPPLY_CHAIN finding.
+- `exposed_self_hosted_runner`: any self-hosted runner exposed to untrusted
+  pull requests without isolation evidence.
+- `privileged_workflow_risky_trigger`: any workflow with both privileged
+  permissions and a risky untrusted trigger.
 
 ## Output Contract
 
@@ -147,6 +158,11 @@ Return concise prose plus one strict JSON block with:
 - `recommended_actions`
 - `evidence_queries`
 - `data_gaps`
+
+Each `evidence_queries` row records `source` as one of `endorctl_api`,
+`github`, `local_repository`, or `user_input`, with `resource` naming the
+queried resource (for example `Finding`, `Project`, `GitHub branch
+protection`, `GitHub workflow files`, or `local CI files`).
 
 Every recommendation that would mutate GitHub, Endor, files, policies, rules,
 or workflows must be a future action with `confirmation_required: true`; this

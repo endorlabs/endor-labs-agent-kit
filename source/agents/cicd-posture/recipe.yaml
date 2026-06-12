@@ -16,7 +16,7 @@ supported_transports:
   - endorctl_api
 host_capabilities_required:
   run_commands: true
-  read_files: false
+  read_files: true
   write_files: false
   open_pr: false
 inputs:
@@ -44,6 +44,18 @@ inputs:
     kind: boolean
     required: false
     description: Defaults to false. When true and local files are available, inspect local CI files as supporting evidence only.
+  - name: sampling_mode
+    kind: enum
+    required: false
+    description: none, random, or stratified. Defaults to none; stratified is recommended for organizations with more than 1000 repositories.
+  - name: sample_size
+    kind: integer
+    required: false
+    description: Repository sample size for sampling mode. Recommended range is 500 to 1000 for very large organizations.
+  - name: sample_seed
+    kind: string
+    required: false
+    description: Optional stable seed for reproducible random or stratified sampling.
   - name: report_mode
     kind: enum
     required: false
