@@ -3,10 +3,17 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
 FORMULA_VERSION = "cicd-posture-v1"
+
+CRITICAL_OVERRIDE_TYPES = (
+    "endor_critical_finding",
+    "exposed_self_hosted_runner",
+    "privileged_workflow_risky_trigger",
+)
 
 RAW_COUNT_KEYS = (
     "repositories_in_scope",
@@ -80,7 +87,13 @@ def validate_cicd_posture_payload(
         errors.append("score_validation: required object")
 
     counts = _validated_counts(raw_counts, errors)
-    expected_scores = compute_cicd_posture_scores(counts)
+    declared_override_types = _validated_critical_overrides(
+        _list(payload.get("critical_overrides")), errors
+    )
+    expected_scores = compute_cicd_posture_scores(
+        counts,
+        declared_override_types=declared_override_types,
+    )
 
     for key in DIMENSION_SCORE_KEYS:
         actual = _optional_int(dimension_scores.get(key))
@@ -94,6 +107,14 @@ def validate_cicd_posture_payload(
     formula_version = _text(score_validation.get("formula_version"))
     if formula_version != FORMULA_VERSION:
         errors.append(f"score_validation.formula_version: must be {FORMULA_VERSION}")
+
+    dimension_weights = _dict(score_validation.get("dimension_weights"))
+    if set(dimension_weights) != set(DIMENSION_SCORE_KEYS) or any(
+        _optional_int(weight) != 1 for weight in dimension_weights.values()
+    ):
+        errors.append(
+            "score_validation.dimension_weights: must map each dimension to the equal weight 1"
+        )
 
     overall = _optional_int(score_validation.get("overall_score"))
     if overall is None:
@@ -117,9 +138,10 @@ def validate_cicd_posture_payload(
     elif posture_verdict != expected_band:
         errors.append(f"posture_verdict: expected {expected_band}, got {posture_verdict}")
 
-    critical_overrides = _list(payload.get("critical_overrides"))
-    if expected_scores["critical_override_required"] and not critical_overrides:
-        errors.append("critical_overrides: required when critical Endor findings are present")
+    if counts["endor_critical_findings"] > 0 and "endor_critical_finding" not in declared_override_types:
+        errors.append(
+            "critical_overrides: an endor_critical_finding override row is required when critical Endor findings are present"
+        )
 
     for field in (
         "endor_findings",
@@ -135,8 +157,18 @@ def validate_cicd_posture_payload(
     return errors
 
 
-def compute_cicd_posture_scores(raw_counts: dict[str, int]) -> dict[str, Any]:
-    """Compute deterministic CI/CD posture scores from raw counts."""
+def compute_cicd_posture_scores(
+    raw_counts: dict[str, int],
+    *,
+    declared_override_types: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Compute deterministic CI/CD posture scores from raw counts.
+
+    All ratio rounding is half-up (`floor(x + 0.5)`) so host LLM arithmetic
+    and this recomputation agree at `.5` boundaries. Verdict banding honors
+    both critical Endor findings and the two documented non-Endor critical
+    overrides declared in `critical_overrides` rows.
+    """
 
     counts = {key: _int(raw_counts.get(key)) for key in RAW_COUNT_KEYS}
     repositories = counts["repositories_in_scope"]
@@ -147,17 +179,38 @@ def compute_cicd_posture_scores(raw_counts: dict[str, int]) -> dict[str, Any]:
         + counts["endor_gha_findings"]
         + counts["endor_supply_chain_findings"]
     )
+    update_automation_gap_penalty = (
+        _round_half_up(
+            20
+            * (repositories - min(counts["update_automation_present"], repositories))
+            / repositories
+        )
+        if repositories > 0
+        else 0
+    )
     dimension_scores = {
         "branch_protection": (
-            _clamp(round(100 * counts["repositories_with_branch_protection"] / repositories))
+            _clamp(
+                _round_half_up(
+                    100
+                    * (
+                        counts["repositories_with_branch_protection"]
+                        + counts["repositories_with_required_reviews"]
+                    )
+                    / (2 * repositories)
+                )
+            )
             if repositories > 0
             else 0
         ),
         "workflow_hardening": _clamp(
-            100 - counts["risky_triggers"] * 15 - counts["overbroad_permissions"] * 10
+            100
+            - counts["risky_triggers"] * 15
+            - counts["overbroad_permissions"] * 10
+            - update_automation_gap_penalty
         ),
         "action_pinning": (
-            _clamp(100 - round(100 * counts["unpinned_actions"] / third_party_actions))
+            _clamp(100 - _round_half_up(100 * counts["unpinned_actions"] / third_party_actions))
             if third_party_actions > 0
             else 100
         ),
@@ -170,8 +223,11 @@ def compute_cicd_posture_scores(raw_counts: dict[str, int]) -> dict[str, Any]:
             - posture_finding_count * 5
         ),
     }
-    overall = round(sum(dimension_scores.values()) / len(dimension_scores))
-    critical_override = counts["endor_critical_findings"] > 0
+    overall = _round_half_up(sum(dimension_scores.values()) / len(dimension_scores))
+    critical_override = counts["endor_critical_findings"] > 0 or any(
+        override_type in CRITICAL_OVERRIDE_TYPES
+        for override_type in declared_override_types
+    )
     verdict_band = _band_for(overall, critical_override=critical_override)
     return {
         "formula_version": FORMULA_VERSION,
@@ -208,9 +264,33 @@ def _validated_counts(raw_counts: dict[str, Any], errors: list[str]) -> dict[str
         errors.append("raw_counts.repositories_with_branch_protection: cannot exceed repositories_in_scope")
     if counts["repositories_with_required_reviews"] > counts["repositories_in_scope"]:
         errors.append("raw_counts.repositories_with_required_reviews: cannot exceed repositories_in_scope")
+    if counts["update_automation_present"] > counts["repositories_in_scope"]:
+        errors.append("raw_counts.update_automation_present: cannot exceed repositories_in_scope")
     if counts["unpinned_actions"] > counts["third_party_actions"]:
         errors.append("raw_counts.unpinned_actions: cannot exceed third_party_actions")
     return counts
+
+
+def _validated_critical_overrides(
+    critical_overrides: list[Any], errors: list[str]
+) -> tuple[str, ...]:
+    declared_types: list[str] = []
+    for index, row in enumerate(critical_overrides):
+        if not isinstance(row, dict):
+            errors.append(f"critical_overrides[{index}]: must be an object")
+            continue
+        override_type = _text(row.get("type"))
+        if override_type not in CRITICAL_OVERRIDE_TYPES:
+            errors.append(
+                f"critical_overrides[{index}].type: must be one of "
+                + ", ".join(CRITICAL_OVERRIDE_TYPES)
+            )
+            continue
+        if not _text(row.get("evidence")):
+            errors.append(f"critical_overrides[{index}].evidence: required text")
+            continue
+        declared_types.append(override_type)
+    return tuple(declared_types)
 
 
 def _dict(value: Any) -> dict[str, Any]:
@@ -247,3 +327,7 @@ def _int(value: Any) -> int:
 
 def _clamp(value: int) -> int:
     return max(0, min(100, int(value)))
+
+
+def _round_half_up(value: float) -> int:
+    return int(math.floor(value + 0.5))

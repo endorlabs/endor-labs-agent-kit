@@ -60,9 +60,9 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 24477,
+              "bytes": 26661,
               "path": "claude-code/cicd-posture/cicd-posture.md",
-              "sha256": "2c362cf020d397fe156cc94cc24d597505621551e2c229d7d90b1afa15ca018e"
+              "sha256": "0475b97b6b171ded5d65163acb73b3b748257dcc33042424491be2c4460ecc72"
             },
             {
               "bytes": 1867,
@@ -510,9 +510,9 @@
               "sha256": "41a6c2adc216cbc0e844bb5b975740e35e12a5ce00c1f8f644af1178622f6804"
             },
             {
-              "bytes": 25718,
+              "bytes": 27984,
               "path": "claude-managed-agents/cicd-posture/agent.yaml",
-              "sha256": "dd3d9f202b433dda2781fd77b8cedc4f7cbd77329de4cbc43c52a00e8c0e5311"
+              "sha256": "c19c1bdb74b36ad1efcd9943654fdd8d35c2998945007505500c3ed43422ff11"
             },
             {
               "bytes": 8281,
@@ -985,9 +985,9 @@
               "sha256": "7ac24898b1b6a11b97d6943d5ec42330f51e2d3442ff9929c8f85912265187ea"
             },
             {
-              "bytes": 25154,
+              "bytes": 27360,
               "path": "codex/cicd-posture/SKILL.md",
-              "sha256": "a2c340c497f97c85684e93c15d78b4a3555f3ca2aa049c4c1750e0c1f4c0c006"
+              "sha256": "c0b78c7881d33e56c3feb4394b274f043d39e6e1c3b2c637eb788fbe42cc56fd"
             },
             {
               "bytes": 8281,
@@ -1280,9 +1280,9 @@
               "sha256": "09dbc041bc44ba1070406f751b2ab8969006936fd225f65ddea035dcdb9df90b"
             },
             {
-              "bytes": 25183,
+              "bytes": 27389,
               "path": "gemini/cicd-posture/SKILL.md",
-              "sha256": "19894f3d388061350b2f883ddc18a61b669fe874c0e53c0a6bf10ae87f02dc43"
+              "sha256": "8ec6f506bb9e75ec7c3c667852dc545e0cbf3820379071e249d6ddee91e89d4c"
             },
             {
               "bytes": 8281,
@@ -1290,9 +1290,9 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 25430,
+              "bytes": 27666,
               "path": "gemini/cicd-posture/cicd-posture.md",
-              "sha256": "1730afb300940309f15f0ebe2183abbc11990471e235cd1f5f81122bf43cd942"
+              "sha256": "1c32e865d09c54d0a9aac111aa809a0f3f47b768927de1d78702e759c361cbd1"
             },
             {
               "bytes": 1867,
@@ -1610,14 +1610,14 @@
               "sha256": "daddeb63b860ff02226da685a2b3a1aea04e66f1c35f208a0ea888c1af5d2106"
             },
             {
-              "bytes": 12725,
+              "bytes": 13387,
               "path": "portable/cicd-posture/agent.manifest.json",
-              "sha256": "fc961594d73d9dd53f4ecea713c7848b9e5abd30d712103f55bb1e624f0fa289"
+              "sha256": "c6066098fc6ca4612c2cb535a574b6b96fc0c3bd5700400eb9d6722faca9cff7"
             },
             {
-              "bytes": 21120,
+              "bytes": 23326,
               "path": "portable/cicd-posture/agent.md",
-              "sha256": "e05500c6932966025429dd6cf0652ded62533359527d43398608322f46a2b399"
+              "sha256": "300b932f3343eac2a6306b59d0116c7b4bbcafae5473776c8e7a4e1194a47688"
             },
             {
               "bytes": 8281,
@@ -1630,9 +1630,9 @@
               "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
             },
             {
-              "bytes": 5318,
+              "bytes": 5726,
               "path": "portable/cicd-posture/output-contract.md",
-              "sha256": "76402c9760655e160dc15cac4c6c0b17942ed73c72637b6914c901640ec42062"
+              "sha256": "1b45eb203c98b4c9a83b6a47a747f0bdc29a85ea01e14e37a4158033d3662d33"
             }
           ],
           "id": "portable-agent",
@@ -2191,9 +2191,9 @@
           "sha256": "75c18ab0e1508bf080ac09d1573eab5eb9d8574371b5df9c0315d3bf95fb3d99"
         },
         {
-          "bytes": 12849,
+          "bytes": 14027,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "47d4e0d3b5a3a3bd3e23d851aa1a015e7b98eb37b09c8705f67e09384b088744"
+          "sha256": "4015b4f859708d1dcdb9c504a26be095b0335494963283684f1946c3416f2938"
         },
         {
           "bytes": 21696,
@@ -2256,9 +2256,9 @@
           "sha256": "16c86bcea1f5a5ddf5152536fbec6a55d0700aedf3740b2918e17fdd8425fe08"
         },
         {
-          "bytes": 12597,
+          "bytes": 13745,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "520442cc50413ad712f65992d21edf7f79ca17a7e094be91a18145ec43a012c9"
+          "sha256": "6d553aa1b0990342107dadd094908312e796299d5d227ae010739eda3ad063d6"
         },
         {
           "bytes": 9496,
@@ -2316,12 +2316,12 @@
         {
           "bytes": 600,
           "path": "plugins/claude/ai-plugins/.claude-plugin/plugin.json",
-          "sha256": "006cd865c4dffc6ad9fa1e0923d574876804dd372caa136b207ad86957276393"
+          "sha256": "76d4dd973a6fd8f28c28eed70f6f011c9f1111b5d8301b5d4cf5570553e06b2a"
         },
         {
           "bytes": 5561,
           "path": "plugins/claude/ai-plugins/README.md",
-          "sha256": "7c02d6aba7fa9aa049c7c61d592e92aac7f7ebbddfe91302366597d2933501b3"
+          "sha256": "2b7671ae585c4fdc12b7e98b994f1b7ca11a9aeb5689bc450089f6fb75aca756"
         },
         {
           "bytes": 27359,
@@ -2329,9 +2329,9 @@
           "sha256": "5ca4a9ef07fb42c89febb18717a4144d441a8d90d64510e514c4ab433b5d18b4"
         },
         {
-          "bytes": 11997,
+          "bytes": 13123,
           "path": "plugins/claude/ai-plugins/agents/cicd-posture.md",
-          "sha256": "06c5ed92f004159bd0b93c0a315de6c7caf5181c49a38a7642d22ba15651bec3"
+          "sha256": "2b3048643682f24f24c56b1bb5bf87320792c82931c1e3188692eaa497f07b41"
         },
         {
           "bytes": 11048,
@@ -2401,12 +2401,12 @@
         {
           "bytes": 1933,
           "path": ".claude-plugin/marketplace.json",
-          "sha256": "1312af6541b7fbbb6c72a58be04c7a8337576edb9e6317b73b64f90c27981844"
+          "sha256": "c5796c1cdafaeb7ba6fde01f8fc42da7c78282db75d64edb3af1098c43c26d27"
         },
         {
           "bytes": 1903,
           "path": "plugins/claude/.claude-plugin/marketplace.json",
-          "sha256": "f8219674223a09172cb88b402826377722a6f72d41071540bc471cd218415e47"
+          "sha256": "7592917931b68b48bd05bef54f1e6d94d750895c553a0ee070221704f96c476e"
         },
         {
           "bytes": 3309,
@@ -2434,7 +2434,7 @@
       "marketplace_path": ".claude-plugin/marketplace.json",
       "name": "ai-plugins",
       "path": "plugins/claude/ai-plugins",
-      "version": "1.1.1"
+      "version": "1.2.0"
     },
     {
       "artifacts": [
@@ -2454,9 +2454,9 @@
           "sha256": "5ca4a9ef07fb42c89febb18717a4144d441a8d90d64510e514c4ab433b5d18b4"
         },
         {
-          "bytes": 11997,
+          "bytes": 13123,
           "path": "plugins/claude/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "06c5ed92f004159bd0b93c0a315de6c7caf5181c49a38a7642d22ba15651bec3"
+          "sha256": "2b3048643682f24f24c56b1bb5bf87320792c82931c1e3188692eaa497f07b41"
         },
         {
           "bytes": 11048,
@@ -2546,12 +2546,12 @@
         {
           "bytes": 1933,
           "path": ".claude-plugin/marketplace.json",
-          "sha256": "1312af6541b7fbbb6c72a58be04c7a8337576edb9e6317b73b64f90c27981844"
+          "sha256": "c5796c1cdafaeb7ba6fde01f8fc42da7c78282db75d64edb3af1098c43c26d27"
         },
         {
           "bytes": 1903,
           "path": "plugins/claude/.claude-plugin/marketplace.json",
-          "sha256": "f8219674223a09172cb88b402826377722a6f72d41071540bc471cd218415e47"
+          "sha256": "7592917931b68b48bd05bef54f1e6d94d750895c553a0ee070221704f96c476e"
         },
         {
           "bytes": 3309,
@@ -2604,9 +2604,9 @@
           "sha256": "25ef3a69cddcf9137d20f49b55124e004730325c4d55f6b0e1132a261ca7d956"
         },
         {
-          "bytes": 12810,
+          "bytes": 13974,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-cicd-posture-agent.toml",
-          "sha256": "b10ae5685d242cb8da71bb1b7c48f66796b825e5e91ccc5a530d639a1b5c9dcc"
+          "sha256": "1b6fb9f701bac125703ca99089bb19a60ed2d680c70ac22ad5b496537c2c9519"
         },
         {
           "bytes": 11357,
@@ -2669,9 +2669,9 @@
           "sha256": "c8598c03b4dbd04b7cf82e9d0aca33cb0b02d8175cf83bdf6fb6671c2e8cef01"
         },
         {
-          "bytes": 12070,
+          "bytes": 13218,
           "path": "plugins/codex/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "366933a54385c0e639ac3a0ec0d84515fe41b96b9e08336531569af4e383f7a6"
+          "sha256": "15b38e669bd6217cbedec8fb70b703c5f86709e296fa1aa3a93f66b7ec1c917d"
         },
         {
           "bytes": 9969,
@@ -2758,9 +2758,9 @@
           "sha256": "bc2f329b9aa4c0fb221ab76fd2b8ff2b60670c68ab74bdf718937328af454075"
         },
         {
-          "bytes": 12822,
+          "bytes": 13970,
           "path": "agents/endor-cicd-posture-agent.md",
-          "sha256": "2843f8dde73531eb9a5eb9a353dd2adcac354a0a0c877378b574baa25c5f057d"
+          "sha256": "f87a1211021f75965ba679b314d1f1a83ab7ccf59144791bc06492612ba816ee"
         },
         {
           "bytes": 11397,
@@ -2828,9 +2828,9 @@
           "sha256": "43cee084b3fd84a06253bdcaf577f2db2f0f0b2a2edfcd48fb17c8a4d8348032"
         },
         {
-          "bytes": 12533,
+          "bytes": 13681,
           "path": "skills/cicd-posture/SKILL.md",
-          "sha256": "ca11f5cb5784e6694692dfea50c42eab3791d4fdaf7531410f78f781027348e1"
+          "sha256": "c0ad7c400442b4b3182cd0c3ca3ce4a3b5745503707e62ed678590e7deea9dfd"
         },
         {
           "bytes": 8281,
@@ -2952,9 +2952,9 @@
           "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
         },
         {
-          "bytes": 12027,
+          "bytes": 13175,
           "path": "cursor-sdk/agents/endor-cicd-posture-agent.md",
-          "sha256": "45a4aa108dd82d330440a2196259f2c76c74d70342e4a5b5b4fc09a2ec0d5aa9"
+          "sha256": "24057cde2ca89fc78aae8e2e5bf3d01553f6b85efe7c985aa9dc7e1be62a06a9"
         },
         {
           "bytes": 8271,
@@ -3055,9 +3055,9 @@
           "sha256": "7b098042ff3175ece17090a056e71a16f8c0148daaa3dcaa15e30cf91ed275ed"
         },
         {
-          "bytes": 12550,
+          "bytes": 13728,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "f55b9c637ba41d8555840fd3436d4404ab19db3fb337b3c1ffb90c0b9e0489c8"
+          "sha256": "5d1f26947fc9abbad938ddac14af732abc24e6997b723bbec1fd4093c8abdfa1"
         },
         {
           "bytes": 21397,
@@ -3120,9 +3120,9 @@
           "sha256": "574a25fda7cf90ac2f0587a30666c28e3e86402ee06a88a6b3819f691fa05a82"
         },
         {
-          "bytes": 12303,
+          "bytes": 13451,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "a7de61ba865342f5c5e8787741d878b5cb1f6f8daee121c3a41eb453eb64e0e4"
+          "sha256": "338f509053d43c4f10ff2e2051cde5aefc05b36780450c3fb79efd76e584a9b0"
         },
         {
           "bytes": 9345,

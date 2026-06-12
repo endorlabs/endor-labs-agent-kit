@@ -11,7 +11,10 @@ from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude
 from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 
 from .readme import agent_readme_start_here, architecture_readme_section
 from .records import (
@@ -20,9 +23,6 @@ from .records import (
     prepared_actions_source,
     prepared_architecture_source,
 )
-
-
-GITHUB_EVIDENCE_AGENT_IDS = frozenset({"probe-droid", "cicd-posture"})
 
 
 class ClaudeManagedAgentsHostAdapter:

@@ -6,6 +6,18 @@ from dataclasses import dataclass
 
 from endor_agent_kit.recipe import EndorAgentRecipe
 
+# Recipes whose workflows use read-only GitHub.com inventory/file evidence in
+# addition to Endor lookups. Compilers and Host Adapters consume this one
+# shared set for GitHub-boundary wording, setup guidance, and managed-agent
+# network allowlists.
+GITHUB_EVIDENCE_AGENT_IDS = frozenset({"probe-droid", "cicd-posture"})
+
+
+def uses_github_evidence(recipe: EndorAgentRecipe) -> bool:
+    """Return True when the recipe's workflow reads GitHub.com evidence."""
+
+    return recipe.id in GITHUB_EVIDENCE_AGENT_IDS
+
 
 @dataclass(frozen=True)
 class SourceRecipeSafetyPosture:

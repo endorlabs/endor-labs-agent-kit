@@ -115,7 +115,7 @@ The SDK package includes `cursor-sdk/agent_definitions.json`, generated prompt f
 | ⬆️ Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `@agent-upgrade-impact-analysis` | `read-only` | `Show the safest upgrade path for repository <owner>/<repo> package lodash. Keep it read-only.` |
 | 💬 Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `@agent-vulnerability-explainer` | `read-only` | `Explain CVE-2021-44228 using verified Endor evidence. Keep it read-only.` |
 | 🧯 Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `endor-troubleshooter-agent` | `read-only` | `Diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep it read-only.` |
-| 🤖 Findings Browser | Use an Endor Labs workflow agent | `endor-findings-browser-agent` | `read-only` | `Use the findings-browser workflow. Keep it within its generated safety contract.` |
+| 🔍 Findings Browser | Browse, filter, and summarize existing Endor findings with read-only namespace-scoped queries | `endor-findings-browser-agent` | `read-only` | `Show the critical and high reachable findings for namespace <namespace>. Keep it read-only.` |
 | 🤖 Malware Response Agent | Use an Endor Labs workflow agent | `endor-malware-response-agent` | `read-only` | `Use the malware-response workflow. Keep it within its generated safety contract.` |
 | 📡 Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `endor-probe-droid-agent` | `read-only` | `Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep it read-only.` |
 | 🗺️ Remediation Planner | Preview safe dependency remediation options without opening PRs | `@agent-remediation-planner` | `read-only` | `Preview remediation options for this repository. Do not edit files or open a PR/MR.` |
@@ -178,7 +178,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | - | - | - | `portable/upgrade-impact-analysis/` |
 | Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | - | - | - | `portable/vulnerability-explainer/` |
 | Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `gemini/endor-troubleshooter/` | `agents/endor-troubleshooter-agent.md` + `skills/endor-troubleshooter/` | `cursor-sdk/agents/endor-troubleshooter-agent.md` | `portable/endor-troubleshooter/` |
-| Findings Browser | Use an Endor Labs workflow agent | `claude-code/findings-browser/` | `claude-managed-agents/findings-browser/` | `codex/findings-browser/` | `gemini/findings-browser/` | `agents/endor-findings-browser-agent.md` + `skills/findings-browser/` | `cursor-sdk/agents/endor-findings-browser-agent.md` | `portable/findings-browser/` |
+| Findings Browser | Browse, filter, and summarize existing Endor findings with read-only namespace-scoped queries | `claude-code/findings-browser/` | `claude-managed-agents/findings-browser/` | `codex/findings-browser/` | `gemini/findings-browser/` | `agents/endor-findings-browser-agent.md` + `skills/findings-browser/` | `cursor-sdk/agents/endor-findings-browser-agent.md` | `portable/findings-browser/` |
 | Malware Response Agent | Use an Endor Labs workflow agent | `claude-code/malware-response/` | `claude-managed-agents/malware-response/` | `codex/malware-response/` | `gemini/malware-response/` | `agents/endor-malware-response-agent.md` + `skills/malware-response/` | `cursor-sdk/agents/endor-malware-response-agent.md` | `portable/malware-response/` |
 | Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `gemini/probe-droid/` | `agents/endor-probe-droid-agent.md` + `skills/probe-droid/` | `cursor-sdk/agents/endor-probe-droid-agent.md` | `portable/probe-droid/` |
 | Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | - | - | - | `portable/remediation-planner/` |
@@ -470,7 +470,7 @@ Then invoke it from Codex:
 Use the ai-sast-triage skill to triage AI SAST findings for this repository.
 Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>.
 Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence.
-Use the findings-browser skill to help with this Endor Labs workflow.
+Use the findings-browser skill to show the critical and high reachable findings for namespace <namespace>.
 Use the malware-response skill to help with this Endor Labs workflow.
 Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.
 Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.
@@ -555,7 +555,7 @@ Endor Troubleshooter:
 Findings Browser:
 
 ```text
-@agent-findings-browser help
+@agent-findings-browser show the critical and high reachable findings for namespace <namespace>
 ```
 
 Malware Response Agent:

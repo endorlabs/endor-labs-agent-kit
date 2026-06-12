@@ -21,11 +21,13 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 HOST = "claude-code"
-GITHUB_EVIDENCE_AGENT_IDS = frozenset({"probe-droid", "cicd-posture"})
 LEGACY_OUTPUT_DIRS = tuple(LEGACY_EDITION_ALIASES)
 READ_OR_WRITE_TOOLS = (
     "Task",

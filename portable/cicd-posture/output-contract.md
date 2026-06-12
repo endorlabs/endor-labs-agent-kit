@@ -17,6 +17,9 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `endor_project_selector` (string, optional): Optional Endor project name, repository URL, owner/repo, tag, or UUID used to scope the posture assessment.
 - `github_inventory_json` (object, optional): Optional exported GitHub inventory JSON fallback when live read-only GitHub access is unavailable.
 - `include_local_ci_files` (boolean, optional): Defaults to false. When true and local files are available, inspect local CI files as supporting evidence only.
+- `sampling_mode` (enum, optional): none, random, or stratified. Defaults to none; stratified is recommended for organizations with more than 1000 repositories.
+- `sample_size` (integer, optional): Repository sample size for sampling mode. Recommended range is 500 to 1000 for very large organizations.
+- `sample_seed` (string, optional): Optional stable seed for reproducible random or stratified sampling.
 - `report_mode` (enum, optional): summary, table, or full. Defaults to summary for namespace-wide posture and table for repository subset mode.
 
 ## Outputs
