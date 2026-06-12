@@ -21,6 +21,8 @@ material, architecture diagrams, or action contract details.
 
 ## Cursor Host Contract
 
+These instructions apply only when this skill is used through the Cursor host integration.
+
 Use Cursor file and shell tools only within the recipe safety contract.
 Do not claim that a command, file edit, branch push, PR/MR, comment, approval,
 or Endor policy write happened unless Cursor performed it and captured evidence.

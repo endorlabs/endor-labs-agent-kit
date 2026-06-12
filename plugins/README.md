@@ -27,11 +27,13 @@ Current generated package slices:
   public marketplace metadata under `../.agents/plugins/marketplace.json`,
   and local validation metadata under `codex/.agents/plugins/marketplace.json`.
 - `claude/endor-labs-agent-kit/`: Claude Code plugin package with setup skill,
-  Claude Code workflow agents, minimal assets, and marketplace metadata under
-  `.claude-plugin/marketplace.json` and `claude/.claude-plugin/marketplace.json`.
+  Claude Code workflow agents, fail-open advisory hooks, minimal assets, and
+  marketplace metadata under `.claude-plugin/marketplace.json` and
+  `claude/.claude-plugin/marketplace.json`.
 - `claude/ai-plugins/`: legacy Claude Code plugin package retained for
   existing `ai-plugins@endorlabs` installs. New installs should prefer
   `endor-labs-agent-kit@endorlabs`; do not enable both ids in one Claude profile.
+  The legacy compatibility package intentionally does not include hooks.
 - `gemini/endor-labs-agent-kit/`: Gemini CLI extension package with setup skill,
   Gemini workflow skills, preview subagents, minimal context, and no zip
   release artifact.

@@ -458,6 +458,7 @@ def default_task_profile_for_agent(agent_id: str) -> str:
         "ai-sast-triage": "evidence-check",
         "dependency-decision-helper": "explain",
         "endor-troubleshooter": "diagnose",
+        "findings-browser": "browse",
         "malware-response": "exposure-check",
         "package-risk-summary": "explain",
         "probe-droid": "evidence-check",

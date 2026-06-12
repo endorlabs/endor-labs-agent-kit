@@ -32,6 +32,12 @@ CODEX_SECTION_EDITION = "enterprise-edition"
 CODEX_INSTALLER_REPO_PATH = CODEX_PLUGIN_PACKAGE_ROOT / "scripts" / "install_codex_agents.py"
 CODEX_INSTALLER_REPO_COMMAND = f"python {CODEX_INSTALLER_REPO_PATH.as_posix()}"
 CODEX_INSTALLER_COMMAND = 'python "$ENDOR_CODEX_INSTALLER"'
+CODEX_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
+CODEX_HOOK_FILENAMES = (
+    "suggest-endor-tools.sh",
+    "check-dep-install.sh",
+    "check-manifest-edit.sh",
+)
 
 
 @dataclass(frozen=True)
@@ -66,6 +72,7 @@ def publish_codex_plugin_package(
     (package_dir / "skills").mkdir()
     (package_dir / "agents").mkdir()
     (package_dir / "scripts").mkdir()
+    (package_dir / "hooks").mkdir()
     (package_dir / "assets").mkdir()
     marketplace_path.parent.mkdir(parents=True, exist_ok=True)
     local_marketplace_path.parent.mkdir(parents=True, exist_ok=True)
@@ -107,6 +114,8 @@ def publish_codex_plugin_package(
     installer = package_dir / "scripts" / "install_codex_agents.py"
     installer.write_text(_codex_agent_installer_script(version), encoding="utf-8")
     written.append(installer)
+
+    written.extend(_write_codex_plugin_hooks(package_dir))
 
     logo = package_dir / "assets" / "logo.svg"
     logo.write_text(logo_svg(), encoding="utf-8")
@@ -159,6 +168,74 @@ def publish_codex_plugin_package(
         extra_artifacts=(marketplace_path, local_marketplace_path, plugins_readme),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
+
+
+def _write_codex_plugin_hooks(package_dir: Path) -> tuple[Path, ...]:
+    source_dir = _hook_source()
+    hooks_dir = package_dir / "hooks"
+    written: list[Path] = []
+    for filename in CODEX_HOOK_FILENAMES:
+        source = source_dir / filename
+        target = hooks_dir / filename
+        shutil.copy2(source, target)
+        written.append(target)
+    hooks_json = hooks_dir / "hooks.json"
+    hooks_json.write_text(
+        json.dumps(_codex_hooks_config(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    written.append(hooks_json)
+    return tuple(written)
+
+
+def _hook_source() -> Path:
+    candidates = [
+        Path(__file__).resolve().parents[3] / CODEX_HOOK_SOURCE_DIR,
+        Path.cwd() / CODEX_HOOK_SOURCE_DIR,
+    ]
+    for candidate in candidates:
+        if candidate.is_dir():
+            missing = [
+                filename
+                for filename in CODEX_HOOK_FILENAMES
+                if not (candidate / filename).is_file()
+            ]
+            if missing:
+                raise FileNotFoundError(
+                    f"{candidate}: missing Codex hook source files {missing}"
+                )
+            return candidate
+    raise FileNotFoundError(CODEX_HOOK_SOURCE_DIR.as_posix())
+
+
+def _codex_hooks_config() -> dict[str, object]:
+    def command(filename: str, event_name: str) -> dict[str, object]:
+        return {
+            "type": "command",
+            "command": f'bash "${{PLUGIN_ROOT}}/hooks/{filename}" {event_name}',
+            "timeout": 10,
+        }
+
+    return {
+        "hooks": {
+            "UserPromptSubmit": [
+                {
+                    "matcher": "",
+                    "hooks": [command("suggest-endor-tools.sh", "UserPromptSubmit")],
+                }
+            ],
+            "PostToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [command("check-dep-install.sh", "PostToolUse")],
+                },
+                {
+                    "matcher": "apply_patch|Edit|Write",
+                    "hooks": [command("check-manifest-edit.sh", "PostToolUse")],
+                },
+            ],
+        }
+    }
 
 
 def _codex_agent_name(recipe_id: str) -> str:
@@ -408,6 +485,7 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
             "codex",
         ],
         "skills": "./skills/",
+        "hooks": "./hooks/hooks.json",
         "interface": {
             "displayName": PLUGIN_DISPLAY_NAME,
             "shortDescription": "Endor Labs security workflows for Codex.",
@@ -484,6 +562,7 @@ def _codex_plugin_readme(
         "- Manifest: `.codex-plugin/plugin.json`.",
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         f"- Custom agents: `agents/endor-*-agent.toml`, including `{CODEX_SETUP_AGENT}.toml`, installed by the setup skill only after approval.",
+        "- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
         "- Model/runtime: custom agents inherit Codex defaults unless the user or host overrides them; read-only custom agents set `sandbox_mode = \"read-only\"`.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
@@ -561,6 +640,7 @@ def _workflow_label(agent_id: str) -> str:
     labels = {
         "ai-sast-triage": "Triage AI SAST findings",
         "endor-troubleshooter": "Diagnose Endor setup and scan issues",
+        "findings-browser": "Browse existing Endor findings",
         "probe-droid": "Assess GitHub onboarding gaps",
         "sca-remediation": "Find safe SCA remediation paths",
     }

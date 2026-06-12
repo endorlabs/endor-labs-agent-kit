@@ -31,6 +31,16 @@
       "safety_class": "read-only"
     },
     {
+      "agent_name": "endor-findings-browser-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect existing Endor Labs findings. Findings Browser uses read-only Endor evidence to list matching findings, explain applied filters, surface pagination and truncation limits, and identify data gaps without starting new scans or performing remediation actions.",
+      "id": "findings-browser",
+      "prompt_file": "agents/endor-findings-browser-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the findings-browser workflow for this repository.",
+      "safety_class": "read-only"
+    },
+    {
       "agent_name": "endor-malware-response-agent",
       "default_model": "composer-2.5",
       "description": "Use this agent when a customer needs rapid read-only response to a software supply-chain malware incident. It gathers or ingests current malware intelligence, normalizes affected package and version evidence, and correlates that evidence against Endor Labs tenant package inventory across a namespace and child namespaces. It reports confirmed exposure, possible exposure, unaffected scope, indicators of compromise, remediation guidance, and future action contracts without mutating Endor Labs or source systems.",

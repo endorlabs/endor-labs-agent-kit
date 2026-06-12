@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "bash ./hooks/check-manifest-edit.sh afterFileEdit",
+        "timeout": 10,
+        "type": "command"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "command": "bash ./hooks/check-dep-install.sh beforeShellExecution",
+        "timeout": 10,
+        "type": "command"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "bash ./hooks/suggest-endor-tools.sh beforeSubmitPrompt",
+        "timeout": 10,
+        "type": "command"
+      }
+    ]
+  }
+}

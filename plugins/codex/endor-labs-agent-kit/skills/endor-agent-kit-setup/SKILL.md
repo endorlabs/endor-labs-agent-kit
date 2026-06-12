@@ -17,6 +17,7 @@ Generated for the Endor Labs Agent Kit Codex plugin package `endor-labs-agent-ki
 
 - `ai-sast-triage` -> `endor-ai-sast-triage-agent`
 - `endor-troubleshooter` -> `endor-troubleshooter-agent`
+- `findings-browser` -> `endor-findings-browser-agent`
 - `malware-response` -> `endor-malware-response-agent`
 - `probe-droid` -> `endor-probe-droid-agent`
 - `sca-remediation` -> `endor-sca-remediation-agent`

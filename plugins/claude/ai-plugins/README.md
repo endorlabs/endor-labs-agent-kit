@@ -33,6 +33,7 @@ This package is host-specific for Claude Code. Use the root README when choosing
 - Manifest: `.claude-plugin/plugin.json`.
 - Agents: `agents/<agent>.md`, auto-discovered from the plugin root with Claude Code plugin-supported frontmatter only.
 - Skills: `skills/endor-agent-kit-setup/SKILL.md`, auto-discovered from the plugin root.
+- Hooks: not included in the legacy compatibility package.
 - Model/runtime: packaged agents preserve supported generated agent frontmatter; the plugin does not set a plugin-wide default model.
 - MCP: no plugin-wide MCP server is declared by default.
 
@@ -79,6 +80,7 @@ package managers.
 | Triage AI SAST findings | `ai-sast-triage` | mutating, approval-gated |
 | Decide whether a dependency is safe to use | `dependency-decision-helper` | read-only |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | read-only |
+| Browse existing Endor findings | `findings-browser` | read-only |
 | Malware Response | `malware-response` | read-only |
 | Summarize package-version risk | `package-risk-summary` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | read-only |
@@ -105,7 +107,9 @@ approval gates. Setup never performs those workflow actions.
 Claude Code plugin-shipped agents do not support `mcpServers`,
 `permissionMode`, or `hooks` in agent frontmatter. This package removes
 agent-local MCP frontmatter from generated Claude Code artifacts and keeps
-MCP setup as explicit user-guided configuration.
+MCP setup as explicit user-guided configuration. The primary package uses
+plugin-level advisory hooks only; they add context and never block or run
+Endor commands.
 
 Before release, verify the current Claude Code plugin and marketplace docs:
 
