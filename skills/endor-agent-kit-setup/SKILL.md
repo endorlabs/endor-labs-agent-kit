@@ -14,13 +14,14 @@ Generated for the Endor Labs Agent Kit Cursor package.
 
 - `Triage AI SAST findings` -> skill `ai-sast-triage`
 - `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`
+- `Findings Browser` -> skill `findings-browser`
 - `Malware Response` -> skill `malware-response`
 - `Assess GitHub onboarding gaps` -> skill `probe-droid`
 - `Find safe SCA remediation paths` -> skill `sca-remediation`
 
 ## Cursor Package Install Notes
 
-Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor package uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, and `assets/logo.svg`.
+Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor package uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.svg`.
 
 This Cursor package is separate from the Gemini CLI extension under `plugins/gemini/endor-labs-agent-kit/`. Do not use Cursor installation steps to install Gemini CLI files, and do not use Gemini extension files as Cursor package metadata.
 

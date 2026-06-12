@@ -13,6 +13,11 @@ package metadata.
 
 ### Added
 
+- Added fail-open Claude Code primary-plugin advisory hooks for prompt routing,
+  dependency install intent, and dependency manifest edits.
+- Added the read-only `findings-browser` source agent for browsing existing
+  Endor findings across Claude Code, Claude Managed Agents, Codex, Gemini,
+  Portable, Cursor, and Cursor SDK surfaces.
 - Added release changelog coverage for the Agent Kit source repository and the
   generated `ai-plugins` distribution mirror.
 - Added MIT license coverage to the Agent Kit source repository, matching the

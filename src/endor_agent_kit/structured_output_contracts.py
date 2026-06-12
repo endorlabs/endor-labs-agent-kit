@@ -52,6 +52,17 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("future_action_contracts", "list[object]"),
         StructuredOutputField("future_scope", "list[string]"),
     ),
+    "findings-browser": (
+        StructuredOutputField("findings_verdict", "enum"),
+        StructuredOutputField("summary", "string"),
+        StructuredOutputField("applied_filters", "object"),
+        StructuredOutputField("severity_summary", "object"),
+        StructuredOutputField("finding_results", "list[object]"),
+        StructuredOutputField("pagination", "object"),
+        StructuredOutputField("recommended_next_steps", "list[object]"),
+        StructuredOutputField("evidence_queries", "list[object]"),
+        StructuredOutputField("data_gaps", "list[string]"),
+    ),
     "malware-response": (
         StructuredOutputField("incident_verdict", "enum"),
         StructuredOutputField("summary", "string"),

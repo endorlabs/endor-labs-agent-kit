@@ -8,6 +8,7 @@
   "description": "Endor Labs Agent Kit setup and security workflow agents and skills for Cursor.",
   "displayName": "Endor Labs Agent Kit",
   "homepage": "https://endorlabs.com",
+  "hooks": "./hooks/hooks.json",
   "keywords": [
     "endor-labs",
     "security",

@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "AfterTool": [
+      {
+        "hooks": [
+          {
+            "command": "bash ./hooks/check-manifest-edit.sh AfterTool",
+            "name": "endor-agent-kit-manifest-edit-advisory",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "write_file|replace"
+      }
+    ],
+    "BeforeAgent": [
+      {
+        "hooks": [
+          {
+            "command": "bash ./hooks/suggest-endor-tools.sh BeforeAgent",
+            "name": "endor-agent-kit-route-prompt",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "BeforeTool": [
+      {
+        "hooks": [
+          {
+            "command": "bash ./hooks/check-dep-install.sh BeforeTool",
+            "name": "endor-agent-kit-dependency-install-advisory",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "run_shell_command"
+      }
+    ]
+  }
+}

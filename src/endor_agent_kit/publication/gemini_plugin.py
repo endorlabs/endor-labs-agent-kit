@@ -27,6 +27,12 @@ from endor_agent_kit.safety_posture import source_recipe_safety_posture
 GEMINI_PLUGIN_PACKAGE_ROOT = Path("plugins") / "gemini" / PLUGIN_NAME
 GEMINI_SETUP_SKILL = "endor-agent-kit-setup"
 PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY = "https://github.com/endorlabs/ai-plugins"
+GEMINI_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
+GEMINI_HOOK_FILENAMES = (
+    "suggest-endor-tools.sh",
+    "check-dep-install.sh",
+    "check-manifest-edit.sh",
+)
 
 
 def _public_gemini_install_lines(ref: str) -> list[str]:
@@ -65,6 +71,7 @@ def publish_gemini_plugin_package(
     (package_dir / "skills").mkdir()
     (package_dir / "agents").mkdir()
     (package_dir / "assets").mkdir()
+    (package_dir / "hooks").mkdir()
 
     written: list[Path] = []
     version = package_version()
@@ -109,6 +116,8 @@ def publish_gemini_plugin_package(
     logo.write_text(logo_svg(), encoding="utf-8")
     written.append(logo)
 
+    written.extend(_write_gemini_extension_hooks(package_dir))
+
     manifest = package_dir / "gemini-extension.json"
     manifest.write_text(
         json.dumps(_gemini_extension_manifest(version), indent=2, sort_keys=True) + "\n",
@@ -135,6 +144,95 @@ def publish_gemini_plugin_package(
         extra_artifacts=(plugins_readme,),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
+
+
+def _write_gemini_extension_hooks(package_dir: Path) -> tuple[Path, ...]:
+    source_dir = _hook_source()
+    hooks_dir = package_dir / "hooks"
+    written: list[Path] = []
+    for filename in GEMINI_HOOK_FILENAMES:
+        source = source_dir / filename
+        target = hooks_dir / filename
+        shutil.copy2(source, target)
+        written.append(target)
+    hooks_json = hooks_dir / "hooks.json"
+    hooks_json.write_text(
+        json.dumps(_gemini_hooks_config(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    written.append(hooks_json)
+    return tuple(written)
+
+
+def _hook_source() -> Path:
+    candidates = [
+        Path(__file__).resolve().parents[3] / GEMINI_HOOK_SOURCE_DIR,
+        Path.cwd() / GEMINI_HOOK_SOURCE_DIR,
+    ]
+    for candidate in candidates:
+        if candidate.is_dir():
+            missing = [
+                filename
+                for filename in GEMINI_HOOK_FILENAMES
+                if not (candidate / filename).is_file()
+            ]
+            if missing:
+                raise FileNotFoundError(
+                    f"{candidate}: missing Gemini hook source files {missing}"
+                )
+            return candidate
+    raise FileNotFoundError(GEMINI_HOOK_SOURCE_DIR.as_posix())
+
+
+def _gemini_hooks_config() -> dict[str, object]:
+    def command(filename: str, event_name: str, name: str) -> dict[str, object]:
+        return {
+            "type": "command",
+            "command": f"bash ./hooks/{filename} {event_name}",
+            "name": name,
+            "timeout": 10,
+        }
+
+    return {
+        "hooks": {
+            "BeforeAgent": [
+                {
+                    "matcher": "",
+                    "hooks": [
+                        command(
+                            "suggest-endor-tools.sh",
+                            "BeforeAgent",
+                            "endor-agent-kit-route-prompt",
+                        )
+                    ],
+                }
+            ],
+            "BeforeTool": [
+                {
+                    "matcher": "run_shell_command",
+                    "hooks": [
+                        command(
+                            "check-dep-install.sh",
+                            "BeforeTool",
+                            "endor-agent-kit-dependency-install-advisory",
+                        )
+                    ],
+                }
+            ],
+            "AfterTool": [
+                {
+                    "matcher": "write_file|replace",
+                    "hooks": [
+                        command(
+                            "check-manifest-edit.sh",
+                            "AfterTool",
+                            "endor-agent-kit-manifest-edit-advisory",
+                        )
+                    ],
+                }
+            ],
+        }
+    }
 
 
 def _gemini_extension_manifest(version: str) -> dict[str, object]:
@@ -267,6 +365,7 @@ def _gemini_plugin_readme(
         "- Context: `GEMINI.md`, loaded through the manifest `contextFileName` field.",
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Preview subagents: `agents/<agent>.md`.",
+        "- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
         "- Model/runtime: generated skills and subagents inherit Gemini CLI defaults; the extension does not set a plugin-wide default model.",
         "- MCP: no extension-wide MCP server is declared by default.",
         "",
@@ -327,6 +426,7 @@ def _gemini_plugin_readme(
         "",
         "- https://geminicli.com/docs/extensions/writing-extensions/",
         "- https://geminicli.com/docs/extensions/reference/",
+        "- https://geminicli.com/docs/hooks/",
         "- https://geminicli.com/docs/extensions/releasing/",
         "- https://geminicli.com/docs/core/subagents/",
         "",
@@ -336,6 +436,7 @@ def _workflow_label(agent_id: str) -> str:
     labels = {
         "ai-sast-triage": "Triage AI SAST findings",
         "endor-troubleshooter": "Diagnose Endor setup and scan issues",
+        "findings-browser": "Browse existing Endor findings",
         "probe-droid": "Assess GitHub onboarding gaps",
         "sca-remediation": "Find safe SCA remediation paths",
     }

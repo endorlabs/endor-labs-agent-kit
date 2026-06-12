@@ -32,6 +32,12 @@ CLAUDE_PLUGIN_PACKAGE_ROOT = Path("plugins") / "claude" / PLUGIN_NAME
 CLAUDE_MARKETPLACE_PATH = Path(".claude-plugin") / "marketplace.json"
 CLAUDE_LOCAL_MARKETPLACE_PATH = Path("plugins") / "claude" / ".claude-plugin" / "marketplace.json"
 CLAUDE_SETUP_SKILL = "endor-agent-kit-setup"
+CLAUDE_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
+CLAUDE_HOOK_FILENAMES = (
+    "suggest-endor-tools.sh",
+    "check-dep-install.sh",
+    "check-manifest-edit.sh",
+)
 CLAUDE_MARKETPLACE_NAME = "endorlabs"
 CLAUDE_DISCOVERY_TERMS = (
     "agentic remediation",
@@ -222,6 +228,9 @@ def _write_claude_plugin_package(
     logo.write_text(logo_svg(), encoding="utf-8")
     written.append(logo)
 
+    if not spec.legacy:
+        written.extend(_write_claude_plugin_hooks(spec, package_dir))
+
     plugin_manifest = package_dir / ".claude-plugin" / "plugin.json"
     plugin_manifest.write_text(
         json.dumps(_claude_plugin_manifest(spec), indent=2, sort_keys=True) + "\n",
@@ -233,6 +242,80 @@ def _write_claude_plugin_package(
     readme.write_text(_claude_plugin_readme(sorted_recipes, spec), encoding="utf-8")
     written.append(readme)
     return tuple(written)
+
+
+def _write_claude_plugin_hooks(
+    spec: ClaudePluginPackageSpec,
+    package_dir: Path,
+) -> tuple[Path, ...]:
+    if spec.legacy:
+        return ()
+    source_dir = _hook_source()
+    hooks_dir = package_dir / "hooks"
+    hooks_dir.mkdir()
+    written: list[Path] = []
+    for filename in CLAUDE_HOOK_FILENAMES:
+        source = source_dir / filename
+        target = hooks_dir / filename
+        shutil.copy2(source, target)
+        written.append(target)
+    hooks_json = hooks_dir / "hooks.json"
+    hooks_json.write_text(
+        json.dumps(_claude_hooks_config(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    written.append(hooks_json)
+    return tuple(written)
+
+
+def _hook_source() -> Path:
+    candidates = [
+        Path(__file__).resolve().parents[3] / CLAUDE_HOOK_SOURCE_DIR,
+        Path.cwd() / CLAUDE_HOOK_SOURCE_DIR,
+    ]
+    for candidate in candidates:
+        if candidate.is_dir():
+            missing = [
+                filename
+                for filename in CLAUDE_HOOK_FILENAMES
+                if not (candidate / filename).is_file()
+            ]
+            if missing:
+                raise FileNotFoundError(
+                    f"{candidate}: missing Claude hook source files {missing}"
+                )
+            return candidate
+    raise FileNotFoundError(CLAUDE_HOOK_SOURCE_DIR.as_posix())
+
+
+def _claude_hooks_config() -> dict[str, object]:
+    def command(filename: str) -> dict[str, object]:
+        return {
+            "type": "command",
+            "command": f'bash "${{CLAUDE_PLUGIN_ROOT}}/hooks/{filename}"',
+            "timeout": 10,
+        }
+
+    return {
+        "hooks": {
+            "UserPromptSubmit": [
+                {
+                    "matcher": "",
+                    "hooks": [command("suggest-endor-tools.sh")],
+                }
+            ],
+            "PostToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [command("check-dep-install.sh")],
+                },
+                {
+                    "matcher": "Edit|MultiEdit|Write",
+                    "hooks": [command("check-manifest-edit.sh")],
+                },
+            ],
+        }
+    }
 
 
 def _published_claude_agent_path(destination: Path, prepared: PreparedSourceRecipe) -> Path:
@@ -458,6 +541,7 @@ def _render_setup_skill(
         "- Prefer the default Claude Code user-scope plugin install unless the user explicitly requests project, local, or managed scope.",
         "- Do not copy plugin-packaged agents into `.claude/agents/` when marketplace installation is available.",
         "- Do not add plugin-wide MCP automatically. Only guide per-workflow MCP setup when the selected workflow needs it and the user approves.",
+        "- The primary `endor-labs-agent-kit` plugin also ships advisory hooks for prompt routing, dependency installs, and dependency manifest edits. Hooks are fail-open, read-only, and never run Endor commands.",
         "- Claude Code plugin-shipped agents cannot declare `mcpServers`, `permissionMode`, or `hooks` in agent frontmatter; report unavailable MCP-only signals in `data_gaps`.",
         "- Tell the user to restart or reload Claude Code after installing or updating the plugin.",
         "",
@@ -511,6 +595,11 @@ def _claude_plugin_readme(
         "- Manifest: `.claude-plugin/plugin.json`.",
         "- Agents: `agents/<agent>.md`, auto-discovered from the plugin root with Claude Code plugin-supported frontmatter only.",
         "- Skills: `skills/endor-agent-kit-setup/SKILL.md`, auto-discovered from the plugin root.",
+        *(
+            ["- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for routing, dependency installs, and manifest edits."]
+            if not spec.legacy
+            else ["- Hooks: not included in the legacy compatibility package."]
+        ),
         "- Model/runtime: packaged agents preserve supported generated agent frontmatter; the plugin does not set a plugin-wide default model.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
@@ -573,7 +662,9 @@ def _claude_plugin_readme(
         "Claude Code plugin-shipped agents do not support `mcpServers`,",
         "`permissionMode`, or `hooks` in agent frontmatter. This package removes",
         "agent-local MCP frontmatter from generated Claude Code artifacts and keeps",
-        "MCP setup as explicit user-guided configuration.",
+        "MCP setup as explicit user-guided configuration. The primary package uses",
+        "plugin-level advisory hooks only; they add context and never block or run",
+        "Endor commands.",
         "",
         "Before release, verify the current Claude Code plugin and marketplace docs:",
         "",
@@ -606,6 +697,7 @@ def _workflow_label(agent_id: str) -> str:
         "ai-sast-triage": "Triage AI SAST findings",
         "dependency-decision-helper": "Decide whether a dependency is safe to use",
         "endor-troubleshooter": "Diagnose Endor setup and scan issues",
+        "findings-browser": "Browse existing Endor findings",
         "package-risk-summary": "Summarize package-version risk",
         "probe-droid": "Assess GitHub onboarding gaps",
         "remediation-planner": "Plan remediation across findings",

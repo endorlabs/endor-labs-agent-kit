@@ -1,0 +1,138 @@
+recipe_schema_version: 1
+id: findings-browser
+name: Findings Browser
+version: 0.1.0
+description: |
+  Use this agent when the user wants to browse, filter, summarize, or inspect
+  existing Endor Labs findings. Findings Browser uses read-only Endor evidence
+  to list matching findings, explain applied filters, surface pagination and
+  truncation limits, and identify data gaps without starting new scans or
+  performing remediation actions.
+safety_class: read_only
+endor_tier_minimum: enterprise
+supported_transports:
+  - endorctl_api
+host_capabilities_required:
+  run_commands: true
+  read_files: false
+  write_files: false
+  open_pr: false
+inputs:
+  - name: namespace
+    kind: string
+    required: false
+    description: Optional Endor namespace. The artifact uses the configured namespace when omitted.
+  - name: endor_project_selector
+    kind: string
+    required: false
+    description: Optional Endor project name, repository URL, owner/repo, tag, or UUID used to scope findings.
+  - name: repository_url
+    kind: string
+    required: false
+    description: Optional repository URL used to resolve a project before listing findings.
+  - name: finding_uuid
+    kind: string
+    required: false
+    description: Optional exact Finding UUID for direct lookup.
+  - name: finding_categories
+    kind: list[string]
+    required: false
+    description: Optional Endor finding categories such as VULNERABILITY, SCPM, CICD, GHACTIONS, SUPPLY_CHAIN, LICENSE, or AI_SAST.
+  - name: severity_levels
+    kind: list[string]
+    required: false
+    description: Optional severity filter. Defaults to CRITICAL and HIGH for list requests unless the user asks for all severities.
+  - name: status_filter
+    kind: enum
+    required: false
+    description: active, dismissed, fixed, or all. Defaults to active.
+  - name: reachability_filter
+    kind: enum
+    required: false
+    description: reachable, unreachable, unknown, or all when reachability evidence is available.
+  - name: dependency_scope
+    kind: enum
+    required: false
+    description: direct, transitive, unknown, or all when dependency metadata is available.
+  - name: ecosystem
+    kind: string
+    required: false
+    description: Optional package ecosystem filter such as npm, maven, pypi, go, cargo, gem, or github-actions.
+  - name: package_name
+    kind: string
+    required: false
+    description: Optional package or action name used to narrow dependency or GitHub Actions findings.
+  - name: cve_or_ghsa
+    kind: string
+    required: false
+    description: Optional vulnerability identifier used to narrow finding evidence.
+  - name: page_size
+    kind: integer
+    required: false
+    description: Maximum finding rows to return. Defaults to 25 and should remain bounded.
+  - name: report_mode
+    kind: enum
+    required: false
+    description: summary, table, or full. Defaults to table for browse requests.
+outputs:
+  - name: findings_verdict
+    kind: enum
+    required: true
+    description: ACTIVE_FINDINGS_FOUND, NO_MATCHING_FINDINGS, EXACT_FINDING_FOUND, PARTIAL_RESULTS, or INSUFFICIENT_DATA.
+  - name: summary
+    kind: string
+    required: true
+    description: Compact explanation of scope, result count, top risk themes, and next safe workflow options.
+  - name: applied_filters
+    kind: object
+    required: true
+    description: Normalized namespace, project, repository, category, severity, status, package, vulnerability, reachability, dependency, and page-size filters.
+  - name: severity_summary
+    kind: object
+    required: true
+    description: Counts by severity and category for the returned page or exact finding context.
+  - name: finding_results
+    kind: list[object]
+    required: true
+    description: Table-ready finding rows with UUID, category, severity, project, package/action target, status, reachability when available, concise reason, and evidence reference.
+  - name: pagination
+    kind: object
+    required: true
+    description: Page size, returned count, truncation status, approximate total when known, and next filter guidance.
+  - name: recommended_next_steps
+    kind: list[object]
+    required: true
+    description: Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, probe-droid, or cicd-posture, with confirmation requirements for any mutating follow-up.
+  - name: evidence_queries
+    kind: list[object]
+    required: true
+    description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
+  - name: data_gaps
+    kind: list[string]
+    required: true
+    description: Missing namespace, project resolution, category, permission, pagination, field availability, or Endor lookup evidence.
+evals: evals/cases.yaml
+compatible_hosts:
+  - claude-code
+  - claude-managed-agents
+  - codex
+  - gemini
+  - portable
+host_editions:
+  claude-code:
+    - enterprise-edition
+  claude-managed-agents:
+    - enterprise-edition
+  gemini:
+    - enterprise-edition
+mutations: []
+required_endor_mcp_tools: []
+endorctl_api_invocations:
+  - resolve_project_or_repository_selector
+  - get_finding_by_uuid
+  - list_findings_by_scope_and_filters
+  - summarize_findings_by_category_and_severity
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ""
+requires_endorctl: ">=1.0"

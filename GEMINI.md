@@ -22,6 +22,7 @@ User jobs mapped to root skills:
 
 - Triage AI SAST findings: use skill `ai-sast-triage`.
 - Diagnose Endor setup and scan issues: use skill `endor-troubleshooter`.
+- Browse existing Endor findings: use skill `findings-browser`.
 - Malware Response: use skill `malware-response`.
 - Assess GitHub onboarding gaps: use skill `probe-droid`.
 - Find safe SCA remediation paths: use skill `sca-remediation`.
