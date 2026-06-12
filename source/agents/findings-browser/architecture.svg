@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Geist, sans-serif">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#123a4a" stop-opacity="0.46"/>
+      <stop offset="100%" stop-color="#020607" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlow2" cx="85%" cy="100%" r="70%">
+      <stop offset="0%" stop-color="#31522d" stop-opacity="0.36"/>
+      <stop offset="100%" stop-color="#020607" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d171a" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#091113" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="cardGlassActive" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#102024" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#0a1517" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="hairline" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#54d8ff" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#54d8ff" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#54d8ff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hairlineGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#54f08f" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#54f08f" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#54f08f" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.38"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#54d8ff"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="700" fill="#020607"/>
+  <rect width="1280" height="700" fill="url(#bgGlow)"/>
+  <rect width="1280" height="700" fill="url(#bgGlow2)"/>
+  <g transform="translate(42, 38)">
+    <text x="0" y="28" font-size="25" font-weight="700" fill="#e8f6f7">Findings Browser - Read-Only Finding Explorer</text>
+    <text x="0" y="56" font-size="13" fill="#a6b9c0">Existing Endor findings to bounded filters, table rows, evidence queries, and data gaps</text>
+    <text x="0" y="78" font-size="11" fill="#80949b">No scans, no Endor writes, no source-provider writes, no remediation actions.</text>
+  </g>
+  <g transform="translate(48, 154)">
+    <g filter="url(#cardShadow)">
+      <rect width="210" height="140" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="162" height="2" fill="url(#hairline)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#54d8ff" letter-spacing="1.4">INTAKE</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">User Filters</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">namespace, project</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">category, severity</text>
+    </g>
+    <line x1="222" y1="70" x2="272" y2="70" stroke="#54d8ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g transform="translate(292,0)" filter="url(#cardShadow)">
+      <rect width="210" height="140" rx="12" fill="url(#cardGlassActive)" stroke="#23525e"/>
+      <rect x="24" y="0" width="162" height="2" fill="url(#hairlineGreen)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#54f08f" letter-spacing="1.4">SCOPE</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Resolve Context</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">namespace provenance</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">project or UUID</text>
+    </g>
+    <line x1="514" y1="70" x2="564" y2="70" stroke="#54d8ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g transform="translate(584,0)" filter="url(#cardShadow)">
+      <rect width="210" height="140" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="162" height="2" fill="url(#hairline)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#54d8ff" letter-spacing="1.4">EVIDENCE</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Bounded Lookup</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">Finding get/list</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">projected fields</text>
+    </g>
+    <line x1="806" y1="70" x2="856" y2="70" stroke="#54d8ff" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <g transform="translate(876,0)" filter="url(#cardShadow)">
+      <rect width="210" height="140" rx="12" fill="url(#cardGlassActive)" stroke="#255b36"/>
+      <rect x="24" y="0" width="162" height="2" fill="url(#hairlineGreen)"/>
+      <text x="24" y="36" font-size="11" font-weight="700" fill="#54f08f" letter-spacing="1.4">OUTPUT</text>
+      <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Table And Gaps</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">verdict, rows</text>
+      <text x="24" y="112" font-size="12" fill="#a6b9c0">pagination, next steps</text>
+    </g>
+  </g>
+  <g transform="translate(74, 368)">
+    <g filter="url(#cardShadow)">
+      <rect width="345" height="162" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="26" y="0" width="293" height="2" fill="url(#hairline)"/>
+      <text x="26" y="34" font-size="11" font-weight="700" fill="#54d8ff" letter-spacing="1.5">FILTER CONTRACT</text>
+      <text x="26" y="64" font-size="17" font-weight="700" fill="#e8f6f7">Normalize Before Query</text>
+      <text x="26" y="94" font-size="12" fill="#a6b9c0">- category, severity, status</text>
+      <text x="26" y="118" font-size="12" fill="#a6b9c0">- project, repository, package</text>
+      <text x="26" y="142" font-size="12" fill="#a6b9c0">- exact UUID wins over browse</text>
+    </g>
+    <g transform="translate(424,0)" filter="url(#cardShadow)">
+      <rect width="345" height="162" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="26" y="0" width="293" height="2" fill="url(#hairlineGreen)"/>
+      <text x="26" y="34" font-size="11" font-weight="700" fill="#54f08f" letter-spacing="1.5">SAFETY CONTRACT</text>
+      <text x="26" y="64" font-size="17" font-weight="700" fill="#e8f6f7">Existing Evidence Only</text>
+      <text x="26" y="94" font-size="12" fill="#a6b9c0">- no scans or writes</text>
+      <text x="26" y="118" font-size="12" fill="#a6b9c0">- untrusted finding text</text>
+      <text x="26" y="142" font-size="12" fill="#a6b9c0">- secrets redacted by name</text>
+    </g>
+    <g transform="translate(848,0)" filter="url(#cardShadow)">
+      <rect width="345" height="162" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="26" y="0" width="293" height="2" fill="url(#hairline)"/>
+      <text x="26" y="34" font-size="11" font-weight="700" fill="#54d8ff" letter-spacing="1.5">OUTPUT CONTRACT</text>
+      <text x="26" y="64" font-size="17" font-weight="700" fill="#e8f6f7">Strict JSON Evidence</text>
+      <text x="26" y="94" font-size="12" fill="#a6b9c0">- finding rows and counts</text>
+      <text x="26" y="118" font-size="12" fill="#a6b9c0">- evidence_queries ledger</text>
+      <text x="26" y="142" font-size="12" fill="#a6b9c0">- pagination and data_gaps</text>
+    </g>
+  </g>
+  <g transform="translate(50, 592)">
+    <rect width="1180" height="70" rx="12" fill="#071112" stroke="#22414a"/>
+    <text x="28" y="29" font-size="11" font-weight="700" fill="#54f08f" letter-spacing="1.5">CONTRACT</text>
+    <text x="28" y="52" font-size="13" fill="#cfe9eb">Read-only browse of current Endor findings. Return verdict, applied filters, rows, evidence ledger, pagination, and data_gaps. Route remediation or posture actions to separate approved workflows.</text>
+  </g>
+</svg>

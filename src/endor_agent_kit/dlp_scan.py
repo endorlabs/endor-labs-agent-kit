@@ -18,7 +18,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-SCANNED_SUFFIXES = (".md", ".json", ".yaml", ".yml", ".txt", ".svg")
+SCANNED_SUFFIXES = (".md", ".json", ".yaml", ".yml", ".txt", ".svg", ".sh")
 
 # Python files are excluded on purpose: test fixtures legitimately contain
 # synthetic credentials used to prove this scanner works.

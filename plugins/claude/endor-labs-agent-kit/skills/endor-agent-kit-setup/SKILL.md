@@ -19,6 +19,7 @@ Generated for the Endor Labs Agent Kit Claude Code plugin.
 - `Triage AI SAST findings` -> Claude Code agent `ai-sast-triage`
 - `Decide whether a dependency is safe to use` -> Claude Code agent `dependency-decision-helper`
 - `Diagnose Endor setup and scan issues` -> Claude Code agent `endor-troubleshooter`
+- `Browse existing Endor findings` -> Claude Code agent `findings-browser`
 - `Malware Response` -> Claude Code agent `malware-response`
 - `Summarize package-version risk` -> Claude Code agent `package-risk-summary`
 - `Assess GitHub onboarding gaps` -> Claude Code agent `probe-droid`
@@ -221,5 +222,6 @@ approval gates.
 - Prefer the default Claude Code user-scope plugin install unless the user explicitly requests project, local, or managed scope.
 - Do not copy plugin-packaged agents into `.claude/agents/` when marketplace installation is available.
 - Do not add plugin-wide MCP automatically. Only guide per-workflow MCP setup when the selected workflow needs it and the user approves.
+- The primary `endor-labs-agent-kit` plugin also ships advisory hooks for prompt routing, dependency installs, and dependency manifest edits. Hooks are fail-open, read-only, and never run Endor commands.
 - Claude Code plugin-shipped agents cannot declare `mcpServers`, `permissionMode`, or `hooks` in agent frontmatter; report unavailable MCP-only signals in `data_gaps`.
 - Tell the user to restart or reload Claude Code after installing or updating the plugin.

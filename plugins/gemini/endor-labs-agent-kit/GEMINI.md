@@ -9,6 +9,7 @@ User jobs mapped to installed workflows:
 
 - Triage AI SAST findings: use skill `ai-sast-triage` or subagent `@ai-sast-triage`.
 - Diagnose Endor setup and scan issues: use skill `endor-troubleshooter` or subagent `@endor-troubleshooter`.
+- Browse existing Endor findings: use skill `findings-browser` or subagent `@findings-browser`.
 - Malware Response: use skill `malware-response` or subagent `@malware-response`.
 - Assess GitHub onboarding gaps: use skill `probe-droid` or subagent `@probe-droid`.
 - Find safe SCA remediation paths: use skill `sca-remediation` or subagent `@sca-remediation`.

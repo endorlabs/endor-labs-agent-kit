@@ -25,6 +25,7 @@ This package is host-specific for Codex. Use the root README when choosing betwe
 - Manifest: `.codex-plugin/plugin.json`.
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Custom agents: `agents/endor-*-agent.toml`, including `endor-agent-kit-setup-agent.toml`, installed by the setup skill only after approval.
+- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
 - Model/runtime: custom agents inherit Codex defaults unless the user or host overrides them; read-only custom agents set `sandbox_mode = "read-only"`.
 - MCP: no plugin-wide MCP server is declared by default.
 
@@ -70,6 +71,7 @@ not run scans, run `endorctl host-check`, edit shell profiles, install
 | Set up this machine | `endor-agent-kit-setup` | `endor-agent-kit-setup-agent` | read-only setup |
 | Triage AI SAST findings | `ai-sast-triage` | `endor-ai-sast-triage-agent` | mutating, approval-gated |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `endor-troubleshooter-agent` | read-only |
+| Browse existing Endor findings | `findings-browser` | `endor-findings-browser-agent` | read-only |
 | Malware Response | `malware-response` | `endor-malware-response-agent` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | `endor-probe-droid-agent` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `endor-sca-remediation-agent` | mutating, approval-gated |

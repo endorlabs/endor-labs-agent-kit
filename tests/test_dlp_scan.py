@@ -83,3 +83,16 @@ def test_python_sources_are_not_scanned(tmp_path):
     )
 
     assert scan_catalog_credential_findings(tmp_path) == []
+
+
+def test_shell_hooks_are_scanned(tmp_path):
+    hook = tmp_path / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks" / "hook.sh"
+    hook.parent.mkdir(parents=True)
+    hook.write_text(
+        "export GITHUB_TOKEN=ghp_" + "a" * 36 + "\n",
+        encoding="utf-8",
+    )
+
+    assert scan_catalog_credential_findings(tmp_path) == [
+        "plugins/claude/endor-labs-agent-kit/hooks/hook.sh:1: possible hardcoded GitHub token"
+    ]

@@ -26,6 +26,7 @@ This package is host-specific for Gemini CLI. Use the root README when choosing 
 - Context: `GEMINI.md`, loaded through the manifest `contextFileName` field.
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Preview subagents: `agents/<agent>.md`.
+- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
 - Model/runtime: generated skills and subagents inherit Gemini CLI defaults; the extension does not set a plugin-wide default model.
 - MCP: no extension-wide MCP server is declared by default.
 
@@ -71,6 +72,7 @@ package managers.
 | --- | --- | --- | --- |
 | Triage AI SAST findings | `ai-sast-triage` | `@ai-sast-triage` | mutating, approval-gated |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `@endor-troubleshooter` | read-only |
+| Browse existing Endor findings | `findings-browser` | `@findings-browser` | read-only |
 | Malware Response | `malware-response` | `@malware-response` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | `@probe-droid` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
@@ -91,5 +93,6 @@ approval gates. Setup never performs those workflow actions.
 
 - https://geminicli.com/docs/extensions/writing-extensions/
 - https://geminicli.com/docs/extensions/reference/
+- https://geminicli.com/docs/hooks/
 - https://geminicli.com/docs/extensions/releasing/
 - https://geminicli.com/docs/core/subagents/

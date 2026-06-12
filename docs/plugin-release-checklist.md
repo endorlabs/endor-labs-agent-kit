@@ -66,6 +66,8 @@ test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-pl
 test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version cursor-sdk/agent_definitions.json)"
 test "1.1.1" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
+test -f plugins/claude/endor-labs-agent-kit/hooks/hooks.json
+test ! -e plugins/claude/ai-plugins/hooks
 test -f CHANGELOG.md
 ```
 
@@ -86,13 +88,16 @@ test ! -e plugins/gemini/endor-labs-agent-kit.zip
 test -f .cursor-plugin/plugin.json
 test -f agents/endor-agent-kit-setup-agent.md
 test -f agents/endor-malware-response-agent.md
+test -f agents/endor-findings-browser-agent.md
 test -f agents/endor-probe-droid-agent.md
 test -f skills/endor-agent-kit-setup/SKILL.md
 test -f skills/ai-sast-triage/architecture.svg
+test -f skills/findings-browser/architecture.svg
 test -f skills/malware-response/architecture.svg
 test -f cursor-sdk/README.md
 test -f cursor-sdk/run_cursor_agent.py
 test -f cursor-sdk/agent_definitions.json
+test -f cursor-sdk/agents/endor-findings-browser-agent.md
 test -f cursor-sdk/agents/endor-malware-response-agent.md
 test -f cursor-sdk/agents/endor-probe-droid-agent.md
 ```

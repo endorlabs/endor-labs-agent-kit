@@ -441,6 +441,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "ai-sast-triage",
         "dependency-decision-helper",
         "endor-troubleshooter",
+        "findings-browser",
         "package-risk-summary",
         "probe-droid",
         "remediation-planner",
@@ -452,6 +453,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     codex_agent_ids = (
         "ai-sast-triage",
         "endor-troubleshooter",
+        "findings-browser",
         "probe-droid",
         "sca-remediation",
     )
@@ -480,25 +482,46 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
     assert ".claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/hooks.json" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
     assert "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/ai-plugins/assets/logo.svg" in written_paths
+    assert "plugins/claude/ai-plugins/hooks/hooks.json" not in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/hooks.json" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" not in written_paths
     assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks.json" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert ".cursor-plugin/plugin.json" in written_paths
     assert ".cursor-plugin/marketplace.json" in written_paths
+    assert "hooks/hooks.json" in written_paths
+    assert "hooks/suggest-endor-tools.sh" in written_paths
+    assert "hooks/check-dep-install.sh" in written_paths
+    assert "hooks/check-manifest-edit.sh" in written_paths
     assert "skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "agents/endor-agent-kit-setup-agent.md" in written_paths
     assert "cursor-sdk/README.md" in written_paths
@@ -583,6 +606,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
     assert plugin_manifest["version"] == "2.0.0"
     assert plugin_manifest["skills"] == "./skills/"
+    assert plugin_manifest["hooks"] == "./hooks/hooks.json"
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
     assert plugin_manifest["interface"]["defaultPrompt"] == [
@@ -601,6 +625,50 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "skills" not in claude_plugin_manifest
     assert "license" not in claude_plugin_manifest
     assert "mcpServers" not in claude_plugin_manifest
+    assert "hooks" not in claude_plugin_manifest
+    claude_hooks = json.loads(
+        (dest / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
+    )
+    assert set(claude_hooks["hooks"]) == {"UserPromptSubmit", "PostToolUse"}
+    hook_scripts = {
+        "suggest-endor-tools.sh",
+        "check-dep-install.sh",
+        "check-manifest-edit.sh",
+    }
+    assert {
+        path.name
+        for path in (dest / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks").glob("*.sh")
+    } == hook_scripts
+    for script in hook_scripts:
+        hook_text = (
+            dest / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks" / script
+        ).read_text()
+        assert "endor_agent_kit_managed=true" in hook_text
+        assert "hookSpecificOutput" in hook_text
+        assert "additionalContext" in hook_text
+    assert not (dest / "plugins" / "claude" / "ai-plugins" / "hooks").exists()
+    codex_hooks = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
+    )
+    assert set(codex_hooks["hooks"]) == {"UserPromptSubmit", "PostToolUse"}
+    assert "${PLUGIN_ROOT}/hooks/suggest-endor-tools.sh" in json.dumps(codex_hooks)
+    cursor_hooks = json.loads((dest / "hooks" / "hooks.json").read_text())
+    assert set(cursor_hooks["hooks"]) == {
+        "beforeSubmitPrompt",
+        "beforeShellExecution",
+        "afterFileEdit",
+    }
+    assert "beforeSubmitPrompt" in json.dumps(cursor_hooks)
+    gemini_hooks = json.loads(
+        (dest / "plugins" / "gemini" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
+    )
+    assert set(gemini_hooks["hooks"]) == {"BeforeAgent", "BeforeTool", "AfterTool"}
+    assert "run_shell_command" in json.dumps(gemini_hooks)
+    antigravity_hooks = json.loads(
+        (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "hooks.json").read_text()
+    )
+    assert set(antigravity_hooks["hooks"]) == {"PreInvocation", "PreToolUse", "PostToolUse"}
+    assert "run_command" in json.dumps(antigravity_hooks)
     claude_discovery_terms = {
         "agentic remediation",
         "SAST remediation",
@@ -619,6 +687,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "skills" not in legacy_claude_plugin_manifest
     assert "license" not in legacy_claude_plugin_manifest
     assert "mcpServers" not in legacy_claude_plugin_manifest
+    assert "hooks" not in legacy_claude_plugin_manifest
     assert claude_discovery_terms <= set(legacy_claude_plugin_manifest["keywords"])
     gemini_plugin_manifest = json.loads(
         (dest / "plugins" / "gemini" / "endor-labs-agent-kit" / "gemini-extension.json").read_text()
@@ -667,6 +736,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert cursor_plugin_manifest["logo"] == "assets/logo.svg"
     assert cursor_plugin_manifest["agents"] == "./agents/"
     assert cursor_plugin_manifest["skills"] == "./skills/"
+    assert cursor_plugin_manifest["hooks"] == "./hooks/hooks.json"
     assert "gemini-extension.json" not in cursor_plugin_manifest
     assert "mcpServers" not in cursor_plugin_manifest
     assert "settings" not in cursor_plugin_manifest
@@ -736,6 +806,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert cursor_sdk_agents["sca-remediation"]["readonly"] is False
     assert cursor_sdk_agents["probe-droid"]["readonly"] is True
     assert cursor_sdk_agents["probe-droid"]["prompt_file"] == "agents/endor-probe-droid-agent.md"
+    assert cursor_sdk_agents["findings-browser"]["readonly"] is True
+    assert cursor_sdk_agents["findings-browser"]["prompt_file"] == "agents/endor-findings-browser-agent.md"
 
     setup = (
         dest
@@ -861,7 +933,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Prefer documented Endor API or `endorctl api` lookups" in cursor_setup
     cursor_skill = (dest / "skills" / "probe-droid" / "SKILL.md").read_text()
     assert "Cursor Host Contract" in cursor_skill
+    assert (
+        "These instructions apply only when this skill is used through the Cursor host integration."
+        in cursor_skill
+    )
     assert "Gemini CLI Host Contract" not in cursor_skill
+    cursor_findings_skill = (dest / "skills" / "findings-browser" / "SKILL.md").read_text()
+    assert "Cursor Host Contract" in cursor_findings_skill
+    assert "findings_verdict" in cursor_findings_skill
     cursor_agent = (dest / "agents" / "endor-probe-droid-agent.md").read_text()
     assert "endor_agent_kit_managed=true" in cursor_agent
     assert "name: endor-probe-droid-agent" in cursor_agent.split("---", 2)[1]
@@ -1072,6 +1151,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         for artifact in packages[("codex", "endor-labs-agent-kit")]["artifacts"]
     }
     assert "plugins/codex/endor-labs-agent-kit/README.md" in package_artifact_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in package_artifact_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in package_artifact_paths
     assert ".agents/plugins/marketplace.json" in package_artifact_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in package_artifact_paths
     assert "plugins/README.md" in package_artifact_paths
@@ -1083,6 +1164,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".claude-plugin/marketplace.json" in claude_artifact_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in claude_artifact_paths
     assert "plugins/README.md" in claude_artifact_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/hooks.json" in claude_artifact_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in claude_artifact_paths
     legacy_claude_artifact_paths = {
         artifact["path"]
         for artifact in packages[("claude-code", "ai-plugins")]["artifacts"]
@@ -1091,11 +1174,13 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".claude-plugin/marketplace.json" in legacy_claude_artifact_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in legacy_claude_artifact_paths
     assert "plugins/README.md" in legacy_claude_artifact_paths
+    assert not any("/hooks/" in path for path in legacy_claude_artifact_paths)
     gemini_artifact_paths = {
         artifact["path"]
         for artifact in packages[("gemini", "endor-labs-agent-kit")]["artifacts"]
     }
     assert "plugins/gemini/endor-labs-agent-kit/README.md" in gemini_artifact_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/hooks.json" in gemini_artifact_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" not in gemini_artifact_paths
     assert "plugins/README.md" in gemini_artifact_paths
     antigravity_artifact_paths = {
@@ -1104,6 +1189,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     }
     assert "plugins/antigravity/endor-labs-agent-kit/README.md" in antigravity_artifact_paths
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in antigravity_artifact_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks.json" in antigravity_artifact_paths
     assert "plugins/README.md" in antigravity_artifact_paths
     cursor_artifact_paths = {
         artifact["path"]
@@ -1111,11 +1197,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     }
     assert ".cursor-plugin/plugin.json" in cursor_artifact_paths
     assert ".cursor-plugin/marketplace.json" in cursor_artifact_paths
+    assert "hooks/hooks.json" in cursor_artifact_paths
     assert "agents/endor-probe-droid-agent.md" in cursor_artifact_paths
+    assert "agents/endor-findings-browser-agent.md" in cursor_artifact_paths
     assert "agents/endor-sca-remediation-agent.md" in cursor_artifact_paths
     assert "agents/endor-agent-kit-setup-agent.md" in cursor_artifact_paths
     assert "skills/probe-droid/SKILL.md" in cursor_artifact_paths
     assert "skills/probe-droid/architecture.svg" in cursor_artifact_paths
+    assert "skills/findings-browser/SKILL.md" in cursor_artifact_paths
+    assert "skills/findings-browser/architecture.svg" in cursor_artifact_paths
     assert "GEMINI.md" not in cursor_artifact_paths
     assert "gemini-extension.json" not in cursor_artifact_paths
     cursor_sdk_artifact_paths = {
@@ -1126,6 +1216,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/run_cursor_agent.py" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agent_definitions.json" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-probe-droid-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-findings-browser-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-sca-remediation-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in cursor_sdk_artifact_paths
     assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
