@@ -129,6 +129,14 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     assert "Never mutate" in artifact
     assert "Endor state" in artifact
     assert "`--traverse` before reporting the project as missing" in artifact
+    assert "Do not substitute example,\n  remembered, cached, or prior-session repositories" in artifact
+    assert "`OWASP/NodejsGoat`" in artifact
+    assert "`hkhcoder/vprofile-repo`" in artifact
+    assert "return `INSUFFICIENT_DATA` with a `data_gaps` entry" in artifact
+    assert "`github_evidence` and `local_ci_evidence` must always be JSON arrays" in artifact
+    assert "Never return either field as an object\nor map" in artifact
+    assert "must use `filter_summary` and `field_mask_summary`" in artifact
+    assert "do not emit raw\n`filter`, `field_mask`, `command`, or `output` fields" in artifact
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)
 

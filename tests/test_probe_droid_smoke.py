@@ -114,6 +114,10 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "repositories_not_selected" in artifact
     assert "selection_mapping_gaps" in artifact
     assert "not_onboarded_repositories" in artifact
+    assert "Do not use words such as `guess`, `assume`, or `likely`" in artifact
+    assert "Every `not_onboarded_repositories[]` item must include `default_branch`" in artifact
+    assert "Do not omit the key" in artifact
+    assert "check that every object in `not_onboarded_repositories`" in artifact
     assert "onboarded_repositories_with_gaps" in artifact
     assert "If `endor_monitored_branch` is null, `UNKNOWN`, unavailable, unqueryable" in artifact
     assert "classify it under `onboarded_repositories_with_gaps`" in artifact
@@ -134,6 +138,10 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "top 5 actions" in artifact
     assert "Do not run `endorctl scan`" in artifact
     assert "Do not clone repositories" in artifact
+    assert "If the user supplied a namespace in the current request, use\nthat provenance and do not inspect local Endor config" in artifact
+    assert "Never print or dump an\nentire Endor config file" in artifact
+    assert "Do not run `cat ~/.config/endorctl/config.yaml`" in artifact
+    assert "Do not read tenant-specific, customer-specific,\nproduction, backup, or non-default Endor config directories" in artifact
     assert "GitHub.com only" in artifact
     assert "Default Endor Context Scope" in artifact
     assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
@@ -186,8 +194,32 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "spec.resolution_errors" in artifact
     assert "confirmation_required: true" in artifact
     assert "`evidence_queries[]` rows must contain only those fields" in artifact
+    assert "must include `filter_summary` plus\n`field_mask_summary`" in artifact
+    assert "Do not emit unsupported raw `filter` or `field_mask`\nfields" in artifact
     assert "Repository lane rows describe current evidence only" in artifact
     assert "Put those proposed actions in `recommended_actions[]` or\n`confirmed_org_wide_actions[]`" in artifact
+    assert "Do not use\n`requires_confirmation` as a synonym" in artifact
+    assert "For single-repository `runtime-smoke` or `evidence-check` runs" in artifact
+    assert "keep `sampled_prescription_hypotheses` as an\nempty array" in artifact
+    assert "Keep `validation_plan[]` read-only" in artifact
+    assert "Do not put future mutation, scan,\nconfiguration, CI setup" in artifact
+    assert "perform this strict type and scope self-check" in artifact
+    assert "`executive_report` must be a non-empty object" in artifact
+    assert "`github_app_coverage` must be a non-empty object, never `null`" in artifact
+    assert '"status": "unknown"' in artifact
+    assert "`requires_full_inventory_validation` must be an array" in artifact
+    assert "`validation_plan` must be an array" in artifact
+    assert "Every repository lane row in `not_onboarded_repositories[]`" in artifact
+    assert "`ambiguous_matches[]`, and\n  `excluded_repositories[]` must include a normalized `repository`" in artifact
+    assert "Do not use\n  `github_repository` as the only normalized repository identifier" in artifact
+    assert 'set `default_branch` to `"UNKNOWN"`' in artifact
+    assert "Every row in `onboarded_repositories_with_gaps[]` and" in artifact
+    assert "`onboarded_healthy_repositories[]` must include `project_uuid`" in artifact
+    assert 'Use\n  `endor_monitored_branch: "UNKNOWN"` only in `onboarded_repositories_with_gaps[]`' in artifact
+    assert "Never put a row in\n  `onboarded_healthy_repositories[]` unless direct current evidence proves" in artifact
+    assert "`report_scope` must include both `namespace` and\n  `namespace_provenance`" in artifact
+    assert 'namespace_provenance: "current_request"' in artifact
+    assert '"status": "planned_read_only"' in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "documented read-only Endor and GitHub inventory lookups" in artifact
     assert "glab repo list" not in artifact

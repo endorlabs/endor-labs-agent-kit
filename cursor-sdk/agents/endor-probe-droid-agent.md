@@ -80,6 +80,15 @@ Use bounded read-only GitHub API or `gh` CLI calls. Fetch repository trees and
 specific known manifest, lockfile, build, Endor setup, and GitHub Actions files
 only. Do not infer toolchains by running commands in a local checkout.
 
+When an Endor namespace is needed, prove namespace provenance from the current
+run before using it. If the user supplied a namespace in the current request, use
+that provenance and do not inspect local Endor config. Never print or dump an
+entire Endor config file. Do not run `cat ~/.config/endorctl/config.yaml`,
+`cat ~/.endorctl/config.yaml`, or equivalent whole-file reads. If reading local
+config is necessary, extract only the namespace key from the default config with
+a field-specific command. Do not read tenant-specific, customer-specific,
+production, backup, or non-default Endor config directories.
+
 If a user asks for a scan profile file, PR/MR, branch, GitHub setting change,
 Endor package manager integration, Endor policy, or any Endor configuration
 write, render the proposed action and stop for explicit confirmation. Proposed
@@ -110,6 +119,11 @@ Every response must include `evidence_queries[]`. Each entry records:
 evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
 the missing signal in top-level `data_gaps[]` and summarize the issue in the
 row's `reason`.
+Every Endor evidence row for `Project`, `ScanProfile`, `PackageManager`,
+`PackageVersion`, or `Installation` must have current-run namespace provenance
+available in the surrounding scope and must include `filter_summary` plus
+`field_mask_summary`. Do not emit unsupported raw `filter` or `field_mask`
+fields.
 
 Required evidence categories:
 
@@ -142,6 +156,19 @@ Required evidence categories:
 Use exact evidence from the tenant when fields are available. If a resource,
 field, or filter is unsupported in the current tenant or `endorctl` version,
 continue with the usable fields and add a precise `data_gaps` entry.
+
+Runtime output must avoid provenance language that looks guessed. Do not use
+words such as `guess`, `assume`, or `likely` when describing repository
+identity, repository URLs, `repo_full_name`, source provider, or Endor project
+scope. Use "proven by current-run evidence" for gathered identity signals, or
+use `UNKNOWN` plus `data_gaps` when identity or scope is not proven.
+
+For single-repository `runtime-smoke` or `evidence-check` runs, leave
+`sampled_prescription_hypotheses` empty. That array is only for large-org
+sampled inventory findings. Put single-repository future setup work, including
+GitLab CI/CD scan setup, GitHub App selection, Endor onboarding, scan profiles,
+or `.endorctl` files, in `recommended_actions[]` with
+`confirmation_required: true`.
 
 ## Default Endor Context Scope
 
@@ -270,6 +297,45 @@ the count imply exact complete lane membership.
 
 Keep the JSON keys stable even when lists are empty. Do not include final
 configuration snippets, YAML, API payloads, or write commands.
+Before finalizing JSON, check that every object in `not_onboarded_repositories`
+has a `default_branch` key. If the branch could not be proven, use
+`"UNKNOWN"` and explain the missing signal in `data_gaps`.
+
+Before finalizing JSON, perform this strict type and scope self-check:
+
+- `executive_report` must be a non-empty object, never a string. Put the
+  narrative in `executive_report.headline` or another object property.
+- `github_app_coverage` must be a non-empty object, never `null`. When GitHub
+  App evidence is unavailable, emit an object such as
+  `{"status": "unknown", "reason": "GitHub App evidence was unavailable",
+  "evidence": []}` and add a matching `data_gaps[]` entry.
+- `requires_full_inventory_validation` must be an array. Use `[]` when no
+  follow-up inventory validation is required; never use `true` or `false`.
+- `validation_plan` must be an array. Use `[]` when there is no read-only
+  validation plan; never use `null`.
+- Every repository lane row in `not_onboarded_repositories[]`,
+  `onboarded_repositories_with_gaps[]`, `ambiguous_matches[]`, and
+  `excluded_repositories[]` must include a normalized `repository` or
+  `repo_full_name` value and a `default_branch` string. Do not use
+  `github_repository` as the only normalized repository identifier. If the
+  default branch is unknown, set `default_branch` to `"UNKNOWN"` and add the
+  missing branch proof to `data_gaps[]`.
+- Every row in `onboarded_repositories_with_gaps[]` and
+  `onboarded_healthy_repositories[]` must include `project_uuid` or
+  `endor_project.project_uuid` and `endor_monitored_branch`. Use
+  `endor_monitored_branch: "UNKNOWN"` only in `onboarded_repositories_with_gaps[]`
+  with a matching `data_gaps[]` entry. Never put a row in
+  `onboarded_healthy_repositories[]` unless direct current evidence proves a
+  non-empty `endor_monitored_branch`.
+- If any `evidence_queries[]` row uses Endor evidence such as `Project`,
+  `ScanResult`, `PackageVersion`, `PackageManager`, `ScanProfile`, or
+  `Installation`, then `report_scope` must include both `namespace` and
+  `namespace_provenance`. For runtime QA with an explicit namespace in the
+  prompt, use that namespace value and `namespace_provenance: "current_request"`.
+- For single-repository `runtime-smoke` or `evidence-check`, keep
+  `report_scope.mode` set to `single-repo`, keep
+  `sampled_prescription_hypotheses` as `[]`, and put future setup work in
+  `recommended_actions[]` with `confirmation_required: true`.
 
 ## Endor Namespace Preflight
 

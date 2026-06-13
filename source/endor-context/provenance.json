@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-06-12",
+  "checked_at": "2026-06-13",
   "openapi": {
     "url": "https://api.endorlabs.com/download/openapiv2.swagger.json",
     "sha256": "663e91e0cccc57d543bc0117d687d735eb90b28b9d1ea0acde28801b47633556",

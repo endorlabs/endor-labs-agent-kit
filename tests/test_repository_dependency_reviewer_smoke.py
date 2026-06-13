@@ -57,6 +57,21 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
         assert "retry the project lookup with `--traverse`" in body
         assert "unresolved_versions" in body
         assert "data_gaps" in body
+        assert "Do not use prior sessions, durable memory, continuity notes" in body
+        assert "cached QA reports, example repositories, or remembered project/namespace facts" in body
+        assert "return `UNKNOWN` with" in body
+        assert "`data_gaps`; do not claim a namespace" in body
+        assert "inspect at most the" in body
+        assert "first 25 selected exact direct dependencies" in body
+        assert "return the final JSON after" in body
+        assert "that first pass" in body
+        assert "select at most five exact direct dependencies" in body
+        assert "make at most one risk lookup" in body
+        assert "set `risk_posture` to `UNKNOWN`" in body
+        assert "`endor_mcp_package_risk_unavailable`" in body
+        assert "This agent is not a repository documentation" in body
+        assert "Never create, draft, or propose `CLAUDE.md`" in body
+        assert "must be exactly one parseable JSON\n  object" in body
 
 
 def test_repository_dependency_reviewer_publish_writes_claude_code_and_portable(tmp_path):

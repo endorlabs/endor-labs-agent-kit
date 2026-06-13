@@ -18,7 +18,10 @@ task_profiles:
       - Return intake classification, evidence_queries, recommended next read-only checks, and data_gaps.
   - id: diagnose
     title: Diagnose Narrow Lane
-    summary: Query only the Endor resources needed for the classified issue lane.
+    summary: Query only the Endor resources needed for the classified issue lane. Final JSON must keep every nested
+      issue_lanes.next_step, validation, action, why, reasoning, and support-packet string free of raw tool names or command-shaped
+      text such as endorctl, git, gh, run a scan, or run a baseline scan. Every future_action_contracts row must include
+      literal confirmation_required true, or the array must be empty.
     when_to_use:
       - The user asks for diagnosis of a known scan, integration, package manager, policy, or notification issue.
       - A read-only host check needs a troubleshooting result.

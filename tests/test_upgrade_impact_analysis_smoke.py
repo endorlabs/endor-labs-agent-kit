@@ -59,6 +59,13 @@ def test_upgrade_impact_analysis_compiled_artifacts_carry_expected_rules(tmp_pat
     assert "Record whether `--traverse` was used in project resolution evidence" in enterprise
     assert "Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`" in enterprise
     assert "Project-scoped `VersionUpgrade` and finding-fixing upgrade lookups default to" in enterprise
+    assert "top-level `findings_fixed` and\n  `findings_introduced` must be JSON numbers" in enterprise
+    assert "`cia_status` and `score_explanation` must be JSON strings" in enterprise
+    assert 'return `findings_fixed: 0`, `findings_introduced: 0`' in enterprise
+    assert '`cia_status: "unknown"`' in enterprise
+    assert '`score_explanation: "unknown"`' in enterprise
+    assert "Never emit `null` for those two top-level fields" in enterprise
+    assert "Apply the same type discipline inside every `upgrade_candidates[]` item" in enterprise
     assert "QuerySimilarPackages" not in enterprise
 
 

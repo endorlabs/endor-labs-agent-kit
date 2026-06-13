@@ -302,7 +302,16 @@ The JSON object must include:
     "reason_to_escalate": ""
   },
   "data_gaps": [],
-  "future_action_contracts": [],
+  "future_action_contracts": [
+    {
+      "owner": "",
+      "reason": "",
+      "expected_effect": "",
+      "confirmation_required": true,
+      "confirmation_needed": "",
+      "validation_step": ""
+    }
+  ],
   "future_scope": []
 }
 ```
@@ -328,14 +337,33 @@ For every recommended action, optimize for least friction:
 5. Scan rerun or create-style log request, confirmation required.
 6. Endor Support escalation with a redacted evidence packet.
 
-Recommended actions and validation steps must be human-readable intent, not
-copy/paste shell commands. Do not put raw `endorctl api`, `endorctl scan`,
-`git`, or `gh` command strings in `recommended_actions[]`, `validation_plan[]`,
-or `future_action_contracts[]`. If a future action would require a scan rerun,
+Recommended actions, lane next steps, hypotheses, and validation steps must be
+human-readable intent, not copy/paste shell commands. Do not put raw
+`endorctl api`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command
+strings in `issue_lanes[]`, `root_cause_hypotheses[]`,
+`recommended_actions[]`, `validation_plan[]`, `support_escalation_packet`, or
+`future_action_contracts[]`. If a future action would require a scan rerun,
 repository write, support ticket, API create/update/delete, or source-provider
 mutation, place it only in `future_action_contracts[]` with
 `confirmation_required: true`; do not duplicate it as an unconfirmed repository
 or validation row.
+
+Before finalizing JSON, check every `future_action_contracts[]` object. Each
+object must include a literal boolean `confirmation_required: true`; never omit
+the key and never use `false` for a future scan, support ticket, API write,
+repository write, or source-provider mutation. If no future approval-gated work
+is needed, return `future_action_contracts: []`.
+
+This command-free rule applies to every nested string in the final JSON,
+including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`,
+`recommended_actions[].validation`, `recommended_actions[].action`,
+`recommended_actions[].why`, `validation_plan[].step`, and
+`support_escalation_packet.include[]`. If you need a validation step, describe
+the intended evidence in prose, for example "Confirm the scoped Project lookup
+returns the current repository in the selected namespace." Do not include raw
+tool names or partial command-shaped text such as `endorctl`, `endorctl api
+list`, `git`, `gh`, `shell`, `run a scan`, or `run a baseline scan`, because a
+partial query without an explicit namespace and field mask is invalid output.
 
 ## Public Reference Links
 

@@ -67,6 +67,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "If the user supplied a namespace in the current request" in prompt
     assert "Never print or dump an entire Endor config file" in prompt
     assert "Do not run `cat ~/.config/endorctl/config.yaml`" in prompt
+    assert "skip local config inspection entirely" in prompt
+    assert "tenant-specific, customer-specific, production, backup, or non-default Endor config directories" in prompt
     assert "Never echo credential keys, secrets, tokens, or full config contents" in prompt
     assert "namespace_provenance" in prompt
     assert "project_resolution.repo_full_name" in prompt

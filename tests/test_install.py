@@ -401,7 +401,9 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
         text=True,
     )
     assert "backed up existing managed skill" in refresh.stdout
-    assert list(skills_home.glob("sca-remediation.bak-*"))
+    skill_backups = skills_home.parent / "skill-backups" / "endor-agent-kit"
+    assert list(skill_backups.glob("sca-remediation.bak-*"))
+    assert not list(skills_home.glob("sca-remediation.bak-*"))
 
     setup_skill.write_text("# unmanaged user setup skill\n", encoding="utf-8")
     blocked = subprocess.run(
