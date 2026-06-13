@@ -31,7 +31,7 @@ Agent behavior is source-owned by:
 Generated files under `claude-code/`, `claude-managed-agents/`, `codex/`,
 `gemini/`, `portable/`, `plugins/`, `.cursor-plugin/`, generated root
 workflow `agents/`, generated root workflow `skills/`, `cursor-sdk/`,
-`assets/logo.svg`, `manifest.json`, and root `README.md` are
+`assets/logo.png`, `manifest.json`, and root `README.md` are
 outputs. Change the source, regenerate, then review the generated diff.
 
 ## Install Without Drift
@@ -103,7 +103,7 @@ and must record namespace provenance.
 is the public distribution mirror. Normal package sync should be generated from
 this repo and byte-for-byte identical for `plugins/`. Cursor mirror sync should
 copy only `.cursor-plugin/`, generated root workflow `agents`, generated root
-workflow `skills/`, and `assets/logo.svg`. Cursor SDK mirror sync should copy
+workflow `skills/`, and `assets/logo.png`. Cursor SDK mirror sync should copy
 `cursor-sdk/`. Do not copy root Gemini compatibility manifests as Cursor package
 output; the multi-host repo root is not a Gemini extension root. Use
 `docs/distribution-sync.md` before editing or syncing that repo.

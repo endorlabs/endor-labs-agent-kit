@@ -15,7 +15,7 @@ fallback or for local dry-run validation.
 Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
 `endor-labs-agent-kit/plugins/`. Cursor package sync should make
 `ai-plugins/.cursor-plugin/`, generated root workflow `agents/`, generated root
-workflow `skills/`, generated root advisory `hooks/`, and `assets/logo.svg`
+workflow `skills/`, generated root advisory `hooks/`, and `assets/logo.png`
 match this repo. Cursor SDK sync should make `ai-plugins/cursor-sdk/` match
 this repo. The root `CHANGELOG.md` is also synced so release notes travel with
 generated distribution PRs.
@@ -126,7 +126,7 @@ for skill in "$AGENT_KIT_REPO"/skills/*; do
   [ "$name" = "create-endor-labs-agent" ] && continue
   diff -qr "$skill" "./skills/$name"
 done
-diff -q "$AGENT_KIT_REPO/assets/logo.svg" assets/logo.svg
+diff -q "$AGENT_KIT_REPO/assets/logo.png" assets/logo.png
 diff -q "$AGENT_KIT_REPO/CHANGELOG.md" CHANGELOG.md
 git diff --check
 ```

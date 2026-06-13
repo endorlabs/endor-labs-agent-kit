@@ -17,10 +17,10 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_DISPLAY_NAME,
     PLUGIN_NAME,
-    logo_svg,
     package_version,
     plugin_readme_start_here,
     plugin_packages_readme,
+    write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
@@ -112,8 +112,7 @@ def publish_gemini_plugin_package(
     gemini_context.write_text(_gemini_context(sorted_recipes), encoding="utf-8")
     written.append(gemini_context)
 
-    logo = package_dir / "assets" / "logo.svg"
-    logo.write_text(logo_svg(), encoding="utf-8")
+    logo = write_logo(package_dir / "assets")
     written.append(logo)
 
     written.extend(_write_gemini_extension_hooks(package_dir))

@@ -13,12 +13,13 @@ from endor_agent_kit.catalog_schema import CatalogPluginPackage
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST, render_codex_skill
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
+    LOGO_PATH,
     PLUGIN_DISPLAY_NAME,
     PLUGIN_NAME,
-    logo_svg,
     package_version,
     plugin_readme_start_here,
     plugin_packages_readme,
+    write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
@@ -117,8 +118,7 @@ def publish_codex_plugin_package(
 
     written.extend(_write_codex_plugin_hooks(package_dir))
 
-    logo = package_dir / "assets" / "logo.svg"
-    logo.write_text(logo_svg(), encoding="utf-8")
+    logo = write_logo(package_dir / "assets")
     written.append(logo)
 
     plugin_manifest = package_dir / ".codex-plugin" / "plugin.json"
@@ -507,7 +507,7 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
                 "Find the safest SCA remediation path.",
             ],
             "brandColor": "#4F46E5",
-            "logo": "./assets/logo.svg",
+            "logo": f"./{LOGO_PATH}",
         },
     }
 

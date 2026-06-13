@@ -610,8 +610,8 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             errors.append(".cursor-plugin/plugin.json: displayName must be Endor Labs Agent Kit")
         if manifest.get("version") != "2.0.0":
             errors.append(".cursor-plugin/plugin.json: version must be 2.0.0")
-        if manifest.get("logo") != "assets/logo.svg":
-            errors.append(".cursor-plugin/plugin.json: logo must be assets/logo.svg")
+        if manifest.get("logo") != "assets/logo.png":
+            errors.append(".cursor-plugin/plugin.json: logo must be assets/logo.png")
         if manifest.get("agents") != "./agents/":
             errors.append(".cursor-plugin/plugin.json: agents must point at ./agents/")
         if manifest.get("skills") != "./skills/":

@@ -38,7 +38,7 @@
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`
 - `cursor-sdk/`
-- `assets/logo.svg`
+- `assets/logo.png`
 - `.claude-plugin/marketplace.json`
 - `.agents/plugins/marketplace.json`
 
@@ -66,6 +66,6 @@ Sync it only after Agent Kit generation and validation are clean. Normal sync
 keeps `ai-plugins/plugins/` byte-for-byte identical to this repo's `plugins/`
 and copies Cursor package files from `.cursor-plugin/`, generated root workflow
 `agents/`, generated root workflow `skills/`, `cursor-sdk/`, and
-`assets/logo.svg`. Gemini root compatibility files are separate from Cursor.
+`assets/logo.png`. Gemini root compatibility files are separate from Cursor.
 Maintainer-approved merges to Agent Kit `main` should publish generated mirror
 PRs through `.github/workflows/publish-ai-plugins-pr.yml`.

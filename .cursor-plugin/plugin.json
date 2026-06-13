@@ -20,7 +20,7 @@
     "AppSec"
   ],
   "license": "MIT",
-  "logo": "assets/logo.svg",
+  "logo": "assets/logo.png",
   "name": "endorlabs",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",

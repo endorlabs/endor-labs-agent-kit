@@ -14,6 +14,7 @@ SYNC_DIRECTORIES = (
     "agents",
     "cursor-sdk",
     "hooks",
+    "assets",
 )
 
 SYNC_FILES = (
@@ -22,7 +23,6 @@ SYNC_FILES = (
     ("GEMINI.md", "GEMINI.md"),
     (".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"),
     (".agents/plugins/marketplace.json", ".agents/plugins/marketplace.json"),
-    ("assets/logo.svg", "assets/logo.svg"),
 )
 
 STALE_GENERATED_FILES = (

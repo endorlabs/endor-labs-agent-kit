@@ -21,7 +21,7 @@
     ],
     "developerName": "Endor Labs",
     "displayName": "Endor Labs Agent Kit",
-    "logo": "./assets/logo.svg",
+    "logo": "./assets/logo.png",
     "longDescription": "Install setup guidance, Codex skills, and bundled custom agents for Endor Labs SCA remediation, AI SAST triage, troubleshooting, and onboarding analysis workflows.",
     "shortDescription": "Endor Labs security workflows for Codex.",
     "websiteURL": "https://www.endorlabs.com/"
