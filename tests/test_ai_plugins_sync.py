@@ -14,7 +14,7 @@ def _write(path: Path, content: str = "content\n") -> None:
 
 
 def _minimal_source_tree(root: Path) -> None:
-    for directory in ("plugins", ".cursor-plugin", "agents", "cursor-sdk"):
+    for directory in ("plugins", ".cursor-plugin", "agents", "cursor-sdk", "hooks"):
         _write(root / directory / "artifact.txt")
     _write(root / ".mcp.json", "{}\n")
     _write(root / "CHANGELOG.md", "# Changelog\n")
@@ -33,6 +33,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     target.mkdir()
     _minimal_source_tree(source)
     _write(target / "plugins" / "stale.txt", "stale\n")
+    _write(target / "hooks" / "stale-hook.sh", "stale\n")
     _write(target / "skills" / "old-generated-skill" / "SKILL.md", "stale\n")
     _write(target / "gemini-extension.json", "{}\n")
 
@@ -41,6 +42,8 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert "probe-droid" in generated_root_skills(source)
     assert (target / "plugins" / "artifact.txt").read_text(encoding="utf-8") == "content\n"
     assert not (target / "plugins" / "stale.txt").exists()
+    assert (target / "hooks" / "artifact.txt").read_text(encoding="utf-8") == "content\n"
+    assert not (target / "hooks" / "stale-hook.sh").exists()
     assert (target / "skills" / "probe-droid" / "SKILL.md").exists()
     assert not (target / "skills" / "create-endor-labs-agent").exists()
     assert not (target / "skills" / "old-generated-skill").exists()

@@ -25,8 +25,19 @@ package metadata.
 - Added source-to-distribution changelog syncing so generated `ai-plugins` PRs
   carry release notes with package artifacts.
 
+### Fixed
+
+- Fixed the `ai-plugins` distribution sync omitting the generated root `hooks/`
+  directory that `.cursor-plugin/plugin.json` references, which shipped a
+  dangling Cursor hooks pointer in the public mirror.
+- Extended the generated-artifact drift gates and mirror validation to cover
+  root `hooks/`, per-package hook manifests and scripts, and dangling
+  `.cursor-plugin/plugin.json` references.
+
 ### Changed
 
+- Bumped the legacy Claude `ai-plugins` package to `1.2.0` because its content
+  gained the `findings-browser` agent; the legacy package still ships no hooks.
 - Clarified that Agent Kit maintainer merges open generated `ai-plugins` sync
   PRs, but package version updates are explicit release actions.
 - Preserved AURI branding in agent prompts and generated package content.
