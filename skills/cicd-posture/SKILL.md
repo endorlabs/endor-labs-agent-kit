@@ -47,6 +47,13 @@ inspection only when available.
 - Default to namespace-wide posture. If `repository_urls` are supplied, switch
   to explicit repository subset mode and keep denominators scoped to that
   subset.
+- In a local checkout, derive repository scope only from the current run:
+  explicit `repository_urls`, the current Git `origin` remote, or a current
+  user-supplied `endor_project_selector`. Do not substitute example,
+  remembered, cached, or prior-session repositories such as `OWASP/NodejsGoat`
+  or `hkhcoder/vprofile-repo`. If repository identity cannot be proven in the
+  current run, return `INSUFFICIENT_DATA` with a `data_gaps` entry instead of
+  choosing a familiar repository.
 - For very large organizations, honor `sampling_mode` (`none`, `random`, or
   `stratified`; default `none`), `sample_size`, and `sample_seed`. Record the
   sampling basis, sampled denominator, and seed in `scope` and
@@ -72,6 +79,10 @@ inspection only when available.
   patterns, unpinned actions, broad permissions, or risky triggers, but they
   cannot prove branch protection, rulesets, runner fleet state, or Endor
   finding counts.
+- If shell, GitHub, Endor, or local file access is blocked, do not claim `gh`
+  is missing, claim a project name, claim finding counts, or reuse durable
+  memory. Record the exact blocked signal in `data_gaps` and keep any score
+  bounded to gathered current-run evidence.
 
 ## Scope And Reporting Inputs
 
@@ -175,10 +186,17 @@ Return concise prose plus one strict JSON block with:
 - `evidence_queries`
 - `data_gaps`
 
+`github_evidence` and `local_ci_evidence` must always be JSON arrays, even when
+there is only one lane or one repository. Never return either field as an object
+or map; emit one object row per repository or evidence lane, or `[]` when no
+current evidence was gathered.
+
 Each `evidence_queries` row records `source` as one of `endorctl_api`,
 `github`, `local_repository`, or `user_input`, with `resource` naming the
 queried resource (for example `Finding`, `Project`, `GitHub branch
 protection`, `GitHub workflow files`, or `local CI files`).
+Each row must use `filter_summary` and `field_mask_summary`; do not emit raw
+`filter`, `field_mask`, `command`, or `output` fields in the evidence ledger.
 
 Every recommendation that would mutate GitHub, Endor, files, policies, rules,
 or workflows must be a future action with `confirmation_required: true`; this

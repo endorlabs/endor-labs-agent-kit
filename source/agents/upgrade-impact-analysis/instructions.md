@@ -96,6 +96,22 @@ dismiss findings, create policies, install packages, or mutate Endor Labs state.
 - Top-level type guard: `findings_fixed` and `findings_introduced` are integer
   counts, `fixed_cves` holds advisory IDs, and `endor_patch` is a string target,
   `"none"`, or `"unknown"`, never a boolean.
+- Strict JSON type guard: top-level `findings_fixed` and
+  `findings_introduced` must be JSON numbers, not strings, nulls, arrays, or
+  objects. Use `0` only when gathered VersionUpgrade evidence proves zero;
+  otherwise explain the unavailable signal in `data_gaps`.
+- `cia_status` and `score_explanation` must be JSON strings whenever present.
+  Use `"unknown"` plus a `data_gaps` entry when the platform field is
+  unavailable; never return objects, arrays, or null for these fields.
+- Runtime QA schemas require the top-level optional fields when they are listed
+  in the output contract. When project-scoped VersionUpgrade evidence is absent,
+  still return `findings_fixed: 0`, `findings_introduced: 0`,
+  `cia_status: "unknown"`, and `score_explanation: "unknown"` at the top level,
+  with `data_gaps` explaining that zero means no project-scoped fixed or
+  introduced findings were proven. Do not use null for these top-level fields.
+- Apply the same type discipline inside every `upgrade_candidates[]` item and
+  `selected_upgrade`: counts remain numbers, CIA status and score explanation
+  remain strings, and missing platform evidence is represented in `data_gaps`.
 <!-- compact-plugin:omit-end -->
 
 ## Recommendations
@@ -237,6 +253,11 @@ requested and label that scope in the output.
 
 ## Step 1: Choose the Endor Query Mode
 
+Prefer supplied finding, upgrade, or project selectors. Without a project
+selector, ask for a repository URL, owner/repo, or Endor project name; do not
+fall back to package-version comparison.
+
+<!-- compact-plugin:omit-start -->
 Use the most specific Endor mode available:
 
 1. Resolve project context from `repository_url`, `project_name`, active
@@ -251,6 +272,7 @@ Use the most specific Endor mode available:
 5. If no project selector is available, ask for a repository URL, owner/repo, or
    Endor project name for Endor upgrade impact analysis. Do not fall back to MCP
    package-version comparison.
+<!-- compact-plugin:omit-end -->
 
 <!-- compact-plugin:omit-start -->
 ## Step 2: List Endor Upgrade Recommendations
@@ -393,6 +415,15 @@ candidate `to_version` only when `is_endor_patch` is true.
 
 If project-scoped `VersionUpgrade` data cannot be queried, return
 `INSUFFICIENT_DATA` for Endor upgrade impact analysis. Add project-scoped
+fallback values that satisfy the JSON contract: `findings_fixed: 0`,
+`findings_introduced: 0`, `cia_status: "unknown"`, and
+`score_explanation: "unknown"`, plus `data_gaps` explaining that project-scoped
+VersionUpgrade, CIA, manifest, and finding-count evidence is missing.
+Before finalizing JSON, run a top-level contract self-check: if
+`findings_fixed` or `findings_introduced` would be `null`, replace it with `0`
+and add a `data_gaps` entry such as
+`finding_fixing_upgrades_unavailable_no_project_or_version_upgrade_record`.
+Never emit `null` for those two top-level fields.
 upgrade-impact gaps such as `project_resolution`,
 `version_upgrade_recommendations`, `finding_fixing_upgrades`, `cia_results`,
 and `manifest_files`. Ask for a repository URL, owner/repo, Endor project name,

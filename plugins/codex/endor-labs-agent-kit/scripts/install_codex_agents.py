@@ -110,19 +110,27 @@ def item_status(kind: str, source: Path, target: Path) -> str:
     return "blocked-unmanaged"
 
 
-def backup_path_for(path: Path) -> Path:
+def backup_root_for(kind: str, path: Path) -> Path:
+    if kind == "skill":
+        return path.parent.parent / "skill-backups" / "endor-agent-kit"
+    return path.parent
+
+
+def backup_path_for(path: Path, *, backup_root: Path | None = None) -> Path:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    base = path.with_name(f"{path.name}.bak-{stamp}")
+    root = backup_root or path.parent
+    base = root / f"{path.name}.bak-{stamp}"
     candidate = base
     counter = 1
     while candidate.exists():
-        candidate = path.with_name(f"{path.name}.bak-{stamp}-{counter}")
+        candidate = root / f"{path.name}.bak-{stamp}-{counter}"
         counter += 1
     return candidate
 
 
-def backup(path: Path) -> Path:
-    backup_path = backup_path_for(path)
+def backup(path: Path, *, backup_root: Path | None = None) -> Path:
+    backup_path = backup_path_for(path, backup_root=backup_root)
+    backup_path.parent.mkdir(parents=True, exist_ok=True)
     if path.is_dir():
         shutil.copytree(path, backup_path)
     elif path.is_file():
@@ -433,7 +441,7 @@ def run(args: argparse.Namespace) -> int:
                 exit_code = 1
                 continue
             if args.yes:
-                backup_path = backup(target)
+                backup_path = backup(target, backup_root=backup_root_for(kind, target))
                 print(f"  backed up existing managed {kind} to {backup_path}")
                 remove_existing(target)
                 print(f"  removed {target}")
@@ -450,7 +458,7 @@ def run(args: argparse.Namespace) -> int:
                 continue
             if args.yes:
                 if target.exists():
-                    backup_path = backup(target)
+                    backup_path = backup(target, backup_root=backup_root_for(kind, target))
                     print(f"  backed up existing managed {kind} to {backup_path}")
                     remove_existing(target)
                 copy_item(kind, source, target)

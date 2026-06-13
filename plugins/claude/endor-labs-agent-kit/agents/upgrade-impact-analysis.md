@@ -168,25 +168,23 @@ requested and label that scope in the output.
 
 ## Step 1: Choose the Endor Query Mode
 
-Use the most specific Endor mode available:
-
-1. Resolve project context from `repository_url`, `project_name`, active
-   repository context, session metadata, or optional `project_uuid`.
-2. If the resolved `project_uuid` and `finding_uuid` are available, run the canonical
-   per-finding fixing-upgrade map and select the upgrade for that finding.
-3. If the resolved `project_uuid` and `upgrade_uuid` are available, fetch full
-   `VersionUpgrade` details and use that as the selected upgrade.
-4. If the resolved `project_uuid` is available, list upgrade recommendations for the project.
-   Filter by `package_name`, `current_version`, or `target_version` only after
-   fetching records, matching the platform's client-side filtering behavior.
-5. If no project selector is available, ask for a repository URL, owner/repo, or
-   Endor project name for Endor upgrade impact analysis. Do not fall back to MCP
-   package-version comparison.
+Prefer supplied finding, upgrade, or project selectors. Without a project
+selector, ask for a repository URL, owner/repo, or Endor project name; do not
+fall back to package-version comparison.
 
 ## Step 6: Missing Project Context
 
 If project-scoped `VersionUpgrade` data cannot be queried, return
 `INSUFFICIENT_DATA` for Endor upgrade impact analysis. Add project-scoped
+fallback values that satisfy the JSON contract: `findings_fixed: 0`,
+`findings_introduced: 0`, `cia_status: "unknown"`, and
+`score_explanation: "unknown"`, plus `data_gaps` explaining that project-scoped
+VersionUpgrade, CIA, manifest, and finding-count evidence is missing.
+Before finalizing JSON, run a top-level contract self-check: if
+`findings_fixed` or `findings_introduced` would be `null`, replace it with `0`
+and add a `data_gaps` entry such as
+`finding_fixing_upgrades_unavailable_no_project_or_version_upgrade_record`.
+Never emit `null` for those two top-level fields.
 upgrade-impact gaps such as `project_resolution`,
 `version_upgrade_recommendations`, `finding_fixing_upgrades`, `cia_results`,
 and `manifest_files`. Ask for a repository URL, owner/repo, Endor project name,

@@ -121,6 +121,23 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     )
 
 
+def test_runtime_task_profile_prompts_carry_gemini_contract_guards():
+    troubleshooter = render_task_profile_prompt("endor-troubleshooter", "diagnose", compact=True)
+    probe = render_task_profile_prompt("probe-droid", "evidence-check", compact=True)
+
+    assert "every nested issue_lanes.next_step, validation, action, why, reasoning" in troubleshooter
+    assert "free of raw tool names or command-shaped" in troubleshooter
+    assert "run a baseline scan" in troubleshooter
+    assert "Every future_action_contracts row must include" in troubleshooter
+    assert "confirmation_required true" in troubleshooter
+    assert "github_app_coverage must be a non-empty" in probe
+    assert "Every repository lane row, including ambiguous_matches" in probe
+    assert "not github_repository alone" in probe
+    assert "Onboarded" in probe
+    assert "project_uuid and endor_monitored_branch" in probe
+    assert "not onboarded_healthy_repositories" in probe
+
+
 def test_knowledge_pack_renders_global_section_for_known_agent():
     section = render_knowledge_pack_section("sca-remediation")
 
