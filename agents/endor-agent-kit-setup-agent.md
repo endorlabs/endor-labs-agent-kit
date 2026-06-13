@@ -24,7 +24,7 @@ Generated for the Endor Labs Agent Kit Cursor plugin agent package.
 
 ## Cursor Plugin Install Notes
 
-Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor plugin uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.svg`.
+Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor plugin uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.png`.
 
 This Cursor plugin is separate from the Gemini CLI extension under `plugins/gemini/endor-labs-agent-kit/`. Do not use Cursor installation steps to install Gemini CLI files, and do not use Gemini extension files as Cursor package metadata.
 

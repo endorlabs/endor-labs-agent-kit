@@ -18,9 +18,10 @@ from endor_agent_kit.compilers.rendering import (
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.publication.plugin_package_common import (
+    LOGO_PATH,
     PLUGIN_DISPLAY_NAME,
-    logo_svg,
     package_version,
+    write_logo,
 )
 from endor_agent_kit.publication.records import (
     prepared_actions_source,
@@ -132,8 +133,7 @@ def publish_cursor_plugin_package(
     setup_agent.write_text(_render_setup_agent(sorted_recipes), encoding="utf-8")
     written.append(setup_agent)
 
-    logo = assets_root / "logo.svg"
-    logo.write_text(logo_svg(), encoding="utf-8")
+    logo = write_logo(assets_root)
     written.append(logo)
 
     written.extend(_write_cursor_plugin_hooks(destination))
@@ -384,7 +384,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "## Cursor Package Install Notes",
         "",
-        "Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor package uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.svg`.",
+        f"Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor package uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `{LOGO_PATH}`.",
         "",
         "This Cursor package is separate from the Gemini CLI extension under `plugins/gemini/endor-labs-agent-kit/`. Do not use Cursor installation steps to install Gemini CLI files, and do not use Gemini extension files as Cursor package metadata.",
         "",
@@ -428,7 +428,7 @@ def _render_setup_agent(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "## Cursor Plugin Install Notes",
         "",
-        "Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor plugin uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `assets/logo.svg`.",
+        f"Install or update this package through Cursor's plugin-loading mechanism only after user approval. The generated Cursor plugin uses repository-root `.cursor-plugin/` metadata, root `agents/`, root `skills/`, `hooks/`, and `{LOGO_PATH}`.",
         "",
         "This Cursor plugin is separate from the Gemini CLI extension under `plugins/gemini/endor-labs-agent-kit/`. Do not use Cursor installation steps to install Gemini CLI files, and do not use Gemini extension files as Cursor package metadata.",
         "",
@@ -480,7 +480,7 @@ def _cursor_plugin_manifest(version: str) -> dict[str, object]:
             "agentic remediation",
             "AppSec",
         ],
-        "logo": "assets/logo.svg",
+        "logo": LOGO_PATH,
         "agents": "./agents/",
         "skills": "./skills/",
         "hooks": "./hooks/hooks.json",

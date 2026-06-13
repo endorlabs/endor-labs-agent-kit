@@ -17,7 +17,7 @@ Generated package roots:
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
 - Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
-  `skills/`, and `assets/logo.svg`
+  `skills/`, and `assets/logo.png`
 - Cursor SDK: `cursor-sdk/`
 
 Generated marketplace and release files:

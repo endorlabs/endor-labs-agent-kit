@@ -15,6 +15,7 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.cli import main
 from endor_agent_kit.publication import HostArtifactPublication, RootCatalogAggregate
+from endor_agent_kit.publication.plugin_package_common import LOGO_SHA256, logo_png
 from endor_agent_kit.publisher import publish_recipe, publish_recipes
 
 from conftest import repo_root
@@ -25,6 +26,10 @@ def _copy_agent(tmp_path: Path, agent_id: str = "dependency-decision-helper") ->
     dst = tmp_path / agent_id
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"
+
+
+def test_plugin_logo_is_canonical_endor_labs_asset():
+    assert hashlib.sha256(logo_png()).hexdigest() == LOGO_SHA256
 
 
 def _claude_code_paths(agent_id: str, *, has_setup: bool) -> set[str]:
@@ -483,7 +488,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
-    assert "plugins/codex/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/assets/logo.png" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
@@ -492,19 +497,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
-    assert "plugins/claude/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/assets/logo.png" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
     assert "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md" in written_paths
-    assert "plugins/claude/ai-plugins/assets/logo.svg" in written_paths
+    assert "plugins/claude/ai-plugins/assets/logo.png" in written_paths
     assert "plugins/claude/ai-plugins/hooks/hooks.json" not in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
-    assert "plugins/gemini/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/assets/logo.png" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
@@ -513,7 +518,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert not (dest / "plugins" / "gemini" / "endor-labs-agent-kit.zip").exists()
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
-    assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.svg" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.png" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
@@ -531,12 +536,16 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/run_cursor_agent.py" in written_paths
     assert "cursor-sdk/agent_definitions.json" in written_paths
     assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in written_paths
-    assert "assets/logo.svg" in written_paths
+    assert "assets/logo.png" in written_paths
     assert ".mcp.json" in written_paths
     assert "GEMINI.md" in written_paths
     assert "gemini-extension.json" not in written_paths
     assert not (dest / "gemini-extension.json").exists()
     assert existing_creator_skill.read_text() == "# existing creator skill\n"
+    assert not list(dest.rglob("logo.svg"))
+    canonical_logo = logo_png()
+    for logo_path in dest.rglob("logo.png"):
+        assert logo_path.read_bytes() == canonical_logo
 
     for agent_id in codex_agent_ids:
         assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
@@ -735,7 +744,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
     assert cursor_plugin_manifest["author"]["url"] == "https://www.endorlabs.com/"
-    assert cursor_plugin_manifest["logo"] == "assets/logo.svg"
+    assert cursor_plugin_manifest["logo"] == "assets/logo.png"
     assert cursor_plugin_manifest["agents"] == "./agents/"
     assert cursor_plugin_manifest["skills"] == "./skills/"
     assert cursor_plugin_manifest["hooks"] == "./hooks/hooks.json"

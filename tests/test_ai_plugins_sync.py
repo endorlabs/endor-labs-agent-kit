@@ -21,7 +21,7 @@ def _minimal_source_tree(root: Path) -> None:
     _write(root / "GEMINI.md", "# Gemini\n")
     _write(root / ".claude-plugin" / "marketplace.json", "{}\n")
     _write(root / ".agents" / "plugins" / "marketplace.json", "{}\n")
-    _write(root / "assets" / "logo.svg", "<svg />\n")
+    _write(root / "assets" / "logo.png", "<svg />\n")
     _write(root / "skills" / "probe-droid" / "SKILL.md")
     _write(root / "skills" / "create-endor-labs-agent" / "SKILL.md")
 
@@ -34,6 +34,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     _minimal_source_tree(source)
     _write(target / "plugins" / "stale.txt", "stale\n")
     _write(target / "hooks" / "stale-hook.sh", "stale\n")
+    _write(target / "assets" / "logo.svg", "<svg />\n")
     _write(target / "skills" / "old-generated-skill" / "SKILL.md", "stale\n")
     _write(target / "gemini-extension.json", "{}\n")
 
@@ -52,7 +53,8 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert (target / "GEMINI.md").read_text(encoding="utf-8") == "# Gemini\n"
     assert (target / ".claude-plugin" / "marketplace.json").exists()
     assert (target / ".agents" / "plugins" / "marketplace.json").exists()
-    assert (target / "assets" / "logo.svg").exists()
+    assert (target / "assets" / "logo.png").exists()
+    assert not (target / "assets" / "logo.svg").exists()
     assert not (target / "gemini-extension.json").exists()
     assert any("sync" in operation for operation in operations)
     assert any("gemini-extension.json" in operation for operation in operations)

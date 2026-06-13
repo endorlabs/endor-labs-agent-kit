@@ -14,7 +14,7 @@ shape, or release validation.
 | `.github/workflows/publish-ai-plugins-pr.yml` | Post-merge publication workflow that opens generated `ai-plugins` PRs. |
 | `claude-code/`, `claude-managed-agents/`, `codex/`, `gemini/`, `portable/` | Generated installable agent catalog. |
 | `plugins/` | Generated plugin packages for Claude Code, Codex, Gemini CLI, and Antigravity CLI. |
-| `.cursor-plugin/`, root generated `agents/`, root generated `skills/`, `assets/logo.svg` | Generated Cursor package surface. |
+| `.cursor-plugin/`, root generated `agents/`, root generated `skills/`, `assets/logo.png` | Generated Cursor package surface. |
 | `cursor-sdk/` | Generated Cursor Python SDK automation package with prompt definitions and launcher. |
 | `manifest.json` | Generated checksum and provenance catalog. |
 

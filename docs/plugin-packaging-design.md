@@ -37,7 +37,7 @@ The generated Codex plugin package includes:
   workflows.
 - `scripts/install_codex_agents.py` for provenance-gated global install, update,
   status, and uninstall of bundled Codex custom agents.
-- `assets/logo.svg`.
+- `assets/logo.png`.
 - Public repository marketplace metadata at `.agents/plugins/marketplace.json`.
 - Package-local marketplace metadata at
   `plugins/codex/.agents/plugins/marketplace.json` for local validation.
@@ -58,7 +58,7 @@ The generated Claude Code plugin packages include:
   `endor-labs-agent-kit` package only. These hooks add Claude context for
   prompt routing, dependency installs, and dependency manifest edits; they do
   not block work, call Endor, use the network, run scans, or write files.
-- `assets/logo.svg`.
+- `assets/logo.png`.
 - Public-repo marketplace metadata at `.claude-plugin/marketplace.json`.
 - Package-local marketplace metadata at
   `plugins/claude/.claude-plugin/marketplace.json` for local validation.
@@ -88,7 +88,7 @@ The generated Gemini CLI extension package includes:
   `source/plugin-support/setup/setup.md`.
 - `agents/<agent>.md` preview subagents generated from the same recipe body,
   with provenance comments and Gemini host-contract text.
-- `assets/logo.svg`.
+- `assets/logo.png`.
 
 Gemini packages do not declare plugin-wide MCP by default. Setup documents the
 observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
@@ -119,7 +119,7 @@ The generated Antigravity CLI plugin package includes:
   `source/plugin-support/setup/setup.md`.
 - `agents/<agent>.md` subagents generated from the same recipe body, with
   provenance comments and Antigravity host-contract text.
-- `assets/logo.svg`.
+- `assets/logo.png`.
 
 Antigravity packages do not declare plugin-wide MCP by default. The setup skill
 keeps `antigravity plugin validate`, installation, update, enable/disable, and
@@ -146,7 +146,7 @@ The generated Cursor package includes:
   contracts.
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
-- `assets/logo.svg`.
+- `assets/logo.png`.
 
 Cursor is intentionally not a Gemini wrapper. Its installable package does not
 depend on Gemini metadata; the Gemini CLI extension files live under

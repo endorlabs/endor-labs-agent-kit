@@ -60,7 +60,7 @@ package metadata.
 - Cursor does not have a separate legacy `ai-plugins` package ID. Existing
   customers installing from the `ai-plugins` repository root continue to receive
   the current `.cursor-plugin/`, root `agents/`, root `skills/`, and
-  `assets/logo.svg` package.
+  `assets/logo.png` package.
 - Gemini CLI keeps the generated package at
   `plugins/gemini/endor-labs-agent-kit/`, while the repository root keeps only
   `.mcp.json` and non-installable `GEMINI.md` support context. Root

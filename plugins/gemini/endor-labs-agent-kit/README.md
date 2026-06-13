@@ -13,7 +13,7 @@ source recipes in the Endor Labs Agent Kit repository.
 | Reader | First move |
 | --- | --- |
 | Human installer | Install the generated extension directory locally or the tagged public GitHub repository. Then run setup: ask Gemini CLI to use the `endor-agent-kit-setup` skill. |
-| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |
+| Agent installer | Preserve generated package files exactly. Do not broaden permissions, change the logo, add plugin-wide MCP, or rewrite generated agents and skills. |
 | Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |
 
 Content releases require a package version bump. If a host still shows old prompt content after reinstalling the same version, remove or reinstall the plugin, clear the host cache when supported, and start a fresh host session.

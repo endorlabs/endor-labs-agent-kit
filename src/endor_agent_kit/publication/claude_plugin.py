@@ -20,10 +20,10 @@ from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_DISPLAY_NAME,
     PLUGIN_NAME,
-    logo_svg,
     package_version,
     plugin_readme_start_here,
     plugin_packages_readme,
+    write_logo,
 )
 from endor_agent_kit.recipe import editions_for_host
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -224,8 +224,7 @@ def _write_claude_plugin_package(
     setup_skill.write_text(_render_setup_skill(sorted_recipes, spec), encoding="utf-8")
     written.append(setup_skill)
 
-    logo = package_dir / "assets" / "logo.svg"
-    logo.write_text(logo_svg(), encoding="utf-8")
+    logo = write_logo(package_dir / "assets")
     written.append(logo)
 
     if not spec.legacy:

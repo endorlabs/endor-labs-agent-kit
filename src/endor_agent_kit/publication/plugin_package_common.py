@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from importlib import metadata
+from importlib import metadata, resources
 from pathlib import Path
 import re
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
 PLUGIN_VERSION_FALLBACK = "2.0.0"
+LOGO_FILENAME = "logo.png"
+LOGO_PATH = f"assets/{LOGO_FILENAME}"
+LOGO_SHA256 = "3bc1cce0aa35f12d7de7c537726305f6125692ef5f147774abd683a7b269917e"
 
 
 def package_version() -> str:
@@ -29,17 +32,26 @@ def package_version() -> str:
         return PLUGIN_VERSION_FALLBACK
 
 
-def logo_svg() -> str:
-    """Return the minimal Endor Agent Kit plugin logo."""
+def logo_png() -> bytes:
+    """Return the canonical Endor Labs plugin logo PNG."""
 
-    return "\n".join([
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Endor Labs Agent Kit">',
-        '  <rect width="128" height="128" rx="24" fill="#111827"/>',
-        '  <path d="M32 36h64v14H49v17h39v14H49v17h47v14H32z" fill="#ffffff"/>',
-        '  <path d="M81 32h18v64h-18z" fill="#4F46E5" opacity=".9"/>',
-        "</svg>",
-        "",
-    ])
+    logo = resources.files("endor_agent_kit.publication").joinpath(
+        "assets",
+        LOGO_FILENAME,
+    )
+    return logo.read_bytes()
+
+
+def write_logo(assets_root: Path) -> Path:
+    """Write the canonical plugin logo and prune the retired SVG logo."""
+
+    assets_root.mkdir(parents=True, exist_ok=True)
+    stale_svg = assets_root / "logo.svg"
+    if stale_svg.exists():
+        stale_svg.unlink()
+    logo = assets_root / LOGO_FILENAME
+    logo.write_bytes(logo_png())
+    return logo
 
 
 def plugin_readme_start_here(
@@ -56,7 +68,7 @@ def plugin_readme_start_here(
         "| Reader | First move |",
         "| --- | --- |",
         f"| Human installer | {install_summary} Then run setup: {setup_summary} |",
-        "| Agent installer | Preserve generated package files exactly. Do not broaden permissions, add plugin-wide MCP, or rewrite generated agents and skills. |",
+        "| Agent installer | Preserve generated package files exactly. Do not broaden permissions, change the logo, add plugin-wide MCP, or rewrite generated agents and skills. |",
         "| Maintainer | Change source recipes or publication code in `endor-labs-agent-kit`, regenerate with `--include-plugins`, then sync generated artifacts to `ai-plugins`. |",
         "",
         "Content releases require a package version bump. If a host still shows old prompt content after reinstalling the same version, remove or reinstall the plugin, clear the host cache when supported, and start a fresh host session.",
@@ -114,7 +126,7 @@ def plugin_packages_readme() -> str:
         "  a root `plugin.json` validated with `antigravity plugin validate`.",
         "",
         "The Cursor package is generated at repository root as `.cursor-plugin/`,",
-        "root `agents/`, root `skills/`, and `assets/logo.svg` because the public",
+        f"root `agents/`, root `skills/`, and `{LOGO_PATH}` because the public",
         "Cursor package source is `./`. It is intentionally separate from Gemini",
         "CLI extension files under `gemini/endor-labs-agent-kit/`. The repository",
         "root may include `.mcp.json` and non-installable `GEMINI.md` support",

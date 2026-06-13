@@ -62,7 +62,7 @@ Current generated plugin package version: `2.0.0`.
 | Codex | Skills plus optional bundled custom-agent TOML files | Read `plugins/codex/endor-labs-agent-kit/README.md`. |
 | Gemini CLI | Extension with skills and preview subagents | Read `plugins/gemini/endor-labs-agent-kit/README.md`. |
 | Antigravity CLI | Plugin with skills and subagents | Read `plugins/antigravity/endor-labs-agent-kit/README.md`. |
-| Cursor IDE | Customer-facing Cursor plugin agents | Install from `.cursor-plugin/`, root `agents/`, root `skills/`, and `assets/logo.svg`. |
+| Cursor IDE | Customer-facing Cursor plugin agents | Install from `.cursor-plugin/`, root `agents/`, root `skills/`, and `assets/logo.png`. |
 
 After installing any host package, run setup first:
 
@@ -215,7 +215,7 @@ are the generated host directories listed in the catalog.
 | Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$HOME/.agents/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
-| Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.svg` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |
+| Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.png` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |
 | Cursor SDK | `cursor-sdk/` | Python automation, CI, orchestration, backend services, local SDK agents, or Cursor cloud agents |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
@@ -869,7 +869,7 @@ cursor-sdk/
   agents/
     <generated-cursor-sdk-agent>.md
 assets/
-  logo.svg
+  logo.png
 docs/
   distribution-sync.md
   for-agents.md
@@ -911,7 +911,7 @@ The root catalog directories are intentionally checked in:
 - `cursor-sdk/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`
-- `assets/logo.svg`
+- `assets/logo.png`
 - `manifest.json`
 
 These paths are customer-facing and should stay stable.
