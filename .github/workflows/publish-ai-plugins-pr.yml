@@ -107,6 +107,7 @@ jobs:
             codex \
             cursor-sdk \
             gemini \
+            hooks \
             plugins \
             portable \
             skills
@@ -205,10 +206,35 @@ jobs:
           python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
           python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
           python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
+          python3 -m json.tool hooks/hooks.json >/dev/null
+          python3 -m json.tool plugins/claude/endor-labs-agent-kit/hooks/hooks.json >/dev/null
+          python3 -m json.tool plugins/codex/endor-labs-agent-kit/hooks/hooks.json >/dev/null
+          python3 -m json.tool plugins/gemini/endor-labs-agent-kit/hooks/hooks.json >/dev/null
+          python3 -m json.tool plugins/antigravity/endor-labs-agent-kit/hooks.json >/dev/null
+          shopt -s nullglob
+          for hook_script in hooks/*.sh plugins/*/*/hooks/*.sh; do
+            bash -n "$hook_script"
+          done
+          shopt -u nullglob
           python3 - <<'PY'
           import py_compile
 
           py_compile.compile("cursor-sdk/run_cursor_agent.py", cfile="/tmp/run_cursor_agent.pyc", doraise=True)
+          PY
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import sys
+
+          manifest = json.loads(pathlib.Path(".cursor-plugin/plugin.json").read_text(encoding="utf-8"))
+          missing = sorted(
+              value
+              for value in manifest.values()
+              if isinstance(value, str) and value.startswith("./") and not pathlib.Path(value).exists()
+          )
+          if missing:
+              print(f"dangling .cursor-plugin/plugin.json references: {missing}")
+              sys.exit(1)
           PY
           test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
           test ! -e plugins/gemini/endor-labs-agent-kit.zip
@@ -216,8 +242,13 @@ jobs:
           diff -qr ../endor-labs-agent-kit/.cursor-plugin ./.cursor-plugin
           diff -qr ../endor-labs-agent-kit/agents ./agents
           diff -qr ../endor-labs-agent-kit/cursor-sdk ./cursor-sdk
-          for skill in skills/*; do
-            diff -qr "../endor-labs-agent-kit/$skill" "$skill"
+          diff -qr ../endor-labs-agent-kit/hooks ./hooks
+          for source_skill in ../endor-labs-agent-kit/skills/*/; do
+            skill_name="$(basename "$source_skill")"
+            if [ "$skill_name" = "create-endor-labs-agent" ]; then
+              continue
+            fi
+            diff -qr "../endor-labs-agent-kit/skills/$skill_name" "skills/$skill_name"
           done
           diff -q ../endor-labs-agent-kit/assets/logo.svg assets/logo.svg
           git diff --check

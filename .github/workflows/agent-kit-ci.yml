@@ -74,6 +74,7 @@ jobs:
             codex \
             cursor-sdk \
             gemini \
+            hooks \
             plugins \
             portable \
             skills

@@ -169,7 +169,7 @@ def publish_claude_plugin_package(
 
 LEGACY_CLAUDE_PLUGIN_NAME = "ai-plugins"
 LEGACY_CLAUDE_PLUGIN_DISPLAY_NAME = "Endor Labs AI Plugins (Legacy)"
-LEGACY_CLAUDE_PLUGIN_VERSION = "1.1.1"
+LEGACY_CLAUDE_PLUGIN_VERSION = "1.2.0"
 PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY = "endorlabs/ai-plugins"
 
 

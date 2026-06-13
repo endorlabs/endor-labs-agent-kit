@@ -13,6 +13,7 @@ SYNC_DIRECTORIES = (
     ".cursor-plugin",
     "agents",
     "cursor-sdk",
+    "hooks",
 )
 
 SYNC_FILES = (
