@@ -64,6 +64,15 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "scans, create profiles, edit repositories, change GitHub settings, or "
             "mutate Endor state."
         ),
+        "cicd-posture": (
+            "This read-only agent assesses CI/CD and supply chain posture from "
+            "existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain findings "
+            "plus read-only GitHub configuration evidence. It returns deterministic "
+            "dimension scores, critical overrides, evidence queries, recommended "
+            "human actions, and data gaps without running scans, changing branch "
+            "protection, editing workflows, dispatching workflows, or mutating "
+            "Endor state."
+        ),
         "endor-troubleshooter": (
             "This read-only agent diagnoses Endor Labs errors, warnings, scan failures, "
             "slow scans, missing integrations, and unhealthy configuration from "

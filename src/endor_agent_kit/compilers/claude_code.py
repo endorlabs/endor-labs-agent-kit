@@ -21,7 +21,10 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 HOST = "claude-code"
@@ -184,7 +187,7 @@ def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
             transport = f"{label} does not require Bash or endorctl."
     else:
         label = "This artifact" if single_edition else "Enterprise Edition"
-        if recipe.id == "probe-droid":
+        if _uses_github_evidence(recipe):
             transport = (
                 f"{label} allows Bash only for documented read-only Endor "
                 "and GitHub inventory lookups."
@@ -216,3 +219,7 @@ def _disallowed_tools(recipe: EndorAgentRecipe) -> tuple[str, ...]:
     if allowed:
         return tuple(tool for tool in READ_OR_WRITE_TOOLS if tool not in allowed)
     return READ_OR_WRITE_TOOLS
+
+
+def _uses_github_evidence(recipe: EndorAgentRecipe) -> bool:
+    return recipe.id in GITHUB_EVIDENCE_AGENT_IDS

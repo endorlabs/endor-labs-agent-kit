@@ -658,6 +658,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
 
     expected_skills = (
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "probe-droid",
@@ -682,6 +683,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
 
     expected_agents = {
         "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "cicd-posture": "endor-cicd-posture-agent",
         "endor-troubleshooter": "endor-troubleshooter-agent",
         "findings-browser": "endor-findings-browser-agent",
         "probe-droid": "endor-probe-droid-agent",
@@ -784,6 +786,7 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     expected_agents = {
         "endor-agent-kit-setup": "endor-agent-kit-setup-agent",
         "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "cicd-posture": "endor-cicd-posture-agent",
         "endor-troubleshooter": "endor-troubleshooter-agent",
         "findings-browser": "endor-findings-browser-agent",
         "probe-droid": "endor-probe-droid-agent",
@@ -816,6 +819,7 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
         "endor-agent-kit-setup-agent": "Endor Agent Kit Setup Agent For Cursor SDK",
         "endor-ai-sast-triage-agent": "## Cursor SDK Host Contract",
         "endor-findings-browser-agent": "## Cursor SDK Host Contract",
+        "endor-cicd-posture-agent": "## Cursor SDK Host Contract",
         "endor-troubleshooter-agent": "## Cursor SDK Host Contract",
         "endor-probe-droid-agent": "## Cursor SDK Host Contract",
         "endor-sca-remediation-agent": "## Cursor SDK Host Contract",

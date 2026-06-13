@@ -17,6 +17,7 @@ Generated for the Endor Labs Agent Kit Claude Code plugin.
 ## Bundled Claude Code Agents
 
 - `Triage AI SAST findings` -> Claude Code agent `ai-sast-triage`
+- `Assess CI/CD and supply chain posture` -> Claude Code agent `cicd-posture`
 - `Decide whether a dependency is safe to use` -> Claude Code agent `dependency-decision-helper`
 - `Diagnose Endor setup and scan issues` -> Claude Code agent `endor-troubleshooter`
 - `Browse existing Endor findings` -> Claude Code agent `findings-browser`

@@ -565,6 +565,7 @@ def _cursor_bool(value: bool) -> str:
 def _workflow_label(agent_id: str) -> str:
     labels = {
         "ai-sast-triage": "Triage AI SAST findings",
+        "cicd-posture": "Assess CI/CD and supply chain posture",
         "endor-troubleshooter": "Diagnose Endor setup and scan issues",
         "probe-droid": "Assess GitHub onboarding gaps",
         "sca-remediation": "Find safe SCA remediation paths",

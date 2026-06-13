@@ -414,7 +414,7 @@ def _prompt_budget(relative_path: str) -> int:
     agent_id = _agent_id_from_prompt_path(relative_path)
     if agent_id == "endor-agent-kit-setup":
         return 10_000
-    if agent_id in {"endor-troubleshooter", "probe-droid"}:
+    if agent_id in {"cicd-posture", "endor-troubleshooter", "probe-droid"}:
         return 25_000
     if agent_id in {"sca-remediation", "ai-sast-triage"}:
         return 35_000

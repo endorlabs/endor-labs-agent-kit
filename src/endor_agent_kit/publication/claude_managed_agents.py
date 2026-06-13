@@ -11,7 +11,10 @@ from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude
 from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 
 from .readme import agent_readme_start_here, architecture_readme_section
 from .records import (
@@ -152,15 +155,22 @@ def managed_agents_edition_readme(
             "The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.",
             "Bash use remains limited by prompt to the documented Endor lookup commands.",
         ]
-        if recipe.id == "probe-droid":
+        if _uses_github_evidence(recipe):
             requirements.append(
                 "Read-only GitHub.com credentials available to the managed session, or exported GitHub inventory JSON supplied in the prompt."
             )
-            notes = [
-                f"This {artifact_label} compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.",
-                "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
-                "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
-            ]
+            if recipe.id == "cicd-posture":
+                notes = [
+                    f"This {artifact_label} assesses CI/CD and supply chain posture from existing Endor findings plus read-only GitHub repository configuration evidence.",
+                    "It uses read-only Endor and GitHub lookups to produce dimension scores, critical overrides, evidence queries, recommended actions, and data gaps.",
+                    "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only evidence. It still must not run scans, clone repositories, dispatch workflows, change branch protection or repository settings, open PRs/MRs, or mutate Endor state.",
+                ]
+            else:
+                notes = [
+                    f"This {artifact_label} compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.",
+                    "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
+                    "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
+                ]
         elif recipe.id == "endor-troubleshooter":
             notes = [
                 f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
@@ -243,6 +253,8 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
         return "Summarize npm lodash version 4.17.20."
     if recipe.id == "probe-droid":
         return "Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
+    if recipe.id == "cicd-posture":
+        return "Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workflow read-only."
     if recipe.id == "endor-troubleshooter":
         return "Diagnose this Endor scan failure from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
@@ -254,3 +266,7 @@ def _published_edition_dir(agent_root: Path, editions: tuple[str, ...], edition:
     if len(editions) == 1:
         return agent_root
     return agent_root / edition
+
+
+def _uses_github_evidence(recipe: EndorAgentRecipe) -> bool:
+    return recipe.id in GITHUB_EVIDENCE_AGENT_IDS

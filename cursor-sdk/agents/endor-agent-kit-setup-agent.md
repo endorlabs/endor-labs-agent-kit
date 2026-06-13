@@ -8,6 +8,7 @@ Generated for Cursor Python SDK automation.
 ## Bundled Cursor SDK Workflows
 
 - `Triage AI SAST findings` -> SDK agent `endor-ai-sast-triage-agent`
+- `Assess CI/CD and supply chain posture` -> SDK agent `endor-cicd-posture-agent`
 - `Diagnose Endor setup and scan issues` -> SDK agent `endor-troubleshooter-agent`
 - `Findings Browser` -> SDK agent `endor-findings-browser-agent`
 - `Malware Response` -> SDK agent `endor-malware-response-agent`

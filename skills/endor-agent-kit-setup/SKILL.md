@@ -13,6 +13,7 @@ Generated for the Endor Labs Agent Kit Cursor package.
 ## Bundled Cursor Workflows
 
 - `Triage AI SAST findings` -> skill `ai-sast-triage`
+- `Assess CI/CD and supply chain posture` -> skill `cicd-posture`
 - `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`
 - `Findings Browser` -> skill `findings-browser`
 - `Malware Response` -> skill `malware-response`
