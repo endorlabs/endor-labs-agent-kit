@@ -199,6 +199,15 @@ def claude_code_edition_readme(
                 "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
                 "It must not run scans, clone repositories, create scan profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
             ]
+        elif recipe.id == "cicd-posture":
+            requirements.append(
+                "Read-only GitHub.com credentials through `gh` or exported GitHub repository inventory JSON."
+            )
+            notes = [
+                f"This {artifact_label} assesses CI/CD and supply chain posture from existing Endor findings plus read-only GitHub repository configuration evidence.",
+                "It uses read-only Endor and GitHub lookups to produce dimension scores, critical overrides, evidence queries, recommended actions, and data gaps.",
+                "It must not run scans, clone repositories, dispatch workflows, change branch protection or repository settings, open PRs/MRs, or mutate Endor state.",
+            ]
         elif recipe.id == "endor-troubleshooter":
             notes = [
                 f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
@@ -288,6 +297,43 @@ def claude_code_agent_setup_section(
             "scan profiles, and package manager integrations. It should not run scans,",
             "clone repositories, edit files, change GitHub settings, create profiles,",
             "update integrations, or open PRs/MRs.",
+            "",
+        ]
+    if recipe.id == "cicd-posture":
+        return [
+            "## Setup Checklist",
+            "",
+            "### 1. Install The Subagent",
+            "",
+            "Run this from the target repository or admin workspace where Claude Code",
+            "will perform the read-only posture review:",
+            "",
+            "```bash",
+            "mkdir -p .claude/agents",
+            "cp /path/to/endor-labs-agent-kit/claude-code/cicd-posture/cicd-posture.md \\",
+            "  .claude/agents/cicd-posture.md",
+            "```",
+            "",
+            "### 2. Verify Read-Only Access",
+            "",
+            "Run these read-only checks when live GitHub evidence is available:",
+            "",
+            "```bash",
+            "endorctl --version",
+            "gh auth status        # GitHub repository configuration evidence",
+            "```",
+            "",
+            "CI/CD Posture does not need an Endor MCP server. If Endor finding access,",
+            "GitHub repository configuration, workflow files, branch protection,",
+            "CODEOWNERS, or local CI files are unavailable, the agent should report",
+            "the missing signal in `data_gaps`.",
+            "",
+            "### 3. Keep The Posture Review Read-Only",
+            "",
+            "The agent may list existing Endor findings and fetch GitHub repository",
+            "configuration, workflow files, CODEOWNERS, and CI evidence. It should",
+            "not run scans, clone repositories, dispatch workflows, edit files, change",
+            "branch protection or repository settings, or open PRs/MRs.",
             "",
         ]
     if recipe.id == "endor-troubleshooter":
@@ -524,6 +570,25 @@ def claude_code_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "repositories and keeping PR scan coverage in future scope.",
             "",
         ]
+    if recipe.id == "cicd-posture":
+        return [
+            "## Example Workflow",
+            "",
+            "Use these copy/paste prompts after the agent is installed.",
+            "",
+            "```text",
+            "@agent-cicd-posture assess CI/CD and supply chain posture for Endor namespace <namespace> and GitHub org <org>. Include Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN findings, branch protection, CODEOWNERS, action pinning, permissions, risky triggers, self-hosted runners, update automation, deterministic scores, critical overrides, evidence_queries, and data_gaps. Do not run scans or mutate anything.",
+            "```",
+            "",
+            "```text",
+            "@agent-cicd-posture assess these repositories only: <owner/repo>, <owner/repo>. Compute raw_counts, dimension_scores, score_validation, and recommended human actions without editing workflows or branch protection.",
+            "```",
+            "",
+            "The result should show the raw counts behind every dimension score, explain",
+            "any critical override, and include the validator command needed to recheck",
+            "the deterministic score before the report is trusted.",
+            "",
+        ]
     if recipe.id == "endor-troubleshooter":
         return [
             "## Example Workflow",
@@ -747,6 +812,8 @@ def example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-edition"
         return f"@agent-{recipe.id} preview remediation options for this repository"
     if recipe.id == "probe-droid":
         return f"@agent-{recipe.id} probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions"
+    if recipe.id == "cicd-posture":
+        return f"@agent-{recipe.id} assess CI/CD and supply chain posture for namespace <namespace>"
     if recipe.id == "endor-troubleshooter":
         return f"@agent-{recipe.id} diagnose this Endor scan failure from redacted error text and read-only tenant evidence"
     if "vulnerability_id" in input_names:

@@ -21,6 +21,16 @@
       "safety_class": "mutating"
     },
     {
+      "agent_name": "endor-cicd-posture-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user wants a read-only CI/CD and supply chain posture assessment for an Endor namespace, GitHub organization, repository set, or current repository. The agent combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain findings with read-only GitHub configuration evidence and optional local CI file inspection, then returns deterministic scores, critical overrides, evidence queries, and data gaps without mutating Endor, GitHub, or repository state.",
+      "id": "cicd-posture",
+      "prompt_file": "agents/endor-cicd-posture-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workflow read-only and validate the deterministic score.",
+      "safety_class": "read-only"
+    },
+    {
       "agent_name": "endor-troubleshooter-agent",
       "default_model": "composer-2.5",
       "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs errors, warnings, missing integrations, scan failures, slow scans, or unhealthy configuration. Endor Troubleshooter gathers the smallest useful read-only Endor evidence, classifies the issue across scan, integration, authentication, dependency resolution, container, reachability, policy, and workflow lanes, then returns low-friction repair guidance without mutating Endor, source-provider, or repository state.",

@@ -1,0 +1,140 @@
+recipe_schema_version: 1
+id: cicd-posture
+name: CI/CD And Supply Chain Posture
+version: 0.1.0
+description: |
+  Use this agent when the user wants a read-only CI/CD and supply chain
+  posture assessment for an Endor namespace, GitHub organization, repository
+  set, or current repository. The agent combines existing Endor SCPM, CI/CD,
+  GitHub Actions, and supply-chain findings with read-only GitHub configuration
+  evidence and optional local CI file inspection, then returns deterministic
+  scores, critical overrides, evidence queries, and data gaps without mutating
+  Endor, GitHub, or repository state.
+safety_class: read_only
+endor_tier_minimum: enterprise
+supported_transports:
+  - endorctl_api
+host_capabilities_required:
+  run_commands: true
+  read_files: true
+  write_files: false
+  open_pr: false
+inputs:
+  - name: namespace
+    kind: string
+    required: false
+    description: Optional Endor namespace. The artifact uses the configured namespace when omitted.
+  - name: github_org
+    kind: string
+    required: false
+    description: Optional GitHub.com organization for namespace-wide inventory correlation.
+  - name: repository_urls
+    kind: list[string]
+    required: false
+    description: Optional explicit GitHub.com repository URLs or owner/repo selectors. When present, the report is scoped to this repository subset.
+  - name: endor_project_selector
+    kind: string
+    required: false
+    description: Optional Endor project name, repository URL, owner/repo, tag, or UUID used to scope the posture assessment.
+  - name: github_inventory_json
+    kind: object
+    required: false
+    description: Optional exported GitHub inventory JSON fallback when live read-only GitHub access is unavailable.
+  - name: include_local_ci_files
+    kind: boolean
+    required: false
+    description: Defaults to false. When true and local files are available, inspect local CI files as supporting evidence only.
+  - name: sampling_mode
+    kind: enum
+    required: false
+    description: none, random, or stratified. Defaults to none; stratified is recommended for organizations with more than 1000 repositories.
+  - name: sample_size
+    kind: integer
+    required: false
+    description: Repository sample size for sampling mode. Recommended range is 500 to 1000 for very large organizations.
+  - name: sample_seed
+    kind: string
+    required: false
+    description: Optional stable seed for reproducible random or stratified sampling.
+  - name: report_mode
+    kind: enum
+    required: false
+    description: summary, table, or full. Defaults to summary for namespace-wide posture and table for repository subset mode.
+outputs:
+  - name: posture_verdict
+    kind: enum
+    required: true
+    description: HEALTHY, NEEDS_ATTENTION, HIGH_RISK, CRITICAL, or INSUFFICIENT_DATA.
+  - name: summary
+    kind: string
+    required: true
+    description: Compact explanation of scope, overall posture, top drivers, critical overrides, and data gaps.
+  - name: scope
+    kind: object
+    required: true
+    description: Namespace provenance, scope mode, GitHub org, repository URLs, project selectors, inventory source, and explicit exclusions.
+  - name: raw_counts
+    kind: object
+    required: true
+    description: Integer counts used by the deterministic scoring formula.
+  - name: dimension_scores
+    kind: object
+    required: true
+    description: Scores from 0 to 100 for branch_protection, workflow_hardening, action_pinning, permissions, runner_security, and endor_findings.
+  - name: score_validation
+    kind: object
+    required: true
+    description: Formula version, dimension weights, overall_score, verdict_band, and recomputation notes.
+  - name: critical_overrides
+    kind: list[object]
+    required: true
+    description: Override rows that force or justify CRITICAL or HIGH_RISK verdicts, including evidence references.
+  - name: endor_findings
+    kind: list[object]
+    required: true
+    description: Existing Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN finding rows used as posture evidence.
+  - name: github_evidence
+    kind: list[object]
+    required: true
+    description: Read-only GitHub evidence for branch protection/rulesets, CODEOWNERS, workflow files, action pinning, permissions, triggers, runners, and update automation.
+  - name: local_ci_evidence
+    kind: list[object]
+    required: true
+    description: Optional local CI file evidence used only as supporting context when available.
+  - name: recommended_actions
+    kind: list[object]
+    required: true
+    description: Prioritized human actions with owner role, evidence, expected impact, and confirmation_required true for any mutating follow-up.
+  - name: evidence_queries
+    kind: list[object]
+    required: true
+    description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
+  - name: data_gaps
+    kind: list[string]
+    required: true
+    description: Missing namespace, Endor category, GitHub permission, repository inventory, branch protection, workflow, runner, CODEOWNERS, update automation, or local CI evidence.
+evals: evals/cases.yaml
+compatible_hosts:
+  - claude-code
+  - claude-managed-agents
+  - codex
+  - gemini
+  - portable
+host_editions:
+  claude-code:
+    - enterprise-edition
+  claude-managed-agents:
+    - enterprise-edition
+  gemini:
+    - enterprise-edition
+mutations: []
+required_endor_mcp_tools: []
+endorctl_api_invocations:
+  - list_cicd_supply_chain_findings
+  - resolve_project_or_repository_selector
+  - list_endor_projects
+  - summarize_findings_by_category_and_severity
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ""
+requires_endorctl: ">=1.0"

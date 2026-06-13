@@ -17,7 +17,10 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 LEGACY_RAW_PROMPTS = ("system-prompt-standard.md", "system-prompt-extended.md")
@@ -215,15 +218,25 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         "affected signal in `data_gaps` and continue with the evidence it already",
         "gathered.",
     ])
-    if recipe.id == "probe-droid":
-        lines.extend([
-            "",
-            "Probe Droid also needs read-only GitHub.com inventory access when",
-            "the user asks it to compare GitHub repositories with Endor projects.",
-            "GitHub commands must list repositories or fetch specific manifest,",
-            "CI, or Endor setup files only; they must not clone repositories or",
-            "mutate GitHub settings.",
-        ])
+    if _uses_github_evidence(recipe):
+        if recipe.id == "probe-droid":
+            lines.extend([
+                "",
+                "Probe Droid also needs read-only GitHub.com inventory access when",
+                "the user asks it to compare GitHub repositories with Endor projects.",
+                "GitHub commands must list repositories or fetch specific manifest,",
+                "CI, or Endor setup files only; they must not clone repositories or",
+                "mutate GitHub settings.",
+            ])
+        else:
+            lines.extend([
+                "",
+                f"{recipe.name} also needs read-only GitHub.com evidence access when",
+                "the user asks it to compare repository configuration with Endor evidence.",
+                "GitHub commands must list repositories or fetch specific manifest,",
+                "CI, or Endor setup files only; they must not clone repositories or",
+                "mutate GitHub settings.",
+            ])
     elif recipe.id == "endor-troubleshooter":
         lines.extend([
             "",
@@ -234,3 +247,7 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "belongs in `future_action_contracts` for explicit follow-up approval.",
         ])
     return "\n".join(lines)
+
+
+def _uses_github_evidence(recipe: EndorAgentRecipe) -> bool:
+    return recipe.id in GITHUB_EVIDENCE_AGENT_IDS

@@ -19,7 +19,10 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
-from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.safety_posture import (
+    GITHUB_EVIDENCE_AGENT_IDS,
+    source_recipe_safety_posture,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 HOST = "claude-managed-agents"
@@ -160,7 +163,7 @@ def _managed_system(
         transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
     else:
         label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
-        if recipe.id == "probe-droid":
+        if _uses_github_evidence(recipe):
             transport = (
                 f"{label}. Use Bash only for the documented read-only `endorctl api` "
                 "lookups and GitHub.com inventory/file lookups in these instructions. "
@@ -275,12 +278,16 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
 
 def _allowed_hosts(recipe: EndorAgentRecipe) -> list[str]:
     hosts = ["https://api.endorlabs.com"]
-    if recipe.id == "probe-droid":
+    if _uses_github_evidence(recipe):
         hosts.extend([
             "https://api.github.com",
             "https://github.com",
         ])
     return hosts
+
+
+def _uses_github_evidence(recipe: EndorAgentRecipe) -> bool:
+    return recipe.id in GITHUB_EVIDENCE_AGENT_IDS
 
 
 def _session_template(recipe: EndorAgentRecipe) -> dict:

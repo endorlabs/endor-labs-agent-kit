@@ -50,6 +50,46 @@
         {
           "artifacts": [
             {
+              "bytes": 4710,
+              "path": "claude-code/cicd-posture/README.md",
+              "sha256": "24082a5aec0682c2b5e974038ac2069f4fd0b23557a642384735621bb12e7b31"
+            },
+            {
+              "bytes": 8281,
+              "path": "claude-code/cicd-posture/architecture.svg",
+              "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+            },
+            {
+              "bytes": 26661,
+              "path": "claude-code/cicd-posture/cicd-posture.md",
+              "sha256": "0475b97b6b171ded5d65163acb73b3b748257dcc33042424491be2c4460ecc72"
+            },
+            {
+              "bytes": 1867,
+              "path": "claude-code/cicd-posture/endorctl-setup.md",
+              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-code/cicd-posture",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-code",
+      "id": "cicd-posture",
+      "name": "CI/CD And Supply Chain Posture",
+      "source": {
+        "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 1689,
               "path": "claude-code/dependency-decision-helper/README.md",
               "sha256": "4deba009f1a57a564dfc6ed97ee9c6d1217cf3aad3dfdfb5e5256886f1d6a31b"
@@ -459,6 +499,56 @@
         "recipe_schema_version": 1
       },
       "version": "1.0.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 3209,
+              "path": "claude-managed-agents/cicd-posture/README.md",
+              "sha256": "41a6c2adc216cbc0e844bb5b975740e35e12a5ce00c1f8f644af1178622f6804"
+            },
+            {
+              "bytes": 27984,
+              "path": "claude-managed-agents/cicd-posture/agent.yaml",
+              "sha256": "c19c1bdb74b36ad1efcd9943654fdd8d35c2998945007505500c3ed43422ff11"
+            },
+            {
+              "bytes": 8281,
+              "path": "claude-managed-agents/cicd-posture/architecture.svg",
+              "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+            },
+            {
+              "bytes": 1867,
+              "path": "claude-managed-agents/cicd-posture/endorctl-setup.md",
+              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+            },
+            {
+              "bytes": 282,
+              "path": "claude-managed-agents/cicd-posture/environment.yaml",
+              "sha256": "6171838c16c7c56a6c7041aa54daeb66b5625c67e158dd5efc193e5fb1631001"
+            },
+            {
+              "bytes": 51,
+              "path": "claude-managed-agents/cicd-posture/session-template.yaml",
+              "sha256": "a8c802876a05c84101970bf28f3c1eb38824a90f74872df81a966e59df8f44b0"
+            }
+          ],
+          "id": "enterprise-edition",
+          "name": "Enterprise Edition",
+          "path": "claude-managed-agents/cicd-posture",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "claude-managed-agents",
+      "id": "cicd-posture",
+      "name": "CI/CD And Supply Chain Posture",
+      "source": {
+        "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
     },
     {
       "editions": [
@@ -890,6 +980,46 @@
         {
           "artifacts": [
             {
+              "bytes": 3842,
+              "path": "codex/cicd-posture/README.md",
+              "sha256": "7ac24898b1b6a11b97d6943d5ec42330f51e2d3442ff9929c8f85912265187ea"
+            },
+            {
+              "bytes": 27360,
+              "path": "codex/cicd-posture/SKILL.md",
+              "sha256": "c0b78c7881d33e56c3feb4394b274f043d39e6e1c3b2c637eb788fbe42cc56fd"
+            },
+            {
+              "bytes": 8281,
+              "path": "codex/cicd-posture/architecture.svg",
+              "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+            },
+            {
+              "bytes": 1867,
+              "path": "codex/cicd-posture/endorctl-setup.md",
+              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+            }
+          ],
+          "id": "codex-skill",
+          "name": "Codex Skill",
+          "path": "codex/cicd-posture",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "codex",
+      "id": "cicd-posture",
+      "name": "CI/CD And Supply Chain Posture",
+      "source": {
+        "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
+        "recipe_schema_version": 1
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
               "bytes": 3914,
               "path": "codex/endor-troubleshooter/README.md",
               "sha256": "2c838ee4569bda754d368659fa716843b8bac921e33b1ee76ba5e0e3b6242db4"
@@ -1137,6 +1267,51 @@
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 3812,
+              "path": "gemini/cicd-posture/README.md",
+              "sha256": "09dbc041bc44ba1070406f751b2ab8969006936fd225f65ddea035dcdb9df90b"
+            },
+            {
+              "bytes": 27389,
+              "path": "gemini/cicd-posture/SKILL.md",
+              "sha256": "8ec6f506bb9e75ec7c3c667852dc545e0cbf3820379071e249d6ddee91e89d4c"
+            },
+            {
+              "bytes": 8281,
+              "path": "gemini/cicd-posture/architecture.svg",
+              "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+            },
+            {
+              "bytes": 27666,
+              "path": "gemini/cicd-posture/cicd-posture.md",
+              "sha256": "1c32e865d09c54d0a9aac111aa809a0f3f47b768927de1d78702e759c361cbd1"
+            },
+            {
+              "bytes": 1867,
+              "path": "gemini/cicd-posture/endorctl-setup.md",
+              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+            }
+          ],
+          "id": "gemini-cli",
+          "name": "Gemini CLI Skill And Subagent",
+          "path": "gemini/cicd-posture",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "gemini",
+      "id": "cicd-posture",
+      "name": "CI/CD And Supply Chain Posture",
+      "source": {
+        "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
+        "recipe_schema_version": 1
       },
       "version": "0.1.0"
     },
@@ -1422,6 +1597,56 @@
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
+      },
+      "version": "0.1.0"
+    },
+    {
+      "editions": [
+        {
+          "artifacts": [
+            {
+              "bytes": 5595,
+              "path": "portable/cicd-posture/README.md",
+              "sha256": "daddeb63b860ff02226da685a2b3a1aea04e66f1c35f208a0ea888c1af5d2106"
+            },
+            {
+              "bytes": 13387,
+              "path": "portable/cicd-posture/agent.manifest.json",
+              "sha256": "c6066098fc6ca4612c2cb535a574b6b96fc0c3bd5700400eb9d6722faca9cff7"
+            },
+            {
+              "bytes": 23326,
+              "path": "portable/cicd-posture/agent.md",
+              "sha256": "300b932f3343eac2a6306b59d0116c7b4bbcafae5473776c8e7a4e1194a47688"
+            },
+            {
+              "bytes": 8281,
+              "path": "portable/cicd-posture/architecture.svg",
+              "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+            },
+            {
+              "bytes": 1867,
+              "path": "portable/cicd-posture/endorctl-setup.md",
+              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+            },
+            {
+              "bytes": 5726,
+              "path": "portable/cicd-posture/output-contract.md",
+              "sha256": "1b45eb203c98b4c9a83b6a47a747f0bdc29a85ea01e14e37a4158033d3662d33"
+            }
+          ],
+          "id": "portable-agent",
+          "name": "Portable Agent Bundle",
+          "path": "portable/cicd-posture",
+          "requires_endorctl": ">=1.0"
+        }
+      ],
+      "host": "portable",
+      "id": "cicd-posture",
+      "name": "CI/CD And Supply Chain Posture",
+      "source": {
+        "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
+        "recipe_schema_version": 1
       },
       "version": "0.1.0"
     },
@@ -1956,14 +2181,19 @@
     {
       "artifacts": [
         {
-          "bytes": 4585,
+          "bytes": 4674,
           "path": "plugins/antigravity/endor-labs-agent-kit/README.md",
-          "sha256": "1abba34e9e24a12a5ba84324db733d68faaebce7b49b0ec9b13620f7b8bdcf8b"
+          "sha256": "0f5871d25f86117b5bf0328181e7b5ad3ab3f1f81dca8f47a2b8390c3cae4101"
         },
         {
           "bytes": 28351,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/ai-sast-triage.md",
           "sha256": "75c18ab0e1508bf080ac09d1573eab5eb9d8574371b5df9c0315d3bf95fb3d99"
+        },
+        {
+          "bytes": 14027,
+          "path": "plugins/antigravity/endor-labs-agent-kit/agents/cicd-posture.md",
+          "sha256": "4015b4f859708d1dcdb9c504a26be095b0335494963283684f1946c3416f2938"
         },
         {
           "bytes": 21696,
@@ -2026,9 +2256,14 @@
           "sha256": "16c86bcea1f5a5ddf5152536fbec6a55d0700aedf3740b2918e17fdd8425fe08"
         },
         {
-          "bytes": 9404,
+          "bytes": 13745,
+          "path": "plugins/antigravity/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
+          "sha256": "6d553aa1b0990342107dadd094908312e796299d5d227ae010739eda3ad063d6"
+        },
+        {
+          "bytes": 9496,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "c7921b5981e576af66b97008004d0a2edc40f0cf006ab69fab8b52954bc8e5d5"
+          "sha256": "5ef0fbfd212dc702d034b912214cec2a328fdf3903bdb8215a5002e37dedacad"
         },
         {
           "bytes": 21436,
@@ -2065,6 +2300,7 @@
       "host": "antigravity",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "malware-response",
@@ -2083,14 +2319,19 @@
           "sha256": "76d4dd973a6fd8f28c28eed70f6f011c9f1111b5d8301b5d4cf5570553e06b2a"
         },
         {
-          "bytes": 5490,
+          "bytes": 5561,
           "path": "plugins/claude/ai-plugins/README.md",
-          "sha256": "3e064d99034a0cbfb8009c29448fddba245abc5b0777bf8cf8abaeac0b7ce077"
+          "sha256": "2b7671ae585c4fdc12b7e98b994f1b7ca11a9aeb5689bc450089f6fb75aca756"
         },
         {
           "bytes": 27359,
           "path": "plugins/claude/ai-plugins/agents/ai-sast-triage.md",
           "sha256": "5ca4a9ef07fb42c89febb18717a4144d441a8d90d64510e514c4ab433b5d18b4"
+        },
+        {
+          "bytes": 13123,
+          "path": "plugins/claude/ai-plugins/agents/cicd-posture.md",
+          "sha256": "2b3048643682f24f24c56b1bb5bf87320792c82931c1e3188692eaa497f07b41"
         },
         {
           "bytes": 11048,
@@ -2153,9 +2394,9 @@
           "sha256": "50f5b7b0f5e4bc1c3faa91578e08057f9142418c5693c6b6cf6fc7d506d24d56"
         },
         {
-          "bytes": 9984,
+          "bytes": 10062,
           "path": "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "c7708e2d84d74df36e91159e590f0b18ea214ceee0066b8b537e1cb3fb98ce27"
+          "sha256": "4f10783543518b47a4a30125436beb714429b3b122b653f8cf365d3cae45424e"
         },
         {
           "bytes": 1933,
@@ -2177,6 +2418,7 @@
       "host": "claude-code",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "dependency-decision-helper",
         "endor-troubleshooter",
         "findings-browser",
@@ -2202,14 +2444,19 @@
           "sha256": "207bdfa22a15e6d0fca1a6d0a9ce62adf4216feeed87e7ac16c38b7e79d2092d"
         },
         {
-          "bytes": 5509,
+          "bytes": 5580,
           "path": "plugins/claude/endor-labs-agent-kit/README.md",
-          "sha256": "b5b25a437de45f4ef9b5681c9c888c610cc5f1e23749e4d0962bae8ee19127fd"
+          "sha256": "0c04b4fdae212c0cbf77d56bc1e1b6a5caa545f5dd903ebca21b3efbe6c948e9"
         },
         {
           "bytes": 27359,
           "path": "plugins/claude/endor-labs-agent-kit/agents/ai-sast-triage.md",
           "sha256": "5ca4a9ef07fb42c89febb18717a4144d441a8d90d64510e514c4ab433b5d18b4"
+        },
+        {
+          "bytes": 13123,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/cicd-posture.md",
+          "sha256": "2b3048643682f24f24c56b1bb5bf87320792c82931c1e3188692eaa497f07b41"
         },
         {
           "bytes": 11048,
@@ -2292,9 +2539,9 @@
           "sha256": "cf0b22a7cdf01d9c3a6c93132f78cf1cffb14f1c26b0fa85c423c12b1267fbdd"
         },
         {
-          "bytes": 9948,
+          "bytes": 10026,
           "path": "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "c5b054b66dad7ef54d46cb09eae04f8211ac236b399f9e039881c0f698218396"
+          "sha256": "4910d33b6ceb9c928d0e9fdac4cfd57e5851ff27aaedfe6c010603a4d96734a3"
         },
         {
           "bytes": 1933,
@@ -2316,6 +2563,7 @@
       "host": "claude-code",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "dependency-decision-helper",
         "endor-troubleshooter",
         "findings-browser",
@@ -2341,19 +2589,24 @@
           "sha256": "7255e3ffd00eb50eed07cca357708abbeeb321717622c27863a291318c759371"
         },
         {
-          "bytes": 5057,
+          "bytes": 5157,
           "path": "plugins/codex/endor-labs-agent-kit/README.md",
-          "sha256": "edb7f113e860eae92826dd522e2f6a5d3f210e8627dd525415cfa92e54d6cf1d"
+          "sha256": "7e2d83e0edd9ee23d43b85bc764c92058c147cb2c430591c589d3fd02f4de3d6"
         },
         {
-          "bytes": 3915,
+          "bytes": 3917,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml",
-          "sha256": "800b5f6809a4f5f9ea00d9797239d344915019151d78206e52299c4654391677"
+          "sha256": "15b6d94331993076859c6e9e1d35aa0c3e824e33e025247654bb47a6ee6679d7"
         },
         {
           "bytes": 28033,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-ai-sast-triage-agent.toml",
           "sha256": "25ef3a69cddcf9137d20f49b55124e004730325c4d55f6b0e1132a261ca7d956"
+        },
+        {
+          "bytes": 13974,
+          "path": "plugins/codex/endor-labs-agent-kit/agents/endor-cicd-posture-agent.toml",
+          "sha256": "1b6fb9f701bac125703ca99089bb19a60ed2d680c70ac22ad5b496537c2c9519"
         },
         {
           "bytes": 11357,
@@ -2416,9 +2669,14 @@
           "sha256": "c8598c03b4dbd04b7cf82e9d0aca33cb0b02d8175cf83bdf6fb6671c2e8cef01"
         },
         {
-          "bytes": 9992,
+          "bytes": 13218,
+          "path": "plugins/codex/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
+          "sha256": "15b38e669bd6217cbedec8fb70b703c5f86709e296fa1aa3a93f66b7ec1c917d"
+        },
+        {
+          "bytes": 9969,
           "path": "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "bbee1b18b5829714ec283fedea54e82aecf36393964766986cfde8782a575679"
+          "sha256": "be0277520adf7546854bbfda2c34ac5227c45d46b3b7d0584088345baf10cfe3"
         },
         {
           "bytes": 20909,
@@ -2465,6 +2723,7 @@
       "host": "codex",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "malware-response",
@@ -2489,14 +2748,19 @@
           "sha256": "187a83753f2783145b25fe65113d0b30b490733c60a98c45ef9c007e3a24812c"
         },
         {
-          "bytes": 9008,
+          "bytes": 9111,
           "path": "agents/endor-agent-kit-setup-agent.md",
-          "sha256": "ef543d604cd93eb8dc2291e6fae3d339f895e8688adcc40dd815cb6e37886276"
+          "sha256": "39ae424839b4062b6f55722b5ccba048fd00ed9391cb2f8969fa52852050a333"
         },
         {
           "bytes": 28284,
           "path": "agents/endor-ai-sast-triage-agent.md",
           "sha256": "bc2f329b9aa4c0fb221ab76fd2b8ff2b60670c68ab74bdf718937328af454075"
+        },
+        {
+          "bytes": 13970,
+          "path": "agents/endor-cicd-posture-agent.md",
+          "sha256": "f87a1211021f75965ba679b314d1f1a83ab7ccf59144791bc06492612ba816ee"
         },
         {
           "bytes": 11397,
@@ -2564,9 +2828,19 @@
           "sha256": "43cee084b3fd84a06253bdcaf577f2db2f0f0b2a2edfcd48fb17c8a4d8348032"
         },
         {
-          "bytes": 8775,
+          "bytes": 13681,
+          "path": "skills/cicd-posture/SKILL.md",
+          "sha256": "c0ad7c400442b4b3182cd0c3ca3ce4a3b5745503707e62ed678590e7deea9dfd"
+        },
+        {
+          "bytes": 8281,
+          "path": "skills/cicd-posture/architecture.svg",
+          "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+        },
+        {
+          "bytes": 8841,
           "path": "skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "3d598e6e5ffef6b67408b7382b93d6f2f13a787ed927cfe68f8c8fd7dd9b1350"
+          "sha256": "0358c850a4899bd0b2b4705ba7aede583f197ab9d218d90e515a9e64cef063d7"
         },
         {
           "bytes": 21380,
@@ -2628,6 +2902,7 @@
       "host": "cursor",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "malware-response",
@@ -2642,19 +2917,19 @@
     {
       "artifacts": [
         {
-          "bytes": 5045,
+          "bytes": 5593,
           "path": "cursor-sdk/README.md",
-          "sha256": "d9ddcbfcb7ab75131e742903908b5df4e5c5280467fbc71c28cd355e2843bb8d"
+          "sha256": "e196a52a89f7fa6d288857a313ab8fa8e0cab91738139df115230ca3fcba0065"
         },
         {
-          "bytes": 5406,
+          "bytes": 6323,
           "path": "cursor-sdk/agent_definitions.json",
-          "sha256": "ed6cc82c40d97ed35d1a5a9b3fe52caf80a0cfc2e44120ef6f45766d21b10c8b"
+          "sha256": "648e3ff557c146a0f478921f622f5b3a3e0605bb873039ad2ac3c07f6ba82591"
         },
         {
-          "bytes": 8498,
+          "bytes": 8580,
           "path": "cursor-sdk/agents/endor-agent-kit-setup-agent.md",
-          "sha256": "6e0e6a4a39fd2ace07862acc61a4afd5618b6fdee1e3370bed7b62bcf358bb3d"
+          "sha256": "f9bfdbaa04b004283a19b22a0eb11b562cd0ddb96de66a374b35d4df0d9bf2e9"
         },
         {
           "bytes": 6454,
@@ -2670,6 +2945,16 @@
           "bytes": 27825,
           "path": "cursor-sdk/agents/endor-ai-sast-triage-agent.md",
           "sha256": "5af7c01d1d5ff288804c385dd4226ff9f68f3c79cdcaf19f3a051e6e63c1df98"
+        },
+        {
+          "bytes": 8281,
+          "path": "cursor-sdk/agents/endor-cicd-posture-agent.architecture.svg",
+          "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
+        },
+        {
+          "bytes": 13175,
+          "path": "cursor-sdk/agents/endor-cicd-posture-agent.md",
+          "sha256": "24057cde2ca89fc78aae8e2e5bf3d01553f6b85efe7c985aa9dc7e1be62a06a9"
         },
         {
           "bytes": 8271,
@@ -2741,6 +3026,7 @@
       "host": "cursor-sdk",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "malware-response",
@@ -2754,19 +3040,24 @@
     {
       "artifacts": [
         {
-          "bytes": 1028,
+          "bytes": 1123,
           "path": "plugins/gemini/endor-labs-agent-kit/GEMINI.md",
-          "sha256": "2af545c53c22556f12983d5a59341d7e51e30dec2a3f8d4d618c49c3c476876f"
+          "sha256": "9f997cadfa068b1d8ebe432e5c022e8394242875bdbed54296d33ced4ab3a995"
         },
         {
-          "bytes": 4633,
+          "bytes": 4722,
           "path": "plugins/gemini/endor-labs-agent-kit/README.md",
-          "sha256": "d563c3c633b8c5051934a34a57e620c9bbbe85a633ac341a918b1376b49e112b"
+          "sha256": "4534d4ff404a9e250790291966a5e196568813c28ecfdea27f06a086d21ab969"
         },
         {
           "bytes": 28052,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/ai-sast-triage.md",
           "sha256": "7b098042ff3175ece17090a056e71a16f8c0148daaa3dcaa15e30cf91ed275ed"
+        },
+        {
+          "bytes": 13728,
+          "path": "plugins/gemini/endor-labs-agent-kit/agents/cicd-posture.md",
+          "sha256": "5d1f26947fc9abbad938ddac14af732abc24e6997b723bbec1fd4093c8abdfa1"
         },
         {
           "bytes": 21397,
@@ -2829,9 +3120,14 @@
           "sha256": "574a25fda7cf90ac2f0587a30666c28e3e86402ee06a88a6b3819f691fa05a82"
         },
         {
-          "bytes": 9253,
+          "bytes": 13451,
+          "path": "plugins/gemini/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
+          "sha256": "338f509053d43c4f10ff2e2051cde5aefc05b36780450c3fb79efd76e584a9b0"
+        },
+        {
+          "bytes": 9345,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md",
-          "sha256": "07f9f823cb3ea51a6173ab0589ce5651fe0c918d00d0ca4ea663f4f0143fefc4"
+          "sha256": "48b322760ce8e3c7471439a24402b5aa6e2c705b8488c4116e9f70328371230d"
         },
         {
           "bytes": 21142,
@@ -2868,6 +3164,7 @@
       "host": "gemini",
       "included_agents": [
         "ai-sast-triage",
+        "cicd-posture",
         "endor-troubleshooter",
         "findings-browser",
         "malware-response",

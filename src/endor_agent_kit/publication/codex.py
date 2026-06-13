@@ -186,6 +186,8 @@ def codex_example_prompt(recipe: EndorAgentRecipe) -> str:
 
     if recipe.id == "ai-sast-triage":
         return "Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
+    if recipe.id == "cicd-posture":
+        return "Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score."
     if recipe.id == "probe-droid":
         return "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
     if recipe.id == "endor-troubleshooter":
@@ -241,6 +243,19 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "",
             "```text",
             "Use the probe-droid skill to compare these GitHub repositories with Endor namespace <namespace>: <owner/repo>, <owner/repo>. Report the top setup actions for missing package manager integrations, scan profile/toolchain gaps, dependency resolution blockers, reachability blockers, and GitHub App selection gaps.",
+            "```",
+            "",
+        ]
+    if recipe.id == "cicd-posture":
+        return [
+            "## Example Workflow",
+            "",
+            "```text",
+            "Use the cicd-posture skill to assess CI/CD and supply chain posture for Endor namespace <namespace> and GitHub org <org>. Include Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN findings, branch protection, CODEOWNERS, action pinning, permissions, risky triggers, self-hosted runners, update automation, deterministic scores, critical overrides, evidence_queries, and data_gaps. Do not run scans or mutate anything.",
+            "```",
+            "",
+            "```text",
+            "Use the cicd-posture skill for these repositories only: <owner/repo>, <owner/repo>. Compute raw_counts, dimension_scores, score_validation, and recommended human actions without editing workflows or branch protection.",
             "```",
             "",
         ]
@@ -300,7 +315,14 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
 def codex_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return Codex smoke test README content."""
 
-    if recipe.id not in {"ai-sast-triage", "probe-droid", "sca-remediation", "endor-troubleshooter", "findings-browser"}:
+    if recipe.id not in {
+        "ai-sast-triage",
+        "cicd-posture",
+        "endor-troubleshooter",
+        "findings-browser",
+        "probe-droid",
+        "sca-remediation",
+    }:
         return []
     return [
         "## QA Smoke Test",

@@ -241,6 +241,7 @@ def root_catalog_readme(
         "| --- | --- | --- | --- | --- | --- |",
         "| Set up this machine and self-check readiness | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Skill `endor-agent-kit-setup` | Agent `endor-agent-kit-setup-agent`, skill `endor-agent-kit-setup` |",
         "| Triage Endor AI SAST findings | Agent `ai-sast-triage` | Skill `ai-sast-triage`, custom agent `endor-ai-sast-triage-agent` | Skill/subagent `ai-sast-triage` | Skill/subagent `ai-sast-triage` | Agent `endor-ai-sast-triage-agent`, skill `ai-sast-triage` |",
+        "| Assess CI/CD and supply chain posture | Agent `cicd-posture` | Skill `cicd-posture`, custom agent `endor-cicd-posture-agent` | Skill/subagent `cicd-posture` | Skill/subagent `cicd-posture` | Agent `endor-cicd-posture-agent`, skill `cicd-posture` |",
         "| Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` | Skill/subagent `endor-troubleshooter` | Agent `endor-troubleshooter-agent`, skill `endor-troubleshooter` |",
         "| Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` | Skill/subagent `probe-droid` | Agent `endor-probe-droid-agent`, skill `probe-droid` |",
         "| Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` | Skill/subagent `sca-remediation` | Agent `endor-sca-remediation-agent`, skill `sca-remediation` |",
@@ -945,8 +946,10 @@ def _cursor_agent_name(agent_id: str) -> str:
 def _agent_summary(agent_id: str) -> str:
     summaries = {
         "ai-sast-triage": "Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests",
+        "cicd-posture": "Assess CI/CD and supply chain posture from existing Endor findings and read-only GitHub configuration evidence",
         "dependency-decision-helper": "Decide whether to add, upgrade to, or keep a specific package version",
         "endor-troubleshooter": "Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues",
+        "findings-browser": "Browse, filter, and summarize existing Endor findings with read-only namespace-scoped queries",
         "upgrade-impact-analysis": "Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context",
         "package-risk-summary": "Summarize the risk profile of a specific package version",
         "probe-droid": "Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup",
@@ -961,8 +964,10 @@ def _agent_summary(agent_id: str) -> str:
 def _agent_icon(agent_id: str) -> str:
     icons = {
         "ai-sast-triage": "🔎",
+        "cicd-posture": "🧭",
         "dependency-decision-helper": "⚖️",
         "endor-troubleshooter": "🧯",
+        "findings-browser": "🔍",
         "package-risk-summary": "📊",
         "probe-droid": "📡",
         "remediation-planner": "🗺️",
@@ -990,8 +995,10 @@ def _agent_safety(agent_id: str) -> str:
 def _agent_first_prompt(agent_id: str) -> str:
     prompts = {
         "ai-sast-triage": "Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.",
+        "cicd-posture": "Assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score.",
         "dependency-decision-helper": "Assess whether we should use npm lodash version 4.17.20. Keep it read-only.",
         "endor-troubleshooter": "Diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep it read-only.",
+        "findings-browser": "Show the critical and high reachable findings for namespace <namespace>. Keep it read-only.",
         "package-risk-summary": "Summarize npm lodash version 4.17.20 with verified Endor evidence. Keep it read-only.",
         "probe-droid": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep it read-only.",
         "remediation-planner": "Preview remediation options for this repository. Do not edit files or open a PR/MR.",
@@ -1006,8 +1013,10 @@ def _agent_first_prompt(agent_id: str) -> str:
 def _agent_example(agent_id: str) -> str:
     examples = {
         "ai-sast-triage": "@agent-ai-sast-triage triage AI SAST findings for this repository",
+        "cicd-posture": "@agent-cicd-posture assess CI/CD and supply chain posture for namespace <namespace>",
         "dependency-decision-helper": "@agent-dependency-decision-helper assess npm lodash version 4.17.20",
         "endor-troubleshooter": "@agent-endor-troubleshooter diagnose this Endor scan failure from redacted error text and read-only tenant evidence",
+        "findings-browser": "@agent-findings-browser show the critical and high reachable findings for namespace <namespace>",
         "upgrade-impact-analysis": "@agent-upgrade-impact-analysis show the safest upgrade path for repository <owner>/<repo> package lodash",
         "package-risk-summary": "@agent-package-risk-summary summarize npm lodash version 4.17.20",
         "probe-droid": "@agent-probe-droid probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions",
@@ -1034,7 +1043,9 @@ def _codex_install_commands(catalog: list[_AgentCatalogEntry]) -> list[str]:
 def _codex_invoke_prompts(catalog: list[_AgentCatalogEntry]) -> list[str]:
     prompts = {
         "ai-sast-triage": "Use the ai-sast-triage skill to triage AI SAST findings for this repository.",
+        "cicd-posture": "Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>.",
         "endor-troubleshooter": "Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence.",
+        "findings-browser": "Use the findings-browser skill to show the critical and high reachable findings for namespace <namespace>.",
         "probe-droid": "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.",
         "sca-remediation": "Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.",
     }

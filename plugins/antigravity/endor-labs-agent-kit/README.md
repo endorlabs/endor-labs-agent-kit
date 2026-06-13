@@ -62,6 +62,7 @@ package managers.
 | Job | Antigravity skill | Antigravity subagent | Safety |
 | --- | --- | --- | --- |
 | Triage AI SAST findings | `ai-sast-triage` | `@ai-sast-triage` | mutating, approval-gated |
+| Assess CI/CD and supply chain posture | `cicd-posture` | `@cicd-posture` | read-only |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `@endor-troubleshooter` | read-only |
 | Browse existing Endor findings | `findings-browser` | `@findings-browser` | read-only |
 | Malware Response | `malware-response` | `@malware-response` | read-only |
