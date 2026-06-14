@@ -14,11 +14,17 @@ Generated for the Endor Labs Agent Kit Cursor package.
 
 - `Triage AI SAST findings` -> skill `ai-sast-triage`
 - `Assess CI/CD and supply chain posture` -> skill `cicd-posture`
+- `Dependency Decision Helper` -> skill `dependency-decision-helper`
 - `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`
 - `Findings Browser` -> skill `findings-browser`
 - `Malware Response` -> skill `malware-response`
+- `Package Risk Summary` -> skill `package-risk-summary`
 - `Assess GitHub onboarding gaps` -> skill `probe-droid`
+- `Remediation Planner` -> skill `remediation-planner`
+- `Repository Dependency Reviewer` -> skill `repository-dependency-reviewer`
 - `Find safe SCA remediation paths` -> skill `sca-remediation`
+- `Upgrade Impact Analysis` -> skill `upgrade-impact-analysis`
+- `Vulnerability Explainer` -> skill `vulnerability-explainer`
 
 ## Cursor Package Install Notes
 

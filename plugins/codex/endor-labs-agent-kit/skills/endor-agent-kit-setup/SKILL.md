@@ -17,11 +17,17 @@ Generated for Endor Labs Agent Kit Codex plugin `endor-labs-agent-kit` v2.0.0.
 
 - `ai-sast-triage` -> `endor-ai-sast-triage-agent`
 - `cicd-posture` -> `endor-cicd-posture-agent`
+- `dependency-decision-helper` -> `endor-dependency-decision-helper-agent`
 - `endor-troubleshooter` -> `endor-troubleshooter-agent`
 - `findings-browser` -> `endor-findings-browser-agent`
 - `malware-response` -> `endor-malware-response-agent`
+- `package-risk-summary` -> `endor-package-risk-summary-agent`
 - `probe-droid` -> `endor-probe-droid-agent`
+- `remediation-planner` -> `endor-remediation-planner-agent`
+- `repository-dependency-reviewer` -> `endor-repository-dependency-reviewer-agent`
 - `sca-remediation` -> `endor-sca-remediation-agent`
+- `upgrade-impact-analysis` -> `endor-upgrade-impact-analysis-agent`
+- `vulnerability-explainer` -> `endor-vulnerability-explainer-agent`
 - `endor-agent-kit-setup` -> `endor-agent-kit-setup-agent`
 
 ## Codex Install Commands

@@ -72,11 +72,17 @@ package managers.
 | --- | --- | --- | --- |
 | Triage AI SAST findings | `ai-sast-triage` | `@ai-sast-triage` | mutating, approval-gated |
 | Assess CI/CD and supply chain posture | `cicd-posture` | `@cicd-posture` | read-only |
+| Dependency Decision Helper | `dependency-decision-helper` | `@dependency-decision-helper` | read-only |
 | Diagnose Endor setup and scan issues | `endor-troubleshooter` | `@endor-troubleshooter` | read-only |
 | Browse existing Endor findings | `findings-browser` | `@findings-browser` | read-only |
 | Malware Response | `malware-response` | `@malware-response` | read-only |
+| Package Risk Summary | `package-risk-summary` | `@package-risk-summary` | read-only |
 | Assess GitHub onboarding gaps | `probe-droid` | `@probe-droid` | read-only |
+| Remediation Planner | `remediation-planner` | `@remediation-planner` | read-only |
+| Repository Dependency Reviewer | `repository-dependency-reviewer` | `@repository-dependency-reviewer` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
+| Upgrade Impact Analysis | `upgrade-impact-analysis` | `@upgrade-impact-analysis` | read-only |
+| Vulnerability Explainer | `vulnerability-explainer` | `@vulnerability-explainer` | read-only |
 
 Mutating workflows keep file edits, branch pushes, PR/MR creation,
 comments, approval verification, and Endor policy writes behind separate

@@ -31,6 +31,16 @@
       "safety_class": "read-only"
     },
     {
+      "agent_name": "endor-dependency-decision-helper-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific package version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests 2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency verdict with evidence, conditions, alternatives, and any data gaps.",
+      "id": "dependency-decision-helper",
+      "prompt_file": "agents/endor-dependency-decision-helper-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the dependency-decision-helper workflow for this repository.",
+      "safety_class": "read-only"
+    },
+    {
       "agent_name": "endor-troubleshooter-agent",
       "default_model": "composer-2.5",
       "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs errors, warnings, missing integrations, scan failures, slow scans, or unhealthy configuration. Endor Troubleshooter gathers the smallest useful read-only Endor evidence, classifies the issue across scan, integration, authentication, dependency resolution, container, reachability, policy, and workflow lanes, then returns low-friction repair guidance without mutating Endor, source-provider, or repository state.",
@@ -61,6 +71,16 @@
       "safety_class": "read-only"
     },
     {
+      "agent_name": "endor-package-risk-summary-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user wants a concise risk profile for a specific package version without asking for a yes/no dependency decision. Examples: \"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for log4j-core 2.14.1\", \"What should I know about this package version before I review it?\" Returns an evidence-backed package risk summary with vulnerabilities, malware or typosquat signals, package scores, license notes, recommended next checks, and any data gaps.",
+      "id": "package-risk-summary",
+      "prompt_file": "agents/endor-package-risk-summary-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the package-risk-summary workflow for this repository.",
+      "safety_class": "read-only"
+    },
+    {
       "agent_name": "endor-probe-droid-agent",
       "default_model": "composer-2.5",
       "description": "Use this agent when the user wants to assess GitHub repository onboarding gaps for Endor Labs monitored-branch coverage. Probe Droid compares github.com organization or repository inventory with Endor project, GitHub App, package, scan, scan profile, package manager integration, dependency resolution, and reachability evidence, then returns human-readable setup actions without mutating source, GitHub, or Endor state.",
@@ -68,6 +88,26 @@
       "prompt_file": "agents/endor-probe-droid-agent.md",
       "readonly": true,
       "recommended_prompt": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
+      "safety_class": "read-only"
+    },
+    {
+      "agent_name": "endor-remediation-planner-agent",
+      "default_model": "composer-2.5",
+      "description": "Preview safe remediation options without opening PRs.",
+      "id": "remediation-planner",
+      "prompt_file": "agents/endor-remediation-planner-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the remediation-planner workflow for this repository.",
+      "safety_class": "read-only"
+    },
+    {
+      "agent_name": "endor-repository-dependency-reviewer-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent inside a source repository when the user wants a read-only dependency risk review based on local manifests. It inspects dependency files, resolves exact package coordinates when possible, checks those coordinates with Endor MCP tools, and reports risky dependencies, unresolved versions, recommended next checks, and data gaps.",
+      "id": "repository-dependency-reviewer",
+      "prompt_file": "agents/endor-repository-dependency-reviewer-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the repository-dependency-reviewer workflow for this repository.",
       "safety_class": "read-only"
     },
     {
@@ -79,6 +119,26 @@
       "readonly": false,
       "recommended_prompt": "Inspect this repository and prepare a remediation plan only. Do not edit files, create branches, push, open a PR/MR, create a ticket, or write Endor policy.",
       "safety_class": "mutating"
+    },
+    {
+      "agent_name": "endor-upgrade-impact-analysis-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis: safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact Analysis, breaking changes, manifest targeting, or whether a dependency upgrade should happen now. The artifact queries Endor's read-only VersionUpgrade workflow through documented Endor API or endorctl paths.",
+      "id": "upgrade-impact-analysis",
+      "prompt_file": "agents/endor-upgrade-impact-analysis-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the upgrade-impact-analysis workflow for this repository.",
+      "safety_class": "read-only"
+    },
+    {
+      "agent_name": "endor-vulnerability-explainer-agent",
+      "default_model": "composer-2.5",
+      "description": "Use this agent when the user asks what a specific vulnerability means and how to reason about it. Examples: \"Explain CVE-2021-44228\", \"What does CVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor vulnerability and tell me what to do next.\" Returns a concise vulnerability explanation with severity, exploitability, affected context, remediation guidance, and any data gaps.",
+      "id": "vulnerability-explainer",
+      "prompt_file": "agents/endor-vulnerability-explainer-agent.md",
+      "readonly": true,
+      "recommended_prompt": "Use the vulnerability-explainer workflow for this repository.",
+      "safety_class": "read-only"
     }
   ],
   "default_model": "composer-2.5",

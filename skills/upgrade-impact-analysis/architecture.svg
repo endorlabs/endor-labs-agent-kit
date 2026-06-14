@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Geist, sans-serif">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#0a3d2c" stop-opacity="0.48"/>
+      <stop offset="100%" stop-color="#000503" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlow2" cx="82%" cy="100%" r="65%">
+      <stop offset="0%" stop-color="#1a2f5e" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#000503" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d1518" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#0a1112" stop-opacity="0.97"/>
+    </linearGradient>
+    <linearGradient id="cardGlassActive" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0e2023" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#091517" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="hairline" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3fe1f3" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#3fe1f3" stop-opacity="0.64"/>
+      <stop offset="100%" stop-color="#3fe1f3" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hairlineGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f078" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#00f078" stop-opacity="0.64"/>
+      <stop offset="100%" stop-color="#00f078" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hairlinePurple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9f69f7" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#9f69f7" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#9f69f7" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.42"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3fe1f3"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#00f078"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9f69f7"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#000503"/>
+  <rect width="1280" height="720" fill="url(#bgGlow)"/>
+  <rect width="1280" height="720" fill="url(#bgGlow2)"/>
+
+  <g transform="translate(40, 34)">
+    <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">Upgrade Impact Analysis - Read-Only Agent</text>
+    <text x="0" y="53" font-size="13" fill="#9fb4be">Human project selector to VersionUpgrade evidence to recommendation</text>
+    <text x="0" y="75" font-size="11" fill="#7c93a0">Cursor can use local repository context. Claude Managed Agents need the session or user message to provide repository URL, owner/repo, or Endor project name.</text>
+  </g>
+
+  <g transform="translate(20, 146)">
+    <g filter="url(#cardShadow)">
+      <rect width="188" height="136" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="20" y="0" width="148" height="2" fill="url(#hairline)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">INPUT</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">User Selector</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">owner/repo or URL</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">package filter</text>
+    </g>
+    <line x1="200" y1="68" x2="242" y2="68" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+
+    <g transform="translate(258,0)" filter="url(#cardShadow)">
+      <rect width="188" height="136" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
+      <rect x="20" y="0" width="148" height="2" fill="url(#hairlineGreen)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">RESOLVE</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">Project</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">match repo metadata</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">disambiguate by name</text>
+    </g>
+    <line x1="458" y1="68" x2="500" y2="68" stroke="#00f078" stroke-width="1.4" marker-end="url(#arrowGreen)"/>
+
+    <g transform="translate(516,0)" filter="url(#cardShadow)">
+      <rect width="188" height="136" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="20" y="0" width="148" height="2" fill="url(#hairlinePurple)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.4">PLATFORM</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">VersionUpgrade</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">best upgrade list</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">finding fix map</text>
+    </g>
+    <line x1="716" y1="68" x2="758" y2="68" stroke="#9f69f7" stroke-width="1.4" marker-end="url(#arrowPurple)"/>
+
+    <g transform="translate(774,0)" filter="url(#cardShadow)">
+      <rect width="188" height="136" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="20" y="0" width="148" height="2" fill="url(#hairline)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">ANALYSIS</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">CIA And Risk</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">breaking changes</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">manifest targeting</text>
+    </g>
+    <line x1="974" y1="68" x2="1016" y2="68" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+
+    <g transform="translate(1032,0)" filter="url(#cardShadow)">
+      <rect width="188" height="136" rx="12" fill="url(#cardGlassActive)" stroke="#1f6540"/>
+      <rect x="20" y="0" width="148" height="2" fill="url(#hairlineGreen)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">OUTPUT</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">Recommendation</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">upgrade now/caution</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">defer/data gaps</text>
+    </g>
+  </g>
+
+  <g transform="translate(70, 350)">
+    <g filter="url(#cardShadow)">
+      <rect width="350" height="174" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="302" height="2" fill="url(#hairline)"/>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">CLAUDE CODE</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Local Context Available</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- can read git remote for this repository</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- uses read-only Endor API lookups</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- never edits files or opens PRs</text>
+    </g>
+
+    <g transform="translate(395,0)" filter="url(#cardShadow)">
+      <rect width="390" height="174" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
+      <rect x="24" y="0" width="342" height="2" fill="url(#hairlineGreen)"/>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.5">CLAUDE MANAGED AGENTS</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Session Context Required</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- use repo URL, owner/repo, or project name</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- UUID is optional fallback, not setup burden</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- ambiguous matches ask for human names</text>
+    </g>
+
+    <g transform="translate(830,0)" filter="url(#cardShadow)">
+      <rect width="350" height="174" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="302" height="2" fill="url(#hairlinePurple)"/>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.5">READ-ONLY SAFETY</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">No Runtime Mutation</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- no package installs or scans</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- no file edits or policies</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- missing data becomes data_gaps</text>
+    </g>
+  </g>
+
+  <g transform="translate(70, 585)">
+    <rect width="1140" height="78" rx="12" fill="#071012" stroke="#17323a"/>
+    <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
+    <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">INTERNAL QUERY SHAPE</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">The agent may still use spec.project_uuid in Endor API filters after resolving the project. The user-facing contract remains repository or project-name driven.</text>
+  </g>
+</svg>

@@ -109,16 +109,16 @@ The SDK package includes `cursor-sdk/agent_definitions.json`, generated prompt f
 | --- | --- | --- | --- | --- |
 | 🔎 AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `endor-ai-sast-triage-agent` | `approval-gated mutating` | `Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.` |
 | 🧭 CI/CD And Supply Chain Posture | Assess CI/CD and supply chain posture from existing Endor findings and read-only GitHub configuration evidence | `endor-cicd-posture-agent` | `read-only` | `Assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score.` |
-| ⚖️ Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `@agent-dependency-decision-helper` | `read-only` | `Assess whether we should use npm lodash version 4.17.20. Keep it read-only.` |
-| 📊 Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `@agent-package-risk-summary` | `read-only` | `Summarize npm lodash version 4.17.20 with verified Endor evidence. Keep it read-only.` |
-| 📚 Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `@agent-repository-dependency-reviewer` | `read-only` | `Review this repository's dependency manifests with read-only evidence only.` |
-| ⬆️ Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `@agent-upgrade-impact-analysis` | `read-only` | `Show the safest upgrade path for repository <owner>/<repo> package lodash. Keep it read-only.` |
-| 💬 Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `@agent-vulnerability-explainer` | `read-only` | `Explain CVE-2021-44228 using verified Endor evidence. Keep it read-only.` |
+| ⚖️ Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `endor-dependency-decision-helper-agent` | `read-only` | `Assess whether we should use npm lodash version 4.17.20. Keep it read-only.` |
+| 📊 Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `endor-package-risk-summary-agent` | `read-only` | `Summarize npm lodash version 4.17.20 with verified Endor evidence. Keep it read-only.` |
+| 📚 Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `endor-repository-dependency-reviewer-agent` | `read-only` | `Review this repository's dependency manifests with read-only evidence only.` |
+| ⬆️ Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `endor-upgrade-impact-analysis-agent` | `read-only` | `Show the safest upgrade path for repository <owner>/<repo> package lodash. Keep it read-only.` |
+| 💬 Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `endor-vulnerability-explainer-agent` | `read-only` | `Explain CVE-2021-44228 using verified Endor evidence. Keep it read-only.` |
 | 🧯 Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `endor-troubleshooter-agent` | `read-only` | `Diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep it read-only.` |
 | 🔍 Findings Browser | Browse, filter, and summarize existing Endor findings with read-only namespace-scoped queries | `endor-findings-browser-agent` | `read-only` | `Show the critical and high reachable findings for namespace <namespace>. Keep it read-only.` |
 | 🤖 Malware Response Agent | Use an Endor Labs workflow agent | `endor-malware-response-agent` | `read-only` | `Use the malware-response workflow. Keep it within its generated safety contract.` |
 | 📡 Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `endor-probe-droid-agent` | `read-only` | `Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep it read-only.` |
-| 🗺️ Remediation Planner | Preview safe dependency remediation options without opening PRs | `@agent-remediation-planner` | `read-only` | `Preview remediation options for this repository. Do not edit files or open a PR/MR.` |
+| 🗺️ Remediation Planner | Preview safe dependency remediation options without opening PRs | `endor-remediation-planner-agent` | `read-only` | `Preview remediation options for this repository. Do not edit files or open a PR/MR.` |
 | 🛠️ SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `endor-sca-remediation-agent` | `approval-gated mutating` | `Inspect this repository and prepare a remediation plan only. Do not edit files, create branches, push, open a PR/MR, create a ticket, or write Endor policy.` |
 
 ## 🧩 Capabilities And Skills
@@ -172,16 +172,16 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | AI SAST Triage | Triage Endor AI SAST findings, use exploit and remediation context, and open requested change requests | `claude-code/ai-sast-triage/` | - | `codex/ai-sast-triage/` | `gemini/ai-sast-triage/` | `agents/endor-ai-sast-triage-agent.md` + `skills/ai-sast-triage/` | `cursor-sdk/agents/endor-ai-sast-triage-agent.md` | `portable/ai-sast-triage/` |
 | CI/CD And Supply Chain Posture | Assess CI/CD and supply chain posture from existing Endor findings and read-only GitHub configuration evidence | `claude-code/cicd-posture/` | `claude-managed-agents/cicd-posture/` | `codex/cicd-posture/` | `gemini/cicd-posture/` | `agents/endor-cicd-posture-agent.md` + `skills/cicd-posture/` | `cursor-sdk/agents/endor-cicd-posture-agent.md` | `portable/cicd-posture/` |
-| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | - | - | - | - | `portable/dependency-decision-helper/` |
-| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | - | - | - | - | `portable/package-risk-summary/` |
-| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | - | - | - | - | `portable/repository-dependency-reviewer/` |
-| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | - | - | - | - | `portable/upgrade-impact-analysis/` |
-| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | - | - | - | - | `portable/vulnerability-explainer/` |
+| Dependency Decision Helper | Decide whether to add, upgrade to, or keep a specific package version | `claude-code/dependency-decision-helper/` | `claude-managed-agents/dependency-decision-helper/` | `codex/dependency-decision-helper/` | `gemini/dependency-decision-helper/` | `agents/endor-dependency-decision-helper-agent.md` + `skills/dependency-decision-helper/` | `cursor-sdk/agents/endor-dependency-decision-helper-agent.md` | `portable/dependency-decision-helper/` |
+| Endor Labs Package Risk Summary | Summarize the risk profile of a specific package version | `claude-code/package-risk-summary/` | `claude-managed-agents/package-risk-summary/` | `codex/package-risk-summary/` | `gemini/package-risk-summary/` | `agents/endor-package-risk-summary-agent.md` + `skills/package-risk-summary/` | `cursor-sdk/agents/endor-package-risk-summary-agent.md` | `portable/package-risk-summary/` |
+| Endor Labs Repository Dependency Reviewer | Review local dependency manifests with read-only file inspection and Endor evidence | `claude-code/repository-dependency-reviewer/` | - | `codex/repository-dependency-reviewer/` | `gemini/repository-dependency-reviewer/` | `agents/endor-repository-dependency-reviewer-agent.md` + `skills/repository-dependency-reviewer/` | `cursor-sdk/agents/endor-repository-dependency-reviewer-agent.md` | `portable/repository-dependency-reviewer/` |
+| Endor Labs Upgrade Impact Analysis | Analyze Endor platform upgrade impact with VersionUpgrade, CIA, findings, and manifest context | `claude-code/upgrade-impact-analysis/` | `claude-managed-agents/upgrade-impact-analysis/` | `codex/upgrade-impact-analysis/` | `gemini/upgrade-impact-analysis/` | `agents/endor-upgrade-impact-analysis-agent.md` + `skills/upgrade-impact-analysis/` | `cursor-sdk/agents/endor-upgrade-impact-analysis-agent.md` | `portable/upgrade-impact-analysis/` |
+| Endor Labs Vulnerability Explainer | Understand a specific CVE, GHSA, or Endor vulnerability and what to do next | `claude-code/vulnerability-explainer/` | `claude-managed-agents/vulnerability-explainer/` | `codex/vulnerability-explainer/` | `gemini/vulnerability-explainer/` | `agents/endor-vulnerability-explainer-agent.md` + `skills/vulnerability-explainer/` | `cursor-sdk/agents/endor-vulnerability-explainer-agent.md` | `portable/vulnerability-explainer/` |
 | Endor Troubleshooter | Diagnose Endor Labs errors, warnings, scan failures, slow scans, missing integrations, SSO, containers, policy, and reachability issues | `claude-code/endor-troubleshooter/` | `claude-managed-agents/endor-troubleshooter/` | `codex/endor-troubleshooter/` | `gemini/endor-troubleshooter/` | `agents/endor-troubleshooter-agent.md` + `skills/endor-troubleshooter/` | `cursor-sdk/agents/endor-troubleshooter-agent.md` | `portable/endor-troubleshooter/` |
 | Findings Browser | Browse, filter, and summarize existing Endor findings with read-only namespace-scoped queries | `claude-code/findings-browser/` | `claude-managed-agents/findings-browser/` | `codex/findings-browser/` | `gemini/findings-browser/` | `agents/endor-findings-browser-agent.md` + `skills/findings-browser/` | `cursor-sdk/agents/endor-findings-browser-agent.md` | `portable/findings-browser/` |
 | Malware Response Agent | Use an Endor Labs workflow agent | `claude-code/malware-response/` | `claude-managed-agents/malware-response/` | `codex/malware-response/` | `gemini/malware-response/` | `agents/endor-malware-response-agent.md` + `skills/malware-response/` | `cursor-sdk/agents/endor-malware-response-agent.md` | `portable/malware-response/` |
 | Probe Droid | Probe GitHub.com onboarding gaps and prescribe Endor scan profiles, toolchains, package integrations, and reachability setup | `claude-code/probe-droid/` | `claude-managed-agents/probe-droid/` | `codex/probe-droid/` | `gemini/probe-droid/` | `agents/endor-probe-droid-agent.md` + `skills/probe-droid/` | `cursor-sdk/agents/endor-probe-droid-agent.md` | `portable/probe-droid/` |
-| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | - | - | - | - | `portable/remediation-planner/` |
+| Remediation Planner | Preview safe dependency remediation options without opening PRs | `claude-code/remediation-planner/` | - | `codex/remediation-planner/` | `gemini/remediation-planner/` | `agents/endor-remediation-planner-agent.md` + `skills/remediation-planner/` | `cursor-sdk/agents/endor-remediation-planner-agent.md` | `portable/remediation-planner/` |
 | SCA Remediation | Remediate dependency vulnerabilities with Endor SCA findings, UIA evidence, low-risk PR lanes, deterministic risk decisions, validation, and approved PR/MR creation | `claude-code/sca-remediation/` | - | `codex/sca-remediation/` | `gemini/sca-remediation/` | `agents/endor-sca-remediation-agent.md` + `skills/sca-remediation/` | `cursor-sdk/agents/endor-sca-remediation-agent.md` | `portable/sca-remediation/` |
 
 ## 🗂️ Which Directory Do I Use?
@@ -452,6 +452,16 @@ cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-triage \
   "$HOME/.agents/skills/ai-sast-triage"
 cp -R /path/to/endor-labs-agent-kit/codex/cicd-posture \
   "$HOME/.agents/skills/cicd-posture"
+cp -R /path/to/endor-labs-agent-kit/codex/dependency-decision-helper \
+  "$HOME/.agents/skills/dependency-decision-helper"
+cp -R /path/to/endor-labs-agent-kit/codex/package-risk-summary \
+  "$HOME/.agents/skills/package-risk-summary"
+cp -R /path/to/endor-labs-agent-kit/codex/repository-dependency-reviewer \
+  "$HOME/.agents/skills/repository-dependency-reviewer"
+cp -R /path/to/endor-labs-agent-kit/codex/upgrade-impact-analysis \
+  "$HOME/.agents/skills/upgrade-impact-analysis"
+cp -R /path/to/endor-labs-agent-kit/codex/vulnerability-explainer \
+  "$HOME/.agents/skills/vulnerability-explainer"
 cp -R /path/to/endor-labs-agent-kit/codex/endor-troubleshooter \
   "$HOME/.agents/skills/endor-troubleshooter"
 cp -R /path/to/endor-labs-agent-kit/codex/findings-browser \
@@ -460,6 +470,8 @@ cp -R /path/to/endor-labs-agent-kit/codex/malware-response \
   "$HOME/.agents/skills/malware-response"
 cp -R /path/to/endor-labs-agent-kit/codex/probe-droid \
   "$HOME/.agents/skills/probe-droid"
+cp -R /path/to/endor-labs-agent-kit/codex/remediation-planner \
+  "$HOME/.agents/skills/remediation-planner"
 cp -R /path/to/endor-labs-agent-kit/codex/sca-remediation \
   "$HOME/.agents/skills/sca-remediation"
 ```
@@ -469,10 +481,16 @@ Then invoke it from Codex:
 ```text
 Use the ai-sast-triage skill to triage AI SAST findings for this repository.
 Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>.
+Use the dependency-decision-helper skill to help with this Endor Labs workflow.
+Use the package-risk-summary skill to help with this Endor Labs workflow.
+Use the repository-dependency-reviewer skill to help with this Endor Labs workflow.
+Use the upgrade-impact-analysis skill to help with this Endor Labs workflow.
+Use the vulnerability-explainer skill to help with this Endor Labs workflow.
 Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence.
 Use the findings-browser skill to show the critical and high reachable findings for namespace <namespace>.
 Use the malware-response skill to help with this Endor Labs workflow.
 Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions.
+Use the remediation-planner skill to help with this Endor Labs workflow.
 Use the sca-remediation skill to check this repository for P0 SCA findings I can start remediating.
 ```
 

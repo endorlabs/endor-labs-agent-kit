@@ -9,11 +9,17 @@ Generated for Cursor Python SDK automation.
 
 - `Triage AI SAST findings` -> SDK agent `endor-ai-sast-triage-agent`
 - `Assess CI/CD and supply chain posture` -> SDK agent `endor-cicd-posture-agent`
+- `Dependency Decision Helper` -> SDK agent `endor-dependency-decision-helper-agent`
 - `Diagnose Endor setup and scan issues` -> SDK agent `endor-troubleshooter-agent`
 - `Findings Browser` -> SDK agent `endor-findings-browser-agent`
 - `Malware Response` -> SDK agent `endor-malware-response-agent`
+- `Package Risk Summary` -> SDK agent `endor-package-risk-summary-agent`
 - `Assess GitHub onboarding gaps` -> SDK agent `endor-probe-droid-agent`
+- `Remediation Planner` -> SDK agent `endor-remediation-planner-agent`
+- `Repository Dependency Reviewer` -> SDK agent `endor-repository-dependency-reviewer-agent`
 - `Find safe SCA remediation paths` -> SDK agent `endor-sca-remediation-agent`
+- `Upgrade Impact Analysis` -> SDK agent `endor-upgrade-impact-analysis-agent`
+- `Vulnerability Explainer` -> SDK agent `endor-vulnerability-explainer-agent`
 
 ## Cursor SDK Host Contract
 

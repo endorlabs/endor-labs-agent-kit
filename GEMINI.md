@@ -22,11 +22,17 @@ User jobs mapped to root skills:
 
 - Triage AI SAST findings: use skill `ai-sast-triage`.
 - Assess CI/CD and supply chain posture: use skill `cicd-posture`.
+- Dependency Decision Helper: use skill `dependency-decision-helper`.
 - Diagnose Endor setup and scan issues: use skill `endor-troubleshooter`.
 - Browse existing Endor findings: use skill `findings-browser`.
 - Malware Response: use skill `malware-response`.
+- Package Risk Summary: use skill `package-risk-summary`.
 - Assess GitHub onboarding gaps: use skill `probe-droid`.
+- Remediation Planner: use skill `remediation-planner`.
+- Repository Dependency Reviewer: use skill `repository-dependency-reviewer`.
 - Find safe SCA remediation paths: use skill `sca-remediation`.
+- Upgrade Impact Analysis: use skill `upgrade-impact-analysis`.
+- Vulnerability Explainer: use skill `vulnerability-explainer`.
 
 Setup must not run scans, run `endorctl host-check`, edit shell profiles,
 auto-install `gh`, install language tooling, collect/write API secrets, or

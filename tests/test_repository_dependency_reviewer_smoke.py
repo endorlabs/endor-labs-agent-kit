@@ -74,7 +74,7 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
         assert "must be exactly one parseable JSON\n  object" in body
 
 
-def test_repository_dependency_reviewer_publish_writes_claude_code_and_portable(tmp_path):
+def test_repository_dependency_reviewer_publish_writes_claude_code_codex_and_portable(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
 
@@ -89,9 +89,22 @@ def test_repository_dependency_reviewer_publish_writes_claude_code_and_portable(
         dest / "portable" / "repository-dependency-reviewer",
         {"README.md", "agent.md", "agent.manifest.json", "output-contract.md"},
     )
+    assert_host_bundle_files(
+        dest / "codex" / "repository-dependency-reviewer",
+        {"README.md", "SKILL.md"},
+    )
+    assert_host_bundle_files(
+        dest / "gemini" / "repository-dependency-reviewer",
+        {"README.md", "SKILL.md", "repository-dependency-reviewer.md"},
+    )
     assert written_paths == {
         "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
         "claude-code/repository-dependency-reviewer/README.md",
+        "codex/repository-dependency-reviewer/README.md",
+        "codex/repository-dependency-reviewer/SKILL.md",
+        "gemini/repository-dependency-reviewer/README.md",
+        "gemini/repository-dependency-reviewer/SKILL.md",
+        "gemini/repository-dependency-reviewer/repository-dependency-reviewer.md",
         "portable/repository-dependency-reviewer/README.md",
         "portable/repository-dependency-reviewer/agent.md",
         "portable/repository-dependency-reviewer/agent.manifest.json",
@@ -100,7 +113,6 @@ def test_repository_dependency_reviewer_publish_writes_claude_code_and_portable(
         "README.md",
     }
     assert not (dest / "claude-managed-agents" / "repository-dependency-reviewer").exists()
-    assert not (dest / "codex" / "repository-dependency-reviewer").exists()
     assert (
         "Review local dependency manifests with read-only file inspection and Endor evidence"
         in (dest / "README.md").read_text()
@@ -114,6 +126,8 @@ def test_repository_dependency_reviewer_publish_writes_claude_code_and_portable(
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "repository-dependency-reviewer"),
+        ("codex", "repository-dependency-reviewer"),
+        ("gemini", "repository-dependency-reviewer"),
         ("portable", "repository-dependency-reviewer"),
     ]
 

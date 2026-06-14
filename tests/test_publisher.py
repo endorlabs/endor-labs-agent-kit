@@ -54,6 +54,29 @@ def _managed_agent_paths(agent_id: str, *, has_setup: bool) -> set[str]:
     return paths
 
 
+def _codex_paths(agent_id: str, *, has_setup: bool) -> set[str]:
+    paths = {
+        f"codex/{agent_id}/README.md",
+        f"codex/{agent_id}/SKILL.md",
+    }
+    if has_setup:
+        paths.add(f"codex/{agent_id}/endorctl-setup.md")
+    return paths
+
+
+def _gemini_paths(agent_id: str, *, has_setup: bool, has_architecture: bool = False) -> set[str]:
+    paths = {
+        f"gemini/{agent_id}/README.md",
+        f"gemini/{agent_id}/SKILL.md",
+        f"gemini/{agent_id}/{agent_id}.md",
+    }
+    if has_setup:
+        paths.add(f"gemini/{agent_id}/endorctl-setup.md")
+    if has_architecture:
+        paths.add(f"gemini/{agent_id}/architecture.svg")
+    return paths
+
+
 def _portable_paths(
     agent_id: str,
     *,
@@ -86,6 +109,8 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert written_paths == (
         _claude_code_paths("dependency-decision-helper", has_setup=True)
         | _managed_agent_paths("dependency-decision-helper", has_setup=True)
+        | _codex_paths("dependency-decision-helper", has_setup=True)
+        | _gemini_paths("dependency-decision-helper", has_setup=True)
         | _portable_paths("dependency-decision-helper", has_setup=True)
         | {"manifest.json", "README.md"}
     )
@@ -104,7 +129,15 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
     assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
     assert "endorctl api list" in artifact
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_path, monkeypatch):
@@ -184,7 +217,10 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
         "claude-managed-agents/vulnerability-explainer/session-template.yaml",
         "manifest.json",
         "README.md",
-    } | _portable_paths("vulnerability-explainer", has_setup=False)
+    } | _codex_paths("vulnerability-explainer", has_setup=False) | _gemini_paths(
+        "vulnerability-explainer",
+        has_setup=False,
+    ) | _portable_paths("vulnerability-explainer", has_setup=False)
     artifact = (dest / "claude-code" / "vulnerability-explainer" / "vulnerability-explainer.md").read_text()
     readme = (dest / "claude-code" / "vulnerability-explainer" / "README.md").read_text()
     assert "disallowedTools: Bash" in artifact
@@ -197,7 +233,15 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
         / "vulnerability-explainer"
         / "endorctl-setup.md"
     ).exists()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
@@ -215,7 +259,15 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
     assert "QuerySimilarPackages" in enterprise
     assert "summarize npm lodash version 4.17.20" in enterprise_readme
     assert (dest / "claude-code" / "package-risk-summary" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
@@ -251,7 +303,15 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
     assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "architecture.svg").is_file()
     assert (dest / "claude-code" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
     assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
@@ -266,6 +326,8 @@ def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-managed-agents", "dependency-decision-helper"),
+        ("codex", "dependency-decision-helper"),
+        ("gemini", "dependency-decision-helper"),
         ("portable", "dependency-decision-helper"),
     ]
     agent = manifest["agents"][0]
@@ -321,6 +383,8 @@ def test_publish_recipe_is_idempotent_and_preserves_other_manifest_agents(tmp_pa
         ("claude-code", "dependency-decision-helper"),
         ("claude-code", "other-agent"),
         ("claude-managed-agents", "dependency-decision-helper"),
+        ("codex", "dependency-decision-helper"),
+        ("gemini", "dependency-decision-helper"),
         ("portable", "dependency-decision-helper"),
     ]
 
@@ -354,6 +418,8 @@ def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
         ("claude-code", "dependency-decision-helper"),
         ("claude-managed-agents", "dependency-decision-helper"),
+        ("codex", "dependency-decision-helper"),
+        ("gemini", "dependency-decision-helper"),
         ("portable", "dependency-decision-helper"),
     ]
     assert "dependency-upgrade-advisor" not in (dest / "README.md").read_text()
@@ -381,6 +447,14 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         ("claude-managed-agents", "package-risk-summary"),
         ("claude-managed-agents", "upgrade-impact-analysis"),
         ("claude-managed-agents", "vulnerability-explainer"),
+        ("codex", "dependency-decision-helper"),
+        ("codex", "package-risk-summary"),
+        ("codex", "upgrade-impact-analysis"),
+        ("codex", "vulnerability-explainer"),
+        ("gemini", "dependency-decision-helper"),
+        ("gemini", "package-risk-summary"),
+        ("gemini", "upgrade-impact-analysis"),
+        ("gemini", "vulnerability-explainer"),
         ("portable", "dependency-decision-helper"),
         ("portable", "package-risk-summary"),
         ("portable", "upgrade-impact-analysis"),
@@ -407,7 +481,15 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         "README.md",
         "vulnerability-explainer.md",
     }
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
@@ -423,7 +505,15 @@ def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
     assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
     assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
     assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_cli_publish_writes_distribution(tmp_path, capsys):
@@ -438,7 +528,15 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert (dest / "manifest.json").is_file()
     assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
     assert (dest / "portable" / "dependency-decision-helper" / "agent.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {"README.md", "claude-code", "claude-managed-agents", "manifest.json", "portable"}
+    assert {path.name for path in dest.iterdir()} == {
+        "README.md",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "gemini",
+        "manifest.json",
+        "portable",
+    }
 
 
 def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_path):
@@ -459,15 +557,31 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     codex_agent_ids = (
         "ai-sast-triage",
         "cicd-posture",
+        "dependency-decision-helper",
         "endor-troubleshooter",
         "findings-browser",
+        "package-risk-summary",
         "probe-droid",
+        "remediation-planner",
+        "repository-dependency-reviewer",
         "sca-remediation",
+        "upgrade-impact-analysis",
+        "vulnerability-explainer",
     )
     gemini_agent_ids = codex_agent_ids
     antigravity_agent_ids = gemini_agent_ids
     cursor_agent_ids = codex_agent_ids
     cursor_sdk_agent_ids = cursor_agent_ids
+    cursor_architecture_agent_ids = {
+        "ai-sast-triage",
+        "cicd-posture",
+        "endor-troubleshooter",
+        "findings-browser",
+        "probe-droid",
+        "remediation-planner",
+        "sca-remediation",
+        "upgrade-impact-analysis",
+    }
     recipes = [
         _copy_agent(tmp_path / agent_id, agent_id)
         for agent_id in claude_agent_ids
@@ -566,7 +680,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         assert f"plugins/antigravity/endor-labs-agent-kit/agents/{agent_id}.md" in written_paths
     for agent_id in cursor_agent_ids:
         assert f"skills/{agent_id}/SKILL.md" in written_paths
-        assert f"skills/{agent_id}/architecture.svg" in written_paths
+        if agent_id in cursor_architecture_agent_ids:
+            assert f"skills/{agent_id}/architecture.svg" in written_paths
         cursor_agent_name = (
             f"{agent_id}-agent"
             if agent_id.startswith("endor-")
@@ -1384,6 +1499,16 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         ("claude-managed-agents", "package-risk-summary"),
         ("claude-managed-agents", "upgrade-impact-analysis"),
         ("claude-managed-agents", "vulnerability-explainer"),
+        ("codex", "dependency-decision-helper"),
+        ("codex", "package-risk-summary"),
+        ("codex", "repository-dependency-reviewer"),
+        ("codex", "upgrade-impact-analysis"),
+        ("codex", "vulnerability-explainer"),
+        ("gemini", "dependency-decision-helper"),
+        ("gemini", "package-risk-summary"),
+        ("gemini", "repository-dependency-reviewer"),
+        ("gemini", "upgrade-impact-analysis"),
+        ("gemini", "vulnerability-explainer"),
         ("portable", "dependency-decision-helper"),
         ("portable", "package-risk-summary"),
         ("portable", "repository-dependency-reviewer"),
