@@ -11,11 +11,17 @@ Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 
 - `Triage AI SAST findings` -> skill `ai-sast-triage`, subagent `@ai-sast-triage`
 - `Assess CI/CD and supply chain posture` -> skill `cicd-posture`, subagent `@cicd-posture`
+- `Dependency Decision Helper` -> skill `dependency-decision-helper`, subagent `@dependency-decision-helper`
 - `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`, subagent `@endor-troubleshooter`
 - `Browse existing Endor findings` -> skill `findings-browser`, subagent `@findings-browser`
 - `Malware Response` -> skill `malware-response`, subagent `@malware-response`
+- `Package Risk Summary` -> skill `package-risk-summary`, subagent `@package-risk-summary`
 - `Assess GitHub onboarding gaps` -> skill `probe-droid`, subagent `@probe-droid`
+- `Remediation Planner` -> skill `remediation-planner`, subagent `@remediation-planner`
+- `Repository Dependency Reviewer` -> skill `repository-dependency-reviewer`, subagent `@repository-dependency-reviewer`
 - `Find safe SCA remediation paths` -> skill `sca-remediation`, subagent `@sca-remediation`
+- `Upgrade Impact Analysis` -> skill `upgrade-impact-analysis`, subagent `@upgrade-impact-analysis`
+- `Vulnerability Explainer` -> skill `vulnerability-explainer`, subagent `@vulnerability-explainer`
 
 ## Antigravity CLI Plugin Commands
 

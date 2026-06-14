@@ -16,11 +16,17 @@ Generated for the Endor Labs Agent Kit Cursor plugin agent package.
 
 - `Triage AI SAST findings` -> agent `endor-ai-sast-triage-agent` and skill `ai-sast-triage`
 - `Assess CI/CD and supply chain posture` -> agent `endor-cicd-posture-agent` and skill `cicd-posture`
+- `Dependency Decision Helper` -> agent `endor-dependency-decision-helper-agent` and skill `dependency-decision-helper`
 - `Diagnose Endor setup and scan issues` -> agent `endor-troubleshooter-agent` and skill `endor-troubleshooter`
 - `Findings Browser` -> agent `endor-findings-browser-agent` and skill `findings-browser`
 - `Malware Response` -> agent `endor-malware-response-agent` and skill `malware-response`
+- `Package Risk Summary` -> agent `endor-package-risk-summary-agent` and skill `package-risk-summary`
 - `Assess GitHub onboarding gaps` -> agent `endor-probe-droid-agent` and skill `probe-droid`
+- `Remediation Planner` -> agent `endor-remediation-planner-agent` and skill `remediation-planner`
+- `Repository Dependency Reviewer` -> agent `endor-repository-dependency-reviewer-agent` and skill `repository-dependency-reviewer`
 - `Find safe SCA remediation paths` -> agent `endor-sca-remediation-agent` and skill `sca-remediation`
+- `Upgrade Impact Analysis` -> agent `endor-upgrade-impact-analysis-agent` and skill `upgrade-impact-analysis`
+- `Vulnerability Explainer` -> agent `endor-vulnerability-explainer-agent` and skill `vulnerability-explainer`
 
 ## Cursor Plugin Install Notes
 

@@ -413,7 +413,11 @@ def _plugin_prompt_files(root: Path) -> list[Path]:
 def _prompt_budget(relative_path: str) -> int:
     agent_id = _agent_id_from_prompt_path(relative_path)
     if agent_id == "endor-agent-kit-setup":
-        return 10_000
+        return 11_000
+    if agent_id in {"repository-dependency-reviewer", "upgrade-impact-analysis"}:
+        return 14_000
+    if agent_id in {"dependency-decision-helper", "package-risk-summary"}:
+        return 13_000
     if agent_id in {"cicd-posture", "endor-troubleshooter", "probe-droid"}:
         return 25_000
     if agent_id in {"sca-remediation", "ai-sast-triage"}:

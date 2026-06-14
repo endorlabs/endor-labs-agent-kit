@@ -66,6 +66,8 @@ evals: evals/cases.yaml
 compatible_hosts:
   - claude-code
   - claude-managed-agents
+  - codex
+  - gemini
   - portable
 host_editions:
   claude-code:

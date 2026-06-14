@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 700" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Geist, sans-serif">
+  <defs>
+    <radialGradient id="bgGlow" cx="50%" cy="0%" r="80%">
+      <stop offset="0%" stop-color="#0a3d2c" stop-opacity="0.48"/>
+      <stop offset="100%" stop-color="#000503" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="bgGlow2" cx="82%" cy="100%" r="65%">
+      <stop offset="0%" stop-color="#1a2f5e" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#000503" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="cardGlass" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d1518" stop-opacity="0.94"/>
+      <stop offset="100%" stop-color="#0a1112" stop-opacity="0.97"/>
+    </linearGradient>
+    <linearGradient id="cardGlassActive" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0e2023" stop-opacity="0.96"/>
+      <stop offset="100%" stop-color="#091517" stop-opacity="0.98"/>
+    </linearGradient>
+    <linearGradient id="hairline" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3fe1f3" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#3fe1f3" stop-opacity="0.64"/>
+      <stop offset="100%" stop-color="#3fe1f3" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hairlineGreen" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f078" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#00f078" stop-opacity="0.64"/>
+      <stop offset="100%" stop-color="#00f078" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="hairlinePurple" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#9f69f7" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#9f69f7" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#9f69f7" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6"/>
+      <feOffset dx="0" dy="4"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.42"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3fe1f3"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#00f078"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9f69f7"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="700" fill="#000503"/>
+  <rect width="1280" height="700" fill="url(#bgGlow)"/>
+  <rect width="1280" height="700" fill="url(#bgGlow2)"/>
+
+  <g transform="translate(40, 34)">
+    <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">Remediation Planner - Dry-Run Agent</text>
+    <text x="0" y="53" font-size="13" fill="#9fb4be">Project context to Endor remediation evidence to safe plan preview</text>
+    <text x="0" y="75" font-size="11" fill="#7c93a0">This portable agent preserves planning behavior. It does not include queue dispatch, file mutation, branch pushes, or change-request creation.</text>
+  </g>
+
+  <g transform="translate(40, 148)">
+    <g filter="url(#cardShadow)">
+      <rect width="200" height="136" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="20" y="0" width="160" height="2" fill="url(#hairline)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">INPUT</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">Project Context</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">repo, project, package</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">or finding selector</text>
+    </g>
+    <line x1="212" y1="68" x2="260" y2="68" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+
+    <g transform="translate(278,0)" filter="url(#cardShadow)">
+      <rect width="200" height="136" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
+      <rect x="20" y="0" width="160" height="2" fill="url(#hairlineGreen)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">RESOLVE</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">Endor Project</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">human selector first</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">UUID fallback only</text>
+    </g>
+    <line x1="490" y1="68" x2="538" y2="68" stroke="#00f078" stroke-width="1.4" marker-end="url(#arrowGreen)"/>
+
+    <g transform="translate(556,0)" filter="url(#cardShadow)">
+      <rect width="200" height="136" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="20" y="0" width="160" height="2" fill="url(#hairlinePurple)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.4">EVIDENCE</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">Upgrade Data</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">VersionUpgrade</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">finding fix options</text>
+    </g>
+    <line x1="768" y1="68" x2="816" y2="68" stroke="#9f69f7" stroke-width="1.4" marker-end="url(#arrowPurple)"/>
+
+    <g transform="translate(834,0)" filter="url(#cardShadow)">
+      <rect width="200" height="136" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="20" y="0" width="160" height="2" fill="url(#hairline)"/>
+      <text x="20" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">PLAN</text>
+      <text x="20" y="62" font-size="18" font-weight="700" fill="#e5f6f7">Dry-Run Path</text>
+      <text x="20" y="88" font-size="12" fill="#9fb4be">selected option</text>
+      <text x="20" y="108" font-size="12" fill="#9fb4be">alternatives and risks</text>
+    </g>
+    <line x1="1046" y1="68" x2="1062" y2="68" stroke="#3fe1f3" stroke-width="1.4" marker-end="url(#arrowCyan)"/>
+
+    <g transform="translate(1074,0)" filter="url(#cardShadow)">
+      <rect width="126" height="136" rx="12" fill="url(#cardGlassActive)" stroke="#1f6540"/>
+      <rect x="18" y="0" width="90" height="2" fill="url(#hairlineGreen)"/>
+      <text x="18" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">RESULT</text>
+      <text x="18" y="62" font-size="15" font-weight="700" fill="#e5f6f7">Plan</text>
+      <text x="18" y="82" font-size="15" font-weight="700" fill="#e5f6f7">Preview</text>
+      <text x="18" y="108" font-size="12" fill="#9fb4be">no PR/MR</text>
+    </g>
+  </g>
+
+  <g transform="translate(70, 342)">
+    <g filter="url(#cardShadow)">
+      <rect width="350" height="170" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="302" height="2" fill="url(#hairline)"/>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">PROJECT CONTEXT</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Low-Friction Selector</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- "this repository" in Cursor</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- owner/repo, URL, or project name elsewhere</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- project UUID only as last-resort fallback</text>
+    </g>
+
+    <g transform="translate(395,0)" filter="url(#cardShadow)">
+      <rect width="390" height="170" rx="12" fill="url(#cardGlassActive)" stroke="#1c5360"/>
+      <rect x="24" y="0" width="342" height="2" fill="url(#hairlineGreen)"/>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.5">RUNTIME BOUNDARY</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Preview Preserved</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- uses Endor remediation evidence</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- reports missing source or account signals</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- does not emulate background worker dispatch</text>
+    </g>
+
+    <g transform="translate(830,0)" filter="url(#cardShadow)">
+      <rect width="350" height="170" rx="12" fill="url(#cardGlass)" stroke="#17323a"/>
+      <rect x="24" y="0" width="302" height="2" fill="url(#hairlinePurple)"/>
+      <text x="24" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.5">SAFETY RULES</text>
+      <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Dry Run Means Dry Run</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- no file edits or dependency updates</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- no branch pushes or PR/MR creation</text>
+      <text x="24" y="142" font-size="12" fill="#9fb4be">- output is concise prose plus JSON</text>
+    </g>
+  </g>
+
+  <g transform="translate(70, 575)">
+    <rect width="1140" height="78" rx="12" fill="#071012" stroke="#17323a"/>
+    <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
+    <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">PUBLISHED CONTRACT</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">The public artifact is an Endor remediation planning agent. Future plugins can add adapters for branch or PR creation, but this artifact intentionally stops at the plan.</text>
+  </g>
+</svg>

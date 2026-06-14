@@ -169,6 +169,55 @@ def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():
     assert validate_sca_gate_payload(_valid_netty_payload()) == []
 
 
+def test_sca_gate_validator_accepts_unresolved_project_without_candidate():
+    payload = {
+        "summary": "Selection-plan gate blocked because no Endor project matched the repository.",
+        "remediation_candidates": [],
+        "project_resolution": {
+            "status": "lookup_unavailable",
+            "project_uuid": None,
+            "namespace": "auri",
+            "namespace_provenance": "current request",
+            "repo_full_name": "endor-matt/ktor",
+            "traverse_attempted": True,
+        },
+        "evidence_queries": [
+            {
+                "name": "project-lookup-traverse-fallback",
+                "resource": "Project",
+                "source": "endorctl_api",
+                "status": "succeeded",
+                "query_template_id": "project-by-repository",
+                "filter_summary": "namespace=auri with child namespace traversal",
+                "field_mask_summary": "uuid, meta.name, tenant_meta.namespace, spec.git",
+                "result_count": 0,
+                "reason": "No matching Project resources were returned.",
+            }
+        ],
+        "selected_remediation": {
+            "package": None,
+            "from_version": None,
+            "to_version": None,
+            "branch_name": None,
+            "manifest_files": [],
+            "version_upgrade_uuid": None,
+        },
+        "uia_evidence": [],
+        "risk_decision": {
+            "status": "blocked_needs_compatibility_analysis",
+            "source_usage_summary": "Not assessed because no UIA-backed package candidate was selected.",
+            "validation_requirements": [],
+            "reason": "Cannot select a remediation without resolved project scope.",
+        },
+        "patch_plan": [],
+        "validation": [],
+        "change_requests": [],
+        "data_gaps": ["project_uuid_unavailable"],
+    }
+
+    assert validate_sca_gate_payload(payload) == []
+
+
 def test_sca_gate_validator_ignores_runtime_base_branch_metadata():
     payload = _valid_netty_payload()
     payload["runtime_qa"] = {"branch": "main"}

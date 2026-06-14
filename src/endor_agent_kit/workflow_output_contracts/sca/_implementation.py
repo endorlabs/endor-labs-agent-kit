@@ -86,10 +86,14 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
         or selected.get("namespace_provenance")
     )
     project_status = _text(project_resolution.get("status"))
+    has_selected_remediation = _has_selected_remediation(selected) or _has_selected_remediation(
+        _dict(payload.get("selected_option"))
+    )
+    requires_resolved_project_scope = project_status.lower() == "resolved" or has_selected_remediation
     if gate in {"selection-plan", "apply", "validate", "pr"}:
         if not project_status:
             errors.append("project_resolution.status: required for SCA workflow gates")
-        if not project_uuid:
+        if requires_resolved_project_scope and not project_uuid:
             errors.append("project_resolution.project_uuid: required for SCA workflow gates")
         if not namespace:
             errors.append("project_resolution.namespace: required for SCA workflow gates")
@@ -135,7 +139,7 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             errors.append("validation_requirements: required for risk solver decisions")
 
     branch_names = _collect_branch_names(payload)
-    if gate in {"selection-plan", "apply", "validate", "pr"} and not branch_names:
+    if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation and not branch_names:
         errors.append("branch_name: required and must use remediation/sca/<package>-<target-version>")
     for branch in branch_names:
         if branch.startswith("endor/fix/"):
@@ -558,6 +562,29 @@ def _has_conflicts(selected: dict[str, Any]) -> bool:
         if isinstance(value, list) and value:
             return True
         if isinstance(value, str) and value.strip() not in {"", "0", "none", "None"}:
+            return True
+    return False
+
+
+def _has_selected_remediation(selected: dict[str, Any]) -> bool:
+    if not selected:
+        return False
+    if selected.get("selection_blocked") is True:
+        return False
+    for key in (
+        "package",
+        "package_name",
+        "from_version",
+        "to_version",
+        "target_version",
+        "version_upgrade_uuid",
+        "uia_uuid",
+        "branch_name",
+        "proposed_branch",
+        "proposed_branch_name",
+    ):
+        value = _text(selected.get(key)).lower()
+        if value and value not in {"none", "null", "n/a", "not_created"}:
             return True
     return False
 
