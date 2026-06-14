@@ -10,7 +10,7 @@ cases:
         - default to namespace-wide scope and record namespace_provenance
         - query Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN findings without running scans
         - collect read-only GitHub branch protection, workflow, action pinning, permissions, runner, CODEOWNERS, and update automation evidence when available
-        - compute raw_counts, dimension_scores, overall_score, verdict_band, and critical_overrides with formula version cicd-posture-v1
+        - compute raw_counts, dimension_scores, overall_score, verdict_band, and critical_overrides with formula version cicd-posture-v2
       data_gaps_allowed: true
 
   - id: repository-subset-high-risk-unpinned-actions

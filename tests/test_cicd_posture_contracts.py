@@ -88,9 +88,9 @@ def test_compute_cicd_posture_scores_uses_deterministic_formula():
             "action_pinning": 80,
             "permissions": 80,
             "runner_security": 80,
-            "endor_findings": 50,
+            "endor_findings": 72,
         },
-        "overall_score": 68,
+        "overall_score": 72,
         "verdict_band": "NEEDS_ATTENTION",
         "critical_override_required": False,
     }
@@ -105,6 +105,55 @@ def test_compute_cicd_posture_scores_rounds_half_up_at_boundaries():
 
     # 100 * 1 / 8 = 12.5 must round half-up to 13, not banker's-round to 12.
     assert scores["dimension_scores"]["action_pinning"] == 87
+
+
+def test_compute_cicd_posture_scores_avoids_no_workflow_plateau():
+    scores = compute_cicd_posture_scores(
+        {
+            "repositories_in_scope": 1,
+            "repositories_with_branch_protection": 0,
+            "repositories_with_required_reviews": 0,
+            "workflows_reviewed": 0,
+            "third_party_actions": 0,
+            "unpinned_actions": 0,
+            "overbroad_permissions": 0,
+            "risky_triggers": 0,
+            "self_hosted_runners": 0,
+            "update_automation_present": 0,
+            "endor_critical_findings": 0,
+            "endor_high_findings": 3,
+            "endor_cicd_findings": 0,
+            "endor_scpm_findings": 18,
+            "endor_gha_findings": 0,
+            "endor_supply_chain_findings": 0,
+        }
+    )
+
+    assert scores["dimension_scores"] == {
+        "branch_protection": 0,
+        "workflow_hardening": 80,
+        "action_pinning": 60,
+        "permissions": 60,
+        "runner_security": 60,
+        "endor_findings": 40,
+    }
+    assert scores["overall_score"] == 50
+    assert scores["verdict_band"] == "HIGH_RISK"
+
+
+def test_compute_cicd_posture_scores_keeps_observed_empty_workflows_clean():
+    counts = _raw_counts()
+    counts["workflows_reviewed"] = 2
+    counts["third_party_actions"] = 0
+    counts["unpinned_actions"] = 0
+    counts["overbroad_permissions"] = 0
+    counts["self_hosted_runners"] = 0
+
+    scores = compute_cicd_posture_scores(counts)
+
+    assert scores["dimension_scores"]["action_pinning"] == 100
+    assert scores["dimension_scores"]["permissions"] == 100
+    assert scores["dimension_scores"]["runner_security"] == 100
 
 
 def test_validate_cicd_posture_payload_accepts_matching_scores():

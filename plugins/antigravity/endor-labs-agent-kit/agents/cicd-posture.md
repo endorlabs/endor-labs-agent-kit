@@ -88,6 +88,14 @@ inspection only when available.
   patterns, unpinned actions, broad permissions, or risky triggers, but they
   cannot prove branch protection, rulesets, runner fleet state, or Endor
   finding counts.
+- Do not award full-health scores for dimensions that were not observed. When
+  source-provider branch protection, ruleset, workflow, or runner evidence is
+  unavailable, either return `INSUFFICIENT_DATA` with precise `data_gaps`, or
+  compute a conservative non-healthy score only when current Endor posture
+  findings or user-supplied inventory evidence support it.
+- Do not return `HEALTHY` from local CI file inspection alone. Local files can
+  lower scores when risky patterns are observed; they cannot prove clean branch
+  protection, rulesets, workflow permissions, or runner posture by absence.
 - If shell, GitHub, Endor, or local file access is blocked, do not claim `gh`
   is missing, claim a project name, claim finding counts, or reuse durable
   memory. Record the exact blocked signal in `data_gaps` and keep any score
@@ -154,17 +162,17 @@ must map each dimension key to the integer `1`. `workflows_reviewed` is a
 context-only scale indicator and feeds no dimension. Every `round(...)` below
 is half-up: `round(x) = floor(x + 0.5)`.
 
-Formula version `cicd-posture-v1`:
+Formula version `cicd-posture-v2`:
 
 - `branch_protection = round(100 * (repositories_with_branch_protection + repositories_with_required_reviews) / (2 * repositories_in_scope))` when repositories are in scope, else 0.
 - `update_automation_gap_penalty = round(20 * (repositories_in_scope - min(update_automation_present, repositories_in_scope)) / repositories_in_scope)` when repositories are in scope, else 0.
 - `workflow_hardening = max(0, 100 - risky_triggers * 15 - overbroad_permissions * 10 - update_automation_gap_penalty)`.
-- `action_pinning = 100` when no third-party actions are observed, else `max(0, 100 - round(100 * unpinned_actions / third_party_actions))`.
-- `permissions = max(0, 100 - overbroad_permissions * 20)`.
-- `runner_security = max(0, 100 - self_hosted_runners * 20)`.
-- `endor_findings = max(0, 100 - endor_critical_findings * 25 - endor_high_findings * 10 - (endor_cicd_findings + endor_scpm_findings + endor_gha_findings + endor_supply_chain_findings) * 5)`.
+- `action_pinning = max(0, 100 - round(100 * unpinned_actions / third_party_actions))` when third-party actions are observed; `100` when workflows were reviewed and no third-party actions were observed; otherwise `60` for unobserved action-pinning evidence.
+- `permissions = max(0, 100 - overbroad_permissions * 20)` when workflows were reviewed or overbroad permissions were observed; otherwise `60` for unobserved workflow-permission evidence.
+- `runner_security = max(0, 100 - self_hosted_runners * 20)` when workflows were reviewed or self-hosted runners were observed; otherwise `60` for unobserved runner evidence.
+- `endor_findings = max(0, 100 - endor_critical_findings * 25 - endor_high_findings * 8 - (endor_cicd_findings + endor_scpm_findings + endor_gha_findings + endor_supply_chain_findings) * 2)`.
 - `overall_score = round(average of the six dimension scores)`.
-- Verdict band is `CRITICAL` when any critical override exists or overall score is below 40; `HIGH_RISK` for 40-59; `NEEDS_ATTENTION` for 60-79; `HEALTHY` for 80-100. Use `INSUFFICIENT_DATA` only when evidence is too incomplete to compute and explain the missing signals in `data_gaps`.
+- Verdict band is `CRITICAL` when any critical override exists or overall score is below 40; `HIGH_RISK` for 40-59; `NEEDS_ATTENTION` for 60-79; `HEALTHY` for 80-100. Use `INSUFFICIENT_DATA` when repository scope, Endor posture evidence, and source-provider or user-inventory evidence are too incomplete to support a scored verdict; explain every missing signal in `data_gaps`.
 
 Critical overrides force the `CRITICAL` band. Report each as a
 `critical_overrides` row with a `type` from this exact list, plus an
