@@ -39,6 +39,9 @@ package metadata.
 
 ### Changed
 
+- Updated `cicd-posture` scoring to formula `cicd-posture-v2`, using
+  conservative scores for unobserved workflow evidence and less aggressive
+  Endor finding saturation.
 - Bumped the legacy Claude `ai-plugins` package to `1.2.0` because its content
   gained the `findings-browser` agent; the legacy package still ships no hooks.
 - Clarified that Agent Kit maintainer merges open generated `ai-plugins` sync

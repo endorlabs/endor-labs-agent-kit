@@ -7,7 +7,8 @@ import math
 from pathlib import Path
 from typing import Any
 
-FORMULA_VERSION = "cicd-posture-v1"
+FORMULA_VERSION = "cicd-posture-v2"
+UNOBSERVED_DIMENSION_SCORE = 60
 
 CRITICAL_OVERRIDE_TYPES = (
     "endor_critical_finding",
@@ -173,6 +174,7 @@ def compute_cicd_posture_scores(
     counts = {key: _int(raw_counts.get(key)) for key in RAW_COUNT_KEYS}
     repositories = counts["repositories_in_scope"]
     third_party_actions = counts["third_party_actions"]
+    workflows_reviewed = counts["workflows_reviewed"]
     posture_finding_count = (
         counts["endor_cicd_findings"]
         + counts["endor_scpm_findings"]
@@ -209,18 +211,24 @@ def compute_cicd_posture_scores(
             - counts["overbroad_permissions"] * 10
             - update_automation_gap_penalty
         ),
-        "action_pinning": (
-            _clamp(100 - _round_half_up(100 * counts["unpinned_actions"] / third_party_actions))
-            if third_party_actions > 0
-            else 100
+        "action_pinning": _action_pinning_score(
+            third_party_actions=third_party_actions,
+            unpinned_actions=counts["unpinned_actions"],
+            workflows_reviewed=workflows_reviewed,
         ),
-        "permissions": _clamp(100 - counts["overbroad_permissions"] * 20),
-        "runner_security": _clamp(100 - counts["self_hosted_runners"] * 20),
+        "permissions": _permissions_score(
+            overbroad_permissions=counts["overbroad_permissions"],
+            workflows_reviewed=workflows_reviewed,
+        ),
+        "runner_security": _runner_security_score(
+            self_hosted_runners=counts["self_hosted_runners"],
+            workflows_reviewed=workflows_reviewed,
+        ),
         "endor_findings": _clamp(
             100
             - counts["endor_critical_findings"] * 25
-            - counts["endor_high_findings"] * 10
-            - posture_finding_count * 5
+            - counts["endor_high_findings"] * 8
+            - posture_finding_count * 2
         ),
     }
     overall = _round_half_up(sum(dimension_scores.values()) / len(dimension_scores))
@@ -236,6 +244,31 @@ def compute_cicd_posture_scores(
         "verdict_band": verdict_band,
         "critical_override_required": critical_override,
     }
+
+
+def _action_pinning_score(
+    *,
+    third_party_actions: int,
+    unpinned_actions: int,
+    workflows_reviewed: int,
+) -> int:
+    if third_party_actions > 0:
+        return _clamp(100 - _round_half_up(100 * unpinned_actions / third_party_actions))
+    if workflows_reviewed > 0:
+        return 100
+    return UNOBSERVED_DIMENSION_SCORE
+
+
+def _permissions_score(*, overbroad_permissions: int, workflows_reviewed: int) -> int:
+    if workflows_reviewed > 0 or overbroad_permissions > 0:
+        return _clamp(100 - overbroad_permissions * 20)
+    return UNOBSERVED_DIMENSION_SCORE
+
+
+def _runner_security_score(*, self_hosted_runners: int, workflows_reviewed: int) -> int:
+    if workflows_reviewed > 0 or self_hosted_runners > 0:
+        return _clamp(100 - self_hosted_runners * 20)
+    return UNOBSERVED_DIMENSION_SCORE
 
 
 def _band_for(overall_score: int, *, critical_override: bool) -> str:
