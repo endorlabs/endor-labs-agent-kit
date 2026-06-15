@@ -29,6 +29,7 @@ A machine-readable index is available in `llms.txt`.
 | 🐍 Cursor SDK | Python SDK launcher and generated prompts for automation | [`cursor-sdk/README.md`](cursor-sdk/README.md) |
 | 🧩 Single-agent bundles | Manual per-host artifacts and README files | [Agent Catalog](#agent-catalog) |
 | 🧱 Portable bundles | Runtime-neutral prompts, manifests, output contracts, and adapter expectations | [`portable/`](portable/) |
+| ⚡ Amp MCP setup | MCP-only setup for exposing Endor Labs tools to Amp | [`docs/amp-mcp.md`](docs/amp-mcp.md) |
 | 🛠️ Source recipes | Maintainer-only source of truth for behavior, evals, actions, and diagrams | [`source/agents/`](source/agents/) |
 | 🔒 Guardrails | Safety, provenance, runtime, and documentation validation | [`docs/guardrails.md`](docs/guardrails.md) |
 
@@ -217,6 +218,7 @@ are the generated host directories listed in the catalog.
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
 | Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.png` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |
 | Cursor SDK | `cursor-sdk/` | Python automation, CI, orchestration, backend services, local SDK agents, or Cursor cloud agents |
+| Amp | `docs/amp-mcp.md` | MCP-only Endor Labs tool setup; no generated Agent Kit plugin package in this repository |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
 ## 🧱 Already Have Your Own Tech Stack Or Workflows Wired?
@@ -295,6 +297,10 @@ on Endor package/vulnerability lookup tools that do not yet have an
 
 If MCP is unavailable, those agents must record the missing signal in
 `data_gaps` rather than blocking install or fabricating evidence.
+
+Amp can use the same Endor Labs MCP server through Amp's `amp.mcpServers`
+configuration. See [`docs/amp-mcp.md`](docs/amp-mcp.md) for Developer Edition,
+Enterprise Edition, workspace settings, and Windows direct-binary examples.
 
 Portable bundles do not configure MCP servers. They declare transport
 requirements in `agent.manifest.json`. If a portable agent requires MCP,

@@ -14,6 +14,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
 | Cursor | `.cursor-plugin/`, root `agents/`, and root `skills/` | Cursor plugin metadata with generated workflow agents and support skills. |
 | Cursor SDK | `cursor-sdk/README.md` | Python SDK automation for local workspaces, CI, orchestration, backend services, or Cursor cloud agents. |
+| Amp | `docs/amp-mcp.md` | MCP-only setup for exposing Endor Labs tools to Amp. |
 | Manual single-agent install | `<host>/<agent>/README.md` | One workflow in one host without the full plugin package. |
 | Runtime-neutral integration | `portable/<agent>/README.md` | Internal runtime with its own adapters, approvals, audit, and credentials. |
 
@@ -134,6 +135,7 @@ Use the findings-browser skill to show the critical and high reachable findings 
 
 - Agent and host catalog: `README.md`
 - Agent-facing operating rules: `docs/for-agents.md`
+- Amp MCP setup: `docs/amp-mcp.md`
 - Maintainer workflow: `docs/maintainer-guide.md`
 - Public mirror sync: `docs/distribution-sync.md`
 - Runtime-neutral adapter requirements: `docs/portable-runtime-conformance.md`
