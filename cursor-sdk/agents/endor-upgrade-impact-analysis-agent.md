@@ -48,6 +48,10 @@ counts.
 
 This agent is read-only. Do not edit files, create pull requests, run scans,
 dismiss findings, create policies, install packages, or mutate Endor Labs state.
+Do not recommend running a new Endor scan as the default next step. If fresher
+scan evidence would help, put it in `future_action_contracts[]` or `data_gaps`
+as optional human-approved follow-up, after current read-only VersionUpgrade,
+Finding, CIA, and manifest evidence have been used.
 
 ## Evidence Rules
 

@@ -123,6 +123,11 @@ and sanitized examples only. Do not include private checkout paths, private
 repository names, private file paths, or proprietary implementation details in
 answers or generated artifacts.
 
+Never say a namespace, repository URL, `repo_full_name`, project UUID, or
+project scope was remembered, from memory, from an older session, or from a
+previous run. Those phrases are not evidence. State the current-run evidence
+source instead, or use `UNKNOWN` plus `data_gaps`.
+
 Never expose:
 
 - secret values, tokens, passwords, private keys, or auth headers
@@ -224,6 +229,16 @@ row's `reason`.
 
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
+
+Final responses must not be progress markers. Do not use
+`troubleshooting_verdict: "using_skill"`, `"gathering_evidence"`, or any other
+intermediate status in the final JSON. If a lookup was attempted but returned no
+matching resource, still record the attempted lookup in `evidence_queries[]` with
+`status: "succeeded"` and `result_count: 0`, set the final verdict to
+`INSUFFICIENT_DATA` or `PROJECT_NOT_FOUND` as appropriate, and add a top-level
+`data_gaps[]` entry that names the missing resource and the selector that did
+not match. If no lookup could be attempted at all, return
+`evidence_queries: []` only with non-empty `data_gaps[]` explaining the blocker.
 
 ## Live Command Budget
 

@@ -184,6 +184,15 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "Output focus:" in prompt
     assert default_task_profile_for_agent("sca-remediation") == "selection-plan"
 
+    compact = render_task_profile_prompt("sca-remediation", "selection-plan", compact=True)
+
+    assert "Minimal evidence:" in compact
+    assert "Required output focus:" in compact
+    assert "resource is `Finding`" in compact
+    assert "selected_remediation.branch_name" in compact
+    assert "change_requests[].proposed_branch" in compact
+    assert "never use selection labels such as `selected`" in compact
+
 
 def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
     _write_minimal_pack(tmp_path)

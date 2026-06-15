@@ -111,6 +111,8 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert "endor-agent-kit validate-ai-sast-output" in prompt
     assert "endor-agent-kit lint-ai-sast-pr-body" in prompt
     assert "Every `patches[]` object for a generated remediation patch must include" in prompt
+    assert "prefer `patches[].changed_file`, `patches[].file`, or `patches[].path`" in prompt
+    assert "Do not put changed-file evidence only in prose" in prompt
     assert "Every `change_requests[]` object for a generated remediation patch must include" in prompt
     assert "source_sha" in prompt
     assert "Use a host-allowed scratch path" in prompt

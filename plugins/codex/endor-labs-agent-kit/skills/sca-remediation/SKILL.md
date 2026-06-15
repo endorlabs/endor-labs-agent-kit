@@ -41,15 +41,15 @@ Map common operator language into concrete filters:
 
 Resolve the Endor project in this order:
 
-1. If running inside a Git checkout, read the repository root and `origin` remote URL, then normalize it to `owner/repo` or the equivalent GitLab full path.
-2. If the user supplied a repository URL, project name, owner/repo string, or namespace, normalize those values the same way.
+1. In a Git checkout, read the repo root and `origin`, then normalize to `owner/repo` or the GitLab full path.
+2. Normalize any user-supplied repository URL, project name, owner/repo string, or namespace the same way.
 3. Resolve a namespace with provenance before the first Endor query that uses `-n`.
 4. Query Endor project metadata and match first on repository full name, then Endor project name, then repository basename.
-5. If a proven namespace returns no matching project, retry the same read-only project lookup with `--traverse` before reporting that the project is missing. This handles users whose active `endorctl` namespace is a parent namespace.
-6. If a traverse lookup finds the project in a child namespace, use the returned project namespace for subsequent scoped Endor lookups when available. If the child namespace is not returned, keep `--traverse` on subsequent project-scoped read-only lookups and label the namespace provenance as parent namespace plus traverse.
+5. If a proven namespace returns no matching project, retry the same read-only project lookup with `--traverse` before reporting the project missing.
+6. If traverse finds a child-namespace project, use that namespace for scoped lookups when available. Otherwise keep `--traverse` and label provenance as parent namespace plus traverse.
 7. If exactly one project matches, use it without asking for a UUID.
 8. If multiple projects match, show a short candidate list with human-readable names and repository URLs and ask the user to choose.
-9. If no project matches after the non-traverse and traverse attempts, report attempted selectors and traversal status in `data_gaps` and ask for a repository URL, owner/repo, or project name. Do not ask for a project UUID unless the user explicitly prefers that.
+9. If no project matches after both attempts, report selectors and traversal status in `data_gaps`; ask for a repo URL, owner/repo, or project name, not a UUID unless requested.
 
 Project scoping is mandatory. After resolving a project, every Endor Finding and VersionUpgrade query must filter by the resolved project UUID or an equivalent repository-scoped selector.
 
@@ -78,7 +78,7 @@ Resolve namespace candidates in this order:
 3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml`, read with a field-specific command or parser.
 4. A namespace discovered from an already-resolved Endor project record.
 
-Before running an Endor query with `-n <namespace>`, be able to state the namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, ask the user for the namespace before scoped lookups. If a namespace candidate returns no matching project, retry that same candidate with `--traverse`, then record the candidate, provenance, and traversal result in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
+Before running an Endor query with `-n <namespace>`, be able to state namespace provenance, for example `namespace=tenant-a from ~/.endorctl/config.yaml ENDOR_NAMESPACE`. If no namespace has provenance, ask before scoped lookups. If a candidate has no project match, retry that same candidate with `--traverse`, then record candidate, provenance, and traversal result in `data_gaps` before trying the next proven candidate. Never try a namespace merely because it appeared in a previous run.
 
 When recording project resolution evidence, include whether `--traverse` was
 used and whether the resolved project came from the active namespace or a child
@@ -104,25 +104,74 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 7. Resolve upgrade risk before producing a final recommendation. If CIA is indeterminate, risk is medium/high/unknown, conflicts exist, findings are introduced, the upgrade is a major version bump, or the dependency footprint changes materially, run the Risky / Indeterminate Upgrade Solver below and return a deterministic `risk_decision`.
 8. Prepare the patch plan. Show package, from/to versions, affected manifests, UIA resource UUID, risk, CIA status, findings fixed, findings introduced, `risk_decision`, validation command, branch name, PR/MR title, complete AURI-style PR/MR body draft, and folded advisory/finding list before mutation.
 9. Ask for explicit approval before editing files. After approval, apply the minimal manifest, lockfile, or companion source edits needed for the selected UIA-backed fix.
-10. Run local validation when a safe command is discoverable from package-manager files, README, build metadata, or project conventions. If validation cannot run because dependencies, credentials, private artifacts, or CI-only services are missing, record the exact blocker in `validation` and `data_gaps`.
+10. Run local validation when safe. If validation cannot run because dependencies, credentials, private artifacts, or CI-only services are missing, record the exact blocker in `validation` and `data_gaps`.
 11. Present the supported delivery targets before any external mutation: plan-only output, source change request, ticket creation, or both source change request and ticket when the runtime supports them. Do not assume ticketing support; use `create-remediation-ticket` only when the user or runtime selects that target.
 12. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. Re-runs may update the same agent-owned branch when a change request already exists.
 13. Post or update one stable PR/MR comment when requested or when the host returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
 14. Return concise prose plus the required JSON object. A prose-only summary is
     not a valid gate result.
 
-Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, and `project_resolution.namespace_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` when evidence is missing, conflicting, or host-blocked, and include the exact blocker in `data_gaps`. If any project-resolution field is unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
+Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, `project_resolution.namespace_provenance`, `project_resolution.traverse_attempted`, and branch provenance through one of `project_resolution.default_branch`, `project_resolution.selected_branch`, `project_resolution.monitored_branch`, or `project_resolution.branch_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` when evidence is missing, conflicting, or host-blocked, and include the exact blocker in `data_gaps`. If branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and add the same blocker to `data_gaps`. If any project-resolution field is unknown, stop at project resolution and report the missing signal in `data_gaps` instead of ranking or applying a remediation.
 
-Runtime, plan-only, and read-only gates still need
-`project_resolution.status`, `project_resolution.namespace_provenance`,
-`selected_remediation.branch_name`, `uia_evidence` as an array,
-`risk_decision.source_usage_summary`, `risk_decision.validation_requirements`,
-and `change_requests[].proposed_branch`; lack of mutation approval is not an
-omission reason.
+Runtime, plan-only, and read-only gates still need `project_resolution.status`,
+`project_resolution.namespace_provenance`, `project_resolution.traverse_attempted`,
+branch provenance through `project_resolution.default_branch`,
+`project_resolution.selected_branch`, `project_resolution.monitored_branch`, or
+`project_resolution.branch_provenance`, `selected_remediation.branch_name`,
+`uia_evidence` as an array, `risk_decision.source_usage_summary`,
+`risk_decision.validation_requirements`, and `change_requests[].proposed_branch`.
+
+After validation, immediately clean validation-generated artifacts outside the
+patch plan before branch/PR/final output. Restore tracked files and remove
+untracked build dirs; do not get stuck on dirty `target/`, `build/`, `dist/`,
+class, jar, coverage, or cache output.
+
+For PR/MR e2e/full-remediation, copy the final branch into every
+machine-readable field: `selected_remediation.branch_name`, edited
+`patch_plan[].branch_name`, and PR/MR `change_requests[].branch` or
+`change_requests[].head_ref`. Never put the branch only in prose, reason, or PR/MR body. Use
+`remediation/sca/<normalized-package-name>-<target-version>`.
+
+Compact PR/MR body contract: for any opened/updated/reused PR/MR, use a
+lint-clean AURI body with marker
+`<!-- endor-agent-kit:sca-remediation-agent -->`, title
+`## Security Remediation: <N> Endor finding instances fixed by dependency upgrade`,
+a compatibility line, `### At a Glance` rows `📦 What changed?`, `🛡️ Security
+impact`, `🎯 Remediation scope`, `✅ Breaking-change expectation`, `📉 Endor
+UIA risk`, `🧾 Dependency manifest(s)`, `🧪 Local validation`, then
+`### 🧠 Why This Matters`, `### 📦 Upgrade Applied`,
+`### 🔎 Advisories This Upgrade Fixes` with literal
+	`<details><summary>Advisories This Upgrade Fixes (<count>)</summary>` plus
+	`#### Advisory Provenance`, `### 🧪 Developer Validation`, `### 🛡️ AppSec
+	Validation`, `### 📝 Reviewer Notes`, and footer
+	`Generated by [Endor Labs SCA Remediation Agent](https://endor.ai).` Do not use
+	a package-only Security Remediation title, metadata-only At a Glance rows,
+	plain advisory bullets outside the folded details block, or an unlinked footer.
+	The compatibility line must include literal `✅ Not expected to break:` or
+	`⚠️ Compatibility requires validation:`. Advisories must be linked bullets like
+	`- [CVE-YYYY-NNNN](https://...): title (H) 🟠`; tables or unlinked advisory
+	text do not pass. Use suffixes `(C) 🔴`, `(H) 🟠`, `(M) 🟡`, `(L) 🟢`; never
+	write `(Critical)`, `(High)`, `(Medium)`, or `(Low)`. Under
+	`#### Advisory Provenance`, add one provenance bullet for every advisory bullet
+	and repeat that bullet's visible ID exactly, for example
+	`- CVE-YYYY-NNNN: cve=...; ghsa=...; advisory_source=...`.
 
 Local repository docs, CLAUDE.md files, README files, cached notes, prior agent memory, and generated project descriptions are context only. They cannot prove Endor finding counts, VersionUpgrade/UIA availability, project UUIDs, namespace provenance, repository URLs, review time, or touched files. Treat those claims as unverified until current Endor evidence or user-provided evidence supports them.
 
 If Finding or VersionUpgrade/UIA evidence was not queried successfully for the resolved project, `data_gaps` must include the missing lane, such as `main_context_findings_unavailable` or `version_upgrade_uia_unavailable`. Do not return `data_gaps: []` at a project-only gate.
+
+Every SCA output that includes `evidence_queries[]` must include at least one
+`Finding` row, or top-level `data_gaps[]` saying Finding evidence was
+unavailable or not queried. For selection-plan/read-only gates, this is still
+required after VersionUpgrade/UIA narrowing: record the selected-candidate
+Finding lookup, a no-results Finding lookup, or an explicit Finding data gap in
+the final JSON.
+
+When a remediation candidate is selected, include the proposed branch even if
+mutation is not approved. Put `remediation/sca/<package>-<target-version>` in
+`selected_remediation.branch_name` and mirror it in
+`change_requests[].proposed_branch` for plan-only output. Do not leave
+`change_requests: []` merely because no PR/MR was created.
 
 For plan-only requests that mention a PR/MR plan, include a `change_requests` entry with status `not_created`, reason `plan_only_awaiting_approval` or equivalent, proposed base branch, proposed branch, proposed title, and a reference to the included PR/MR body draft. Do not return an empty `change_requests` array when a PR/MR is part of the requested plan.
 
@@ -130,28 +179,7 @@ For ticket requests, include a `tickets` entry with status `not_created`, `creat
 
 ## Other Non-Breaking / Low-Risk UIA-Backed PR Lane
 
-This lane is separate from both the strict P0/exploited queue and the Risky / Indeterminate Upgrade Solver. Use it when the user asks for low-risk upgrades, non-breaking UIA-backed PRs, PR-ready remediations, "other" UIA PRs, or when the P0 queue is empty but useful low-risk remediations remain.
-
-Lane criteria:
-
-- Endor VersionUpgrade/UIA evidence exists for the resolved project.
-- `upgrade_risk` is low.
-- CIA status is no breaking changes.
-- `total_findings_introduced` is 0.
-- The recommendation is `is_best` or `worth_it`, or the output clearly explains why it is still PR-ready.
-- The project has enough source metadata to open a PR/MR: repository URL or full name, source provider, base branch or clear default branch, direct manifest files, and any lockfiles or companion manifests needed by the ecosystem.
-- The agent can identify a concrete edit strategy for the affected manifest or package manager.
-
-Do not mix this lane with the P0 queue. Hide recommendations from the main low-risk candidate list when the same package/version upgrade is already a stricter P0/exploited remediation candidate, including any recommendation with critical/high findings that are reachable or exploited. Report the hidden count separately as `p0_duplicates_hidden`, with package names and reasons. Do not rank a hidden P0/exploited duplicate as `most_findings_in_one_pr` for this lane. Do not send CIA-indeterminate, medium/high-risk, conflict-heavy, or introduced-finding upgrades through this lane; those go through the Risky / Indeterminate Upgrade Solver.
-
-When reporting this lane, include:
-
-- `low_risk_recommendations`: total low-risk non-breaking UIA recommendations considered.
-- `candidate_prs`: recommendations after hiding P0 duplicates and non-actionable rows.
-- `ready_to_open`: candidates with enough repo metadata and manifest information for a PR/MR.
-- `most_findings_in_one_pr`: highest finding count fixed by a single PR candidate.
-- `p0_duplicates_hidden`: low-risk UIA recommendations omitted from this lane because they belong in the P0/exploited queue.
-- For each candidate: UIA rank, package, repository, source provider, from/to versions, findings fixed, findings introduced, manifest and lockfile paths, CIA status, upgrade risk, PR readiness reason, and any data gaps.
+This lane is separate from both the strict P0/exploited queue and the Risky / Indeterminate Upgrade Solver. Use it for low-risk upgrades, non-breaking UIA-backed PRs, PR-ready remediations, "other" UIA PRs, or useful low-risk remediations after the P0 queue is empty.
 
 ## Required Endor Evidence
 
@@ -187,7 +215,15 @@ Return exactly one `risk_decision.status`:
 
 Use one of those four status strings exactly. Do not invent variants such as
 `blocked_validation_required`, `needs_validation`, `blocked`, or
-`requires_review`.
+`requires_review`. Also do not use workflow labels such as `selected`,
+`candidate_selected`, `approved`, `pending`, or `ready`; those belong in
+`summary`, `risk_decision.reason`, or `change_requests[].status`, not in
+`risk_decision.status`.
+
+Do not use `risk_decision.decision` as an alias for `risk_decision.status`.
+When reusing an existing remediation PR/MR, `risk_decision.status` is still
+required for the selected upgrade; put reuse details in `risk_decision.summary`,
+`risk_decision.reason`, `change_requests[].status`, or `change_requests[].reason`.
 
 The decision must include `evidence`, `source_usage`, `validation_required`, `companion_edits`, and `reason`. If evidence is unavailable, the deterministic verdict is not "safe"; it is `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`.
 
@@ -257,6 +293,9 @@ extract; do not replace the JSON object with a table or prose summary.
     "namespace": "string",
     "namespace_provenance": "current request | ENDOR_NAMESPACE | ~/.endorctl/config.yaml ENDOR_NAMESPACE | resolved Endor project metadata",
     "repo_full_name": "string",
+    "default_branch": "string or null",
+    "branch_provenance": "git symbolic-ref | Endor Project spec.git | branch unknown: <reason>",
+    "traverse_attempted": true,
     "attempted_selectors": []
   },
   "evidence_queries": [
@@ -300,7 +339,19 @@ extract; do not replace the JSON object with a table or prose summary.
 }
 ```
 
-The JSON object must be syntactically valid. If a PR/MR body draft is too large to duplicate inside JSON, put the full Markdown body in the prose section and set a compact field such as `"pr_body_draft": "included_above"`. Never leave arrays or objects unterminated.
+The JSON object must be syntactically valid. For any opened, created, updated,
+existing, or reused PR/MR, `change_requests[].body` must contain the complete
+AURI-style Markdown body that was or should be on the source-provider change
+request. Do not use placeholders such as `"included_above"` for actual PR/MR
+evidence. For plan-only gates where no PR/MR exists yet, `pr_body_draft` may
+reference a prose draft only if `change_requests[].status` is `not_created` and
+the response still includes the complete Markdown draft. Never leave arrays or
+objects unterminated.
+
+Before marking a PR/MR `created`, `updated`, `opened`, `existing`, or `reused`,
+read back the source-provider title, head branch, commit, URL, and body. Put
+that verified remote body in the matching `change_requests[]` entry; do not
+report success from a local draft or placeholder body alone.
 
 For plan-only gates and read-only selection gates, include the
 JSON object even when no mutation is allowed. `uia_evidence` must be a JSON
