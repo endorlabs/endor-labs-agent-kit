@@ -12,12 +12,19 @@ task_profiles:
     minimal_evidence:
       - Current repository root and remote or user-provided repository identity.
       - Namespace provenance and one Project lookup or a precise project lookup data_gaps entry.
+      - Branch provenance and traversal status as machine fields, using project_resolution.default_branch,
+        project_resolution.selected_branch, project_resolution.monitored_branch, or project_resolution.branch_provenance,
+        plus project_resolution.traverse_attempted.
     stop_when:
-      - '`project_resolution.status`, namespace provenance, and attempted selectors are known.'
+      - '`project_resolution.status`, namespace provenance, branch provenance, `project_resolution.traverse_attempted`,
+        and attempted selectors are known.'
       - Do not query Finding or VersionUpgrade evidence in this profile unless scope is already resolved and the user asks
         for it.
     output_focus:
       - Return `project_resolution`, `evidence_queries`, and `data_gaps` with other required fields empty or null.
+      - Include `project_resolution.traverse_attempted` and branch provenance in one of `project_resolution.default_branch`,
+        `project_resolution.selected_branch`, `project_resolution.monitored_branch`, or
+        `project_resolution.branch_provenance`.
   - id: evidence-check
     title: Evidence Check
     summary: Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choosing a remediation.
@@ -42,6 +49,9 @@ task_profiles:
     minimal_evidence:
       - Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source
         usage for the selected package.
+      - Resolved project evidence includes branch provenance and project_resolution.traverse_attempted machine fields.
+      - A final `evidence_queries[]` row whose resource is `Finding` and whose status/result records the selected-candidate
+        lookup, or a precise top-level `data_gaps[]` entry explaining why Finding evidence was unavailable or not queried.
       - Dirty worktree state for affected manifests before proposing any branch.
     stop_when:
       - One candidate is selected, blocked, or rejected with `risk_decision.status`.
@@ -49,6 +59,13 @@ task_profiles:
     output_focus:
       - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change
         request plan, and precise `data_gaps`.
+      - Include `project_resolution.traverse_attempted` and branch provenance in one of `project_resolution.default_branch`,
+        `project_resolution.selected_branch`, `project_resolution.monitored_branch`, or
+        `project_resolution.branch_provenance`.
+      - When a remediation candidate is selected, include `selected_remediation.branch_name` and
+        `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`.
+      - Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`,
+        `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`.
 resources:
   - name: Project
     purpose: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence.
@@ -88,12 +105,21 @@ fallbacks:
     it low risk.
   - A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`,
     `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
+  - >-
+    A resolved `project_resolution` is not complete unless it includes branch provenance and
+    `project_resolution.traverse_attempted`; when branch evidence is unavailable, use
+    `project_resolution.branch_provenance` set to `branch unknown: <reason>` and record the same blocker in `data_gaps`.
   - Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`,
     `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
+  - When `evidence_queries[]` is present, include both a `Finding` row and a `VersionUpgrade` or `UIA` row, or add a precise
+    top-level `data_gaps[]` entry for the missing evidence lane.
 data_gaps:
   - Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade
     evidence, and unavailable source files in `data_gaps`.
   - Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output.
+  - Preserve branch provenance and traversal status in `project_resolution`; if branch lookup was blocked, include
+    `project_resolution.branch_provenance` and a matching data gap, and if traversal was not attempted, include
+    `project_resolution.traverse_attempted` set to `false`.
   - Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object.
   - For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary`
     and validation requirements instead of returning a prose-only risk summary.
@@ -111,8 +137,8 @@ evidence_query_plans:
         requested.
       - Do not ask for a project UUID as the default path or reuse one from memory.
     stop_after:
-      - Stop when project_resolution.status and namespace_provenance are known or a precise lookup data_gaps entry explains
-        the blocker.
+      - Stop when project_resolution.status, namespace_provenance, branch provenance, and
+        project_resolution.traverse_attempted are known or a precise lookup data_gaps entry explains the blocker.
     data_gaps:
       - Record missing namespace, ambiguous repository selectors, project lookup failures, traversal misses, and host-blocked
         Endor access in data_gaps.

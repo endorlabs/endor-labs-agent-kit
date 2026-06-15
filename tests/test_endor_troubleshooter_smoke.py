@@ -108,12 +108,18 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "SUPPORT_ESCALATION_RECOMMENDED" in artifact
     assert "future_action_contracts" in artifact
     assert "`evidence_queries[]` rows must contain only those fields" in artifact
+    assert "Final responses must not be progress markers" in artifact
+    assert '`troubleshooting_verdict: "using_skill"`' in artifact
+    assert 'status: "succeeded"` and `result_count: 0' in artifact
+    assert "return\n`evidence_queries: []` only with non-empty `data_gaps[]`" in artifact
     assert "Do not put raw\n`endorctl api`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command" in artifact
     assert "`issue_lanes[]`, `root_cause_hypotheses[]`" in artifact
     assert "place it only in `future_action_contracts[]` with\n`confirmation_required: true`" in artifact
     assert "check every `future_action_contracts[]` object" in artifact
     assert "must include a literal boolean `confirmation_required: true`" in artifact
     assert "return `future_action_contracts: []`" in artifact
+    assert "Never say a namespace, repository URL, `repo_full_name`, project UUID" in artifact
+    assert "Those phrases are not evidence" in artifact
     assert "This command-free rule applies to every nested string in the final JSON" in artifact
     assert "including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`" in artifact
     assert "recommended_actions[].validation" in artifact

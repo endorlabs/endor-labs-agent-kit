@@ -305,6 +305,11 @@ keep prose to the verdict, the top counts, and the top 5 actions; leave detailed
 repository rows in the JSON drill-down arrays. The JSON block must use this
 shape:
 
+`coverage_summary` is mandatory for every response, including single-repository
+`runtime-smoke` and `evidence-check` runs. It must be a non-empty object with
+integer counts; for one repository, set `total_repositories` to `1` and fill
+the other count fields with `0` or `1` instead of omitting the object.
+
 Required lane arrays are not example arrays. `not_onboarded_repositories`,
 `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`,
 `ambiguous_matches`, and `excluded_repositories` must contain one row per

@@ -108,6 +108,8 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "report_mode" in artifact
     assert "report_scope" in artifact
     assert "coverage_summary" in artifact
+    assert "`coverage_summary` is mandatory for every response" in artifact
+    assert "for one repository, set `total_repositories` to `1`" in artifact
     assert "github_inventory_summary" in artifact
     assert "github_app_coverage" in artifact
     assert "selected_project_uuids" in artifact

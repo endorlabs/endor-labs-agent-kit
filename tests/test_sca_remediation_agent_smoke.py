@@ -72,6 +72,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     codex_dir = dest / "codex" / "sca-remediation"
     agent_readme = (agent_dir / "README.md").read_text(encoding="utf-8")
     prompt = (agent_dir / "sca-remediation.md").read_text(encoding="utf-8")
+    codex_prompt = (codex_dir / "SKILL.md").read_text(encoding="utf-8")
 
     assert "@agent-sca-remediation check this repository for P0 SCA findings" in root_readme
     assert "codex/sca-remediation" in root_readme
@@ -99,6 +100,9 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "extract only the namespace key" in prompt
     assert "namespace_provenance" in prompt
     assert "Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`" in prompt
+    assert "project_resolution.traverse_attempted" in prompt
+    assert "project_resolution.default_branch" in prompt
+    assert "project_resolution.branch_provenance" in prompt
     assert 'Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace' in prompt
     assert "project_resolution" in prompt
     assert "package-level remediation" in prompt
@@ -133,10 +137,15 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "approved_with_validation_required" in prompt
     assert "blocked_needs_compatibility_analysis" in prompt
     assert "Do not invent variants such as" in prompt
+    assert "Do not use `risk_decision.decision` as an alias for `risk_decision.status`" in prompt
+    assert "When reusing an existing remediation PR/MR" in prompt
     assert "Do not say \"not expected to break\"" in prompt
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
     assert "Validation Command Selection" in prompt
+    assert "immediately clean validation-generated artifacts" in prompt
+    assert "do not get stuck on dirty" in prompt
+    assert "`target/`" in prompt
     assert "Do not assume a Java/Maven repository" in prompt
     assert "package manager, and manifest or lockfile" in prompt
     assert "package.json" in prompt
@@ -152,29 +161,59 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
     assert "Do not use unrelated branch families such as" in prompt
     assert "`endor/fix/...`" in prompt
+    assert "copy the final branch into every" in prompt
+    assert "selected_remediation.branch_name" in prompt
+    assert "change_requests[].branch" in prompt
     assert "complete AURI-style PR/MR body draft" in prompt
     assert "Do not stop at a PR title or patch plan only" in prompt
+    assert "Stable marker: `<!-- endor-agent-kit:sca-remediation-agent -->`" in prompt
+    assert "do not call the PR/MR presentation complete" in prompt
     assert "Do not return an empty `change_requests` array when a PR/MR is part of the requested plan" in prompt
     assert "The PR/MR body draft must be lint-clean in the response itself" in prompt
     assert "close any ```diff fenced block immediately after the file-change lines" in prompt
     assert "render `### 🔎 Advisories This Upgrade Fixes` as an actual heading" in prompt
     assert "markdown link syntax" in prompt
+    assert "read back the PR/MR title" in prompt
+    assert "verified remote body" in prompt
+    assert '"pr_body_draft": "included_above"' not in prompt
+    assert "read back the source-provider title" in codex_prompt
+    assert "verified remote body" in codex_prompt
+    assert '"pr_body_draft": "included_above"' not in codex_prompt
     assert "The JSON object must be syntactically valid" in prompt
     assert "A prose-only summary is" in prompt
     assert "exactly one syntactically valid top-level JSON object" in prompt
     assert "risk_decision.source_usage_summary" in prompt
     assert '"uia_evidence": [' in prompt
     assert "`uia_evidence` as an array" in prompt
+    assert "Every SCA output that includes `evidence_queries[]` must include at least one" in prompt
+    assert "Finding evidence was unavailable or not queried" in prompt
+    assert "required after VersionUpgrade/UIA narrowing" in prompt
+    assert "selected-candidate" in prompt
+    assert "Do not leave" in prompt
+    assert "`change_requests: []`" in prompt
+    assert "workflow labels such as `selected`" in prompt
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
+    assert "Do not replace this title shape with a package-only title" in prompt
+    assert "Use this exact body skeleton when drafting or updating the PR/MR body" in prompt
     assert "### At a Glance" in prompt
+    assert "| 📦 What changed? | `<package>` `<from_version>` → `<to_version>` |" in prompt
     assert "### 🔎 Advisories This Upgrade Fixes" in prompt
     assert "<details><summary>Advisories This Upgrade Fixes (<count>)</summary>" in prompt
+    assert "The linter treats the older body shape as invalid" in prompt
+    assert "metadata-only At a Glance rows" in prompt
+    assert "The compatibility line must include literal" in prompt
+    assert "tables or unlinked advisory" in prompt
+    assert "text do not pass" in prompt
+    assert "never" in prompt
+    assert "write `(Critical)`" in prompt
     assert "<details open>" not in prompt
-    assert "### Validation Plan" in prompt
-    assert "### 🧪 Developer Validation" not in prompt
+    assert "### 🧪 Developer Validation" in prompt
     assert "Advisory Provenance" in prompt
+    assert "one provenance bullet for every advisory bullet" in prompt
+    assert "visible ID exactly" in prompt
     assert "endor-agent-kit lint-sca-pr-body" in prompt
     assert "Do not omit this section" in prompt
+    assert "Generated by [Endor Labs SCA Remediation Agent](https://endor.ai)." in prompt
     assert "Use the CVE as the visible link text while linking to the GitHub Advisory page" in prompt
     assert "(C) 🔴" in prompt
     assert "(H) 🟠" in prompt

@@ -498,6 +498,10 @@ def render_task_profile_prompt(
             "stop with the selected gate or precise `data_gaps`, and do not continue into later workflow "
             "steps unless the user explicitly asks for the full workflow."
         )
+        if profile.minimal_evidence:
+            prompt += f" Minimal evidence: {_compact_list(profile.minimal_evidence)}."
+        if profile.output_focus:
+            prompt += f" Required output focus: {_compact_list(profile.output_focus)}."
         if plan is not None:
             prompt += (
                 f" Evidence query plan: {_compact_order(plan.query_order)} "
