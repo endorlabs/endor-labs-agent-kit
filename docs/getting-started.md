@@ -12,13 +12,18 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Codex | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with Codex skills plus optional managed custom-agent TOML files. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
-| Cursor | `.cursor-plugin/`, root `agents/`, and root `skills/` | Cursor plugin metadata with generated workflow agents and support skills. |
+| Cursor | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Cursor plugin metadata with generated workflow agents, support skills, and advisory hooks. |
 | Cursor SDK | `cursor-sdk/README.md` | Python SDK automation for local workspaces, CI, orchestration, backend services, or Cursor cloud agents. |
 | Manual single-agent install | `<host>/<agent>/README.md` | One workflow in one host without the full plugin package. |
 | Runtime-neutral integration | `portable/<agent>/README.md` | Internal runtime with its own adapters, approvals, audit, and credentials. |
 
 The public distribution repo is `endorlabs/ai-plugins`. This source repo owns
 recipes, generation, tests, and guardrails.
+
+Google documents Antigravity CLI as the consumer transition path for Gemini
+CLI. Use the Gemini package for supported Gemini CLI environments and
+compatibility checks; use the Antigravity package for affected Gemini CLI
+consumer accounts.
 
 ## Install A Plugin
 
@@ -45,8 +50,9 @@ agents.
 For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
 or package metadata because their public install commands depend on the pushed
 tag and host-specific marketplace behavior. Cursor IDE uses `.cursor-plugin/`,
-root `agents/`, and root `skills/`; Cursor SDK automation uses `cursor-sdk/`;
-Gemini uses `plugins/gemini/endor-labs-agent-kit/`.
+root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`;
+Cursor SDK automation uses `cursor-sdk/`; Gemini uses
+`plugins/gemini/endor-labs-agent-kit/`.
 
 ## Run Cursor SDK Automation
 
@@ -95,7 +101,12 @@ package managers, or write credentials.
 | Correlate supply-chain malware intelligence against tenant inventory | `malware-response` |
 | Probe GitHub onboarding and monitored-branch coverage gaps | `probe-droid` |
 | Find safe dependency remediation paths with Endor SCA evidence | `sca-remediation` |
-| Review package risk, repository dependencies, upgrade impact, or vulnerability context | Claude-only helper agents in `plugins/claude/endor-labs-agent-kit/agents/` |
+| Compare package risk or a dependency decision | `dependency-decision-helper`, `package-risk-summary` |
+| Review repository dependencies or remediation options | `repository-dependency-reviewer`, `remediation-planner` |
+| Analyze upgrade impact or explain vulnerabilities | `upgrade-impact-analysis`, `vulnerability-explainer` |
+
+Each workflow above is generated for the supported host packages. Use the
+selected host README for exact invocation names and install paths.
 
 ## First Prompts
 

@@ -181,7 +181,7 @@ Check `gh auth status` when workflows need GitHub evidence, repository
 inventory, pull requests, or comments. If `gh` is missing, provide current
 official installation guidance instead of installing it automatically.
 
-Do not manage GitHub token scopes or create personal access tokens in v1. Verify
+Do not manage GitHub token scopes or create personal access tokens. Verify
 only the specific read or write capability needed for the selected workflow.
 
 ## Language Tooling

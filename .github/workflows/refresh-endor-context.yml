@@ -6,18 +6,17 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd
 
       - name: Set up Python
-        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.10"
 
@@ -39,51 +38,41 @@ jobs:
           endor-agent-kit verify-endor-context --upstream
           python -m pytest -q tests/test_endor_context.py
 
-      - name: Open or update refresh PR
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Report manual refresh instructions
         run: |
           if git diff --quiet source/endor-context/provenance.json; then
             echo "Endor context provenance already matches upstream."
+            {
+              echo "## Endor context refresh"
+              echo ""
+              echo "Committed \`source/endor-context/provenance.json\` already matches upstream."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
 
-          branch="endor-context-refresh"
-          git config user.name "endor-agent-kit-sync[bot]"
-          git config user.email "endor-agent-kit-sync[bot]@users.noreply.github.com"
-          git checkout -B "$branch"
-          git add source/endor-context/provenance.json
-          git commit -m "Refresh Endor context provenance from upstream"
-          git push --force origin "$branch"
+          echo "::warning title=Manual Endor context refresh needed::Upstream Endor API/docs context changed. This workflow refreshed and validated the pin locally, but company policy does not allow GitHub Actions to create pull requests. Run the manual refresh steps in docs/maintainer-guide.md."
 
-          cat > /tmp/refresh-pr-body.md <<'BODY'
-          Automated refresh of `source/endor-context/provenance.json` from upstream
-          Endor Labs endpoints. The refreshed pin was verified against upstream and
-          passed `tests/test_endor_context.py` in this workflow run.
+          {
+            echo "## Manual Endor context refresh needed"
+            echo ""
+            echo "The workflow refreshed and validated \`source/endor-context/provenance.json\` in the runner, but did not push a branch or open a PR."
+            echo "Company policy requires a human-authored branch, signed commit, and normal PR review for this refresh."
+            echo ""
+            echo "From a clean Agent Kit checkout, run:"
+            echo ""
+            echo "\`\`\`bash"
+            echo "endor-agent-kit refresh-endor-context"
+            echo "endor-agent-kit verify-endor-context --upstream"
+            echo "python -m pytest -q tests/test_endor_context.py"
+            echo "git diff -- source/endor-context/provenance.json"
+            echo "\`\`\`"
+            echo ""
+            echo "Before opening the PR, review:"
+            echo ""
+            echo "- Source Recipes against the refreshed API surface"
+            echo "- Knowledge Pack query recipes under \`source/endor-knowledge-pack/\`"
+            echo "- Setup guidance in \`source/plugin-support/setup/setup.md\`"
+            echo "- Release docs for removed or renamed endpoints and flags"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-          Before merging, review per `docs/maintainer-guide.md`
-          ("Refresh Endor API And Docs Context"):
-
-          - [ ] Source Recipes still read correctly against the new API surface
-          - [ ] Knowledge Pack query recipes (`source/endor-knowledge-pack/`) are unaffected
-          - [ ] Setup guidance (`source/plugin-support/setup/setup.md`) is unaffected
-          - [ ] Release docs do not reference removed endpoints or flags
-
-          If any of these need changes, make them in Agent Kit source first and
-          regenerate before merging this refresh.
-          BODY
-
-          title="Refresh Endor context provenance"
-          if gh pr view "$branch" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
-            gh pr edit "$branch" \
-              --repo "$GITHUB_REPOSITORY" \
-              --title "$title" \
-              --body-file /tmp/refresh-pr-body.md
-          else
-            gh pr create \
-              --repo "$GITHUB_REPOSITORY" \
-              --base main \
-              --head "$branch" \
-              --title "$title" \
-              --body-file /tmp/refresh-pr-body.md
-          fi
+          git --no-pager diff -- source/endor-context/provenance.json

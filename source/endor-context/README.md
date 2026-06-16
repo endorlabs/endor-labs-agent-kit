@@ -29,4 +29,10 @@ correctly, refresh the committed provenance:
 
 ```bash
 endor-agent-kit refresh-endor-context
+endor-agent-kit verify-endor-context --upstream
+python -m pytest -q tests/test_endor_context.py
 ```
+
+The scheduled `Refresh Endor context` workflow reports drift and validates the
+refreshed file in the runner. It does not push a branch or open a PR; maintainers
+refresh locally and send the update through the normal signed PR process.

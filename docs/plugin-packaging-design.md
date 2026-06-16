@@ -15,7 +15,8 @@ package slices now wrap host-compatible public workflows under:
 - `plugins/claude/ai-plugins/` for legacy Claude Code compatibility
 - `plugins/gemini/endor-labs-agent-kit/`
 - `plugins/antigravity/endor-labs-agent-kit/`
-- `.cursor-plugin/` plus root generated `agents/` and `skills/` for Cursor
+- `.cursor-plugin/` plus root generated `agents/`, `skills/`, `hooks/`, and
+  `assets/logo.png` for Cursor
 - `cursor-sdk/` for Cursor Python SDK automation
 
 The plugin route should sit alongside generated host artifacts. It should not
@@ -123,8 +124,8 @@ The generated Antigravity CLI plugin package includes:
 
 Antigravity packages do not declare plugin-wide MCP by default. The setup skill
 keeps `antigravity plugin validate`, installation, update, enable/disable, and
-uninstall steps explicit and evidence-backed. In v1, Antigravity package
-contents are derived from the Gemini-compatible recipe set because Google's
+uninstall steps explicit and evidence-backed. Antigravity package contents are
+derived from the Gemini-compatible recipe set because Google's
 transition guidance says Gemini extensions become Antigravity plugins while
 retaining skills and subagents.
 
@@ -146,6 +147,7 @@ The generated Cursor package includes:
   contracts.
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
+- `hooks/hooks.json` plus fail-open advisory hook scripts.
 - `assets/logo.png`.
 
 Cursor is intentionally not a Gemini wrapper. Its installable package does not
@@ -194,13 +196,14 @@ GitHub repository and installs that generated extension directory.
 
 The Antigravity package also follows the source-first publication model. It
 installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
-the package root; no release archive is generated for either target in v1.
+the package root; no release archive is generated for either target.
 
 The Cursor package follows the same source-first publication model, but it is
 root-shaped because Cursor package metadata uses `.cursor-plugin/`, a root
-`agents/` directory, and a root `skills/` directory. Generation updates managed
-workflow agents and managed workflow skill directories, while preserving
-unrelated root skills such as `skills/create-endor-labs-agent/`.
+`agents/` directory, a root `skills/` directory, root advisory `hooks/`, and
+`assets/logo.png`. Generation updates managed workflow agents, managed workflow
+skill directories, and advisory hooks, while preserving unrelated root skills
+such as `skills/create-endor-labs-agent/`.
 
 The Cursor SDK package follows the same source-first publication model under
 `cursor-sdk/`. It does not install anything into the Cursor IDE; it launches

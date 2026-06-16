@@ -96,7 +96,7 @@ jobs:
           if endor-agent-kit verify-endor-context --upstream; then
             echo "Endor context pin matches upstream."
           else
-            echo "::warning title=Endor context drift (non-blocking)::Upstream Endor OpenAPI/docs moved since source/endor-context/provenance.json was pinned. This is external drift, not caused by this commit. Merge the automated 'Refresh Endor context provenance' PR, or run 'endor-agent-kit refresh-endor-context', review per docs/maintainer-guide.md, and commit the refreshed pin."
+            echo "::warning title=Endor context drift (non-blocking)::Upstream Endor OpenAPI/docs moved since source/endor-context/provenance.json was pinned. This is external drift, not caused by this commit. Run 'endor-agent-kit refresh-endor-context' locally, review per docs/maintainer-guide.md, and commit the refreshed pin through a normal signed PR."
             {
               echo "## Endor context drift detected (non-blocking)"
               echo ""
@@ -105,8 +105,10 @@ jobs:
               echo ""
               echo "To refresh the pin:"
               echo ""
-              echo "1. Merge the automated **Refresh Endor context provenance** PR if one is open (created daily by \`.github/workflows/refresh-endor-context.yml\`), or run \`endor-agent-kit refresh-endor-context\` locally."
+              echo "1. Run \`endor-agent-kit refresh-endor-context\` locally from a clean Agent Kit checkout."
               echo "2. Review affected Source Recipes, Knowledge Pack query recipes, and setup guidance per \`docs/maintainer-guide.md\` (\"Refresh Endor API And Docs Context\")."
-              echo "3. Commit the updated \`source/endor-context/provenance.json\`."
+              echo "3. Commit the updated \`source/endor-context/provenance.json\` through the normal signed PR process."
+              echo ""
+              echo "The scheduled \`Refresh Endor context\` workflow reports this same drift and validates the refreshed pin, but it does not push branches or create PRs."
             } >> "$GITHUB_STEP_SUMMARY"
           fi

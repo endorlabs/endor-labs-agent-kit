@@ -384,7 +384,7 @@ def _antigravity_plugin_readme(
         "- Include `evidence_queries` and non-empty `data_gaps` whenever required Endor evidence is missing.",
         "- Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.",
         "- Never run setup scans or `endorctl host-check`.",
-        "- Never auto-install `gh`, language runtimes, or package managers in v1.",
+        "- Never auto-install `gh`, language runtimes, or package managers.",
         "- Never print, persist, or copy Endor API key, secret, token, or full config values.",
         "",
         "## Provider Docs",

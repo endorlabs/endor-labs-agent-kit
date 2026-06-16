@@ -7,7 +7,7 @@ Cursor, and Cursor SDK.
 ## Release Scope
 
 Release all generated plugin packages together. Do not publish only one host
-package for a normal v1 release.
+package for a normal release.
 
 Generated package roots:
 
@@ -17,7 +17,7 @@ Generated package roots:
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
 - Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
-  `skills/`, and `assets/logo.png`
+  `skills/`, root advisory `hooks/`, and `assets/logo.png`
 - Cursor SDK: `cursor-sdk/`
 
 Generated marketplace and release files:
@@ -128,7 +128,14 @@ stale links first, then run:
 
 ```bash
 endor-agent-kit refresh-endor-context
+endor-agent-kit verify-endor-context --upstream
+python -m pytest -q tests/test_endor_context.py
 ```
+
+The scheduled `Refresh Endor context` workflow is signal-only. It refreshes and
+validates the pin in the runner, but it does not push a branch or create a PR.
+If it reports drift, refresh locally, inspect the affected prompts and docs, and
+commit the updated provenance through the normal signed PR process.
 
 ## ai-plugins Publication
 
@@ -163,20 +170,27 @@ Local release validation:
 ```bash
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
-for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-cicd-posture-agent endor-troubleshooter-agent endor-malware-response-agent endor-probe-droid-agent endor-sca-remediation-agent; do
-  test -f "agents/$agent.md"
-done
-for skill in ai-sast-triage cicd-posture endor-agent-kit-setup endor-troubleshooter malware-response probe-droid sca-remediation; do
-  test -f "skills/$skill/SKILL.md"
-done
-for skill in ai-sast-triage cicd-posture endor-troubleshooter malware-response probe-droid sca-remediation; do
-  test -f "skills/$skill/architecture.svg"
-done
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+definitions = json.loads(Path("cursor-sdk/agent_definitions.json").read_text(encoding="utf-8"))
+for agent in definitions["agents"]:
+    agent_name = agent["agent_name"]
+    skill_id = agent["id"]
+    assert Path("agents", f"{agent_name}.md").is_file(), agent_name
+    assert Path("skills", skill_id, "SKILL.md").is_file(), skill_id
+PY
+test -f skills/ai-sast-triage/architecture.svg
+test -f skills/findings-browser/architecture.svg
+test -f skills/malware-response/architecture.svg
+test -f skills/sca-remediation/actions.yaml
 ```
 
 Cursor package files are generated at repository root because the public
 package source is `./`. Keep Cursor validation separate from Gemini validation:
-Cursor uses `.cursor-plugin/`, root `agents/`, and root `skills/`; Gemini uses
+Cursor uses `.cursor-plugin/`, root `agents/`, root `skills/`, root advisory
+`hooks/`, and `assets/logo.png`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/GEMINI.md` and
 `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`.
 
@@ -192,9 +206,21 @@ import py_compile
 py_compile.compile("cursor-sdk/run_cursor_agent.py", cfile="/tmp/run_cursor_agent.pyc", doraise=True)
 PY
 test -f cursor-sdk/requirements.txt
-for agent in endor-agent-kit-setup-agent endor-ai-sast-triage-agent endor-cicd-posture-agent endor-troubleshooter-agent endor-probe-droid-agent endor-sca-remediation-agent; do
-  test -f "cursor-sdk/agents/$agent.md"
-done
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+definitions = json.loads(Path("cursor-sdk/agent_definitions.json").read_text(encoding="utf-8"))
+for agent in definitions["agents"]:
+    agent_name = agent["agent_name"]
+    prompt_file = Path("cursor-sdk", agent["prompt_file"])
+    assert prompt_file.is_file(), prompt_file
+    for suffix in ("architecture.svg", "actions.yaml"):
+        companion = Path("cursor-sdk", "agents", f"{agent_name}.{suffix}")
+        source_companion = Path("skills", agent["id"], suffix)
+        if source_companion.exists():
+            assert companion.is_file(), companion
+PY
 ```
 
 Cursor SDK runs require `CURSOR_API_KEY` and consume Cursor SDK billing. Do not
@@ -300,6 +326,13 @@ Gemini CLI 0.44.1 may still show a folder trust prompt for local paths even with
 `--consent`. Inspect the package source and approve only the expected generated
 folder.
 
+As of 2026-06-16, Google documents that Gemini CLI access for unpaid, Google
+One, Google AI Pro, and Google AI Ultra consumer users transitions to
+Antigravity CLI on 2026-06-18. Keep Gemini package validation in the release
+gate for supported enterprise/API-key users and extension compatibility, and
+also run the Antigravity validation below as the forward-path CLI check for
+affected consumer users.
+
 Create or update the GitHub release/tag without adding a Gemini zip asset:
 
 ```bash
@@ -338,14 +371,14 @@ Antigravity CLI currently validates a package directory with `plugin.json` at
 the root. Keep Antigravity validation separate from Gemini extension validation:
 Gemini uses `gemini-extension.json` and installs from the generated extension
 directory or tagged GitHub repository, while Antigravity uses `plugin.json` and
-installs from the generated plugin directory in v1.
+installs from the generated plugin directory.
 
 ## Documentation Freshness
 
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and public GitHub install behavior can change:
 
-Last checked for this checklist: 2026-06-07.
+Last checked for this checklist: 2026-06-16.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`

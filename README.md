@@ -25,7 +25,7 @@ A machine-readable index is available in `llms.txt`.
 | Area | What is inside | Start here |
 | --- | --- | --- |
 | 🤖 Plugin agents | Host packages for Claude Code, Codex, Gemini CLI, Antigravity CLI, and Cursor | [`plugins/README.md`](plugins/README.md) |
-| 🖱️ Cursor IDE | Cursor plugin metadata, generated agents, and support skills | [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) |
+| 🖱️ Cursor IDE | Cursor plugin metadata, generated agents, support skills, and advisory hooks | [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) |
 | 🐍 Cursor SDK | Python SDK launcher and generated prompts for automation | [`cursor-sdk/README.md`](cursor-sdk/README.md) |
 | 🧩 Single-agent bundles | Manual per-host artifacts and README files | [Agent Catalog](#agent-catalog) |
 | 🧱 Portable bundles | Runtime-neutral prompts, manifests, output contracts, and adapter expectations | [`portable/`](portable/) |
@@ -58,11 +58,16 @@ Current generated plugin package version: `2.0.0`.
 
 | Host | Best for | First move |
 | --- | --- | --- |
-| Claude Code | Full plugin agents plus Claude-only helper agents | Read `plugins/claude/endor-labs-agent-kit/README.md`, then install `endor-labs-agent-kit@endorlabs`. |
+| Claude Code | Claude Code plugin agents, setup skill, and advisory hooks | Read `plugins/claude/endor-labs-agent-kit/README.md`, then install `endor-labs-agent-kit@endorlabs`. |
 | Codex | Skills plus optional bundled custom-agent TOML files | Read `plugins/codex/endor-labs-agent-kit/README.md`. |
 | Gemini CLI | Extension with skills and preview subagents | Read `plugins/gemini/endor-labs-agent-kit/README.md`. |
 | Antigravity CLI | Plugin with skills and subagents | Read `plugins/antigravity/endor-labs-agent-kit/README.md`. |
-| Cursor IDE | Customer-facing Cursor plugin agents | Install from `.cursor-plugin/`, root `agents/`, root `skills/`, and `assets/logo.png`. |
+| Cursor IDE | Customer-facing Cursor plugin agents | Install from `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png`. |
+
+Google documents Antigravity CLI as the consumer transition path for
+Gemini CLI. Use the Gemini package for supported Gemini CLI environments
+and compatibility checks; use the Antigravity package for affected Gemini
+CLI consumer accounts.
 
 After installing any host package, run setup first:
 
@@ -134,7 +139,9 @@ map to the generated skill or agent name.
 | Diagnose Endor setup, scan, or integration issues | Agent `endor-troubleshooter` | Skill `endor-troubleshooter`, custom agent `endor-troubleshooter-agent` | Skill/subagent `endor-troubleshooter` | Skill/subagent `endor-troubleshooter` | Agent `endor-troubleshooter-agent`, skill `endor-troubleshooter` |
 | Assess GitHub onboarding gaps | Agent `probe-droid` | Skill `probe-droid`, custom agent `endor-probe-droid-agent` | Skill/subagent `probe-droid` | Skill/subagent `probe-droid` | Agent `endor-probe-droid-agent`, skill `probe-droid` |
 | Find safe SCA remediation paths | Agent `sca-remediation` | Skill `sca-remediation`, custom agent `endor-sca-remediation-agent` | Skill/subagent `sca-remediation` | Skill/subagent `sca-remediation` | Agent `endor-sca-remediation-agent`, skill `sca-remediation` |
-| Use Claude-only read-only package and dependency helpers | Agents `dependency-decision-helper`, `package-risk-summary`, `repository-dependency-reviewer`, `remediation-planner`, `upgrade-impact-analysis`, `vulnerability-explainer` | Not packaged in v1 | Not packaged in v1 | Not packaged in v1 | Not packaged in v1 |
+| Evaluate package risk or a dependency decision | Agents `dependency-decision-helper`, `package-risk-summary` | Skills `dependency-decision-helper`, `package-risk-summary`; custom agents `endor-dependency-decision-helper-agent`, `endor-package-risk-summary-agent` | Skills/subagents `dependency-decision-helper`, `package-risk-summary` | Skills/subagents `dependency-decision-helper`, `package-risk-summary` | Agents `endor-dependency-decision-helper-agent`, `endor-package-risk-summary-agent`; skills `dependency-decision-helper`, `package-risk-summary` |
+| Review repository dependencies or remediation options | Agents `repository-dependency-reviewer`, `remediation-planner` | Skills `repository-dependency-reviewer`, `remediation-planner`; custom agents `endor-repository-dependency-reviewer-agent`, `endor-remediation-planner-agent` | Skills/subagents `repository-dependency-reviewer`, `remediation-planner` | Skills/subagents `repository-dependency-reviewer`, `remediation-planner` | Agents `endor-repository-dependency-reviewer-agent`, `endor-remediation-planner-agent`; skills `repository-dependency-reviewer`, `remediation-planner` |
+| Analyze upgrade impact or explain vulnerabilities | Agents `upgrade-impact-analysis`, `vulnerability-explainer` | Skills `upgrade-impact-analysis`, `vulnerability-explainer`; custom agents `endor-upgrade-impact-analysis-agent`, `endor-vulnerability-explainer-agent` | Skills/subagents `upgrade-impact-analysis`, `vulnerability-explainer` | Skills/subagents `upgrade-impact-analysis`, `vulnerability-explainer` | Agents `endor-upgrade-impact-analysis-agent`, `endor-vulnerability-explainer-agent`; skills `upgrade-impact-analysis`, `vulnerability-explainer` |
 
 The full catalog below still matters for manual installs, portable bundles,
 and future agent contributions.
@@ -192,7 +199,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
-| Install the Cursor package | `.cursor-plugin/`, root `agents/`, and root `skills/` | Gemini extension files, `source/`, `src/`, `tests/` |
+| Install the Cursor package | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Gemini extension files, `source/`, `src/`, `tests/` |
 | Run Cursor SDK automation | `cursor-sdk/README.md` | Cursor IDE plugin metadata, Gemini extension files, `source/` |
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
 | Install a Claude Managed Agent | `claude-managed-agents/<agent>/README.md` | `source/`, `src/`, `tests/` |
@@ -215,7 +222,7 @@ are the generated host directories listed in the catalog.
 | Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$HOME/.agents/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
-| Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, and `assets/logo.png` | Cursor plugin install with generated agents and support skills; Gemini extension files are separate |
+| Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, `hooks/`, and `assets/logo.png` | Cursor plugin install with generated agents, support skills, and advisory hooks; Gemini extension files are separate |
 | Cursor SDK | `cursor-sdk/` | Python automation, CI, orchestration, backend services, local SDK agents, or Cursor cloud agents |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
 
@@ -266,7 +273,7 @@ Use this agent to analyze repository <repo>. Prefer ticket creation over a sourc
 For remediation workflows, let the agent find the right remediation path
 first. At the mutation gate, your runtime can offer approved targets such
 as plan-only output, source change request creation, ticket creation, or
-both. In v1, remediation workflows may declare `ticket.create` directly;
+both. Remediation workflows may declare `ticket.create` directly;
 other portable bundles can still use `ticket.create` as a runtime wrapper
 after final output. The agent only claims ticket creation when the runtime
 performs it and returns ticket evidence.
@@ -290,8 +297,8 @@ on Endor package/vulnerability lookup tools that do not yet have an
 | --- | --- | --- |
 | Dependency Decision Helper | Package risk, vulnerability list, and vulnerability enrichment. | `endorctl api` for package scores, license, and similar-package signals. |
 | Endor Labs Package Risk Summary | Package risk, vulnerability list, and vulnerability enrichment. | `endorctl api` for package scores, license, and similar-package signals. |
-| Endor Labs Repository Dependency Reviewer | Per-dependency risk and vulnerability checks after local read-only manifest inspection. | None in v0. |
-| Endor Labs Vulnerability Explainer | Vulnerability detail lookup. | None in v0. |
+| Endor Labs Repository Dependency Reviewer | Per-dependency risk and vulnerability checks after local read-only manifest inspection. | No non-MCP path currently. |
+| Endor Labs Vulnerability Explainer | Vulnerability detail lookup. | No non-MCP path currently. |
 
 If MCP is unavailable, those agents must record the missing signal in
 `data_gaps` rather than blocking install or fabricating evidence.
@@ -330,8 +337,8 @@ Generated plugin packages currently include:
 - `plugins/antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json`.
-- `.cursor-plugin/` plus root `agents/` and `skills/`: Cursor plugin metadata,
-  generated Cursor workflow agents, setup agent, and support skills. Cursor
+- `.cursor-plugin/` plus root `agents/`, `skills/`, `hooks/`, and `assets/logo.png`: Cursor plugin metadata,
+  generated Cursor workflow agents, setup agent, support skills, and advisory hooks. Cursor
   does not install Gemini CLI extension files; use
   `plugins/gemini/endor-labs-agent-kit/` for Gemini.
 - Root `.mcp.json` and `GEMINI.md`: optional MCP support context for the
@@ -346,7 +353,7 @@ at the repository root because the public Cursor package source is `./`.
 Gemini installs from the
 generated extension directory for local validation or from the tagged
 GitHub repository for public distribution. Antigravity installs from the
-generated plugin directory. No zip artifact is generated in v1.
+generated plugin directory. No zip artifact is generated for these packages.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## ✅ Release Checklist
@@ -380,8 +387,8 @@ separate approval gates.
 ## Install An Agent
 
 For Claude Code, Codex, Gemini CLI, or Antigravity CLI, prefer the plugin package README
-when you want the full v1 workflow set and setup guidance. For Cursor, use
-the `.cursor-plugin/` metadata, root `agents/`, and root `skills/`. For a single
+when you want the full generated workflow set and setup guidance. For Cursor, use
+the `.cursor-plugin/` metadata, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png`. For a single
 agent, pick an agent from the catalog, then open that host directory's
 README. If the agent has edition subdirectories, choose the one that
 matches your environment; otherwise use the agent directory directly. For
@@ -788,7 +795,7 @@ endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 endor-agent-kit verify-endor-context --upstream
 python -m pytest -q
-git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini plugins portable skills
+git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini hooks plugins portable skills
 ```
 
 Pull requests should include both source changes and regenerated artifacts.
@@ -888,6 +895,9 @@ cursor-sdk/
     <generated-cursor-sdk-agent>.md
 assets/
   logo.png
+hooks/
+  hooks.json
+  *.sh
 docs/
   distribution-sync.md
   for-agents.md
@@ -929,6 +939,7 @@ The root catalog directories are intentionally checked in:
 - `cursor-sdk/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`
+- `hooks/`
 - `assets/logo.png`
 - `manifest.json`
 

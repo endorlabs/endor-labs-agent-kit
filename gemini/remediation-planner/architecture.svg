@@ -146,6 +146,6 @@
     <rect width="1140" height="78" rx="12" fill="#071012" stroke="#17323a"/>
     <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
     <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">PUBLISHED CONTRACT</text>
-    <text x="30" y="58" font-size="13" fill="#cfe4e8">The public artifact is an Endor remediation planning agent. Future plugins can add adapters for branch or PR creation, but this artifact intentionally stops at the plan.</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">This artifact is an Endor remediation planning agent. It stays plan-only; use approval-gated remediation agents for branch or PR/MR creation.</text>
   </g>
 </svg>
