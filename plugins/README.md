@@ -42,7 +42,7 @@ Current generated package slices:
   a root `plugin.json` validated with `antigravity plugin validate`.
 
 The Cursor package is generated at repository root as `.cursor-plugin/`,
-root `agents/`, root `skills/`, and `assets/logo.png` because the public
+root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png` because the public
 Cursor package source is `./`. It is intentionally separate from Gemini
 CLI extension files under `gemini/endor-labs-agent-kit/`. The repository
 root may include `.mcp.json` and non-installable `GEMINI.md` support
@@ -57,4 +57,4 @@ Gemini installs from the generated extension directory for local validation.
 For public distribution, clone the tagged GitHub repository and install
 `plugins/gemini/endor-labs-agent-kit/` rather than the multi-host repo root.
 Antigravity installs from the generated plugin directory; no release zip
-is generated for either target in v1.
+is generated for either target.

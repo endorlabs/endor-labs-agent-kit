@@ -42,6 +42,12 @@ Observed local validation on Gemini CLI 0.44.1: local installs may still
 show a folder trust prompt even when `--consent` is supplied. Inspect the
 extension package, approve only the expected Agent Kit folder,
 then restart Gemini CLI so skills and subagents become visible.
+
+Google documents Antigravity CLI as the consumer transition path for
+Gemini CLI. If your Gemini CLI account is affected by that transition,
+use the Antigravity package instead; keep this Gemini extension for
+supported Gemini CLI environments and compatibility checks.
+
 Do not create or install zip archives for Gemini CLI; use the local extension
 directory for local testing and clone the tagged GitHub repository before
 installing the generated extension directory for release installs.
@@ -193,7 +199,7 @@ Check `gh auth status` when workflows need GitHub evidence, repository
 inventory, pull requests, or comments. If `gh` is missing, provide current
 official installation guidance instead of installing it automatically.
 
-Do not manage GitHub token scopes or create personal access tokens in v1. Verify
+Do not manage GitHub token scopes or create personal access tokens. Verify
 only the specific read or write capability needed for the selected workflow.
 
 ## Language Tooling

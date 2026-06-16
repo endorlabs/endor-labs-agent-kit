@@ -46,6 +46,12 @@ gemini extensions install ./ai-plugins/plugins/gemini/endor-labs-agent-kit
 Gemini CLI 0.44.1 local validation showed a folder trust prompt for local
 paths even with `--consent`. Inspect the package and approve only the
 expected Endor Agent Kit extension source.
+
+Google documents Antigravity CLI as the consumer transition path for
+Gemini CLI. If your Gemini CLI account is affected by that transition,
+use the Antigravity package instead; keep this Gemini extension for
+supported Gemini CLI environments and compatibility checks.
+
 Do not create or install zip archives for Gemini CLI; use the local extension
 directory for local testing and clone the tagged GitHub repository before
 installing the generated extension directory for published installs.
@@ -93,7 +99,7 @@ approval gates. Setup never performs those workflow actions.
 - Always run readiness and namespace checks before live Endor lookups.
 - Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.
 - Never run setup scans or `endorctl host-check`.
-- Never auto-install `gh`, language runtimes, or package managers in v1.
+- Never auto-install `gh`, language runtimes, or package managers.
 - Never print, persist, or copy Endor API key, secret, token, or full config values.
 
 ## Provider Docs

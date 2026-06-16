@@ -10,7 +10,7 @@ fallback or for local dry-run validation.
 | Repo | Owns |
 | --- | --- |
 | `endor-labs-agent-kit` | Source recipes, compiler/publisher code, guardrails, tests, provenance, generated catalog, and source documentation. |
-| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents and support skills, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
+| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents, support skills, advisory hooks, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
 
 Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
 `endor-labs-agent-kit/plugins/`. Cursor package sync should make

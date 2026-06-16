@@ -14,7 +14,7 @@ shape, or release validation.
 | `.github/workflows/publish-ai-plugins-pr.yml` | Post-merge publication workflow that opens generated `ai-plugins` PRs. |
 | `claude-code/`, `claude-managed-agents/`, `codex/`, `gemini/`, `portable/` | Generated installable agent catalog. |
 | `plugins/` | Generated plugin packages for Claude Code, Codex, Gemini CLI, and Antigravity CLI. |
-| `.cursor-plugin/`, root generated `agents/`, root generated `skills/`, `assets/logo.png` | Generated Cursor package surface. |
+| `.cursor-plugin/`, root generated `agents/`, root generated `skills/`, root advisory `hooks/`, `assets/logo.png` | Generated Cursor package surface. |
 | `cursor-sdk/` | Generated Cursor Python SDK automation package with prompt definitions and launcher. |
 | `manifest.json` | Generated checksum and provenance catalog. |
 
@@ -100,22 +100,26 @@ but upstream drift is reported as a non-blocking warning with refresh
 instructions in the job summary. Upstream drift is caused by Endor releases,
 not by the commit under test, so it must not fail unrelated PRs or pushes.
 
-Freshness is automated by `.github/workflows/refresh-endor-context.yml`, which
-runs daily (and on manual dispatch), re-pins the provenance from upstream,
-verifies it, and opens or updates a **Refresh Endor context provenance** PR on
-branch `endor-context-refresh` when anything moved. Creating that PR with the
-default `GITHUB_TOKEN` requires the repository setting "Allow GitHub Actions to
-create and approve pull requests"; note that PRs opened by `GITHUB_TOKEN` do
-not trigger CI runs themselves — the refresh workflow validates the new pin
-before opening the PR.
+Freshness is monitored by `.github/workflows/refresh-endor-context.yml`, which
+runs daily and on manual dispatch. The workflow re-pins the provenance from
+upstream in the runner, verifies it, runs `tests/test_endor_context.py`, and
+reports manual refresh instructions when anything moved. It intentionally does
+not push a branch or open a PR because company policy does not allow GitHub
+Actions to create pull requests for this repository.
 
-Before merging a refresh (automated or manual), inspect affected Source
-Recipes, Knowledge Pack query recipes, setup guidance, and release docs first.
-If they still read correctly, merge the automated PR or refresh locally:
+Before opening a refresh PR, inspect affected Source Recipes, Knowledge Pack
+query recipes, setup guidance, and release docs first. If they still read
+correctly, refresh locally from a clean Agent Kit checkout:
 
 ```bash
 endor-agent-kit refresh-endor-context
+endor-agent-kit verify-endor-context --upstream
+python -m pytest -q tests/test_endor_context.py
+git diff -- source/endor-context/provenance.json
 ```
+
+Commit the refreshed `source/endor-context/provenance.json` through the normal
+signed PR process.
 
 For a full release, also follow `docs/plugin-release-checklist.md`.
 

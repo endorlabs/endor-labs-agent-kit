@@ -36,6 +36,9 @@ package metadata.
 - Extended the generated-artifact drift gates and mirror validation to cover
   root `hooks/`, per-package hook manifests and scripts, and dangling
   `.cursor-plugin/plugin.json` references.
+- Changed the scheduled Endor context refresh workflow from an automated PR
+  creator into a signal-only manual refresh gate, matching repository policy
+  that GitHub Actions must not create pull requests.
 
 ### Changed
 
@@ -49,6 +52,9 @@ package metadata.
 - Preserved AURI branding in agent prompts and generated package content.
 - Refreshed release-readiness docs for the current package version, MIT license
   status, public mirror path wording, and canonical provider documentation URLs.
+- Refreshed provider documentation notes for the Gemini CLI to Antigravity CLI
+  transition and clarified that Endor context refreshes use human-authored,
+  signed PRs.
 
 ### Removed
 
@@ -62,8 +68,8 @@ package metadata.
   installs remain supported through the legacy package directory.
 - Cursor does not have a separate legacy `ai-plugins` package ID. Existing
   customers installing from the `ai-plugins` repository root continue to receive
-  the current `.cursor-plugin/`, root `agents/`, root `skills/`, and
-  `assets/logo.png` package.
+  the current `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`,
+  and `assets/logo.png` package.
 - Gemini CLI keeps the generated package at
   `plugins/gemini/endor-labs-agent-kit/`, while the repository root keeps only
   `.mcp.json` and non-installable `GEMINI.md` support context. Root

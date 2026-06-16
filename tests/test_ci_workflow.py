@@ -33,14 +33,19 @@ def test_ci_workflow_runs_endor_context_freshness_check():
     assert "Endor context drift" in workflow
 
 
-def test_refresh_endor_context_workflow_automates_freshness():
+def test_refresh_endor_context_workflow_reports_manual_freshness():
     workflow = (
         repo_root() / ".github" / "workflows" / "refresh-endor-context.yml"
     ).read_text()
 
     # The scheduled refresh lane must keep re-pinning provenance from upstream
-    # and verifying it before opening the review PR.
+    # and verifying it, but company policy requires humans to open refresh PRs.
     assert "schedule" in workflow
     assert "endor-agent-kit refresh-endor-context" in workflow
     assert "endor-agent-kit verify-endor-context --upstream" in workflow
-    assert "endor-context-refresh" in workflow
+    assert "Manual Endor context refresh needed" in workflow
+    assert "contents: read" in workflow
+    assert "pull-requests: write" not in workflow
+    assert "gh pr create" not in workflow
+    assert "git push" not in workflow
+    assert "endor-context-refresh" not in workflow

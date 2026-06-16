@@ -92,7 +92,7 @@ approval gates. Setup never performs those workflow actions.
 - Always run readiness and namespace checks before live Endor lookups.
 - Always keep setup, file edits, branch pushes, PR/MR creation, comments, tickets, and policy writes as separate evidence-backed steps.
 - Never run setup scans or `endorctl host-check`.
-- Never auto-install `gh`, language runtimes, or package managers in v1.
+- Never auto-install `gh`, language runtimes, or package managers.
 - Never print, persist, or copy Endor API key, secret, token, or full config values.
 
 ## Manual Fallback
