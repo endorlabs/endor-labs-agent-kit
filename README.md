@@ -54,7 +54,7 @@ A machine-readable index is available in `llms.txt`.
 
 ## 🚀 Plugin Quick Start
 
-Current generated plugin package version: `2.0.0`.
+Current generated plugin package version: `2.1.0`.
 
 | Host | Best for | First move |
 | --- | --- | --- |

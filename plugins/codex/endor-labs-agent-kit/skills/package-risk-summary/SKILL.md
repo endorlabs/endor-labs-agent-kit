@@ -12,7 +12,7 @@ description: |
 
 # Endor Labs Package Risk Summary
 
-Generated from Endor Agent Kit recipe `package-risk-summary` v1.0.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v2.0.0.
+Generated from Endor Agent Kit recipe `package-risk-summary` v1.0.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v2.1.0.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

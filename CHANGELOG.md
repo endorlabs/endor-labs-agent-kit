@@ -3,13 +3,15 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `2.0.0`. Merging to `main` does not
+The current generated package version is `2.1.0`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
 ## Unreleased
+
+## 2.1.0 - 2026-06-16
 
 ### Added
 
@@ -55,6 +57,8 @@ package metadata.
 - Refreshed provider documentation notes for the Gemini CLI to Antigravity CLI
   transition and clarified that Endor context refreshes use human-authored,
   signed PRs.
+- Rechecked Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Endor
+  Labs provider release documentation on 2026-06-16 before cutting 2.1.0.
 
 ### Removed
 

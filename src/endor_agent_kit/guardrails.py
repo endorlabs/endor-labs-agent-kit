@@ -26,6 +26,7 @@ from endor_agent_kit.safety_posture import (
 from endor_agent_kit.dlp_scan import scan_catalog_credential_findings
 from endor_agent_kit.knowledge_pack import PACK_SECTION_HEADING, validate_knowledge_pack
 from endor_agent_kit.provenance import verify_catalog_provenance
+from endor_agent_kit.publication.plugin_package_common import package_version
 from endor_agent_kit.validator import validate_recipe_file
 
 CLAUDE_CODE_ALWAYS_DENIED = frozenset(
@@ -513,6 +514,7 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
 
 def _check_plugins(root: Path, errors: list[str]) -> None:
     plugins_root = root / "plugins"
+    expected_package_version = package_version()
     if (root / ".cursor-plugin").is_dir():
         _check_cursor_plugin_package(root, errors)
     if (root / "cursor-sdk").is_dir():
@@ -535,7 +537,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 root,
                 claude_package,
                 expected_name="endor-labs-agent-kit",
-                expected_version="2.0.0",
+                expected_version=expected_package_version,
                 errors=errors,
             )
         if not legacy_claude_package.is_dir():
@@ -556,7 +558,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 "ai-plugins": "./plugins/claude/ai-plugins",
             },
             {
-                "endor-labs-agent-kit": "2.0.0",
+                "endor-labs-agent-kit": expected_package_version,
                 "ai-plugins": "1.2.0",
             },
             errors,
@@ -569,7 +571,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 "ai-plugins": "./ai-plugins",
             },
             {
-                "endor-labs-agent-kit": "2.0.0",
+                "endor-labs-agent-kit": expected_package_version,
                 "ai-plugins": "1.2.0",
             },
             errors,
@@ -601,6 +603,7 @@ def _check_unexpected_plugin_hooks(root: Path, plugins_root: Path, errors: list[
 
 
 def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
+    expected_package_version = package_version()
     manifest_path = root / ".cursor-plugin" / "plugin.json"
     manifest = _load_json_mapping(root, manifest_path, errors)
     if manifest:
@@ -608,8 +611,8 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             errors.append(".cursor-plugin/plugin.json: name must be endorlabs")
         if manifest.get("displayName") != "Endor Labs Agent Kit":
             errors.append(".cursor-plugin/plugin.json: displayName must be Endor Labs Agent Kit")
-        if manifest.get("version") != "2.0.0":
-            errors.append(".cursor-plugin/plugin.json: version must be 2.0.0")
+        if manifest.get("version") != expected_package_version:
+            errors.append(f".cursor-plugin/plugin.json: version must be {expected_package_version}")
         if manifest.get("logo") != "assets/logo.png":
             errors.append(".cursor-plugin/plugin.json: logo must be assets/logo.png")
         if manifest.get("agents") != "./agents/":
