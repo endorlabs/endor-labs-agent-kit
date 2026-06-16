@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 from pathlib import Path
 
@@ -27,6 +28,10 @@ SYNC_FILES = (
 
 STALE_GENERATED_FILES = (
     "gemini-extension.json",
+)
+
+README_VERSION_PATTERN = re.compile(
+    r"Current generated Agent Kit package version: `[^`]+`",
 )
 
 SOURCE_ONLY_ROOT_SKILLS = frozenset({
@@ -95,10 +100,50 @@ def sync_distribution(
             operations=operations,
         )
 
+    _sync_readme_package_version(source, target, dry_run=dry_run, operations=operations)
+
     for relative in STALE_GENERATED_FILES:
         _remove_file(target / relative, dry_run=dry_run, operations=operations)
 
     return operations
+
+
+def _source_package_version(source: Path) -> str:
+    pyproject = source / "pyproject.toml"
+    if not pyproject.is_file():
+        raise FileNotFoundError(f"{pyproject}: missing source package metadata")
+    match = re.search(
+        r'^version = "([^"]+)"$',
+        pyproject.read_text(encoding="utf-8"),
+        flags=re.MULTILINE,
+    )
+    if not match:
+        raise ValueError(f"{pyproject}: missing project.version")
+    return match.group(1)
+
+
+def _sync_readme_package_version(
+    source: Path,
+    target: Path,
+    *,
+    dry_run: bool,
+    operations: list[str],
+) -> None:
+    readme = target / "README.md"
+    version = _source_package_version(source)
+    operations.append(f"update {readme} package version -> {version}")
+    if dry_run:
+        return
+    if not readme.is_file():
+        operations.append(f"skip missing {readme}")
+        return
+
+    text = readme.read_text(encoding="utf-8")
+    replacement = f"Current generated Agent Kit package version: `{version}`"
+    updated, count = README_VERSION_PATTERN.subn(replacement, text, count=1)
+    if count != 1:
+        raise ValueError(f"{readme}: missing package version marker")
+    readme.write_text(updated, encoding="utf-8")
 
 
 def _sync_tree(source: Path, target: Path, *, dry_run: bool, operations: list[str]) -> None:

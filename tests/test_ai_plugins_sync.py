@@ -16,6 +16,7 @@ def _write(path: Path, content: str = "content\n") -> None:
 def _minimal_source_tree(root: Path) -> None:
     for directory in ("plugins", ".cursor-plugin", "agents", "cursor-sdk", "hooks"):
         _write(root / directory / "artifact.txt")
+    _write(root / "pyproject.toml", '[project]\nversion = "9.9.9"\n')
     _write(root / ".mcp.json", "{}\n")
     _write(root / "CHANGELOG.md", "# Changelog\n")
     _write(root / "GEMINI.md", "# Gemini\n")
@@ -37,6 +38,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     _write(target / "assets" / "logo.svg", "<svg />\n")
     _write(target / "skills" / "old-generated-skill" / "SKILL.md", "stale\n")
     _write(target / "gemini-extension.json", "{}\n")
+    _write(target / "README.md", "Current generated Agent Kit package version: `0.0.1`.\n")
 
     operations = sync_distribution(source, target)
 
@@ -56,7 +58,9 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert (target / "assets" / "logo.png").exists()
     assert not (target / "assets" / "logo.svg").exists()
     assert not (target / "gemini-extension.json").exists()
+    assert "package version: `9.9.9`" in (target / "README.md").read_text(encoding="utf-8")
     assert any("sync" in operation for operation in operations)
+    assert any("package version -> 9.9.9" in operation for operation in operations)
     assert any("gemini-extension.json" in operation for operation in operations)
 
 
@@ -66,8 +70,10 @@ def test_sync_distribution_dry_run_does_not_modify_target(tmp_path):
     source.mkdir()
     target.mkdir()
     _minimal_source_tree(source)
+    _write(target / "README.md", "Current generated Agent Kit package version: `0.0.1`.\n")
 
     operations = sync_distribution(source, target, dry_run=True)
 
     assert operations
     assert not (target / "plugins").exists()
+    assert "package version: `0.0.1`" in (target / "README.md").read_text(encoding="utf-8")
