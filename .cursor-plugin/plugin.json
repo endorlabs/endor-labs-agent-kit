@@ -24,5 +24,5 @@
   "name": "endorlabs",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",
-  "version": "2.0.0"
+  "version": "2.1.0"
 }
