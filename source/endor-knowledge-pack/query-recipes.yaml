@@ -40,14 +40,13 @@ recipes:
   - id: project-branch-coverage
     title: Project Branch Coverage Lookup
     resource: Project
-    purpose: Resolve selected repositories and inspect monitored branch coverage.
+    purpose: Resolve selected repositories before monitored-branch fallback checks.
     template: >-
-      endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch" --list-all -o json
+      endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json
     fields:
       - uuid
       - meta.name
       - spec.git
-      - spec.monitored_branch
     constraints:
       - Compare only selected repositories.
       - Do not run scans or mutate GitHub or Endor settings.

@@ -69,6 +69,7 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
     }.issubset(input_names)
     report_mode = next(item for item in data["inputs"] if item["name"] == "report_mode")
     assert "complete drill-down JSON arrays" in report_mode["description"]
+    assert "human-first rollup" in report_mode["description"]
     output_names = {item["name"] for item in data["outputs"]}
     assert {
         "executive_report",
@@ -106,6 +107,9 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "onboarding_verdict" in artifact
     assert "executive_report" in artifact
     assert "report_mode" in artifact
+    assert "human-first rollup" in artifact
+    assert "coverage-vs-health distinction" in artifact
+    assert "top offenders" in artifact
     assert "report_scope" in artifact
     assert "coverage_summary" in artifact
     assert "`coverage_summary` is mandatory for every response" in artifact
@@ -157,6 +161,8 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "https://api.github.com/orgs/<org>/repos" in artifact
     assert "Keep credentials out of logs and final output" in artifact
     assert "isDisabled" not in artifact
+    assert "GitHub owner URL such as `https://github.com/<owner>`" in artifact
+    assert "normalize it to `github_org: <owner>`" in artifact
     assert "--resource ScanProfile" in artifact
     assert "--resource PackageManager" in artifact
     assert "--resource PackageVersion" in artifact
@@ -194,6 +200,18 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert 'spec.project_uuid=="<project_uuid>"' in artifact
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' in artifact
     assert "spec.resolution_errors" in artifact
+    assert "Use `--list-all` for every project-scoped or targeted `PackageVersion` query" in artifact
+    assert "Normalize `spec.resolution_errors` before counting failures" in artifact
+    assert "`null` and `{}` are\nnot meaningful resolution failures" in artifact
+    assert "empty_resolution_error_object_count" in artifact
+    assert "`ScanResult.spec.refs` is version-shaped evidence" in artifact
+    assert 'an array of strings such as `["main"]`' in artifact
+    assert "Treat `Project.spec.monitored_branch` as" in artifact
+    assert "`ScanResult.spec.refs`, then `UNKNOWN` plus a data gap" in artifact
+    assert "Some tenants reject `context` in the `Repository` field mask" in artifact
+    assert '--field-mask "uuid,meta.name,meta.tags,spec"' in artifact
+    assert "A newer version of endorctl\nis available" in artifact
+    assert "Keep onboarding coverage and health quality visibly separate" in artifact
     assert "confirmation_required: true" in artifact
     assert "`evidence_queries[]` rows must contain only those fields" in artifact
     assert "must include `filter_summary` plus\n`field_mask_summary`" in artifact
@@ -222,7 +240,7 @@ def test_probe_droid_compiled_artifact_carries_onboarding_rules(tmp_path):
     assert "`report_scope` must include both `namespace` and\n  `namespace_provenance`" in artifact
     assert 'namespace_provenance: "current_request"' in artifact
     assert '"status": "planned_read_only"' in artifact
-    assert "does not require, configure, or start an Endor MCP server" in artifact
+    assert "No Endor MCP needed" in artifact
     assert "documented read-only Endor and GitHub inventory lookups" in artifact
     assert "glab repo list" not in artifact
     assert "az repos list" not in artifact
@@ -428,6 +446,8 @@ def test_probe_droid_eval_cases_cover_onboarding_outcomes():
         "inactive-and-archived-repository-classification",
         "missing-github-access",
         "selected-repos-sanitized-regression",
+        "org-url-under-repository-urls-normalized",
+        "endor-field-shape-normalization",
     }
     verdicts = {case["expected"]["onboarding_verdict"] for case in evals["cases"]}
     assert verdicts == {"PARTIAL_COVERAGE", "NOT_ONBOARDED", "INSUFFICIENT_DATA"}

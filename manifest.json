@@ -295,9 +295,9 @@
               "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
             },
             {
-              "bytes": 79983,
+              "bytes": 85011,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "2d0bc36fa6a8e5618c6e74f777ba409af9e752bd85fd545f3c8b6600d4a482e2"
+              "sha256": "2bd1d4aaeffd27695f1c06bb7b8f07eef5cce9e7479eb72fa9b2cef37c833e1a"
             }
           ],
           "id": "enterprise-edition",
@@ -800,9 +800,9 @@
               "sha256": "8f3b950af1524a85c80e54f92b36ed31dca087ba977654d32701558f14e85ac7"
             },
             {
-              "bytes": 83129,
+              "bytes": 88281,
               "path": "claude-managed-agents/probe-droid/agent.yaml",
-              "sha256": "11f50e5284d6d4c2060341f94fc7c3ea1dbc9679d1830cd1125bdcec8f59b75e"
+              "sha256": "068f3502c66e552d68c8263b352fd229d76b7a8e9af9a62f7e055e93628099aa"
             },
             {
               "bytes": 9818,
@@ -1215,9 +1215,9 @@
               "sha256": "85615c0cdaa965fcbf7987f2ebc97c8c15274c032d6f74b8e835a7e36006949a"
             },
             {
-              "bytes": 80641,
+              "bytes": 85669,
               "path": "codex/probe-droid/SKILL.md",
-              "sha256": "2bb6c921bdfe4b89a36512fc1d72ea59f732a0b07dcc7b59178535c09317c8d5"
+              "sha256": "e8b5eaf2b9688333db0afa820342039455fcfd4422fc686f0fc0a40339f878b0"
             },
             {
               "bytes": 9818,
@@ -1750,9 +1750,9 @@
               "sha256": "77760bc453827530056c5eaa2a123344d14ca605f8d0681e3ba01667016e6472"
             },
             {
-              "bytes": 80670,
+              "bytes": 85698,
               "path": "gemini/probe-droid/SKILL.md",
-              "sha256": "8819711fe848304af13ebae217e8315fe41714b737f856d6a16979e6b540c8cd"
+              "sha256": "f28afb3d38969b184cfee62068389393916a3d17f62a1898f57ee012da502b5b"
             },
             {
               "bytes": 9818,
@@ -1765,9 +1765,9 @@
               "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
             },
             {
-              "bytes": 80916,
+              "bytes": 85944,
               "path": "gemini/probe-droid/probe-droid.md",
-              "sha256": "c30558bbe3c9176c0325eb6c51a064759e746c0a1ad233e1a488c510aa6d0dce"
+              "sha256": "61d8aa000f8b0886b6f3bf7e4791db35ef06f5dd5e26dabbcd1838354797f76d"
             }
           ],
           "id": "gemini-cli",
@@ -2350,14 +2350,14 @@
               "sha256": "3aedd0474439717c6d21475556e5077ec2808deb75f70b76c9aecdc3d55ceb09"
             },
             {
-              "bytes": 15731,
+              "bytes": 15781,
               "path": "portable/probe-droid/agent.manifest.json",
-              "sha256": "f64394eec36b712123b5d6feb16cce8599994c5bd1b19e3f71d36d73eeca51ab"
+              "sha256": "061c4e6d42c2f614ace9a2c7704f1c9126f4710efb2a229d629fd199c6a6ff37"
             },
             {
-              "bytes": 75386,
+              "bytes": 80414,
               "path": "portable/probe-droid/agent.md",
-              "sha256": "7c6b3ba4ddc7d33240fb049d0ad9143861c9000cb3f594e5d46c699dbe21d651"
+              "sha256": "cf2ab5093642a8a801f003d91bb5cf0e2cb83c2061b0890bdcb1ce186f72a3a8"
             },
             {
               "bytes": 9819,
@@ -2370,9 +2370,9 @@
               "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
             },
             {
-              "bytes": 7507,
+              "bytes": 7557,
               "path": "portable/probe-droid/output-contract.md",
-              "sha256": "ca1988aa23af45de4b214ef76b7f65b5d1583896c5198324878a95b7abd094e4"
+              "sha256": "3af0c60cc4322d968a906bfe34f8fb3c0fb7956f45cf2f18411681b0b60bc1d4"
             }
           ],
           "id": "portable-agent",
@@ -2671,9 +2671,9 @@
           "sha256": "dc5cb38ba91a49ad24b686d8897662f9201dbd9c737dafc0da81cc8ad3319266"
         },
         {
-          "bytes": 24568,
+          "bytes": 24810,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/probe-droid.md",
-          "sha256": "9a37989f47d6f54311a9dce7d40caef2ae1e4071d27b138deb87b3eac81103ff"
+          "sha256": "740d9f46d7f11b57e6edcc2348a2d9b7177bd2a51820e717e925333b032f0f2b"
         },
         {
           "bytes": 10619,
@@ -2771,9 +2771,9 @@
           "sha256": "7733e87d2aac98b4921855803b1469a619c280560231da58f7e31fbbe1e4eec2"
         },
         {
-          "bytes": 24317,
+          "bytes": 24559,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
-          "sha256": "dd576553b9a871bc5434a93c4f9369534703ea13c3a83be3cd3c924c97a9b6e6"
+          "sha256": "c4b0aa394300ad09e0599611d0569e4c8f4cfeee5fab28914aca619bf6aa9bd0"
         },
         {
           "bytes": 10360,
@@ -2875,9 +2875,9 @@
           "sha256": "f43e3f0bcbb2b045913a9f268b4ffd18489727e7d16ff9c533ed681e5d9db47f"
         },
         {
-          "bytes": 23735,
+          "bytes": 23977,
           "path": "plugins/claude/ai-plugins/agents/probe-droid.md",
-          "sha256": "a1f85c7e37bc973ed8fc1c61943bae202ec2444bf390784ad8be0fbc9b70f4f7"
+          "sha256": "6618e80194ae76d1aeca1a6eb87d22eb870c236227a53ccc941815ad3aa227fa"
         },
         {
           "bytes": 9765,
@@ -3000,9 +3000,9 @@
           "sha256": "f43e3f0bcbb2b045913a9f268b4ffd18489727e7d16ff9c533ed681e5d9db47f"
         },
         {
-          "bytes": 23735,
+          "bytes": 23977,
           "path": "plugins/claude/endor-labs-agent-kit/agents/probe-droid.md",
-          "sha256": "a1f85c7e37bc973ed8fc1c61943bae202ec2444bf390784ad8be0fbc9b70f4f7"
+          "sha256": "6618e80194ae76d1aeca1a6eb87d22eb870c236227a53ccc941815ad3aa227fa"
         },
         {
           "bytes": 9765,
@@ -3145,9 +3145,9 @@
           "sha256": "85a6faf44f3b1d604ac9909bb4ae74b5a149798b29c6bfe1f519afd28e180fb3"
         },
         {
-          "bytes": 24737,
+          "bytes": 24982,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-probe-droid-agent.toml",
-          "sha256": "dc276f8c85a63f1580e3724210785eb7bc026c4565b79e20472142c73b240fb2"
+          "sha256": "c2d7e57e9bbdf3ec6a56adc23013faaf0457f49f3ecd4f2c395c66053a3fd540"
         },
         {
           "bytes": 10537,
@@ -3250,9 +3250,9 @@
           "sha256": "566c0050f8beb77816e575b1747c18926afa546b75bbbd617114191a9f5bcf57"
         },
         {
-          "bytes": 23790,
+          "bytes": 24032,
           "path": "plugins/codex/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
-          "sha256": "6cc929e7cd279603b91741eb2116856f58d4df582380f77a328f14e1388fcfe2"
+          "sha256": "8b59d263119197b4c6c07f86ce6f1218a680f8915a1215edbe9fbd0c6ff838df"
         },
         {
           "bytes": 9823,
@@ -3365,9 +3365,9 @@
           "sha256": "a822ff04b52f97c590065c1e5284e4b82d420f982a61dad43dfc700faf10fa40"
         },
         {
-          "bytes": 24539,
+          "bytes": 24781,
           "path": "agents/endor-probe-droid-agent.md",
-          "sha256": "b4997d00bdc13501dc2416f25096099dc26b0590d6269cb24bdef53cf8633530"
+          "sha256": "5e9f6de4207808836ed2e30dcf717d87e60c5ef5a5422c0e3659e34329a2b774"
         },
         {
           "bytes": 10597,
@@ -3495,9 +3495,9 @@
           "sha256": "5b2d730011ec47d80d57c78518e79cc542dc928c11f06c77ff8ccc0ab9fa1e35"
         },
         {
-          "bytes": 24252,
+          "bytes": 24494,
           "path": "skills/probe-droid/SKILL.md",
-          "sha256": "9715d7292660e0b12d0651169594ba1fdd8ad92722be71c0c3d227f549257845"
+          "sha256": "3af42efb4ddae674b3023435f12fdeff3831a52f70079072869b0fa5bc53e159"
         },
         {
           "bytes": 9818,
@@ -3650,9 +3650,9 @@
           "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
         },
         {
-          "bytes": 23813,
+          "bytes": 24055,
           "path": "cursor-sdk/agents/endor-probe-droid-agent.md",
-          "sha256": "1db7766d245591e67f445f65e657693203ab551741d3618cf1dc1d814ca4fc51"
+          "sha256": "61af81b365b4103a5fa6a22a2a06690797b674a6c4a0a7c141af554af0cf5bde"
         },
         {
           "bytes": 9888,
@@ -3789,9 +3789,9 @@
           "sha256": "88c7f26d3b74fcfe92faeef61729ab878c8c7148ea42c0d7141c2086a344b025"
         },
         {
-          "bytes": 24269,
+          "bytes": 24511,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/probe-droid.md",
-          "sha256": "9dd1fcf9db567e68d7ca0fa3a177e43b4422aba085034bdbf7d848532f8bd82e"
+          "sha256": "0be29027cca5c9cdd051b180d677ae61d4b3711f8f5e13bf232f2e89d9be343e"
         },
         {
           "bytes": 10315,
@@ -3889,9 +3889,9 @@
           "sha256": "d05ebdf2d1c09a5dcc55134e0003c3813044450421a0151f49f48d32b0b691a7"
         },
         {
-          "bytes": 24023,
+          "bytes": 24265,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
-          "sha256": "c92997d22676c7a192295bf9df35cd580dd82deda7e11c79725605316c3efaf1"
+          "sha256": "af5f5511ab10990753eae6490bdaec01d146a90fe095f1529d98af0b0c33a4d6"
         },
         {
           "bytes": 10061,

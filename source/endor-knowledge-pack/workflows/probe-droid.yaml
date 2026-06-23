@@ -22,7 +22,9 @@ task_profiles:
       object, never null. Every repository lane row, including ambiguous_matches, must include repository or repo_full_name
       and default_branch; use UNKNOWN plus data_gaps when branch proof is unavailable, not github_repository alone. Onboarded
       rows must include project_uuid and endor_monitored_branch; if monitored branch proof is unavailable, put the row in
-      onboarded_repositories_with_gaps, not onboarded_healthy_repositories.
+      onboarded_repositories_with_gaps, not onboarded_healthy_repositories. Keep coverage counts separate from health quality
+      counts, and surface compact top offenders before JSON drill-down. Treat Project.spec.monitored_branch as optional;
+      use normalized ScanResult.spec.refs fallback or UNKNOWN plus data_gaps for branch proof.
     when_to_use:
       - The user asks for onboarding gaps or monitored-branch coverage.
       - A read-only host check needs onboarding evidence without full org analysis.
@@ -81,6 +83,9 @@ retrieval_steps:
 fallbacks:
   - Retry Endor project inventory with traversal before classifying repositories as not onboarded.
   - If GitHub App installation or GitHub API evidence is unavailable, continue with provided inventory and mark the gap.
+  - >-
+    Treat `Project.spec.monitored_branch` as optional; use valid Project branch fields when returned,
+    then normalized `ScanResult.spec.refs`, then `UNKNOWN` plus data_gaps.
 data_gaps:
   - Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty,
     and package-version query gaps in `data_gaps`.
@@ -89,6 +94,10 @@ data_gaps:
     not `onboarded_healthy_repositories`; healthy rows require direct normalized branch and project evidence.
   - Treat null, `UNKNOWN`, unavailable, unqueryable, inferred, or data-gap-only monitored branch evidence as a gap even when scan
     evidence exists.
+  - >-
+    Treat `resolution_errors: {}` as no meaningful package resolution error; count only keyed objects
+    such as `resolved`, `unresolved`, or `call_graph`, or non-empty arrays.
+  - Record field-mask drift, default API page limits, and stderr-only version notices as evidence gaps when they affect confidence.
 evidence_query_plans:
   - profile_id: resolve-scope
     title: Onboarding Scope Query Plan
@@ -152,14 +161,13 @@ evidence_query_recipes:
     id: project-branch-coverage
     canonical_id: project-branch-coverage
     resource: Project
-    purpose: Read Endor project git and monitored branch metadata for selected repositories.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
+    purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git"
       --list-all -o json
     fields:
       - uuid
       - meta.name
       - spec.git
-      - spec.monitored_branch
     constraints:
       - Compare only selected repositories.
       - Do not run scans or mutate GitHub or Endor settings.
@@ -167,14 +175,13 @@ evidence_query_recipes:
     id: project-branch-coverage
     canonical_id: project-branch-coverage
     resource: Project
-    purpose: Read Endor project git and monitored branch metadata for selected repositories.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
+    purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git"
       --list-all -o json
     fields:
       - uuid
       - meta.name
       - spec.git
-      - spec.monitored_branch
     constraints:
       - Compare only selected repositories.
       - Do not run scans or mutate GitHub or Endor settings.
@@ -194,14 +201,13 @@ evidence_query_recipes:
     id: project-branch-coverage
     canonical_id: project-branch-coverage
     resource: Project
-    purpose: Read Endor project git and monitored branch metadata for selected repositories.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git,spec.monitored_branch"
+    purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
+    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git"
       --list-all -o json
     fields:
       - uuid
       - meta.name
       - spec.git
-      - spec.monitored_branch
     constraints:
       - Compare only selected repositories.
       - Do not run scans or mutate GitHub or Endor settings.
