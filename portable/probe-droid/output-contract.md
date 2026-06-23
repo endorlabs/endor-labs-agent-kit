@@ -22,7 +22,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `inactive_threshold_days` (integer, optional): Defaults to 365. Repositories with no recent push or default-branch commit are flagged for scope decision.
 - `exclude_inactive_repositories` (boolean, optional): Defaults to false. When true, inactive repositories are excluded from the coverage denominator.
 - `include_archived_repositories` (boolean, optional): Defaults to false. Archived repositories are excluded by default and are never coverage blockers unless explicitly included.
-- `report_mode` (enum, optional): full or executive. Defaults to full. Executive mode keeps prose and the first JSON section compact while preserving complete drill-down JSON arrays.
+- `report_mode` (enum, optional): full or executive. Defaults to full. Both modes start with a short human-first rollup; executive mode keeps prose and the first JSON section compact while preserving complete drill-down JSON arrays.
 
 ## Outputs
 

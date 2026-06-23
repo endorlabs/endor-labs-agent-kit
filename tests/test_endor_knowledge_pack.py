@@ -124,6 +124,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
 def test_runtime_task_profile_prompts_carry_gemini_contract_guards():
     troubleshooter = render_task_profile_prompt("endor-troubleshooter", "diagnose", compact=True)
     probe = render_task_profile_prompt("probe-droid", "evidence-check", compact=True)
+    probe_full = render_knowledge_pack_section("probe-droid")
 
     assert "every nested issue_lanes.next_step, validation, action, why, reasoning" in troubleshooter
     assert "free of raw tool names or command-shaped" in troubleshooter
@@ -136,6 +137,10 @@ def test_runtime_task_profile_prompts_carry_gemini_contract_guards():
     assert "Onboarded" in probe
     assert "project_uuid and endor_monitored_branch" in probe
     assert "not onboarded_healthy_repositories" in probe
+    assert "coverage counts separate from health quality" in probe
+    assert "Project.spec.monitored_branch" in probe
+    assert "ScanResult.spec.refs" in probe
+    assert "resolution_errors: {}" in probe_full
 
 
 def test_knowledge_pack_renders_global_section_for_known_agent():
