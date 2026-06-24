@@ -13,6 +13,7 @@
 - `docs/distribution-sync.md`: source-to-`ai-plugins` mirror process.
 - `docs/plugin-release-checklist.md`: release validation matrix.
 - `docs/guardrails.md`: safety and runtime-control documentation.
+- `docs/amp-mcp.md`: MCP-only setup for exposing Endor Labs tools to Amp.
 - `docs/portable-runtime-conformance.md`: portable adapter and approval-gate contract.
 
 ## Source Of Truth
