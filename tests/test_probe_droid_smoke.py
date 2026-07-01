@@ -327,6 +327,7 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
         "portable/probe-droid/endorctl-setup.md",
         "manifest.json",
         "README.md",
+        "catalog.json",
     }
     agent_dir = dest / "claude-code" / "probe-droid"
     managed_dir = dest / "claude-managed-agents" / "probe-droid"

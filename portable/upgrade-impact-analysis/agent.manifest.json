@@ -285,7 +285,7 @@
     "endorctl_api"
   ],
   "requires_endor_mcp": "",
-  "requires_endorctl": ">=1.0",
+  "requires_endorctl": ">=1.0.0",
   "runtime_action_vocabulary": [
     {
       "confirmation_required": false,

@@ -205,6 +205,7 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
         "portable/cicd-posture/endorctl-setup.md",
         "manifest.json",
         "README.md",
+        "catalog.json",
     }
 
     agent_dir = dest / "claude-code" / "cicd-posture"

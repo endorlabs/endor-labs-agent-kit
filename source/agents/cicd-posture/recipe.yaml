@@ -10,6 +10,9 @@ description: |
   evidence and optional local CI file inspection, then returns deterministic
   scores, critical overrides, evidence queries, and data gaps without mutating
   Endor, GitHub, or repository state.
+audience: appsec
+short_description: "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: enterprise
 supported_transports:
@@ -137,4 +140,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: ">=1.0"
+requires_endorctl: ">=1.0.0"

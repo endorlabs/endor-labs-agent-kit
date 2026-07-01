@@ -3,6 +3,9 @@ id: sca-remediation
 name: SCA Remediation
 version: 0.1.0
 description: Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
+audience: developer
+short_description: "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation."
+authors: ["Endor Labs"]
 safety_class: mutating
 endor_tier_minimum: enterprise
 supported_transports:
@@ -120,4 +123,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ''
-requires_endorctl: '>=1.0'
+requires_endorctl: ">=1.0.0"

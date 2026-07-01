@@ -88,6 +88,35 @@ Agent Kit PR is opened. The `scripts/check_new_agent_authoring.py` command is
 the CI/base-ref companion: it only applies strict new-agent checks to recipes
 that are newly added in the PR.
 
+## 📇 Catalog Field Contract
+
+Every recipe carries the fields the signed `catalog.json` (the `EndorAgent` wire
+shape apiserver serves) is built from. `endor-agent-kit validate` enforces these
+and blocks merge on failure:
+
+| Recipe field | Catalog field | Rule |
+| --- | --- | --- |
+| `id` | `id` | kebab-case `^[a-z][a-z0-9-]{2,63}$`; **immutable once on `main`** (telemetry join key). |
+| `name` | `name` | non-empty. |
+| `version` | `version` | non-empty semver; bump this for behavior changes (never rename `id`). |
+| `audience` | `audience` | required; one of `appsec` or `developer` -- the persona surface the agent lists under. |
+| `short_description` | `short_description` | required, non-empty; the catalog tile one-liner. |
+| `description` | `description` | required; the long detail-view markdown (the existing `description`). |
+| `authors` | `authors` | required, non-empty list of **display names only**; email/`@handle`/URL is rejected as PII. |
+| `requires_endorctl` | `endorctl_min_version` | required version constraint (`>=`/`>` + full semver, e.g. `>=1.0.0`); the operator is stripped for the catalog. |
+
+`install[]` is derived from the published layout for the `claude-code` and
+`claude-managed` hosts; no recipe field is needed. `catalog.json` is a generated,
+committed artifact covered by the drift check -- regenerate it with `publish`.
+
+The **merge gate** on `agents/**`-affecting PRs is:
+
+- `endor-agent-kit validate` over every recipe (the field contract above)
+- `endor-agent-kit check-id-stability --base-ref origin/<base>` -- fails if an id
+  present on `main` is renamed or removed
+- `CODEOWNERS` review on the recipes, validator, emitter, signing logic, release
+  workflow, and pinned key
+
 ## 🔁 Automated ai-plugins PR Flow
 
 The workflow `.github/workflows/publish-ai-plugins-pr.yml` runs after merges to
