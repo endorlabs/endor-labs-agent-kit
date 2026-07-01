@@ -111,6 +111,7 @@ def test_repository_dependency_reviewer_publish_writes_claude_code_codex_and_por
         "portable/repository-dependency-reviewer/output-contract.md",
         "manifest.json",
         "README.md",
+        "catalog.json",
     }
     assert not (dest / "claude-managed-agents" / "repository-dependency-reviewer").exists()
     assert (

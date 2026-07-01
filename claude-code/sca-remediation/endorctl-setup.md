@@ -4,7 +4,7 @@ The SCA Remediation agent preserves a mutating workflow.
 Use an authenticated Endor tenant plus local source-provider credentials
 before allowing patch or change-request steps.
 
-Required endorctl version: `>=1.0`
+Required endorctl version: `>=1.0.0`
 
 ## Namespace Guardrails
 

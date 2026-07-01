@@ -3,7 +3,7 @@
 The CI/CD And Supply Chain Posture artifact uses read-only Endor lookups through `endorctl api`.
 Install and authenticate `endorctl` before using this artifact.
 
-Required version: `>=1.0`
+Required version: `>=1.0.0`
 
 ## Namespace Guardrails
 

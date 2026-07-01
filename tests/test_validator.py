@@ -178,6 +178,111 @@ def test_rejects_missing_instructions_file():
     assert any("instructions_path" in error for error in _errors(data))
 
 
+def test_rejects_missing_audience():
+    data = _data()
+    data.pop("audience", None)
+
+    assert any("audience:" in error for error in _errors(data))
+
+
+def test_rejects_invalid_audience():
+    data = _data()
+    data["audience"] = "platform"
+
+    assert any("audience:" in error for error in _errors(data))
+
+
+def test_accepts_both_audiences():
+    data = _data()
+    for audience in ("appsec", "developer"):
+        data["audience"] = audience
+        assert not [error for error in _errors(data) if "audience:" in error]
+
+
+def test_rejects_missing_short_description():
+    data = _data()
+    data.pop("short_description", None)
+
+    assert any("short_description:" in error for error in _errors(data))
+
+
+def test_rejects_blank_short_description():
+    data = _data()
+    data["short_description"] = "   "
+
+    assert any("short_description:" in error for error in _errors(data))
+
+
+def test_rejects_missing_authors():
+    data = _data()
+    data.pop("authors", None)
+
+    assert any("authors:" in error for error in _errors(data))
+
+
+def test_rejects_empty_authors_list():
+    data = _data()
+    data["authors"] = []
+
+    assert any("authors:" in error for error in _errors(data))
+
+
+def test_rejects_author_email():
+    data = _data()
+    data["authors"] = ["contributor@example.com"]
+
+    assert any("PII" in error for error in _errors(data))
+
+
+def test_rejects_author_handle():
+    data = _data()
+    data["authors"] = ["@some-handle"]
+
+    assert any("PII" in error for error in _errors(data))
+
+
+def test_rejects_author_url():
+    data = _data()
+    data["authors"] = ["https://example.com/me"]
+
+    assert any("PII" in error for error in _errors(data))
+
+
+def test_accepts_display_name_authors():
+    data = _data()
+    data["authors"] = ["Endor Labs", "Matt Brown"]
+
+    assert not [error for error in _errors(data) if "authors:" in error]
+
+
+def test_rejects_missing_requires_endorctl():
+    data = _data()
+    data.pop("requires_endorctl", None)
+
+    assert any("requires_endorctl:" in error for error in _errors(data))
+
+
+def test_rejects_requires_endorctl_without_operator():
+    data = _data()
+    data["requires_endorctl"] = "1.0.0"
+
+    assert any("requires_endorctl:" in error for error in _errors(data))
+
+
+def test_rejects_requires_endorctl_partial_semver():
+    data = _data()
+    data["requires_endorctl"] = ">=1.0"
+
+    assert any("requires_endorctl:" in error for error in _errors(data))
+
+
+def test_accepts_requires_endorctl_constraints():
+    data = _data()
+    for value in (">=1.0.0", ">1.2.3", ">=1.32.0", ">=2.0.0-rc.1"):
+        data["requires_endorctl"] = value
+        assert not [error for error in _errors(data) if "requires_endorctl:" in error]
+
+
 def _copy_recipe_fixture(tmp_path):
     src = recipe_path().parent
     dst = tmp_path / "dependency-decision-helper"

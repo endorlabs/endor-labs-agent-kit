@@ -24,7 +24,9 @@ from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_packag
 from endor_agent_kit.publication.cursor_plugin import publish_cursor_plugin_package
 from endor_agent_kit.publication.cursor_sdk import publish_cursor_sdk_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
+from endor_agent_kit.publication.catalog_wire import write_catalog
 from endor_agent_kit.publication.mcp_support import publish_root_mcp_support
+from endor_agent_kit.catalog_manifest import CatalogManifest
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
 
 _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
@@ -152,7 +154,20 @@ def publish_recipes(
             )
             written.append(manifest)
 
+    catalog = _write_catalog_wire(destination)
+    if catalog is not None:
+        written.append(catalog)
+
     return written
+
+
+def _write_catalog_wire(destination: Path) -> Path | None:
+    """Project the finalized Catalog Manifest into the signed-release catalog.json."""
+
+    if not (destination / "manifest.json").is_file():
+        return None
+    manifest = CatalogManifest.load(destination)
+    return write_catalog(destination, list(manifest.agents))
 
 
 def _write_root_readme(destination: Path) -> Path:

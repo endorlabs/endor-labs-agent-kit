@@ -263,6 +263,7 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
         "portable/endor-troubleshooter/endorctl-setup.md",
         "manifest.json",
         "README.md",
+        "catalog.json",
     }
     agent_dir = dest / "claude-code" / "endor-troubleshooter"
     managed_dir = dest / "claude-managed-agents" / "endor-troubleshooter"

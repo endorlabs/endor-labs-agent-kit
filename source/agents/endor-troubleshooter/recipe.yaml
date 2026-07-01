@@ -10,6 +10,9 @@ description: |
   authentication, dependency resolution, container, reachability, policy, and
   workflow lanes, then returns low-friction repair guidance without mutating
   Endor, source-provider, or repository state.
+audience: developer
+short_description: "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: enterprise
 supported_transports:
@@ -154,4 +157,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: ">=1.0"
+requires_endorctl: ">=1.0.0"

@@ -124,6 +124,7 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
         "portable/findings-browser/endorctl-setup.md",
         "manifest.json",
         "README.md",
+        "catalog.json",
     }
 
     claude_dir = dest / "claude-code" / "findings-browser"
