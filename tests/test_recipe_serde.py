@@ -18,7 +18,8 @@ def test_recipe_yaml_round_trips_core_fields():
         "claude-code": ("enterprise-edition",),
         "claude-managed-agents": ("enterprise-edition",),
     }
-    assert [field.name for field in recipe.inputs] == ["ecosystem", "package_name", "version"]
+    assert recipe.policy_pack_support is True
+    assert [field.name for field in recipe.inputs] == ["policy_pack", "ecosystem", "package_name", "version"]
     assert "data_gaps" in [field.name for field in recipe.outputs]
 
     round_tripped = recipe_from_dict(recipe_to_dict(recipe))

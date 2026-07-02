@@ -92,7 +92,12 @@ def _render_agent(
     actions: tuple[ActionContract, ...],
 ) -> str:
     body = _portable_text(
-        instructions_for_edition(instructions, PORTABLE_SECTION_EDITION, recipe_id=recipe.id)
+        instructions_for_edition(
+            instructions,
+            PORTABLE_SECTION_EDITION,
+            recipe_id=recipe.id,
+            structured_output_recipe=recipe,
+        )
     )
     return (
         f"# {recipe.name}\n\n"
@@ -136,6 +141,10 @@ def _portable_runtime_contract(recipe: EndorAgentRecipe) -> str:
         )
     else:
         lines.append("- Keep the agent workflow read-only unless the runtime applies an approved wrapper action after final output.")
+    if recipe.policy_pack_support:
+        lines.append(
+            "- Evaluate trusted organization policy packs before recommendations and before any mutation gate."
+        )
     return "\n".join(lines)
 
 
@@ -368,6 +377,8 @@ def _derived_capabilities(recipe: EndorAgentRecipe) -> tuple[str, ...]:
         capabilities.append("repository.patch.prepare")
     if posture.can_open_change_requests:
         capabilities.extend(["source.change_request.lookup", "source.change_request.create"])
+    if recipe.policy_pack_support:
+        capabilities.append("organization.policy.evaluate")
     return tuple(capabilities)
 
 

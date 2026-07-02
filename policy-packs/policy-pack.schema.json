@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Endor Agent Kit Policy Pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy_pack_version", "id", "version", "policies"],
+  "properties": {
+    "policy_pack_version": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "version": { "type": "string", "minLength": 1 },
+    "policies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/policy" }
+    }
+  },
+  "$defs": {
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "effect", "message"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "effect": { "enum": ["allow", "warn", "require_review", "deny"] },
+        "applies_to": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "agents": { "type": "array", "items": { "type": "string" } },
+            "ecosystems": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "when": { "$ref": "#/$defs/condition" },
+        "allow_if": { "$ref": "#/$defs/condition" },
+        "warn_if": { "$ref": "#/$defs/condition" },
+        "require_review_if": { "$ref": "#/$defs/condition" },
+        "deny_if": { "$ref": "#/$defs/condition" },
+        "on_missing_facts": { "enum": ["deny", "warn", "allow", "unavailable"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    },
+    "condition": {
+      "type": "object",
+      "properties": {
+        "all": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "any": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
+        "not": { "$ref": "#/$defs/condition" },
+        "fact": { "type": "string" },
+        "exists": { "type": "boolean" },
+        "equals": {},
+        "not_equals": {},
+        "in": { "type": "array" },
+        "contains": {},
+        "gt": {},
+        "gte": {},
+        "lt": {},
+        "lte": {}
+      }
+    }
+  }
+}

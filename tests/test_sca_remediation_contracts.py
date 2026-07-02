@@ -98,6 +98,14 @@ def _valid_netty_payload() -> dict:
                 "proposed_branch": "remediation/sca/netty-all-4.2.13.Final",
             }
         ],
+        "policy_context": {
+            "status": "not_configured",
+            "pack_id": None,
+            "pack_version": None,
+            "sha256": None,
+            "source": None,
+        },
+        "policy_evaluations": [],
     }
 
 
@@ -133,6 +141,35 @@ def test_sca_gate_validator_requires_namespace_provenance():
     errors = validate_sca_gate_payload(payload)
 
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
+
+
+def test_sca_gate_validator_rejects_approved_remediation_blocked_by_policy():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+    payload["policy_context"] = {
+        "status": "loaded",
+        "pack_id": "websphere-traditional-java8",
+        "pack_version": "2026.07.02",
+        "sha256": "abc123",
+        "source": "runtime",
+    }
+    payload["policy_evaluations"] = [
+        {
+            "policy_id": "was-traditional-java-max-8",
+            "effect": "deny",
+            "decision": "blocked",
+            "message": "Do not recommend Java 9+.",
+            "facts_used": ["proposed.runtime.java.major"],
+            "missing_facts": [],
+        }
+    ]
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert (
+        "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
+        in errors
+    )
 
 
 def test_sca_gate_validator_requires_project_resolution():

@@ -249,6 +249,12 @@
   "id": "ai-sast-triage",
   "inputs": [
     {
+      "description": "Optional trusted Agent Policy Pack context supplied by runtime or protected workspace configuration.",
+      "kind": "object",
+      "name": "policy_pack",
+      "required": false
+    },
+    {
       "description": "Optional human project selector such as owner/repo, repository name, Endor project name, or repository URL. The agent should infer this from the current Git workspace first, not ask the user for a project UUID.",
       "kind": "string",
       "name": "project_name",
@@ -358,6 +364,18 @@
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true
+    },
+    {
+      "description": "Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.",
+      "kind": "object",
+      "name": "policy_context",
+      "required": true
+    },
+    {
+      "description": "Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.",
+      "kind": "list[object]",
+      "name": "policy_evaluations",
+      "required": true
     }
   ],
   "portable_schema_version": 1,
@@ -367,6 +385,7 @@
     "approval.verify",
     "endor.policy.write",
     "endor.query",
+    "organization.policy.evaluate",
     "repository.patch.prepare",
     "repository.read",
     "source.change_request.create",
@@ -431,6 +450,14 @@
       "id": "secret_redaction",
       "required_for": [
         "all_actions"
+      ]
+    },
+    {
+      "description": "Load trusted policy packs, return policy evaluation evidence, and deny mutating actions when policies block or require unverified review.",
+      "id": "policy_enforcement",
+      "required_for": [
+        "policy_actions",
+        "mutating_actions"
       ]
     },
     {
@@ -543,6 +570,18 @@
         "appsec-review-service",
         "source-review-api",
         "internal-approval-service"
+      ],
+      "status": "declared"
+    },
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Evaluate trusted organization policy packs before recommendations or mutating workflow gates proceed.",
+      "kind": "organization.policy.evaluate",
+      "provider_examples": [
+        "policy-pack",
+        "policy-service",
+        "runtime-policy-engine"
       ],
       "status": "declared"
     },

@@ -86,6 +86,7 @@ PORTABLE_KIND_BY_ACTION_KIND = {
     "approval.verify": "approval.verify",
     "endor.policy_write": "endor.policy.write",
     "ticket.create": "ticket.create",
+    "organization.policy.evaluate": "organization.policy.evaluate",
 }
 
 ADAPTER_RESPONSE_STATUSES = ("succeeded", "denied", "unavailable", "failed")
@@ -235,6 +236,14 @@ RUNTIME_ACTION_DEFINITIONS: tuple[RuntimeActionDefinition, ...] = (
         ),
     ),
     RuntimeActionDefinition(
+        kind="organization.policy.evaluate",
+        description=(
+            "Evaluate trusted organization policy packs before recommendations or "
+            "mutating workflow gates proceed."
+        ),
+        provider_examples=("policy-pack", "policy-service", "runtime-policy-engine"),
+    ),
+    RuntimeActionDefinition(
         kind="endor.policy.write",
         description=(
             "Create or reuse an Endor policy only after required approval and "
@@ -316,6 +325,14 @@ RUNTIME_CONTROL_REQUIREMENTS: tuple[RuntimeControlRequirement, ...] = (
             "values from prompts, outputs, comments, tickets, and audit summaries."
         ),
         required_for=("all_actions",),
+    ),
+    RuntimeControlRequirement(
+        id="policy_enforcement",
+        description=(
+            "Load trusted policy packs, return policy evaluation evidence, and deny "
+            "mutating actions when policies block or require unverified review."
+        ),
+        required_for=("policy_actions", "mutating_actions"),
     ),
     RuntimeControlRequirement(
         id="idempotency_check",
