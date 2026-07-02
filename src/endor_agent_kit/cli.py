@@ -31,6 +31,11 @@ from endor_agent_kit.install import (
     check_portable_install,
 )
 from endor_agent_kit.lifecycle import prepare_validation_request, validation_request_summary
+from endor_agent_kit.policy_pack import (
+    evaluate_policy_pack_file,
+    evaluations_to_json,
+    validate_policy_pack_file,
+)
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
 from endor_agent_kit.provenance import build_provenance_statement, verify_catalog_provenance
 from endor_agent_kit.publisher import publish_recipes
@@ -153,6 +158,21 @@ def main(argv: list[str] | None = None) -> int:
         help="Check a portable runtime adapter response against the Portable Evidence Schema",
     )
     validate_adapter_response_parser.add_argument("response", type=Path)
+
+    validate_policy_pack_parser = subparsers.add_parser(
+        "validate-policy-pack",
+        help="Validate a declarative Agent Kit policy pack",
+    )
+    validate_policy_pack_parser.add_argument("policy_pack", type=Path)
+
+    evaluate_policy_pack_parser = subparsers.add_parser(
+        "evaluate-policy-pack",
+        help="Evaluate a policy pack against a JSON fact bag",
+    )
+    evaluate_policy_pack_parser.add_argument("policy_pack", type=Path)
+    evaluate_policy_pack_parser.add_argument("--facts", type=Path, required=True)
+    evaluate_policy_pack_parser.add_argument("--agent", default="")
+    evaluate_policy_pack_parser.add_argument("--ecosystem", default="")
 
     structured_output_schema_parser = subparsers.add_parser(
         "structured-output-schema",
@@ -371,6 +391,39 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.response}")
+        return 0
+
+    if args.command == "validate-policy-pack":
+        errors = validate_policy_pack_file(args.policy_pack)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.policy_pack}")
+        return 0
+
+    if args.command == "evaluate-policy-pack":
+        try:
+            facts = json.loads(args.facts.read_text(encoding="utf-8"))
+            if not isinstance(facts, dict):
+                print("ERROR: facts must be a JSON object")
+                return 1
+            evaluations = evaluate_policy_pack_file(
+                args.policy_pack,
+                facts,
+                agent_id=args.agent,
+                ecosystem=args.ecosystem,
+            )
+        except OSError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        except json.JSONDecodeError as exc:
+            print(f"ERROR: invalid JSON: {exc}")
+            return 1
+        except ValueError as exc:
+            print(f"ERROR: {exc}")
+            return 1
+        print(evaluations_to_json(evaluations), end="")
         return 0
 
     if args.command == "structured-output-schema":

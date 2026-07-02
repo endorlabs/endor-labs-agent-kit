@@ -120,6 +120,10 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
         setup_files.append("`endorctl-setup.md`: Endor runtime setup notes.")
     if has_architecture:
         setup_files.append("`architecture.svg`: human-readable workflow diagram.")
+    if recipe.policy_pack_support:
+        setup_files.append(
+            "`policy-packs/` in the catalog root: optional templates and examples for trusted runtime policy configuration."
+        )
 
     architecture = _portable_architecture_readme_section(recipe) if has_architecture else []
     start_here = agent_readme_start_here(
@@ -151,6 +155,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
             "- Read `agent.manifest.json` to discover required transports, capabilities, declared actions, and runtime wrappers.",
             "- Provide Endor MCP or Endor API transports declared by the manifest.",
             "- Provide repository, source-provider, approval, ticketing, and Endor write adapters only when authorized by your platform policy.",
+            "- Load trusted Agent Policy Packs from runtime or protected workspace configuration when configured.",
             "- Pause for confirmation before any action where `confirmation_required` is true.",
             "- Return structured evidence after adapter execution, or return a data gap when the adapter, credential, permission, or transport is unavailable.",
             f"- {PORTABLE_UNTRUSTED_CONTENT_RULE}",

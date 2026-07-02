@@ -7,6 +7,12 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Literal
 
+from endor_agent_kit.policy_pack import (
+    load_policy_pack,
+    policy_output_errors,
+    policy_pack_sha256,
+    validate_policy_pack_data,
+)
 from endor_agent_kit.workflow_output_contracts.ai_sast import (
     lint_ai_sast_approval_comment,
     lint_ai_sast_exception_policy_comment,
@@ -49,6 +55,8 @@ class WorkflowCommand:
     validator: GateValidator | None = None
     gate_choices: tuple[str, ...] = ()
     default_gate: str = ""
+    agent_id: str = ""
+    mutating_gates: tuple[str, ...] = ()
 
     def add_parser(self, subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
         """Register this command on an argparse subparser collection."""
@@ -60,6 +68,11 @@ class WorkflowCommand:
             parser.add_argument("body", type=Path)
         if self.operation == "validate":
             parser.add_argument("--gate", choices=self.gate_choices, default=self.default_gate)
+            parser.add_argument(
+                "--policy-pack",
+                type=Path,
+                help="Validate policy_context and policy_evaluations against a policy pack",
+            )
 
     def run(self, args: argparse.Namespace) -> int:
         """Run this Workflow Output Contract command."""
@@ -82,6 +95,24 @@ class WorkflowCommand:
             print(f"ERROR: {self.name}: missing validator")
             return 1
         errors = self.validator(payload, gate=args.gate)
+        policy_pack_path = getattr(args, "policy_pack", None)
+        if policy_pack_path:
+            try:
+                policy_pack = load_policy_pack(policy_pack_path)
+                pack_errors = validate_policy_pack_data(policy_pack)
+                if pack_errors:
+                    errors.extend(f"policy_pack: {error}" for error in pack_errors)
+                else:
+                    errors.extend(
+                        policy_output_errors(
+                            payload,
+                            policy_pack=policy_pack,
+                            policy_sha256=policy_pack_sha256(policy_pack_path),
+                            mutation_gate=args.gate in self.mutating_gates,
+                        )
+                    )
+            except (OSError, ValueError) as exc:
+                errors.append(f"policy_pack: {exc}")
         if errors:
             for error in errors:
                 print(f"ERROR: {error}")
@@ -123,6 +154,8 @@ WORKFLOW_COMMANDS: tuple[WorkflowCommand, ...] = (
         validator=validate_sca_gate_payload,
         gate_choices=("selection-plan", "apply", "validate", "pr"),
         default_gate="selection-plan",
+        agent_id="sca-remediation",
+        mutating_gates=("apply", "validate", "pr"),
     ),
     WorkflowCommand(
         name="render-sca-pr-body",
@@ -145,6 +178,7 @@ WORKFLOW_COMMANDS: tuple[WorkflowCommand, ...] = (
         validator=validate_cicd_posture_payload,
         gate_choices=("posture",),
         default_gate="posture",
+        agent_id="cicd-posture",
     ),
     WorkflowCommand(
         name="validate-ai-sast-output",
@@ -154,6 +188,8 @@ WORKFLOW_COMMANDS: tuple[WorkflowCommand, ...] = (
         validator=validate_ai_sast_gate_payload,
         gate_choices=("triage", "remediation", "pr", "exception"),
         default_gate="triage",
+        agent_id="ai-sast-triage",
+        mutating_gates=("remediation", "pr", "exception"),
     ),
     WorkflowCommand(
         name="render-ai-sast-pr-body",

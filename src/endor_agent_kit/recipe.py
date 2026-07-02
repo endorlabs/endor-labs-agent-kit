@@ -79,6 +79,7 @@ class EndorAgentRecipe:
     audience: str = ""
     short_description: str = ""
     authors: tuple[str, ...] = ()
+    policy_pack_support: bool = False
 
 
 def load_yaml_file(path: str | Path) -> dict[str, Any]:
@@ -140,6 +141,7 @@ def recipe_from_dict(data: dict[str, Any]) -> EndorAgentRecipe:
         audience=str(data.get("audience", "")),
         short_description=str(data.get("short_description", "")),
         authors=tuple(str(author) for author in data.get("authors", ())),
+        policy_pack_support=bool(data.get("policy_pack_support", False)),
     )
 
 
@@ -180,6 +182,7 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
         "audience": recipe.audience,
         "short_description": recipe.short_description,
         "authors": list(recipe.authors),
+        "policy_pack_support": recipe.policy_pack_support,
     }
 
 

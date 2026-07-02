@@ -40,6 +40,7 @@ ACTION_KINDS = frozenset(
         "approval.request",
         "approval.verify",
         "ticket.create",
+        "organization.policy.evaluate",
     }
 )
 ACTION_AVAILABILITY = frozenset({"available", "requires_adapter", "unavailable"})
@@ -159,6 +160,9 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
             errors.append(f"required_endor_mcp_tools: unknown public Endor MCP tool {tool!r}")
 
     _list_of_strings(data.get("endorctl_api_invocations", []), "endorctl_api_invocations", errors)
+
+    if "policy_pack_support" in data and not isinstance(data.get("policy_pack_support"), bool):
+        errors.append("policy_pack_support: must be boolean")
 
     tier = data.get("endor_tier_minimum")
     if tier not in {"free", "enterprise"}:

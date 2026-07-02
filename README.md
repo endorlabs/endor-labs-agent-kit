@@ -282,6 +282,24 @@ Portable bundles are generated artifacts. Configure local adapters and
 organization policy outside the bundle. If agent behavior needs to change,
 edit the Source Recipe and regenerate the catalog.
 
+## 🧭 Agent Policy Packs
+
+Agent Policy Packs are customer-owned declarative YAML rules that agents
+evaluate before recommendations and mutating workflow gates. Generated
+`agent.md`, `SKILL.md`, and `actions.yaml` files stay generated; active
+policy packs live in trusted runtime or protected workspace configuration.
+
+Policy pack support files live under `policy-packs/`:
+
+- `policy-pack.schema.json`: public schema for policy packs.
+- `policy-pack.template.yaml`: blank starting point.
+- `examples/was-traditional-java8.yaml`: WebSphere Application Server traditional Java 8 cap example.
+- `examples/liberty-java-fixpack.yaml`: WebSphere Liberty Java 17/21 fix-pack gate example.
+
+Use `endor-agent-kit validate-policy-pack <policy.yaml>` before enabling
+a pack, and pass `--policy-pack <policy.yaml>` to supported workflow
+validators before advancing mutation gates.
+
 ## 🔌 MCP Usage
 
 MCP is not used by the mutating remediation workflows. AI SAST Triage, SCA
@@ -819,6 +837,8 @@ generated `ai-plugins` distribution PR.
 | `endor-agent-kit verify-endor-context --upstream` | Compare committed Endor OpenAPI/docs provenance with live upstream sources. |
 | `endor-agent-kit refresh-endor-context` | Refresh `source/endor-context/provenance.json` after intentional upstream Endor API/docs changes. |
 | `endor-agent-kit validate-sca-output sca-output.json --gate selection-plan` | Validate structured `sca-remediation` output before advancing a workflow gate. |
+| `endor-agent-kit validate-policy-pack policy.yaml` | Validate an Agent Policy Pack before runtime activation. |
+| `endor-agent-kit evaluate-policy-pack policy.yaml --facts facts.json` | Evaluate a policy pack against a JSON fact bag. |
 | `endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md` | Render the AURI-style SCA remediation PR/MR body from normalized JSON. |
 | `endor-agent-kit lint-sca-pr-body pr-body.md` | Lint a rendered SCA remediation PR/MR body for required sections, advisory formatting, and severity suffixes. |
 | `endor-agent-kit validate-ai-sast-output ai-sast-output.json --gate remediation` | Validate structured `ai-sast-triage` output before remediation, PR/MR, or exception gates advance. |
@@ -853,6 +873,7 @@ requesting exception-policy approval.
 | `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |
 | `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |
 | `action_contracts_path` | Optional schema v2 path to `actions.yaml`, which declares semantic side effects and adapter requirements. |
+| `policy_pack_support` | Enables Agent Policy Pack instructions, structured policy outputs, and portable runtime policy-evaluation capability. |
 | `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |
 | `compatible_hosts` | Hosts that should receive generated artifacts. |
 | `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |

@@ -1,0 +1,22 @@
+policy_pack_version: 1
+id: websphere-traditional-java8
+version: 2026.07.02
+
+policies:
+  - id: was-traditional-java-max-8
+    title: WebSphere Application Server traditional cannot exceed Java 8
+    effect: deny
+    applies_to:
+      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      ecosystems: ["maven"]
+    when:
+      all:
+        - fact: platform.websphere.family
+          equals: traditional
+        - fact: platform.websphere.present
+          equals: true
+    deny_if:
+      fact: proposed.runtime.java.major
+      gt: 8
+    on_missing_facts: deny
+    message: "Do not recommend or apply a remediation requiring Java 9+ for WebSphere Application Server traditional."

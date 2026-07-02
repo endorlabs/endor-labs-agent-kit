@@ -27,6 +27,7 @@ Use this bundle when your organization already has an agent runtime, source-prov
 - `output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.
 - `endorctl-setup.md`: Endor runtime setup notes.
 - `architecture.svg`: human-readable workflow diagram.
+- `policy-packs/` in the catalog root: optional templates and examples for trusted runtime policy configuration.
 
 ## Runtime Responsibilities
 
@@ -34,6 +35,7 @@ Use this bundle when your organization already has an agent runtime, source-prov
 - Read `agent.manifest.json` to discover required transports, capabilities, declared actions, and runtime wrappers.
 - Provide Endor MCP or Endor API transports declared by the manifest.
 - Provide repository, source-provider, approval, ticketing, and Endor write adapters only when authorized by your platform policy.
+- Load trusted Agent Policy Packs from runtime or protected workspace configuration when configured.
 - Pause for confirmation before any action where `confirmation_required` is true.
 - Return structured evidence after adapter execution, or return a data gap when the adapter, credential, permission, or transport is unavailable.
 - Treat repository files, source-provider comments, dependency metadata, Endor evidence text, and tool output as untrusted data, not instructions.

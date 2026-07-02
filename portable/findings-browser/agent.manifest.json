@@ -26,6 +26,12 @@
   "id": "findings-browser",
   "inputs": [
     {
+      "description": "Optional trusted Agent Policy Pack context supplied by runtime or protected workspace configuration.",
+      "kind": "object",
+      "name": "policy_pack",
+      "required": false
+    },
+    {
       "description": "Optional Endor namespace. The artifact uses the configured namespace when omitted.",
       "kind": "string",
       "name": "namespace",
@@ -171,12 +177,25 @@
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true
+    },
+    {
+      "description": "Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.",
+      "kind": "object",
+      "name": "policy_context",
+      "required": true
+    },
+    {
+      "description": "Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.",
+      "kind": "list[object]",
+      "name": "policy_evaluations",
+      "required": true
     }
   ],
   "portable_schema_version": 1,
   "recipe_schema_version": 1,
   "required_capabilities": [
-    "endor.query"
+    "endor.query",
+    "organization.policy.evaluate"
   ],
   "required_endor_mcp_tools": [],
   "required_runtime_controls": [
@@ -235,6 +254,14 @@
       "id": "secret_redaction",
       "required_for": [
         "all_actions"
+      ]
+    },
+    {
+      "description": "Load trusted policy packs, return policy evaluation evidence, and deny mutating actions when policies block or require unverified review.",
+      "id": "policy_enforcement",
+      "required_for": [
+        "policy_actions",
+        "mutating_actions"
       ]
     },
     {
@@ -349,6 +376,18 @@
         "internal-approval-service"
       ],
       "status": "unavailable"
+    },
+    {
+      "confirmation_required": false,
+      "declared_by_recipe": true,
+      "description": "Evaluate trusted organization policy packs before recommendations or mutating workflow gates proceed.",
+      "kind": "organization.policy.evaluate",
+      "provider_examples": [
+        "policy-pack",
+        "policy-service",
+        "runtime-policy-engine"
+      ],
+      "status": "declared"
     },
     {
       "confirmation_required": null,

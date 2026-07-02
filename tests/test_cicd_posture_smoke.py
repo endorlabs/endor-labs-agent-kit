@@ -71,6 +71,7 @@ def test_cicd_posture_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_path,
         "sample_size",
         "sample_seed",
         "report_mode",
+        "policy_pack",
     } == input_names
     output_names = {item["name"] for item in data["outputs"]}
     assert {
@@ -87,6 +88,8 @@ def test_cicd_posture_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_path,
         "recommended_actions",
         "evidence_queries",
         "data_gaps",
+        "policy_context",
+        "policy_evaluations",
     } == output_names
 
 
