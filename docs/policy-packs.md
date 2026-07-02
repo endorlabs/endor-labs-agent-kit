@@ -5,6 +5,9 @@ Endor Agent Kit agents must evaluate before recommendations and mutating gates.
 They are intended for organization constraints such as runtime compatibility,
 approved remediation lanes, required review, and platform limits.
 
+For a customer-friendly walkthrough, see
+[`policy-pack-walkthrough.md`](policy-pack-walkthrough.md).
+
 ## Trust Model
 
 Generated `agent.md`, `SKILL.md`, and `actions.yaml` files remain generated.

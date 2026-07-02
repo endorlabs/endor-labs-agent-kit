@@ -20,9 +20,9 @@
               "sha256": "dc4c4da194a24182fa722e5318ab258ca075b02cb8343c8cee6cdab78f43b97d"
             },
             {
-              "bytes": 64583,
+              "bytes": 66290,
               "path": "claude-code/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "ead1c332f874eabf52d2443902a8ba2cf72f760f37ea8dcfab68eddbe2e1e03a"
+              "sha256": "b33f4ad36abc409eba94ada927c6b4bdd98c1afa8f5680b74e0d75bc17b0966b"
             },
             {
               "bytes": 10802,
@@ -72,9 +72,9 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 28898,
+              "bytes": 34263,
               "path": "claude-code/cicd-posture/cicd-posture.md",
-              "sha256": "dcd13ea6562c94beddc4c79645b6b0f7b16c4e33d5cae6cd98397a921fab550f"
+              "sha256": "c1deaead3c5fe3350f590a6fdae1fc8798791562a215efb23d6323239c8c7d24"
             },
             {
               "bytes": 1869,
@@ -114,9 +114,9 @@
               "sha256": "4deba009f1a57a564dfc6ed97ee9c6d1217cf3aad3dfdfb5e5256886f1d6a31b"
             },
             {
-              "bytes": 28304,
+              "bytes": 30011,
               "path": "claude-code/dependency-decision-helper/dependency-decision-helper.md",
-              "sha256": "523c5c6dd12c3978481e373c2a3be5899af82de14dc0ce8cc2169551b29707ca"
+              "sha256": "c39c5ee163e745c402546ffdbcde9ab22f87117f864e101968d728d9c9b30fe8"
             },
             {
               "bytes": 1678,
@@ -161,9 +161,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 75926,
+              "bytes": 77633,
               "path": "claude-code/endor-troubleshooter/endor-troubleshooter.md",
-              "sha256": "0c5e9645533214aa62e2e11a615594ce2066adae891ad1b1af4a70e4474590e2"
+              "sha256": "1d20a7189952cadbe3b5c087fc18a8b205929455bad232c5656b611ace1584ee"
             },
             {
               "bytes": 2237,
@@ -213,9 +213,9 @@
               "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
-              "bytes": 22211,
+              "bytes": 25569,
               "path": "claude-code/findings-browser/findings-browser.md",
-              "sha256": "e29f802079ebddae8a5dc2f84641c94d31d00749983df625fc51575955fbb9d0"
+              "sha256": "fd1e483acd7b19ff22fd6c04275f4d7e47ea1f452156d329d8e660932ff8b4f1"
             }
           ],
           "id": "enterprise-edition",
@@ -255,14 +255,14 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1625,
+              "bytes": 1658,
               "path": "claude-code/malware-response/endorctl-setup.md",
-              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
+              "sha256": "585e7d9c66119426d83d1c054c9c2eae4523f2f3f744d75eec6d8f6039e2bbb5"
             },
             {
-              "bytes": 38173,
+              "bytes": 42613,
               "path": "claude-code/malware-response/malware-response.md",
-              "sha256": "24696df42321dc363554292a185e86658323ed776f791dcf1b53df569c4c97ea"
+              "sha256": "bccef04372ae0346fe8bfc265bed4006336a7132fed4ee8f3fc54380d064b281"
             }
           ],
           "id": "enterprise-edition",
@@ -302,9 +302,9 @@
               "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
-              "bytes": 28174,
+              "bytes": 29881,
               "path": "claude-code/package-risk-summary/package-risk-summary.md",
-              "sha256": "c0571a0a4bce08b4c8d8741392202982df36abfa1017457d3515bf774515a3f3"
+              "sha256": "6d9bf84315462f9d894334e65595e777de31697184cc567f3e20cf8871d30674"
             }
           ],
           "id": "enterprise-edition",
@@ -349,9 +349,9 @@
               "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
-              "bytes": 85011,
+              "bytes": 86718,
               "path": "claude-code/probe-droid/probe-droid.md",
-              "sha256": "2bd1d4aaeffd27695f1c06bb7b8f07eef5cce9e7479eb72fa9b2cef37c833e1a"
+              "sha256": "f5940e5e7ce24a7845225eee544ab13f9e0ffe81506e1097fc52a319dde422e2"
             }
           ],
           "id": "enterprise-edition",
@@ -396,9 +396,9 @@
               "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             },
             {
-              "bytes": 23885,
+              "bytes": 25592,
               "path": "claude-code/remediation-planner/remediation-planner.md",
-              "sha256": "7202352671301f93ae63c7c02d80b816a6e36eb6466c3934063f2f62b9e47f04"
+              "sha256": "e3833b584795ff9162971457045896bf83463f332b1ca57d0e11780e5c792014"
             }
           ],
           "id": "enterprise-edition",
@@ -433,9 +433,9 @@
               "sha256": "8459377e791a9eda2f3c6c88b00e1c47211af988455e4dd216a73010078fb0e7"
             },
             {
-              "bytes": 28367,
+              "bytes": 30074,
               "path": "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
-              "sha256": "1cfb659948f108319e725edbcff51ba0fd8342447e6fb1b8571917c296c5a242"
+              "sha256": "0c5efa575fbd7eaa82b7edc4d29e442bf3f0754c8ab15c9172a14595547ad9c0"
             }
           ],
           "id": "developer-edition",
@@ -485,9 +485,9 @@
               "sha256": "1c11e4e6739f562bdc02c1056b6cdfa321e47d3635a8f044e11cf51d121ae54b"
             },
             {
-              "bytes": 76972,
+              "bytes": 79668,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "25480ccd5b4b81444fbab4641fb21360f4302c592f3bed2f93cc89ee6262f956"
+              "sha256": "7c213eea5e73152f1124d00875d19b5dc45706475bf4d595e5e402db13c9c4a6"
             }
           ],
           "id": "enterprise-edition",
@@ -532,9 +532,9 @@
               "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
-              "bytes": 41868,
+              "bytes": 43575,
               "path": "claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md",
-              "sha256": "353994a5d663a176d35c597bf88a10f809483b9844ef97d2e3b62dd12323d6e7"
+              "sha256": "3f92005c18a1bbb52f3519f4a6429d51f005f3d3f115ee1627d586a73022a3a0"
             }
           ],
           "id": "enterprise-edition",
@@ -569,9 +569,9 @@
               "sha256": "26f24101df4f0e49354fbbd79d4980686f25bb1bd64d6758859d0026b625271b"
             },
             {
-              "bytes": 22338,
+              "bytes": 24045,
               "path": "claude-code/vulnerability-explainer/vulnerability-explainer.md",
-              "sha256": "9659de3fe25a39053ce79ae5b3ec6a8136da3df7d4468713f7b20fe66f0985d4"
+              "sha256": "dd67ec45f4d8660fe75aee23fefa456ed18805f885ddadcca2ddf8cdc9aa1be7"
             }
           ],
           "id": "developer-edition",
@@ -606,9 +606,9 @@
               "sha256": "41a6c2adc216cbc0e844bb5b975740e35e12a5ce00c1f8f644af1178622f6804"
             },
             {
-              "bytes": 30271,
+              "bytes": 35728,
               "path": "claude-managed-agents/cicd-posture/agent.yaml",
-              "sha256": "8bb66d331a55ed86dd7fcd9b692fc31f55aeba8899996a1a8993d17f81de0504"
+              "sha256": "c2e00199a94f4137ff2bcd0d3a6a7048bdfe00b102a46b94be52b12b2497635f"
             },
             {
               "bytes": 8281,
@@ -663,9 +663,9 @@
               "sha256": "7da6082cdf57afa1a0958ddafe74418b9df534a2d654fe5be4449f18fa6319ff"
             },
             {
-              "bytes": 29786,
+              "bytes": 31537,
               "path": "claude-managed-agents/dependency-decision-helper/agent.yaml",
-              "sha256": "5a9973c03b4e94c96e50c83ffe3ab258c08f16334e7ba816368b49e1caa5bc95"
+              "sha256": "466a59965ad1b0dad503872e660bb6114dd29c455a1d95338848fbb2e073ee17"
             },
             {
               "bytes": 1678,
@@ -715,9 +715,9 @@
               "sha256": "e0bf7aecfd4fe3b3b96a7f914713533bb36d9eb69a65dc82738ee044520a4b2d"
             },
             {
-              "bytes": 78942,
+              "bytes": 80693,
               "path": "claude-managed-agents/endor-troubleshooter/agent.yaml",
-              "sha256": "f7740134027e2abb342d4decd7981cbfb8e3ec37ca070ea505daea613fa0e310"
+              "sha256": "d5eb66571a85f820da71e43483311048f698943d4b8c849d778c6b35359e0cdf"
             },
             {
               "bytes": 9834,
@@ -772,9 +772,9 @@
               "sha256": "93ef3b4ae49c8e6797d8304729e1965844b6f594a7085454ec51d7bb8252aa01"
             },
             {
-              "bytes": 23343,
+              "bytes": 26773,
               "path": "claude-managed-agents/findings-browser/agent.yaml",
-              "sha256": "b000dd4d82e6e846662976e7d824859d304051de13960ac0676fcd5800c513e3"
+              "sha256": "f7dcbf7e31fa899ad81c4c1fd5e2045f39f8885ecd5f4a99ecf1e4d0d06c017d"
             },
             {
               "bytes": 8271,
@@ -829,9 +829,9 @@
               "sha256": "272d92401452aa732b96dc50bda9dfc1ad36d69795ba3a7dcce9e2f53183a7ad"
             },
             {
-              "bytes": 39807,
+              "bytes": 44329,
               "path": "claude-managed-agents/malware-response/agent.yaml",
-              "sha256": "438062335315af898432e99ecce75d6ad46983a8db298a3a0d2bba13b51e2d74"
+              "sha256": "fbed343bb6b0a0c42d0bb01aee7986de1044d54a8c770f8e089d40daa07bec1a"
             },
             {
               "bytes": 9757,
@@ -839,9 +839,9 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1625,
+              "bytes": 1658,
               "path": "claude-managed-agents/malware-response/endorctl-setup.md",
-              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
+              "sha256": "585e7d9c66119426d83d1c054c9c2eae4523f2f3f744d75eec6d8f6039e2bbb5"
             },
             {
               "bytes": 232,
@@ -886,9 +886,9 @@
               "sha256": "7f1999b4bb06168374aa4463c5d97a08612fdc5157808cde6c70f0a11343eb8c"
             },
             {
-              "bytes": 29667,
+              "bytes": 31418,
               "path": "claude-managed-agents/package-risk-summary/agent.yaml",
-              "sha256": "8e175811b26018bab93928388b2ce8d3c7074ad62ede449a5acea9331ebd5a45"
+              "sha256": "77c5964daf38a9cfc94b6a91222ff43a1a5230720555392832a4828f735bdbf3"
             },
             {
               "bytes": 1683,
@@ -938,9 +938,9 @@
               "sha256": "8f3b950af1524a85c80e54f92b36ed31dca087ba977654d32701558f14e85ac7"
             },
             {
-              "bytes": 88281,
+              "bytes": 90032,
               "path": "claude-managed-agents/probe-droid/agent.yaml",
-              "sha256": "068f3502c66e552d68c8263b352fd229d76b7a8e9af9a62f7e055e93628099aa"
+              "sha256": "1097e2cb30398a92d1b6d5af03f244c7f062cc9476d762aebf6f0d1fd34bb018"
             },
             {
               "bytes": 9818,
@@ -995,9 +995,9 @@
               "sha256": "a38b1bea4caa93423311e3c7b070eba82eefcd0c022a3025b7885557864f1d2d"
             },
             {
-              "bytes": 43592,
+              "bytes": 45343,
               "path": "claude-managed-agents/upgrade-impact-analysis/agent.yaml",
-              "sha256": "37f6428f5168d8310f42249e52bdaceacd6929eb465339f8e6da764b326ec81c"
+              "sha256": "70f1128accb127b2651bb1e021ae556ddea077d22a8b5c70e31d4636ebf48527"
             },
             {
               "bytes": 9921,
@@ -1052,9 +1052,9 @@
               "sha256": "6a2902b1fd1125c870ac5199ac2471acb5109c3b00d6ef6a5b40592b6a3d87a5"
             },
             {
-              "bytes": 23399,
+              "bytes": 25150,
               "path": "claude-managed-agents/vulnerability-explainer/agent.yaml",
-              "sha256": "81b19c2f51a0318a72a40b453aba1da4b2ae38ae0c6f70a9a653a2762d88071c"
+              "sha256": "7098228b0aedcc39e1c86c33fcc1addaec2d1742daa394a41a772d2490145a88"
             },
             {
               "bytes": 203,
@@ -1099,9 +1099,9 @@
               "sha256": "28f3799e05c7b871c719b7e79f61d04606b1c997079ea6b1575dc46046dcf417"
             },
             {
-              "bytes": 65343,
+              "bytes": 67050,
               "path": "codex/ai-sast-triage/SKILL.md",
-              "sha256": "51990cfa94a0863f49d152ca31228d9178d6578836f100f906ade98df541dc27"
+              "sha256": "cf9237d7cbcc2d96fdb7660823a252af43d1f52da8aa8570a436053562c620fd"
             },
             {
               "bytes": 6453,
@@ -1151,9 +1151,9 @@
               "sha256": "7ac24898b1b6a11b97d6943d5ec42330f51e2d3442ff9929c8f85912265187ea"
             },
             {
-              "bytes": 29597,
+              "bytes": 34962,
               "path": "codex/cicd-posture/SKILL.md",
-              "sha256": "7d2c16de172bffae1bcd5ddcb6f20c0e92c8da9e3ff496f6628ade616c2e46df"
+              "sha256": "214124d824dbf72f30eeb29a1e8de64aed47435a03262cca2b126a35660ac28a"
             },
             {
               "bytes": 8281,
@@ -1198,9 +1198,9 @@
               "sha256": "abe351c9ab31a273346c85dbc56ff59dd69b00d4c5e38367d931216ab0ef3cf8"
             },
             {
-              "bytes": 28836,
+              "bytes": 30543,
               "path": "codex/dependency-decision-helper/SKILL.md",
-              "sha256": "8890b858e078c953f93a6e6cc27cbe559b14dc28e0b73e3677e4e841c087fa01"
+              "sha256": "fce57d81e8d1dae39dd9be2741498181f42922629369b9f9341f74e4855404d7"
             },
             {
               "bytes": 1678,
@@ -1240,9 +1240,9 @@
               "sha256": "2c838ee4569bda754d368659fa716843b8bac921e33b1ee76ba5e0e3b6242db4"
             },
             {
-              "bytes": 76602,
+              "bytes": 78309,
               "path": "codex/endor-troubleshooter/SKILL.md",
-              "sha256": "853890688cf12d01c4516a4b050ab4f900358bdf135de748dcc4f3030e158a8d"
+              "sha256": "1fe71c6117da72d3b3d02a6332458ca9e9bd53f0ec4046542647d6f7b64b26c8"
             },
             {
               "bytes": 9834,
@@ -1287,9 +1287,9 @@
               "sha256": "6d65256135d4801a2b7e8f5bb2addbb930de8e42c29ccb619fedb3de22202590"
             },
             {
-              "bytes": 22883,
+              "bytes": 26241,
               "path": "codex/findings-browser/SKILL.md",
-              "sha256": "92dd03f2f6ece8b617340bbbd51e779736bda6248dc3b9c4662074bc5812039d"
+              "sha256": "2ea18e85d5351489488473ab0559b68dfce9599285033be485f8a6aaa17ba42c"
             },
             {
               "bytes": 8271,
@@ -1334,9 +1334,9 @@
               "sha256": "1bc1585a2317ddcf6abf271ea7df36bc54ff116e9055ad16811c045736901375"
             },
             {
-              "bytes": 38851,
+              "bytes": 43291,
               "path": "codex/malware-response/SKILL.md",
-              "sha256": "71a7ff647cea389865c3731ccae9fcebf2b79ea4e4d2f62865a5ec2cfc669a56"
+              "sha256": "8d7cfc39c7a79023fd793db85b181217e2bfd54be49cdee1642f9d73cebcac6b"
             },
             {
               "bytes": 9757,
@@ -1344,9 +1344,9 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1625,
+              "bytes": 1658,
               "path": "codex/malware-response/endorctl-setup.md",
-              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
+              "sha256": "585e7d9c66119426d83d1c054c9c2eae4523f2f3f744d75eec6d8f6039e2bbb5"
             }
           ],
           "id": "codex-skill",
@@ -1381,9 +1381,9 @@
               "sha256": "f87a4502c0a46274081b075cc1bb58b2c23ba29aa079b0915db4d988c4187dba"
             },
             {
-              "bytes": 28711,
+              "bytes": 30418,
               "path": "codex/package-risk-summary/SKILL.md",
-              "sha256": "33884f48a851ff6c724b81536f4133aafbd03684271f6465a2aa80ae28261086"
+              "sha256": "a710f28d857aef940746febb49ea8d5468ea1688d50440861925f959be7149f3"
             },
             {
               "bytes": 1683,
@@ -1423,9 +1423,9 @@
               "sha256": "85615c0cdaa965fcbf7987f2ebc97c8c15274c032d6f74b8e835a7e36006949a"
             },
             {
-              "bytes": 85669,
+              "bytes": 87376,
               "path": "codex/probe-droid/SKILL.md",
-              "sha256": "e8b5eaf2b9688333db0afa820342039455fcfd4422fc686f0fc0a40339f878b0"
+              "sha256": "676e62f5c304901272945a04415c42036df3de822fc1e9d106f0b0df5f7e6d2e"
             },
             {
               "bytes": 9818,
@@ -1470,9 +1470,9 @@
               "sha256": "5ec899365b5e44ff7db35a8bdc817a415496eb90ce0cfedaad06676cdec2be2b"
             },
             {
-              "bytes": 24554,
+              "bytes": 26261,
               "path": "codex/remediation-planner/SKILL.md",
-              "sha256": "76dc8ef8fef032e2ce4eca5b574a86e72fe33f498590bde82a59fc0a03f1f00d"
+              "sha256": "c91506ce5be008a09ac76ab5c5a3446020c2a3eb85466aa0333983522bd288a1"
             },
             {
               "bytes": 9887,
@@ -1517,9 +1517,9 @@
               "sha256": "b76e241239e990448f2b6edde9c1201bbb5d79baa01c4a8250db10154c693816"
             },
             {
-              "bytes": 29103,
+              "bytes": 30810,
               "path": "codex/repository-dependency-reviewer/SKILL.md",
-              "sha256": "602d1612797b578c3389407a317ac2694843059b294081313debd126ad89bac3"
+              "sha256": "4d49f3cddfe98d98d129134779f4bd5a1e40326216c93d7627abbb1dbf3b17b6"
             }
           ],
           "id": "codex-skill",
@@ -1554,9 +1554,9 @@
               "sha256": "3239028d73792b888083ee139cab5afc41ed061881ca12e9dbcd61a3bbe8a487"
             },
             {
-              "bytes": 77730,
+              "bytes": 80426,
               "path": "codex/sca-remediation/SKILL.md",
-              "sha256": "3a978f77a6336c507a15734e7aeb31838f030f4e31858f85c9ec30df9d9e1e9a"
+              "sha256": "b51cc17d9eaa0f1925c8150bfdb7d45cb56b1ea073483971e859aa5c379c3536"
             },
             {
               "bytes": 6811,
@@ -1606,9 +1606,9 @@
               "sha256": "9338cba8626cf2e4bad815785a07af78591e3098ffdb157aca4b8b37d4eae85c"
             },
             {
-              "bytes": 42552,
+              "bytes": 44259,
               "path": "codex/upgrade-impact-analysis/SKILL.md",
-              "sha256": "d8f08dd6193088d2e285845fcdc66eba0a376ecf07a3dc4da273781b8e3cbe42"
+              "sha256": "d65663bff07fea649532165bc83ad9519c6eed79477edb727e83eb6f0cce2583"
             },
             {
               "bytes": 9915,
@@ -1653,9 +1653,9 @@
               "sha256": "6985bf704e9130e116281cbef3db11178cffc6e7c90679c92fa0cbe96d7d0cc2"
             },
             {
-              "bytes": 23190,
+              "bytes": 24897,
               "path": "codex/vulnerability-explainer/SKILL.md",
-              "sha256": "09b8b62d7ec924bdd291658f151099eee6f457115b7299d15687482dbe216b0d"
+              "sha256": "dee98fe337a32f673562e537cbd7ed017f1918506b068ee8c51b2360c4a77803"
             }
           ],
           "id": "codex-skill",
@@ -1690,9 +1690,9 @@
               "sha256": "9886cfa95871964bcfd4e383e24cfba0646bf1d7f9969e776235d5c3852bdcfb"
             },
             {
-              "bytes": 65382,
+              "bytes": 67089,
               "path": "gemini/ai-sast-triage/SKILL.md",
-              "sha256": "9de010b48f89e99f0b12abd61b40383312637157f0bfc347867e7997dda483bd"
+              "sha256": "19c7b5b34907e441055f73eaf7c9360945e9fa45f39db41ed51ee0de1c7ef023"
             },
             {
               "bytes": 6458,
@@ -1700,9 +1700,9 @@
               "sha256": "9b2db6ec2c2c820b9d982bf0df0a9b215817babfe3c675b2b370c7dbca28d0f7"
             },
             {
-              "bytes": 65676,
+              "bytes": 67383,
               "path": "gemini/ai-sast-triage/ai-sast-triage.md",
-              "sha256": "fb7e54e045f5cf468420c52831c2872a8b821feca1b5f2ee2ebeab2de2f0bb6a"
+              "sha256": "67280ee4c2071182de84323f96211b37116885750bc3e70996fbd7e55fcd468a"
             },
             {
               "bytes": 10801,
@@ -1747,9 +1747,9 @@
               "sha256": "09dbc041bc44ba1070406f751b2ab8969006936fd225f65ddea035dcdb9df90b"
             },
             {
-              "bytes": 29626,
+              "bytes": 34991,
               "path": "gemini/cicd-posture/SKILL.md",
-              "sha256": "a52520e4ca87ac734eb409d29a86bb9d9fc88d78195294287311b343845614ca"
+              "sha256": "b871c117ea009e66ad908cc9bcf45128cad04d9c7c98124b0077bf6c01663513"
             },
             {
               "bytes": 8281,
@@ -1757,9 +1757,9 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 29903,
+              "bytes": 35268,
               "path": "gemini/cicd-posture/cicd-posture.md",
-              "sha256": "c0c2b91ce1d678365a99a2e80c4a0daf718f69c27dec921d132a5b90a9d70857"
+              "sha256": "32a65de4e6f52ad58b4a084484f1ae00304de44c5a830d3d2d2d60c6fc1b44d6"
             },
             {
               "bytes": 1869,
@@ -1799,14 +1799,14 @@
               "sha256": "6e07395e0fdaad708eb4826edea2166f6fd0e65ef533f15f4c4d7b34f1e0da44"
             },
             {
-              "bytes": 28962,
+              "bytes": 30669,
               "path": "gemini/dependency-decision-helper/SKILL.md",
-              "sha256": "daae930e9a2c3fe1812c74d45de41f76640b145a9e0a78c3f0445c92173c2473"
+              "sha256": "c03c03c0f3766bddd194e4b05b468fed51755982d26734b20c670a881b7c9b51"
             },
             {
-              "bytes": 29223,
+              "bytes": 30930,
               "path": "gemini/dependency-decision-helper/dependency-decision-helper.md",
-              "sha256": "6e11edfd6e4ac558b738f9041a5ed97e703f2a96f569632bcfac41fdc451fea4"
+              "sha256": "243754c3bacb5a8ec419364b2a8d7ade4f458de2b6ac279286aaec381c5917ec"
             },
             {
               "bytes": 1678,
@@ -1846,9 +1846,9 @@
               "sha256": "cf2db5073f5176673c0ad4445219540306eb3a92c5ee2e261da64b3d476b3600"
             },
             {
-              "bytes": 76631,
+              "bytes": 78338,
               "path": "gemini/endor-troubleshooter/SKILL.md",
-              "sha256": "7b180be72a63af9bff7761c2e4f962920b578583ffae160f3ed0458594f9df92"
+              "sha256": "402a5f4b098e81cb21ff519df859316566eeb3da9e223a0553fa4409722a22dc"
             },
             {
               "bytes": 9834,
@@ -1856,9 +1856,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 76886,
+              "bytes": 78593,
               "path": "gemini/endor-troubleshooter/endor-troubleshooter.md",
-              "sha256": "10b58e52f2562a1d3cd061d82d9c8962b66338c1d3d1ed1bb2574515b7d4677f"
+              "sha256": "f3ea1a4f39e290acf697a57eb6aab52c1286edb0f8de69eec1ffa53f40936d84"
             },
             {
               "bytes": 2237,
@@ -1898,9 +1898,9 @@
               "sha256": "3f4fb9e2e99ba6f9ea1f9a7f2705a526195449a7792ea93da95ffcba9bebb8f2"
             },
             {
-              "bytes": 22912,
+              "bytes": 26270,
               "path": "gemini/findings-browser/SKILL.md",
-              "sha256": "1e10583917a7883b7f8ed7017fdc23d19682044fe3ee3e19c86dac091dd23ca9"
+              "sha256": "c140b550edc387db57c1b4f05ac50217f270ce6ddb05923afba7d7a8bd1650f8"
             },
             {
               "bytes": 8271,
@@ -1913,9 +1913,9 @@
               "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
-              "bytes": 23163,
+              "bytes": 26521,
               "path": "gemini/findings-browser/findings-browser.md",
-              "sha256": "4c6663c70c36513b418075ba3fbb656999b17099580fd20b28d8a3ba7a10e942"
+              "sha256": "31807983ffc595911e7e7db0d55b72e631d5ba1b2c7f6fc5ea295d28d2aec972"
             }
           ],
           "id": "gemini-cli",
@@ -1950,9 +1950,9 @@
               "sha256": "6abf0cd1853f4c0724b5a8fa88b376ee5e640bee18b084a161fa83d9507cab94"
             },
             {
-              "bytes": 38880,
+              "bytes": 43320,
               "path": "gemini/malware-response/SKILL.md",
-              "sha256": "3858474fed634c7f518bc4c1f16dfea942f5556474420add6834bdb33cb9984b"
+              "sha256": "f8a2e4f7d5608c024b182fec8388306b1e7a97ddd4771a500b0dad9fa151b825"
             },
             {
               "bytes": 9757,
@@ -1960,14 +1960,14 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1625,
+              "bytes": 1658,
               "path": "gemini/malware-response/endorctl-setup.md",
-              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
+              "sha256": "585e7d9c66119426d83d1c054c9c2eae4523f2f3f744d75eec6d8f6039e2bbb5"
             },
             {
-              "bytes": 39131,
+              "bytes": 43571,
               "path": "gemini/malware-response/malware-response.md",
-              "sha256": "05c73d21e7aacaf7dc082c19d262d351da7e885417b0e3565336c7f4da0f24bf"
+              "sha256": "b44704ce8d5dc7c356da31ab48304ed068c90861da0eded758b4aa7199390c80"
             }
           ],
           "id": "gemini-cli",
@@ -2002,9 +2002,9 @@
               "sha256": "f5280c7e740cadb9a5c999086e74a8f5a25528eab7b4a970fdce1edddbfdabd2"
             },
             {
-              "bytes": 28837,
+              "bytes": 30544,
               "path": "gemini/package-risk-summary/SKILL.md",
-              "sha256": "c90ea4de6a45588380c3b346df33f06ae23969f570bccdf98f69ca0ceadde5d0"
+              "sha256": "0dc39076d84858d7f1cef5fb51a0e3f58337a69d5c45726a6446803f8fdd0519"
             },
             {
               "bytes": 1683,
@@ -2012,9 +2012,9 @@
               "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
-              "bytes": 29092,
+              "bytes": 30799,
               "path": "gemini/package-risk-summary/package-risk-summary.md",
-              "sha256": "d1094eb6e620b809b1476d453946c327cf7b119538d8ec075927a0c778b6c18a"
+              "sha256": "d0f3ddba89ca315b7be4fe1fa0a767efab8a2b8bbbc7672c4944d102c01ea3b1"
             }
           ],
           "id": "gemini-cli",
@@ -2049,9 +2049,9 @@
               "sha256": "77760bc453827530056c5eaa2a123344d14ca605f8d0681e3ba01667016e6472"
             },
             {
-              "bytes": 85698,
+              "bytes": 87405,
               "path": "gemini/probe-droid/SKILL.md",
-              "sha256": "f28afb3d38969b184cfee62068389393916a3d17f62a1898f57ee012da502b5b"
+              "sha256": "beba7a1069b3ec7235879b6efddf3c89e2e89de606d5e72f94dbb23c13fa93ad"
             },
             {
               "bytes": 9818,
@@ -2064,9 +2064,9 @@
               "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
-              "bytes": 85944,
+              "bytes": 87651,
               "path": "gemini/probe-droid/probe-droid.md",
-              "sha256": "61d8aa000f8b0886b6f3bf7e4791db35ef06f5dd5e26dabbcd1838354797f76d"
+              "sha256": "a85f771c774e199633f137937e9372483ef80dfe87dbc4b581f804f202191491"
             }
           ],
           "id": "gemini-cli",
@@ -2101,9 +2101,9 @@
               "sha256": "af051256fda66f8e45440b6f1f4833164cf4e9e81d2adb4904fa03e4be95c8bb"
             },
             {
-              "bytes": 24588,
+              "bytes": 26295,
               "path": "gemini/remediation-planner/SKILL.md",
-              "sha256": "786931063e257f213add106eedf2e74eed37853fd043634f8ef9e88ef41c23c4"
+              "sha256": "5936a32d32f2e49a13dca13cef94312ee3f8ee79527ce6622d2fb0d21f8b14ef"
             },
             {
               "bytes": 9892,
@@ -2116,9 +2116,9 @@
               "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             },
             {
-              "bytes": 24842,
+              "bytes": 26549,
               "path": "gemini/remediation-planner/remediation-planner.md",
-              "sha256": "82b598b2bd928fe0bfd5a982bd6161adc47049294d3a84d96fc1a45d338a6428"
+              "sha256": "0bef359f1ed6e941735bb831998553266e8b1e7cdf99cf2e02d546deba96c904"
             }
           ],
           "id": "gemini-cli",
@@ -2153,14 +2153,14 @@
               "sha256": "cbefae224222a95ed432c4eb472754bfb7fd5057f0284bf8fae09134fbe741bf"
             },
             {
-              "bytes": 29239,
+              "bytes": 30946,
               "path": "gemini/repository-dependency-reviewer/SKILL.md",
-              "sha256": "3975cd5d93a408ca2454a1b9f7014933cea05961558b49ab3c38225ceafc4a4b"
+              "sha256": "adaf29bd657fca9d717b4fee6a0bfb8771b80f8d9ad3b35e605b736079598f7a"
             },
             {
-              "bytes": 29512,
+              "bytes": 31219,
               "path": "gemini/repository-dependency-reviewer/repository-dependency-reviewer.md",
-              "sha256": "226cdbe291e864b089dd2e8c1c5eb90fd0dea759cc104fa5acfdfca1cefb00f2"
+              "sha256": "38bc75ad476072fce362cfd5df42dd43b797324262e964836537ece4cbff523f"
             }
           ],
           "id": "gemini-cli",
@@ -2195,9 +2195,9 @@
               "sha256": "d33a530f0c953368c3b59e25bca8d667f11157e3f98e0f99a96f5a9c2e2d713b"
             },
             {
-              "bytes": 77772,
+              "bytes": 80468,
               "path": "gemini/sca-remediation/SKILL.md",
-              "sha256": "ab46178743751957ce6a5e04776483a3696eee6efe1f739a6b0ddf7602f8c9c0"
+              "sha256": "f9e9da13b21891946e544c2e1a6d5e040848847bee49bf5b7dfb2f4f7c6f98ca"
             },
             {
               "bytes": 6811,
@@ -2215,9 +2215,9 @@
               "sha256": "1c11e4e6739f562bdc02c1056b6cdfa321e47d3635a8f044e11cf51d121ae54b"
             },
             {
-              "bytes": 78067,
+              "bytes": 80763,
               "path": "gemini/sca-remediation/sca-remediation.md",
-              "sha256": "e86e2966c0ee0d1eedeb38f37477b9fafadaaf7c5c36287347932b9dd9b6ec32"
+              "sha256": "b284943b5fee5af6bbde63430aa5dded1cdc6dd7aec80bc00bbf43b768c0aa26"
             }
           ],
           "id": "gemini-cli",
@@ -2252,9 +2252,9 @@
               "sha256": "7e73a6c8d18afd8e213a6a95ee1b276af9bf9240b243f6ecccba4021155f7bbe"
             },
             {
-              "bytes": 42586,
+              "bytes": 44293,
               "path": "gemini/upgrade-impact-analysis/SKILL.md",
-              "sha256": "fd5b556a8e17613784634d8e7751df6680eafdca33aee25e614c28a041830be6"
+              "sha256": "2a7a205b71389e84fcb9c244e5d4289a03301a0c807a1cc8bb34d23eeb05d98e"
             },
             {
               "bytes": 9920,
@@ -2267,9 +2267,9 @@
               "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
-              "bytes": 42844,
+              "bytes": 44551,
               "path": "gemini/upgrade-impact-analysis/upgrade-impact-analysis.md",
-              "sha256": "a8a43fb0d6cc49ab6e8266ce804988b175d9e4db4b2a7d111c7d8e274d0f63c0"
+              "sha256": "64e24fc79e9ccacfa786827fd81f7eaa4d90adcbd992c0a438efb79799b9a8c5"
             }
           ],
           "id": "gemini-cli",
@@ -2304,14 +2304,14 @@
               "sha256": "ca35f5d67d114cf8f48b4728c25fcb3c1aabf29028c295e71cdfe32a25a58f29"
             },
             {
-              "bytes": 23316,
+              "bytes": 25023,
               "path": "gemini/vulnerability-explainer/SKILL.md",
-              "sha256": "68ad5fb37b691a5973203b06a40a8ae2aae5c3511ac4bc41aafbe9c632175c48"
+              "sha256": "8c032805eb118c8f383189b930f9c16627f6a1f96d0f6cb03966144dc5b1adac"
             },
             {
-              "bytes": 23545,
+              "bytes": 25252,
               "path": "gemini/vulnerability-explainer/vulnerability-explainer.md",
-              "sha256": "cb5ee41be1d415fd41e6e6d905751f6272daa77c4cb887d8e19a58bcff3be38f"
+              "sha256": "8430fc1bf0c235ca1adfb53c8bc8b38060ecde220d9ef972ef9dbf58188ce4d0"
             }
           ],
           "id": "gemini-cli",
@@ -2341,9 +2341,9 @@
         {
           "artifacts": [
             {
-              "bytes": 5347,
+              "bytes": 5561,
               "path": "portable/ai-sast-triage/README.md",
-              "sha256": "8c318ad924e35288a4d8ed6fc467198136a63820345d14c1bbc51f373fab112b"
+              "sha256": "664aacd820fdec0f1c554f9c333dd440fc79c29f01222171a6e9b3991eb8f0c2"
             },
             {
               "bytes": 6930,
@@ -2351,14 +2351,14 @@
               "sha256": "31a52d52ace0dcde631027a3fa7f069391fa18a62ab70ef905306567e90a4503"
             },
             {
-              "bytes": 17718,
+              "bytes": 19122,
               "path": "portable/ai-sast-triage/agent.manifest.json",
-              "sha256": "639206b80a05673b3c6cbb143cc76f4b24e05aaee8d49bcfc4bcde5adf9fc9d3"
+              "sha256": "7a7ddae46201fdc6bc16ded9b58e4aac897fb89b28765dcf9ac22d565bdee752"
             },
             {
-              "bytes": 61683,
+              "bytes": 67282,
               "path": "portable/ai-sast-triage/agent.md",
-              "sha256": "e3fe6e2e14f0090e49a38fe0b31a0990340cea67e030efef6aa072ae575d6590"
+              "sha256": "5fc62e1cb06b1b39003c4d80dd531f18b818fc099b005852ba5e212df09999fd"
             },
             {
               "bytes": 10814,
@@ -2371,9 +2371,9 @@
               "sha256": "740cd664fc1988984d425dda9eb03f73409495e7e84b1e81e0d5755781f2c6b3"
             },
             {
-              "bytes": 8314,
+              "bytes": 8915,
               "path": "portable/ai-sast-triage/output-contract.md",
-              "sha256": "95e0cbe7e6c75750f1b988e168f12d1828e6e359cb2557e11b6503fd5b55ed51"
+              "sha256": "da5dc981ccd7dad882263beb9e539340a3007d1df0d76124e7d023d5c9d95b9a"
             }
           ],
           "id": "portable-agent",
@@ -2403,19 +2403,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5595,
+              "bytes": 5809,
               "path": "portable/cicd-posture/README.md",
-              "sha256": "daddeb63b860ff02226da685a2b3a1aea04e66f1c35f208a0ea888c1af5d2106"
+              "sha256": "1d46566f61f0b6356efd8c7b31a934afa33cf9d2ef8195dffd32240e7c725d9f"
             },
             {
-              "bytes": 13389,
+              "bytes": 14793,
               "path": "portable/cicd-posture/agent.manifest.json",
-              "sha256": "4d28c3f0bad62c496cd5b3cd8cc015e716292ebbff70648ada0d11941db7c1ea"
+              "sha256": "cde2992b76b2c190b2f5391b3b433e2a5260fd2da4fe5d36484561794c276f4f"
             },
             {
-              "bytes": 25603,
+              "bytes": 34797,
               "path": "portable/cicd-posture/agent.md",
-              "sha256": "e26d2f2af50e11ccc99d0515e5829ff1fad954f1266354afd2b41f7d4f72924b"
+              "sha256": "54953350b7c26c8fb86614c09834e1728f546420cc3f03ea321d60b52d867588"
             },
             {
               "bytes": 8281,
@@ -2428,9 +2428,9 @@
               "sha256": "be8ca805dd733ad586ea7ae112a7ffe6e3dbf14f0d5dd182492319d36c358bf2"
             },
             {
-              "bytes": 5726,
+              "bytes": 6327,
               "path": "portable/cicd-posture/output-contract.md",
-              "sha256": "1b45eb203c98b4c9a83b6a47a747f0bdc29a85ea01e14e37a4158033d3662d33"
+              "sha256": "05c4eec725fd26bf2c4ee1468f056083511e3838ed7b781790ecd3369b0bf912"
             }
           ],
           "id": "portable-agent",
@@ -2460,19 +2460,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5111,
+              "bytes": 5325,
               "path": "portable/dependency-decision-helper/README.md",
-              "sha256": "6761481b536b81cf84aa5479c0a6d6ec8c234e1fc01288ca87ae1919827784f7"
+              "sha256": "70a3ed1f88970cfcf1475a97c61d2f16d9340bb5590a60a14c3a6da0e2e102aa"
             },
             {
-              "bytes": 9703,
+              "bytes": 11107,
               "path": "portable/dependency-decision-helper/agent.manifest.json",
-              "sha256": "453fc5816156bcbfb3b93cb461a0923ddc87f9e49de25e4c8fe042dd0595bf4a"
+              "sha256": "825412a655244b7cf32b16158f0da8a85109afaaaa090938d2d47dc10aa8349d"
             },
             {
-              "bytes": 26453,
+              "bytes": 30541,
               "path": "portable/dependency-decision-helper/agent.md",
-              "sha256": "a43b9c5b614d40d07ce7ebdde2f788b0216554e4daf15615ea16c9869a384d47"
+              "sha256": "cbe5d20e4ebee511c56390ffb3069583ded3e846d954339a1c820661f1057d48"
             },
             {
               "bytes": 1678,
@@ -2480,9 +2480,9 @@
               "sha256": "e710f18a6f80cdc43173ba6237fc914304df8afc31cd85f2fccac3f99fcae798"
             },
             {
-              "bytes": 3304,
+              "bytes": 3905,
               "path": "portable/dependency-decision-helper/output-contract.md",
-              "sha256": "874be15c18bff41697f5a499f06b10518be59e9875db47831be0e3d0d41fcb12"
+              "sha256": "03173c8bd84351fd98554d18e9c0238d3a6cddfd3e3ce2ef2a3f65faf936ea09"
             }
           ],
           "id": "portable-agent",
@@ -2512,19 +2512,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5615,
+              "bytes": 5829,
               "path": "portable/endor-troubleshooter/README.md",
-              "sha256": "e7394ff80bc87973452f1889ec3afcbfd866449f0b695e93145b783cfed9766f"
+              "sha256": "de279ed251fcdaa40c8a3565686d9865a8500be7b9e0d416c0983390471d0ea0"
             },
             {
-              "bytes": 14378,
+              "bytes": 15782,
               "path": "portable/endor-troubleshooter/agent.manifest.json",
-              "sha256": "5f50bea0d7b404451d83c40dc73c5edf51e0f955f97223c34cccaae88ddedb08"
+              "sha256": "da21ab643e943df04a25a3e0793b95833cb16cb8811dca7924543fc2a4fb220c"
             },
             {
-              "bytes": 71992,
+              "bytes": 78177,
               "path": "portable/endor-troubleshooter/agent.md",
-              "sha256": "2d50bf84f2c1de83f474f59393230d623c6a09d8a647d47c1a27a1452f976d2d"
+              "sha256": "b8ab2ec2c208128fe77c7ba0c5d02910ba85a0574a19df1da1d2be4eb1aa944b"
             },
             {
               "bytes": 9834,
@@ -2537,9 +2537,9 @@
               "sha256": "e95139b64840d03496fbe97ea79ed51316f296df89cd84d8e57890acffb8846c"
             },
             {
-              "bytes": 6598,
+              "bytes": 7199,
               "path": "portable/endor-troubleshooter/output-contract.md",
-              "sha256": "50f34a8462699889c4de662fee75268acc5106614e08903413c95c2597365e93"
+              "sha256": "c98a264d950b5fc6227ebf9adfce5aa80ae34988554c27ec4e8f43537d34f5d3"
             }
           ],
           "id": "portable-agent",
@@ -2569,19 +2569,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5433,
+              "bytes": 5647,
               "path": "portable/findings-browser/README.md",
-              "sha256": "8eeca98a03ad9a8ef08665c1004945085af98eada32e71fb4616c09b207224a6"
+              "sha256": "b7595863a5998a95a9220211a09f0436ba39c3954504b2b78672293ae1fce63e"
             },
             {
-              "bytes": 12990,
+              "bytes": 14684,
               "path": "portable/findings-browser/agent.manifest.json",
-              "sha256": "65387326d94454cd71b62ee7c7738bf3d1812a7ec456993b72b023d99b9a4aa5"
+              "sha256": "9f9dccdcebc89f4d1920bf9fc4cde37935cf0eef054a1cc524a7a2c6e95482e8"
             },
             {
-              "bytes": 19535,
+              "bytes": 26190,
               "path": "portable/findings-browser/agent.md",
-              "sha256": "b06c8c83da5cf7d24890379e859ac0fa5c483e5eb3ba4c67b364f9aa5100d4e2"
+              "sha256": "96b4b499494b7745a1ac87fd0cd5d907fc93cf03279a50383e3a8060d71d9eb4"
             },
             {
               "bytes": 8271,
@@ -2594,9 +2594,9 @@
               "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
-              "bytes": 5495,
+              "bytes": 6308,
               "path": "portable/findings-browser/output-contract.md",
-              "sha256": "6a0f059ce4cf4aa02f0e36e50bbf6a8e834da8847c0a164b326c02bc78753639"
+              "sha256": "f0402bc5f6aa73438e6a7f38cc623b3f346d525c8d2d0e4ef6a1e48087ad1f08"
             }
           ],
           "id": "portable-agent",
@@ -2626,19 +2626,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5627,
+              "bytes": 5841,
               "path": "portable/malware-response/README.md",
-              "sha256": "6a2919da80c942af4013488e1d0a864ea20405137a7034816cc73ddf25f426bd"
+              "sha256": "971167b389c03c36050b61bfbc67543c6db50fe8b3e41b1402a563abdb209380"
             },
             {
-              "bytes": 13345,
+              "bytes": 14785,
               "path": "portable/malware-response/agent.manifest.json",
-              "sha256": "16b7e8dede3f277aaef72e7e111528ecdf740d46dba40485417be913c1af0a0a"
+              "sha256": "75ca93882e77a3af2b3a55e503d65332d00fe6e1a07d9b6e6650431ae309c6bf"
             },
             {
-              "bytes": 34475,
+              "bytes": 43054,
               "path": "portable/malware-response/agent.md",
-              "sha256": "a36752d161aac4de08e9154934c87d4a28a5ee9b2855bbf0f48c9e5e5cb41d4f"
+              "sha256": "dc3b0c9791267aa659f4eb9e8883710d966a9f040518ca9b0e99e1122f79a22a"
             },
             {
               "bytes": 9757,
@@ -2646,14 +2646,14 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1625,
+              "bytes": 1658,
               "path": "portable/malware-response/endorctl-setup.md",
-              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
+              "sha256": "585e7d9c66119426d83d1c054c9c2eae4523f2f3f744d75eec6d8f6039e2bbb5"
             },
             {
-              "bytes": 5664,
+              "bytes": 6297,
               "path": "portable/malware-response/output-contract.md",
-              "sha256": "b60b12d618265c6fb6ca9b3f6e597047633c4b77ad3ac20f3dc4fdd9f742bcbd"
+              "sha256": "2720a07882fc3bace7c17cb28e38090e36e7685dc0694b0670efac283bf8015e"
             }
           ],
           "id": "portable-agent",
@@ -2683,19 +2683,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5268,
+              "bytes": 5482,
               "path": "portable/package-risk-summary/README.md",
-              "sha256": "0dd536b6e76c309c1169ac500789590c13b67ce84f25dcbcf53f6de48737b4fa"
+              "sha256": "aaa33f639c73eb529ee2c6324b80acb2a286d7d67893450fcdf131297b7a181a"
             },
             {
-              "bytes": 10123,
+              "bytes": 11527,
               "path": "portable/package-risk-summary/agent.manifest.json",
-              "sha256": "c30db3ff28f09c1e2416219b0156c600b3ebdaee116cd490b398dc34de4642a6"
+              "sha256": "66293cbba5da41ff496234f89385c3e870f558a51bc6f300593921a47d4e9326"
             },
             {
-              "bytes": 25977,
+              "bytes": 30234,
               "path": "portable/package-risk-summary/agent.md",
-              "sha256": "1c269ae1a4447a4767fd6f69af1a1fc1e69e8d8d357667c3568a7818bd092f2b"
+              "sha256": "9964081f024cdd6cc5244caf08b3c54482b5e514ea716ac7b020ea74077b15af"
             },
             {
               "bytes": 1683,
@@ -2703,9 +2703,9 @@
               "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
-              "bytes": 3468,
+              "bytes": 4069,
               "path": "portable/package-risk-summary/output-contract.md",
-              "sha256": "31261c3baefaa5428397cf6081d9d8e1472fe90820d9dc28187267d2dbb97b2b"
+              "sha256": "1fc9f92ccfc49fb85ba9e9da073679f3662152a3123617e3da26085197394eaa"
             }
           ],
           "id": "portable-agent",
@@ -2735,19 +2735,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5487,
+              "bytes": 5701,
               "path": "portable/probe-droid/README.md",
-              "sha256": "3aedd0474439717c6d21475556e5077ec2808deb75f70b76c9aecdc3d55ceb09"
+              "sha256": "f790bdb3302592de814cdbd22ee85d56a7ccc446b63cf9d4bdfdc38cc6a7db7f"
             },
             {
-              "bytes": 15783,
+              "bytes": 17187,
               "path": "portable/probe-droid/agent.manifest.json",
-              "sha256": "a2f401063a9362327cc61fc0e7d318c7d6b0bbf609f9684f8c49598dbea87bd7"
+              "sha256": "7fb9a1fd9ff649e602eefb928ffdfa003e822421734b37263e349a471adb546c"
             },
             {
-              "bytes": 80414,
+              "bytes": 87413,
               "path": "portable/probe-droid/agent.md",
-              "sha256": "cf2ab5093642a8a801f003d91bb5cf0e2cb83c2061b0890bdcb1ce186f72a3a8"
+              "sha256": "516e92410ec7802343128bb618f9ccb0f6e416b8310395411ccf76b21704391d"
             },
             {
               "bytes": 9819,
@@ -2760,9 +2760,9 @@
               "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
-              "bytes": 7557,
+              "bytes": 8158,
               "path": "portable/probe-droid/output-contract.md",
-              "sha256": "3af0c60cc4322d968a906bfe34f8fb3c0fb7956f45cf2f18411681b0b60bc1d4"
+              "sha256": "51c719cbc8834d37acbdab945fcd639d40b9c0dbeae9999ee3e9360795ee798b"
             }
           ],
           "id": "portable-agent",
@@ -2792,19 +2792,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5176,
+              "bytes": 5390,
               "path": "portable/remediation-planner/README.md",
-              "sha256": "cd866b796aee4893951bff6a54f816b070c0e685faf63c163e4b042616f94067"
+              "sha256": "1ec5449588bd0ac84c39a268ec93ef40e716e055d681160289df4df7b5c87a80"
             },
             {
-              "bytes": 9996,
+              "bytes": 11400,
               "path": "portable/remediation-planner/agent.manifest.json",
-              "sha256": "afd6071febd3f80e49bf16d959847d80b0d078d243d60d9a7ebb4240959fc9a8"
+              "sha256": "a0367c655aeea24110a7469c92a05dfe14fae82b032211b229c376af360603d3"
             },
             {
-              "bytes": 22352,
+              "bytes": 26543,
               "path": "portable/remediation-planner/agent.md",
-              "sha256": "201164651cefc2bb7163f8a439df34f76ede832b5bed8bfd67659ab4160ac99a"
+              "sha256": "8d88ad9c1a3f051b507c74a03a36d22933dc5de87caf1e51aaf2d8e6d5546ef2"
             },
             {
               "bytes": 9893,
@@ -2817,9 +2817,9 @@
               "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             },
             {
-              "bytes": 3637,
+              "bytes": 4238,
               "path": "portable/remediation-planner/output-contract.md",
-              "sha256": "9d4e9d85c0697194d06274615a0e619a95f3944123de8bd357a45cb50a2fb5d9"
+              "sha256": "057b66e181809c34e774fed2eb7015b5ef0ea981a6594ac72028bc39eb7719b9"
             }
           ],
           "id": "portable-agent",
@@ -2849,24 +2849,24 @@
         {
           "artifacts": [
             {
-              "bytes": 5122,
+              "bytes": 5336,
               "path": "portable/repository-dependency-reviewer/README.md",
-              "sha256": "43986823ab795b1a013031bb60b4a50bbf1b8a98fddc3edaf0b384c8c1e6d608"
+              "sha256": "1c978ca9eaea63e4b1f8f0fceff372cd28b9eaf3eb744186db745233c54adc24"
             },
             {
-              "bytes": 10281,
+              "bytes": 11685,
               "path": "portable/repository-dependency-reviewer/agent.manifest.json",
-              "sha256": "a7f8366ef1def0f3e39d6aa195471d87fef43849e46d859996ce3d06cf0a06a2"
+              "sha256": "140d585311a5ed633578f31ea780809a9b31c720f4cb80404b53962462ba8bd3"
             },
             {
-              "bytes": 26309,
+              "bytes": 30804,
               "path": "portable/repository-dependency-reviewer/agent.md",
-              "sha256": "a7dd2c66da588e63401c30fcb7cc1d5e3add4d77ff522f97aa32ba968a9d4345"
+              "sha256": "3b40083a006e75c19e03c358c6f6dab4c4d21d2fae1cb2e995f89a1e4aee592b"
             },
             {
-              "bytes": 3704,
+              "bytes": 4305,
               "path": "portable/repository-dependency-reviewer/output-contract.md",
-              "sha256": "3c971301c7bc7b82766863ec750a275f90e8c9c67efa8907540c33bd9c1c9b55"
+              "sha256": "32ccfcb3c0f1e3814d34a8814c465b4410f2047e7382760c30c170b2d0566263"
             }
           ],
           "id": "portable-agent",
@@ -2896,9 +2896,9 @@
         {
           "artifacts": [
             {
-              "bytes": 5385,
+              "bytes": 5599,
               "path": "portable/sca-remediation/README.md",
-              "sha256": "055cc0e6fd37e0f675280def98d57981212ca82f6f26ddfa3324469636117d4c"
+              "sha256": "0b2dc496712ba5e46afa0ae1578e6a7828dd33feda9280e4e6e9bca97bbf3913"
             },
             {
               "bytes": 7528,
@@ -2906,14 +2906,14 @@
               "sha256": "7179fa7c0420321df7add3e1d5089f088d2c60987490c6c34d00dcd2fea1ed95"
             },
             {
-              "bytes": 18975,
+              "bytes": 20379,
               "path": "portable/sca-remediation/agent.manifest.json",
-              "sha256": "1bed31fcf24aeaab7f2a23c04793b6b4296af6ad9a78dd7590f196db063d230c"
+              "sha256": "e7fa03d14a46a9b0156dbbf0cd166e162170d42c71bd6005251b7a057af9c177"
             },
             {
-              "bytes": 74124,
+              "bytes": 80681,
               "path": "portable/sca-remediation/agent.md",
-              "sha256": "c13fdc7e87c9188e13c2a6716619e8a5ec3f59862b0f0ece441decb458d89f11"
+              "sha256": "7c6d436ab0be3cefdab539facec80b7249eb259d2ff12e92c118c925e4b04d70"
             },
             {
               "bytes": 9851,
@@ -2926,9 +2926,9 @@
               "sha256": "3013f107456c7a9aaf24ddcdbb07de94c14db67030ef4492d4491849f9014fe9"
             },
             {
-              "bytes": 8505,
+              "bytes": 9106,
               "path": "portable/sca-remediation/output-contract.md",
-              "sha256": "428ebaf88ea70874a8d53665e918abc7f295744be52e8e9738f5777dde5ab4fc"
+              "sha256": "611d10f606fc7a76cb5ce10267d4c4e08052861cfc8bed17d84ab17d14625643"
             }
           ],
           "id": "portable-agent",
@@ -2958,19 +2958,19 @@
         {
           "artifacts": [
             {
-              "bytes": 5532,
+              "bytes": 5746,
               "path": "portable/upgrade-impact-analysis/README.md",
-              "sha256": "514cd94b3d1a8a792b5f5231af37675f0fb459c9774a948bc3626241415bb9a6"
+              "sha256": "0bddec46d48faf96b745edb0305456cc719e4b466d41551e430ab44fa2fca81a"
             },
             {
-              "bytes": 13900,
+              "bytes": 15304,
               "path": "portable/upgrade-impact-analysis/agent.manifest.json",
-              "sha256": "82cd5bdb219a6f96c58abab5d9dfa571170edfaa96b250806cc3ee2041f9ee33"
+              "sha256": "105739eaab53c1a5e5bff97b33d82ec87066d18cb7732472aca1c0c839e0ed07"
             },
             {
-              "bytes": 38626,
+              "bytes": 44162,
               "path": "portable/upgrade-impact-analysis/agent.md",
-              "sha256": "7e0a4e90641941fe92b655127a71b81e2913b4ff7504ced7fedde106e4576daf"
+              "sha256": "52242732af88a2206938cc29ee26c319afcb7cc6bd71991f0483b4e77127359d"
             },
             {
               "bytes": 9896,
@@ -2983,9 +2983,9 @@
               "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
-              "bytes": 5823,
+              "bytes": 6424,
               "path": "portable/upgrade-impact-analysis/output-contract.md",
-              "sha256": "bf588d264743704b2fc1cef1ffb514875e958f379e1946923f27f9a507b2e52b"
+              "sha256": "b1b009a724b22c4b9441c1fdcb444bc3f518b1757f9094c957269959186923f3"
             }
           ],
           "id": "portable-agent",
@@ -3015,24 +3015,24 @@
         {
           "artifacts": [
             {
-              "bytes": 5120,
+              "bytes": 5334,
               "path": "portable/vulnerability-explainer/README.md",
-              "sha256": "1bec76c6a2da5de73823f48caff4afa7fa4768df50dbcb3309d8f1f90190af7d"
+              "sha256": "debad34d71b8bff58df8f22621a292120a123b840f9924527604a5d596fbf154"
             },
             {
-              "bytes": 9936,
+              "bytes": 11340,
               "path": "portable/vulnerability-explainer/agent.manifest.json",
-              "sha256": "fbe7d47ff5cf385838eab8ce2d1462810c4e2f465f43eb3b1b38ef482bc37149"
+              "sha256": "f0326599c8b30443acce8cb4a8f2bc2227eee95596bcc2cc304d412fda2a00c3"
             },
             {
-              "bytes": 20551,
+              "bytes": 24798,
               "path": "portable/vulnerability-explainer/agent.md",
-              "sha256": "36e312f3c031d27fca6e5fdfbbfe6d902f7544921b34ba728c23c2864de081cc"
+              "sha256": "fed727afab093c481b1a169185921638742f600a4d67a3630ed73d12fe4ce7bb"
             },
             {
-              "bytes": 3347,
+              "bytes": 3948,
               "path": "portable/vulnerability-explainer/output-contract.md",
-              "sha256": "4793ccf8867bc2ac19af1de2b84b53d938afe9342ebd0efe5bc778cf9c6575f0"
+              "sha256": "ec2af0ad4b95cd11e87f25a7b848b15b0f53a3e28641241cd5b9c0fd34395394"
             }
           ],
           "id": "portable-agent",
@@ -3063,69 +3063,69 @@
           "sha256": "288288d5f97e02948d1d05e2addbfb752182a7b4319d02d6e9c167e1b3baf7cc"
         },
         {
-          "bytes": 28757,
+          "bytes": 29729,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/ai-sast-triage.md",
-          "sha256": "b135ad8c053bcb5c842ee646315b81503d1fe801751321df7675c5a8902390d8"
+          "sha256": "ebbb18bead50dc70a34ae25c5fbb97ecab0680f8695ba5b06782e8421eeb8ded"
         },
         {
-          "bytes": 16264,
+          "bytes": 17236,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "a798d480cbdee58ec8af8f67284b3385dbd0f44f3c99c834c962549231e941a2"
+          "sha256": "32ea44c74828b22d491cea46e40239f417b7d581a6ca38d98119797a4e0cb0ec"
         },
         {
-          "bytes": 12002,
+          "bytes": 12974,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/dependency-decision-helper.md",
-          "sha256": "63ae83a12ed7d413a24fed4df8aeb0b6ff331a5ee3f834f7037246cd257e7a38"
+          "sha256": "f1262fb84674919f4f47179ae836a48669b6daa7be9eb724324bffbd1c8c24d0"
         },
         {
-          "bytes": 24054,
+          "bytes": 25026,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/endor-troubleshooter.md",
-          "sha256": "5631b4cde31252c58837f1c7fb55645b0a6c96899ef71ab123ca7bc13b1c4b81"
+          "sha256": "449d87739bcbb022f67231b91d4ce859ff7a21650cd59fddae41b0fb580ffbce"
         },
         {
-          "bytes": 11416,
+          "bytes": 12900,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/findings-browser.md",
-          "sha256": "b6180eafb204fe2ffa19ba3f755995ad3f4f2d522e5b70d90f97797a689187bc"
+          "sha256": "0ba6a80f40ec78895f32eaa5df9aee230fb18a54084119e1af702d2637c9e97a"
         },
         {
-          "bytes": 10028,
+          "bytes": 11254,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/malware-response.md",
-          "sha256": "0028c415d02a57071170a2b85e5e66bffbe3f9cf88fc7cec08bf6cefc5612038"
+          "sha256": "be3be73e884a7880fae327c6abc9eff24210c26c625216f559c835fa57570f16"
         },
         {
-          "bytes": 12059,
+          "bytes": 13031,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/package-risk-summary.md",
-          "sha256": "dc5cb38ba91a49ad24b686d8897662f9201dbd9c737dafc0da81cc8ad3319266"
+          "sha256": "6db6357a2a3ff90c52562287793543ee5a431ec362ef08209b17af640559f695"
         },
         {
-          "bytes": 24810,
+          "bytes": 25782,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/probe-droid.md",
-          "sha256": "740d9f46d7f11b57e6edcc2348a2d9b7177bd2a51820e717e925333b032f0f2b"
+          "sha256": "b61038ce90d4cc6ea8eb6026c2a6a210dbdc8e3449203cc6a56576de274999bd"
         },
         {
-          "bytes": 10619,
+          "bytes": 11591,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/remediation-planner.md",
-          "sha256": "5c9458415418fa7405160571cdaeaa11ae38bad891cf0682e271b81fc55f748c"
+          "sha256": "cafc63054987cc233a8b8c5e1678c553d06a70eb3d4d94b3ceda77b16e4c4599"
         },
         {
-          "bytes": 13100,
+          "bytes": 14072,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/repository-dependency-reviewer.md",
-          "sha256": "65175ab97cf90acdd3ef453875104c446189f18facd2816327be359d53221aa7"
+          "sha256": "083351d24eca30d84cd374090e21acc4fa95629ac728c021842b0566b3ced211"
         },
         {
-          "bytes": 34828,
+          "bytes": 35800,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "f386717e018afffcc2ab3f6f97e663783c7d645fd89a0e727478ca68fa7c105f"
+          "sha256": "82a27dd7982d25ecaae9f60ca0414cc1ceeb5b64bd7930f63cb51fc8648b2ee1"
         },
         {
-          "bytes": 12986,
+          "bytes": 13958,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/upgrade-impact-analysis.md",
-          "sha256": "d40a51d832538d53b812062397c81788a6b49bd9b5d971a31d3112976f370518"
+          "sha256": "57bd8d92f7b9be9e5d26519a5cd424690e763a6e976cd998c1e674cc61b61645"
         },
         {
-          "bytes": 11485,
+          "bytes": 12457,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/vulnerability-explainer.md",
-          "sha256": "2f111e4a16651e262f215a50888c51e4d48940be345e919509065b7b33cd36ca"
+          "sha256": "9e64412c32fd000bb760aa633fdc62d76ba49db6c8d383c517d843569f45900b"
         },
         {
           "bytes": 188527,
@@ -3158,19 +3158,19 @@
           "sha256": "5fca4ea1623d6cf6d4d797760bf9d8c1cbc6a58668df9bb8fc91744c3407729d"
         },
         {
-          "bytes": 28458,
+          "bytes": 29430,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/ai-sast-triage/SKILL.md",
-          "sha256": "5e34fe3b53c2bf190582058a280344c0871f77854f17ebf7e199af4819cbcc9b"
+          "sha256": "74b453dd92730089c53da69a849e8e1da797d088465b33c65398625ee144bf28"
         },
         {
-          "bytes": 15982,
+          "bytes": 16954,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "2f120c9198e7cfb3745d64a9417860d73e2b557aad5be662598f5ad09e90963f"
+          "sha256": "4d342eefad288edb0ef125368d535c50be6d6ec605baeadc510c5fbbb7860b76"
         },
         {
-          "bytes": 11736,
+          "bytes": 12708,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/dependency-decision-helper/SKILL.md",
-          "sha256": "89eff3ffe9ebeb3e93066ebbccca287c24c1570737f4227163b74fbdd7c6eee2"
+          "sha256": "249517bdac50dcb8ef549155c8f9e814268d201b0d2e2e55f78188c859d2f5e8"
         },
         {
           "bytes": 10099,
@@ -3178,54 +3178,54 @@
           "sha256": "b71af9853bb5825414e2c5e5d0227c27c6a25f1da47a2a7472910bdb502b6e79"
         },
         {
-          "bytes": 23794,
+          "bytes": 24766,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
-          "sha256": "4c2c971a25190935eb16bec2724563ae57ab004f29f40ea1310238295f9fdc86"
+          "sha256": "a65bb582069eb7c8877435a0e4ce2957bf638a649249c64d3a8c531308cff2ff"
         },
         {
-          "bytes": 11160,
+          "bytes": 12644,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/findings-browser/SKILL.md",
-          "sha256": "e4dac3121b23140542d1cb0ba04ee736017e3e5ce410da0577fc9ffbbd8c10c2"
+          "sha256": "1e5ab51f014ab673eea33433b6d9b2c04307a88b7f3b155a02cfeccaebe4af30"
         },
         {
-          "bytes": 9772,
+          "bytes": 10998,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/malware-response/SKILL.md",
-          "sha256": "e2c2bfac65d8ab7c9c7da00f48215c74983a0ecf0ed5055626591d7260625742"
+          "sha256": "adc8e9ba9238f631d963991ba67b5b071f5f3366cfff8971a90f89fa89b5673e"
         },
         {
-          "bytes": 11799,
+          "bytes": 12771,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/package-risk-summary/SKILL.md",
-          "sha256": "7733e87d2aac98b4921855803b1469a619c280560231da58f7e31fbbe1e4eec2"
+          "sha256": "c58e284bd34ec61d6e0a48d8054c32ff7ed7e9d3faed648d6a0c014218d275fc"
         },
         {
-          "bytes": 24559,
+          "bytes": 25531,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
-          "sha256": "c4b0aa394300ad09e0599611d0569e4c8f4cfeee5fab28914aca619bf6aa9bd0"
+          "sha256": "8cf59abc8159f1c52af51f68f7b603a0d113eb3ea60093ed7f87bb45232f9838"
         },
         {
-          "bytes": 10360,
+          "bytes": 11332,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/remediation-planner/SKILL.md",
-          "sha256": "d7cad18654453585bf1407034298559f2c8959c9e18bd235ba2335df4758eeb6"
+          "sha256": "8bd662eb7febc257215e91254e18126f06623373063b01a60313d4b2dd0e4882"
         },
         {
-          "bytes": 12822,
+          "bytes": 13794,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/repository-dependency-reviewer/SKILL.md",
-          "sha256": "c0390c289359688ebc3175bade65ef0ffa0b11ffb50e342ed6863adf06af0e68"
+          "sha256": "8754f5fae2e613d21e41117204652508dcab16bcc092a36510e3654549918022"
         },
         {
-          "bytes": 34528,
+          "bytes": 35500,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "0791020b50f1f550d4869bcb75f72dea05c901c479aa066515db091ccc098183"
+          "sha256": "7b46fe22aae587b7e4b82c9f84bea8af9cceeedb8fb07a410be0880f7b7982c2"
         },
         {
-          "bytes": 12723,
+          "bytes": 13695,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/upgrade-impact-analysis/SKILL.md",
-          "sha256": "bcc75beb1a29de67fb3611c79aa0030eada13675d029579c8f737b5d0d063cb7"
+          "sha256": "432388456d43a3651c021f4f25a84ba08ac1d7625f5d2c9de43935849618be7f"
         },
         {
-          "bytes": 11251,
+          "bytes": 12223,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/vulnerability-explainer/SKILL.md",
-          "sha256": "21fe8f366dc1a0a8caf70d1b2d9dbea2f12e6bd5c7962bfecd4a6b515ae12fd9"
+          "sha256": "d58ce95d3e085bf531d40240f4f759de29727677d6132444978add054f25b9d1"
         },
         {
           "bytes": 3327,
@@ -3267,69 +3267,69 @@
           "sha256": "1c3f6d6687cb21e5ab01f2c8ab8bff0d360bd2682870dbcf0368fa55fa10a7ba"
         },
         {
-          "bytes": 27765,
+          "bytes": 28737,
           "path": "plugins/claude/ai-plugins/agents/ai-sast-triage.md",
-          "sha256": "d70e75a37e55265bd533d71dc384ce64540650ce86b7ff939293b9cb5b881135"
+          "sha256": "37886f4227fe11d3c8f71aa846889459124e66a53171f34f7090491bea3a3d97"
         },
         {
-          "bytes": 15360,
+          "bytes": 16332,
           "path": "plugins/claude/ai-plugins/agents/cicd-posture.md",
-          "sha256": "f106b12f92eefd02d37f8103078b3f3028f0345ad14f34927fc60530fa4ab01f"
+          "sha256": "07610cf3a7e2e2b2fafd2798bb1cbc5c48da70eb9c804fa2910a1dcf1ba363ae"
         },
         {
-          "bytes": 11048,
+          "bytes": 12020,
           "path": "plugins/claude/ai-plugins/agents/dependency-decision-helper.md",
-          "sha256": "73d67ed2d29d4cfe2a8cf310d85c51d0af095f27feec4818da7b238cef9ec296"
+          "sha256": "290c19044c7d58dacd668b7a62aefe7d8137534d7db5e6288e2304c626ee13bd"
         },
         {
-          "bytes": 23203,
+          "bytes": 24175,
           "path": "plugins/claude/ai-plugins/agents/endor-troubleshooter.md",
-          "sha256": "200c00838472a692fe06713dae28964aaf0717cd35e85e5b001a7b6a5263e509"
+          "sha256": "47c5d168dc481b4f3e2a9e2e73cfc69f18279d01c2732b57f4c73a999be720b6"
         },
         {
-          "bytes": 10569,
+          "bytes": 12053,
           "path": "plugins/claude/ai-plugins/agents/findings-browser.md",
-          "sha256": "2e6f970694ae5060066d372b54174b514cdf6df6a90b7ebdf59f33ecfbb3f844"
+          "sha256": "462ba0bcf9dc14b4f82b0903b87fb39f2928da23bb6d26fec41a0334d3b3c04c"
         },
         {
-          "bytes": 9175,
+          "bytes": 10401,
           "path": "plugins/claude/ai-plugins/agents/malware-response.md",
-          "sha256": "d517148d31da9bc05e8545698419d7202cd865675d5c948c70db630ac4617e89"
+          "sha256": "05ee242a30761c69a4722a50aa943df24f993fe2c46e4b3b2209a44674d31a08"
         },
         {
-          "bytes": 11100,
+          "bytes": 12072,
           "path": "plugins/claude/ai-plugins/agents/package-risk-summary.md",
-          "sha256": "f43e3f0bcbb2b045913a9f268b4ffd18489727e7d16ff9c533ed681e5d9db47f"
+          "sha256": "eb28302253231f89713af775d9f9b5f99b6301836d7de510bdeeb3cf3dad28e1"
         },
         {
-          "bytes": 23977,
+          "bytes": 24949,
           "path": "plugins/claude/ai-plugins/agents/probe-droid.md",
-          "sha256": "6618e80194ae76d1aeca1a6eb87d22eb870c236227a53ccc941815ad3aa227fa"
+          "sha256": "9cb06918e69bf572f2557440d5911b55f29791eccf178a6c4cbee81a5f14b81b"
         },
         {
-          "bytes": 9765,
+          "bytes": 10737,
           "path": "plugins/claude/ai-plugins/agents/remediation-planner.md",
-          "sha256": "a1c6eef805aa908a1fa0443e7e5a8cab572cdeaadbb0f7d01378203217f7309c"
+          "sha256": "8ba5ada70879505fe526beba213ee2e7efdd669e2f7f4aaafcbbdd0d2de510ed"
         },
         {
-          "bytes": 11914,
+          "bytes": 12886,
           "path": "plugins/claude/ai-plugins/agents/repository-dependency-reviewer.md",
-          "sha256": "22ce2d6358c637d8e0f41a1f1fdf35ce986e90399389eb2580ebb254d4bf13a4"
+          "sha256": "6f6f2a8780c8b4442af88a6ef435aa7a6e4d6acf30dff9b274357e526bde638c"
         },
         {
-          "bytes": 33827,
+          "bytes": 34799,
           "path": "plugins/claude/ai-plugins/agents/sca-remediation.md",
-          "sha256": "dc5c5301104fda75f1358fe79c1fa52b056014f4cbe720b0dfb245d77bffa63a"
+          "sha256": "83d93db2b697e77769f4fa818b4e527ae7903d5fe1a8bdc95372ce38507a177a"
         },
         {
-          "bytes": 12117,
+          "bytes": 13089,
           "path": "plugins/claude/ai-plugins/agents/upgrade-impact-analysis.md",
-          "sha256": "17e342565f384630d0d01a10778447d98c5e56a4c325820fbbebaed4f4fbe5d9"
+          "sha256": "7d9a254dc0a6ad453b492e08bbb10f148e930e9a71b395dc8946aab035b591fa"
         },
         {
-          "bytes": 10240,
+          "bytes": 11212,
           "path": "plugins/claude/ai-plugins/agents/vulnerability-explainer.md",
-          "sha256": "bb9df6f6cd5c72646d3a02fda78cc6d2e5d34a8683805e1bb735ffcc1123e880"
+          "sha256": "86de471acad66bb05dea3b3064ff842a608ef7546cb7562294996c69571f9074"
         },
         {
           "bytes": 188527,
@@ -3392,69 +3392,69 @@
           "sha256": "c6f850bdf8b26114bddc75c7e09bb3ba951e8746c6ed029ce53543aceed56649"
         },
         {
-          "bytes": 27765,
+          "bytes": 28737,
           "path": "plugins/claude/endor-labs-agent-kit/agents/ai-sast-triage.md",
-          "sha256": "d70e75a37e55265bd533d71dc384ce64540650ce86b7ff939293b9cb5b881135"
+          "sha256": "37886f4227fe11d3c8f71aa846889459124e66a53171f34f7090491bea3a3d97"
         },
         {
-          "bytes": 15360,
+          "bytes": 16332,
           "path": "plugins/claude/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "f106b12f92eefd02d37f8103078b3f3028f0345ad14f34927fc60530fa4ab01f"
+          "sha256": "07610cf3a7e2e2b2fafd2798bb1cbc5c48da70eb9c804fa2910a1dcf1ba363ae"
         },
         {
-          "bytes": 11048,
+          "bytes": 12020,
           "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-decision-helper.md",
-          "sha256": "73d67ed2d29d4cfe2a8cf310d85c51d0af095f27feec4818da7b238cef9ec296"
+          "sha256": "290c19044c7d58dacd668b7a62aefe7d8137534d7db5e6288e2304c626ee13bd"
         },
         {
-          "bytes": 23203,
+          "bytes": 24175,
           "path": "plugins/claude/endor-labs-agent-kit/agents/endor-troubleshooter.md",
-          "sha256": "200c00838472a692fe06713dae28964aaf0717cd35e85e5b001a7b6a5263e509"
+          "sha256": "47c5d168dc481b4f3e2a9e2e73cfc69f18279d01c2732b57f4c73a999be720b6"
         },
         {
-          "bytes": 10569,
+          "bytes": 12053,
           "path": "plugins/claude/endor-labs-agent-kit/agents/findings-browser.md",
-          "sha256": "2e6f970694ae5060066d372b54174b514cdf6df6a90b7ebdf59f33ecfbb3f844"
+          "sha256": "462ba0bcf9dc14b4f82b0903b87fb39f2928da23bb6d26fec41a0334d3b3c04c"
         },
         {
-          "bytes": 9175,
+          "bytes": 10401,
           "path": "plugins/claude/endor-labs-agent-kit/agents/malware-response.md",
-          "sha256": "d517148d31da9bc05e8545698419d7202cd865675d5c948c70db630ac4617e89"
+          "sha256": "05ee242a30761c69a4722a50aa943df24f993fe2c46e4b3b2209a44674d31a08"
         },
         {
-          "bytes": 11100,
+          "bytes": 12072,
           "path": "plugins/claude/endor-labs-agent-kit/agents/package-risk-summary.md",
-          "sha256": "f43e3f0bcbb2b045913a9f268b4ffd18489727e7d16ff9c533ed681e5d9db47f"
+          "sha256": "eb28302253231f89713af775d9f9b5f99b6301836d7de510bdeeb3cf3dad28e1"
         },
         {
-          "bytes": 23977,
+          "bytes": 24949,
           "path": "plugins/claude/endor-labs-agent-kit/agents/probe-droid.md",
-          "sha256": "6618e80194ae76d1aeca1a6eb87d22eb870c236227a53ccc941815ad3aa227fa"
+          "sha256": "9cb06918e69bf572f2557440d5911b55f29791eccf178a6c4cbee81a5f14b81b"
         },
         {
-          "bytes": 9765,
+          "bytes": 10737,
           "path": "plugins/claude/endor-labs-agent-kit/agents/remediation-planner.md",
-          "sha256": "a1c6eef805aa908a1fa0443e7e5a8cab572cdeaadbb0f7d01378203217f7309c"
+          "sha256": "8ba5ada70879505fe526beba213ee2e7efdd669e2f7f4aaafcbbdd0d2de510ed"
         },
         {
-          "bytes": 11914,
+          "bytes": 12886,
           "path": "plugins/claude/endor-labs-agent-kit/agents/repository-dependency-reviewer.md",
-          "sha256": "22ce2d6358c637d8e0f41a1f1fdf35ce986e90399389eb2580ebb254d4bf13a4"
+          "sha256": "6f6f2a8780c8b4442af88a6ef435aa7a6e4d6acf30dff9b274357e526bde638c"
         },
         {
-          "bytes": 33827,
+          "bytes": 34799,
           "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "dc5c5301104fda75f1358fe79c1fa52b056014f4cbe720b0dfb245d77bffa63a"
+          "sha256": "83d93db2b697e77769f4fa818b4e527ae7903d5fe1a8bdc95372ce38507a177a"
         },
         {
-          "bytes": 12117,
+          "bytes": 13089,
           "path": "plugins/claude/endor-labs-agent-kit/agents/upgrade-impact-analysis.md",
-          "sha256": "17e342565f384630d0d01a10778447d98c5e56a4c325820fbbebaed4f4fbe5d9"
+          "sha256": "7d9a254dc0a6ad453b492e08bbb10f148e930e9a71b395dc8946aab035b591fa"
         },
         {
-          "bytes": 10240,
+          "bytes": 11212,
           "path": "plugins/claude/endor-labs-agent-kit/agents/vulnerability-explainer.md",
-          "sha256": "bb9df6f6cd5c72646d3a02fda78cc6d2e5d34a8683805e1bb735ffcc1123e880"
+          "sha256": "86de471acad66bb05dea3b3064ff842a608ef7546cb7562294996c69571f9074"
         },
         {
           "bytes": 188527,
@@ -3542,69 +3542,69 @@
           "sha256": "d5146336cd48710820f53a241edd1f6cfd02db3b26d89b7098d8effc76fe7027"
         },
         {
-          "bytes": 28439,
+          "bytes": 29417,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-ai-sast-triage-agent.toml",
-          "sha256": "2f62d09a481a2278c30ccda260a067e9b3c0cb702c17d5fc0433bc50977bf9ca"
+          "sha256": "e862a9a644f2d329b259b14a6e25b9f0d155e1cd0540b692b3c4a09155fec5d7"
         },
         {
-          "bytes": 16237,
+          "bytes": 17215,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-cicd-posture-agent.toml",
-          "sha256": "b649a149a89721b4534d623bfc5c107dccd1a0e0934cf128b8468e6f92fd610d"
+          "sha256": "d34eb3b0e536b4862903e8a1b9cd0ddbef84eec31a7244635c01ad7bd69fb9a4"
         },
         {
-          "bytes": 11882,
+          "bytes": 12860,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-dependency-decision-helper-agent.toml",
-          "sha256": "e1b0543aa61c53ed9e3dcaa2e92ddc981debf78704676623eb96a368f33dcfb2"
+          "sha256": "cc85ea5f7348f91bcd061127f356d623bd41654eed422b13864fbe1924826603"
         },
         {
-          "bytes": 11357,
+          "bytes": 12855,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-findings-browser-agent.toml",
-          "sha256": "3855d19bd36d3dc7b1b94f0ed14e4501cf4e71dfb659c103059287f297c7777b"
+          "sha256": "85e4aa0fe7efd3d43d04f79a930bc9a3bcd7c277a0da9ecff755f99c62c9703b"
         },
         {
-          "bytes": 9929,
+          "bytes": 11166,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-malware-response-agent.toml",
-          "sha256": "fad3710a173a0783be25da494acd3bfe7579a37275a6f7039ee6489e908caace"
+          "sha256": "13f1b7361146610a8d74d67303271326a71fa3536e0564699323dcc52d60e779"
         },
         {
-          "bytes": 11921,
+          "bytes": 12899,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-package-risk-summary-agent.toml",
-          "sha256": "85a6faf44f3b1d604ac9909bb4ae74b5a149798b29c6bfe1f519afd28e180fb3"
+          "sha256": "1c3c121b020e8d41a7e106757d77cc03bfb1503a5565c1f8bedd562a4064ee7c"
         },
         {
-          "bytes": 24982,
+          "bytes": 25960,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-probe-droid-agent.toml",
-          "sha256": "c2d7e57e9bbdf3ec6a56adc23013faaf0457f49f3ecd4f2c395c66053a3fd540"
+          "sha256": "f648f1a4817facd791d7aa89699594bc2009edf0fcce28d7836fd1b056287630"
         },
         {
-          "bytes": 10537,
+          "bytes": 11515,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-remediation-planner-agent.toml",
-          "sha256": "39971c7a43868a9e1d72183a82e181702c22935ffd1da60d66840639337b6adc"
+          "sha256": "d4d34feb07cd49eee22cfa6e932950980c9876c31115aaf97e58054ed94948a8"
         },
         {
-          "bytes": 12946,
+          "bytes": 13924,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-repository-dependency-reviewer-agent.toml",
-          "sha256": "fd4aa39da527468d069ad9d777673895298eb608c3f9f9278034455485680df3"
+          "sha256": "33e1a8d54dd42b168eb19f651e577de7a836022d13df3c8553b014b0847991c0"
         },
         {
-          "bytes": 34884,
+          "bytes": 35862,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-sca-remediation-agent.toml",
-          "sha256": "bbec8ad0a024e6d65c1aa36add0f9807a783a2813533e550841d0aa014deeefb"
+          "sha256": "b3e2970248d819b2d2e668eb1f0d2f2168525e3820f37e25b056c18ad2f2910e"
         },
         {
-          "bytes": 24480,
+          "bytes": 25458,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-troubleshooter-agent.toml",
-          "sha256": "49d770c41af5e2b16af0f6487c3dc65c75aac5ab83f6d2b7601cd1eabe3b658b"
+          "sha256": "4f5899662265c78baf7de10a79742d47c078bec9862abed001eee673446dd288"
         },
         {
-          "bytes": 12950,
+          "bytes": 13928,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-upgrade-impact-analysis-agent.toml",
-          "sha256": "d5794b215d143ba5a846938a52718013ab523b482a7a18e902dcce289806466e"
+          "sha256": "43a6d50f24cd15a3c5191b1b92283bdd89ba893b86b164b4698f92c82f0cef3f"
         },
         {
-          "bytes": 11362,
+          "bytes": 12340,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-vulnerability-explainer-agent.toml",
-          "sha256": "2cf17b2aa5f921048203fd26adf20cd1c93731f5d767ecae1b38d7776912dc1b"
+          "sha256": "e336152c3989cefe84ed8af3d0cbc7bc2e5e096213932c363586c75e46278416"
         },
         {
           "bytes": 188527,
@@ -3637,19 +3637,19 @@
           "sha256": "4b06af01a069172ff62a702c5dcec3188ef98fb959a09ba8ddae7f0c0666eea9"
         },
         {
-          "bytes": 27710,
+          "bytes": 28682,
           "path": "plugins/codex/endor-labs-agent-kit/skills/ai-sast-triage/SKILL.md",
-          "sha256": "c5b2a5b037e1de0c0405eee1f1ea6eec09f378028ebb645843a3c66427ff3a1a"
+          "sha256": "aafcc614d4766ec9ebd876a7ee4374bac8e88c26f5d5da76c59df89bdfebb60c"
         },
         {
-          "bytes": 15455,
+          "bytes": 16427,
           "path": "plugins/codex/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "1ee9c0dcde6056962191c6fdf1ba0db70d42e570a6fdb7c95f7bd495fc1e5d66"
+          "sha256": "32c4dc5b959f6483eb0452c04ebd6ace66ee0d37b0b8d668dd5257fc88fa40d8"
         },
         {
-          "bytes": 11112,
+          "bytes": 12084,
           "path": "plugins/codex/endor-labs-agent-kit/skills/dependency-decision-helper/SKILL.md",
-          "sha256": "5e4aa21bf3507baa046533237aea00d002043ff4c638f66f0dfec570fbf3dc5b"
+          "sha256": "0239d65a7e1ea242905a764bbec6b43617da02bed1d50f1567c183cdc10a249c"
         },
         {
           "bytes": 10383,
@@ -3657,54 +3657,54 @@
           "sha256": "a896e8bdc19db905174a09b81d23cdbe1a14e67bbe1d8cb01cfeedea6f0aabfb"
         },
         {
-          "bytes": 23267,
+          "bytes": 24239,
           "path": "plugins/codex/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
-          "sha256": "b18514f8067de91183dd75b64c99cac6e508ed7060cc614d1c2f7be23901733d"
+          "sha256": "564b1777e2f992eb016ece713c21ef2ee6e58bb2cd730c66a284e6cc5c1c571f"
         },
         {
-          "bytes": 10633,
+          "bytes": 12117,
           "path": "plugins/codex/endor-labs-agent-kit/skills/findings-browser/SKILL.md",
-          "sha256": "9a1df9527bf7a2b39f6264dd6663e5fbcc99ebd1a0220fc16e31bb6c4927441b"
+          "sha256": "ee90c7d2e6fbae891c54fb96fd28baef63b6679c9103e8e3b9a68833ebdde288"
         },
         {
-          "bytes": 9245,
+          "bytes": 10471,
           "path": "plugins/codex/endor-labs-agent-kit/skills/malware-response/SKILL.md",
-          "sha256": "3326c99776d3e2d84886349d8103b28aab48f4bc84726673430f0fdd026688db"
+          "sha256": "f66bcaafbfa6c9a7a53049ef58347d64c200d1d115cf29afedfbb340a015c9a6"
         },
         {
-          "bytes": 11175,
+          "bytes": 12147,
           "path": "plugins/codex/endor-labs-agent-kit/skills/package-risk-summary/SKILL.md",
-          "sha256": "566c0050f8beb77816e575b1747c18926afa546b75bbbd617114191a9f5bcf57"
+          "sha256": "b7aab5c2b1c8aca614e1a727b854c7679cc5c4afb7eeba9a38d848f4ec2d25ab"
         },
         {
-          "bytes": 24032,
+          "bytes": 25004,
           "path": "plugins/codex/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
-          "sha256": "8b59d263119197b4c6c07f86ce6f1218a680f8915a1215edbe9fbd0c6ff838df"
+          "sha256": "d578ed8a3b6290facda7cf2cfc7a079dfe51c12ae8f1fd2c0bc65dc76e5559f9"
         },
         {
-          "bytes": 9823,
+          "bytes": 10795,
           "path": "plugins/codex/endor-labs-agent-kit/skills/remediation-planner/SKILL.md",
-          "sha256": "b579aeb6a6adf8af12de080ca92940bcf13865bd02bd085e893c4f460c9d9748"
+          "sha256": "c2c1e34b826dbbf18f21f085a1ba6855a0586c52543571c538760a66cf735cfb"
         },
         {
-          "bytes": 12163,
+          "bytes": 13135,
           "path": "plugins/codex/endor-labs-agent-kit/skills/repository-dependency-reviewer/SKILL.md",
-          "sha256": "bf8b135b9bb3a6f20f98c96a41ac9a956e1332e6253535306134abd1ca91b803"
+          "sha256": "c00f67e5164e763184f08b4fcae474e78fcb832ef11d223a60205a05185633fc"
         },
         {
-          "bytes": 33757,
+          "bytes": 34729,
           "path": "plugins/codex/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "ea93cb2c9e028aceca387a6667073bb302501dd8379817f2d9e27c1c805ad08c"
+          "sha256": "452d9a186634df4f913fb90f252b68f37b59c70cd5688a46e55fd00e28138cf7"
         },
         {
-          "bytes": 12186,
+          "bytes": 13158,
           "path": "plugins/codex/endor-labs-agent-kit/skills/upgrade-impact-analysis/SKILL.md",
-          "sha256": "a7aff8eb0ce0d5468736b09099310a2d554cf3b21c0ee5e37606a39062f6e2c9"
+          "sha256": "c74fb250d2e746d8676f719b8db0ec59ee69b2bc65766fbef2c4a8d31e12d20f"
         },
         {
-          "bytes": 10612,
+          "bytes": 11584,
           "path": "plugins/codex/endor-labs-agent-kit/skills/vulnerability-explainer/SKILL.md",
-          "sha256": "af309b670f86bc46676a8a3b22c271c68ef2720c9e825f6968487cdf968acf13"
+          "sha256": "07c06e79c9051b8468661628fec2a3d3018a90ce965216832631d58d30b8d92c"
         },
         {
           "bytes": 419,
@@ -3762,69 +3762,69 @@
           "sha256": "b9babd5698193376bf674c8ac29743632bc40d3b3a28a6e2138be23803352047"
         },
         {
-          "bytes": 28690,
+          "bytes": 29662,
           "path": "agents/endor-ai-sast-triage-agent.md",
-          "sha256": "87111769a4ba0391139a45e4528f15165867f173a289afc59f5a4d9d09e0e56d"
+          "sha256": "19007dd5c0ffe65d114afe3e167a3047eb630d47fafd3e23ccc141039d56d4ae"
         },
         {
-          "bytes": 16207,
+          "bytes": 17179,
           "path": "agents/endor-cicd-posture-agent.md",
-          "sha256": "4ff9ec2795a1ac4272ed6ad77c6466bdda6673e57adea686cb87381faaa41969"
+          "sha256": "1ac1f05dac8fdccb83c320643b590379e9604a4718f450ee7ebd26bdf0f54a37"
         },
         {
-          "bytes": 12003,
+          "bytes": 12975,
           "path": "agents/endor-dependency-decision-helper-agent.md",
-          "sha256": "e961d2f541787c2bfbcb11095581f881613e76b3e603de83c6b20b70cbaeb3ce"
+          "sha256": "45b1ddbe61280dfa99b9f05f7c68063c8f0211fcf763bf8540d60eff723ec308"
         },
         {
-          "bytes": 11397,
+          "bytes": 12881,
           "path": "agents/endor-findings-browser-agent.md",
-          "sha256": "6c41148e01d49374f528eb3b268c9aa0f56bc343682cfff2adafa4894376c458"
+          "sha256": "3b023e016e2c078e943b5f482356b4d6509fbb61c5557688fc0a14e657119414"
         },
         {
-          "bytes": 10009,
+          "bytes": 11235,
           "path": "agents/endor-malware-response-agent.md",
-          "sha256": "842793e22ec8ca7b9c555129155ed1439288cfb371c516fd524c2be4a582cbb0"
+          "sha256": "33d8e768e4b867c636edf33e559d7d929c2779e2ce9ae658f03125a8077af071"
         },
         {
-          "bytes": 12048,
+          "bytes": 13020,
           "path": "agents/endor-package-risk-summary-agent.md",
-          "sha256": "a822ff04b52f97c590065c1e5284e4b82d420f982a61dad43dfc700faf10fa40"
+          "sha256": "4d8db771f451c453e3202b652faa9211ed38bd4bddde6621d6e5f37dde7d1f50"
         },
         {
-          "bytes": 24781,
+          "bytes": 25753,
           "path": "agents/endor-probe-droid-agent.md",
-          "sha256": "5e9f6de4207808836ed2e30dcf717d87e60c5ef5a5422c0e3659e34329a2b774"
+          "sha256": "1d3854fef7a67f1916e30a8388b4411800173382aaf1c4ebb184aa403fc0a3ac"
         },
         {
-          "bytes": 10597,
+          "bytes": 11569,
           "path": "agents/endor-remediation-planner-agent.md",
-          "sha256": "873fa0dc1d3231c2ef4d15549571253ac43cd7ef4a3cdfa0ad7695e0da78ef25"
+          "sha256": "97562ab54632dcbe358711ca309590da5c466ccd3c324466d721195f7de369e9"
         },
         {
-          "bytes": 13083,
+          "bytes": 14055,
           "path": "agents/endor-repository-dependency-reviewer-agent.md",
-          "sha256": "f049c410efbc632e8ac513db1f00971034d197dc5d7d7f774ed5e4b67729a913"
+          "sha256": "6dfb74a65fce2cb2c79a6c1c357b5e3ae6e768192ca2f139c1e127c252255bb5"
         },
         {
-          "bytes": 34742,
+          "bytes": 35714,
           "path": "agents/endor-sca-remediation-agent.md",
-          "sha256": "75a32e4c2df3c540dc8c29303c6b0cb75d4c7f7562283c555018346a69920aee"
+          "sha256": "44c92fa01c7aaebe229251b82ebe968cd0b58785721e937e50fac6c57211010c"
         },
         {
-          "bytes": 24031,
+          "bytes": 25003,
           "path": "agents/endor-troubleshooter-agent.md",
-          "sha256": "b05c0c7149497f4886b4ed029dedaa12d2d0186ff9ef5f5e2033cd6bdc435ef9"
+          "sha256": "c1242dc1926c6e36ca35c1c1cdc25c73700546570a018644b3f0335fa129783f"
         },
         {
-          "bytes": 12972,
+          "bytes": 13944,
           "path": "agents/endor-upgrade-impact-analysis-agent.md",
-          "sha256": "b0c3dcaa8cb1b50e60dae3364aad2403cfb5a58c9357c5a517ca0f1ef40cda4f"
+          "sha256": "0805ad05d7927cea87a7f8c8833f96004155796b0bf3ff29c557967e940f20e6"
         },
         {
-          "bytes": 11509,
+          "bytes": 12481,
           "path": "agents/endor-vulnerability-explainer-agent.md",
-          "sha256": "1a00fc7e6cc7c90ed5404370b891c93391eba228f25dc44aa9093a74d02d3046"
+          "sha256": "8324d5fdbddd69de546c409f93fef302457848dd96992631c2669e7850624a62"
         },
         {
           "bytes": 188527,
@@ -3852,9 +3852,9 @@
           "sha256": "cf0b22a7cdf01d9c3a6c93132f78cf1cffb14f1c26b0fa85c423c12b1267fbdd"
         },
         {
-          "bytes": 28396,
+          "bytes": 29368,
           "path": "skills/ai-sast-triage/SKILL.md",
-          "sha256": "086e9ba47152abc0d307c537ede5a481e287a60f62ac480efa7d6f3be89ab1f7"
+          "sha256": "2398938b5e50f4ca43a8b7bd46c4cf626b4c17878bf482dc47c7e28ca1058e2c"
         },
         {
           "bytes": 6454,
@@ -3867,9 +3867,9 @@
           "sha256": "43cee084b3fd84a06253bdcaf577f2db2f0f0b2a2edfcd48fb17c8a4d8348032"
         },
         {
-          "bytes": 15918,
+          "bytes": 16890,
           "path": "skills/cicd-posture/SKILL.md",
-          "sha256": "0b5f4c739a971adab1762b39a37f4a719b45047a2f19c9696908c29077916193"
+          "sha256": "6dcc195b81f48bb41858d2a63fae68c2f69797312f50c6a2091e775fe0db1ad9"
         },
         {
           "bytes": 8281,
@@ -3877,9 +3877,9 @@
           "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
         },
         {
-          "bytes": 11686,
+          "bytes": 12658,
           "path": "skills/dependency-decision-helper/SKILL.md",
-          "sha256": "6e53579c9748c80c2dbf9cbd33f3e3d4859f7d423349ea6fb7d0181d41b2ec78"
+          "sha256": "06e4fdd5d31bd8952ecbc23702261780713acff9d6e5b7b7b8d04495a19f4894"
         },
         {
           "bytes": 9219,
@@ -3887,9 +3887,9 @@
           "sha256": "7ff54328c842493be1e0c3c8add24689ba0e509dac9c6199fb6b3838f92f96f2"
         },
         {
-          "bytes": 23738,
+          "bytes": 24710,
           "path": "skills/endor-troubleshooter/SKILL.md",
-          "sha256": "c3b8cf738925dafb9a85dc10fb52290a29562f42e1f3a4fe453aebff1dacab97"
+          "sha256": "3a93faa7d6fc220c86dc9944f39bcc39d37d3370f72ba121351bc4ba314f51c8"
         },
         {
           "bytes": 9834,
@@ -3897,9 +3897,9 @@
           "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
         },
         {
-          "bytes": 11100,
+          "bytes": 12584,
           "path": "skills/findings-browser/SKILL.md",
-          "sha256": "4b9ecd1b24db63d6de110b61fcee29c857cd9e3f412eafff3fdf5b59fb77cc9b"
+          "sha256": "770ccd09182f2f4097a0fdf68bfd71f982c4a6addf34e549f67263534acc8e63"
         },
         {
           "bytes": 8271,
@@ -3907,9 +3907,9 @@
           "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
         },
         {
-          "bytes": 9712,
+          "bytes": 10938,
           "path": "skills/malware-response/SKILL.md",
-          "sha256": "241f4d327c1ae11741dea884b497abc4a45b4c3da24658b664e6ee09f26f5b22"
+          "sha256": "a17c000d9ed48e0b54de0b05c902a3afa8d3e6b2c23a1cc5e46b4f74edbcac22"
         },
         {
           "bytes": 9757,
@@ -3917,14 +3917,14 @@
           "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
         },
         {
-          "bytes": 11743,
+          "bytes": 12715,
           "path": "skills/package-risk-summary/SKILL.md",
-          "sha256": "5b2d730011ec47d80d57c78518e79cc542dc928c11f06c77ff8ccc0ab9fa1e35"
+          "sha256": "8135ec852c1e3cbb041be895dc9e1f63aa312f425c1a127243459ff9db9fec29"
         },
         {
-          "bytes": 24494,
+          "bytes": 25466,
           "path": "skills/probe-droid/SKILL.md",
-          "sha256": "3af42efb4ddae674b3023435f12fdeff3831a52f70079072869b0fa5bc53e159"
+          "sha256": "e30b91645e4f5fde5152982cf2aca73a01111a49b34e68df11d819e259d189a7"
         },
         {
           "bytes": 9818,
@@ -3932,9 +3932,9 @@
           "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
         },
         {
-          "bytes": 10294,
+          "bytes": 11266,
           "path": "skills/remediation-planner/SKILL.md",
-          "sha256": "a5d8dba9d4286a85fecc9a19c424f9191c2d431fb1e81f2455b32067af069c0f"
+          "sha256": "eb6644a2497bb1364538756b857bdcb07739874d66d744157302b3ca783895d0"
         },
         {
           "bytes": 9888,
@@ -3942,14 +3942,14 @@
           "sha256": "2a9b1b92b5f4aabd85a708a32f332ea5321b99f6b14d3d227a5a628c08499339"
         },
         {
-          "bytes": 12758,
+          "bytes": 13730,
           "path": "skills/repository-dependency-reviewer/SKILL.md",
-          "sha256": "ff1152173fd349de2279b0ee1299027ab76cab037c7a54c45f21401bb2c67165"
+          "sha256": "dbcdb422683c3535e13318ae9092c8abbd224dae7f9b96462df7f9661fa006cd"
         },
         {
-          "bytes": 34446,
+          "bytes": 35418,
           "path": "skills/sca-remediation/SKILL.md",
-          "sha256": "a1427293904a3ee7520316794a38eca72ef41b94d145b4e161bc2c65b22245ea"
+          "sha256": "389ed969bd77a2950772ccea91c0952df983d1ed53bde2e40f8ccb3c39932b0f"
         },
         {
           "bytes": 6811,
@@ -3962,9 +3962,9 @@
           "sha256": "b4f710b517dc3ed1e75d26db0241f3fcc13d4eaf993ab965f35a9362d57b15ff"
         },
         {
-          "bytes": 12661,
+          "bytes": 13633,
           "path": "skills/upgrade-impact-analysis/SKILL.md",
-          "sha256": "4f69e566f4dba2b4011d3b6bbf312840baeeaaa9c1838979b76f1a6c47077cba"
+          "sha256": "edda255246a1b443df7961031c8aae59e3d17edf2f1bb024ec176765d10db4dc"
         },
         {
           "bytes": 9916,
@@ -3972,9 +3972,9 @@
           "sha256": "103ddec070f3db2bacce8131e7dd6df128a8115c779940b92fb25a951ca84867"
         },
         {
-          "bytes": 11198,
+          "bytes": 12170,
           "path": "skills/vulnerability-explainer/SKILL.md",
-          "sha256": "e65e14e6007b409f5aea48705f11346ebe6013fbf434fdc496a2c27039cf70a2"
+          "sha256": "6ecc91ecd43cccfc57ca3afb39e6e6c2887227ef993dc137dcae43ac1b0f5766"
         }
       ],
       "display_name": "Endor Labs Agent Kit",
@@ -4027,9 +4027,9 @@
           "sha256": "43cee084b3fd84a06253bdcaf577f2db2f0f0b2a2edfcd48fb17c8a4d8348032"
         },
         {
-          "bytes": 28231,
+          "bytes": 29203,
           "path": "cursor-sdk/agents/endor-ai-sast-triage-agent.md",
-          "sha256": "8c18c065f145a3b469882bdabbd2fd7561764eabc4e429e6a040cd5cc84ebdb2"
+          "sha256": "95c62508eaab638e5b16e9ab7e5d7b568c664096d78e576ba154c2100c37d354"
         },
         {
           "bytes": 8281,
@@ -4037,14 +4037,14 @@
           "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
         },
         {
-          "bytes": 15412,
+          "bytes": 16384,
           "path": "cursor-sdk/agents/endor-cicd-posture-agent.md",
-          "sha256": "497d3bd605f2048c135269e55ef288a45355f8fedfb967af63aae19bae97b8f7"
+          "sha256": "f1c63db01076a46678dca62ee077b1db9fe4413b7447f56a871b1e325eb4c8e2"
         },
         {
-          "bytes": 11376,
+          "bytes": 12348,
           "path": "cursor-sdk/agents/endor-dependency-decision-helper-agent.md",
-          "sha256": "9b15d81c43af88201c6fea7f6330b0e37d42e37513776652b5b644cbf117a7fa"
+          "sha256": "6ada27ceb370b2998dce3432a277cea586a2686533d4f56e001491cbd48d114e"
         },
         {
           "bytes": 8271,
@@ -4052,9 +4052,9 @@
           "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
         },
         {
-          "bytes": 10752,
+          "bytes": 12236,
           "path": "cursor-sdk/agents/endor-findings-browser-agent.md",
-          "sha256": "fe8dbe4ddef9b1c9c853cfcc8a4a76c89de950fbbe3527b15edd40aaefc4a9da"
+          "sha256": "2cd22aeee9f6f6d853bfdb4ef3e6407a6403703e1af2168d2537f9708d2a1eb5"
         },
         {
           "bytes": 9757,
@@ -4062,14 +4062,14 @@
           "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
         },
         {
-          "bytes": 9178,
+          "bytes": 10404,
           "path": "cursor-sdk/agents/endor-malware-response-agent.md",
-          "sha256": "b684bab1e071f36321c5b01a55641f20bc581d76059803336f176ef5e137214a"
+          "sha256": "1b7befbba69150ad5bbfa094854fc380f8734877260586218e8ee20fc9c1dd9b"
         },
         {
-          "bytes": 11245,
+          "bytes": 12217,
           "path": "cursor-sdk/agents/endor-package-risk-summary-agent.md",
-          "sha256": "e7b75f4b99d49cbda5dde63a778721523d55d2e693fcdc47286be81225b3eb77"
+          "sha256": "c4a58943a8169e8a7763a62f899398e401f39ac31717f87b1afa6c9e29e69c06"
         },
         {
           "bytes": 9818,
@@ -4077,9 +4077,9 @@
           "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
         },
         {
-          "bytes": 24055,
+          "bytes": 25027,
           "path": "cursor-sdk/agents/endor-probe-droid-agent.md",
-          "sha256": "61af81b365b4103a5fa6a22a2a06690797b674a6c4a0a7c141af554af0cf5bde"
+          "sha256": "1eca6885598824c646d107f954f08330329490a5e0f1e851921a99c39981779b"
         },
         {
           "bytes": 9888,
@@ -4087,14 +4087,14 @@
           "sha256": "2a9b1b92b5f4aabd85a708a32f332ea5321b99f6b14d3d227a5a628c08499339"
         },
         {
-          "bytes": 10232,
+          "bytes": 11204,
           "path": "cursor-sdk/agents/endor-remediation-planner-agent.md",
-          "sha256": "949a6bf181e661cc113ed1fd6a4449dd148d5f90b353c705ed875a67f6b136e2"
+          "sha256": "5490bd366e3a35ff37808f058c0bc544ad9e192887a63662ca6fab0e9ee8e0ef"
         },
         {
-          "bytes": 12399,
+          "bytes": 13371,
           "path": "cursor-sdk/agents/endor-repository-dependency-reviewer-agent.md",
-          "sha256": "21d54e2c2603099e24b5cf8ca30f326415d2a4dd23e27c275a80ef14658ad516"
+          "sha256": "d16a5e67d25bc198474b400e42cd1b2cbddc75934b59fe0169f68e2f57818a15"
         },
         {
           "bytes": 6811,
@@ -4107,9 +4107,9 @@
           "sha256": "b4f710b517dc3ed1e75d26db0241f3fcc13d4eaf993ab965f35a9362d57b15ff"
         },
         {
-          "bytes": 34250,
+          "bytes": 35222,
           "path": "cursor-sdk/agents/endor-sca-remediation-agent.md",
-          "sha256": "9b8500eda05c3117c63d656ca94669381034261840d64d09df0cb15721c82556"
+          "sha256": "576d5b03ef85466f3467bd6d39c66b97288b195321fa898729d6d338850263c4"
         },
         {
           "bytes": 9834,
@@ -4117,9 +4117,9 @@
           "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
         },
         {
-          "bytes": 23226,
+          "bytes": 24198,
           "path": "cursor-sdk/agents/endor-troubleshooter-agent.md",
-          "sha256": "d54f15509496037631a0591b77c77f969ccfc530ebaed5e84082c3ec868ad44c"
+          "sha256": "c3e00fa4ff088167eb4156533c2466187c51252c91f1ed824008338df3a850be"
         },
         {
           "bytes": 9916,
@@ -4127,14 +4127,14 @@
           "sha256": "103ddec070f3db2bacce8131e7dd6df128a8115c779940b92fb25a951ca84867"
         },
         {
-          "bytes": 12285,
+          "bytes": 13257,
           "path": "cursor-sdk/agents/endor-upgrade-impact-analysis-agent.md",
-          "sha256": "d351aba385d94182534303f6327cdda010a80bf32de5a889890b02c6c5be8622"
+          "sha256": "6520320c7aa47c71a424b3ee240556822d4ca02906d24c9a09791214651a533d"
         },
         {
-          "bytes": 10797,
+          "bytes": 11769,
           "path": "cursor-sdk/agents/endor-vulnerability-explainer-agent.md",
-          "sha256": "940a29da30cba71d62783aa48056ea8a55221ba7e86631f7c1dbb75c4a1e0898"
+          "sha256": "b12429b0056d09e830c893c830cfe9670cb5955bbee27a43656986461db71a24"
         },
         {
           "bytes": 11,
@@ -4181,69 +4181,69 @@
           "sha256": "5ef3810ebb430d673d5ab563c6b52226e61aac33f50b22f60b265b85cd299d60"
         },
         {
-          "bytes": 28458,
+          "bytes": 29430,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/ai-sast-triage.md",
-          "sha256": "cb6ccf42c55a8155ae7b4bf94c703c9f4e857acbe6b501e666d4d54d2b4c8b79"
+          "sha256": "ca368d308053b02ae7548ca678af35eae5b8d429644fd1ca13606b7ee0a3fa48"
         },
         {
-          "bytes": 15965,
+          "bytes": 16937,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "6ef821a75d3ae9457beba383df9def77ab9f4cc970435bb4ddea8fcc891a3ba2"
+          "sha256": "58137f7bb111667eeef783621964fb29e6163babd29c561ed1de6e66eff71509"
         },
         {
-          "bytes": 11703,
+          "bytes": 12675,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/dependency-decision-helper.md",
-          "sha256": "7a43f6741adbe724ba6d4bbcaf6a81aa1490188d01ceae878ab59588c629d44e"
+          "sha256": "36043f8b6f8b243aa5a96206930a84325bfb61187eb26ac1d55f8c636d5e4ef8"
         },
         {
-          "bytes": 23755,
+          "bytes": 24727,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/endor-troubleshooter.md",
-          "sha256": "ffd436ce7789fad5b8ea442dee8a742fc271190a4f98ec6241719eb112d5e029"
+          "sha256": "076cfca102a4b65917a5a5eb0679934397af18a1ec30ffef55dd8bb1698053b8"
         },
         {
-          "bytes": 11117,
+          "bytes": 12601,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/findings-browser.md",
-          "sha256": "2f44cad0c7c7f0f2a18f156850453553eec39b9aae1f98c38e8e0fc3d1a68fa9"
+          "sha256": "f21e9681678c47c1471a26005200aea7bdaf0b638433d6fb7b65baf9af7ded74"
         },
         {
-          "bytes": 9729,
+          "bytes": 10955,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/malware-response.md",
-          "sha256": "2a64dfca8435ae37a905c616a2363ab41e91c6c9618e743f4e5dd37011936e8c"
+          "sha256": "20fe924cb29b5d0203dbb822c13be57d5e5fb1f005201abf510b6fc436832fba"
         },
         {
-          "bytes": 11760,
+          "bytes": 12732,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/package-risk-summary.md",
-          "sha256": "88c7f26d3b74fcfe92faeef61729ab878c8c7148ea42c0d7141c2086a344b025"
+          "sha256": "2ca047f02b57e955e53a01d16383662797b078cfd68c32b02215e612c90e75b9"
         },
         {
-          "bytes": 24511,
+          "bytes": 25483,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/probe-droid.md",
-          "sha256": "0be29027cca5c9cdd051b180d677ae61d4b3711f8f5e13bf232f2e89d9be343e"
+          "sha256": "8d8223915b974d56bd28085fddb438314bdae771b95d5726db61c990d91f7c77"
         },
         {
-          "bytes": 10315,
+          "bytes": 11287,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/remediation-planner.md",
-          "sha256": "bf3851daa11c2a97f12d6888a29e62e1ad319bdfc499d64f51ba3ee8379e9ec0"
+          "sha256": "e71aee6e4505f941e5184a83460bf99b3d4c406ab5020954a341d04b367eb892"
         },
         {
-          "bytes": 12791,
+          "bytes": 13763,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/repository-dependency-reviewer.md",
-          "sha256": "e32580e73e3432d61896741938fb6f856dc0abd3002569c9ff7ab9c5ccf0533a"
+          "sha256": "0c931a95fcaf840ee4b1690903587ded614040f3a36ad3758dc0f6f6be0278b7"
         },
         {
-          "bytes": 34519,
+          "bytes": 35491,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "f017e06e522d23526795365332e14c89e92ecd8cd2d0927005e294b6e5c360aa"
+          "sha256": "81d0b96f5165b045c23fd0d70200cdcf8cb18990795ec8286db7e037dfa8a270"
         },
         {
-          "bytes": 12682,
+          "bytes": 13654,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/upgrade-impact-analysis.md",
-          "sha256": "7f5b18bc182e2ea62e4c687316083bee3a95616cfbb76eb3db94a84c49aeb353"
+          "sha256": "f7d083b8c98d876f4283b995c99697014d2747a04c830335f9b154331b8b3bb0"
         },
         {
-          "bytes": 11186,
+          "bytes": 12158,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/vulnerability-explainer.md",
-          "sha256": "27e0b5fa7d5ed9e5ee2c1d85937d2e6920d14de172d281fb8050d815a2907f7a"
+          "sha256": "dbc0a1f1fd45a47d6f7c3019ca11e0d71bcbc74b040f22fed461093389845424"
         },
         {
           "bytes": 188527,
@@ -4276,19 +4276,19 @@
           "sha256": "cf0b22a7cdf01d9c3a6c93132f78cf1cffb14f1c26b0fa85c423c12b1267fbdd"
         },
         {
-          "bytes": 28164,
+          "bytes": 29136,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/ai-sast-triage/SKILL.md",
-          "sha256": "6ed95bdb89f69fa719ef9c2be3f38a481e0954380cf43540c5d4209be3d1ee66"
+          "sha256": "7d35f8227d9cdffd9650ed414b5570ad436a08c869eca4bebe6171f3b287754f"
         },
         {
-          "bytes": 15688,
+          "bytes": 16660,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "5ef1cda1b0e09392dc302b88cc7c7451c0ae2207f3039aff5e651955cf8d574a"
+          "sha256": "cb63065da8e0f9e60695bbe311ef6ea79fc085717f63e383386199b318ce6b03"
         },
         {
-          "bytes": 11442,
+          "bytes": 12414,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/dependency-decision-helper/SKILL.md",
-          "sha256": "b8417b342de3911433b602e65263be43ad0fbc98b08a5c4867047601db367143"
+          "sha256": "aa21bbd8f4e405f487da39e71a5985c23967506b02e6037b620c6e91b1a69f7e"
         },
         {
           "bytes": 10218,
@@ -4296,54 +4296,54 @@
           "sha256": "7ab9b38cf589f2cf4eb008f684f98692b454160edaf59010f9ea574ceb1bc23f"
         },
         {
-          "bytes": 23500,
+          "bytes": 24472,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/endor-troubleshooter/SKILL.md",
-          "sha256": "69a954ade05ba1cc8d6d2c4320ea6022a4ff62f315190016b122af0ad54a4c53"
+          "sha256": "906127339681cccfa6979b9225adeb97001bd4ab6d0dbb5078774973bd7c9ce3"
         },
         {
-          "bytes": 10866,
+          "bytes": 12350,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/findings-browser/SKILL.md",
-          "sha256": "6c6663b376a04fc3ecaea6c04a649c9eccc16c7d4c3b158d051703a7ce7e7a85"
+          "sha256": "3c3d4b8011bc41a0fd29f31142ba65caff0d5e15240b4ab28a603fee06dd268c"
         },
         {
-          "bytes": 9478,
+          "bytes": 10704,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/malware-response/SKILL.md",
-          "sha256": "bc07594aaab6855f59fe6043adda25494a97f285f83581eb961658703c9b3734"
+          "sha256": "dd3eb62eac55253baedaa0f304b39bd22006f2f7bd98f686b402bca3f1903578"
         },
         {
-          "bytes": 11505,
+          "bytes": 12477,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/package-risk-summary/SKILL.md",
-          "sha256": "d05ebdf2d1c09a5dcc55134e0003c3813044450421a0151f49f48d32b0b691a7"
+          "sha256": "4691a68d29fc3dba4f1a6de113ad5105801b5fa8960c71a68f64119e45e5b5c0"
         },
         {
-          "bytes": 24265,
+          "bytes": 25237,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/probe-droid/SKILL.md",
-          "sha256": "af5f5511ab10990753eae6490bdaec01d146a90fe095f1529d98af0b0c33a4d6"
+          "sha256": "3f71a15399a69235b8d47bd97f6738b287fc664a2554ada36e1639170210fbb1"
         },
         {
-          "bytes": 10061,
+          "bytes": 11033,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/remediation-planner/SKILL.md",
-          "sha256": "e201b54dc7e90fd605c933d942a4ec9513e08777ef37fd24a8449534b271063c"
+          "sha256": "88ee530fab0a5a749284ebb7c7f6dfa5b58f0bb4d64e1e81fcbc1b7a5343feaa"
         },
         {
-          "bytes": 12518,
+          "bytes": 13490,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/repository-dependency-reviewer/SKILL.md",
-          "sha256": "fd9c47dc207d21b2fb847bb50411faac5d57354b696316b69f9bb9f2cb0605b5"
+          "sha256": "41afbaa7a674e959735a5e9c7cd29949d0b83328c274eb7ddd30368ac9ba1a14"
         },
         {
-          "bytes": 34224,
+          "bytes": 35196,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "e85b1ed9c9dfba888dfcde591a0c708725070554e3e0775d74976145a71384ee"
+          "sha256": "79f29696e3931d89a97aefc4de470b20e37c6fdbf703341ecd0e9221029d9437"
         },
         {
-          "bytes": 12424,
+          "bytes": 13396,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/upgrade-impact-analysis/SKILL.md",
-          "sha256": "8d376a50c9a48bdefea90785d86d137dec0286c060f623b4899fbe017ec72515"
+          "sha256": "d37cee55371fc476e23f0ef2b0205d07482035dee8e36a51a1aeeebcf883e35a"
         },
         {
-          "bytes": 10957,
+          "bytes": 11929,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/vulnerability-explainer/SKILL.md",
-          "sha256": "4f3671d818444a717d62aa87672ab51ab0b0c5cbbb4b816c0e030c20aa3657b1"
+          "sha256": "f95327e90c95d83b4565502c32e28a8523f869b5f0449f7b944752e993940ccc"
         },
         {
           "bytes": 3327,
