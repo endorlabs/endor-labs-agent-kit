@@ -23,6 +23,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `ecosystem` (string, optional): Optional package ecosystem filter such as npm, maven, pypi, go, cargo, gem, or github-actions.
 - `package_name` (string, optional): Optional package or action name used to narrow dependency or GitHub Actions findings.
 - `cve_or_ghsa` (string, optional): Optional vulnerability identifier used to narrow finding evidence.
+- `tag_filter` (list[string], optional): Optional Endor FINDING_TAGS_* prioritization tags such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION for exploit-first triage.
 - `page_size` (integer, optional): Maximum finding rows to return. Defaults to 25 and should remain bounded.
 - `report_mode` (enum, optional): summary, table, or full. Defaults to table for browse requests.
 

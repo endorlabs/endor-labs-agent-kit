@@ -38,6 +38,21 @@ jobs:
           endor-agent-kit verify-endor-context --upstream
           python -m pytest -q tests/test_endor_context.py
 
+      - name: Check Endor API registry against the upstream spec
+        run: |
+          . .venv/bin/activate
+          if python scripts/generate_endor_api_registry.py --check; then
+            echo "Endor API registry matches the upstream OpenAPI."
+          else
+            echo "::warning title=Endor API registry drift::src/endor_agent_kit/endor_api_registry.py no longer matches the upstream OpenAPI (resources/enums). Regenerate enum literals with 'python scripts/generate_endor_api_registry.py --emit' and reconcile during the manual refresh PR."
+            {
+              echo "## Endor API registry drift"
+              echo ""
+              echo "\`src/endor_agent_kit/endor_api_registry.py\` drifted from the upstream Endor OpenAPI."
+              echo "Run \`python scripts/generate_endor_api_registry.py --emit\` for paste-ready enum literals and reconcile the resource/enum sets during the manual refresh PR."
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Report manual refresh instructions
         run: |
           if git diff --quiet source/endor-context/provenance.json; then
