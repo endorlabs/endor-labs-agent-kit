@@ -8,6 +8,9 @@ description: |
   to list matching findings, explain applied filters, surface pagination and
   truncation limits, and identify data gaps without starting new scans or
   performing remediation actions.
+audience: appsec
+short_description: "Browse, filter, and summarize existing Endor Labs findings from read-only evidence."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: enterprise
 supported_transports:
@@ -135,4 +138,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: ">=1.0"
+requires_endorctl: ">=1.0.0"

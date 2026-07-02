@@ -1,0 +1,28 @@
+# Code owners for the signed Endor agent catalog (AI-349).
+#
+# These paths are the trust root: they decide what ships in the catalog and
+# whether catalog signing can be subverted. Every PR touching them requires an
+# Endor reviewer. Recipes alone are not enough -- the validator, emitter, signing
+# logic, release pipeline, and pinned key are all in scope.
+
+# Authored agent recipes -- the catalog source of truth.
+/source/agents/                                  @endor-matt @dannykim-endor
+
+# Schema, validation, catalog emitter, signing, and id-stability logic.
+/src/endor_agent_kit/recipe.py                   @endor-matt @dannykim-endor
+/src/endor_agent_kit/validator.py                @endor-matt @dannykim-endor
+/src/endor_agent_kit/catalog_schema.py           @endor-matt @dannykim-endor
+/src/endor_agent_kit/catalog_signing.py          @endor-matt @dannykim-endor
+/src/endor_agent_kit/id_stability.py             @endor-matt @dannykim-endor
+/src/endor_agent_kit/publication/catalog_wire.py @endor-matt @dannykim-endor
+
+# Release pipeline, CI gate, and signing script.
+/.github/workflows/agent-kit-release.yml         @endor-matt @dannykim-endor
+/.github/workflows/agent-kit-ci.yml              @endor-matt @dannykim-endor
+/scripts/sign_catalog_akv.sh                     @endor-matt @dannykim-endor
+
+# The pinned signing public key.
+/keys/                                           @endor-matt @dannykim-endor
+
+# The gate itself.
+/CODEOWNERS                                      @endor-matt @dannykim-endor

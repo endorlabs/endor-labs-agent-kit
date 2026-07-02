@@ -8,6 +8,9 @@ description: |
   Analysis, breaking changes, manifest targeting, or whether a dependency
   upgrade should happen now. The artifact queries Endor's read-only
   VersionUpgrade workflow through documented Endor API or endorctl paths.
+audience: developer
+short_description: "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: free
 supported_transports:
@@ -161,4 +164,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: ">=1.0"
+requires_endorctl: ">=1.0.0"

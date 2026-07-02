@@ -8,6 +8,9 @@ description: |
   resolves exact package coordinates when possible, checks those coordinates
   with Endor MCP tools, and reports risky dependencies, unresolved versions,
   recommended next checks, and data gaps.
+audience: developer
+short_description: "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: free
 supported_transports:
@@ -81,4 +84,4 @@ endorctl_api_invocations: []
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ">=2.4"
-requires_endorctl: ""
+requires_endorctl: ">=1.0.0"

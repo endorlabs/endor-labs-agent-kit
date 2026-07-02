@@ -112,7 +112,7 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
         | _codex_paths("dependency-decision-helper", has_setup=True)
         | _gemini_paths("dependency-decision-helper", has_setup=True)
         | _portable_paths("dependency-decision-helper", has_setup=True)
-        | {"manifest.json", "README.md"}
+        | {"manifest.json", "README.md", "catalog.json"}
     )
     assert not (dest / "claude-code" / "dependency-decision-helper" / "standard").exists()
     assert not (dest / "claude-code" / "dependency-decision-helper" / "extended").exists()
@@ -131,6 +131,7 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert "endorctl api list" in artifact
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
@@ -217,6 +218,7 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
         "claude-managed-agents/vulnerability-explainer/session-template.yaml",
         "manifest.json",
         "README.md",
+        "catalog.json",
     } | _codex_paths("vulnerability-explainer", has_setup=False) | _gemini_paths(
         "vulnerability-explainer",
         has_setup=False,
@@ -235,6 +237,7 @@ def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
     ).exists()
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
@@ -261,6 +264,7 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
     assert (dest / "claude-code" / "package-risk-summary" / "endorctl-setup.md").is_file()
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
@@ -305,6 +309,7 @@ def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
     assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
@@ -466,7 +471,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         if agent["host"] == "claude-code" and agent["id"] == "package-risk-summary"
     )
     package_enterprise = [edition for edition in package["editions"] if edition["id"] == "enterprise-edition"][0]
-    assert package_enterprise["requires_endorctl"] == ">=1.0"
+    assert package_enterprise["requires_endorctl"] == ">=1.0.0"
     assert "endorctl-setup.md" in {artifact["path"].split("/")[-1] for artifact in package_enterprise["artifacts"]}
     vulnerability = next(
         agent
@@ -476,13 +481,17 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
     vulnerability_artifact = vulnerability["editions"][0]
     assert vulnerability_artifact["id"] == "developer-edition"
     assert vulnerability_artifact["path"] == "claude-code/vulnerability-explainer"
+    # The edition (host-artifact) requires_endorctl stays empty for an MCP-only agent;
+    # the agent-level requires_endorctl (catalog endorctl_min_version) is tracked separately.
     assert vulnerability_artifact["requires_endorctl"] == ""
+    assert vulnerability["requires_endorctl"] == ">=1.0.0"
     assert {artifact["path"].split("/")[-1] for artifact in vulnerability_artifact["artifacts"]} == {
         "README.md",
         "vulnerability-explainer.md",
     }
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
@@ -507,6 +516,7 @@ def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
     assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
@@ -530,6 +540,7 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert (dest / "portable" / "dependency-decision-helper" / "agent.md").is_file()
     assert {path.name for path in dest.iterdir()} == {
         "README.md",
+        "catalog.json",
         "claude-code",
         "claude-managed-agents",
         "codex",
