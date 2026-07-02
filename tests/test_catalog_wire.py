@@ -78,7 +78,7 @@ def test_endor_agent_field_shape():
         "install": [
             {
                 "host": "claude-code",
-                "command": "cp claude-code/alpha-agent/alpha-agent.md .claude/agents/alpha-agent.md",
+                "command": "mkdir -p .claude/agents && cp claude-code/alpha-agent/alpha-agent.md .claude/agents/alpha-agent.md",
             }
         ],
     }
@@ -109,7 +109,7 @@ def test_install_collapses_hosts_and_maps_managed_name():
     assert install == [
         {
             "host": "claude-code",
-            "command": "cp claude-code/alpha-agent/alpha-agent.md .claude/agents/alpha-agent.md",
+            "command": "mkdir -p .claude/agents && cp claude-code/alpha-agent/alpha-agent.md .claude/agents/alpha-agent.md",
         },
         {
             "host": "claude-managed",

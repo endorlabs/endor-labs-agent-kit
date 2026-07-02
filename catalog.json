@@ -15,7 +15,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/ai-sast-triage/ai-sast-triage.md .claude/agents/ai-sast-triage.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-triage/ai-sast-triage.md .claude/agents/ai-sast-triage.md"
         }
       ]
     },
@@ -33,7 +33,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/cicd-posture/cicd-posture.md .claude/agents/cicd-posture.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/cicd-posture/cicd-posture.md .claude/agents/cicd-posture.md"
         },
         {
           "host": "claude-managed",
@@ -55,7 +55,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/dependency-decision-helper/dependency-decision-helper.md .claude/agents/dependency-decision-helper.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/dependency-decision-helper/dependency-decision-helper.md .claude/agents/dependency-decision-helper.md"
         },
         {
           "host": "claude-managed",
@@ -77,7 +77,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/endor-troubleshooter/endor-troubleshooter.md .claude/agents/endor-troubleshooter.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/endor-troubleshooter/endor-troubleshooter.md .claude/agents/endor-troubleshooter.md"
         },
         {
           "host": "claude-managed",
@@ -99,7 +99,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/findings-browser/findings-browser.md .claude/agents/findings-browser.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/findings-browser/findings-browser.md .claude/agents/findings-browser.md"
         },
         {
           "host": "claude-managed",
@@ -121,7 +121,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/malware-response/malware-response.md .claude/agents/malware-response.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/malware-response/malware-response.md .claude/agents/malware-response.md"
         },
         {
           "host": "claude-managed",
@@ -143,7 +143,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/package-risk-summary/package-risk-summary.md .claude/agents/package-risk-summary.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/package-risk-summary/package-risk-summary.md .claude/agents/package-risk-summary.md"
         },
         {
           "host": "claude-managed",
@@ -165,7 +165,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/probe-droid/probe-droid.md .claude/agents/probe-droid.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/probe-droid/probe-droid.md .claude/agents/probe-droid.md"
         },
         {
           "host": "claude-managed",
@@ -187,7 +187,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/remediation-planner/remediation-planner.md .claude/agents/remediation-planner.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planner/remediation-planner.md .claude/agents/remediation-planner.md"
         }
       ]
     },
@@ -205,7 +205,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md .claude/agents/repository-dependency-reviewer.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md .claude/agents/repository-dependency-reviewer.md"
         }
       ]
     },
@@ -223,7 +223,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/sca-remediation/sca-remediation.md .claude/agents/sca-remediation.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/sca-remediation/sca-remediation.md .claude/agents/sca-remediation.md"
         }
       ]
     },
@@ -241,7 +241,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md .claude/agents/upgrade-impact-analysis.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md .claude/agents/upgrade-impact-analysis.md"
         },
         {
           "host": "claude-managed",
@@ -263,7 +263,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "cp claude-code/vulnerability-explainer/vulnerability-explainer.md .claude/agents/vulnerability-explainer.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/vulnerability-explainer/vulnerability-explainer.md .claude/agents/vulnerability-explainer.md"
         },
         {
           "host": "claude-managed",
