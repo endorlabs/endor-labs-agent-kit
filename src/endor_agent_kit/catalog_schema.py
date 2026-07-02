@@ -213,6 +213,11 @@ class CatalogAgent:
     editions: tuple[CatalogBundle, ...]
     name: str = ""
     version: str = ""
+    audience: str = ""
+    short_description: str = ""
+    description: str = ""
+    authors: tuple[str, ...] = ()
+    requires_endorctl: str = ""
     source: CatalogSource | None = None
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
@@ -229,6 +234,11 @@ class CatalogAgent:
             id=recipe.id,
             name=recipe.name,
             version=recipe.version,
+            audience=recipe.audience,
+            short_description=recipe.short_description,
+            description=recipe.description,
+            authors=tuple(recipe.authors),
+            requires_endorctl=recipe.requires_endorctl,
             host=host,
             source=CatalogSource.from_recipe(recipe),
             editions=bundles,
@@ -245,12 +255,32 @@ class CatalogAgent:
             raise ValueError("manifest.json: expected agent editions to be a list")
         extra_fields = _extra_fields(
             record,
-            {"id", "name", "version", "host", "source", "editions"},
+            {
+                "id",
+                "name",
+                "version",
+                "audience",
+                "short_description",
+                "description",
+                "authors",
+                "requires_endorctl",
+                "host",
+                "source",
+                "editions",
+            },
         )
+        authors = record.get("authors", [])
+        if not isinstance(authors, list):
+            raise ValueError("manifest.json: expected agent authors to be a list")
         return cls(
             id=str(record.get("id") or ""),
             name=str(record.get("name") or ""),
             version=str(record.get("version") or ""),
+            audience=str(record.get("audience") or ""),
+            short_description=str(record.get("short_description") or ""),
+            description=str(record.get("description") or ""),
+            authors=tuple(str(author) for author in authors),
+            requires_endorctl=str(record.get("requires_endorctl") or ""),
             host=str(record.get("host") or ""),
             source=CatalogSource.from_manifest_record(record.get("source")),
             editions=tuple(CatalogBundle.from_manifest_records(record, edition) for edition in editions),
@@ -266,6 +296,16 @@ class CatalogAgent:
             record["name"] = self.name
         if self.version:
             record["version"] = self.version
+        if self.audience:
+            record["audience"] = self.audience
+        if self.short_description:
+            record["short_description"] = self.short_description
+        if self.description:
+            record["description"] = self.description
+        if self.authors:
+            record["authors"] = list(self.authors)
+        if self.requires_endorctl:
+            record["requires_endorctl"] = self.requires_endorctl
         record["host"] = self.host
         if self.source is not None:
             record["source"] = self.source.to_manifest_record()

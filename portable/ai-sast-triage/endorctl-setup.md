@@ -4,7 +4,7 @@ The AI SAST Triage agent preserves a mutating workflow.
 Use an authenticated Endor tenant plus runtime-provided source-provider adapter credentials
 before allowing patch or change-request steps.
 
-Required endorctl version: `>=1.0`
+Required endorctl version: `>=1.0.0`
 
 ## Namespace Guardrails
 

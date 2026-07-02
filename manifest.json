@@ -1,6 +1,11 @@
 {
   "agents": [
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
       "editions": [
         {
           "artifacts": [
@@ -25,20 +30,22 @@
               "sha256": "3c7a2ee900c43d4f2c1b4520ea9d1f2576d7100f43ac7b76f7bda00aad3cf534"
             },
             {
-              "bytes": 1940,
+              "bytes": 1942,
               "path": "claude-code/ai-sast-triage/endorctl-setup.md",
-              "sha256": "62aee09b34f2f9d0c931e89d2e5bc13ea423dd0e8e3b2688c7fddc8f7f9435c7"
+              "sha256": "f384548b240bab1a84b969f078538816eba5201273955c42a4d96ef45a1aa5e2"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/ai-sast-triage",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "ai-sast-triage",
       "name": "AI SAST Triage",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested.",
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
@@ -46,6 +53,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -65,20 +77,22 @@
               "sha256": "dcd13ea6562c94beddc4c79645b6b0f7b16c4e33d5cae6cd98397a921fab550f"
             },
             {
-              "bytes": 1867,
+              "bytes": 1869,
               "path": "claude-code/cicd-posture/endorctl-setup.md",
-              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+              "sha256": "be8ca805dd733ad586ea7ae112a7ffe6e3dbf14f0d5dd182492319d36c358bf2"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/cicd-posture",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "cicd-posture",
       "name": "CI/CD And Supply Chain Posture",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set.",
       "source": {
         "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
         "recipe_schema_version": 1
@@ -86,6 +100,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -100,20 +119,22 @@
               "sha256": "523c5c6dd12c3978481e373c2a3be5899af82de14dc0ce8cc2169551b29707ca"
             },
             {
-              "bytes": 1676,
+              "bytes": 1678,
               "path": "claude-code/dependency-decision-helper/endorctl-setup.md",
-              "sha256": "e141ba8d86fe3c004f2b6551024157bbd251fe0647ec7f439d7c44940333dfcb"
+              "sha256": "e710f18a6f80cdc43173ba6237fc914304df8afc31cd85f2fccac3f99fcae798"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/dependency-decision-helper",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
       "source": {
         "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
@@ -121,6 +142,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -140,20 +166,22 @@
               "sha256": "0c5e9645533214aa62e2e11a615594ce2066adae891ad1b1af4a70e4474590e2"
             },
             {
-              "bytes": 2235,
+              "bytes": 2237,
               "path": "claude-code/endor-troubleshooter/endorctl-setup.md",
-              "sha256": "1bd6734877bc0dc737756c3bfb0d20cd4ecc2d35b5c747fe7d0ff8d3412069c4"
+              "sha256": "e95139b64840d03496fbe97ea79ed51316f296df89cd84d8e57890acffb8846c"
             }
           ],
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/endor-troubleshooter",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "endor-troubleshooter",
       "name": "Endor Troubleshooter",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
       "source": {
         "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
         "recipe_schema_version": 1
@@ -161,6 +189,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
       "editions": [
         {
           "artifacts": [
@@ -175,9 +208,9 @@
               "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
             },
             {
-              "bytes": 1539,
+              "bytes": 1541,
               "path": "claude-code/findings-browser/endorctl-setup.md",
-              "sha256": "bc63d41b357c5fbcb0ffabcc340577dd838937bdcb0460d560bb992b520b5fed"
+              "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
               "bytes": 22211,
@@ -188,12 +221,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/findings-browser",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "findings-browser",
       "name": "Findings Browser",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
       "source": {
         "builder_recipe": "source/agents/findings-browser/recipe.yaml",
         "recipe_schema_version": 1
@@ -201,6 +236,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
       "editions": [
         {
           "artifacts": [
@@ -215,9 +255,9 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1623,
+              "bytes": 1625,
               "path": "claude-code/malware-response/endorctl-setup.md",
-              "sha256": "9aa605954699cc97525b53113fc28f8f9705e0683679cd5338e87511a04efa09"
+              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
             },
             {
               "bytes": 38173,
@@ -228,12 +268,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/malware-response",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "malware-response",
       "name": "Malware Response Agent",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
       "source": {
         "builder_recipe": "source/agents/malware-response/recipe.yaml",
         "recipe_schema_version": 1
@@ -241,6 +283,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -250,9 +297,9 @@
               "sha256": "4dfab61ab488892ec60df7261363739f0d7990d6cd9f6921511f36801612e9c2"
             },
             {
-              "bytes": 1681,
+              "bytes": 1683,
               "path": "claude-code/package-risk-summary/endorctl-setup.md",
-              "sha256": "92aab202dc2006abb881dc84d2ba266bd11fa200a816bfaeeca0eac3ce60ac40"
+              "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
               "bytes": 28174,
@@ -263,12 +310,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/package-risk-summary",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
       "source": {
         "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
@@ -276,6 +325,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
       "editions": [
         {
           "artifacts": [
@@ -290,9 +344,9 @@
               "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
             },
             {
-              "bytes": 2054,
+              "bytes": 2056,
               "path": "claude-code/probe-droid/endorctl-setup.md",
-              "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
+              "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
               "bytes": 85011,
@@ -303,12 +357,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/probe-droid",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "probe-droid",
       "name": "Probe Droid",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
       "source": {
         "builder_recipe": "source/agents/probe-droid/recipe.yaml",
         "recipe_schema_version": 1
@@ -316,6 +372,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Preview safe remediation options without opening PRs.",
       "editions": [
         {
           "artifacts": [
@@ -330,9 +391,9 @@
               "sha256": "8dc029b309343c9832d6515d4236a20160cc5e17e0aab46d3208353a5f1ff4e4"
             },
             {
-              "bytes": 1529,
+              "bytes": 1531,
               "path": "claude-code/remediation-planner/endorctl-setup.md",
-              "sha256": "5c6727effd437f9d9c27f643f3881934c22984b8c3f791774a4c808056288c0c"
+              "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             },
             {
               "bytes": 23885,
@@ -343,12 +404,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/remediation-planner",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "remediation-planner",
       "name": "Remediation Planner",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Previews safe remediation options for Endor Labs findings without opening PRs.",
       "source": {
         "builder_recipe": "source/agents/remediation-planner/recipe.yaml",
         "recipe_schema_version": 1
@@ -356,6 +419,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -379,6 +447,8 @@
       "host": "claude-code",
       "id": "repository-dependency-reviewer",
       "name": "Endor Labs Repository Dependency Reviewer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence.",
       "source": {
         "builder_recipe": "source/agents/repository-dependency-reviewer/recipe.yaml",
         "recipe_schema_version": 1
@@ -386,6 +456,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
       "editions": [
         {
           "artifacts": [
@@ -405,9 +480,9 @@
               "sha256": "70b1f894004dbca5d7e4d8c4263d6721da1e100acf196a8c4fe94dd6f48ee982"
             },
             {
-              "bytes": 1937,
+              "bytes": 1939,
               "path": "claude-code/sca-remediation/endorctl-setup.md",
-              "sha256": "5bf7f45a100e1a38610134b2ede30e0bc13bd7af9f80900aeec2819121e05e76"
+              "sha256": "1c11e4e6739f562bdc02c1056b6cdfa321e47d3635a8f044e11cf51d121ae54b"
             },
             {
               "bytes": 76972,
@@ -418,12 +493,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/sca-remediation",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "sca-remediation",
       "name": "SCA Remediation",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation.",
       "source": {
         "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
         "recipe_schema_version": 2
@@ -431,6 +508,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
       "editions": [
         {
           "artifacts": [
@@ -445,9 +527,9 @@
               "sha256": "26c1e392170ea2ccb39f5b4e21b2e8aa217fa538ca9933ae342572a2696466bb"
             },
             {
-              "bytes": 1544,
+              "bytes": 1546,
               "path": "claude-code/upgrade-impact-analysis/endorctl-setup.md",
-              "sha256": "764ce5c4b3c1abf7cd33d3cb20ab3ff09f6d2bdf5e864b99141c2ee8b2c1bac2"
+              "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
               "bytes": 41868,
@@ -458,12 +540,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-code/upgrade-impact-analysis",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-code",
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
       "source": {
         "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
@@ -471,6 +555,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -494,6 +583,8 @@
       "host": "claude-code",
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
       "source": {
         "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1
@@ -501,6 +592,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -520,9 +616,9 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 1867,
+              "bytes": 1869,
               "path": "claude-managed-agents/cicd-posture/endorctl-setup.md",
-              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+              "sha256": "be8ca805dd733ad586ea7ae112a7ffe6e3dbf14f0d5dd182492319d36c358bf2"
             },
             {
               "bytes": 282,
@@ -538,12 +634,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/cicd-posture",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "cicd-posture",
       "name": "CI/CD And Supply Chain Posture",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set.",
       "source": {
         "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
         "recipe_schema_version": 1
@@ -551,6 +649,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -565,9 +668,9 @@
               "sha256": "5a9973c03b4e94c96e50c83ffe3ab258c08f16334e7ba816368b49e1caa5bc95"
             },
             {
-              "bytes": 1676,
+              "bytes": 1678,
               "path": "claude-managed-agents/dependency-decision-helper/endorctl-setup.md",
-              "sha256": "e141ba8d86fe3c004f2b6551024157bbd251fe0647ec7f439d7c44940333dfcb"
+              "sha256": "e710f18a6f80cdc43173ba6237fc914304df8afc31cd85f2fccac3f99fcae798"
             },
             {
               "bytes": 241,
@@ -583,12 +686,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/dependency-decision-helper",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
       "source": {
         "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
@@ -596,6 +701,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -615,9 +725,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 2235,
+              "bytes": 2237,
               "path": "claude-managed-agents/endor-troubleshooter/endorctl-setup.md",
-              "sha256": "1bd6734877bc0dc737756c3bfb0d20cd4ecc2d35b5c747fe7d0ff8d3412069c4"
+              "sha256": "e95139b64840d03496fbe97ea79ed51316f296df89cd84d8e57890acffb8846c"
             },
             {
               "bytes": 236,
@@ -633,12 +743,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/endor-troubleshooter",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "endor-troubleshooter",
       "name": "Endor Troubleshooter",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
       "source": {
         "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
         "recipe_schema_version": 1
@@ -646,6 +758,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
       "editions": [
         {
           "artifacts": [
@@ -665,9 +782,9 @@
               "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
             },
             {
-              "bytes": 1539,
+              "bytes": 1541,
               "path": "claude-managed-agents/findings-browser/endorctl-setup.md",
-              "sha256": "bc63d41b357c5fbcb0ffabcc340577dd838937bdcb0460d560bb992b520b5fed"
+              "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
               "bytes": 232,
@@ -683,12 +800,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/findings-browser",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "findings-browser",
       "name": "Findings Browser",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
       "source": {
         "builder_recipe": "source/agents/findings-browser/recipe.yaml",
         "recipe_schema_version": 1
@@ -696,6 +815,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
       "editions": [
         {
           "artifacts": [
@@ -715,9 +839,9 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1623,
+              "bytes": 1625,
               "path": "claude-managed-agents/malware-response/endorctl-setup.md",
-              "sha256": "9aa605954699cc97525b53113fc28f8f9705e0683679cd5338e87511a04efa09"
+              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
             },
             {
               "bytes": 232,
@@ -733,12 +857,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/malware-response",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "malware-response",
       "name": "Malware Response Agent",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
       "source": {
         "builder_recipe": "source/agents/malware-response/recipe.yaml",
         "recipe_schema_version": 1
@@ -746,6 +872,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -760,9 +891,9 @@
               "sha256": "8e175811b26018bab93928388b2ce8d3c7074ad62ede449a5acea9331ebd5a45"
             },
             {
-              "bytes": 1681,
+              "bytes": 1683,
               "path": "claude-managed-agents/package-risk-summary/endorctl-setup.md",
-              "sha256": "92aab202dc2006abb881dc84d2ba266bd11fa200a816bfaeeca0eac3ce60ac40"
+              "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
               "bytes": 235,
@@ -778,12 +909,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/package-risk-summary",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
       "source": {
         "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
@@ -791,6 +924,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
       "editions": [
         {
           "artifacts": [
@@ -810,9 +948,9 @@
               "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
             },
             {
-              "bytes": 2054,
+              "bytes": 2056,
               "path": "claude-managed-agents/probe-droid/endorctl-setup.md",
-              "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
+              "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
               "bytes": 281,
@@ -828,12 +966,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/probe-droid",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "probe-droid",
       "name": "Probe Droid",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
       "source": {
         "builder_recipe": "source/agents/probe-droid/recipe.yaml",
         "recipe_schema_version": 1
@@ -841,6 +981,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
       "editions": [
         {
           "artifacts": [
@@ -860,9 +1005,9 @@
               "sha256": "26c1e392170ea2ccb39f5b4e21b2e8aa217fa538ca9933ae342572a2696466bb"
             },
             {
-              "bytes": 1544,
+              "bytes": 1546,
               "path": "claude-managed-agents/upgrade-impact-analysis/endorctl-setup.md",
-              "sha256": "764ce5c4b3c1abf7cd33d3cb20ab3ff09f6d2bdf5e864b99141c2ee8b2c1bac2"
+              "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
               "bytes": 239,
@@ -878,12 +1023,14 @@
           "id": "enterprise-edition",
           "name": "Enterprise Edition",
           "path": "claude-managed-agents/upgrade-impact-analysis",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "claude-managed-agents",
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
       "source": {
         "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
@@ -891,6 +1038,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -924,6 +1076,8 @@
       "host": "claude-managed-agents",
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
       "source": {
         "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1
@@ -931,6 +1085,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
       "editions": [
         {
           "artifacts": [
@@ -955,20 +1114,22 @@
               "sha256": "3983995f4e60ea980e62600eebd7b5c97cda05cb786afbffce0dc51a4ac6762b"
             },
             {
-              "bytes": 1940,
+              "bytes": 1942,
               "path": "codex/ai-sast-triage/endorctl-setup.md",
-              "sha256": "62aee09b34f2f9d0c931e89d2e5bc13ea423dd0e8e3b2688c7fddc8f7f9435c7"
+              "sha256": "f384548b240bab1a84b969f078538816eba5201273955c42a4d96ef45a1aa5e2"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/ai-sast-triage",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "ai-sast-triage",
       "name": "AI SAST Triage",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested.",
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
@@ -976,6 +1137,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -995,20 +1161,22 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 1867,
+              "bytes": 1869,
               "path": "codex/cicd-posture/endorctl-setup.md",
-              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+              "sha256": "be8ca805dd733ad586ea7ae112a7ffe6e3dbf14f0d5dd182492319d36c358bf2"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/cicd-posture",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "cicd-posture",
       "name": "CI/CD And Supply Chain Posture",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set.",
       "source": {
         "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
         "recipe_schema_version": 1
@@ -1016,6 +1184,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1030,20 +1203,22 @@
               "sha256": "8890b858e078c953f93a6e6cc27cbe559b14dc28e0b73e3677e4e841c087fa01"
             },
             {
-              "bytes": 1676,
+              "bytes": 1678,
               "path": "codex/dependency-decision-helper/endorctl-setup.md",
-              "sha256": "e141ba8d86fe3c004f2b6551024157bbd251fe0647ec7f439d7c44940333dfcb"
+              "sha256": "e710f18a6f80cdc43173ba6237fc914304df8afc31cd85f2fccac3f99fcae798"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/dependency-decision-helper",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
       "source": {
         "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
@@ -1051,6 +1226,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -1070,20 +1250,22 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 2235,
+              "bytes": 2237,
               "path": "codex/endor-troubleshooter/endorctl-setup.md",
-              "sha256": "1bd6734877bc0dc737756c3bfb0d20cd4ecc2d35b5c747fe7d0ff8d3412069c4"
+              "sha256": "e95139b64840d03496fbe97ea79ed51316f296df89cd84d8e57890acffb8846c"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/endor-troubleshooter",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "endor-troubleshooter",
       "name": "Endor Troubleshooter",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
       "source": {
         "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
         "recipe_schema_version": 1
@@ -1091,6 +1273,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
       "editions": [
         {
           "artifacts": [
@@ -1110,20 +1297,22 @@
               "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
             },
             {
-              "bytes": 1539,
+              "bytes": 1541,
               "path": "codex/findings-browser/endorctl-setup.md",
-              "sha256": "bc63d41b357c5fbcb0ffabcc340577dd838937bdcb0460d560bb992b520b5fed"
+              "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/findings-browser",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "findings-browser",
       "name": "Findings Browser",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
       "source": {
         "builder_recipe": "source/agents/findings-browser/recipe.yaml",
         "recipe_schema_version": 1
@@ -1131,6 +1320,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
       "editions": [
         {
           "artifacts": [
@@ -1150,20 +1344,22 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1623,
+              "bytes": 1625,
               "path": "codex/malware-response/endorctl-setup.md",
-              "sha256": "9aa605954699cc97525b53113fc28f8f9705e0683679cd5338e87511a04efa09"
+              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/malware-response",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "malware-response",
       "name": "Malware Response Agent",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
       "source": {
         "builder_recipe": "source/agents/malware-response/recipe.yaml",
         "recipe_schema_version": 1
@@ -1171,6 +1367,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1185,20 +1386,22 @@
               "sha256": "33884f48a851ff6c724b81536f4133aafbd03684271f6465a2aa80ae28261086"
             },
             {
-              "bytes": 1681,
+              "bytes": 1683,
               "path": "codex/package-risk-summary/endorctl-setup.md",
-              "sha256": "92aab202dc2006abb881dc84d2ba266bd11fa200a816bfaeeca0eac3ce60ac40"
+              "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/package-risk-summary",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
       "source": {
         "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
@@ -1206,6 +1409,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
       "editions": [
         {
           "artifacts": [
@@ -1225,20 +1433,22 @@
               "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
             },
             {
-              "bytes": 2054,
+              "bytes": 2056,
               "path": "codex/probe-droid/endorctl-setup.md",
-              "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
+              "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/probe-droid",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "probe-droid",
       "name": "Probe Droid",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
       "source": {
         "builder_recipe": "source/agents/probe-droid/recipe.yaml",
         "recipe_schema_version": 1
@@ -1246,6 +1456,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Preview safe remediation options without opening PRs.",
       "editions": [
         {
           "artifacts": [
@@ -1265,20 +1480,22 @@
               "sha256": "585d80155e1af4f5b8a5512f14945f901ce265954c0bced1bdba00d60386ab18"
             },
             {
-              "bytes": 1529,
+              "bytes": 1531,
               "path": "codex/remediation-planner/endorctl-setup.md",
-              "sha256": "5c6727effd437f9d9c27f643f3881934c22984b8c3f791774a4c808056288c0c"
+              "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/remediation-planner",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "remediation-planner",
       "name": "Remediation Planner",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Previews safe remediation options for Endor Labs findings without opening PRs.",
       "source": {
         "builder_recipe": "source/agents/remediation-planner/recipe.yaml",
         "recipe_schema_version": 1
@@ -1286,6 +1503,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1309,6 +1531,8 @@
       "host": "codex",
       "id": "repository-dependency-reviewer",
       "name": "Endor Labs Repository Dependency Reviewer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence.",
       "source": {
         "builder_recipe": "source/agents/repository-dependency-reviewer/recipe.yaml",
         "recipe_schema_version": 1
@@ -1316,6 +1540,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
       "editions": [
         {
           "artifacts": [
@@ -1340,20 +1569,22 @@
               "sha256": "a03f9d164ee0ebb3d7b890b1add888cc6725dd69b609dd8cf99017d1c3cdf871"
             },
             {
-              "bytes": 1937,
+              "bytes": 1939,
               "path": "codex/sca-remediation/endorctl-setup.md",
-              "sha256": "5bf7f45a100e1a38610134b2ede30e0bc13bd7af9f80900aeec2819121e05e76"
+              "sha256": "1c11e4e6739f562bdc02c1056b6cdfa321e47d3635a8f044e11cf51d121ae54b"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/sca-remediation",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "sca-remediation",
       "name": "SCA Remediation",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation.",
       "source": {
         "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
         "recipe_schema_version": 2
@@ -1361,6 +1592,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
       "editions": [
         {
           "artifacts": [
@@ -1380,20 +1616,22 @@
               "sha256": "e7a7dbc29eebd2da74a3f9911178804f42fff2aef23371596abe73f95a56cfb8"
             },
             {
-              "bytes": 1544,
+              "bytes": 1546,
               "path": "codex/upgrade-impact-analysis/endorctl-setup.md",
-              "sha256": "764ce5c4b3c1abf7cd33d3cb20ab3ff09f6d2bdf5e864b99141c2ee8b2c1bac2"
+              "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             }
           ],
           "id": "codex-skill",
           "name": "Codex Skill",
           "path": "codex/upgrade-impact-analysis",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "codex",
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
       "source": {
         "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
@@ -1401,6 +1639,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1424,6 +1667,8 @@
       "host": "codex",
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
       "source": {
         "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1
@@ -1431,6 +1676,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
       "editions": [
         {
           "artifacts": [
@@ -1460,20 +1710,22 @@
               "sha256": "a2f970ba2e8ad250c24ec1c6c56d4858277dabc562644629053ad0c0deae6597"
             },
             {
-              "bytes": 1940,
+              "bytes": 1942,
               "path": "gemini/ai-sast-triage/endorctl-setup.md",
-              "sha256": "62aee09b34f2f9d0c931e89d2e5bc13ea423dd0e8e3b2688c7fddc8f7f9435c7"
+              "sha256": "f384548b240bab1a84b969f078538816eba5201273955c42a4d96ef45a1aa5e2"
             }
           ],
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/ai-sast-triage",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "ai-sast-triage",
       "name": "AI SAST Triage",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested.",
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
@@ -1481,6 +1733,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -1505,20 +1762,22 @@
               "sha256": "c0c2b91ce1d678365a99a2e80c4a0daf718f69c27dec921d132a5b90a9d70857"
             },
             {
-              "bytes": 1867,
+              "bytes": 1869,
               "path": "gemini/cicd-posture/endorctl-setup.md",
-              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+              "sha256": "be8ca805dd733ad586ea7ae112a7ffe6e3dbf14f0d5dd182492319d36c358bf2"
             }
           ],
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/cicd-posture",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "cicd-posture",
       "name": "CI/CD And Supply Chain Posture",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set.",
       "source": {
         "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
         "recipe_schema_version": 1
@@ -1526,6 +1785,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1545,20 +1809,22 @@
               "sha256": "6e11edfd6e4ac558b738f9041a5ed97e703f2a96f569632bcfac41fdc451fea4"
             },
             {
-              "bytes": 1676,
+              "bytes": 1678,
               "path": "gemini/dependency-decision-helper/endorctl-setup.md",
-              "sha256": "e141ba8d86fe3c004f2b6551024157bbd251fe0647ec7f439d7c44940333dfcb"
+              "sha256": "e710f18a6f80cdc43173ba6237fc914304df8afc31cd85f2fccac3f99fcae798"
             }
           ],
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/dependency-decision-helper",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
       "source": {
         "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
@@ -1566,6 +1832,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -1590,20 +1861,22 @@
               "sha256": "10b58e52f2562a1d3cd061d82d9c8962b66338c1d3d1ed1bb2574515b7d4677f"
             },
             {
-              "bytes": 2235,
+              "bytes": 2237,
               "path": "gemini/endor-troubleshooter/endorctl-setup.md",
-              "sha256": "1bd6734877bc0dc737756c3bfb0d20cd4ecc2d35b5c747fe7d0ff8d3412069c4"
+              "sha256": "e95139b64840d03496fbe97ea79ed51316f296df89cd84d8e57890acffb8846c"
             }
           ],
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/endor-troubleshooter",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "endor-troubleshooter",
       "name": "Endor Troubleshooter",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
       "source": {
         "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
         "recipe_schema_version": 1
@@ -1611,6 +1884,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
       "editions": [
         {
           "artifacts": [
@@ -1630,9 +1908,9 @@
               "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
             },
             {
-              "bytes": 1539,
+              "bytes": 1541,
               "path": "gemini/findings-browser/endorctl-setup.md",
-              "sha256": "bc63d41b357c5fbcb0ffabcc340577dd838937bdcb0460d560bb992b520b5fed"
+              "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
               "bytes": 23163,
@@ -1643,12 +1921,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/findings-browser",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "findings-browser",
       "name": "Findings Browser",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
       "source": {
         "builder_recipe": "source/agents/findings-browser/recipe.yaml",
         "recipe_schema_version": 1
@@ -1656,6 +1936,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
       "editions": [
         {
           "artifacts": [
@@ -1675,9 +1960,9 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1623,
+              "bytes": 1625,
               "path": "gemini/malware-response/endorctl-setup.md",
-              "sha256": "9aa605954699cc97525b53113fc28f8f9705e0683679cd5338e87511a04efa09"
+              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
             },
             {
               "bytes": 39131,
@@ -1688,12 +1973,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/malware-response",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "malware-response",
       "name": "Malware Response Agent",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
       "source": {
         "builder_recipe": "source/agents/malware-response/recipe.yaml",
         "recipe_schema_version": 1
@@ -1701,6 +1988,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1715,9 +2007,9 @@
               "sha256": "c90ea4de6a45588380c3b346df33f06ae23969f570bccdf98f69ca0ceadde5d0"
             },
             {
-              "bytes": 1681,
+              "bytes": 1683,
               "path": "gemini/package-risk-summary/endorctl-setup.md",
-              "sha256": "92aab202dc2006abb881dc84d2ba266bd11fa200a816bfaeeca0eac3ce60ac40"
+              "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
               "bytes": 29092,
@@ -1728,12 +2020,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/package-risk-summary",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
       "source": {
         "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
@@ -1741,6 +2035,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
       "editions": [
         {
           "artifacts": [
@@ -1760,9 +2059,9 @@
               "sha256": "7332f20fa7ce95542dcda0eb9a70b9ef564755f7b8345fead23f1839483bbc96"
             },
             {
-              "bytes": 2054,
+              "bytes": 2056,
               "path": "gemini/probe-droid/endorctl-setup.md",
-              "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
+              "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
               "bytes": 85944,
@@ -1773,12 +2072,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/probe-droid",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "probe-droid",
       "name": "Probe Droid",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
       "source": {
         "builder_recipe": "source/agents/probe-droid/recipe.yaml",
         "recipe_schema_version": 1
@@ -1786,6 +2087,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Preview safe remediation options without opening PRs.",
       "editions": [
         {
           "artifacts": [
@@ -1805,9 +2111,9 @@
               "sha256": "e31045ed09a9268d28bdf211e8480b932c47421787018a2cee3520c43f81083d"
             },
             {
-              "bytes": 1529,
+              "bytes": 1531,
               "path": "gemini/remediation-planner/endorctl-setup.md",
-              "sha256": "5c6727effd437f9d9c27f643f3881934c22984b8c3f791774a4c808056288c0c"
+              "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             },
             {
               "bytes": 24842,
@@ -1818,12 +2124,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/remediation-planner",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "remediation-planner",
       "name": "Remediation Planner",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Previews safe remediation options for Endor Labs findings without opening PRs.",
       "source": {
         "builder_recipe": "source/agents/remediation-planner/recipe.yaml",
         "recipe_schema_version": 1
@@ -1831,6 +2139,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1859,6 +2172,8 @@
       "host": "gemini",
       "id": "repository-dependency-reviewer",
       "name": "Endor Labs Repository Dependency Reviewer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence.",
       "source": {
         "builder_recipe": "source/agents/repository-dependency-reviewer/recipe.yaml",
         "recipe_schema_version": 1
@@ -1866,6 +2181,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
       "editions": [
         {
           "artifacts": [
@@ -1890,9 +2210,9 @@
               "sha256": "f4260de452c5aa1eb67f804a6561db921cd9459e2e2aabda377a7c2d7557563e"
             },
             {
-              "bytes": 1937,
+              "bytes": 1939,
               "path": "gemini/sca-remediation/endorctl-setup.md",
-              "sha256": "5bf7f45a100e1a38610134b2ede30e0bc13bd7af9f80900aeec2819121e05e76"
+              "sha256": "1c11e4e6739f562bdc02c1056b6cdfa321e47d3635a8f044e11cf51d121ae54b"
             },
             {
               "bytes": 78067,
@@ -1903,12 +2223,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/sca-remediation",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "sca-remediation",
       "name": "SCA Remediation",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation.",
       "source": {
         "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
         "recipe_schema_version": 2
@@ -1916,6 +2238,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
       "editions": [
         {
           "artifacts": [
@@ -1935,9 +2262,9 @@
               "sha256": "bd56daf7b1f5615e81753219915b4f21ef28a224c165b4d290d2a90235e40d66"
             },
             {
-              "bytes": 1544,
+              "bytes": 1546,
               "path": "gemini/upgrade-impact-analysis/endorctl-setup.md",
-              "sha256": "764ce5c4b3c1abf7cd33d3cb20ab3ff09f6d2bdf5e864b99141c2ee8b2c1bac2"
+              "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
               "bytes": 42844,
@@ -1948,12 +2275,14 @@
           "id": "gemini-cli",
           "name": "Gemini CLI Skill And Subagent",
           "path": "gemini/upgrade-impact-analysis",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "gemini",
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
       "source": {
         "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
@@ -1961,6 +2290,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -1989,6 +2323,8 @@
       "host": "gemini",
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
       "source": {
         "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1
@@ -1996,6 +2332,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
       "editions": [
         {
           "artifacts": [
@@ -2010,9 +2351,9 @@
               "sha256": "31a52d52ace0dcde631027a3fa7f069391fa18a62ab70ef905306567e90a4503"
             },
             {
-              "bytes": 17716,
+              "bytes": 17718,
               "path": "portable/ai-sast-triage/agent.manifest.json",
-              "sha256": "7f41ca8a3b322f91a5e56166b920fbfcaca1267ac2db7ab59c84225445a9e836"
+              "sha256": "639206b80a05673b3c6cbb143cc76f4b24e05aaee8d49bcfc4bcde5adf9fc9d3"
             },
             {
               "bytes": 61683,
@@ -2025,9 +2366,9 @@
               "sha256": "6512459127305c2d8bcc1e0c1415b82c54030144b33853f6485453a4bac12e68"
             },
             {
-              "bytes": 1949,
+              "bytes": 1951,
               "path": "portable/ai-sast-triage/endorctl-setup.md",
-              "sha256": "975a0243aada895a909023a044165aa5061b8fc8278b723bf672e5adbbe19189"
+              "sha256": "740cd664fc1988984d425dda9eb03f73409495e7e84b1e81e0d5755781f2c6b3"
             },
             {
               "bytes": 8314,
@@ -2038,12 +2379,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/ai-sast-triage",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "ai-sast-triage",
       "name": "AI SAST Triage",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested.",
       "source": {
         "builder_recipe": "source/agents/ai-sast-triage/recipe.yaml",
         "recipe_schema_version": 2
@@ -2051,6 +2394,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -2060,9 +2408,9 @@
               "sha256": "daddeb63b860ff02226da685a2b3a1aea04e66f1c35f208a0ea888c1af5d2106"
             },
             {
-              "bytes": 13387,
+              "bytes": 13389,
               "path": "portable/cicd-posture/agent.manifest.json",
-              "sha256": "c6066098fc6ca4612c2cb535a574b6b96fc0c3bd5700400eb9d6722faca9cff7"
+              "sha256": "4d28c3f0bad62c496cd5b3cd8cc015e716292ebbff70648ada0d11941db7c1ea"
             },
             {
               "bytes": 25603,
@@ -2075,9 +2423,9 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
-              "bytes": 1867,
+              "bytes": 1869,
               "path": "portable/cicd-posture/endorctl-setup.md",
-              "sha256": "920088da6546b04b8d3e0a8084945f2afe4b38cd9233b40f4293978ba84401c6"
+              "sha256": "be8ca805dd733ad586ea7ae112a7ffe6e3dbf14f0d5dd182492319d36c358bf2"
             },
             {
               "bytes": 5726,
@@ -2088,12 +2436,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/cicd-posture",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "cicd-posture",
       "name": "CI/CD And Supply Chain Posture",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set.",
       "source": {
         "builder_recipe": "source/agents/cicd-posture/recipe.yaml",
         "recipe_schema_version": 1
@@ -2101,6 +2451,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -2110,9 +2465,9 @@
               "sha256": "6761481b536b81cf84aa5479c0a6d6ec8c234e1fc01288ca87ae1919827784f7"
             },
             {
-              "bytes": 9701,
+              "bytes": 9703,
               "path": "portable/dependency-decision-helper/agent.manifest.json",
-              "sha256": "fcd4b57b4be550f25bae2c5f0d50f2baa38b01154bcbd5b77e3f170163f39116"
+              "sha256": "453fc5816156bcbfb3b93cb461a0923ddc87f9e49de25e4c8fe042dd0595bf4a"
             },
             {
               "bytes": 26453,
@@ -2120,9 +2475,9 @@
               "sha256": "a43b9c5b614d40d07ce7ebdde2f788b0216554e4daf15615ea16c9869a384d47"
             },
             {
-              "bytes": 1676,
+              "bytes": 1678,
               "path": "portable/dependency-decision-helper/endorctl-setup.md",
-              "sha256": "e141ba8d86fe3c004f2b6551024157bbd251fe0647ec7f439d7c44940333dfcb"
+              "sha256": "e710f18a6f80cdc43173ba6237fc914304df8afc31cd85f2fccac3f99fcae798"
             },
             {
               "bytes": 3304,
@@ -2133,12 +2488,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/dependency-decision-helper",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "dependency-decision-helper",
       "name": "Dependency Decision Helper",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
       "source": {
         "builder_recipe": "source/agents/dependency-decision-helper/recipe.yaml",
         "recipe_schema_version": 1
@@ -2146,6 +2503,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
       "editions": [
         {
           "artifacts": [
@@ -2155,9 +2517,9 @@
               "sha256": "e7394ff80bc87973452f1889ec3afcbfd866449f0b695e93145b783cfed9766f"
             },
             {
-              "bytes": 14376,
+              "bytes": 14378,
               "path": "portable/endor-troubleshooter/agent.manifest.json",
-              "sha256": "daa2d0168cfa1cbb7b9f3b1b86577affd70f0885a0142bec36aee4db20a3a9c9"
+              "sha256": "5f50bea0d7b404451d83c40dc73c5edf51e0f955f97223c34cccaae88ddedb08"
             },
             {
               "bytes": 71992,
@@ -2170,9 +2532,9 @@
               "sha256": "4b07c8ff5362877259fcbfc55a0cfd46c84526328846ce5cc52f8f6422732a10"
             },
             {
-              "bytes": 2235,
+              "bytes": 2237,
               "path": "portable/endor-troubleshooter/endorctl-setup.md",
-              "sha256": "1bd6734877bc0dc737756c3bfb0d20cd4ecc2d35b5c747fe7d0ff8d3412069c4"
+              "sha256": "e95139b64840d03496fbe97ea79ed51316f296df89cd84d8e57890acffb8846c"
             },
             {
               "bytes": 6598,
@@ -2183,12 +2545,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/endor-troubleshooter",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "endor-troubleshooter",
       "name": "Endor Troubleshooter",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
       "source": {
         "builder_recipe": "source/agents/endor-troubleshooter/recipe.yaml",
         "recipe_schema_version": 1
@@ -2196,6 +2560,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
       "editions": [
         {
           "artifacts": [
@@ -2205,9 +2574,9 @@
               "sha256": "8eeca98a03ad9a8ef08665c1004945085af98eada32e71fb4616c09b207224a6"
             },
             {
-              "bytes": 12988,
+              "bytes": 12990,
               "path": "portable/findings-browser/agent.manifest.json",
-              "sha256": "0571cb1d8db63b11c00a1720c665eadd3a102484d51dbf7668b9f672ff039674"
+              "sha256": "65387326d94454cd71b62ee7c7738bf3d1812a7ec456993b72b023d99b9a4aa5"
             },
             {
               "bytes": 19535,
@@ -2220,9 +2589,9 @@
               "sha256": "442cd630aeba94bec00bdc34e71ea94eb4ac23f607996d87c85971c1abb3cc0c"
             },
             {
-              "bytes": 1539,
+              "bytes": 1541,
               "path": "portable/findings-browser/endorctl-setup.md",
-              "sha256": "bc63d41b357c5fbcb0ffabcc340577dd838937bdcb0460d560bb992b520b5fed"
+              "sha256": "355e6efd28b0305056d5726d7715da9ba84078b825d43e26b9e284718fe92d95"
             },
             {
               "bytes": 5495,
@@ -2233,12 +2602,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/findings-browser",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "findings-browser",
       "name": "Findings Browser",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
       "source": {
         "builder_recipe": "source/agents/findings-browser/recipe.yaml",
         "recipe_schema_version": 1
@@ -2246,6 +2617,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
       "editions": [
         {
           "artifacts": [
@@ -2255,9 +2631,9 @@
               "sha256": "6a2919da80c942af4013488e1d0a864ea20405137a7034816cc73ddf25f426bd"
             },
             {
-              "bytes": 13343,
+              "bytes": 13345,
               "path": "portable/malware-response/agent.manifest.json",
-              "sha256": "c880ab413b36ba15f67a4ca1c62f9f70fdf01e7adfaa954adb86c938afd0360b"
+              "sha256": "16b7e8dede3f277aaef72e7e111528ecdf740d46dba40485417be913c1af0a0a"
             },
             {
               "bytes": 34475,
@@ -2270,9 +2646,9 @@
               "sha256": "fcd1912f22d2742a861afb80bda35d462d681085987f4c2224ce9eed98241ec1"
             },
             {
-              "bytes": 1623,
+              "bytes": 1625,
               "path": "portable/malware-response/endorctl-setup.md",
-              "sha256": "9aa605954699cc97525b53113fc28f8f9705e0683679cd5338e87511a04efa09"
+              "sha256": "087085b275d129672701f14133fb8d1e6c6426d75f48028913a97c6819d7687d"
             },
             {
               "bytes": 5664,
@@ -2283,12 +2659,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/malware-response",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "malware-response",
       "name": "Malware Response Agent",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
       "source": {
         "builder_recipe": "source/agents/malware-response/recipe.yaml",
         "recipe_schema_version": 1
@@ -2296,6 +2674,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -2305,9 +2688,9 @@
               "sha256": "0dd536b6e76c309c1169ac500789590c13b67ce84f25dcbcf53f6de48737b4fa"
             },
             {
-              "bytes": 10121,
+              "bytes": 10123,
               "path": "portable/package-risk-summary/agent.manifest.json",
-              "sha256": "9166cb84ed8e12a2acef914fd28a17f933d707d01a61b68a532a3e069389eb6c"
+              "sha256": "c30db3ff28f09c1e2416219b0156c600b3ebdaee116cd490b398dc34de4642a6"
             },
             {
               "bytes": 25977,
@@ -2315,9 +2698,9 @@
               "sha256": "1c269ae1a4447a4767fd6f69af1a1fc1e69e8d8d357667c3568a7818bd092f2b"
             },
             {
-              "bytes": 1681,
+              "bytes": 1683,
               "path": "portable/package-risk-summary/endorctl-setup.md",
-              "sha256": "92aab202dc2006abb881dc84d2ba266bd11fa200a816bfaeeca0eac3ce60ac40"
+              "sha256": "5b909d45ccb703b4f955a67a88656357dd7542f21589e24380d2aaf89bc24c1e"
             },
             {
               "bytes": 3468,
@@ -2328,12 +2711,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/package-risk-summary",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "package-risk-summary",
       "name": "Endor Labs Package Risk Summary",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
       "source": {
         "builder_recipe": "source/agents/package-risk-summary/recipe.yaml",
         "recipe_schema_version": 1
@@ -2341,6 +2726,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
       "editions": [
         {
           "artifacts": [
@@ -2350,9 +2740,9 @@
               "sha256": "3aedd0474439717c6d21475556e5077ec2808deb75f70b76c9aecdc3d55ceb09"
             },
             {
-              "bytes": 15781,
+              "bytes": 15783,
               "path": "portable/probe-droid/agent.manifest.json",
-              "sha256": "061c4e6d42c2f614ace9a2c7704f1c9126f4710efb2a229d629fd199c6a6ff37"
+              "sha256": "a2f401063a9362327cc61fc0e7d318c7d6b0bbf609f9684f8c49598dbea87bd7"
             },
             {
               "bytes": 80414,
@@ -2365,9 +2755,9 @@
               "sha256": "35f1e6077af5d908a43c9ae9966cf3ec7c28f69456626609959c3b3ad7aeb9f9"
             },
             {
-              "bytes": 2054,
+              "bytes": 2056,
               "path": "portable/probe-droid/endorctl-setup.md",
-              "sha256": "7c6f24edddd5af06bb870e66056914b4645a7381c8432836611c8be146810de5"
+              "sha256": "a257ca5e8bc41b2b5464cb303960d48f52fd3d5e36a2cf19d8995f9015e500de"
             },
             {
               "bytes": 7557,
@@ -2378,12 +2768,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/probe-droid",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "probe-droid",
       "name": "Probe Droid",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
       "source": {
         "builder_recipe": "source/agents/probe-droid/recipe.yaml",
         "recipe_schema_version": 1
@@ -2391,6 +2783,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "appsec",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Preview safe remediation options without opening PRs.",
       "editions": [
         {
           "artifacts": [
@@ -2400,9 +2797,9 @@
               "sha256": "cd866b796aee4893951bff6a54f816b070c0e685faf63c163e4b042616f94067"
             },
             {
-              "bytes": 9994,
+              "bytes": 9996,
               "path": "portable/remediation-planner/agent.manifest.json",
-              "sha256": "3027899c59c87d47b0bb8662e7aafbdf1a03f382c83c7e7adda25aa4fa7df464"
+              "sha256": "afd6071febd3f80e49bf16d959847d80b0d078d243d60d9a7ebb4240959fc9a8"
             },
             {
               "bytes": 22352,
@@ -2415,9 +2812,9 @@
               "sha256": "d72e29eee2ef4987ee061ba08cc378ab1ce72b3352cb3c08e139e44f47b9b16f"
             },
             {
-              "bytes": 1529,
+              "bytes": 1531,
               "path": "portable/remediation-planner/endorctl-setup.md",
-              "sha256": "5c6727effd437f9d9c27f643f3881934c22984b8c3f791774a4c808056288c0c"
+              "sha256": "601dfbc01b847da06f3dfa8aff956c0eca21c4cca41dd7b4856dc6a57b39992f"
             },
             {
               "bytes": 3637,
@@ -2428,12 +2825,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/remediation-planner",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "remediation-planner",
       "name": "Remediation Planner",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Previews safe remediation options for Endor Labs findings without opening PRs.",
       "source": {
         "builder_recipe": "source/agents/remediation-planner/recipe.yaml",
         "recipe_schema_version": 1
@@ -2441,6 +2840,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -2450,9 +2854,9 @@
               "sha256": "43986823ab795b1a013031bb60b4a50bbf1b8a98fddc3edaf0b384c8c1e6d608"
             },
             {
-              "bytes": 10274,
+              "bytes": 10281,
               "path": "portable/repository-dependency-reviewer/agent.manifest.json",
-              "sha256": "513492f8cd14784b8a2f0488ac9eaa688d3320c36bff3022be05105b18f35aa5"
+              "sha256": "a7f8366ef1def0f3e39d6aa195471d87fef43849e46d859996ce3d06cf0a06a2"
             },
             {
               "bytes": 26309,
@@ -2474,6 +2878,8 @@
       "host": "portable",
       "id": "repository-dependency-reviewer",
       "name": "Endor Labs Repository Dependency Reviewer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence.",
       "source": {
         "builder_recipe": "source/agents/repository-dependency-reviewer/recipe.yaml",
         "recipe_schema_version": 1
@@ -2481,6 +2887,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
       "editions": [
         {
           "artifacts": [
@@ -2495,9 +2906,9 @@
               "sha256": "7179fa7c0420321df7add3e1d5089f088d2c60987490c6c34d00dcd2fea1ed95"
             },
             {
-              "bytes": 18973,
+              "bytes": 18975,
               "path": "portable/sca-remediation/agent.manifest.json",
-              "sha256": "5ecb4ee8e0a4aac54234636b5df9d0e673de11c8a02efef6fb7fc69e9a2f3453"
+              "sha256": "1bed31fcf24aeaab7f2a23c04793b6b4296af6ad9a78dd7590f196db063d230c"
             },
             {
               "bytes": 74124,
@@ -2510,9 +2921,9 @@
               "sha256": "c5a2c81c8b4ed780ac4eb291619b029dd98aa32f0ac844cf53bd3e8efedd3872"
             },
             {
-              "bytes": 1944,
+              "bytes": 1946,
               "path": "portable/sca-remediation/endorctl-setup.md",
-              "sha256": "e2e34a29d7b740e43e62dd971cb5cb71eeb3723312e27719c73adb8cf91bd9f9"
+              "sha256": "3013f107456c7a9aaf24ddcdbb07de94c14db67030ef4492d4491849f9014fe9"
             },
             {
               "bytes": 8505,
@@ -2523,12 +2934,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/sca-remediation",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "sca-remediation",
       "name": "SCA Remediation",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation.",
       "source": {
         "builder_recipe": "source/agents/sca-remediation/recipe.yaml",
         "recipe_schema_version": 2
@@ -2536,6 +2949,11 @@
       "version": "0.1.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
       "editions": [
         {
           "artifacts": [
@@ -2545,9 +2963,9 @@
               "sha256": "514cd94b3d1a8a792b5f5231af37675f0fb459c9774a948bc3626241415bb9a6"
             },
             {
-              "bytes": 13898,
+              "bytes": 13900,
               "path": "portable/upgrade-impact-analysis/agent.manifest.json",
-              "sha256": "d37449c6f078d4393d3b3fcbf2b9773276fe41c3069f98d806cd3e7d7fdadce1"
+              "sha256": "82cd5bdb219a6f96c58abab5d9dfa571170edfaa96b250806cc3ee2041f9ee33"
             },
             {
               "bytes": 38626,
@@ -2560,9 +2978,9 @@
               "sha256": "5de1257470e83a60b4eb49df9e908968b5a02be926e3d1d97dc77a9d7d937eb9"
             },
             {
-              "bytes": 1544,
+              "bytes": 1546,
               "path": "portable/upgrade-impact-analysis/endorctl-setup.md",
-              "sha256": "764ce5c4b3c1abf7cd33d3cb20ab3ff09f6d2bdf5e864b99141c2ee8b2c1bac2"
+              "sha256": "9695ffe2dc2b055e6547635597f27ef9a54ab3f0de12183416c47d563cbab021"
             },
             {
               "bytes": 5823,
@@ -2573,12 +2991,14 @@
           "id": "portable-agent",
           "name": "Portable Agent Bundle",
           "path": "portable/upgrade-impact-analysis",
-          "requires_endorctl": ">=1.0"
+          "requires_endorctl": ">=1.0.0"
         }
       ],
       "host": "portable",
       "id": "upgrade-impact-analysis",
       "name": "Endor Labs Upgrade Impact Analysis",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
       "source": {
         "builder_recipe": "source/agents/upgrade-impact-analysis/recipe.yaml",
         "recipe_schema_version": 1
@@ -2586,6 +3006,11 @@
       "version": "1.0.0"
     },
     {
+      "audience": "developer",
+      "authors": [
+        "Endor Labs"
+      ],
+      "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",
       "editions": [
         {
           "artifacts": [
@@ -2595,9 +3020,9 @@
               "sha256": "1bec76c6a2da5de73823f48caff4afa7fa4768df50dbcb3309d8f1f90190af7d"
             },
             {
-              "bytes": 9929,
+              "bytes": 9936,
               "path": "portable/vulnerability-explainer/agent.manifest.json",
-              "sha256": "8a711406b08cb49013210a8bbf1bd16bc7e7685d14a77a6497e83f2d378a4cb4"
+              "sha256": "fbe7d47ff5cf385838eab8ce2d1462810c4e2f465f43eb3b1b38ef482bc37149"
             },
             {
               "bytes": 20551,
@@ -2619,6 +3044,8 @@
       "host": "portable",
       "id": "vulnerability-explainer",
       "name": "Endor Labs Vulnerability Explainer",
+      "requires_endorctl": ">=1.0.0",
+      "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
       "source": {
         "builder_recipe": "source/agents/vulnerability-explainer/recipe.yaml",
         "recipe_schema_version": 1

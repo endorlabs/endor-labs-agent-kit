@@ -54,6 +54,12 @@ jobs:
             --base-ref "origin/${{ github.base_ref }}" \
             --command endor-agent-kit
 
+      - name: Check agent id stability
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          . .venv/bin/activate
+          endor-agent-kit check-id-stability --base-ref "origin/${{ github.base_ref }}"
+
       - name: Regenerate catalog
         run: |
           . .venv/bin/activate
@@ -64,6 +70,7 @@ jobs:
           git diff --exit-code -- \
             README.md \
             manifest.json \
+            catalog.json \
             .agents/plugins \
             .claude-plugin \
             .cursor-plugin \

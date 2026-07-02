@@ -45,6 +45,7 @@ ACTION_KINDS = frozenset(
 ACTION_AVAILABILITY = frozenset({"available", "requires_adapter", "unavailable"})
 HOST_CAPABILITY_KEYS = frozenset({"run_commands", "read_files", "write_files", "open_pr"})
 FORBIDDEN_V0_FIELDS = frozenset({"graph", "nodes", "edges"})
+AUDIENCES = frozenset({"appsec", "developer"})
 REQUIRED_FIELDS = (
     "recipe_schema_version",
     "id",
@@ -63,6 +64,16 @@ REQUIRED_FIELDS = (
     "model",
 )
 SLUG_RE = re.compile(r"^[a-z][a-z0-9-]{2,63}$")
+# Display-name PII guard: reject emails, @handles, and URLs in authors.
+PII_RE = re.compile(r"@|https?://")
+# Canonical semver (semver.org) with a required leading lower-bound operator, so
+# requires_endorctl is a standard version constraint (e.g. ">=1.0.0", ">1.2.3").
+_SEMVER = (
+    r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)"
+    r"(?:-(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*)?"
+    r"(?:\+[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*)?"
+)
+ENDORCTL_CONSTRAINT_RE = re.compile(r"^(?:>=|>)" + _SEMVER + r"$")
 
 
 def validate_recipe_file(path: str | Path) -> list[str]:
@@ -173,6 +184,8 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
         if not isinstance(value, str) or not value.strip():
             errors.append(f"{string_field}: must be a non-empty string")
 
+    _validate_catalog_metadata(data, errors)
+
     if recipe_path is not None and isinstance(data.get("instructions_path"), str):
         if not (recipe_path.parent / data["instructions_path"]).is_file():
             errors.append("instructions_path: file does not exist relative to recipe")
@@ -182,6 +195,33 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
             errors.append("evals: file does not exist relative to recipe")
 
     return errors
+
+
+def _validate_catalog_metadata(data: dict[str, Any], errors: list[str]) -> None:
+    """Validate the catalog-facing fields the signed catalog.json is built from."""
+
+    if data.get("audience") not in AUDIENCES:
+        errors.append("audience: must be one of appsec, developer")
+
+    short_description = data.get("short_description")
+    if not isinstance(short_description, str) or not short_description.strip():
+        errors.append("short_description: must be a non-empty string")
+
+    authors = data.get("authors")
+    if not isinstance(authors, list) or not authors:
+        errors.append("authors: must be a non-empty list")
+    else:
+        for author in authors:
+            if not isinstance(author, str) or not author.strip():
+                errors.append("authors: entries must be non-empty strings")
+            elif PII_RE.search(author):
+                errors.append(f"authors: {author!r} looks like PII (email/@handle/url) -- display names only")
+
+    requires_endorctl = data.get("requires_endorctl")
+    if not isinstance(requires_endorctl, str) or not ENDORCTL_CONSTRAINT_RE.match(requires_endorctl):
+        errors.append(
+            "requires_endorctl: must be a version constraint with a leading >= or > and full semver, e.g. '>=1.0.0'"
+        )
 
 
 def _validate_action_contracts(

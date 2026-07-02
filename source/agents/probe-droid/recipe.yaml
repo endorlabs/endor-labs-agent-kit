@@ -9,6 +9,9 @@ description: |
   App, package, scan, scan profile, package manager integration, dependency
   resolution, and reachability evidence, then returns human-readable setup
   actions without mutating source, GitHub, or Endor state.
+audience: appsec
+short_description: "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: enterprise
 supported_transports:
@@ -176,4 +179,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: ">=1.0"
+requires_endorctl: ">=1.0.0"
