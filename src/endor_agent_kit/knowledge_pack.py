@@ -9,6 +9,8 @@ from typing import Any
 
 import yaml
 
+from endor_agent_kit.endor_api_registry import endor_api_template_errors
+
 
 PACK_SECTION_HEADING = "## Endor Knowledge Pack"
 PACK_SCHEMA_VERSION = 1
@@ -956,6 +958,7 @@ def _validate_query_recipe_template(
             errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
     if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:
         errors.append(f"{prefix}.template: must not cat Endor config files")
+    errors.extend(endor_api_template_errors(prefix, template))
 
 
 def _field_mask_paths(template: str) -> tuple[str, ...]:

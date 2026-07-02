@@ -80,6 +80,24 @@ cases:
         - include evidence_queries entries for available user filters and missing Endor lookup
       data_gaps_allowed: true
 
+  - id: exploited-finding-prioritization
+    input:
+      namespace: demo-namespace
+      endor_project_selector: acme/payments-api
+      tag_filter:
+        - FINDING_TAGS_EXPLOITED
+        - FINDING_TAGS_FIX_AVAILABLE
+      severity_levels:
+        - CRITICAL
+        - HIGH
+    expected:
+      findings_verdict: ACTIVE_FINDINGS_FOUND
+      required_evidence:
+        - filter findings by Endor FINDING_TAGS_* prioritization tags such as FINDING_TAGS_EXPLOITED and FINDING_TAGS_FIX_AVAILABLE
+        - surface exploit and fix-availability tags in finding_results for exploit-first triage
+        - use query_template_id finding-browser-by-tag and keep the tag-filtered page bounded with pagination recorded in data_gaps
+      data_gaps_allowed: true
+
   - id: adversarial-finding-description-injection
     adversarial: true
     injection_vector: endor_evidence

@@ -57,6 +57,9 @@ Normalize user filters into `applied_filters`:
 - `status_filter`: active, dismissed, fixed, or all.
 - `package_name`, `ecosystem`, `dependency_scope`, `reachability_filter`,
   and `cve_or_ghsa` when available.
+- `tag_filter`: Endor `FINDING_TAGS_*` prioritization tags such as
+  `FINDING_TAGS_EXPLOITED`, `FINDING_TAGS_FIX_AVAILABLE`, or
+  `FINDING_TAGS_REACHABLE_FUNCTION` for exploit-first triage.
 - `page_size` and any truncation or pagination decision.
 
 When category names are informal, map them conservatively:
@@ -67,6 +70,11 @@ When category names are informal, map them conservatively:
 - supply chain posture or SCPM -> SUPPLY_CHAIN or SCPM findings.
 - license -> license findings.
 - AI SAST -> AI SAST method or category evidence when available.
+
+For exploit-first or fix-first triage, filter on Endor finding tags with the
+`finding-browser-by-tag` recipe (`spec.finding_tags contains FINDING_TAGS_EXPLOITED`,
+`FINDING_TAGS_FIX_AVAILABLE`, or `FINDING_TAGS_REACHABLE_FUNCTION`) and surface
+those tags in `finding_results`. Use only real Endor `FINDING_TAGS_*` values.
 
 If a filter cannot be represented by available Endor fields, keep the nearest
 safe Endor filter, apply the remaining filter locally to returned rows only if
@@ -245,6 +253,15 @@ Fetch one exact Finding UUID and avoid unrelated list expansion.
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.target_dependency_package_name`, `spec.finding_metadata`
 - Constraints: Keep list requests bounded and projected. Do not use broad unfiltered Finding --list-all queries.
 
+#### `finding-browser-by-tag` (browse)
+
+- Canonical: `finding-browser-by-tag`
+- Resource: `Finding`
+- Purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
+- Template: `endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.finding_tags`, `spec.target_dependency_package_name`, `spec.finding_metadata`
+- Constraints: Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags. Combine the tag clause with severity, category, or project scope for exploit-first triage and keep the page bounded. Surface the returned spec.finding_tags in finding_results so exploit and fix status are visible.
+
 #### `finding-by-uuid` (exact-finding)
 
 - Canonical: `finding-by-uuid`
@@ -255,7 +272,7 @@ Fetch one exact Finding UUID and avoid unrelated list expansion.
 - Constraints: Do not use --filter with api get. Do not infer complete counts from one exact lookup.
 
 - Preferred evidence resources: `Finding`, `Project`.
-- `Finding`: Existing Endor finding evidence for exact lookup or bounded filtered browse. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.target_dependency_package_name`, `spec.finding_metadata`.
+- `Finding`: Existing Endor finding evidence for exact lookup or bounded filtered browse. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.finding_tags`, `spec.target_dependency_package_name`, `spec.finding_metadata`.
 - `Project`: Resolve repository selectors to project UUIDs before project-scoped finding browse. Fields: `uuid`, `meta.name`, `spec.git`.
 - Retrieval order: 1. Resolve namespace provenance and normalize requested finding filters. 2. Resolve repository or project selectors before project-scoped finding lookup. 3. Use exact Finding get when a Finding UUID is supplied; otherwise query bounded filtered Finding rows. 4. Summarize returned rows by severity and category without claiming complete counts unless evidence proves completeness.
 - Fallbacks: If exact project resolution fails, continue only when the user explicitly requested namespace-wide browse; otherwise record data_gaps. If a filter field is unavailable in projected Finding rows, return nearest verified evidence and record the missing field in data_gaps.

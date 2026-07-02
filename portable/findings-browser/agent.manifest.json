@@ -98,6 +98,12 @@
       "required": false
     },
     {
+      "description": "Optional Endor FINDING_TAGS_* prioritization tags such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION for exploit-first triage.",
+      "kind": "list[string]",
+      "name": "tag_filter",
+      "required": false
+    },
+    {
       "description": "Maximum finding rows to return. Defaults to 25 and should remain bounded.",
       "kind": "integer",
       "name": "page_size",

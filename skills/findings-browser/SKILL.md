@@ -76,6 +76,9 @@ Normalize user filters into `applied_filters`:
 - `status_filter`: active, dismissed, fixed, or all.
 - `package_name`, `ecosystem`, `dependency_scope`, `reachability_filter`,
   and `cve_or_ghsa` when available.
+- `tag_filter`: Endor `FINDING_TAGS_*` prioritization tags such as
+  `FINDING_TAGS_EXPLOITED`, `FINDING_TAGS_FIX_AVAILABLE`, or
+  `FINDING_TAGS_REACHABLE_FUNCTION` for exploit-first triage.
 - `page_size` and any truncation or pagination decision.
 
 When category names are informal, map them conservatively:
@@ -86,6 +89,11 @@ When category names are informal, map them conservatively:
 - supply chain posture or SCPM -> SUPPLY_CHAIN or SCPM findings.
 - license -> license findings.
 - AI SAST -> AI SAST method or category evidence when available.
+
+For exploit-first or fix-first triage, filter on Endor finding tags with the
+`finding-browser-by-tag` recipe (`spec.finding_tags contains FINDING_TAGS_EXPLOITED`,
+`FINDING_TAGS_FIX_AVAILABLE`, or `FINDING_TAGS_REACHABLE_FUNCTION`) and surface
+those tags in `finding_results`. Use only real Endor `FINDING_TAGS_*` values.
 
 If a filter cannot be represented by available Endor fields, keep the nearest
 safe Endor filter, apply the remaining filter locally to returned rows only if

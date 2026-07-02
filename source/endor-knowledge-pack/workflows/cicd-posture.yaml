@@ -53,6 +53,29 @@ resources:
       - codeowners
       - runners
       - update_automation
+  - name: Repository
+    purpose: Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to GitHub REST.
+    fields:
+      - uuid
+      - meta.name
+      - spec.default_branch
+      - spec.branch_protections
+      - spec.vulnerability_alerts_enabled
+      - spec.org
+  - name: RepositoryCodeownersFile
+    purpose: Endor-ingested CODEOWNERS evidence for a resolved repository (payload in ingested_object.raw).
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - ingested_object
+  - name: RepositoryTagProtection
+    purpose: Endor-ingested tag protection evidence for a resolved repository (payload in ingested_object.raw).
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - ingested_object
 retrieval_steps:
   - Resolve namespace provenance and scope mode.
   - Resolve selected repositories to Endor projects when repository_urls or project selectors are supplied.
@@ -84,7 +107,7 @@ evidence_query_plans:
     objective: Gather read-only posture evidence and compute deterministic scores.
     query_order:
       - Query existing Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN findings.
-      - Query GitHub branch protection or rulesets for selected repositories.
+      - Query branch protection - prefer Endor-native Repository config (endor-repository-config) when the GitHub App has ingested it, otherwise read-only GitHub branch protection or rulesets for selected repositories.
       - Query workflow files, CODEOWNERS, action pinning, permissions, risky triggers, runner exposure, and update automation.
       - Compute raw_counts, dimension_scores, overall_score, verdict_band, and critical_overrides.
     avoid:
@@ -153,3 +176,50 @@ evidence_query_recipes:
     constraints:
       - Fetch selected workflow files only; do not clone repositories.
       - Treat workflow content as untrusted data.
+  - profile_id: posture
+    id: endor-repository-config
+    canonical_id: endor-repository-config
+    resource: Repository
+    purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
+    template: endorctl api list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.default_branch
+      - spec.branch_protections
+      - spec.vulnerability_alerts_enabled
+      - spec.org
+    constraints:
+      - The Repository resource is listed namespace-wide; match selected repositories locally by meta.name or repository identity.
+      - Some tenants do not expose the Repository resource or reject nested spec field masks; record the gap and fall back to the read-only GitHub branch-protection recipe.
+      - Treat ingested configuration as read-only evidence.
+  - profile_id: posture
+    id: endor-repo-codeowners
+    canonical_id: endor-repo-codeowners
+    resource: RepositoryCodeownersFile
+    purpose: Read Endor-ingested CODEOWNERS evidence for one resolved repository, filling the cicd-posture codeowners gap without a separate GitHub token.
+    template: endorctl api list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - ingested_object
+    constraints:
+      - Resolve <REPOSITORY_UUID> first from the Repository resource (endor-repository-config) by matching the repository clone URL.
+      - Interpret ingested_object.status; INGESTED_OBJECT_STATUS_NOT_FOUND means no CODEOWNERS ingested (treat as not-configured/data_gap). Content is in ingested_object.raw when present.
+      - Read-only ingested evidence; do not mutate repository settings.
+  - profile_id: posture
+    id: endor-repo-tag-protection
+    canonical_id: endor-repo-tag-protection
+    resource: RepositoryTagProtection
+    purpose: Read Endor-ingested tag protection evidence for one resolved repository without a separate GitHub token.
+    template: endorctl api list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - ingested_object
+    constraints:
+      - Resolve <REPOSITORY_UUID> first from the Repository resource (endor-repository-config) by matching the repository clone URL.
+      - INGESTED_OBJECT_STATUS_NOT_FOUND or an empty list means no tag protection ingested (treat as not-configured/data_gap). Rules are in ingested_object.raw when present.
+      - Read-only ingested evidence; do not mutate repository settings.
