@@ -3,6 +3,9 @@ id: ai-sast-triage
 name: AI SAST Triage
 version: 0.1.0
 description: Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
+audience: appsec
+short_description: "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested."
+authors: ["Endor Labs"]
 safety_class: mutating
 endor_tier_minimum: enterprise
 supported_transports:
@@ -111,4 +114,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: '>=1.0'
+requires_endorctl: ">=1.0.0"

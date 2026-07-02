@@ -21,6 +21,9 @@ from endor_agent_kit.endor_context import (
     verify_endor_context,
 )
 from endor_agent_kit.guardrails import check_catalog_guardrails
+from endor_agent_kit.catalog_signing import verify_catalog_signature
+from endor_agent_kit.id_stability import check_id_stability
+from endor_agent_kit.publication.catalog_wire import stamp_catalog_version
 from endor_agent_kit.install import (
     check_claude_code_install,
     check_claude_managed_agents_install,
@@ -166,6 +169,29 @@ def main(argv: list[str] | None = None) -> int:
         help="Verify generated catalog artifacts against the manifest checksums",
     )
     verify_provenance_parser.add_argument("--catalog-root", default=Path("."), type=Path)
+
+    check_id_stability_parser = subparsers.add_parser(
+        "check-id-stability",
+        help="Fail if any agent id present on the base ref disappeared on this branch",
+    )
+    check_id_stability_parser.add_argument("--base-ref", required=True)
+    check_id_stability_parser.add_argument("--head-ref", default="HEAD")
+    check_id_stability_parser.add_argument("--root", default=Path("."), type=Path)
+
+    verify_catalog_signature_parser = subparsers.add_parser(
+        "verify-catalog-signature",
+        help="Verify catalog.json against its detached signature and the pinned public key",
+    )
+    verify_catalog_signature_parser.add_argument("--catalog", default=Path("catalog.json"), type=Path)
+    verify_catalog_signature_parser.add_argument("--signature", default=Path("catalog.json.sig"), type=Path)
+    verify_catalog_signature_parser.add_argument("--public-key", required=True, type=Path)
+
+    stamp_catalog_version_parser = subparsers.add_parser(
+        "stamp-catalog-version",
+        help="Stamp the release tag into catalog.json as catalog_version (release pipeline)",
+    )
+    stamp_catalog_version_parser.add_argument("--catalog", default=Path("catalog.json"), type=Path)
+    stamp_catalog_version_parser.add_argument("--catalog-version", required=True)
 
     verify_endor_context_parser = subparsers.add_parser(
         "verify-endor-context",
@@ -358,6 +384,29 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"ERROR: {error}")
             return 1
         print(f"OK: {args.catalog_root}")
+        return 0
+
+    if args.command == "check-id-stability":
+        errors = check_id_stability(args.base_ref, args.head_ref, root=args.root)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: agent ids stable between {args.base_ref} and {args.head_ref}")
+        return 0
+
+    if args.command == "verify-catalog-signature":
+        errors = verify_catalog_signature(args.catalog, args.signature, args.public_key)
+        if errors:
+            for error in errors:
+                print(f"ERROR: {error}")
+            return 1
+        print(f"OK: {args.catalog} verified against {args.public_key}")
+        return 0
+
+    if args.command == "stamp-catalog-version":
+        path = stamp_catalog_version(args.catalog, args.catalog_version)
+        print(f"OK: stamped {args.catalog_version} into {path}")
         return 0
 
     if args.command == "verify-endor-context":

@@ -97,6 +97,7 @@ jobs:
           git diff --exit-code -- \
             README.md \
             manifest.json \
+            catalog.json \
             .agents/plugins \
             .claude-plugin \
             .cursor-plugin \

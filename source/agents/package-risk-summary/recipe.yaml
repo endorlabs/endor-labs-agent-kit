@@ -10,6 +10,9 @@ description: |
   review it?" Returns an evidence-backed package risk summary with
   vulnerabilities, malware or typosquat signals, package scores, license notes,
   recommended next checks, and any data gaps.
+audience: developer
+short_description: "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes."
+authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: free
 supported_transports:
@@ -87,4 +90,4 @@ endorctl_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ">=2.4"
-requires_endorctl: ">=1.0"
+requires_endorctl: ">=1.0.0"

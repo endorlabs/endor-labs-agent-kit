@@ -171,7 +171,7 @@
     "mcp"
   ],
   "requires_endor_mcp": ">=2.4",
-  "requires_endorctl": "",
+  "requires_endorctl": ">=1.0.0",
   "runtime_action_vocabulary": [
     {
       "confirmation_required": false,

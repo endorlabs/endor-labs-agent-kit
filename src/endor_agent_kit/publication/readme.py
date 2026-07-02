@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from endor_agent_kit.recipe import EndorAgentRecipe
+from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 
 def agent_readme_start_here(
@@ -19,7 +20,7 @@ def agent_readme_start_here(
     support_files = ["the generated prompt or skill file"]
     if recipe.action_contracts_path:
         support_files.append("`actions.yaml`")
-    if recipe.requires_endorctl:
+    if source_recipe_safety_posture(recipe).requires_endorctl_setup:
         support_files.append("`endorctl-setup.md`")
     if has_architecture:
         support_files.append("`architecture.svg`")
