@@ -24,6 +24,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Verify tagged commit is on main
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error title=Tag not on main::Tagged commit $GITHUB_SHA is not contained in origin/main. Refusing to release an unreviewed commit -- tag a commit that has merged to main."
+            exit 1
+          fi
+
       - name: Set up Python
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
@@ -111,17 +119,17 @@ jobs:
             --signature catalog.json.sig \
             --public-key keys/catalog-signing-public-key.pem
 
+      - name: Refuse to publish an unsigned catalog
+        if: ${{ vars.CATALOG_SIGNING_ENABLED != 'true' }}
+        run: |
+          echo "::error title=Signing required::CATALOG_SIGNING_ENABLED is not 'true'. Refusing to publish an unsigned catalog.json to a release -- apiserver verifies the signature. Enable Key Vault signing (AI-418) before tagging a release."
+          exit 1
+
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          assets="catalog.json"
-          if [ -f catalog.json.sig ]; then
-            assets="$assets catalog.json.sig keys/catalog-signing-public-key.pem"
-          else
-            echo "::warning title=Unsigned catalog::CATALOG_SIGNING_ENABLED is not 'true'; publishing catalog.json without a signature (see AI-418)."
-          fi
-          # shellcheck disable=SC2086
-          gh release create "$CATALOG_TAG" $assets \
+          gh release create "$CATALOG_TAG" \
+            catalog.json catalog.json.sig keys/catalog-signing-public-key.pem \
             --title "$CATALOG_TAG" \
-            --notes "Endor agent catalog for ${CATALOG_TAG}. Wire shape: internal.endor.ai/endor/v1 EndorAgent."
+            --notes "Signed Endor agent catalog for ${CATALOG_TAG}. Wire shape: internal.endor.ai/endor/v1 EndorAgent."

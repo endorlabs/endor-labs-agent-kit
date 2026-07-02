@@ -67,9 +67,12 @@ stays off until the Azure infrastructure is provisioned under
    `keys/catalog-signing-public-key.pem` (a CODEOWNERS-reviewed change) and shipped
    to apiserver for pinning.
 
-Until then, releases publish `catalog.json` unsigned but drift-gated; the verify
-step fails closed if pointed at a missing or invalid key, so signing can never be
-silently enabled against a stand-in.
+Until then, the release job **refuses to publish**: tagging `agents-v*` while
+`CATALOG_SIGNING_ENABLED` is not `true` fails the workflow rather than shipping an
+unsigned `catalog.json` to a release. The catalog is still committed and
+drift-gated on every PR; there is just no signed release to cut yet. The release
+job also verifies the tagged commit is contained in `main` before building, so a
+tag on an unreviewed commit cannot produce a release.
 
 | Repository variable | Purpose |
 | --- | --- |
