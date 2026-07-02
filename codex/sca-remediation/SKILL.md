@@ -738,6 +738,15 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.level`
 - Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
 
+#### `exploited-finding-availability` (evidence-check)
+
+- Canonical: `sca-exploited-finding-availability`
+- Resource: `Finding`
+- Purpose: Identify exploited vulnerability findings for a resolved project to prioritize remediation order.
+- Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false and spec.finding_tags contains FINDING_TAGS_EXPLOITED' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level,spec.finding_tags" -o json`
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.level`, `spec.finding_tags`
+- Constraints: Use to prioritize remediation order for exploited vulnerabilities; pair with VersionUpgrade/UIA ranking before selecting a fix. Keep bounded; do not add --list-all before VersionUpgrade narrowing.
+
 #### `version-upgrade-summary` (evidence-check)
 
 - Canonical: `version-upgrade-summary`

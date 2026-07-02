@@ -168,6 +168,7 @@ def test_findings_browser_eval_cases_cover_browse_outcomes():
     assert case_ids == {
         "critical-reachable-project-findings",
         "exact-finding-uuid-lookup",
+        "exploited-finding-prioritization",
         "filtered-no-results",
         "namespace-wide-truncated-cicd-findings",
         "missing-namespace-insufficient-data",

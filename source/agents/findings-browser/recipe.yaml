@@ -69,6 +69,10 @@ inputs:
     kind: string
     required: false
     description: Optional vulnerability identifier used to narrow finding evidence.
+  - name: tag_filter
+    kind: list[string]
+    required: false
+    description: Optional Endor FINDING_TAGS_* prioritization tags such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION for exploit-first triage.
   - name: page_size
     kind: integer
     required: false

@@ -197,6 +197,34 @@ recipes:
     forbidden:
       - Do not claim a response action was performed by the agent.
 
+  # FINDING_CATEGORY_MALWARE is a valid FindingCategory enum verified against the
+  # live Endor API (2026-06-30, namespace auri). NOTE: the dedicated `Malware`
+  # resource is NOT endorctl `-r` queryable, so Endor malware evidence is read via
+  # the Finding resource below, not a separate OSS malware feed.
+  - id: tenant-malware-findings
+    title: Tenant Malware Finding Availability
+    resource: Finding
+    purpose: List Endor's own malware-category findings for a resolved namespace or project as Endor tenant malware evidence.
+    template: >-
+      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.finding_categories contains FINDING_CATEGORY_MALWARE and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.ecosystem,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_metadata" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.level
+      - spec.finding_categories
+      - spec.ecosystem
+      - spec.target_dependency_package_name
+      - spec.target_dependency_version
+      - spec.finding_metadata
+    constraints:
+      - Use after namespace provenance is explicit; add a spec.project_uuid scope or use --traverse for namespace-wide tenant malware checks.
+      - spec.finding_metadata.malware is Endor's malware evidence; this is Endor classifying the tenant package as malware and supports CONFIRMED_EXPOSURE.
+      - Keep result pages bounded and report pagination or truncation in data_gaps.
+    completeness: Bounded malware finding evidence for the resolved scope; namespace-wide completeness needs explicit scope and pagination proof.
+    forbidden:
+      - Do not broaden this query to unrelated finding categories.
+
   - id: sca-finding-availability
     title: Scoped Vulnerability Finding Availability
     resource: Finding
@@ -215,6 +243,26 @@ recipes:
     completeness: Intentionally bounded evidence check; use VersionUpgrade recipes before expanding selected remediation detail.
     forbidden:
       - Do not treat this bounded list as a complete project vulnerability count.
+
+  - id: sca-exploited-finding-availability
+    title: Exploited Vulnerability Finding Availability
+    resource: Finding
+    purpose: Identify exploited vulnerability findings for a resolved project to prioritize remediation order.
+    template: >-
+      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false and spec.finding_tags contains FINDING_TAGS_EXPLOITED' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level,spec.finding_tags" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+      - spec.finding_tags
+    constraints:
+      - Use to prioritize remediation order for exploited vulnerabilities; pair with VersionUpgrade/UIA ranking before selecting a fix.
+      - Keep bounded; do not add --list-all before VersionUpgrade narrowing.
+    completeness: Bounded exploited-finding evidence for the resolved project; pair with VersionUpgrade ranking for remediation selection.
+    forbidden:
+      - Do not invent finding tags; use only Endor FINDING_TAGS_* enum values.
 
   - id: finding-browser-filtered
     title: Bounded Finding Browser List
@@ -237,6 +285,29 @@ recipes:
     completeness: Bounded page evidence only; complete inventory requires explicit scope, pagination handling, and proof in evidence_queries.
     forbidden:
       - Do not use this as a broad unfiltered namespace Finding inventory.
+
+  - id: finding-browser-by-tag
+    title: Exploit And Prioritization Tag Finding Browser
+    resource: Finding
+    purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
+    template: >-
+      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.level
+      - spec.finding_categories
+      - spec.finding_tags
+      - spec.target_dependency_package_name
+      - spec.finding_metadata
+    constraints:
+      - Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags.
+      - Combine the tag clause with severity, category, or project scope in the scope filter for exploit-first triage and keep the page bounded.
+      - Surface the returned spec.finding_tags in finding_results so exploit and fix status are visible.
+    completeness: Bounded tag-filtered page evidence; a complete inventory still needs explicit scope and pagination proof in evidence_queries.
+    forbidden:
+      - Do not use broad unfiltered Finding --list-all queries.
 
   # FINDING_CATEGORY_SCPM, FINDING_CATEGORY_CICD, FINDING_CATEGORY_GHACTIONS,
   # and FINDING_CATEGORY_SUPPLY_CHAIN are all present in the FindingCategory
@@ -299,6 +370,65 @@ recipes:
     completeness: Complete only for selected repositories and visible workflow files on the selected branch.
     forbidden:
       - Do not execute workflow commands or dispatch workflows.
+
+  - id: endor-repository-config
+    title: Endor Repository Configuration Evidence
+    resource: Repository
+    purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
+    template: >-
+      endorctl api list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.default_branch
+      - spec.branch_protections
+      - spec.vulnerability_alerts_enabled
+      - spec.org
+    constraints:
+      - The Repository resource is listed namespace-wide; match selected repositories locally by meta.name or repository identity (it has no full_name filter).
+      - Some tenants reject nested spec field masks or do not expose the Repository resource; record the rejected shape or unavailable resource in data_gaps and fall back to the read-only GitHub branch-protection recipe.
+      - Treat ingested configuration as read-only evidence, not a live mutation surface; codeowners and tag-protection live in separate ingested resources not covered here.
+    completeness: Complete only for repositories Endor's GitHub App has ingested; missing repositories or fields are data_gaps.
+    forbidden:
+      - Do not mutate repository settings; this is read-only ingested evidence.
+
+  - id: endor-repo-codeowners
+    title: Endor Repository CODEOWNERS Evidence
+    resource: RepositoryCodeownersFile
+    purpose: Read Endor-ingested CODEOWNERS evidence for one resolved repository, filling the cicd-posture codeowners gap without a separate GitHub token.
+    template: >-
+      endorctl api list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - ingested_object
+    constraints:
+      - Resolve <REPOSITORY_UUID> first from the Repository resource (endor-repository-config) by matching the repository clone URL; these child resources parent to Repository via meta.parent_uuid.
+      - Interpret ingested_object.status; INGESTED_OBJECT_STATUS_NOT_FOUND means Endor's GitHub App has not ingested a CODEOWNERS file (treat as not-configured/data_gap, not a failure). The CODEOWNERS content is in ingested_object.raw when present.
+      - Read-only ingested evidence; do not mutate repository settings.
+    completeness: Complete only for repositories whose GitHub App ingestion includes CODEOWNERS; missing ingestion is a data_gap.
+    forbidden:
+      - Do not infer CODEOWNERS coverage from local repository files; use Endor-ingested evidence or the read-only GitHub API.
+
+  - id: endor-repo-tag-protection
+    title: Endor Repository Tag Protection Evidence
+    resource: RepositoryTagProtection
+    purpose: Read Endor-ingested tag protection evidence for one resolved repository without a separate GitHub token.
+    template: >-
+      endorctl api list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - ingested_object
+    constraints:
+      - Resolve <REPOSITORY_UUID> first from the Repository resource (endor-repository-config) by matching the repository clone URL; these child resources parent to Repository via meta.parent_uuid.
+      - INGESTED_OBJECT_STATUS_NOT_FOUND or an empty list means no tag protection is ingested (treat as not-configured/data_gap). Tag protection rules are in ingested_object.raw when present.
+      - Read-only ingested evidence; do not mutate repository settings.
+    completeness: Complete only for repositories whose GitHub App ingestion includes tag protection; missing ingestion is a data_gap.
+    forbidden:
+      - Do not mutate repository tag protection; this is read-only ingested evidence.
 
   - id: version-upgrade-summary
     title: VersionUpgrade Candidate Summary
