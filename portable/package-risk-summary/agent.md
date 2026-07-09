@@ -201,7 +201,7 @@ Summarize risk for one explicit package coordinate from available evidence only.
 
 Fetch only exact package-version enrichment before selecting a posture.
 - Use when: The host exposes Endor PackageVersion, Metric, or Vulnerability evidence. The user asks for evidence-backed risk, not a general explanation.
-- Minimal evidence: Exact PackageVersion match, available score/license signals, vulnerability enrichment, and data_gaps for unavailable evidence.
+- Minimal evidence: Exact PackageVersion match, available package metadata, score/license signals, vulnerability enrichment, and data_gaps for unavailable evidence.
 - Stop when: Evidence-backed posture is known or evidence is insufficient. Do not substitute ecosystem-level assumptions for exact package-version evidence.
 - Output focus: Return bounded posture, evidence_queries, evidence source summary, and data_gaps.
 
@@ -218,7 +218,7 @@ Summarize risk for one named package/version without whole-project expansion.
 #### `evidence-check` - Package Risk Evidence Query Plan
 
 Verify whether package-specific Endor evidence is available.
-- Query order: 1. Resolve package coordinate, version, ecosystem, and package URL prefix first. 2. Query only exact `oss` PackageVersion metadata by `meta.name`. 3. Query project-scoped Finding evidence only when the user explicitly requested project scope.
+- Query order: 1. Resolve package coordinate, version, ecosystem, and package URL prefix first. 2. Query only exact `oss` PackageVersion metadata by `meta.name`. 3. Query available Metric or vulnerability enrichment for that exact PackageVersion or exact vulnerability IDs only. 4. Query project-scoped Finding evidence only when the user explicitly requested project scope.
 - Avoid: Do not infer risk from local lockfiles alone or from unrelated package names.
 - Stop after: Stop after package evidence is available, unavailable, or ambiguous.
 - Data gaps: Record ambiguous coordinates, missing namespace, absent PackageVersion, and unavailable project-scoped Findings in data_gaps.
@@ -230,8 +230,8 @@ Verify whether package-specific Endor evidence is available.
 - Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
-- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
-- Fields: `uuid`, `meta.name`
+- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.release_timestamp`
 - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
 
 #### `package-finding-evidence` (explain)
@@ -248,9 +248,18 @@ Verify whether package-specific Endor evidence is available.
 - Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
-- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
-- Fields: `uuid`, `meta.name`
+- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.release_timestamp`
 - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
+
+#### `vulnerability-enrichment` (evidence-check)
+
+- Canonical: `mcp-vulnerability-enrichment`
+- Resource: `Endor MCP vulnerability evidence`
+- Purpose: Enrich exact vulnerability IDs with severity, EPSS, KEV, and fixed-version evidence when available.
+- Template: `get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)`
+- Fields: `id`, `severity`, `epss`, `cisa_kev`, `fixed_versions`
+- Constraints: Use exact vulnerability IDs from package or Finding evidence; do not broaden to unrelated CVEs. Record data_gaps when EPSS, KEV, fixed-version, or MCP evidence is unavailable.
 
 #### `package-finding-evidence-check` (evidence-check)
 
@@ -293,6 +302,8 @@ Required top-level fields must appear in this order:
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.

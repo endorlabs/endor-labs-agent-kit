@@ -99,12 +99,15 @@ recipes:
   - id: package-version-exact
     title: Exact PackageVersion Lookup
     resource: PackageVersion
-    purpose: Fetch one named package version from package-level `oss` metadata without inventorying unrelated dependencies.
+    purpose: Fetch one named package version and compact package metadata from package-level `oss` without inventorying unrelated dependencies.
     template: >-
-      endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json
+      endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
     fields:
       - uuid
       - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
     constraints:
       - Map ecosystem to PackageVersion URL prefix before querying; use `oss` for package-level lookups.
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
@@ -269,13 +272,14 @@ recipes:
     resource: Finding
     purpose: List existing Endor findings for a verified scope and bounded filter set.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
       - spec.level
       - spec.finding_categories
+      - spec.finding_tags
       - spec.target_dependency_package_name
       - spec.finding_metadata
     constraints:
@@ -285,6 +289,23 @@ recipes:
     completeness: Bounded page evidence only; complete inventory requires explicit scope, pagination handling, and proof in evidence_queries.
     forbidden:
       - Do not use this as a broad unfiltered namespace Finding inventory.
+
+  - id: finding-browser-complete-counts
+    title: Complete Finding Browser Count Query
+    resource: Finding
+    purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
+    template: >-
+      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+    fields:
+      - uuid
+      - spec.level
+      - spec.finding_categories
+    constraints:
+      - Use only after project or explicit namespace scope is proven.
+      - Keep table rows bounded; use this compact complete query only for totals and pagination completeness.
+    completeness: Complete for matching Finding IDs/counts when scoped filters and list-all succeed; not a full row-detail export.
+    forbidden:
+      - Do not use broad unfiltered Finding --list-all queries.
 
   - id: finding-browser-by-tag
     title: Exploit And Prioritization Tag Finding Browser
@@ -319,17 +340,17 @@ recipes:
     resource: Finding
     purpose: List existing Endor posture findings for CI/CD, GitHub Actions, SCPM, and supply-chain categories.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_metadata" -o json
+      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
       - spec.level
       - spec.finding_categories
-      - spec.finding_metadata
     constraints:
       - Use only after namespace provenance and posture scope are explicit.
       - Keep result pages bounded and report category or pagination uncertainty in data_gaps.
+      - Record next_page_token or truncation as a data_gap instead of fetching bulky posture metadata during runtime QA.
       - Pair with read-only GitHub evidence before scoring GitHub configuration posture.
     completeness: Bounded category evidence only; complete posture confidence requires explicit scope and GitHub configuration evidence.
     forbidden:
@@ -491,7 +512,7 @@ recipes:
       - meta.name
       - spec.status
       - spec.exit_code
-      - spec.project_uuid
+      - meta.parent_uuid
     constraints:
       - Use only for a selected troubleshooting lane.
       - Do not start or rerun scans.
@@ -564,6 +585,24 @@ recipes:
     completeness: Complete only for the exact vulnerability ID returned by the host tool.
     forbidden:
       - Do not claim MCP evidence when the host does not expose the tool.
+
+  - id: mcp-vulnerability-enrichment
+    title: MCP Vulnerability KEV/EPSS Enrichment
+    resource: Endor MCP vulnerability evidence
+    purpose: Fetch vulnerability prioritization details, including EPSS and KEV, when the host exposes Endor MCP vulnerability tools.
+    template: get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)
+    fields:
+      - id
+      - severity
+      - epss
+      - cisa_kev
+      - fixed_versions
+    constraints:
+      - Use exact CVE/GHSA or vulnerability IDs already found in package or Finding evidence.
+      - Record data_gaps when EPSS, KEV, fixed-version, or MCP evidence is unavailable.
+    completeness: Complete only for exact vulnerability IDs exposed by the host tool.
+    forbidden:
+      - Do not infer EPSS or KEV from severity, package name, or memory.
 
   - id: mcp-finding-by-uuid-full
     title: MCP Finding Evidence By UUID

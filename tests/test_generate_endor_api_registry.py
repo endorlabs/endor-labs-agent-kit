@@ -7,9 +7,14 @@ from scripts.generate_endor_api_registry import (
     emit_enum_block,
     enum_family_drift,
     enum_members_for_family,
+    field_mask_drift,
+    field_mask_path_exists,
     namespaced_collections,
     registry_drift,
     resource_has_evidence,
+    source_field_references,
+    source_query_templates,
+    source_yaml_documents,
     v1_kinds,
 )
 
@@ -113,3 +118,199 @@ def test_emit_enum_block_is_paste_ready():
     assert block.startswith("ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {")
     assert '"FINDING_CATEGORY": frozenset(' in block
     assert '"FINDING_CATEGORY_VULNERABILITY",' in block
+
+
+def test_field_mask_path_exists_walks_refs_arrays_and_maps():
+    spec = {
+        "definitions": {
+            "v1Finding": {
+                "type": "object",
+                "properties": {
+                    "uuid": {"type": "string"},
+                    "spec": {"$ref": "#/definitions/v1FindingSpec"},
+                },
+            },
+            "v1FindingSpec": {
+                "type": "object",
+                "properties": {
+                    "finding_tags": {"type": "array", "items": {"type": "string"}},
+                    "finding_metadata": {"additionalProperties": {"type": "string"}},
+                },
+            },
+        }
+    }
+
+    assert field_mask_path_exists(spec, "Finding", "uuid")
+    assert field_mask_path_exists(spec, "Finding", "spec.finding_tags")
+    assert field_mask_path_exists(spec, "Finding", "spec.finding_metadata.any_key")
+    assert not field_mask_path_exists(spec, "Finding", "spec.monitored_branch")
+
+
+def test_field_mask_path_exists_treats_closed_maps_as_closed():
+    spec = {
+        "definitions": {
+            "v1Finding": {
+                "type": "object",
+                "properties": {
+                    "spec": {
+                        "type": "object",
+                        "properties": {"known": {"type": "string"}},
+                        "additionalProperties": False,
+                    }
+                },
+            }
+        }
+    }
+
+    assert field_mask_path_exists(spec, "Finding", "spec.known")
+    assert not field_mask_path_exists(spec, "Finding", "spec.unknown")
+
+
+def test_field_mask_drift_reports_invalid_query_template_path():
+    spec = {
+        "definitions": {
+            "v1Project": {
+                "type": "object",
+                "properties": {
+                    "uuid": {"type": "string"},
+                    "spec": {"$ref": "#/definitions/v1ProjectSpec"},
+                },
+            },
+            "v1ProjectSpec": {
+                "type": "object",
+                "properties": {"git": {"type": "object"}},
+            },
+        }
+    }
+    templates = [
+        (
+            "workflows/x.yaml.evidence_query_recipes[0].template",
+            'endorctl api list -r Project -n x --field-mask "uuid,spec.git,spec.monitored_branch" -o json',
+        )
+    ]
+
+    drift = field_mask_drift(spec, templates)
+
+    assert drift == [
+        "workflows/x.yaml.evidence_query_recipes[0].template: field-mask path "
+        "'spec.monitored_branch' is not valid for Endor API resource 'Project'"
+    ]
+
+
+def test_field_mask_drift_reports_multiple_field_masks_and_fields_lists():
+    spec = {
+        "definitions": {
+            "v1Project": {
+                "type": "object",
+                "properties": {
+                    "uuid": {"type": "string"},
+                    "spec": {
+                        "type": "object",
+                        "properties": {"git": {"type": "object"}},
+                        "additionalProperties": False,
+                    },
+                },
+            },
+        }
+    }
+    templates = [
+        (
+            "workflows/x.yaml.step.template",
+            'endorctl api list -r Project --field-mask "uuid" && '
+            'endorctl api list -r Project --field-mask "spec.monitored_branch"',
+        )
+    ]
+    fields = [
+        ("workflows/x.yaml.resources[0].fields[0]", "Project", "spec.git"),
+        ("workflows/x.yaml.resources[0].fields[1]", "Project", "spec.monitored_branch"),
+        ("workflows/x.yaml.resources[1].fields[0]", "GitHub", "workflow_files"),
+    ]
+
+    drift = field_mask_drift(spec, templates, fields)
+
+    assert drift == [
+        "workflows/x.yaml.step.template: field-mask path 'spec.monitored_branch' "
+        "is not valid for Endor API resource 'Project'",
+        "workflows/x.yaml.resources[0].fields[1]: fields path 'spec.monitored_branch' "
+        "is not valid for Endor API resource 'Project'",
+    ]
+
+
+def test_field_mask_drift_validates_non_registry_resource_when_schema_exists():
+    spec = {
+        "definitions": {
+            "v1Integration": {
+                "type": "object",
+                "properties": {
+                    "uuid": {"type": "string"},
+                    "spec": {
+                        "type": "object",
+                        "properties": {"name": {"type": "string"}},
+                        "additionalProperties": False,
+                    },
+                },
+            },
+        }
+    }
+    fields = [
+        ("workflows/x.yaml.resources[0].fields[0]", "Integration", "spec.name"),
+        ("workflows/x.yaml.resources[0].fields[1]", "Integration", "spec.missing"),
+    ]
+
+    assert "Integration" not in ENDOR_API_RESOURCES
+    assert field_mask_drift(spec, [], fields) == [
+        "workflows/x.yaml.resources[0].fields[1]: fields path 'spec.missing' "
+        "is not valid for Endor API resource 'Integration'",
+    ]
+
+
+def test_source_field_references_collects_resource_fields(tmp_path):
+    pack = tmp_path / "pack"
+    (pack / "workflows").mkdir(parents=True)
+    (pack / "query-recipes.yaml").write_text("recipes: []\n", encoding="utf-8")
+    (pack / "workflows" / "x.yaml").write_text(
+        """\
+resources:
+  - name: Project
+    fields:
+      - uuid
+      - spec.monitored_branch
+evidence_query_recipes:
+  - resource: Finding
+    fields:
+      - spec.level
+""",
+        encoding="utf-8",
+    )
+
+    assert source_field_references(pack) == [
+        ("workflows/x.yaml.resources[0].fields[0]", "Project", "uuid"),
+        ("workflows/x.yaml.resources[0].fields[1]", "Project", "spec.monitored_branch"),
+        ("workflows/x.yaml.evidence_query_recipes[0].fields[0]", "Finding", "spec.level"),
+    ]
+
+
+def test_source_yaml_documents_can_be_reused_for_templates_and_fields(tmp_path):
+    pack = tmp_path / "pack"
+    (pack / "workflows").mkdir(parents=True)
+    (pack / "query-recipes.yaml").write_text("recipes: []\n", encoding="utf-8")
+    (pack / "workflows" / "x.yaml").write_text(
+        """\
+resources:
+  - name: Project
+    fields: [uuid]
+evidence_query_recipes:
+  - id: project
+    template: endorctl api list -r Project --field-mask uuid
+""",
+        encoding="utf-8",
+    )
+
+    documents = source_yaml_documents(pack)
+
+    assert source_query_templates(pack, documents) == [
+        ("workflows/x.yaml.evidence_query_recipes[0].template", "endorctl api list -r Project --field-mask uuid")
+    ]
+    assert source_field_references(pack, documents) == [
+        ("workflows/x.yaml.resources[0].fields[0]", "Project", "uuid")
+    ]

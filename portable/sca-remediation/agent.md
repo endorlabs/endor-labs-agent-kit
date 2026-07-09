@@ -612,6 +612,14 @@ After selecting a namespace, pass it explicitly with `-n <namespace>` or `--name
 
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
 
+## Endor Project Resolution Preflight
+
+Before scoped Endor reads, resolve the repo to live Project evidence. Try selectors in order and record them: clone URL, HTTP URL, source-provider full name, `meta.name`, basename. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
+
+If the parent namespace misses, retry the same selector with `--traverse` before declaring a gap. When traversal finds a child project, use that child namespace for later scoped reads when possible; otherwise keep `--traverse` and say so.
+
+Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. Branch proof order: `Repository.spec.default_branch`, `ScanResult.spec.refs`, root `PackageVersion` branch suffix, then runtime repository adapter HEAD as context only. Missing proof goes in `data_gaps`; never guess.
+
 ## Endor Knowledge Pack
 
 These notes augment this generated recipe. Workflow output contracts, hard guardrails, and source recipe instructions remain authoritative.
@@ -791,7 +799,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `Finding`: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
-- `VersionUpgrade`: Verify UIA/CIA upgrade evidence before making low-risk or compatibility claims. Fields: `uuid`, `meta.parent_uuid`, `spec.upgrade_info`, `spec.upgrade_impact`.
+- `VersionUpgrade`: Verify UIA/CIA upgrade evidence before making low-risk or compatibility claims. Fields: `uuid`, `meta.parent_uuid`, `spec.upgrade_info`, `spec.finding_fixing_upgrades`.
 - Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. 2. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path. 3. For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion. 4. Query narrow main-context Finding availability for evidence checks, and fetch Finding detail only for selected-candidate advisory mapping, PR body detail, or count reconciliation.
 - Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. A resolved `project_resolution` needs branch provenance and `project_resolution.traverse_attempted`; if branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and mirror the blocker in `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected. When `evidence_queries[]` is present, include both a `Finding` row and a `VersionUpgrade` or `UIA` row, or add a precise top-level `data_gaps[]` entry for the missing evidence lane.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output. Preserve branch provenance and `project_resolution.traverse_attempted`; mirror missing branch evidence in `data_gaps`. Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object. For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
@@ -825,6 +833,8 @@ Required top-level fields must appear in this order:
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.

@@ -37,9 +37,31 @@ After selecting a namespace, pass it explicitly with `-n <namespace>` or `--name
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
 """
 
+ENDOR_NAMESPACE_PREFLIGHT_COMPACT = """## Endor Namespace Preflight
+
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl api` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+"""
+
+ENDOR_PROJECT_RESOLUTION_PREFLIGHT = """## Endor Project Resolution Preflight
+
+Before scoped Endor reads, resolve the repo to live Project evidence. Try selectors in order and record them: clone URL, HTTP URL, source-provider full name, `meta.name`, basename. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
+
+If the parent namespace misses, retry the same selector with `--traverse` before declaring a gap. When traversal finds a child project, use that child namespace for later scoped reads when possible; otherwise keep `--traverse` and say so.
+
+Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. Branch proof order: `Repository.spec.default_branch`, `ScanResult.spec.refs`, root `PackageVersion` branch suffix, then local git HEAD as context only. Missing proof goes in `data_gaps`; never guess.
+"""
+
+ENDOR_PROJECT_RESOLUTION_PREFLIGHT_COMPACT = """## Endor Project Resolution Preflight
+
+Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. Return project_resolution status/uuid/namespace/provenance/selectors/traverse. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> `data_gaps`; never guess.
+"""
+
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
     "`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`."
+)
+DATA_GAPS_REASON_GUIDANCE = (
+    "`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional."
 )
 STRUCTURED_OUTPUT_TYPE_GUIDANCE = (
     "Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON."
@@ -70,10 +92,22 @@ def instructions_for_edition(
     shared = sections.shared
     mode = sections.for_edition(edition)
     knowledge_pack = render_knowledge_pack_section(recipe_id, compact=compact_plugin).rstrip()
+    namespace_preflight = (
+        ENDOR_NAMESPACE_PREFLIGHT_COMPACT
+        if compact_plugin
+        else ENDOR_NAMESPACE_PREFLIGHT
+    )
     sections_to_render = [
         shared.rstrip(),
-        ENDOR_NAMESPACE_PREFLIGHT.rstrip(),
+        namespace_preflight.rstrip(),
     ]
+    if recipe_declares_output(structured_output_recipe, "project_resolution"):
+        project_preflight = (
+            ENDOR_PROJECT_RESOLUTION_PREFLIGHT_COMPACT
+            if compact_plugin
+            else ENDOR_PROJECT_RESOLUTION_PREFLIGHT
+        )
+        sections_to_render.append(project_preflight.rstrip())
     if knowledge_pack:
         sections_to_render.append(knowledge_pack)
     if structured_output_recipe is not None:
@@ -90,6 +124,10 @@ def instructions_for_edition(
     if compact_plugin:
         return compact_marked_sections(rendered)
     return strip_compaction_marker_lines(rendered)
+
+
+def recipe_declares_output(recipe: EndorAgentRecipe | None, field_name: str) -> bool:
+    return bool(recipe and any(field.name == field_name for field in recipe.outputs))
 
 
 def instructions_for_variant(
@@ -138,6 +176,8 @@ def render_structured_output_contract(
             ])
         if _has_required_field(required, "evidence_queries"):
             lines.append(EVIDENCE_LEDGER_GUIDANCE)
+        if _has_required_field(required, "data_gaps"):
+            lines.append(DATA_GAPS_REASON_GUIDANCE)
         lines.extend([
             STRUCTURED_OUTPUT_TYPE_GUIDANCE,
             "Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.",
@@ -167,6 +207,8 @@ def render_structured_output_contract(
             lines.append(f"- `{field.name}` (`{field.kind}`): {field.description or 'Optional recipe output.'}")
     if _has_required_field(required, "evidence_queries"):
         lines.extend(["", EVIDENCE_LEDGER_GUIDANCE])
+    if _has_required_field(required, "data_gaps"):
+        lines.extend(["", DATA_GAPS_REASON_GUIDANCE])
     lines.extend([
         "",
         "Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.",

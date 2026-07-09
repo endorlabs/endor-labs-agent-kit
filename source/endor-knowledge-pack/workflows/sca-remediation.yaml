@@ -83,7 +83,7 @@ resources:
       - uuid
       - meta.parent_uuid
       - spec.upgrade_info
-      - spec.upgrade_impact
+      - spec.finding_fixing_upgrades
 retrieval_steps:
   - Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID,
     and freshness.

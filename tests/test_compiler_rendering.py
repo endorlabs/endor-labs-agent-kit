@@ -50,6 +50,49 @@ def test_shared_compiler_rendering_injects_namespace_preflight():
     assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in rendered
     assert "tenant-specific, customer-specific, production, backup" in rendered
     assert "non-default Endor config directories" in rendered
+    assert "## Endor Project Resolution Preflight" not in rendered
+
+
+def test_shared_compiler_rendering_injects_project_preflight_only_for_project_recipes():
+    project_recipe = _recipe_with_outputs(
+        RecipeField("summary", "string", required=True),
+        RecipeField("project_resolution", "object", required=True),
+    )
+    package_recipe = _recipe_with_outputs(
+        RecipeField("summary", "string", required=True),
+        RecipeField("package_version", "object", required=True),
+    )
+
+    project_rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        structured_output_recipe=project_recipe,
+    )
+    package_rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        structured_output_recipe=package_recipe,
+    )
+
+    assert "## Endor Project Resolution Preflight" in project_rendered
+    assert "retry the same selector with `--traverse`" in project_rendered
+    assert "Repository.spec.default_branch" in project_rendered
+    assert "## Endor Project Resolution Preflight" not in package_rendered
+
+
+def test_shared_compiler_rendering_compact_project_preflight_is_conditional():
+    rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        structured_output_recipe=_recipe_with_outputs(
+            RecipeField("summary", "string", required=True),
+            RecipeField("project_resolution", "object", required=True),
+        ),
+        compact_plugin=True,
+    )
+
+    assert "## Endor Project Resolution Preflight" in rendered
+    assert "--traverse" in rendered
 
 
 def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_preflight():
@@ -79,12 +122,14 @@ def test_shared_compiler_rendering_injects_structured_contract_before_workflow_s
         recipe_id="sca-remediation",
         structured_output_recipe=_recipe_with_outputs(
             RecipeField("summary", "string", required=True),
+            RecipeField("project_resolution", "object", required=True),
             RecipeField("data_gaps", "list[string]", required=True),
         ),
     )
 
     assert rendered.count(STRUCTURED_OUTPUT_HEADING) == 1
     assert rendered.index("## Endor Namespace Preflight") < rendered.index(PACK_SECTION_HEADING)
+    assert rendered.index("## Endor Project Resolution Preflight") < rendered.index(PACK_SECTION_HEADING)
     assert rendered.index(PACK_SECTION_HEADING) < rendered.index(STRUCTURED_OUTPUT_HEADING)
     assert rendered.index(STRUCTURED_OUTPUT_HEADING) < rendered.index("Enterprise rules.")
 
@@ -138,6 +183,40 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     assert "version-upgrade-summary" in compact
     assert "endorctl api list -r VersionUpgrade -n <namespace>" in compact
     assert "#### `selection-plan` - Selection Plan" not in compact
+
+
+def test_shared_compiler_rendering_compact_profile_keeps_namespace_guardrail_literals():
+    compact = instructions_for_edition(INSTRUCTIONS, "enterprise-edition", compact_plugin=True)
+
+    assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in compact
+    assert "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only" in compact
+    assert "surface both values with provenance and stop for user confirmation" in compact
+    assert "`endorctl api` lookup" in compact
+    assert "tenant-specific, customer-specific, production, backup" in compact
+    assert "non-default Endor config" in compact
+
+
+def test_findings_browser_applied_filters_guidance_is_product_safe():
+    instructions = (
+        repo_root()
+        / "source"
+        / "agents"
+        / "findings-browser"
+        / "instructions.md"
+    ).read_text(encoding="utf-8")
+    workflow = (
+        repo_root()
+        / "source"
+        / "endor-knowledge-pack"
+        / "workflows"
+        / "findings-browser.yaml"
+    ).read_text(encoding="utf-8")
+
+    assert "Self-chosen defaults belong in `applied_filters`" in instructions
+    assert "severity_levels=[\"CRITICAL\",\"HIGH\"]" not in instructions
+    assert "In runtime QA" not in instructions
+    assert "severity_levels=CRITICAL,HIGH" not in workflow
+    assert "page_size=25" not in workflow
 
 
 def test_shared_compiler_rendering_reports_missing_instruction_sections():
@@ -256,6 +335,8 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
     assert "missing inputs return JSON" in rendered
     assert "no raw commands" in rendered
     assert "put gaps in top-level `data_gaps`" in rendered
+    assert "prefix task/profile skips with `out_of_scope:`" in rendered
+    assert "missing sought evidence with `unavailable:`" in rendered
     assert "```json" not in rendered
 
 

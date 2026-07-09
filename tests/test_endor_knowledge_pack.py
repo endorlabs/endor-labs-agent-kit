@@ -38,6 +38,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "endor-repository-config",
         "exposure-guidance-source",
         "finding-browser-by-tag",
+        "finding-browser-complete-counts",
         "finding-browser-filtered",
         "finding-by-uuid",
         "github-branch-protection",
@@ -48,6 +49,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "mcp-finding-by-uuid-full",
         "mcp-vulnerability-by-id-check",
         "mcp-vulnerability-by-id-full",
+        "mcp-vulnerability-enrichment",
         "package-version-exact",
         "project-branch-coverage",
         "project-by-git",
@@ -203,6 +205,15 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "selected_remediation.branch_name" in compact
     assert "change_requests[].proposed_branch" in compact
     assert "never use selection labels such as `selected`" in compact
+
+
+def test_cicd_posture_compact_profile_keeps_endor_native_recipes():
+    compact = render_task_profile_prompt("cicd-posture", "posture", compact=True)
+
+    assert "endor-repository-config" in compact
+    assert "endor-repo-codeowners" in compact
+    assert "endor-repo-tag-protection" in compact
+    assert "github-branch-protection" not in compact
 
 
 def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
@@ -437,6 +448,27 @@ def test_knowledge_pack_validator_accepts_scoped_ai_sast_list_all_query(tmp_path
         '\'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" '
         'and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"\' '
         '--field-mask "uuid,context.type,spec.project_uuid,spec.method" --list-all -o json'
+    )
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert "workflows/sca-remediation.yaml evidence_query_recipes[0].template: broad Finding --list-all templates are not allowed" not in errors
+
+
+def test_knowledge_pack_validator_accepts_scoped_finding_count_list_all_query(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["evidence_query_recipes"][0]["template"] = (
+        "endorctl api list -r Finding -n <namespace> --filter "
+        "'<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] "
+        "and spec.finding_categories contains <FINDING_CATEGORY>' "
+        '--field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json'
     )
     (workflows / "sca-remediation.yaml").write_text(
         yaml.safe_dump(workflow, sort_keys=False),

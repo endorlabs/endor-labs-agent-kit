@@ -13,6 +13,10 @@ the spec instead of a hand-maintained guess:
   * ``--emit``   : print paste-ready Python literals for ENDOR_ENUM_VALUES so a
                    maintainer never hand-types enum members again.
 
+``--check`` also validates the field-mask paths used by the source knowledge
+pack against the resource schemas in the same OpenAPI spec. This catches typos
+such as ``spec.monitored_branch`` before a generated agent ships them.
+
 The core extractors are pure functions over a parsed spec dict, so they are unit
 tested offline; only ``main`` touches the network.
 
@@ -32,6 +36,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 # Keep the kit importable when run as a script from the repo root.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
@@ -49,6 +55,10 @@ except Exception:  # pragma: no cover - defensive fallback
 # rather than a ``v1<Kind>`` message, or that are legacy. Documented here so they
 # are exceptions on purpose, not silent gaps.
 LEGACY_RESOURCES = frozenset({"UpgradeImpactAnalysis"})
+_RESOURCE_RE = re.compile(r"(?:--resource|(?<![\w-])-r)[=\s]+([A-Z][A-Za-z0-9]*)")
+_FIELD_MASK_RE = re.compile(
+    r"--field-mask(?:=|\s+)(?:(?P<quote>[\"'])(?P<quoted>.+?)(?P=quote)|(?P<bare>\S+))"
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -161,6 +171,171 @@ def registry_drift(spec: dict[str, Any]) -> list[str]:
     return drift
 
 
+YamlDocument = tuple[str, Any]
+
+
+def source_yaml_documents(pack_root: Path) -> list[YamlDocument]:
+    """Return parsed source YAML documents as ``(relative_path, data)`` pairs."""
+
+    paths = [pack_root / "query-recipes.yaml"]
+    paths.extend(sorted((pack_root / "workflows").glob("*.yaml")))
+    documents: list[YamlDocument] = []
+    for path in paths:
+        if not path.exists():
+            continue
+        rel = path.relative_to(pack_root).as_posix()
+        documents.append((rel, yaml.safe_load(path.read_text(encoding="utf-8")) or {}))
+    return documents
+
+
+def source_query_templates(
+    pack_root: Path,
+    documents: list[YamlDocument] | None = None,
+) -> list[tuple[str, str]]:
+    """Return ``(prefix, template)`` pairs from query-recipes.yaml and workflows."""
+
+    templates: list[tuple[str, str]] = []
+    yaml_documents = documents if documents is not None else source_yaml_documents(pack_root)
+    for rel, data in yaml_documents:
+        _collect_templates(data, rel, templates)
+    return templates
+
+
+def source_field_references(
+    pack_root: Path,
+    documents: list[YamlDocument] | None = None,
+) -> list[tuple[str, str, str]]:
+    """Return ``(prefix, resource, field_path)`` references from rendered source YAML."""
+
+    fields: list[tuple[str, str, str]] = []
+    yaml_documents = documents if documents is not None else source_yaml_documents(pack_root)
+    for rel, data in yaml_documents:
+        _collect_field_references(data, rel, fields)
+    return fields
+
+
+def _collect_templates(value: Any, prefix: str, templates: list[tuple[str, str]]) -> None:
+    if isinstance(value, dict):
+        for key, child in value.items():
+            child_prefix = f"{prefix}.{key}"
+            if key == "template" and isinstance(child, str):
+                templates.append((child_prefix, child))
+            else:
+                _collect_templates(child, child_prefix, templates)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _collect_templates(child, f"{prefix}[{index}]", templates)
+
+
+def _collect_field_references(
+    value: Any,
+    prefix: str,
+    fields: list[tuple[str, str, str]],
+) -> None:
+    if isinstance(value, dict):
+        resource = value.get("resource") or value.get("name")
+        field_values = value.get("fields")
+        if isinstance(resource, str) and isinstance(field_values, list):
+            for index, field in enumerate(field_values):
+                if isinstance(field, str) and field.strip():
+                    fields.append((f"{prefix}.fields[{index}]", resource, field.strip()))
+        for key, child in value.items():
+            _collect_field_references(child, f"{prefix}.{key}", fields)
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            _collect_field_references(child, f"{prefix}[{index}]", fields)
+
+
+def field_mask_drift(
+    spec: dict[str, Any],
+    templates: list[tuple[str, str]],
+    fields: list[tuple[str, str, str]] | None = None,
+) -> list[str]:
+    """Return invalid field-mask path lines for Endor query templates."""
+
+    drift: list[str] = []
+    for prefix, template in templates:
+        resources = tuple(dict.fromkeys(_RESOURCE_RE.findall(template)))
+        masks = _field_mask_paths(template)
+        if not resources or not masks:
+            continue
+        for resource in resources:
+            if not resource_schema_exists(spec, resource):
+                continue
+            for field_path in masks:
+                if not field_mask_path_exists(spec, resource, field_path):
+                    drift.append(
+                        f"{prefix}: field-mask path {field_path!r} is not valid for "
+                        f"Endor API resource {resource!r}"
+                    )
+    for prefix, resource, field_path in fields or []:
+        if not resource_schema_exists(spec, resource):
+            continue
+        if not field_mask_path_exists(spec, resource, field_path):
+            drift.append(
+                f"{prefix}: fields path {field_path!r} is not valid for "
+                f"Endor API resource {resource!r}"
+            )
+    return drift
+
+
+def resource_schema_exists(spec: dict[str, Any], resource: str) -> bool:
+    return isinstance(spec.get("definitions", {}).get(f"v1{resource}"), dict)
+
+
+def field_mask_path_exists(spec: dict[str, Any], resource: str, field_path: str) -> bool:
+    """True when dotted ``field_path`` exists on ``resource``'s OpenAPI schema."""
+
+    schema = spec.get("definitions", {}).get(f"v1{resource}")
+    if not isinstance(schema, dict):
+        return False
+    for part in field_path.split("."):
+        schema = _schema_for_field_part(spec, schema, part)
+        if schema is None:
+            return False
+    return True
+
+
+def _schema_for_field_part(
+    spec: dict[str, Any],
+    schema: dict[str, Any],
+    part: str,
+) -> dict[str, Any] | None:
+    schema = _resolve_schema(spec, schema)
+    while schema.get("type") == "array":
+        schema = _resolve_schema(spec, schema.get("items", {}))
+    if "allOf" in schema:
+        for option in schema["allOf"]:
+            found = _schema_for_field_part(spec, option, part)
+            if found is not None:
+                return found
+    props = schema.get("properties")
+    if isinstance(props, dict) and part in props:
+        prop = props[part]
+        return prop if isinstance(prop, dict) else None
+    if "additionalProperties" in schema:
+        additional = schema.get("additionalProperties")
+        if additional is False:
+            return None
+        return additional if isinstance(additional, dict) else {}
+    return None
+
+
+def _resolve_schema(spec: dict[str, Any], schema: dict[str, Any]) -> dict[str, Any]:
+    while isinstance(schema, dict) and "$ref" in schema:
+        ref = schema["$ref"]
+        schema = spec.get("definitions", {}).get(ref.removeprefix("#/definitions/"), {})
+    return schema if isinstance(schema, dict) else {}
+
+
+def _field_mask_paths(template: str) -> tuple[str, ...]:
+    masks: list[str] = []
+    for match in _FIELD_MASK_RE.finditer(template):
+        mask = match.group("quoted") or match.group("bare") or ""
+        masks.extend(part.strip() for part in mask.split(",") if part.strip())
+    return tuple(masks)
+
+
 def emit_enum_block(spec: dict[str, Any]) -> str:
     """Render paste-ready ENDOR_ENUM_VALUES literals for the registry's tracked families."""
 
@@ -206,6 +381,15 @@ def main(argv: list[str] | None = None) -> int:
     status = 0
     if args.check:
         drift = registry_drift(spec)
+        pack_root = Path(__file__).resolve().parents[1] / "source" / "endor-knowledge-pack"
+        source_documents = source_yaml_documents(pack_root)
+        drift.extend(
+            field_mask_drift(
+                spec,
+                source_query_templates(pack_root, source_documents),
+                source_field_references(pack_root, source_documents),
+            )
+        )
         if drift:
             print("Endor API registry drift detected:")
             for line in drift:

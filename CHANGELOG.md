@@ -11,6 +11,22 @@ package metadata.
 
 ## Unreleased
 
+### Fixed
+
+- Restored compact generated namespace preflight wording required by catalog
+  guardrails, including Endor namespace/config provenance and credential input
+  literals.
+- Extended Endor API registry drift checks to validate knowledge-pack field
+  lists as well as every rendered `--field-mask`, and wired the check into
+  blocking Agent Kit CI.
+- Pinned the OpenAPI JSON under `source/endor-context/` so registry checks run
+  offline against the same spec recorded in provenance.
+- Scoped Project Resolution Preflight injection to recipes that declare
+  `project_resolution`, keeping package-level and workspace-independent agents
+  out of project-resolution guidance.
+- Clarified generated data-gap taxonomy and findings-browser filter guidance so
+  unavailable evidence and QA-only defaults stay machine-readable.
+
 ## 2.1.0 - 2026-06-16
 
 ### Added

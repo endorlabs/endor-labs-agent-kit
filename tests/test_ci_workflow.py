@@ -22,6 +22,12 @@ def test_ci_workflow_runs_guardrail_conformance_check():
     assert "endor-agent-kit check-guardrails --catalog-root ." in workflow
 
 
+def test_ci_workflow_runs_registry_check_against_pinned_spec():
+    workflow = (repo_root() / ".github" / "workflows" / "agent-kit-ci.yml").read_text()
+
+    assert "python scripts/generate_endor_api_registry.py --check --spec source/endor-context/openapiv2.swagger.json" in workflow
+
+
 def test_ci_workflow_runs_endor_context_freshness_check():
     workflow = (repo_root() / ".github" / "workflows" / "agent-kit-ci.yml").read_text()
 
@@ -43,6 +49,8 @@ def test_refresh_endor_context_workflow_reports_manual_freshness():
     assert "schedule" in workflow
     assert "endor-agent-kit refresh-endor-context" in workflow
     assert "endor-agent-kit verify-endor-context --upstream" in workflow
+    assert "python scripts/generate_endor_api_registry.py --check --spec source/endor-context/openapiv2.swagger.json" in workflow
+    assert "source/endor-context/openapiv2.swagger.json" in workflow
     assert "Manual Endor context refresh needed" in workflow
     assert "contents: read" in workflow
     assert "pull-requests: write" not in workflow
