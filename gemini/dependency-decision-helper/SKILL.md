@@ -240,8 +240,8 @@ Check whether enough evidence exists for a named dependency decision.
 - Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
-- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
-- Fields: `uuid`, `meta.name`
+- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.release_timestamp`
 - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
 
 #### `package-finding-evidence` (explain)
@@ -258,8 +258,8 @@ Check whether enough evidence exists for a named dependency decision.
 - Canonical: `package-version-exact`
 - Resource: `PackageVersion`
 - Purpose: Fetch exact package-version risk metadata for a named package only.
-- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name" -o json`
-- Fields: `uuid`, `meta.name`
+- Template: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
+- Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.release_timestamp`
 - Constraints: Use exact package coordinates; do not inventory the whole repository when a package is named. If version is unknown, ask for it or report data_gaps.
 
 #### `package-finding-evidence-check` (evidence-check)
@@ -270,6 +270,15 @@ Check whether enough evidence exists for a named dependency decision.
 - Template: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.level`
 - Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+
+#### `vulnerability-enrichment` (evidence-check)
+
+- Canonical: `mcp-vulnerability-enrichment`
+- Resource: `Endor MCP vulnerability evidence`
+- Purpose: Enrich exact vulnerability IDs with severity, EPSS, KEV, and fixed-version evidence when available.
+- Template: `get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)`
+- Fields: `id`, `severity`, `epss`, `cisa_kev`, `fixed_versions`
+- Constraints: Use exact vulnerability IDs from package or Finding evidence; do not broaden to unrelated CVEs. Record data_gaps when EPSS, KEV, fixed-version, or MCP evidence is unavailable.
 
 - Preferred evidence resources: `PackageVersion`, `Metric`, `Vulnerability`.
 - `PackageVersion`: Resolve the exact package-version UUID for score, license, and risk enrichment. Fields: `uuid`, `meta.name`.
@@ -302,6 +311,8 @@ Required top-level fields must appear in this order:
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.

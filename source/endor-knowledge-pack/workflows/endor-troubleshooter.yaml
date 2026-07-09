@@ -67,7 +67,7 @@ resources:
       - uuid
       - meta.name
       - spec.status
-      - spec.workflow_id
+      - spec.execution_id
   - name: Integration
     purpose: Inspect configured package managers, SCM credentials, identity providers, notifications, and exporters.
     fields:
@@ -166,7 +166,7 @@ evidence_query_recipes:
       - meta.name
       - spec.status
       - spec.exit_code
-      - spec.project_uuid
+      - meta.parent_uuid
     constraints:
       - Use only for a selected troubleshooting lane.
       - Do not start or rerun scans.
@@ -197,7 +197,7 @@ evidence_query_recipes:
       - meta.name
       - spec.status
       - spec.exit_code
-      - spec.project_uuid
+      - meta.parent_uuid
     constraints:
       - Use only for a selected troubleshooting lane.
       - Do not start or rerun scans.

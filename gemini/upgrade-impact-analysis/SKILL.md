@@ -450,6 +450,8 @@ Optional top-level fields when verified:
 
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
 
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
+
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Final output: no raw shell, `endorctl api`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.

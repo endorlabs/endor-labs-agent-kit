@@ -1279,7 +1279,7 @@ Prepare a minimal support packet without secrets or mutation.
 - Resource: `ScanResult`
 - Purpose: Fetch one scan result when troubleshooting a known scan or error lane.
 - Template: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
-- Fields: `uuid`, `meta.name`, `spec.status`, `spec.exit_code`, `spec.project_uuid`
+- Fields: `uuid`, `meta.name`, `spec.status`, `spec.exit_code`, `meta.parent_uuid`
 - Constraints: Use only for a selected troubleshooting lane. Do not start or rerun scans.
 
 #### `finding-by-uuid` (diagnose)
@@ -1297,7 +1297,7 @@ Prepare a minimal support packet without secrets or mutation.
 - Resource: `ScanResult`
 - Purpose: Fetch one scan result when troubleshooting a known scan or error lane.
 - Template: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
-- Fields: `uuid`, `meta.name`, `spec.status`, `spec.exit_code`, `spec.project_uuid`
+- Fields: `uuid`, `meta.name`, `spec.status`, `spec.exit_code`, `meta.parent_uuid`
 - Constraints: Use only for a selected troubleshooting lane. Do not start or rerun scans.
 
 #### `project-by-git` (support-packet)
@@ -1312,7 +1312,7 @@ Prepare a minimal support packet without secrets or mutation.
 - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
 - `Project`: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
 - `ScanResult`: Inspect scan lifecycle, exit code, toolchain, and failure state without creating scan log requests. Fields: `uuid`, `meta.name`, `spec.exit_code`, `spec.status`.
-- `ScanWorkflowResult`: Connect scan workflow status to scheduler, CI, PR scan, and baseline behavior. Fields: `uuid`, `meta.name`, `spec.status`, `spec.workflow_id`.
+- `ScanWorkflowResult`: Connect scan workflow status to scheduler, CI, PR scan, and baseline behavior. Fields: `uuid`, `meta.name`, `spec.status`, `spec.execution_id`.
 - `Integration`: Inspect configured package managers, SCM credentials, identity providers, notifications, and exporters. Fields: `uuid`, `meta.name`, `spec`.
 - Retrieval order: 1. Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups. 2. Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans. 3. Query only the minimal resource lanes needed for the user-reported issue area and preserve command/error provenance.
 - Fallbacks: If project lookup misses, retry eligible read-only lookup with traversal before labeling `PROJECT_NOT_FOUND`. If a diagnostic lane cannot be queried, keep other lanes available and prepare a support packet with precise missing evidence.
@@ -1349,6 +1349,8 @@ Required top-level fields must appear in this order:
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.

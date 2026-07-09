@@ -200,6 +200,14 @@ After selecting a namespace, pass it explicitly with `-n <namespace>` or `--name
 
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
 
+## Endor Project Resolution Preflight
+
+Before scoped Endor reads, resolve the repo to live Project evidence. Try selectors in order and record them: clone URL, HTTP URL, source-provider full name, `meta.name`, basename. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
+
+If the parent namespace misses, retry the same selector with `--traverse` before declaring a gap. When traversal finds a child project, use that child namespace for later scoped reads when possible; otherwise keep `--traverse` and say so.
+
+Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. Branch proof order: `Repository.spec.default_branch`, `ScanResult.spec.refs`, root `PackageVersion` branch suffix, then local git HEAD as context only. Missing proof goes in `data_gaps`; never guess.
+
 ## Endor Knowledge Pack
 
 These notes augment this generated recipe. Workflow output contracts, hard guardrails, and source recipe instructions remain authoritative.
@@ -384,6 +392,8 @@ Required top-level fields must appear in this order:
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.

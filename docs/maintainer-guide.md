@@ -86,8 +86,9 @@ the pull request.
 ## Refresh Endor API And Docs Context
 
 Agent Kit does not crawl Endor docs or fetch OpenAPI during normal agent
-runtime. Maintainers instead commit a small provenance file under
-`source/endor-context/` and let CI compare it with upstream.
+runtime. Maintainers instead commit `source/endor-context/provenance.json` plus
+the pinned `source/endor-context/openapiv2.swagger.json` and let CI compare
+them with upstream.
 
 `endor-agent-kit verify-endor-context --upstream` reports OpenAPI SHA drift and
 canonical docs URL drift as errors. The public `/meta/version` signal is
@@ -115,11 +116,12 @@ correctly, refresh locally from a clean Agent Kit checkout:
 endor-agent-kit refresh-endor-context
 endor-agent-kit verify-endor-context --upstream
 python -m pytest -q tests/test_endor_context.py
-git diff -- source/endor-context/provenance.json
+python scripts/generate_endor_api_registry.py --check --spec source/endor-context/openapiv2.swagger.json
+git diff -- source/endor-context/provenance.json source/endor-context/openapiv2.swagger.json
 ```
 
-Commit the refreshed `source/endor-context/provenance.json` through the normal
-signed PR process.
+Commit the refreshed `source/endor-context/` pin files through the normal signed
+PR process.
 
 For a full release, also follow `docs/plugin-release-checklist.md`.
 

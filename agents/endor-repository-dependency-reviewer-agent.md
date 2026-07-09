@@ -137,20 +137,7 @@ Choose posture from the most severe verified signal. Add unavailable signals to
 
 ## Endor Namespace Preflight
 
-Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.
-
-Resolve namespace candidates in this order:
-
-1. Explicit namespace supplied by the user in the current request.
-2. `ENDOR_NAMESPACE` from the current process environment.
-3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only, read with a field-specific command or parser.
-4. Namespace from already-resolved Endor project metadata.
-
-If the user supplied a namespace in the current request, use that namespace explicitly with `-n <namespace>` or `--namespace <namespace>` and report any environment/config mismatch as overridden by the request. If `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
-
-After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl api` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl api -n <namespace>` or report a `data_gaps` entry.
-
-Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl api` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Knowledge Pack
 
@@ -162,13 +149,14 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Evidence Gate Contract
 
-- Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.
-- Never dump or `cat` Endor config files; extract only the namespace key.
+- Never use memory/prior sessions for namespace/repo/project/finding/package provenance.
+- Never dump or `cat` Endor config files; read only namespace key.
 - Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.
-- Local docs need current Endor or user evidence.
-- Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.
-- Read-only means no edits/scans/PRs/comments/writes.
-- No raw commands in final output.
+- Local docs require current Endor/user evidence.
+- Record `namespace_provenance`, repo, branch, traverse, `data_gaps`.
+- Missing inputs in noninteractive/final answer: return required JSON with `data_gaps`.
+- Read-only: no edits/scans/PRs/comments/writes.
+- No raw commands in final.
 
 ### Repository Dependency Review Evidence Contract
 
@@ -183,6 +171,9 @@ Inspect local dependency manifests read-only, resolve exact package coordinates,
 ### Evidence Query Recipes
 
 - `local-manifest-inventory`/evidence-check: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
+- `package-version-exact`/evidence-check: `endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
+- `selected-package-finding-evidence`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
+- `project-by-git`/manifest-inventory: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
 
 ## Agent Policy Packs
 
@@ -196,6 +187,7 @@ Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `risk_posture`, `manifests`, `dependencies_reviewed`, `findings`, `recommended_actions`, `summary`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.

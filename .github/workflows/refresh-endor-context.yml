@@ -41,7 +41,7 @@ jobs:
       - name: Check Endor API registry against the upstream spec
         run: |
           . .venv/bin/activate
-          if python scripts/generate_endor_api_registry.py --check; then
+          if python scripts/generate_endor_api_registry.py --check --spec source/endor-context/openapiv2.swagger.json; then
             echo "Endor API registry matches the upstream OpenAPI."
           else
             echo "::warning title=Endor API registry drift::src/endor_agent_kit/endor_api_registry.py no longer matches the upstream OpenAPI (resources/enums). Regenerate enum literals with 'python scripts/generate_endor_api_registry.py --emit' and reconcile during the manual refresh PR."
@@ -55,12 +55,12 @@ jobs:
 
       - name: Report manual refresh instructions
         run: |
-          if git diff --quiet source/endor-context/provenance.json; then
+          if git diff --quiet -- source/endor-context/provenance.json source/endor-context/openapiv2.swagger.json; then
             echo "Endor context provenance already matches upstream."
             {
               echo "## Endor context refresh"
               echo ""
-              echo "Committed \`source/endor-context/provenance.json\` already matches upstream."
+            echo "Committed \`source/endor-context/\` pin files already match upstream."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
@@ -70,7 +70,7 @@ jobs:
           {
             echo "## Manual Endor context refresh needed"
             echo ""
-            echo "The workflow refreshed and validated \`source/endor-context/provenance.json\` in the runner, but did not push a branch or open a PR."
+            echo "The workflow refreshed and validated \`source/endor-context/\` pin files in the runner, but did not push a branch or open a PR."
             echo "Company policy requires a human-authored branch, signed commit, and normal PR review for this refresh."
             echo ""
             echo "From a clean Agent Kit checkout, run:"
@@ -79,7 +79,7 @@ jobs:
             echo "endor-agent-kit refresh-endor-context"
             echo "endor-agent-kit verify-endor-context --upstream"
             echo "python -m pytest -q tests/test_endor_context.py"
-            echo "git diff -- source/endor-context/provenance.json"
+            echo "git diff -- source/endor-context/provenance.json source/endor-context/openapiv2.swagger.json"
             echo "\`\`\`"
             echo ""
             echo "Before opening the PR, review:"
@@ -90,4 +90,4 @@ jobs:
             echo "- Release docs for removed or renamed endpoints and flags"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          git --no-pager diff -- source/endor-context/provenance.json
+          git --no-pager diff -- source/endor-context/provenance.json source/endor-context/openapiv2.swagger.json
