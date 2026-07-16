@@ -15,6 +15,11 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    # Runs in the 'release' environment so the OIDC token's subject is
+    # repo:<repo>:environment:release -- the exact subject the Azure federated
+    # credential trusts (no wildcards). Removing this breaks azure/login: a tag
+    # push produces no matching federated identity without it.
+    environment: release
     env:
       CATALOG_TAG: ${{ github.ref_name }}
 
@@ -92,7 +97,7 @@ jobs:
           . .venv/bin/activate
           endor-agent-kit stamp-catalog-version --catalog catalog.json --catalog-version "$CATALOG_TAG"
 
-      # --- Signing (gated until the Azure Key Vault key + OIDC federation land; AI-418) ---
+      # --- Signing (gated behind CATALOG_SIGNING_ENABLED; HSM-backed via Azure Key Vault over OIDC) ---
       - name: Azure login (OIDC)
         if: ${{ vars.CATALOG_SIGNING_ENABLED == 'true' }}
         uses: azure/login@a457da9ea143d694b1b9c7c869ebb04ebe844ef5 # v2.3.0
@@ -122,7 +127,7 @@ jobs:
       - name: Refuse to publish an unsigned catalog
         if: ${{ vars.CATALOG_SIGNING_ENABLED != 'true' }}
         run: |
-          echo "::error title=Signing required::CATALOG_SIGNING_ENABLED is not 'true'. Refusing to publish an unsigned catalog.json to a release -- apiserver verifies the signature. Enable Key Vault signing (AI-418) before tagging a release."
+          echo "::error title=Signing required::CATALOG_SIGNING_ENABLED is not 'true'. Refusing to publish an unsigned catalog.json to a release -- consumers verify the signature. Enable Key Vault signing before tagging a release."
           exit 1
 
       - name: Publish GitHub Release
