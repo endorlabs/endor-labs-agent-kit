@@ -6,23 +6,23 @@
 # logic, release pipeline, and pinned key are all in scope.
 
 # Authored agent recipes -- the catalog source of truth.
-/source/agents/                                  @endor-matt @dannykim-endor
+/source/agents/                                  @endor-matt @dannykim-endor @dpowley
 
 # Schema, validation, catalog emitter, signing, and id-stability logic.
-/src/endor_agent_kit/recipe.py                   @endor-matt @dannykim-endor
-/src/endor_agent_kit/validator.py                @endor-matt @dannykim-endor
-/src/endor_agent_kit/catalog_schema.py           @endor-matt @dannykim-endor
-/src/endor_agent_kit/catalog_signing.py          @endor-matt @dannykim-endor
-/src/endor_agent_kit/id_stability.py             @endor-matt @dannykim-endor
-/src/endor_agent_kit/publication/catalog_wire.py @endor-matt @dannykim-endor
+/src/endor_agent_kit/recipe.py                   @endor-matt @dannykim-endor @dpowley
+/src/endor_agent_kit/validator.py                @endor-matt @dannykim-endor @dpowley
+/src/endor_agent_kit/catalog_schema.py           @endor-matt @dannykim-endor @dpowley
+/src/endor_agent_kit/catalog_signing.py          @endor-matt @dannykim-endor @dpowley
+/src/endor_agent_kit/id_stability.py             @endor-matt @dannykim-endor @dpowley
+/src/endor_agent_kit/publication/catalog_wire.py @endor-matt @dannykim-endor @dpowley
 
 # Release pipeline, CI gate, and signing script.
-/.github/workflows/agent-kit-release.yml         @endor-matt @dannykim-endor
-/.github/workflows/agent-kit-ci.yml              @endor-matt @dannykim-endor
-/scripts/sign_catalog_akv.sh                     @endor-matt @dannykim-endor
+/.github/workflows/agent-kit-release.yml         @endor-matt @dannykim-endor @dpowley
+/.github/workflows/agent-kit-ci.yml              @endor-matt @dannykim-endor @dpowley
+/scripts/sign_catalog_akv.sh                     @endor-matt @dannykim-endor @dpowley
 
 # The pinned signing public key.
-/keys/                                           @endor-matt @dannykim-endor
+/keys/                                           @endor-matt @dannykim-endor @dpowley
 
 # The gate itself.
-/CODEOWNERS                                      @endor-matt @dannykim-endor
+/CODEOWNERS                                      @endor-matt @dannykim-endor @dpowley
