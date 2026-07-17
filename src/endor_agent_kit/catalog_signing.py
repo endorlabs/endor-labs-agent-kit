@@ -14,11 +14,28 @@ shape ``openssl dgst -verify`` and Go's ``ecdsa.VerifyASN1`` both accept.
 
 from __future__ import annotations
 
+import base64
 from pathlib import Path
 import subprocess
 
 SIGNATURE_SUFFIX = ".sig"
 _ES256_RAW_LEN = 64  # P-256 r||s: two 32-byte integers
+_ES256_DIGEST_LEN = 32  # SHA-256 digest fed to ES256 sign
+
+
+def akv_digest_arg(digest: bytes) -> str:
+    """Encode a SHA-256 digest for ``az keyvault key sign --digest``.
+
+    The CLI decodes ``--digest`` with standard ``base64.b64decode``, which
+    silently discards base64url's ``-``/``_`` characters. A base64url digest that
+    happens to contain them therefore reaches Key Vault short of 32 bytes and is
+    rejected ("ES256 requires 32 bytes"); standard padded base64 survives that
+    decoder intact.
+    """
+
+    if len(digest) != _ES256_DIGEST_LEN:
+        raise ValueError(f"ES256 digest must be {_ES256_DIGEST_LEN} bytes (SHA-256); got {len(digest)}")
+    return base64.b64encode(digest).decode("ascii")
 
 
 def der_from_raw_p1363(raw: bytes) -> bytes:

@@ -13,14 +13,20 @@ signature="${2:-catalog.json.sig}"
 : "${CATALOG_SIGNING_VAULT:?set CATALOG_SIGNING_VAULT (Azure Key Vault name)}"
 : "${CATALOG_SIGNING_KEY:?set CATALOG_SIGNING_KEY (Key Vault key name)}"
 
-# AKV signs a precomputed digest; ES256 takes the SHA-256 digest as base64url (unpadded).
-digest_b64url="$(openssl dgst -sha256 -binary "$catalog" | basenc --base64url | tr -d '=')"
+# AKV signs a precomputed digest. `az keyvault key sign` decodes --digest with
+# standard base64 (base64.b64decode), which drops base64url's -/_, so encode the
+# SHA-256 digest as standard padded base64 to keep all 32 bytes intact.
+digest_b64="$(openssl dgst -sha256 -binary "$catalog" | python -c '
+import sys
+from endor_agent_kit.catalog_signing import akv_digest_arg
+sys.stdout.write(akv_digest_arg(sys.stdin.buffer.read()))
+')"
 
 raw_b64url="$(az keyvault key sign \
   --vault-name "$CATALOG_SIGNING_VAULT" \
   --name "$CATALOG_SIGNING_KEY" \
   --algorithm ES256 \
-  --digest "$digest_b64url" \
+  --digest "$digest_b64" \
   --query 'result' -o tsv)"
 
 # AKV returns a raw P1363 (r||s) signature; convert to DER for the pinned-public-key
