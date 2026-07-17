@@ -1,15 +1,51 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import subprocess
 
 import pytest
 
 from endor_agent_kit.catalog_signing import (
+    akv_digest_arg,
     der_from_raw_p1363,
     raw_p1363_from_der,
     sign_catalog,
     verify_catalog_signature,
 )
+
+
+def _digest_with_urlsafe_chars() -> bytes:
+    # SHA-256 of b"0" base64url-encodes to a string containing both '-' and '_' --
+    # exactly the data-dependent case that broke the first signed release.
+    digest = hashlib.sha256(b"0").digest()
+    b64url = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+    assert "-" in b64url and "_" in b64url
+    return digest
+
+
+def test_akv_digest_arg_round_trips_through_cli_decoder():
+    # `az keyvault key sign` decodes --digest with standard base64; the argument
+    # must decode back to the exact 32 digest bytes even when the base64url form
+    # contains -/_.
+    digest = _digest_with_urlsafe_chars()
+    decoded = base64.b64decode(akv_digest_arg(digest))
+    assert decoded == digest
+    assert len(decoded) == 32
+
+
+def test_akv_digest_arg_regression_base64url_would_lose_bytes():
+    # The original bug: base64url-unpadded, decoded by the CLI's standard base64
+    # decoder, silently drops -/_ and reaches Key Vault short of 32 bytes.
+    digest = _digest_with_urlsafe_chars()
+    b64url = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
+    assert len(base64.b64decode(b64url)) < 32  # what AKV received before the fix
+    assert base64.b64decode(akv_digest_arg(digest)) == digest  # fixed path
+
+
+def test_akv_digest_arg_rejects_wrong_length():
+    with pytest.raises(ValueError, match="32 bytes"):
+        akv_digest_arg(b"\x00" * 31)
 
 
 def _has_openssl() -> bool:
