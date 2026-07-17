@@ -22,12 +22,20 @@ from endor_agent_kit.catalog_signing import akv_digest_arg
 sys.stdout.write(akv_digest_arg(sys.stdin.buffer.read()))
 ')"
 
+# `az keyvault key sign` returns the signature under `signature` (encrypt/decrypt
+# use `result`, sign/verify do not).
 raw_b64url="$(az keyvault key sign \
   --vault-name "$CATALOG_SIGNING_VAULT" \
   --name "$CATALOG_SIGNING_KEY" \
   --algorithm ES256 \
   --digest "$digest_b64" \
-  --query 'result' -o tsv)"
+  --query 'signature' -o tsv)"
+
+# Fail loudly here rather than let an empty value surface as an opaque length error downstream.
+if [ -z "$raw_b64url" ]; then
+  echo "az keyvault key sign returned no signature (check --query field and key permissions)" >&2
+  exit 1
+fi
 
 # AKV returns a raw P1363 (r||s) signature; convert to DER for the pinned-public-key
 # verifiers (openssl dgst -verify, apiserver ecdsa.VerifyASN1).
