@@ -21,6 +21,23 @@ CONDITION_OPERATORS = frozenset(
 )
 CONDITION_FIELDS = ("when", "deny_if", "warn_if", "require_review_if", "allow_if")
 BLOCKING_DECISIONS = frozenset({"blocked", "requires_review", "unavailable"})
+POLICY_PACK_FIELDS = frozenset({"policy_pack_version", "id", "version", "policies"})
+POLICY_FIELDS = frozenset(
+    {
+        "id",
+        "title",
+        "effect",
+        "message",
+        "applies_to",
+        "when",
+        "allow_if",
+        "warn_if",
+        "require_review_if",
+        "deny_if",
+        "on_missing_facts",
+    }
+)
+APPLIES_TO_FIELDS = frozenset({"agents", "ecosystems"})
 
 
 @dataclass(frozen=True)
@@ -61,8 +78,11 @@ def validate_policy_pack_file(path: str | Path) -> list[str]:
 def validate_policy_pack_data(data: dict[str, Any]) -> list[str]:
     """Return all validation errors for one policy pack mapping."""
 
-    errors: list[str] = []
-    if data.get("policy_pack_version") != POLICY_PACK_SCHEMA_VERSION:
+    errors = _unsupported_field_errors(data, POLICY_PACK_FIELDS, "policy_pack")
+    if (
+        type(data.get("policy_pack_version")) is not int
+        or data["policy_pack_version"] != POLICY_PACK_SCHEMA_VERSION
+    ):
         errors.append("policy_pack_version: must be 1")
     for field in ("id", "version"):
         if not _text(data.get(field)):
@@ -79,6 +99,7 @@ def validate_policy_pack_data(data: dict[str, Any]) -> list[str]:
         if not isinstance(policy, dict):
             errors.append(f"{prefix}: must be a mapping")
             continue
+        errors.extend(_unsupported_field_errors(policy, POLICY_FIELDS, prefix))
         policy_id = _text(policy.get("id"))
         if not policy_id:
             errors.append(f"{prefix}.id: must be a non-empty string")
@@ -91,15 +112,20 @@ def validate_policy_pack_data(data: dict[str, Any]) -> list[str]:
         effect = _text(policy.get("effect"))
         if effect not in POLICY_EFFECTS:
             errors.append(f"{prefix}.effect: must be one of {', '.join(sorted(POLICY_EFFECTS))}")
-        missing = _text(policy.get("on_missing_facts") or "deny")
+        missing = (
+            _text(policy["on_missing_facts"])
+            if "on_missing_facts" in policy
+            else "deny"
+        )
         if missing not in MISSING_FACT_POLICIES:
             errors.append(
                 f"{prefix}.on_missing_facts: must be one of "
                 + ", ".join(sorted(MISSING_FACT_POLICIES))
             )
-        if effect in {"deny", "require_review"} and not _text(policy.get("message")):
-            errors.append(f"{prefix}.message: required for blocking policies")
-        errors.extend(_validate_applies_to(policy.get("applies_to"), prefix))
+        if not _text(policy.get("message")):
+            errors.append(f"{prefix}.message: required for every policy")
+        if "applies_to" in policy:
+            errors.extend(_validate_applies_to(policy["applies_to"], prefix))
         for field in CONDITION_FIELDS:
             if field in policy:
                 errors.extend(_validate_condition(policy[field], f"{prefix}.{field}"))
@@ -159,6 +185,7 @@ def policy_output_errors(
     policy_pack: dict[str, Any] | None = None,
     policy_sha256: str = "",
     mutation_gate: bool = False,
+    trusted_evaluations: list[dict[str, Any]] | None = None,
 ) -> list[str]:
     """Validate policy context/evaluation fields in an agent output payload."""
 
@@ -186,6 +213,8 @@ def policy_output_errors(
             errors.append("policy_context.sha256: does not match supplied policy pack")
         if not evaluations and policy_pack.get("policies"):
             errors.append("policy_evaluations: required when --policy-pack declares policies")
+        if trusted_evaluations is None:
+            errors.append("policy_evaluations: trusted policy evaluation is required")
     elif status not in {"", "not_configured", "loaded", "unavailable"}:
         errors.append("policy_context.status: must be not_configured, loaded, or unavailable")
 
@@ -203,6 +232,41 @@ def policy_output_errors(
             errors.append(
                 f"policy_evaluations[{index}].decision: {decision} blocks mutation gate"
             )
+    if trusted_evaluations is not None:
+        errors.extend(_trusted_evaluation_errors(evaluations, trusted_evaluations))
+    return errors
+
+
+def _trusted_evaluation_errors(
+    evaluations: list[Any],
+    trusted_evaluations: list[dict[str, Any]],
+) -> list[str]:
+    errors: list[str] = []
+    trusted_ids = {evaluation["policy_id"] for evaluation in trusted_evaluations}
+    for index, evaluation in enumerate(evaluations):
+        if isinstance(evaluation, dict) and evaluation.get("policy_id") not in trusted_ids:
+            errors.append(
+                f"policy_evaluations[{index}].policy_id: not present in trusted policy evaluations"
+            )
+    for expected in trusted_evaluations:
+        policy_id = expected["policy_id"]
+        matches = [
+            (index, evaluation)
+            for index, evaluation in enumerate(evaluations)
+            if isinstance(evaluation, dict) and evaluation.get("policy_id") == policy_id
+        ]
+        if len(matches) != 1:
+            errors.append(
+                f"policy_evaluations: must contain exactly one trusted evaluation for {policy_id!r}"
+            )
+            continue
+        index, evaluation = matches[0]
+        for field in ("effect", "decision", "message", "facts_used", "missing_facts"):
+            if evaluation.get(field) != expected.get(field):
+                errors.append(
+                    f"policy_evaluations[{index}].{field}: must match trusted policy "
+                    f"evaluation {expected.get(field)!r}"
+                )
     return errors
 
 
@@ -243,7 +307,7 @@ def _evaluate_policy(
     if when.matched is None:
         return _evaluation_record(base, _missing_decision(policy), when)
 
-    condition = policy.get(f"{effect}_if", policy.get("condition"))
+    condition = policy.get(f"{effect}_if")
     result = _eval_condition(condition, facts) if condition is not None else _always()
     combined = ConditionResult(
         result.matched,
@@ -436,11 +500,9 @@ def _applies_to(value: Any, *, agent_id: str, ecosystem: str) -> bool:
 
 
 def _validate_applies_to(value: Any, prefix: str) -> list[str]:
-    if value is None:
-        return []
     if not isinstance(value, dict):
         return [f"{prefix}.applies_to: must be a mapping"]
-    errors: list[str] = []
+    errors = _unsupported_field_errors(value, APPLIES_TO_FIELDS, f"{prefix}.applies_to")
     for field in ("agents", "ecosystems"):
         if field in value and not _is_string_list(value[field]):
             errors.append(f"{prefix}.applies_to.{field}: must be a list of strings")
@@ -455,6 +517,9 @@ def _validate_condition(condition: Any, prefix: str) -> list[str]:
         if len(compound) > 1 or "fact" in condition:
             return [f"{prefix}: must contain only one compound operator"]
         field = compound[0]
+        unsupported = _unsupported_field_errors(condition, frozenset({field}), prefix)
+        if unsupported:
+            return unsupported
         if field in {"all", "any"}:
             value = condition[field]
             if not isinstance(value, list) or not value:
@@ -473,11 +538,24 @@ def _validate_condition(condition: Any, prefix: str) -> list[str]:
     unknown = set(condition) - {"fact"} - CONDITION_OPERATORS
     if unknown:
         return [f"{prefix}: unsupported fields {sorted(unknown)}"]
+    if operators[0] == "exists" and not isinstance(condition["exists"], bool):
+        return [f"{prefix}.exists: must be boolean"]
+    if operators[0] == "in" and not isinstance(condition["in"], list):
+        return [f"{prefix}.in: must be a list"]
     return []
 
 
 def _is_string_list(value: Any) -> bool:
     return isinstance(value, list) and all(isinstance(item, str) and item for item in value)
+
+
+def _unsupported_field_errors(
+    value: dict[Any, Any],
+    allowed: frozenset[str],
+    prefix: str,
+) -> list[str]:
+    unsupported = sorted((field for field in value if field not in allowed), key=str)
+    return [f"{prefix}: unsupported fields {unsupported}"] if unsupported else []
 
 
 def _text(value: Any) -> str:

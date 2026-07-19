@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import json
 from pathlib import Path
 from typing import Any, Callable, Literal
 
 from endor_agent_kit.policy_pack import (
+    evaluate_policy_pack,
     load_policy_pack,
     policy_output_errors,
     policy_pack_sha256,
@@ -73,6 +75,11 @@ class WorkflowCommand:
                 type=Path,
                 help="Validate policy_context and policy_evaluations against a policy pack",
             )
+            parser.add_argument(
+                "--policy-facts",
+                type=Path,
+                help="Trusted JSON fact bag required with --policy-pack",
+            )
 
     def run(self, args: argparse.Namespace) -> int:
         """Run this Workflow Output Contract command."""
@@ -96,6 +103,9 @@ class WorkflowCommand:
             return 1
         errors = self.validator(payload, gate=args.gate)
         policy_pack_path = getattr(args, "policy_pack", None)
+        facts_path = getattr(args, "policy_facts", None)
+        if facts_path is not None and policy_pack_path is None:
+            errors.append("--policy-facts requires --policy-pack")
         if policy_pack_path:
             try:
                 policy_pack = load_policy_pack(policy_pack_path)
@@ -103,12 +113,22 @@ class WorkflowCommand:
                 if pack_errors:
                     errors.extend(f"policy_pack: {error}" for error in pack_errors)
                 else:
+                    if facts_path is None:
+                        raise ValueError("--policy-facts is required with --policy-pack")
+                    facts = json.loads(facts_path.read_text(encoding="utf-8"))
+                    if not isinstance(facts, dict):
+                        raise ValueError("--policy-facts must contain a JSON object")
                     errors.extend(
                         policy_output_errors(
                             payload,
                             policy_pack=policy_pack,
                             policy_sha256=policy_pack_sha256(policy_pack_path),
                             mutation_gate=args.gate in self.mutating_gates,
+                            trusted_evaluations=evaluate_policy_pack(
+                                policy_pack,
+                                facts,
+                                agent_id=self.agent_id,
+                            ),
                         )
                     )
             except (OSError, ValueError) as exc:

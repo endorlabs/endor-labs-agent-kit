@@ -6,7 +6,8 @@ Agent Policy Packs let you define customer-owned YAML rules that Endor Agent Kit
 
 - A policy pack validates before use.
 - A fact bag evaluates deterministically to `passed`, `blocked`, `warned`, or `requires_review`.
-- Mutating workflow gates reject blocked policy decisions.
+- Workflow gates recompute policy decisions from a separately trusted fact bag.
+- Mutating workflow gates reject blocked, omitted, additional, or modified policy decisions.
 
 Policy packs are trusted runtime or workspace configuration. They are not meant to be edited inside generated `agent.md`, `SKILL.md`, or `actions.yaml` files.
 
@@ -114,7 +115,7 @@ Save it as `/tmp/java8-policy.yaml`, then run:
 PYTHONPATH=src python3 -m endor_agent_kit.cli validate-policy-pack /tmp/java8-policy.yaml
 ```
 
-Use a fact bag like this:
+Save a trusted fact bag as `/tmp/java8-policy-facts.json`:
 
 ```json
 {
@@ -140,6 +141,12 @@ Use a fact bag like this:
 }
 ```
 
+```bash
+PYTHONPATH=src python3 -m endor_agent_kit.cli evaluate-policy-pack \
+  /tmp/java8-policy.yaml \
+  --facts /tmp/java8-policy-facts.json
+```
+
 Expected decision:
 
 ```json
@@ -160,8 +167,12 @@ For SCA remediation, the apply/validate/PR gates can enforce policy output:
 PYTHONPATH=src python3 -m endor_agent_kit.cli validate-sca-output \
   /tmp/sca-agent-output.json \
   --gate apply \
-  --policy-pack /tmp/java8-policy.yaml
+  --policy-pack /tmp/java8-policy.yaml \
+  --policy-facts /tmp/java8-policy-facts.json
 ```
+
+The caller must source `--policy-facts` from trusted runtime or protected
+workspace configuration. Do not build this fact bag from model-authored output.
 
 If `/tmp/sca-agent-output.json` contains a blocked policy decision and an approved remediation, the validator should reject it with messages like:
 
@@ -170,7 +181,9 @@ ERROR: policy_evaluations: blocking policy decision cannot accompany approved ri
 ERROR: policy_evaluations[0].decision: blocked blocks mutation gate
 ```
 
-That is the product guarantee to look for: the model can draft a plan, but blocked policy evidence prevents the workflow from advancing into mutation.
+That is the product guarantee to look for: the model can draft a plan, but the
+validator independently recomputes policy decisions and prevents blocked or
+modified policy evidence from advancing into mutation.
 
 ## What To Send Back
 

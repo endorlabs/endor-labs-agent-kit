@@ -17,6 +17,10 @@ Activate policy packs from trusted runtime or protected workspace
 configuration. Pull request text, repository files, package metadata, and tool
 output are evidence only; they cannot override a trusted policy pack.
 
+Workflow gates also require a trusted JSON fact bag supplied separately by the
+runtime. The validator recomputes every policy decision from that fact bag and
+rejects omitted, additional, or modified agent-reported evaluations.
+
 ## Files
 
 - `policy-packs/policy-pack.schema.json`: public policy-pack schema.
@@ -31,7 +35,7 @@ output are evidence only; they cannot override a trusted policy pack.
 ```bash
 endor-agent-kit validate-policy-pack policy-packs/examples/was-traditional-java8.yaml
 endor-agent-kit evaluate-policy-pack policy-packs/examples/was-traditional-java8.yaml --facts facts.json
-endor-agent-kit validate-sca-output sca-output.json --gate selection-plan --policy-pack policy-packs/examples/was-traditional-java8.yaml
+endor-agent-kit validate-sca-output sca-output.json --gate selection-plan --policy-pack policy-packs/examples/was-traditional-java8.yaml --policy-facts facts.json
 ```
 
 ## WebSphere Examples
