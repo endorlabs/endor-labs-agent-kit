@@ -26,8 +26,8 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "agents": { "type": "array", "items": { "type": "string" } },
-            "ecosystems": { "type": "array", "items": { "type": "string" } }
+            "agents": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+            "ecosystems": { "type": "array", "items": { "type": "string", "minLength": 1 } }
           }
         },
         "when": { "$ref": "#/$defs/condition" },
@@ -40,12 +40,51 @@
       }
     },
     "condition": {
+      "oneOf": [
+        { "$ref": "#/$defs/allCondition" },
+        { "$ref": "#/$defs/anyCondition" },
+        { "$ref": "#/$defs/notCondition" },
+        { "$ref": "#/$defs/predicateCondition" }
+      ]
+    },
+    "allCondition": {
       "type": "object",
+      "additionalProperties": false,
+      "required": ["all"],
       "properties": {
-        "all": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
-        "any": { "type": "array", "items": { "$ref": "#/$defs/condition" } },
-        "not": { "$ref": "#/$defs/condition" },
-        "fact": { "type": "string" },
+        "all": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "anyCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["any"],
+      "properties": {
+        "any": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "notCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["not"],
+      "properties": {
+        "not": { "$ref": "#/$defs/condition" }
+      }
+    },
+    "predicateCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact"],
+      "properties": {
+        "fact": { "type": "string", "minLength": 1 },
         "exists": { "type": "boolean" },
         "equals": {},
         "not_equals": {},
@@ -55,7 +94,18 @@
         "gte": {},
         "lt": {},
         "lte": {}
-      }
+      },
+      "oneOf": [
+        { "required": ["exists"] },
+        { "required": ["equals"] },
+        { "required": ["not_equals"] },
+        { "required": ["in"] },
+        { "required": ["contains"] },
+        { "required": ["gt"] },
+        { "required": ["gte"] },
+        { "required": ["lt"] },
+        { "required": ["lte"] }
+      ]
     }
   }
 }

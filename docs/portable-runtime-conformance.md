@@ -193,4 +193,4 @@ Before enabling a portable agent, verify:
 - External creates perform idempotency checks when required.
 - Audit logs capture requests, approvals, results, evidence, denials, and data gaps.
 - SCA and AI SAST outputs pass Agent Kit validators before advancing workflow gates.
-- Configured policy packs pass `endor-agent-kit validate-policy-pack`, and gated outputs include `policy_context` plus `policy_evaluations`.
+- Configured policy packs pass `endor-agent-kit validate-policy-pack`; gates recompute decisions from separately trusted facts, and outputs include matching `policy_context` plus complete `policy_evaluations`.

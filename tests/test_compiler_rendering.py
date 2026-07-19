@@ -80,6 +80,20 @@ def test_shared_compiler_rendering_injects_project_preflight_only_for_project_re
     assert "## Endor Project Resolution Preflight" not in package_rendered
 
 
+def test_policy_pack_guidance_requires_trusted_evaluator_output():
+    rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        structured_output_recipe=_recipe_with_outputs(
+            RecipeField("policy_evaluations", "list[object]", required=True),
+            policy_pack_support=True,
+        ),
+    )
+
+    assert "Do not self-assert or rewrite policy decisions" in rendered
+    assert "Copy the trusted evaluator's complete `policy_evaluations`" in rendered
+
+
 def test_shared_compiler_rendering_compact_project_preflight_is_conditional():
     rendered = instructions_for_edition(
         INSTRUCTIONS,
@@ -365,7 +379,10 @@ def test_non_claude_code_compilers_do_not_import_private_claude_code_rendering_h
         assert "_indent" not in content
 
 
-def _recipe_with_outputs(*outputs: RecipeField) -> EndorAgentRecipe:
+def _recipe_with_outputs(
+    *outputs: RecipeField,
+    policy_pack_support: bool = False,
+) -> EndorAgentRecipe:
     return EndorAgentRecipe(
         recipe_schema_version=1,
         id="structured-output-fixture",
@@ -381,4 +398,5 @@ def _recipe_with_outputs(*outputs: RecipeField) -> EndorAgentRecipe:
         compatible_hosts=("claude-code",),
         instructions_path="instructions.md",
         model="sonnet",
+        policy_pack_support=policy_pack_support,
     )

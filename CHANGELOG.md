@@ -13,6 +13,10 @@ package metadata.
 
 ### Fixed
 
+- Recomputed workflow policy decisions from a separately trusted fact bag and
+  rejected omitted, additional, or modified agent-reported evaluations.
+- Aligned runtime policy-pack validation with the public JSON schema by
+  rejecting unknown fields, malformed conditions, and missing policy messages.
 - Restored compact generated namespace preflight wording required by catalog
   guardrails, including Endor namespace/config provenance and credential input
   literals.
