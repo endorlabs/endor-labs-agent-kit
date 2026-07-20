@@ -7,6 +7,9 @@
   },
   "tags": [
     {
+      "name": "AgentCatalogService"
+    },
+    {
       "name": "AgentConfigService"
     },
     {
@@ -17,6 +20,12 @@
     },
     {
       "name": "AgentSessionService"
+    },
+    {
+      "name": "AgentSessionCountQueryService"
+    },
+    {
+      "name": "AgentTelemetryService"
     },
     {
       "name": "AgentToolService"
@@ -359,6 +368,9 @@
     },
     {
       "name": "PackageLicenseQueryService"
+    },
+    {
+      "name": "BatchPackageLicenseQueryService"
     },
     {
       "name": "PackageManagerService"
@@ -7751,6 +7763,118 @@
         "x-internal": true
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/agent-telemetry/activity": {
+      "get": {
+        "summary": "ListAgentActivity",
+        "description": "Returns the per-agent usage summary for a tenant.",
+        "operationId": "AgentTelemetryService_ListAgentActivity",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListAgentActivityResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "window_days",
+            "description": "Look-back window in days. Defaults to 7 when zero.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "AgentTelemetryService"
+        ]
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/agent-telemetry/agents/{agent_id}/calls": {
+      "get": {
+        "summary": "ListAgentCalls",
+        "description": "Returns one agent's recent captured calls, newest first.",
+        "operationId": "AgentTelemetryService_ListAgentCalls",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListAgentCallsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "agent_id",
+            "description": "The agent whose calls to return; matches EndorAgent.id in the catalog.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "page_size",
+            "description": "Max rows to return. Defaults to 100 when zero.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "page_token",
+            "description": "Opaque continuation token from a prior response.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "decision",
+            "description": "Optional exact-match filter on decision. Accepted values: allowed, denied\n(case-sensitive); any other value is rejected.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "operation",
+            "description": "Optional exact-match filter on operation. Accepted values: READ, LIST,\nCREATE, UPDATE, DELETE, UPSERT, EXECUTE (case-sensitive); any other value\nis rejected.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AgentTelemetryService"
+        ]
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/agent-tools": {
       "get": {
         "summary": "ListAgentTools",
@@ -9067,6 +9191,288 @@
         ],
         "tags": [
           "AgenticInventoryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/agents": {
+      "get": {
+        "summary": "ListEndorAgents",
+        "description": "Returns the agent catalog. V1 returns the global catalog regardless of\nnamespace and applies no server-side filtering, sorting, or pagination;\nonly tenant_meta.namespace is read from the request.",
+        "operationId": "AgentCatalogService_ListEndorAgents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEndorAgentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "list_parameters.filter",
+            "description": "String of conditions to filter resources by.\nFilters may include any attribute along with the following operators:\n\"==\", \"!=\", \"\u003e\", \"\u003e=\", \"\u003c\", \"\u003c=\", \"Contains\", \"In\", \"Matches\", and\n\"Exists\". The logical operators \"And\" and \"Or\" are also supported.\nExpressions may be combined and grouped with parentheses.\n\nExamples:\n\"spec.value == 5\",\n\"spec.value in [\"a\", \"b\", \"c\"]\",\n\"(meta.name == \"xyz\" and \"spec.value in [\"a\",\"b\"]) or (spec.value ==\n\"c\")\".",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_token",
+            "description": "Set the page token to start from.\nUse page tokens to page through list results or list specific pages.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.page_size",
+            "description": "Set the page size to limit the number of results returned.\nDefault: 100. Max: 500.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.action",
+            "description": "Action to be executed with a request. Not supported for all endpoints.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.traverse",
+            "description": "Get data from any child namespaces as well.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.sort.path",
+            "description": "Field to sort objects by, for example, meta.name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.sort.order",
+            "description": "Sort order. Default: ASC.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_ENTRY_ORDER_UNSPECIFIED",
+              "SORT_ENTRY_ORDER_ASC",
+              "SORT_ENTRY_ORDER_DESC"
+            ],
+            "default": "SORT_ENTRY_ORDER_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.count",
+            "description": "Return the number of objects matching the given list parameters.\nIf count is set to true, the response is a CountResponse.\nCan be used together with filter and traverse.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.aggregation_paths",
+            "description": "Group the objects based on this field.\nIf there are multiple fields then the objects are grouped\nbased on the uniqueness of all fields.\nSupports composite paths.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.show_aggregation_uuids",
+            "description": "Return the UUID of each object in each group as specified by\naggregation_paths.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.unique_count_paths",
+            "description": "List of fields for which we want the unique count.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.unique_value_paths",
+            "description": "List of fields for which we want the unique values.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.ci_run_uuid",
+            "description": "Only return objects from PR scans that match this context id.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_id",
+            "description": "Page ID to retrieve.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_paths",
+            "description": "Group the objects based on this time field,\nfor example, meta.create_time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.show_aggregation_uuids",
+            "description": "Return the UUIDs of the objects in each group.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group_by_time.interval",
+            "description": "Interval unit by which the objects should be grouped.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "GROUP_BY_TIME_INTERVAL_UNSPECIFIED",
+              "GROUP_BY_TIME_INTERVAL_YEAR",
+              "GROUP_BY_TIME_INTERVAL_QUARTER",
+              "GROUP_BY_TIME_INTERVAL_MONTH",
+              "GROUP_BY_TIME_INTERVAL_WEEK",
+              "GROUP_BY_TIME_INTERVAL_DAY",
+              "GROUP_BY_TIME_INTERVAL_HOUR",
+              "GROUP_BY_TIME_INTERVAL_MINUTE",
+              "GROUP_BY_TIME_INTERVAL_SECOND"
+            ],
+            "default": "GROUP_BY_TIME_INTERVAL_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.group_by_time.group_size",
+            "description": "Size of the time interval to group the objects by,\nfor example, to group objects by 2-week intervals, set interval\nto GROUP_BY_TIME_INTERVAL_WEEK and group_size to 2.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.group_by_time.start_time",
+            "description": "Beginning of the time period to group objects.\nDefaults to the beginning of time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.end_time",
+            "description": "End of the time period to group objects.\nDefaults to the current time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.mode",
+            "description": "The mode determines how the matching objects are counted\nin the produced time-series. Values allowed are:\ncount (default) : is the number of items matching in every interval.\nsum: is the total number of items matching since the beginning of the\naggregation time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_value_field",
+            "description": "The aggregation_field is a field on the matched objects that we want to\nperform some operation in each interval (example : min, max, avg)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_operator",
+            "description": "The aggreation_operator is the operator that we should use for the\naggregation. Allowed values are: min, max, sum, avg",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.disable_pagination",
+            "description": "If true, the results will not be paginated and\nonly the first page will be returned. The order\nof the results is not guaranteed.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "AgentCatalogService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/agents/{uuid}": {
+      "get": {
+        "summary": "GetEndorAgent",
+        "description": "Returns a single agent by uuid. Only uuid and tenant_meta.namespace are\nread from the request; other GetRequest fields are ignored in V1.",
+        "operationId": "AgentCatalogService_GetEndorAgent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EndorAgent"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the requested resource.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "get_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AgentCatalogService"
         ],
         "x-internal": true
       }
@@ -45255,6 +45661,92 @@
         ]
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/agent-sessions-count": {
+      "post": {
+        "summary": "CreateAgentSessionCountQuery",
+        "description": "Returns the total number of agent sessions in the namespace,\nregardless of session ownership.",
+        "operationId": "AgentSessionCountQueryService_CreateAgentSessionCountQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AgentSessionCountQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AgentSessionCountQueryServiceCreateAgentSessionCountQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "AgentSessionCountQueryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/batch-package-license-queries": {
+      "post": {
+        "summary": "CreateBatchPackageLicenseQuery",
+        "description": "Creates a batch query to fetch merged license data for multiple package versions in one call.\nEach item in spec.queries must have spec.package_version_uuid set. The server populates\nspec.licenses, spec.copyrights, spec.notices, and spec.applied_overrides on each returned item.",
+        "operationId": "BatchPackageLicenseQueryService_CreateBatchPackageLicenseQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1BatchPackageLicenseQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BatchPackageLicenseQueryServiceCreateBatchPackageLicenseQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "BatchPackageLicenseQueryService"
+        ],
+        "x-internal": true
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/queries/dashboard-summaries": {
       "post": {
         "summary": "CreateDashboardSummaryQuery.",
@@ -64573,9 +65065,13 @@
         },
         "spec": {
           "$ref": "#/definitions/v1AISastCustomerContextSpec"
+        },
+        "propagate": {
+          "type": "boolean",
+          "description": "Propagates system-level context settings to child namespaces when enabled."
         }
       },
-      "description": "Per-scope, customer-provided context, attaching at tenant or project scope.\nNamespace-level context uses the tenant parent and is scoped by tenant_meta.namespace.",
+      "description": "Customer-provided context scoped to projects using policy-style selectors.",
       "required": [
         "meta",
         "spec"
@@ -64604,6 +65100,10 @@
             },
             "spec": {
               "$ref": "#/definitions/v1AISastCustomerContextSpec"
+            },
+            "propagate": {
+              "type": "boolean",
+              "description": "Propagates system-level context settings to child namespaces when enabled."
             }
           },
           "description": "The customer context to update.",
@@ -64928,6 +65428,34 @@
       ],
       "default": "AGENT_HOOK_POLICY_MATCH_TYPE_UNSPECIFIED",
       "description": "The type of policy match."
+    },
+    "AgentSessionCountQueryServiceCreateAgentSessionCountQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the query.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Agent session count queries are associated with a tenant.",
+          "title": "Agent session count queries are associated with a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1AgentSessionCountQuerySpec",
+          "description": "Agent session count query specification."
+        }
+      },
+      "description": "AgentSessionCountQuery is an internal API returning the total number of\nagent sessions in a namespace. Unlike ListAgentSessions, results are not\nrestricted to sessions owned by or shared with the caller: the response\ncarries only a count, so no session content can be exposed.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
     },
     "AgentSessionServiceCreateAgentSessionBody": {
       "type": "object",
@@ -66135,6 +66663,30 @@
         }
       },
       "description": "Request to create multiple Notification objects."
+    },
+    "BatchPackageLicenseQueryServiceCreateBatchPackageLicenseQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The uuid of the resource.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Namespace all queries in the batch belong to.",
+          "title": "Namespace all queries in the batch belong to."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1BatchPackageLicenseQuerySpec",
+          "description": "Resource kind specific data."
+        }
+      },
+      "description": "BatchPackageLicenseQuery groups multiple PackageLicenseQuery requests into a single call.\nThe server evaluates each item and populates its output fields (licenses, copyrights,\nnotices, applied_overrides) before returning the object."
     },
     "BomDependency": {
       "type": "object",
@@ -68827,6 +69379,16 @@
         }
       },
       "description": "Policy output."
+    },
+    "FindingRefreshTrigger": {
+      "type": "string",
+      "enum": [
+        "TRIGGER_UNSPECIFIED",
+        "TRIGGER_VULN",
+        "TRIGGER_MALWARE"
+      ],
+      "default": "TRIGGER_UNSPECIFIED",
+      "description": "Trigger identifies which ingestion type caused this finding-refresh.\n\n - TRIGGER_UNSPECIFIED: No trigger has been set.\n - TRIGGER_VULN: A vulnerability ingestion triggered this finding-refresh.\n - TRIGGER_MALWARE: A malware ingestion triggered this finding-refresh."
     },
     "FindingServiceCreateFindingBody": {
       "type": "object",
@@ -73199,6 +73761,29 @@
         }
       },
       "description": "VersionRange defines an inclusive lower bound and an exclusive upper bound for a version range.\nEither boundary may be omitted."
+    },
+    "PackageFirewallLogFilteredVersion": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "string",
+          "description": "Version string that was suppressed from the metadata response."
+        },
+        "reason": {
+          "$ref": "#/definitions/v1PackageFirewallReason",
+          "description": "Reason this version was suppressed."
+        },
+        "malware_uuid": {
+          "type": "string",
+          "description": "UUID of detected malware (populated when reason = MALWARE_DETECTED)."
+        },
+        "package_age_hours": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Age of package in hours at suppression time (populated when reason = MIN_AGE_NOT_MET)."
+        }
+      },
+      "description": "FilteredVersion records a single package version suppressed from a metadata response\nduring a package curation event."
     },
     "PackageFirewallLogServiceCreatePackageFirewallLogBody": {
       "type": "object",
@@ -78509,22 +79094,6 @@
         "spec"
       ]
     },
-    "SRRequestTimeRange": {
-      "type": "object",
-      "properties": {
-        "start": {
-          "type": "string",
-          "format": "date-time",
-          "description": "Start time for filtering (inclusive)."
-        },
-        "end": {
-          "type": "string",
-          "format": "date-time",
-          "description": "End time for filtering (inclusive)."
-        }
-      },
-      "description": "Time range filtering."
-    },
     "SRResponseCategoryInfo": {
       "type": "object",
       "properties": {
@@ -80263,6 +80832,9 @@
         "AVAILABLE_LLM_OPENAI_GPT_5_4_NANO",
         "AVAILABLE_LLM_OPENAI_GPT_5_4",
         "AVAILABLE_LLM_OPENAI_GPT_5_5",
+        "AVAILABLE_LLM_OPENAI_GPT_5_6_LUNA",
+        "AVAILABLE_LLM_OPENAI_GPT_5_6_SOL",
+        "AVAILABLE_LLM_OPENAI_GPT_5_6_TERRA",
         "AVAILABLE_LLM_OPENAI_GPT_4",
         "AVAILABLE_LLM_OPENAI_GPT_4O_MINI",
         "AVAILABLE_LLM_OPENAI_GPT_4_1",
@@ -80313,7 +80885,7 @@
         "AVAILABLE_LLM_FIREWORKS_QWEN_3_6_PLUS"
       ],
       "default": "AVAILABLE_LLM_UNSPECIFIED",
-      "description": "LLMs available to AgentConfig.\n\n - AVAILABLE_LLM_OPENAI_GPT_5_CHAT: GPT-5 chat is a variant of GPT-5 that is optimized for chat use cases and\ndoes not support reasoning.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_LITE_LATEST: NEVER USE: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE: GA Gemini 3.1 Flash Lite; in the EU it is served from the eu.rep data-residency endpoint.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH: Generally available Gemini 3.5 Flash model on Vertex AI."
+      "description": "LLMs available to AgentConfig.\n\n - AVAILABLE_LLM_OPENAI_GPT_5_CHAT: GPT-5 chat is a variant of GPT-5 that is optimized for chat use cases and\ndoes not support reasoning.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_LUNA: GPT-5.6 Luna is the cost-efficient GPT-5.6 tier.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_SOL: GPT-5.6 Sol is the highest-capability GPT-5.6 tier.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_TERRA: GPT-5.6 Terra balances GPT-5.6 cost and capability.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_LITE_LATEST: NEVER USE: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE: GA Gemini 3.1 Flash Lite; in the EU it is served from the eu.rep data-residency endpoint.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH: Generally available Gemini 3.5 Flash model on Vertex AI."
     },
     "SpecBinaryType": {
       "type": "string",
@@ -80682,6 +81254,10 @@
           "type": "integer",
           "format": "int32",
           "description": "A value of 0 or -1 corresponds to an unlimited license."
+        },
+        "free_tier": {
+          "type": "boolean",
+          "description": "Whether this bundle is granted as a free tier."
         }
       },
       "description": "EndorLicenseBundleInfo provides information about a specific license\nbundle."
@@ -80750,6 +81326,10 @@
           "type": "string",
           "format": "date-time",
           "description": "The time when the license expires."
+        },
+        "free_tier": {
+          "type": "boolean",
+          "description": "Whether this is a free-tier (limited) grant."
         }
       },
       "description": "EndorLicenseInfo provides information about a specific feature type and\nits limit."
@@ -80993,6 +81573,21 @@
       "default": "FINDING_LEVEL_UNSPECIFIED",
       "description": "Finding severity level.\n\n - FINDING_LEVEL_CRITICAL: Critical finding.\n - FINDING_LEVEL_HIGH: Very important findings.\n - FINDING_LEVEL_MEDIUM: Important findings.\n - FINDING_LEVEL_LOW: Low priority finding."
     },
+    "SpecFindingRefresh": {
+      "type": "object",
+      "properties": {
+        "ingestion_time": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ingestion_time is the OSS IngestionState watermark (last_vuln_ingestion_time\nor last_malware_ingestion_time) that triggered this finding-refresh. It\ncorrelates the scan back to its ingestion event and drives end-to-end latency\ntracking."
+        },
+        "trigger": {
+          "$ref": "#/definitions/FindingRefreshTrigger",
+          "description": "trigger records which ingestion type triggered this finding-refresh."
+        }
+      },
+      "description": "FindingRefresh carries metadata specific to SCAN_REQUEST_TYPE_FINDING_REFRESH\nrequests. Unset for all other scan-request types."
+    },
     "SpecFindingsInfo": {
       "type": "object",
       "properties": {
@@ -81132,6 +81727,28 @@
       "default": "THINKING_LEVEL_UNSPECIFIED",
       "description": "ThinkingLevel is the thinking level that the agent will use.\n\n - THINKING_LEVEL_AUTO: Some models have a thinking budget."
     },
+    "SpecInstall": {
+      "type": "object",
+      "properties": {
+        "host": {
+          "type": "string",
+          "enum": [
+            "claude-code",
+            "claude-managed"
+          ],
+          "description": "Target host: \"claude-code\" or \"claude-managed\"."
+        },
+        "command": {
+          "type": "string",
+          "description": "Install command for the host."
+        }
+      },
+      "description": "Install is one host's install recipe.",
+      "required": [
+        "host",
+        "command"
+      ]
+    },
     "SpecInvitationState": {
       "type": "string",
       "enum": [
@@ -81202,10 +81819,11 @@
         "JOB_TYPE_CONTRIBUTOR_EXTRACTION",
         "JOB_TYPE_MCP_SCORING",
         "JOB_TYPE_SBOM_EXPORT",
-        "JOB_TYPE_OBJECT_CLEANER"
+        "JOB_TYPE_OBJECT_CLEANER",
+        "JOB_TYPE_VEX_EXPORT"
       ],
       "default": "JOB_TYPE_UNSPECIFIED",
-      "description": "JobType is used to match the job to its handler.\nA new job type should be added when a new handler is added.\n\n - JOB_TYPE_SAMPLE: Sample job type.\n - JOB_TYPE_ANALYTICS_REPORT: Analytics report job type.\n - JOB_TYPE_LICENSE_REPORT: License report job type.\n - JOB_TYPE_FINDINGS_REPORT: Findings report job type.\n - JOB_TYPE_DEPENDENCIES_REPORT: Dependencies report job type.\n - JOB_TYPE_SKILL_SCORING: Skill scoring job type.\n - JOB_TYPE_CONTRIBUTOR_EXTRACTION: Contributor extraction job type. The handler iterates all projects\nunder the org/workspace/group identified by the job request and\nextracts contributor information per project.\n - JOB_TYPE_MCP_SCORING: MCP server scoring job type. Runs the riskevaluator pipeline\nagainst an MCP server inventory record and writes the evaluation\nto McpMeta.\n - JOB_TYPE_SBOM_EXPORT: SBOM export job type. Generates a CycloneDx or SPDX SBOM for a\nproject or set of package versions.\n - JOB_TYPE_OBJECT_CLEANER: Object cleaner job type."
+      "description": "JobType is used to match the job to its handler.\nA new job type should be added when a new handler is added.\n\n - JOB_TYPE_SAMPLE: Sample job type.\n - JOB_TYPE_ANALYTICS_REPORT: Analytics report job type.\n - JOB_TYPE_LICENSE_REPORT: License report job type.\n - JOB_TYPE_FINDINGS_REPORT: Findings report job type.\n - JOB_TYPE_DEPENDENCIES_REPORT: Dependencies report job type.\n - JOB_TYPE_SKILL_SCORING: Skill scoring job type.\n - JOB_TYPE_CONTRIBUTOR_EXTRACTION: Contributor extraction job type. The handler iterates all projects\nunder the org/workspace/group identified by the job request and\nextracts contributor information per project.\n - JOB_TYPE_MCP_SCORING: MCP server scoring job type. Runs the riskevaluator pipeline\nagainst an MCP server inventory record and writes the evaluation\nto McpMeta.\n - JOB_TYPE_SBOM_EXPORT: SBOM export job type. Generates a CycloneDx or SPDX SBOM for a\nproject or set of package versions.\n - JOB_TYPE_OBJECT_CLEANER: Object cleaner job type.\n - JOB_TYPE_VEX_EXPORT: VEX export job type. Generates a CycloneDx VEX (Vulnerability\nExploitability eXchange) document for a project or set of package\nversions."
     },
     "SpecKEVRecord": {
       "type": "object",
@@ -81792,6 +82410,22 @@
         }
       }
     },
+    "SpecRequestTimeRange": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Start time for filtering (inclusive)."
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "End time for filtering (inclusive)."
+        }
+      },
+      "description": "Time range filtering."
+    },
     "SpecRequestType": {
       "type": "string",
       "enum": [
@@ -82143,7 +82777,7 @@
           "description": "Whether to traverse child namespaces."
         },
         "time_range": {
-          "$ref": "#/definitions/SRRequestTimeRange",
+          "$ref": "#/definitions/SpecSRRequestTimeRange",
           "description": "Optional time range filter for security review data."
         },
         "review_time_config": {
@@ -82151,6 +82785,22 @@
           "description": "Configuration for review time saved calculation.\nIf not provided, defaults will be used: small=5, medium=20, large=30."
         }
       }
+    },
+    "SpecSRRequestTimeRange": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Start time for filtering (inclusive)."
+        },
+        "end": {
+          "type": "string",
+          "format": "date-time",
+          "description": "End time for filtering (inclusive)."
+        }
+      },
+      "description": "Time range filtering."
     },
     "SpecSRResponse": {
       "type": "object",
@@ -85611,9 +86261,13 @@
         },
         "spec": {
           "$ref": "#/definitions/v1AISastCustomerContextSpec"
+        },
+        "propagate": {
+          "type": "boolean",
+          "description": "Propagates system-level context settings to child namespaces when enabled."
         }
       },
-      "description": "Per-scope, customer-provided context, attaching at tenant or project scope.\nNamespace-level context uses the tenant parent and is scoped by tenant_meta.namespace.",
+      "description": "Customer-provided context scoped to projects using policy-style selectors.",
       "required": [
         "meta",
         "spec"
@@ -85624,10 +86278,31 @@
       "properties": {
         "context": {
           "type": "string",
-          "description": "Human-authored guidance text for this scope; consumed as-is by the summary pipeline."
+          "description": "Human-authored guidance text consumed as-is by the summary pipeline."
+        },
+        "project_selector": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Project tag selectors or $uuid=\u003cproject_uuid\u003e selectors that select where this context applies.\nEmpty applies to all projects in the namespace.",
+          "x-endor-name": "Project Selector"
+        },
+        "project_exceptions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Project tag selectors or $uuid=\u003cproject_uuid\u003e selectors that exclude matching projects from this context.",
+          "x-endor-name": "Project Exceptions"
+        },
+        "disable": {
+          "type": "boolean",
+          "description": "Disables this context without deleting the object.",
+          "x-endor-name": "AI SAST Context Disable"
         }
       },
-      "description": "Customer-provided context payload for this scope.",
+      "description": "Customer-provided context payload.",
       "required": [
         "context"
       ]
@@ -85769,6 +86444,92 @@
         }
       },
       "description": "Metadata added by the admission or notification policy scanner."
+    },
+    "v1AgentActivity": {
+      "type": "object",
+      "properties": {
+        "agent_id": {
+          "type": "string",
+          "description": "The join key to the agent catalog (EndorAgent.id), recorded verbatim from\nthe token's agent_id claim. It is never derived by splitting agent_identity\n(id@version), so it stays stable against the catalog. An id with no catalog\nentry is still returned, not dropped."
+        },
+        "agent_identity": {
+          "type": "string",
+          "description": "The {name}@{version} identity from the agent's JWT (agent_identity claim).\nUnset for an unregistered agent, distinct from a recorded empty identity."
+        },
+        "calls": {
+          "type": "string",
+          "format": "int64",
+          "description": "Total captured backend calls in the window."
+        },
+        "allowed": {
+          "type": "string",
+          "format": "int64",
+          "description": "Calls the authorization + mutability gates allowed."
+        },
+        "denied": {
+          "type": "string",
+          "format": "int64",
+          "description": "Calls denied (e.g. a read-only agent attempting a mutation)."
+        },
+        "sessions": {
+          "type": "string",
+          "format": "int64",
+          "description": "Distinct agent-run sessions in the window, as an approximate upper bound:\nper-day distinct counts are summed, so a session spanning midnight counts in\neach day it touches. Reconciliation populates it; the incremental capture path\ndoes not. Unset whenever the summed count is zero — not yet reconciled or none\nrecorded — so a consumer renders it as absent rather than a definite 0."
+        },
+        "last_seen": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the agent was last seen making a call. Unset if it never has."
+        },
+        "active": {
+          "type": "boolean",
+          "description": "True if the agent made at least one call in the window. Always true for an\nentry in this response, which lists only agents with in-window activity."
+        }
+      },
+      "description": "AgentActivity is the per-agent usage summary for one agent. Keyed by\nagent_id, the join key to the agent catalog (EndorAgent.id)."
+    },
+    "v1AgentCall": {
+      "type": "object",
+      "properties": {
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the edge observed the call."
+        },
+        "operation": {
+          "type": "string",
+          "description": "Coarse verb: READ | LIST | CREATE | UPDATE | DELETE | UPSERT | EXECUTE.\nUnset when the operation could not be derived, distinct from a recorded\nempty verb."
+        },
+        "resource_kind": {
+          "type": "string",
+          "description": "The Endor resource the call operated on (e.g. Project)."
+        },
+        "rpc_method": {
+          "type": "string",
+          "description": "Full gRPC method, for engineers who want the exact RPC."
+        },
+        "decision": {
+          "type": "string",
+          "description": "allowed | denied."
+        },
+        "status_code": {
+          "type": "string",
+          "description": "gRPC status code name (e.g. OK, PermissionDenied)."
+        },
+        "session": {
+          "type": "string",
+          "description": "The agent-run session this call belongs to; unset for a call with no session."
+        },
+        "on_behalf_of": {
+          "type": "string",
+          "description": "The human principal the agent acted on behalf of; unset when none."
+        },
+        "scopes": {
+          "type": "string",
+          "description": "The scope the call ran under, e.g. customer-full; comma-joined when more than\none. Unset when none were recorded."
+        }
+      },
+      "description": "AgentCall is one captured call in an agent's recent history — a tenant-safe\nprojection of AgentAuditEvent."
     },
     "v1AgentConfig": {
       "type": "object",
@@ -86162,6 +86923,10 @@
         "inventory_classification": {
           "$ref": "#/definitions/v1InventoryClassification",
           "description": "Inventory classification this policy assigns to a matched MCP server\nor skill. Projected onto AgenticInventory by the aiapiserver inventory\nconsumers. Unset / UNSPECIFIED means the policy does not affect\ninventory classification."
+        },
+        "scope": {
+          "$ref": "#/definitions/v1AgentHookPolicyScope",
+          "description": "Cross-cutting scope restricting which events this policy applies to,\nindependent of activity kind. Unset means the policy applies to every\nevent (back-compatible default)."
         }
       },
       "description": "AgentHookPolicy describes a policy to apply when agent hook events match a\ngiven activity. When the activity matches, the action (e.g. feedback, block,\nalert) is applied."
@@ -86242,6 +87007,26 @@
         }
       },
       "description": "AgentHookPolicyMatch tracks a policy match."
+    },
+    "v1AgentHookPolicyScope": {
+      "type": "object",
+      "properties": {
+        "repository_matchers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regex matchers for the repository from AgentHookEvent.Spec.repository\n(e.g. \"github\\\\.com/acme/.*\", \".*-infra$\"). OR'd among themselves."
+        },
+        "user_matchers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regex matchers for the user/account from AgentHookEvent.Spec.user\n(e.g. \"alice\", \"svc-.*\", \".*@example\\\\.com\"). \"Account\" in the ticket\nmaps to this per-session user identity; there is no separate account\nentity. OR'd among themselves."
+        }
+      },
+      "description": "AgentHookPolicyScope restricts a policy to a subset of events by matching\nagainst per-event identity carried on AgentHookEvent.Spec (repository, user).\nScope is evaluated once, before activity-kind matching, so it applies\nuniformly to all activity kinds.\n\nMatch logic: an unset scope (or a scope with no matchers set) applies to\nevery event. When set, configured matcher branches are AND'd — every set\nbranch must produce a hit; within a branch the regexes are OR'd (any one\nmatching satisfies the branch); an empty branch is ignored. A scope miss\nmakes the policy a no-op for the event for both blocklist and allowlist\nmatch types (the policy simply does not apply)."
     },
     "v1AgentInstructionFile": {
       "type": "object",
@@ -86439,6 +87224,71 @@
         "meta"
       ],
       "x-internal": true
+    },
+    "v1AgentSessionCountQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the query.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Agent session count queries are associated with a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1AgentSessionCountQuerySpec",
+          "description": "Agent session count query specification."
+        }
+      },
+      "description": "AgentSessionCountQuery is an internal API returning the total number of\nagent sessions in a namespace. Unlike ListAgentSessions, results are not\nrestricted to sessions owned by or shared with the caller: the response\ncarries only a count, so no session content can be exposed.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "v1AgentSessionCountQuerySpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1AgentSessionCountQuerySpecRequest",
+          "description": "The agent session count request."
+        },
+        "response": {
+          "$ref": "#/definitions/v1AgentSessionCountQuerySpecResponse",
+          "description": "The agent session count response.",
+          "readOnly": true
+        }
+      }
+    },
+    "v1AgentSessionCountQuerySpecRequest": {
+      "type": "object",
+      "properties": {
+        "time_range": {
+          "$ref": "#/definitions/SpecRequestTimeRange",
+          "description": "Optional time range filter on session creation time.\nWhen unset, all sessions in the namespace are counted."
+        },
+        "traverse": {
+          "type": "boolean",
+          "description": "Whether to include child namespaces in the count."
+        }
+      }
+    },
+    "v1AgentSessionCountQuerySpecResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of agent sessions matching the request.",
+          "readOnly": true
+        }
+      }
     },
     "v1AgentSessionSpec": {
       "type": "object",
@@ -88132,6 +88982,42 @@
       },
       "description": "BatchNotification specific data."
     },
+    "v1BatchPackageLicenseQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The uuid of the resource.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Namespace all queries in the batch belong to."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1BatchPackageLicenseQuerySpec",
+          "description": "Resource kind specific data."
+        }
+      },
+      "description": "BatchPackageLicenseQuery groups multiple PackageLicenseQuery requests into a single call.\nThe server evaluates each item and populates its output fields (licenses, copyrights,\nnotices, applied_overrides) before returning the object."
+    },
+    "v1BatchPackageLicenseQuerySpec": {
+      "type": "object",
+      "properties": {
+        "queries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1PackageLicenseQuery"
+          },
+          "description": "Package license queries to evaluate. Each item requires spec.package_version_uuid;\nthe server populates spec.licenses, spec.copyrights, spec.notices, and\nspec.applied_overrides on each returned item."
+        }
+      }
+    },
     "v1BazelMetadata": {
       "type": "object",
       "properties": {
@@ -88443,10 +89329,11 @@
       "type": "string",
       "enum": [
         "BUCKET_GRANULARITY_UNSPECIFIED",
-        "BUCKET_GRANULARITY_HOURLY"
+        "BUCKET_GRANULARITY_HOURLY",
+        "BUCKET_GRANULARITY_DAILY"
       ],
       "default": "BUCKET_GRANULARITY_UNSPECIFIED",
-      "description": "BucketGranularity identifies the time granularity of an aggregate bucket."
+      "description": "BucketGranularity identifies the time granularity of an aggregate bucket.\n\n - BUCKET_GRANULARITY_DAILY: Bucket spans a full UTC calendar day (truncated to 00:00:00Z)."
     },
     "v1CIRun": {
       "type": "object",
@@ -89183,7 +90070,11 @@
         },
         "version": {
           "$ref": "#/definitions/v1Version",
-          "description": "Version of the CODEOWNERS file."
+          "description": "Version the current CODEOWNERS content was first observed in.\nOnly updated when the CODEOWNERS file content changes."
+        },
+        "file_hash": {
+          "type": "string",
+          "description": "The SHA-256 hash of the CODEOWNERS file."
         }
       }
     },
@@ -91198,6 +92089,10 @@
         "distinct_value": {
           "type": "string",
           "description": "The observed value being deduplicated (e.g. \"john@acme.com\", \"my-org/my-repo\")."
+        },
+        "bucket_granularity": {
+          "type": "string",
+          "description": "Granularity of the time bucket this entry backs, as the BucketGranularity\nenum name (e.g. \"BUCKET_GRANULARITY_DAILY\"). Set only for bucketed markers\nso hourly and daily stay disjoint at midnight where both buckets are\n00:00:00. A StringValue (not the bare enum) so all-time inventory markers\nleave it nil: a nil wrapper serializes to null (matching pre-field docs),\nkeeping their unique key stable, whereas an unset enum serializes to\n\"...UNSPECIFIED\" under EmitUnpopulated and would split the key."
         }
       },
       "required": [
@@ -91309,10 +92204,11 @@
         "ECOSYSTEM_GIT",
         "ECOSYSTEM_AI_MODEL",
         "ECOSYSTEM_SWIFT",
-        "ECOSYSTEM_CONAN"
+        "ECOSYSTEM_CONAN",
+        "ECOSYSTEM_VSCODE"
       ],
       "default": "ECOSYSTEM_UNSPECIFIED",
-      "description": " - ECOSYSTEM_GO: GoLang.\n - ECOSYSTEM_MAVEN: Maven.\n - ECOSYSTEM_PYPI: Python.\n - ECOSYSTEM_CARGO: Rust.\n - ECOSYSTEM_NPM: Javascript.\n - ECOSYSTEM_GEM: Ruby.\n - ECOSYSTEM_NUGET: Dotnet.\n - ECOSYSTEM_PACKAGIST: PHP.\n - ECOSYSTEM_SBOM: SBOMs.\n - ECOSYSTEM_RPM: RPM.\n - ECOSYSTEM_DEBIAN: Debian.\n - ECOSYSTEM_GITHUB_ACTION: GitHub Actions.\n - ECOSYSTEM_COCOAPOD: Cocoapods.\n - ECOSYSTEM_APK: APK (alpine et.al).\n - ECOSYSTEM_CONTAINER: Containers.\n - ECOSYSTEM_HUGGING_FACE: Hugging Face.\n - ECOSYSTEM_C: C/C++.\n - ECOSYSTEM_GIT: ecosystem GIT for GIT repository dependencies.\nThis can be used for package name of the resolved dependencies when a\ngiven repository has dependencies to other GIT repositories. Currently we\nuse this to represent vulnerabilities for the given GIT repository. ex:\ngit submodules, C/C++ dependencies.\n - ECOSYSTEM_AI_MODEL: AI models.\n - ECOSYSTEM_SWIFT: Ecosystem Swift consists of native Swift packages, which are defined\nusing the Package.swift manifest file and managed by the Swift Package\nManager. There is a separate ecosystem for Cocoapod packages called\nECOSYSTEM_COCOAPOD, which is an alternative package manager for Swift\npackages.\n - ECOSYSTEM_CONAN: Ecosystem Conan for C/C++ packages managed by the Conan 2.x package manager."
+      "description": " - ECOSYSTEM_GO: GoLang.\n - ECOSYSTEM_MAVEN: Maven.\n - ECOSYSTEM_PYPI: Python.\n - ECOSYSTEM_CARGO: Rust.\n - ECOSYSTEM_NPM: Javascript.\n - ECOSYSTEM_GEM: Ruby.\n - ECOSYSTEM_NUGET: Dotnet.\n - ECOSYSTEM_PACKAGIST: PHP.\n - ECOSYSTEM_SBOM: SBOMs.\n - ECOSYSTEM_RPM: RPM.\n - ECOSYSTEM_DEBIAN: Debian.\n - ECOSYSTEM_GITHUB_ACTION: GitHub Actions.\n - ECOSYSTEM_COCOAPOD: Cocoapods.\n - ECOSYSTEM_APK: APK (alpine et.al).\n - ECOSYSTEM_CONTAINER: Containers.\n - ECOSYSTEM_HUGGING_FACE: Hugging Face.\n - ECOSYSTEM_C: C/C++.\n - ECOSYSTEM_GIT: ecosystem GIT for GIT repository dependencies.\nThis can be used for package name of the resolved dependencies when a\ngiven repository has dependencies to other GIT repositories. Currently we\nuse this to represent vulnerabilities for the given GIT repository. ex:\ngit submodules, C/C++ dependencies.\n - ECOSYSTEM_AI_MODEL: AI models.\n - ECOSYSTEM_SWIFT: Ecosystem Swift consists of native Swift packages, which are defined\nusing the Package.swift manifest file and managed by the Swift Package\nManager. There is a separate ecosystem for Cocoapod packages called\nECOSYSTEM_COCOAPOD, which is an alternative package manager for Swift\npackages.\n - ECOSYSTEM_CONAN: Ecosystem Conan for C/C++ packages managed by the Conan 2.x package manager.\n - ECOSYSTEM_VSCODE: VS Code editor extensions, distributed via the Microsoft Visual Studio\nMarketplace."
     },
     "v1EmailTemplate": {
       "type": "object",
@@ -91365,6 +92261,81 @@
         }
       },
       "description": "Embedding vector for one code segment."
+    },
+    "v1EndorAgent": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "Opaque identifier, derived from the agent id (meta.name); stable across\nrefreshes.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Namespace the catalog was requested under. Global in V1; reserved for V2\nper-tenant scoping."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "meta.name is the agent id -- a kebab-case slug that is also the join key to\nagent telemetry (AgentActivity.agent_id). meta.update_time is when the\ncache was last refreshed from the signed artifact."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1EndorAgentSpec",
+          "description": "Agent catalog details."
+        }
+      },
+      "description": "EndorAgent is one agent in the signed catalog published by the\nendor-labs-agent-kit release pipeline. Apiserver fetches the catalog,\nverifies its signature, caches it in memory, and serves it read-only via\nAgentCatalogService; the monorepo stores no agent code or metadata. There is\nno stored row, so uuid is derived deterministically from the agent id and is\nstable across refreshes.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "v1EndorAgentSpec": {
+      "type": "object",
+      "properties": {
+        "display_name": {
+          "type": "string",
+          "description": "Human-readable name."
+        },
+        "short_description": {
+          "type": "string",
+          "description": "One-line summary."
+        },
+        "description": {
+          "type": "string",
+          "description": "Long-form markdown description."
+        },
+        "endorctl_min_version": {
+          "type": "string",
+          "description": "Minimum endorctl version required to install or run the agent."
+        },
+        "version": {
+          "type": "string",
+          "description": "Agent semver, sourced from its manifest."
+        },
+        "authors": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Author display names only; no PII."
+        },
+        "install": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SpecInstall"
+          },
+          "description": "Per-host install recipes."
+        }
+      },
+      "description": "Spec holds the agent's catalog details.",
+      "required": [
+        "display_name",
+        "short_description",
+        "endorctl_min_version",
+        "version",
+        "install"
+      ]
     },
     "v1EndorIgnoreEntry": {
       "type": "object",
@@ -94698,6 +95669,13 @@
         "cleanup_stale_namespaces": {
           "type": "boolean",
           "description": "Indicates whether stale managed namespaces that no longer correspond\nto groups or projects in the SCM should be automatically deleted\nduring installation reconciliation. Default value is false."
+        },
+        "exclude_project_regexes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "exclude_project_regexes is a list of RE2 regular expression patterns used\nto exclude repositories from ingestion during SCM integration\nreconciliation. A repository is excluded if its name (leaf name only, not\nthe full URL or path) matches any pattern in this list. Matching is\ncase-sensitive. An empty list means no filtering is applied. Supports a\nmaximum of 20 patterns."
         }
       }
     },
@@ -96152,6 +97130,68 @@
         }
       }
     },
+    "v1ListAgentActivityResponse": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "Schema version of this response envelope. Additive AgentActivity fields do\nnot bump it; protobuf unknown-field preservation handles forward-compat."
+        },
+        "window_days": {
+          "type": "integer",
+          "format": "int32",
+          "description": "The look-back window the counts cover."
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the backend assembled this snapshot."
+        },
+        "stale": {
+          "type": "boolean",
+          "description": "True when served from a degraded/stale snapshot."
+        },
+        "agents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AgentActivity"
+          },
+          "description": "One entry per agent that has activity in the window. Empty is valid."
+        }
+      },
+      "description": "ListAgentActivityResponse is served at\nGET /v1/namespaces/{tenant_meta.namespace}/agent-telemetry/activity."
+    },
+    "v1ListAgentCallsResponse": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "description": "Schema version of this response envelope."
+        },
+        "agent_id": {
+          "type": "string",
+          "description": "Echo of the requested agent id."
+        },
+        "agent_identity": {
+          "type": "string",
+          "description": "The agent's {name}@{version} identity; unset for an unregistered agent."
+        },
+        "next_page_token": {
+          "type": "string",
+          "description": "Opaque keyset cursor; empty when there are no more pages."
+        },
+        "calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AgentCall"
+          },
+          "description": "The calls, newest first."
+        }
+      },
+      "description": "ListAgentCallsResponse is served at\nGET /v1/namespaces/{tenant_meta.namespace}/agent-telemetry/agents/{agent_id}/calls.\n\nCursor-only pagination: there is intentionally NO exact `total`. An exact\nCOUNT over a filtered event scan is a per-open cost trap with no product\nvalue; this surface returns recent calls, not a precise count. The\npre-aggregated per-agent count is AgentActivity.calls. More pages remain when\nnext_page_token is non-empty; it is an opaque keyset cursor, never an offset."
+    },
     "v1ListAgentConfigsResponse": {
       "type": "object",
       "properties": {
@@ -96964,6 +98004,42 @@
           "$ref": "#/definitions/v1ListResponse"
         }
       }
+    },
+    "v1ListEndorAgentsResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/v1ListEndorAgentsResponseList",
+          "description": "The agents."
+        },
+        "count_response": {
+          "$ref": "#/definitions/v1CountResponse",
+          "description": "Count response."
+        },
+        "group_response": {
+          "$ref": "#/definitions/v1GroupResponse",
+          "description": "Group response."
+        }
+      },
+      "description": "ListEndorAgentsResponse is served at GET /v1/namespaces/{namespace}/agents."
+    },
+    "v1ListEndorAgentsResponseList": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1EndorAgent"
+          },
+          "description": "The agents."
+        },
+        "response": {
+          "$ref": "#/definitions/v1ListResponse",
+          "description": "List response metadata."
+        }
+      },
+      "description": "List of agents."
     },
     "v1ListEndorIgnoreEntriesResponse": {
       "type": "object",
@@ -104260,10 +105336,11 @@
       "enum": [
         "PACKAGE_FIREWALL_ACTION_UNSPECIFIED",
         "PACKAGE_FIREWALL_ACTION_BLOCK",
-        "PACKAGE_FIREWALL_ACTION_WARN"
+        "PACKAGE_FIREWALL_ACTION_WARN",
+        "PACKAGE_FIREWALL_ACTION_CURATED"
       ],
       "default": "PACKAGE_FIREWALL_ACTION_UNSPECIFIED",
-      "description": "PackageFirewallAction defines how the package firewall responds when a check is triggered.\nUsed in both configuration (what to do) and audit logs (what was done).\n\n - PACKAGE_FIREWALL_ACTION_BLOCK: Block the request and return HTTP 403.\n - PACKAGE_FIREWALL_ACTION_WARN: Log a warning audit event and allow the request to proceed."
+      "description": "PackageFirewallAction defines how the package firewall responds when a check is triggered.\nUsed in both configuration (what to do) and audit logs (what was done).\n\n - PACKAGE_FIREWALL_ACTION_BLOCK: Block the request and return HTTP 403.\n - PACKAGE_FIREWALL_ACTION_WARN: Log a warning audit event and allow the request to proceed.\n - PACKAGE_FIREWALL_ACTION_CURATED: One or more versions were removed from the package metadata response as part of package curation.\nThe package manager resolves to the best remaining safe version without seeing the curated-out versions."
     },
     "v1PackageFirewallLog": {
       "type": "object",
@@ -104373,6 +105450,14 @@
         "user": {
           "type": "string",
           "description": "Client-supplied user attribution decoded from the Basic-auth username (e.g. user/machine); free-form and unverified."
+        },
+        "filtered_versions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/PackageFirewallLogFilteredVersion"
+          },
+          "description": "Per-version detail for MetadataAllVersions curation events.\nPopulated when package_curation_enabled = true and one or more versions were suppressed\nfrom the metadata response because their per-policy action is BLOCK. Empty for all other request types."
         }
       },
       "required": [
@@ -104387,10 +105472,11 @@
         "PACKAGE_FIREWALL_REASON_MALWARE_DETECTED",
         "PACKAGE_FIREWALL_REASON_MIN_AGE_NOT_MET",
         "PACKAGE_FIREWALL_REASON_RESTRICTED_LICENSE",
-        "PACKAGE_FIREWALL_REASON_CVSS_SEVERITY_DETECTED"
+        "PACKAGE_FIREWALL_REASON_CVSS_SEVERITY_DETECTED",
+        "PACKAGE_FIREWALL_REASON_VERSIONS_CURATED"
       ],
       "default": "PACKAGE_FIREWALL_REASON_UNSPECIFIED",
-      "description": "PackageFirewallReason represents the check that triggered the firewall event.\n\n - PACKAGE_FIREWALL_REASON_MALWARE_DETECTED: Malware was detected in the requested package version.\n - PACKAGE_FIREWALL_REASON_MIN_AGE_NOT_MET: The requested package version does not meet the configured minimum age.\n - PACKAGE_FIREWALL_REASON_RESTRICTED_LICENSE: The requested package version has a license that is on the restricted list.\n - PACKAGE_FIREWALL_REASON_CVSS_SEVERITY_DETECTED: The requested package version has a CVSS vulnerability meeting or exceeding the configured severity threshold."
+      "description": "PackageFirewallReason represents the check that triggered the firewall event.\n\n - PACKAGE_FIREWALL_REASON_MALWARE_DETECTED: Malware was detected in the requested package version.\n - PACKAGE_FIREWALL_REASON_MIN_AGE_NOT_MET: The requested package version does not meet the configured minimum age.\n - PACKAGE_FIREWALL_REASON_RESTRICTED_LICENSE: The requested package version has a license that is on the restricted list.\n - PACKAGE_FIREWALL_REASON_CVSS_SEVERITY_DETECTED: The requested package version has a CVSS vulnerability meeting or exceeding the configured severity threshold.\n - PACKAGE_FIREWALL_REASON_VERSIONS_CURATED: One or more versions were removed from the package metadata response as part of package curation.\nSee PackageFirewallLog.Spec.filtered_versions for per-version detail."
     },
     "v1PackageLicense": {
       "type": "object",
@@ -106435,6 +107521,10 @@
         "package_version_names": {
           "$ref": "#/definitions/v1QueryMalwarePackageVersionNames",
           "description": "Allows the caller to provide multiple packages for each request."
+        },
+        "package_names": {
+          "$ref": "#/definitions/v1QueryMalwarePackageVersionNames",
+          "description": "Version-less package names (ecosystem://name) to look up. Unlike\npackage_version_name(s), each entry returns ALL malware records for the\npackage across every malicious version and range, rather than a single\nversion match. Used to detect packages that are (potentially) impacted\nregardless of the resolved version, e.g. unpinned dependencies."
         },
         "purls": {
           "type": "array",
@@ -109661,6 +110751,10 @@
         "request_pr_incremental": {
           "type": "boolean",
           "description": "request_pr_incremental is a flag to request a PR incremental scan."
+        },
+        "finding_refresh": {
+          "$ref": "#/definitions/SpecFindingRefresh",
+          "description": "finding_refresh carries metadata for SCAN_REQUEST_TYPE_FINDING_REFRESH requests."
         },
         "github_payload": {
           "$ref": "#/definitions/v1GitHubPayload",

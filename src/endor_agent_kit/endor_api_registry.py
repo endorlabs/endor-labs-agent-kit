@@ -221,6 +221,7 @@ ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {
             "ECOSYSTEM_SBOM",
             "ECOSYSTEM_SWIFT",
             "ECOSYSTEM_UNSPECIFIED",
+            "ECOSYSTEM_VSCODE",
         }
     ),
     "FINDING_TAGS": frozenset(
