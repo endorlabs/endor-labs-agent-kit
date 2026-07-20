@@ -34,6 +34,7 @@ def test_runtime_controls_are_exposed_through_one_interface():
         "audit_log",
         "secret_redaction",
         "idempotency_check",
+        "policy_enforcement",
     }
     assert {control["id"] for control in controls} == required_runtime_control_ids()
     assert all(control["description"] for control in controls)
@@ -56,7 +57,21 @@ def test_action_vocabulary_distinguishes_declared_capabilities_and_wrappers():
     assert vocabulary["ticket.create"]["confirmation_required"] is True
     assert vocabulary["repository.read"]["status"] == "declared"
     assert vocabulary["repository.read"]["confirmation_required"] is False
+    assert vocabulary["organization.policy.evaluate"]["status"] == "unavailable"
     assert runtime_wrappers(declared_actions) == []
+
+
+def test_policy_evaluate_capability_is_declared_when_required():
+    vocabulary = {
+        item["kind"]: item
+        for item in runtime_action_vocabulary(
+            [],
+            required_capabilities=["organization.policy.evaluate"],
+        )
+    }
+
+    assert vocabulary["organization.policy.evaluate"]["status"] == "declared"
+    assert vocabulary["organization.policy.evaluate"]["confirmation_required"] is False
 
 
 def test_ticket_create_wrapper_is_available_when_not_declared():

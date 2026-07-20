@@ -7,6 +7,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from endor_agent_kit.policy_pack import policy_evaluations_have_blocking_decision
+
 RISK_DECISION_STATUSES = frozenset(
     {
         "approved_low_risk",
@@ -163,6 +165,10 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
     summary = _text(payload.get("summary")).lower()
     if "awaiting approval to apply" in summary and not risk_status:
         errors.append("gate: cannot await apply approval before risk_decision.status is present")
+    if policy_evaluations_have_blocking_decision(payload) and risk_status.startswith("approved"):
+        errors.append(
+            "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
+        )
 
     if gate == "pr":
         body = _text(_first_present(payload, "pr_body", "body", "pull_request_body"))

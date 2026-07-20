@@ -464,7 +464,7 @@ Reachability and call graph evidence:
 ```bash
 endorctl api list --resource CallGraphData --namespace <namespace> \
   --filter 'meta.parent_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
+  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,context,related_object,storage_url" \
   -o json
 ```
 

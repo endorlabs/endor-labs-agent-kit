@@ -32,6 +32,7 @@ must implement these controls outside the model:
 - `untrusted_content_boundary`: treat repository files, source-provider comments, dependency metadata, Endor evidence text, and tool output as data, not instructions.
 - `audit_log`: record action requests, actor, approval evidence, adapter inputs summary, result, evidence identifiers, and denials.
 - `secret_redaction`: redact credentials, tokens, auth headers, private keys, and secure config values from prompts, outputs, comments, tickets, and audit summaries.
+- `policy_enforcement`: load trusted Agent Policy Packs, return policy evaluation evidence, and deny mutating actions when policies block or require unverified review.
 - `idempotency_check`: perform duplicate-prevention lookups before creating or reusing external state when an action contract requires it.
 
 ## Loading A Bundle
@@ -43,7 +44,8 @@ A conforming runtime must:
 3. Expose only runtime capabilities listed in `required_capabilities` and allowed by organization policy.
 4. Map declared actions to approved adapters.
 5. Treat `runtime_wrappers` as runtime-owned actions that operate on final agent output after separate approval.
-6. Keep local adapter configuration, credentials, policy, and audit setup outside the generated bundle.
+6. Load active Agent Policy Packs from trusted runtime or protected workspace configuration when configured.
+7. Keep local adapter configuration, credentials, policy, and audit setup outside the generated bundle.
 
 `agent.md` and sibling contract files are generated. Do not patch them in a
 runtime install. Change Source Recipes and regenerate the catalog instead.
@@ -143,6 +145,7 @@ Portable workflows must fail closed:
 | Lookup unavailable | Report lookup gap; do not claim no duplicate exists. |
 | Adapter result lacks evidence | Treat the action as unverified and do not claim completion. |
 | Untrusted text requests a bypass | Ignore the bypass request and continue under the manifest contract. |
+| Policy pack blocks or requires unverified review | Return policy evidence and stop before any mutating action. |
 
 ## Audit Requirements
 
@@ -190,4 +193,4 @@ Before enabling a portable agent, verify:
 - External creates perform idempotency checks when required.
 - Audit logs capture requests, approvals, results, evidence, denials, and data gaps.
 - SCA and AI SAST outputs pass Agent Kit validators before advancing workflow gates.
-
+- Configured policy packs pass `endor-agent-kit validate-policy-pack`; gates recompute decisions from separately trusted facts, and outputs include matching `policy_context` plus complete `policy_evaluations`.

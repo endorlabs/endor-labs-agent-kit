@@ -38,6 +38,8 @@ def test_required_fields_for_preserves_recipe_order():
         "summary",
         "evidence_queries",
         "data_gaps",
+        "policy_context",
+        "policy_evaluations",
     )
 
 
@@ -53,6 +55,8 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
     assert schema["additionalProperties"] is False
     assert schema["required"] == list(required_fields_for("sca-remediation"))
     assert schema["properties"]["evidence_queries"]["type"] == "array"
+    assert schema["properties"]["policy_context"]["type"] == ["object", "null"]
+    assert schema["properties"]["policy_evaluations"]["type"] == "array"
     evidence_query = schema["properties"]["evidence_queries"]["items"]
     assert evidence_query["additionalProperties"] is False
     assert evidence_query["required"] == [
@@ -115,6 +119,14 @@ def test_json_schema_cli_prints_agent_schema(capsys):
     assert '"evidence_queries"' in output
 
 
+def test_policy_evaluation_schema_includes_invalid_fact_provenance():
+    schema = json_schema_for_agent("sca-remediation")
+
+    evaluation = schema["properties"]["policy_evaluations"]["items"]
+
+    assert "invalid_facts" in evaluation["properties"]
+
+
 def test_structured_output_contract_rejects_missing_required_fields():
     errors = validate_structured_output_payload(
         "vulnerability-explainer",
@@ -157,6 +169,8 @@ def test_structured_output_contract_allows_null_object_when_gap_is_recorded():
             "remediation_options": [],
             "selected_remediation": None,
             "data_gaps": ["Missing Finding and VersionUpgrade evidence."],
+            "policy_context": {"status": "not_configured"},
+            "policy_evaluations": [],
         },
     )
 
@@ -186,6 +200,8 @@ def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
             "summary": "Missing normalized evidence query fields.",
             "evidence_queries": [{"resource": "Vulnerability", "status": "succeeded", "query": "raw query"}],
             "data_gaps": [],
+            "policy_context": {"status": "not_configured"},
+            "policy_evaluations": [],
         },
     )
 

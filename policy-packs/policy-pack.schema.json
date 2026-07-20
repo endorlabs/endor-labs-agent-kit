@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Endor Agent Kit Policy Pack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy_pack_version", "id", "version", "policies"],
+  "properties": {
+    "policy_pack_version": { "const": 1 },
+    "id": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+    "version": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+    "policies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/policy" }
+    }
+  },
+  "$defs": {
+    "policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "effect", "message"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+        "title": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+        "effect": { "enum": ["allow", "warn", "require_review", "deny"] },
+        "applies_to": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "agents": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" } },
+            "ecosystems": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" } }
+          }
+        },
+        "when": { "$ref": "#/$defs/condition" },
+        "allow_if": { "$ref": "#/$defs/condition" },
+        "warn_if": { "$ref": "#/$defs/condition" },
+        "require_review_if": { "$ref": "#/$defs/condition" },
+        "deny_if": { "$ref": "#/$defs/condition" },
+        "on_missing_facts": { "enum": ["deny", "warn", "allow", "unavailable"] },
+        "message": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        { "$ref": "#/$defs/allCondition" },
+        { "$ref": "#/$defs/anyCondition" },
+        { "$ref": "#/$defs/notCondition" },
+        { "$ref": "#/$defs/predicateCondition" }
+      ]
+    },
+    "allCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["all"],
+      "properties": {
+        "all": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "anyCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["any"],
+      "properties": {
+        "any": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/condition" }
+        }
+      }
+    },
+    "notCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["not"],
+      "properties": {
+        "not": { "$ref": "#/$defs/condition" }
+      }
+    },
+    "predicateCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact"],
+      "properties": {
+        "fact": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+        "exists": { "type": "boolean" },
+        "equals": { "type": ["string", "number", "boolean", "null"] },
+        "not_equals": { "type": ["string", "number", "boolean", "null"] },
+        "in": { "type": "array", "items": { "type": ["string", "number", "boolean", "null"] } },
+        "contains": { "type": ["string", "number", "boolean", "null"] },
+        "gt": { "type": "number" },
+        "gte": { "type": "number" },
+        "lt": { "type": "number" },
+        "lte": { "type": "number" },
+        "version_gt": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)+$" },
+        "version_gte": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)+$" },
+        "version_lt": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)+$" },
+        "version_lte": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)+$" }
+      },
+      "oneOf": [
+        { "required": ["exists"] },
+        { "required": ["equals"] },
+        { "required": ["not_equals"] },
+        { "required": ["in"] },
+        { "required": ["contains"] },
+        { "required": ["gt"] },
+        { "required": ["gte"] },
+        { "required": ["lt"] },
+        { "required": ["lte"] },
+        { "required": ["version_gt"] },
+        { "required": ["version_gte"] },
+        { "required": ["version_lt"] },
+        { "required": ["version_lte"] }
+      ]
+    }
+  }
+}

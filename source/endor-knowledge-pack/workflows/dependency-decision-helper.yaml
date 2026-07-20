@@ -103,10 +103,13 @@ evidence_query_recipes:
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
     template: endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"'
-      --field-mask "uuid,meta.name" -o json
+      --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
     fields:
       - uuid
       - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
     constraints:
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
       - If version is unknown, ask for it or report data_gaps.
@@ -133,10 +136,13 @@ evidence_query_recipes:
     resource: PackageVersion
     purpose: Fetch exact package-version risk metadata for a named package only.
     template: endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"'
-      --field-mask "uuid,meta.name" -o json
+      --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
     fields:
       - uuid
       - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
     constraints:
       - Use exact package coordinates; do not inventory the whole repository when a package is named.
       - If version is unknown, ask for it or report data_gaps.
@@ -157,3 +163,18 @@ evidence_query_recipes:
     constraints:
       - Use for availability or selected-candidate reconciliation only.
       - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+  - profile_id: evidence-check
+    id: vulnerability-enrichment
+    canonical_id: mcp-vulnerability-enrichment
+    resource: Endor MCP vulnerability evidence
+    purpose: Enrich exact vulnerability IDs with severity, EPSS, KEV, and fixed-version evidence when available.
+    template: get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)
+    fields:
+      - id
+      - severity
+      - epss
+      - cisa_kev
+      - fixed_versions
+    constraints:
+      - Use exact vulnerability IDs from package or Finding evidence; do not broaden to unrelated CVEs.
+      - Record data_gaps when EPSS, KEV, fixed-version, or MCP evidence is unavailable.
