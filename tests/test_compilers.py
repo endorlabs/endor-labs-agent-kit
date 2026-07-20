@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "523c5c6dd12c3978481e373c2a3be5899af82de14dc0ce8cc2169551b29707ca"
+ENTERPRISE_EDITION_SHA256 = "2a9bbb276a20ef4760195a6167ae767a1f3fa207877c8961656646694af13b60"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -415,14 +415,14 @@ def _prompt_budget(relative_path: str) -> int:
     if agent_id == "endor-agent-kit-setup":
         return 11_000
     if agent_id in {"repository-dependency-reviewer", "upgrade-impact-analysis"}:
-        return 14_000
+        return 15_000
     if agent_id in {"dependency-decision-helper", "package-risk-summary"}:
-        return 13_000
+        return 14_000
     if agent_id in {"cicd-posture", "endor-troubleshooter", "probe-droid"}:
-        return 25_000
+        return 26_000
     if agent_id in {"sca-remediation", "ai-sast-triage"}:
-        return 35_000
-    return 12_000
+        return 36_000
+    return 13_000
 
 
 def _agent_id_from_prompt_path(relative_path: str) -> str:

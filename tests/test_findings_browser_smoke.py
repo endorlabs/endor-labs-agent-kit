@@ -54,6 +54,8 @@ def test_findings_browser_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_p
         "recommended_next_steps",
         "evidence_queries",
         "data_gaps",
+        "policy_context",
+        "policy_evaluations",
     }
 
 
@@ -168,6 +170,7 @@ def test_findings_browser_eval_cases_cover_browse_outcomes():
     assert case_ids == {
         "critical-reachable-project-findings",
         "exact-finding-uuid-lookup",
+        "exploited-finding-prioritization",
         "filtered-no-results",
         "namespace-wide-truncated-cicd-findings",
         "missing-namespace-insufficient-data",

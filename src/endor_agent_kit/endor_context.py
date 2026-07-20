@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 DEFAULT_CONTEXT_PATH = Path("source/endor-context/provenance.json")
+DEFAULT_OPENAPI_SPEC_PATH = Path("source/endor-context/openapiv2.swagger.json")
 DEFAULT_OPENAPI_URL = "https://api.endorlabs.com/download/openapiv2.swagger.json"
 DEFAULT_META_VERSION_URL = "https://api.endorlabs.com/meta/version"
 DEFAULT_TIMEOUT_SECONDS = 120
@@ -81,6 +82,7 @@ class EndorContextReport:
 def refresh_endor_context(
     context_path: Path = DEFAULT_CONTEXT_PATH,
     *,
+    spec_path: Path | None = DEFAULT_OPENAPI_SPEC_PATH,
     checked_at: str | None = None,
     fetch_bytes: FetchBytes | None = None,
     fetch_json: FetchJson | None = None,
@@ -88,13 +90,24 @@ def refresh_endor_context(
 ) -> dict[str, Any]:
     """Fetch current upstream provenance and write it to ``context_path``."""
 
+    fetch_bytes = fetch_bytes or _fetch_url_bytes
+    openapi_bytes = fetch_bytes(DEFAULT_OPENAPI_URL)
+
+    def pinned_fetch_bytes(url: str) -> bytes:
+        if url == DEFAULT_OPENAPI_URL:
+            return openapi_bytes
+        return fetch_bytes(url)
+
     payload = build_endor_context_payload(
         checked_at=checked_at,
-        fetch_bytes=fetch_bytes,
+        fetch_bytes=pinned_fetch_bytes,
         fetch_json=fetch_json,
         fetch_url_status=fetch_url_status,
     )
     write_endor_context(context_path, payload)
+    resolved_spec_path = default_spec_path_for_context(context_path, spec_path)
+    if resolved_spec_path is not None:
+        write_openapi_spec(resolved_spec_path, openapi_bytes)
     return payload
 
 
@@ -160,6 +173,7 @@ def build_endor_context_payload(
 def verify_endor_context(
     context_path: Path = DEFAULT_CONTEXT_PATH,
     *,
+    spec_path: Path | None = DEFAULT_OPENAPI_SPEC_PATH,
     upstream: bool = False,
     fetch_bytes: FetchBytes | None = None,
     fetch_json: FetchJson | None = None,
@@ -175,6 +189,7 @@ def verify_endor_context(
     report = validate_endor_context_payload(payload)
     errors = list(report.errors)
     warnings = list(report.warnings)
+    errors.extend(local_openapi_spec_errors(payload, context_path=context_path, spec_path=spec_path))
     if errors or not upstream:
         return EndorContextReport(tuple(errors), tuple(warnings))
 
@@ -282,6 +297,49 @@ def load_endor_context(context_path: Path = DEFAULT_CONTEXT_PATH) -> dict[str, A
 def write_endor_context(context_path: Path, payload: dict[str, Any]) -> None:
     context_path.parent.mkdir(parents=True, exist_ok=True)
     context_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
+def write_openapi_spec(spec_path: Path, openapi_bytes: bytes) -> None:
+    spec_path.parent.mkdir(parents=True, exist_ok=True)
+    spec_path.write_bytes(openapi_bytes)
+
+
+def local_openapi_spec_errors(
+    payload: dict[str, Any],
+    *,
+    context_path: Path,
+    spec_path: Path | None,
+) -> list[str]:
+    resolved = default_spec_path_for_context(context_path, spec_path)
+    if resolved is None:
+        return []
+    if not resolved.exists():
+        if default_context_location(context_path):
+            return [f"{resolved}: missing pinned OpenAPI spec"]
+        return []
+    data = resolved.read_bytes()
+    openapi = payload.get("openapi") if isinstance(payload.get("openapi"), dict) else {}
+    errors: list[str] = []
+    sha = hashlib.sha256(data).hexdigest()
+    if sha != openapi.get("sha256"):
+        errors.append(f"{resolved}: sha256 does not match provenance openapi.sha256")
+    if len(data) != openapi.get("bytes"):
+        errors.append(f"{resolved}: byte count does not match provenance openapi.bytes")
+    return errors
+
+
+def default_spec_path_for_context(context_path: Path, spec_path: Path | None) -> Path | None:
+    if spec_path is None:
+        return None
+    if spec_path.is_absolute():
+        return spec_path
+    if spec_path == DEFAULT_OPENAPI_SPEC_PATH:
+        return context_path.parent / spec_path.name
+    return spec_path
+
+
+def default_context_location(context_path: Path) -> bool:
+    return context_path.as_posix().endswith(DEFAULT_CONTEXT_PATH.as_posix())
 
 
 def _validate_openapi(value: object, errors: list[str]) -> None:

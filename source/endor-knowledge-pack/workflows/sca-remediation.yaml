@@ -83,7 +83,7 @@ resources:
       - uuid
       - meta.parent_uuid
       - spec.upgrade_info
-      - spec.upgrade_impact
+      - spec.finding_fixing_upgrades
 retrieval_steps:
   - Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID,
     and freshness.
@@ -214,6 +214,22 @@ evidence_query_recipes:
     constraints:
       - Use for availability or selected-candidate reconciliation only.
       - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+  - profile_id: evidence-check
+    id: exploited-finding-availability
+    canonical_id: sca-exploited-finding-availability
+    resource: Finding
+    purpose: Identify exploited vulnerability findings for a resolved project to prioritize remediation order.
+    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false and spec.finding_tags contains FINDING_TAGS_EXPLOITED' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level,spec.finding_tags" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+      - spec.finding_tags
+    constraints:
+      - Use to prioritize remediation order for exploited vulnerabilities; pair with VersionUpgrade/UIA ranking before selecting a fix.
+      - Keep bounded; do not add --list-all before VersionUpgrade narrowing.
   - profile_id: evidence-check
     id: version-upgrade-summary
     canonical_id: version-upgrade-summary

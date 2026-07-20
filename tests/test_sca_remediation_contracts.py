@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import json
 
+from conftest import repo_root
 from endor_agent_kit.cli import main
+from endor_agent_kit.policy_pack import (
+    evaluate_policy_pack_file,
+    load_policy_pack,
+    policy_pack_sha256,
+)
 from endor_agent_kit.sca_remediation import (
     lint_sca_pr_body,
     normalize_sca_branch,
@@ -98,6 +104,14 @@ def _valid_netty_payload() -> dict:
                 "proposed_branch": "remediation/sca/netty-all-4.2.13.Final",
             }
         ],
+        "policy_context": {
+            "status": "not_configured",
+            "pack_id": None,
+            "pack_version": None,
+            "sha256": None,
+            "source": None,
+        },
+        "policy_evaluations": [],
     }
 
 
@@ -133,6 +147,35 @@ def test_sca_gate_validator_requires_namespace_provenance():
     errors = validate_sca_gate_payload(payload)
 
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
+
+
+def test_sca_gate_validator_rejects_approved_remediation_blocked_by_policy():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+    payload["policy_context"] = {
+        "status": "loaded",
+        "pack_id": "websphere-traditional-java8",
+        "pack_version": "2026.07.02",
+        "sha256": "abc123",
+        "source": "runtime",
+    }
+    payload["policy_evaluations"] = [
+        {
+            "policy_id": "was-traditional-java-max-8",
+            "effect": "deny",
+            "decision": "blocked",
+            "message": "Do not recommend Java 9+.",
+            "facts_used": ["proposed.runtime.java.major"],
+            "missing_facts": [],
+        }
+    ]
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert (
+        "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
+        in errors
+    )
 
 
 def test_sca_gate_validator_requires_project_resolution():
@@ -433,6 +476,159 @@ def test_sca_cli_validate_output_and_render_pr_body(tmp_path, capsys):
     body = capsys.readouterr().out
     assert "Security Remediation: 25 Endor finding instances fixed" in body
     assert lint_sca_pr_body(body) == []
+
+
+def test_sca_cli_recomputes_policy_decisions_from_trusted_facts(tmp_path, capsys):
+    policy_path = repo_root() / "policy-packs" / "examples" / "was-traditional-java8.yaml"
+    policy_pack = load_policy_pack(policy_path)
+    facts_path = tmp_path / "policy-facts.json"
+    facts = {
+        "agent": {"id": "sca-remediation"},
+        "ecosystem": "maven",
+        "platform": {"websphere": {"family": "traditional", "present": True}},
+        "proposed": {"runtime": {"java": {"major": 17}}},
+    }
+    facts_path.write_text(json.dumps(facts), encoding="utf-8")
+    payload = _valid_netty_payload()
+    payload["policy_context"] = {
+        "status": "loaded",
+        "pack_id": policy_pack["id"],
+        "pack_version": policy_pack["version"],
+        "sha256": policy_pack_sha256(policy_path),
+        "source": "runtime",
+    }
+    payload["policy_evaluations"] = [
+        {
+            "policy_id": "was-traditional-java-max-8",
+            "effect": "deny",
+            "decision": "passed",
+            "message": policy_pack["policies"][0]["message"],
+            "facts_used": [
+                "platform.websphere.family",
+                "platform.websphere.present",
+                "proposed.runtime.java.major",
+            ],
+            "missing_facts": [],
+        }
+    ]
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    assert main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--gate",
+            "apply",
+            "--policy-pack",
+            str(policy_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    ) == 1
+    output = capsys.readouterr().out
+
+    assert "decision: must match trusted policy evaluation 'blocked'" in output
+
+    facts["proposed"]["runtime"]["java"]["major"] = 8
+    facts_path.write_text(json.dumps(facts), encoding="utf-8")
+    payload["policy_evaluations"] = evaluate_policy_pack_file(policy_path, facts)
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    assert main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--gate",
+            "apply",
+            "--policy-pack",
+            str(policy_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    ) == 0
+
+
+def test_sca_cli_rejects_policy_facts_without_policy_pack(tmp_path, capsys):
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(_valid_netty_payload()), encoding="utf-8")
+    facts_path = tmp_path / "policy-facts.json"
+    facts_path.write_text("{}", encoding="utf-8")
+
+    assert main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    ) == 1
+
+    assert "--policy-facts requires --policy-pack" in capsys.readouterr().out
+
+
+def test_sca_cli_reports_malformed_policy_yaml_without_traceback(tmp_path, capsys):
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(_valid_netty_payload()), encoding="utf-8")
+    policy_path = tmp_path / "bad-policy.yaml"
+    policy_path.write_text("policies: [", encoding="utf-8")
+    facts_path = tmp_path / "policy-facts.json"
+    facts_path.write_text("{}", encoding="utf-8")
+
+    status = main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--gate",
+            "apply",
+            "--policy-pack",
+            str(policy_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    )
+
+    assert status == 1
+    assert "ERROR: policy_pack: invalid YAML:" in capsys.readouterr().out
+
+
+def test_sca_cli_preflights_policy_applicability_facts(tmp_path, capsys):
+    policy_path = repo_root() / "policy-packs" / "examples" / "was-traditional-java8.yaml"
+    policy_pack = load_policy_pack(policy_path)
+    facts = {
+        "agent": {"id": "sca-remediation"},
+        "ecosystem": "maven",
+        "proposed": {"runtime": {"java": {"major": 17}}},
+    }
+    facts_path = tmp_path / "policy-facts.json"
+    facts_path.write_text(json.dumps(facts), encoding="utf-8")
+    payload = _valid_netty_payload()
+    payload["policy_context"] = {
+        "status": "loaded",
+        "pack_id": policy_pack["id"],
+        "pack_version": policy_pack["version"],
+        "sha256": policy_pack_sha256(policy_path),
+        "source": "runtime",
+    }
+    payload["policy_evaluations"] = evaluate_policy_pack_file(policy_path, facts)
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    status = main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--gate",
+            "apply",
+            "--policy-pack",
+            str(policy_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    )
+
+    assert status == 1
+    assert "applicability: missing trusted facts" in capsys.readouterr().out
 
 
 def test_sca_branch_normalizer_uses_remediation_sca_prefix():

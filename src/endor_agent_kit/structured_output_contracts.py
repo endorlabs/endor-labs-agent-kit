@@ -15,7 +15,19 @@ class StructuredOutputField:
     required: bool = True
 
 
-STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
+POLICY_OUTPUT_FIELDS = (
+    StructuredOutputField(
+        "policy_context",
+        "object",
+    ),
+    StructuredOutputField(
+        "policy_evaluations",
+        "list[object]",
+    ),
+)
+
+
+_BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
     "ai-sast-triage": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("project_resolution", "object"),
@@ -187,6 +199,11 @@ STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
+}
+
+STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
+    agent_id: fields + POLICY_OUTPUT_FIELDS
+    for agent_id, fields in _BASE_STRUCTURED_OUTPUT_CONTRACTS.items()
 }
 
 
@@ -753,6 +770,35 @@ def _tickets_schema() -> dict[str, Any]:
     }
 
 
+def _policy_context_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "pack_id": _nullable_string(),
+            "pack_version": _nullable_string(),
+            "sha256": _nullable_string(),
+            "source": _nullable_string(),
+        }
+    )
+
+
+def _policy_evaluations_schema() -> dict[str, Any]:
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "policy_id": _nullable_string(),
+                "effect": _nullable_string(),
+                "decision": _nullable_string(),
+                "message": _nullable_string(),
+                "facts_used": _nullable_string_array(),
+                "missing_facts": _nullable_string_array(),
+                "invalid_facts": _nullable_string_array(),
+            }
+        ),
+    }
+
+
 FIELD_SCHEMA_OVERRIDES = {
     "executive_report": _executive_report_schema,
     "executive_summary": _executive_summary_schema,
@@ -777,6 +823,8 @@ FIELD_SCHEMA_OVERRIDES = {
     "validation_plan": _validation_schema,
     "change_requests": _change_requests_schema,
     "tickets": _tickets_schema,
+    "policy_context": _policy_context_schema,
+    "policy_evaluations": _policy_evaluations_schema,
 }
 
 

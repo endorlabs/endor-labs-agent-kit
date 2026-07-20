@@ -433,7 +433,7 @@ endorctl api list \
   --resource Repository \
   <namespace_flag> \
   --list-all \
-  --field-mask "uuid,meta.name,meta.tags,context,spec"
+  --field-mask "uuid,meta.name,meta.tags,spec"
 ```
 
 Some tenants reject `context` in the `Repository` field mask. If that happens,

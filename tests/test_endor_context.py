@@ -8,6 +8,7 @@ from conftest import repo_root
 from endor_agent_kit.cli import main
 from endor_agent_kit.endor_context import (
     DEFAULT_CONTEXT_PATH,
+    DEFAULT_OPENAPI_SPEC_PATH,
     build_endor_context_payload,
     refresh_endor_context,
     verify_endor_context,
@@ -78,6 +79,17 @@ def test_refresh_endor_context_writes_deterministic_json(tmp_path):
     )
 
     assert json.loads(path.read_text(encoding="utf-8")) == payload
+    assert (path.parent / DEFAULT_OPENAPI_SPEC_PATH.name).read_bytes() == _fetch_bytes("")
+
+
+def test_verify_endor_context_checks_local_openapi_spec(tmp_path):
+    path = _write_payload(tmp_path)
+    spec_path = tmp_path / "openapiv2.swagger.json"
+    spec_path.write_bytes(b"changed")
+
+    report = verify_endor_context(path, spec_path=spec_path)
+
+    assert any("sha256 does not match provenance" in error for error in report.errors)
 
 
 def test_upstream_openapi_drift_is_blocking(tmp_path):

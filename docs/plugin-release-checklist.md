@@ -123,13 +123,15 @@ show a Gemini zip artifact.
 If `verify-endor-context --upstream` fails with OpenAPI SHA drift, inspect
 `source/endor-knowledge-pack/query-recipes.yaml`, affected Source Recipes,
 workflow output contracts, and setup guidance before refreshing
-`source/endor-context/provenance.json`. If it fails with docs URL drift, update
-stale links first, then run:
+`source/endor-context/provenance.json` and
+`source/endor-context/openapiv2.swagger.json`. If it fails with docs URL drift,
+update stale links first, then run:
 
 ```bash
 endor-agent-kit refresh-endor-context
 endor-agent-kit verify-endor-context --upstream
 python -m pytest -q tests/test_endor_context.py
+python scripts/generate_endor_api_registry.py --check --spec source/endor-context/openapiv2.swagger.json
 ```
 
 The scheduled `Refresh Endor context` workflow is signal-only. It refreshes and

@@ -27,7 +27,7 @@ copying portable policy facts.
 | Evidence before claims | Enforced in prompts and workflow validators | host contracts, portable runtime contract, output validators |
 | Namespace provenance and conflict surfacing | Enforced in prompts and setup guidance | shared prompt preflight, setup support files, catalog guardrails |
 | Endor Knowledge Pack rendering | Enforced in source and generated artifacts | `source/endor-knowledge-pack/`, shared renderer, catalog guardrails |
-| Endor upstream context freshness | Enforced in CI and release gates | `source/endor-context/provenance.json`, `verify-endor-context --upstream` |
+| Endor upstream context freshness | Enforced in CI and release gates | `source/endor-context/provenance.json`, `source/endor-context/openapiv2.swagger.json`, `verify-endor-context --upstream` |
 | Missing data handling | Enforced in prompts | required `data_gaps` behavior |
 | Output structure | Enforced for workflow gates | SCA and AI SAST validators/renderers/linters |
 | Portable runtime controls | Declared and tested | `agent.manifest.json`, `output-contract.md`, portable docs |
@@ -317,8 +317,10 @@ regenerate the catalog.
 
 `source/endor-context/provenance.json` records the public Endor OpenAPI SHA,
 the warning-only `/meta/version` signal, and selected canonical Endor docs URLs
-used by Agent Kit prompts and release documentation. It is a maintainer
-freshness gate, not runtime agent context.
+used by Agent Kit prompts and release documentation. The matching
+`source/endor-context/openapiv2.swagger.json` is checked in so CI can validate
+registry and field references offline against the pinned spec. These files are
+a maintainer freshness gate, not runtime agent context.
 
 `endor-agent-kit verify-endor-context --upstream` compares the committed
 OpenAPI SHA and docs URLs against live upstream sources. OpenAPI drift and docs

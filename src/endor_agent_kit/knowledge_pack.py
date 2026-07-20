@@ -9,6 +9,8 @@ from typing import Any
 
 import yaml
 
+from endor_agent_kit.endor_api_registry import endor_api_template_errors
+
 
 PACK_SECTION_HEADING = "## Endor Knowledge Pack"
 PACK_SCHEMA_VERSION = 1
@@ -100,13 +102,14 @@ MUTABILITY_GATE_RULES = (
     "Plan-capable agents must separate local edits, source-provider writes, and Endor writes; each requires explicit approval before action.",
 )
 COMPACT_EVIDENCE_GATE_RULES = (
-    "Never use memory or prior sessions as namespace, repo, project, finding, or package provenance.",
-    "Never dump or `cat` Endor config files; extract only the namespace key.",
+    "Never use memory/prior sessions for namespace/repo/project/finding/package provenance.",
+    "Never dump or `cat` Endor config files; read only namespace key.",
     "Never guess repo/project/finding/package/scan/VersionUpgrade/UIA/CIA evidence.",
-    "Local docs need current Endor or user evidence.",
-    "Record `namespace_provenance`, repo, branch, traverse, and `data_gaps`.",
-    "Read-only means no edits/scans/PRs/comments/writes.",
-    "No raw commands in final output.",
+    "Local docs require current Endor/user evidence.",
+    "Record `namespace_provenance`, repo, branch, traverse, `data_gaps`.",
+    "Missing inputs in noninteractive/final answer: return required JSON with `data_gaps`.",
+    "Read-only: no edits/scans/PRs/comments/writes.",
+    "No raw commands in final.",
 )
 
 
@@ -922,14 +925,14 @@ def _compact_query_recipes(workflow: KnowledgeWorkflow) -> tuple[KnowledgeEviden
                 continue
             selected.append(recipe)
             seen.add(recipe.id)
-            if len(selected) >= 1:
+            if len(selected) >= 4:
                 return tuple(selected)
     for recipe in workflow.evidence_query_recipes:
         if recipe.id in seen:
             continue
         selected.append(recipe)
         seen.add(recipe.id)
-        if len(selected) >= 1:
+        if len(selected) >= 4:
             break
     return tuple(selected)
 
@@ -956,6 +959,7 @@ def _validate_query_recipe_template(
             errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
     if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:
         errors.append(f"{prefix}.template: must not cat Endor config files")
+    errors.extend(endor_api_template_errors(prefix, template))
 
 
 def _field_mask_paths(template: str) -> tuple[str, ...]:
@@ -1071,6 +1075,14 @@ def _is_scoped_finding_list_all_query(lower_template: str) -> bool:
         "context.type==context_type_main" in lower_template
         and "spec.project_uuid" in lower_template
         and "system_evaluation_method_definition_ai_sast" in lower_template
+    ):
+        return True
+    if (
+        "<scope_filter>" in lower_template
+        and "spec.dismiss==false" in lower_template
+        and "spec.level in" in lower_template
+        and "spec.finding_categories" in lower_template
+        and 'field-mask "uuid,spec.level,spec.finding_categories"' in lower_template
     ):
         return True
     return (

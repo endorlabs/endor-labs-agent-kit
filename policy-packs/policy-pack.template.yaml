@@ -1,0 +1,7 @@
+policy_pack_version: 1
+id: customer-agent-policies
+version: 2026.07.02
+
+# Copy this template into a trusted runtime or workspace policy location before
+# activating it. Generated agent.md and actions.yaml files remain generated.
+policies: []

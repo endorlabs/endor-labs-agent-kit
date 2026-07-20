@@ -1,0 +1,40 @@
+policy_pack_version: 1
+id: websphere-liberty-java-fixpack
+version: 2026.07.02
+
+policies:
+  - id: liberty-java17-requires-21-0-0-10
+    title: WebSphere Liberty Java 17 requires Liberty 21.0.0.10 or newer
+    effect: deny
+    applies_to:
+      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      ecosystems: ["maven"]
+    when:
+      all:
+        - fact: platform.websphere.family
+          equals: liberty
+        - fact: proposed.runtime.java.major
+          gte: 17
+    deny_if:
+      fact: platform.websphere.liberty.version
+      version_lt: "21.0.0.10"
+    on_missing_facts: unavailable
+    message: "Do not recommend or apply Java 17+ for WebSphere Liberty unless Liberty is 21.0.0.10 or newer."
+
+  - id: liberty-java21-requires-23-0-0-10
+    title: WebSphere Liberty Java 21 requires Liberty 23.0.0.10 or newer
+    effect: deny
+    applies_to:
+      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      ecosystems: ["maven"]
+    when:
+      all:
+        - fact: platform.websphere.family
+          equals: liberty
+        - fact: proposed.runtime.java.major
+          gte: 21
+    deny_if:
+      fact: platform.websphere.liberty.version
+      version_lt: "23.0.0.10"
+    on_missing_facts: unavailable
+    message: "Do not recommend or apply Java 21+ for WebSphere Liberty unless Liberty is 23.0.0.10 or newer."

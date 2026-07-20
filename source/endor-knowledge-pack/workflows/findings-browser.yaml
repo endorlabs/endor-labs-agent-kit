@@ -49,6 +49,7 @@ resources:
       - spec.project_uuid
       - spec.level
       - spec.finding_categories
+      - spec.finding_tags
       - spec.target_dependency_package_name
       - spec.finding_metadata
   - name: Project
@@ -88,7 +89,10 @@ evidence_query_plans:
     query_order:
       - Resolve project or namespace scope first.
       - Query bounded Finding rows with projected fields and a page-size limit.
-      - Summarize returned rows by severity and category, then surface pagination and data_gaps.
+      - Query compact complete matching Finding IDs/count fields with `--list-all` when project scope is resolved, then use the
+        bounded page only for table-ready row details.
+      - Summarize complete counts by severity and category when the compact count query succeeds; otherwise surface pagination
+        and data_gaps.
     avoid:
       - Do not enumerate broad unfiltered Finding inventories.
       - Do not claim complete tenant totals when pagination or permission limits exist.
@@ -96,6 +100,7 @@ evidence_query_plans:
       - Stop after rows, no rows, partial rows, or data_gaps are known.
     data_gaps:
       - Record truncation, approximate-count uncertainty, inaccessible fields, and unsupported filters in data_gaps.
+      - Put any self-chosen bounded-list defaults in applied_filters, not data_gaps.
   - profile_id: exact-finding
     title: Exact Finding Query Plan
     objective: Fetch one exact Finding UUID and avoid unrelated list expansion.
@@ -130,18 +135,52 @@ evidence_query_recipes:
     canonical_id: finding-browser-filtered
     resource: Finding
     purpose: List bounded existing Finding rows for verified filters.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
       - spec.level
       - spec.finding_categories
+      - spec.finding_tags
       - spec.target_dependency_package_name
       - spec.finding_metadata
     constraints:
       - Keep list requests bounded and projected.
       - Do not use broad unfiltered Finding --list-all queries.
+  - profile_id: browse
+    id: finding-browser-complete-counts
+    canonical_id: finding-browser-complete-counts
+    resource: Finding
+    purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
+    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+    fields:
+      - uuid
+      - spec.level
+      - spec.finding_categories
+    constraints:
+      - Use only after project or explicit namespace scope is proven.
+      - Keep table rows bounded; use this compact complete query only for totals and pagination completeness.
+      - Do not use broad unfiltered Finding --list-all queries.
+  - profile_id: browse
+    id: finding-browser-by-tag
+    canonical_id: finding-browser-by-tag
+    resource: Finding
+    purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
+    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.level
+      - spec.finding_categories
+      - spec.finding_tags
+      - spec.target_dependency_package_name
+      - spec.finding_metadata
+    constraints:
+      - Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags.
+      - Combine the tag clause with severity, category, or project scope for exploit-first triage and keep the page bounded.
+      - Surface the returned spec.finding_tags in finding_results so exploit and fix status are visible.
   - profile_id: exact-finding
     id: finding-by-uuid
     canonical_id: finding-by-uuid

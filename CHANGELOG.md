@@ -11,6 +11,59 @@ package metadata.
 
 ## Unreleased
 
+### Added
+
+- Added customer-owned Agent Policy Packs with a public JSON Schema, template
+  and examples, `validate-policy-pack` and `evaluate-policy-pack` CLI commands,
+  trusted fact preflight, and generated policy outputs across all source agents.
+- Added an OpenAPI-derived Endor API resource and enum registry with a generator
+  for validating source instructions, knowledge-pack query fields, and rendered
+  `--field-mask` values.
+
+### Changed
+
+- Refreshed the pinned Endor OpenAPI and client/service provenance to
+  v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
+- Enhanced `findings-browser` with compact complete-count queries and
+  `FINDING_TAGS_*` filters for exploited, fix-available, and reachable findings.
+- Extended `malware-response` to query tenant `FINDING_CATEGORY_MALWARE`
+  evidence and distinguish Endor classifications from external intelligence.
+- Extended `cicd-posture` to prefer Endor-ingested repository, CODEOWNERS, and
+  tag-protection evidence before falling back to the read-only GitHub API.
+- Prioritized exploited findings in `sca-remediation` before VersionUpgrade/UIA
+  evidence selects an upgrade candidate.
+
+### Fixed
+
+- Made policy comparisons fail closed on invalid operand types, added trusted
+  `invalid_facts` provenance, and introduced explicit numeric dotted-version
+  operators instead of coercing version strings through generic comparisons.
+- Added policy fact preflight for scope and `when` applicability facts, marked
+  WebSphere packs as reference-only, and report their missing evidence as the
+  blocking `unavailable` decision.
+- Hardened field-mask validation to bind masks to individual commands, scan
+  source agent instructions, resolve service-backed resource schemas, and fail
+  loudly when an Endor resource mask cannot be validated.
+- Report malformed policy-pack YAML as concise CLI validation errors instead
+  of Python tracebacks.
+- Recomputed workflow policy decisions from a separately trusted fact bag and
+  rejected omitted, additional, or modified agent-reported evaluations.
+- Aligned runtime policy-pack validation with the public JSON schema by
+  rejecting unknown fields, malformed conditions, and missing policy messages.
+- Restored compact generated namespace preflight wording required by catalog
+  guardrails, including Endor namespace/config provenance and credential input
+  literals.
+- Extended Endor API registry drift checks to validate knowledge-pack field
+  lists as well as every rendered `--field-mask`, and wired the check into
+  blocking Agent Kit CI.
+- Pinned the OpenAPI JSON under `source/endor-context/` so registry checks run
+  offline against the same spec recorded in provenance.
+- Scoped Project Resolution Preflight injection to recipes that declare
+  `project_resolution`, keeping package-level and workspace-independent agents
+  out of project-resolution guidance.
+- Clarified generated data-gap taxonomy and findings-browser filter guidance so
+  unavailable evidence and QA-only defaults stay machine-readable.
+
 ## 2.1.0 - 2026-06-16
 
 ### Added
