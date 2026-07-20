@@ -11,10 +11,27 @@ package metadata.
 
 ## Unreleased
 
+### Added
+
+- Added customer-owned Agent Policy Packs with a public JSON Schema, template
+  and examples, `validate-policy-pack` and `evaluate-policy-pack` CLI commands,
+  trusted fact preflight, and generated policy outputs across all source agents.
+- Added an OpenAPI-derived Endor API resource and enum registry with a generator
+  for validating source instructions, knowledge-pack query fields, and rendered
+  `--field-mask` values.
+
 ### Changed
 
 - Refreshed the pinned Endor OpenAPI and client/service provenance to
   v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
+- Enhanced `findings-browser` with compact complete-count queries and
+  `FINDING_TAGS_*` filters for exploited, fix-available, and reachable findings.
+- Extended `malware-response` to query tenant `FINDING_CATEGORY_MALWARE`
+  evidence and distinguish Endor classifications from external intelligence.
+- Extended `cicd-posture` to prefer Endor-ingested repository, CODEOWNERS, and
+  tag-protection evidence before falling back to the read-only GitHub API.
+- Prioritized exploited findings in `sca-remediation` before VersionUpgrade/UIA
+  evidence selects an upgrade candidate.
 
 ### Fixed
 
