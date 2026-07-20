@@ -11,6 +11,7 @@ from typing import Any, Callable, Literal
 from endor_agent_kit.policy_pack import (
     evaluate_policy_pack,
     load_policy_pack,
+    policy_fact_preflight_errors,
     policy_output_errors,
     policy_pack_sha256,
     validate_policy_pack_data,
@@ -118,6 +119,14 @@ class WorkflowCommand:
                     facts = json.loads(facts_path.read_text(encoding="utf-8"))
                     if not isinstance(facts, dict):
                         raise ValueError("--policy-facts must contain a JSON object")
+                    errors.extend(
+                        f"policy_pack: {error}"
+                        for error in policy_fact_preflight_errors(
+                            policy_pack,
+                            facts,
+                            agent_id=self.agent_id,
+                        )
+                    )
                     errors.extend(
                         policy_output_errors(
                             payload,

@@ -18,5 +18,5 @@ policies:
     deny_if:
       fact: proposed.runtime.java.major
       gt: 8
-    on_missing_facts: deny
+    on_missing_facts: unavailable
     message: "Do not recommend or apply a remediation requiring Java 9+ for WebSphere Application Server traditional."

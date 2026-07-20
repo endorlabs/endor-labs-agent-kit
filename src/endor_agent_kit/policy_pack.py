@@ -17,7 +17,21 @@ POLICY_DECISIONS = frozenset(
 )
 MISSING_FACT_POLICIES = frozenset({"deny", "warn", "allow", "unavailable"})
 CONDITION_OPERATORS = frozenset(
-    {"exists", "equals", "not_equals", "in", "contains", "gt", "gte", "lt", "lte"}
+    {
+        "exists",
+        "equals",
+        "not_equals",
+        "in",
+        "contains",
+        "gt",
+        "gte",
+        "lt",
+        "lte",
+        "version_gt",
+        "version_gte",
+        "version_lt",
+        "version_lte",
+    }
 )
 CONDITION_FIELDS = ("when", "deny_if", "warn_if", "require_review_if", "allow_if")
 BLOCKING_DECISIONS = frozenset({"blocked", "requires_review", "unavailable"})
@@ -40,6 +54,10 @@ POLICY_FIELDS = frozenset(
 APPLIES_TO_FIELDS = frozenset({"agents", "ecosystems"})
 
 
+class PolicyPackLoadError(ValueError):
+    """Raised when a policy pack cannot be parsed as YAML."""
+
+
 @dataclass(frozen=True)
 class ConditionResult:
     """Tri-state condition result plus evaluation metadata."""
@@ -47,13 +65,17 @@ class ConditionResult:
     matched: bool | None
     facts_used: frozenset[str]
     missing_facts: frozenset[str]
+    invalid_facts: frozenset[str] = frozenset()
 
 
 def load_policy_pack(path: str | Path) -> dict[str, Any]:
     """Load one policy pack YAML file as a mapping."""
 
     policy_path = Path(path)
-    data = yaml.safe_load(policy_path.read_text(encoding="utf-8")) or {}
+    try:
+        data = yaml.safe_load(policy_path.read_text(encoding="utf-8")) or {}
+    except yaml.YAMLError as exc:
+        raise PolicyPackLoadError(f"invalid YAML: {exc}") from exc
     if not isinstance(data, dict):
         raise ValueError("policy pack must be a YAML mapping")
     return data
@@ -70,7 +92,9 @@ def validate_policy_pack_file(path: str | Path) -> list[str]:
 
     try:
         data = load_policy_pack(path)
-    except (OSError, ValueError, yaml.YAMLError) as exc:
+    except PolicyPackLoadError as exc:
+        return [f"policy_pack: {exc}"]
+    except (OSError, ValueError) as exc:
         return [f"policy pack: failed to read YAML: {exc}"]
     return validate_policy_pack_data(data)
 
@@ -112,6 +136,14 @@ def validate_policy_pack_data(data: dict[str, Any]) -> list[str]:
         effect = _text(policy.get("effect"))
         if effect not in POLICY_EFFECTS:
             errors.append(f"{prefix}.effect: must be one of {', '.join(sorted(POLICY_EFFECTS))}")
+        else:
+            expected_condition = f"{effect}_if"
+            for field in CONDITION_FIELDS:
+                if field not in {"when", expected_condition} and field in policy:
+                    errors.append(
+                        f"{prefix}.{field}: does not match effect {effect!r}; "
+                        f"use {expected_condition}"
+                    )
         missing = (
             _text(policy["on_missing_facts"])
             if "on_missing_facts" in policy
@@ -177,6 +209,66 @@ def evaluate_policy_pack(
             )
         )
     return evaluations
+
+
+def policy_fact_preflight_errors(
+    data: dict[str, Any],
+    facts: dict[str, Any],
+    *,
+    agent_id: str = "",
+    ecosystem: str = "",
+) -> list[str]:
+    """Return missing or invalid facts needed to decide policy applicability.
+
+    Scope and ``when`` conditions decide whether a policy applies, so a trusted
+    runtime must resolve them before activation. Effect-condition facts remain
+    governed by each policy's ``on_missing_facts`` behavior.
+    """
+
+    resolved_agent = agent_id or _fact_text(facts, "agent.id") or _fact_text(
+        facts, "agent_id"
+    )
+    resolved_ecosystem = (
+        ecosystem
+        or _fact_text(facts, "ecosystem")
+        or _fact_text(facts, "package.ecosystem")
+        or _fact_text(facts, "proposed.ecosystem")
+    )
+    errors: list[str] = []
+    for policy in data.get("policies", []):
+        if not isinstance(policy, dict):
+            continue
+        policy_id = _text(policy.get("id")) or "<unknown>"
+        scope = _applies_to(
+            policy.get("applies_to"),
+            agent_id=resolved_agent,
+            ecosystem=resolved_ecosystem,
+        )
+        if scope.matched is False:
+            continue
+        if scope.matched is None:
+            if scope.missing_facts:
+                errors.append(
+                    f"policy {policy_id!r} applicability: missing trusted facts "
+                    f"{sorted(scope.missing_facts)!r}"
+                )
+            continue
+        if "when" not in policy:
+            continue
+        applicability = _eval_condition(policy["when"], facts)
+        if applicability.matched is not None:
+            continue
+        if applicability.missing_facts:
+            errors.append(
+                f"policy {policy_id!r} applicability: missing trusted facts "
+                f"{sorted(applicability.missing_facts)!r}"
+            )
+        if applicability.invalid_facts:
+            errors.append(
+                f"policy {policy_id!r} applicability: invalid trusted facts "
+                f"{sorted(applicability.invalid_facts)!r}"
+            )
+    return errors
 
 
 def policy_output_errors(
@@ -261,7 +353,14 @@ def _trusted_evaluation_errors(
             )
             continue
         index, evaluation = matches[0]
-        for field in ("effect", "decision", "message", "facts_used", "missing_facts"):
+        for field in (
+            "effect",
+            "decision",
+            "message",
+            "facts_used",
+            "missing_facts",
+            "invalid_facts",
+        ):
             if evaluation.get(field) != expected.get(field):
                 errors.append(
                     f"policy_evaluations[{index}].{field}: must match trusted policy "
@@ -297,9 +396,13 @@ def _evaluate_policy(
         "message": _text(policy.get("message")),
         "facts_used": [],
         "missing_facts": [],
+        "invalid_facts": [],
     }
-    if not _applies_to(policy.get("applies_to"), agent_id=agent_id, ecosystem=ecosystem):
+    scope = _applies_to(policy.get("applies_to"), agent_id=agent_id, ecosystem=ecosystem)
+    if scope.matched is False:
         return base
+    if scope.matched is None:
+        return _evaluation_record(base, _missing_decision(policy), scope)
 
     when = _eval_condition(policy["when"], facts) if "when" in policy else _always()
     if when.matched is False:
@@ -313,6 +416,7 @@ def _evaluate_policy(
         result.matched,
         frozenset(when.facts_used | result.facts_used),
         frozenset(when.missing_facts | result.missing_facts),
+        frozenset(when.invalid_facts | result.invalid_facts),
     )
     if result.matched is None:
         return _evaluation_record(base, _missing_decision(policy), combined)
@@ -330,6 +434,7 @@ def _evaluation_record(
     record["decision"] = decision
     record["facts_used"] = sorted(result.facts_used)
     record["missing_facts"] = sorted(result.missing_facts)
+    record["invalid_facts"] = sorted(result.invalid_facts)
     return record
 
 
@@ -368,7 +473,12 @@ def _eval_condition(condition: Any, facts: dict[str, Any]) -> ConditionResult:
         inner = _eval_condition(condition.get("not"), facts)
         if inner.matched is None:
             return inner
-        return ConditionResult(not inner.matched, inner.facts_used, inner.missing_facts)
+        return ConditionResult(
+            not inner.matched,
+            inner.facts_used,
+            inner.missing_facts,
+            inner.invalid_facts,
+        )
     fact_path = _text(condition.get("fact"))
     if not fact_path:
         return ConditionResult(None, frozenset(), frozenset())
@@ -383,7 +493,13 @@ def _eval_condition(condition: Any, facts: dict[str, Any]) -> ConditionResult:
     if not operator:
         return ConditionResult(None, facts_used, frozenset())
     expected = condition[operator]
-    return ConditionResult(_compare(operator, actual, expected), facts_used, frozenset())
+    matched = _compare(operator, actual, expected)
+    return ConditionResult(
+        matched,
+        facts_used,
+        frozenset(),
+        frozenset({fact_path}) if matched is None else frozenset(),
+    )
 
 
 def _always() -> ConditionResult:
@@ -395,16 +511,28 @@ def _eval_all(conditions: Any, facts: dict[str, Any]) -> ConditionResult:
         return ConditionResult(None, frozenset(), frozenset())
     facts_used: set[str] = set()
     missing: set[str] = set()
+    invalid: set[str] = set()
     unknown = False
     for condition in conditions:
         result = _eval_condition(condition, facts)
         facts_used.update(result.facts_used)
         missing.update(result.missing_facts)
+        invalid.update(result.invalid_facts)
         if result.matched is False:
-            return ConditionResult(False, frozenset(facts_used), frozenset(missing))
+            return ConditionResult(
+                False,
+                frozenset(facts_used),
+                frozenset(missing),
+                frozenset(invalid),
+            )
         if result.matched is None:
             unknown = True
-    return ConditionResult(None if unknown else True, frozenset(facts_used), frozenset(missing))
+    return ConditionResult(
+        None if unknown else True,
+        frozenset(facts_used),
+        frozenset(missing),
+        frozenset(invalid),
+    )
 
 
 def _eval_any(conditions: Any, facts: dict[str, Any]) -> ConditionResult:
@@ -412,60 +540,112 @@ def _eval_any(conditions: Any, facts: dict[str, Any]) -> ConditionResult:
         return ConditionResult(None, frozenset(), frozenset())
     facts_used: set[str] = set()
     missing: set[str] = set()
+    invalid: set[str] = set()
     unknown = False
     for condition in conditions:
         result = _eval_condition(condition, facts)
         facts_used.update(result.facts_used)
         missing.update(result.missing_facts)
+        invalid.update(result.invalid_facts)
         if result.matched is True:
-            return ConditionResult(True, frozenset(facts_used), frozenset(missing))
+            return ConditionResult(
+                True,
+                frozenset(facts_used),
+                frozenset(missing),
+                frozenset(invalid),
+            )
         if result.matched is None:
             unknown = True
-    return ConditionResult(None if unknown else False, frozenset(facts_used), frozenset(missing))
+    return ConditionResult(
+        None if unknown else False,
+        frozenset(facts_used),
+        frozenset(missing),
+        frozenset(invalid),
+    )
 
 
-def _compare(operator: str, actual: Any, expected: Any) -> bool:
+def _compare(operator: str, actual: Any, expected: Any) -> bool | None:
     if operator == "equals":
+        if not _equality_types_compatible(actual, expected):
+            return None
         return actual == expected
     if operator == "not_equals":
+        if not _equality_types_compatible(actual, expected):
+            return None
         return actual != expected
     if operator == "in":
-        return isinstance(expected, list) and actual in expected
+        if not isinstance(expected, list):
+            return None
+        compatible = [item for item in expected if _equality_types_compatible(actual, item)]
+        if expected and not compatible:
+            return None
+        return any(actual == item for item in compatible)
     if operator == "contains":
         if isinstance(actual, list):
-            return expected in actual
+            compatible = [item for item in actual if _equality_types_compatible(item, expected)]
+            if actual and not compatible:
+                return None
+            return any(item == expected for item in compatible)
         if isinstance(actual, str):
-            return str(expected) in actual
-        return False
-    left = _comparable(actual)
-    right = _comparable(expected)
-    try:
+            return expected in actual if isinstance(expected, str) else None
+        if isinstance(actual, dict):
+            compatible = [key for key in actual if _equality_types_compatible(key, expected)]
+            if actual and not compatible:
+                return None
+            return any(key == expected for key in compatible)
+        return None
+    if operator in {"gt", "gte", "lt", "lte"}:
+        if not (_is_number(actual) and _is_number(expected)):
+            return None
         if operator == "gt":
-            return left > right
+            return actual > expected
         if operator == "gte":
-            return left >= right
+            return actual >= expected
         if operator == "lt":
+            return actual < expected
+        return actual <= expected
+    if operator in {"version_gt", "version_gte", "version_lt", "version_lte"}:
+        left = _version_parts(actual)
+        right = _version_parts(expected)
+        if left is None or right is None:
+            return None
+        if operator == "version_gt":
+            return left > right
+        if operator == "version_gte":
+            return left >= right
+        if operator == "version_lt":
             return left < right
-        if operator == "lte":
-            return left <= right
-    except TypeError:
-        return False
+        return left <= right
     return False
 
 
-def _comparable(value: Any) -> Any:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, int | float):
-        return value
-    if isinstance(value, str):
-        if _is_dotted_number(value):
-            return tuple(int(part) for part in value.split("."))
-        try:
-            return int(value)
-        except ValueError:
-            return value
-    return value
+def _equality_types_compatible(actual: Any, expected: Any) -> bool:
+    """Return whether exact equality has meaningful operand types."""
+
+    if not (_is_scalar(actual) and _is_scalar(expected)):
+        return False
+    if isinstance(actual, bool) or isinstance(expected, bool):
+        return type(actual) is type(expected)
+    if _is_number(actual) and _is_number(expected):
+        return True
+    return type(actual) is type(expected)
+
+
+def _is_number(value: Any) -> bool:
+    return isinstance(value, int | float) and not isinstance(value, bool)
+
+
+def _is_scalar(value: Any) -> bool:
+    return value is None or isinstance(value, str | int | float | bool)
+
+
+def _version_parts(value: Any) -> tuple[int, ...] | None:
+    if not isinstance(value, str) or not _is_dotted_number(value):
+        return None
+    parts = [int(part) for part in value.split(".")]
+    while len(parts) > 1 and parts[-1] == 0:
+        parts.pop()
+    return tuple(parts)
 
 
 def _is_dotted_number(value: str) -> bool:
@@ -487,16 +667,30 @@ def _fact_text(facts: dict[str, Any], fact_path: str) -> str:
     return str(value) if present and value is not None else ""
 
 
-def _applies_to(value: Any, *, agent_id: str, ecosystem: str) -> bool:
+def _applies_to(value: Any, *, agent_id: str, ecosystem: str) -> ConditionResult:
     if not isinstance(value, dict):
-        return True
+        return _always()
+    facts_used: set[str] = set()
+    missing: set[str] = set()
     agents = value.get("agents")
-    if isinstance(agents, list) and agents and agent_id not in agents:
-        return False
+    if isinstance(agents, list) and agents:
+        facts_used.add("agent.id")
+        if not agent_id:
+            missing.add("agent.id")
+        elif agent_id not in agents:
+            return ConditionResult(False, frozenset(facts_used), frozenset(missing))
     ecosystems = value.get("ecosystems")
-    if isinstance(ecosystems, list) and ecosystems and ecosystem not in ecosystems:
-        return False
-    return True
+    if isinstance(ecosystems, list) and ecosystems:
+        facts_used.add("ecosystem")
+        if not ecosystem:
+            missing.add("ecosystem")
+        elif ecosystem not in ecosystems:
+            return ConditionResult(False, frozenset(facts_used), frozenset(missing))
+    return ConditionResult(
+        None if missing else True,
+        frozenset(facts_used),
+        frozenset(missing),
+    )
 
 
 def _validate_applies_to(value: Any, prefix: str) -> list[str]:
@@ -505,7 +699,10 @@ def _validate_applies_to(value: Any, prefix: str) -> list[str]:
     errors = _unsupported_field_errors(value, APPLIES_TO_FIELDS, f"{prefix}.applies_to")
     for field in ("agents", "ecosystems"):
         if field in value and not _is_string_list(value[field]):
-            errors.append(f"{prefix}.applies_to.{field}: must be a list of strings")
+            errors.append(
+                f"{prefix}.applies_to.{field}: "
+                "must be a non-empty list of non-blank strings"
+            )
     return errors
 
 
@@ -542,11 +739,34 @@ def _validate_condition(condition: Any, prefix: str) -> list[str]:
         return [f"{prefix}.exists: must be boolean"]
     if operators[0] == "in" and not isinstance(condition["in"], list):
         return [f"{prefix}.in: must be a list"]
+    if operators[0] in {"equals", "not_equals"} and not _is_scalar(
+        condition[operators[0]]
+    ):
+        return [f"{prefix}.{operators[0]}: must be a scalar value"]
+    if operators[0] in {"gt", "gte", "lt", "lte"} and not _is_number(
+        condition[operators[0]]
+    ):
+        return [f"{prefix}.{operators[0]}: must be a number"]
+    if operators[0] == "contains" and not _is_scalar(condition["contains"]):
+        return [f"{prefix}.contains: must be a scalar value"]
+    if operators[0] == "in" and isinstance(condition["in"], list) and not all(
+        _is_scalar(item) for item in condition["in"]
+    ):
+        return [f"{prefix}.in: must contain only scalar values"]
+    if operators[0].startswith("version_") and (
+        not isinstance(condition[operators[0]], str)
+        or not _is_dotted_number(condition[operators[0]])
+    ):
+        return [f"{prefix}.{operators[0]}: must be a numeric dotted version"]
     return []
 
 
 def _is_string_list(value: Any) -> bool:
-    return isinstance(value, list) and all(isinstance(item, str) and item for item in value)
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(bool(_text(item)) for item in value)
+    )
 
 
 def _unsupported_field_errors(

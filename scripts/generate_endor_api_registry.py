@@ -140,13 +140,26 @@ def enum_family_drift(
     return (spec_members - registry_members, registry_members - spec_members)
 
 
+def openapi_format_errors(spec: dict[str, Any]) -> list[str]:
+    """Return a clear error when the checker receives an unsupported format."""
+
+    if spec.get("swagger") == "2.0":
+        return []
+    version = spec.get("openapi") or spec.get("swagger")
+    if version:
+        return [f"unsupported OpenAPI format {version!r}; expected Swagger 2.0"]
+    return ["missing OpenAPI format marker; expected Swagger 2.0"]
+
+
 # --------------------------------------------------------------------------- #
 # Composition against the committed registry
 # --------------------------------------------------------------------------- #
 def registry_drift(spec: dict[str, Any]) -> list[str]:
     """Compare the committed registry to the spec; return human-readable drift lines."""
 
-    drift: list[str] = []
+    drift = openapi_format_errors(spec)
+    if drift:
+        return drift
 
     for family in sorted(ENDOR_ENUM_VALUES):
         spec_members = enum_members_for_family(spec, family)
@@ -201,6 +214,19 @@ def source_query_templates(
     return templates
 
 
+def source_instruction_templates(agents_root: Path) -> list[tuple[str, str]]:
+    """Return source agent instruction files that contain field-mask commands."""
+
+    templates: list[tuple[str, str]] = []
+    for path in sorted(agents_root.glob("*/instructions.md")):
+        text = path.read_text(encoding="utf-8")
+        if "endorctl" not in text or "--field-mask" not in text:
+            continue
+        prefix = f"{agents_root.name}/{path.relative_to(agents_root).as_posix()}"
+        templates.append((prefix, text))
+    return templates
+
+
 def source_field_references(
     pack_root: Path,
     documents: list[YamlDocument] | None = None,
@@ -233,7 +259,14 @@ def _collect_field_references(
     fields: list[tuple[str, str, str]],
 ) -> None:
     if isinstance(value, dict):
-        resource = value.get("resource") or value.get("name")
+        resource = value.get("resource")
+        if not (
+            isinstance(resource, str)
+            and ("recipe" in prefix or isinstance(value.get("template"), str))
+        ):
+            resource = None
+        if re.search(r"(?:^|\.)resources\[\d+\]$", prefix):
+            resource = value.get("name")
         field_values = value.get("fields")
         if isinstance(resource, str) and isinstance(field_values, list):
             for index, field in enumerate(field_values):
@@ -254,13 +287,17 @@ def field_mask_drift(
     """Return invalid field-mask path lines for Endor query templates."""
 
     drift: list[str] = []
+    unvalidated: set[tuple[str, str]] = set()
     for prefix, template in templates:
-        resources = tuple(dict.fromkeys(_RESOURCE_RE.findall(template)))
-        masks = _field_mask_paths(template)
-        if not resources or not masks:
-            continue
-        for resource in resources:
+        for resource, masks in _query_resource_masks(template):
             if not resource_schema_exists(spec, resource):
+                key = (prefix, resource)
+                if key not in unvalidated:
+                    drift.append(
+                        f"{prefix}: field mask for Endor API resource {resource!r} "
+                        "cannot be validated because no schema was resolved"
+                    )
+                    unvalidated.add(key)
                 continue
             for field_path in masks:
                 if not field_mask_path_exists(spec, resource, field_path):
@@ -270,6 +307,13 @@ def field_mask_drift(
                     )
     for prefix, resource, field_path in fields or []:
         if not resource_schema_exists(spec, resource):
+            key = (prefix.rsplit(".fields[", 1)[0], resource)
+            if resource in ENDOR_API_RESOURCES and key not in unvalidated:
+                drift.append(
+                    f"{prefix}: fields for Endor API resource {resource!r} "
+                    "cannot be validated because no schema was resolved"
+                )
+                unvalidated.add(key)
             continue
         if not field_mask_path_exists(spec, resource, field_path):
             drift.append(
@@ -279,21 +323,92 @@ def field_mask_drift(
     return drift
 
 
+def _query_resource_masks(template: str) -> list[tuple[str, tuple[str, ...]]]:
+    """Bind each field mask to the resource in the same shell command."""
+
+    normalized = template.replace("\\\n", " ")
+    commands = re.split(r"\s*(?:&&|\|\||;|\n)\s*", normalized)
+    pairs: list[tuple[str, tuple[str, ...]]] = []
+    for command in commands:
+        if "endorctl" not in command or " api " not in f" {command} ":
+            continue
+        resources = tuple(dict.fromkeys(_RESOURCE_RE.findall(command)))
+        masks = _field_mask_paths(command)
+        for resource in resources:
+            if masks:
+                pairs.append((resource, masks))
+    return pairs
+
+
 def resource_schema_exists(spec: dict[str, Any], resource: str) -> bool:
-    return isinstance(spec.get("definitions", {}).get(f"v1{resource}"), dict)
+    return _resource_schema(spec, resource) is not None
 
 
 def field_mask_path_exists(spec: dict[str, Any], resource: str, field_path: str) -> bool:
     """True when dotted ``field_path`` exists on ``resource``'s OpenAPI schema."""
 
-    schema = spec.get("definitions", {}).get(f"v1{resource}")
-    if not isinstance(schema, dict):
+    schema = _resource_schema(spec, resource)
+    if schema is None:
         return False
     for part in field_path.split("."):
         schema = _schema_for_field_part(spec, schema, part)
         if schema is None:
             return False
     return True
+
+
+def _resource_schema(spec: dict[str, Any], resource: str) -> dict[str, Any] | None:
+    definitions = spec.get("definitions", {})
+    direct = definitions.get(f"v1{resource}")
+    if isinstance(direct, dict):
+        return direct
+
+    collection = re.escape(_expected_collection(resource))
+    item_pattern = re.compile(
+        rf"/namespaces/\{{[^}}]+\}}/{collection}/\{{[^}}]+\}}$"
+    )
+    collection_pattern = re.compile(rf"/namespaces/\{{[^}}]+\}}/{collection}$")
+    paths = spec.get("paths", {})
+    if not isinstance(paths, dict):
+        return None
+
+    for pattern in (item_pattern, collection_pattern):
+        for path, operations in paths.items():
+            if not isinstance(path, str) or not pattern.search(path):
+                continue
+            if not isinstance(operations, dict):
+                continue
+            get_operation = operations.get("get")
+            if not isinstance(get_operation, dict):
+                continue
+            responses = get_operation.get("responses")
+            if not isinstance(responses, dict):
+                continue
+            response = responses.get("200")
+            if not isinstance(response, dict) or not isinstance(response.get("schema"), dict):
+                continue
+            schema = _resolve_schema(spec, response["schema"])
+            if pattern is collection_pattern:
+                schema = _list_response_item_schema(spec, schema)
+            if schema:
+                return schema
+    return None
+
+
+def _list_response_item_schema(
+    spec: dict[str, Any],
+    schema: dict[str, Any],
+) -> dict[str, Any]:
+    list_schema = _schema_for_field_part(spec, schema, "list")
+    if list_schema is None:
+        return {}
+    objects_schema = _schema_for_field_part(spec, list_schema, "objects")
+    if objects_schema is None:
+        return {}
+    resolved = _resolve_schema(spec, objects_schema)
+    while resolved.get("type") == "array":
+        resolved = _resolve_schema(spec, resolved.get("items", {}))
+    return resolved
 
 
 def _schema_for_field_part(
@@ -381,12 +496,15 @@ def main(argv: list[str] | None = None) -> int:
     status = 0
     if args.check:
         drift = registry_drift(spec)
-        pack_root = Path(__file__).resolve().parents[1] / "source" / "endor-knowledge-pack"
+        repo_root = Path(__file__).resolve().parents[1]
+        pack_root = repo_root / "source" / "endor-knowledge-pack"
         source_documents = source_yaml_documents(pack_root)
+        templates = source_query_templates(pack_root, source_documents)
+        templates.extend(source_instruction_templates(repo_root / "source" / "agents"))
         drift.extend(
             field_mask_drift(
                 spec,
-                source_query_templates(pack_root, source_documents),
+                templates,
                 source_field_references(pack_root, source_documents),
             )
         )

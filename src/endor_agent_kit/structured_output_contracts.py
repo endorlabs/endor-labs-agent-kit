@@ -793,6 +793,7 @@ def _policy_evaluations_schema() -> dict[str, Any]:
                 "message": _nullable_string(),
                 "facts_used": _nullable_string_array(),
                 "missing_facts": _nullable_string_array(),
+                "invalid_facts": _nullable_string_array(),
             }
         ),
     }

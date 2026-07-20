@@ -91,7 +91,8 @@ def test_policy_pack_guidance_requires_trusted_evaluator_output():
     )
 
     assert "Do not self-assert or rewrite policy decisions" in rendered
-    assert "Copy the trusted evaluator's complete `policy_evaluations`" in rendered
+    assert "Copy trusted evaluator `policy_evaluations` exactly and completely" in rendered
+    assert "missing or invalid facts" in rendered
 
 
 def test_shared_compiler_rendering_compact_project_preflight_is_conditional():

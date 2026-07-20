@@ -216,6 +216,17 @@ def test_cicd_posture_compact_profile_keeps_endor_native_recipes():
     assert "github-branch-protection" not in compact
 
 
+def test_malware_workflow_uses_supported_finding_category_evidence():
+    workflow = load_knowledge_pack().workflow_for("malware-response")
+    section = render_knowledge_pack_section("malware-response")
+
+    assert workflow is not None
+    assert "Malware" not in {resource.name for resource in workflow.resources}
+    assert "Endor OSS Malware feed" not in section
+    assert "FINDING_CATEGORY_MALWARE" in section
+    assert "tenant-malware-findings" in section
+
+
 def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
     _write_minimal_pack(tmp_path)
     workflows = tmp_path / "workflows"

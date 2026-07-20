@@ -567,6 +567,70 @@ def test_sca_cli_rejects_policy_facts_without_policy_pack(tmp_path, capsys):
     assert "--policy-facts requires --policy-pack" in capsys.readouterr().out
 
 
+def test_sca_cli_reports_malformed_policy_yaml_without_traceback(tmp_path, capsys):
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(_valid_netty_payload()), encoding="utf-8")
+    policy_path = tmp_path / "bad-policy.yaml"
+    policy_path.write_text("policies: [", encoding="utf-8")
+    facts_path = tmp_path / "policy-facts.json"
+    facts_path.write_text("{}", encoding="utf-8")
+
+    status = main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--gate",
+            "apply",
+            "--policy-pack",
+            str(policy_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    )
+
+    assert status == 1
+    assert "ERROR: policy_pack: invalid YAML:" in capsys.readouterr().out
+
+
+def test_sca_cli_preflights_policy_applicability_facts(tmp_path, capsys):
+    policy_path = repo_root() / "policy-packs" / "examples" / "was-traditional-java8.yaml"
+    policy_pack = load_policy_pack(policy_path)
+    facts = {
+        "agent": {"id": "sca-remediation"},
+        "ecosystem": "maven",
+        "proposed": {"runtime": {"java": {"major": 17}}},
+    }
+    facts_path = tmp_path / "policy-facts.json"
+    facts_path.write_text(json.dumps(facts), encoding="utf-8")
+    payload = _valid_netty_payload()
+    payload["policy_context"] = {
+        "status": "loaded",
+        "pack_id": policy_pack["id"],
+        "pack_version": policy_pack["version"],
+        "sha256": policy_pack_sha256(policy_path),
+        "source": "runtime",
+    }
+    payload["policy_evaluations"] = evaluate_policy_pack_file(policy_path, facts)
+    payload_path = tmp_path / "payload.json"
+    payload_path.write_text(json.dumps(payload), encoding="utf-8")
+
+    status = main(
+        [
+            "validate-sca-output",
+            str(payload_path),
+            "--gate",
+            "apply",
+            "--policy-pack",
+            str(policy_path),
+            "--policy-facts",
+            str(facts_path),
+        ]
+    )
+
+    assert status == 1
+    assert "applicability: missing trusted facts" in capsys.readouterr().out
+
+
 def test_sca_branch_normalizer_uses_remediation_sca_prefix():
     assert normalize_sca_branch("io.netty:netty-all", "4.2.13.Final") == "remediation/sca/netty-all-4.2.13.Final"
     assert normalize_sca_branch("npm://axios", "1.16.1") == "remediation/sca/axios-1.16.1"
