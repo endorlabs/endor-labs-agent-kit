@@ -32,8 +32,13 @@ from endor_agent_kit.install import (
 )
 from endor_agent_kit.lifecycle import prepare_validation_request, validation_request_summary
 from endor_agent_kit.policy_pack import (
+    evaluate_policy_pack,
     evaluate_policy_pack_file,
     evaluations_to_json,
+    load_policy_pack,
+    PolicyPackLoadError,
+    policy_fact_preflight_errors,
+    validate_policy_pack_data,
     validate_policy_pack_file,
 )
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
@@ -173,6 +178,11 @@ def main(argv: list[str] | None = None) -> int:
     evaluate_policy_pack_parser.add_argument("--facts", type=Path, required=True)
     evaluate_policy_pack_parser.add_argument("--agent", default="")
     evaluate_policy_pack_parser.add_argument("--ecosystem", default="")
+    evaluate_policy_pack_parser.add_argument(
+        "--preflight",
+        action="store_true",
+        help="Require trusted scope and applicability facts before evaluation",
+    )
 
     structured_output_schema_parser = subparsers.add_parser(
         "structured-output-schema",
@@ -408,12 +418,39 @@ def main(argv: list[str] | None = None) -> int:
             if not isinstance(facts, dict):
                 print("ERROR: facts must be a JSON object")
                 return 1
-            evaluations = evaluate_policy_pack_file(
-                args.policy_pack,
-                facts,
-                agent_id=args.agent,
-                ecosystem=args.ecosystem,
-            )
+            if args.preflight:
+                policy_pack = load_policy_pack(args.policy_pack)
+                pack_errors = validate_policy_pack_data(policy_pack)
+                if pack_errors:
+                    for error in pack_errors:
+                        print(f"ERROR: {error}")
+                    return 1
+                preflight_errors = policy_fact_preflight_errors(
+                    policy_pack,
+                    facts,
+                    agent_id=args.agent,
+                    ecosystem=args.ecosystem,
+                )
+                if preflight_errors:
+                    for error in preflight_errors:
+                        print(f"ERROR: {error}")
+                    return 1
+                evaluations = evaluate_policy_pack(
+                    policy_pack,
+                    facts,
+                    agent_id=args.agent,
+                    ecosystem=args.ecosystem,
+                )
+            else:
+                evaluations = evaluate_policy_pack_file(
+                    args.policy_pack,
+                    facts,
+                    agent_id=args.agent,
+                    ecosystem=args.ecosystem,
+                )
+        except PolicyPackLoadError as exc:
+            print(f"ERROR: policy_pack: {exc}")
+            return 1
         except OSError as exc:
             print(f"ERROR: {exc}")
             return 1

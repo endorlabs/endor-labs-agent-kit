@@ -119,6 +119,14 @@ def test_json_schema_cli_prints_agent_schema(capsys):
     assert '"evidence_queries"' in output
 
 
+def test_policy_evaluation_schema_includes_invalid_fact_provenance():
+    schema = json_schema_for_agent("sca-remediation")
+
+    evaluation = schema["properties"]["policy_evaluations"]["items"]
+
+    assert "invalid_facts" in evaluation["properties"]
+
+
 def test_structured_output_contract_rejects_missing_required_fields():
     errors = validate_structured_output_payload(
         "vulnerability-explainer",

@@ -5,11 +5,16 @@ Hey, here's how you can test out this new feature. Here's an example. Give it a 
 Agent Policy Packs let you define customer-owned YAML rules that Endor Agent Kit agents must evaluate before recommendations advance into changes. The important behavior to test is:
 
 - A policy pack validates before use.
-- A fact bag evaluates deterministically to `passed`, `blocked`, `warned`, or `requires_review`.
+- A fact bag evaluates deterministically to `passed`, `blocked`, `warned`, `requires_review`, or `unavailable`.
 - Workflow gates recompute policy decisions from a separately trusted fact bag.
 - Mutating workflow gates reject blocked, omitted, additional, or modified policy decisions.
 
 Policy packs are trusted runtime or workspace configuration. They are not meant to be edited inside generated `agent.md`, `SKILL.md`, or `actions.yaml` files.
+
+The shipped WebSphere packs are reference examples. They are not activated
+automatically, and the kit does not populate WebSphere platform facts for a
+consuming runtime. Before activation, use `--preflight` so missing scope or
+applicability facts fail clearly instead of being mistaken for a policy match.
 
 ## Quick Test
 
@@ -51,7 +56,8 @@ JSON
 
 PYTHONPATH=src python3 -m endor_agent_kit.cli evaluate-policy-pack \
   policy-packs/examples/was-traditional-java8.yaml \
-  --facts /tmp/was-traditional-java17-facts.json
+  --facts /tmp/was-traditional-java17-facts.json \
+  --preflight
 ```
 
 Expected decision:

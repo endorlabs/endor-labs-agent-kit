@@ -21,6 +21,25 @@ Workflow gates also require a trusted JSON fact bag supplied separately by the
 runtime. The validator recomputes every policy decision from that fact bag and
 rejects omitted, additional, or modified agent-reported evaluations.
 
+The kit does not currently detect WebSphere or populate WebSphere platform
+facts for a consuming product runtime. The shipped WebSphere policy packs are
+reference examples and are never activated automatically. A runtime that opts
+into one must provide trusted platform facts, including explicit applicability
+values for ordinary non-WebSphere projects.
+
+Missing or invalid scope and `when` facts make applicability unavailable.
+Effect-condition facts continue to follow the policy's `on_missing_facts`
+setting. The WebSphere examples report missing evidence as `unavailable`, which
+remains a blocking mutation-gate decision.
+
+Comparison operators are type-aware. `equals` and `not_equals` accept scalar
+values without string or Boolean coercion; generic `gt`, `gte`, `lt`, and `lte`
+accept numbers only. Use `version_gt`, `version_gte`, `version_lt`, or
+`version_lte` for numeric dotted versions. Trailing zero segments compare as
+equal, while qualifiers such as `-ifix` are unavailable until a consuming
+runtime defines an authoritative ordering. `contains` supports strings, lists,
+and dictionary keys.
+
 ## Files
 
 - `policy-packs/policy-pack.schema.json`: public policy-pack schema.
@@ -34,19 +53,19 @@ rejects omitted, additional, or modified agent-reported evaluations.
 
 ```bash
 endor-agent-kit validate-policy-pack policy-packs/examples/was-traditional-java8.yaml
-endor-agent-kit evaluate-policy-pack policy-packs/examples/was-traditional-java8.yaml --facts facts.json
+endor-agent-kit evaluate-policy-pack policy-packs/examples/was-traditional-java8.yaml --facts facts.json --preflight
 endor-agent-kit validate-sca-output sca-output.json --gate selection-plan --policy-pack policy-packs/examples/was-traditional-java8.yaml --policy-facts facts.json
 ```
 
 ## WebSphere Examples
 
-Use the WebSphere Application Server traditional example when a project runs on
+Use the WebSphere Application Server traditional reference example only when a project runs on
 the traditional WAS runtime. This policy blocks proposed remediations that
 require Java 9 or newer. IBM documents WebSphere Application Server traditional
 9.0.5 around Java SE 8, and IBM support guidance states Java 8 is the supported
 runtime for WAS traditional 9.0.
 
-Use the Liberty example separately. Liberty is not globally capped at Java 8:
+Use the Liberty reference example separately. Liberty is not globally capped at Java 8:
 Java 17 and Java 21 support depends on the Liberty fix pack, so the example
 gates Java 17 on Liberty `21.0.0.10+` and Java 21 on Liberty `23.0.0.10+`.
 

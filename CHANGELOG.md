@@ -13,6 +13,17 @@ package metadata.
 
 ### Fixed
 
+- Made policy comparisons fail closed on invalid operand types, added trusted
+  `invalid_facts` provenance, and introduced explicit numeric dotted-version
+  operators instead of coercing version strings through generic comparisons.
+- Added policy fact preflight for scope and `when` applicability facts, marked
+  WebSphere packs as reference-only, and report their missing evidence as the
+  blocking `unavailable` decision.
+- Hardened field-mask validation to bind masks to individual commands, scan
+  source agent instructions, resolve service-backed resource schemas, and fail
+  loudly when an Endor resource mask cannot be validated.
+- Report malformed policy-pack YAML as concise CLI validation errors instead
+  of Python tracebacks.
 - Recomputed workflow policy decisions from a separately trusted fact bag and
   rejected omitted, additional, or modified agent-reported evaluations.
 - Aligned runtime policy-pack validation with the public JSON schema by

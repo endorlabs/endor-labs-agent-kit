@@ -103,9 +103,10 @@ ENDOR_API_RESOURCES = frozenset(
 # ``UpgradeImpactAnalysis`` is a legacy kind NOT in the current spec. The fake
 # ``Integration`` placeholder was removed — endor-troubleshooter declares it as a
 # resource but never queries it via -r/--resource and the API exposes no such
-# kind. Endor exposes many more queryable kinds (Malware, FindingLog,
-# PackageLicense, LinterResult, ...); this set is intentionally scoped to what
-# agents emit today, extended from the resource-kinds doc when an agent adopts one.
+# kind. Endor's OpenAPI defines many more message kinds (Malware, FindingLog,
+# PackageLicense, LinterResult, ...), but a definition does not prove an
+# endorctl-queryable resource. This set is intentionally scoped to verified kinds
+# that agents emit today and extends only after resource-kind verification.
 
 # Endor filter enum values, grouped by their enum-family prefix. Only tokens that
 # match one of these families are policed, so query placeholders
@@ -116,12 +117,8 @@ ENDOR_API_RESOURCES = frozenset(
 # COMPLETE member set, so the validator accepts every API-valid value and only
 # rejects typos / hallucinations. A too-narrow set is as broken as a too-broad
 # one — it would reject valid queries.
-#
-# DRIFT NOTE: the live spec (sha e9523245..., 4,298,606 bytes) no longer matches
-# the committed pin source/endor-context/provenance.json (sha 663e91e0...,
-# 4,250,228 bytes), so `verify-endor-context --upstream` is currently failing.
-# These sets are from the live spec; regenerate them whenever the pin is
-# refreshed (see the verify-endor-api-registry follow-up).
+# Verify current drift with ``scripts/generate_endor_api_registry.py --check``
+# rather than recording snapshot-specific hashes or failure claims here.
 ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {
     "FINDING_CATEGORY": frozenset(
         {

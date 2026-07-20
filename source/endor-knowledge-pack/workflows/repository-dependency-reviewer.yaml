@@ -47,10 +47,9 @@ resources:
   - name: Vulnerability
     purpose: Enrich vulnerability identifiers when the host exposes Endor vulnerability evidence.
     fields:
-      - id
-      - severity
-      - epss
-      - cisa_kev
+      - uuid
+      - meta.name
+      - spec
 retrieval_steps:
   - Identify the repository root from host context or an explicit repository path before asking for a path.
   - Resolve namespace provenance before tenant-scoped Endor lookups; do not infer namespace from local files or earlier sessions.
