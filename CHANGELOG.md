@@ -11,6 +11,11 @@ package metadata.
 
 ## Unreleased
 
+### Changed
+
+- Refreshed the pinned Endor OpenAPI and client/service provenance to
+  v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
+
 ### Fixed
 
 - Made policy comparisons fail closed on invalid operand types, added trusted
