@@ -1,8 +1,0 @@
-[mcp_servers.endor-cli-tools]
-command = "npx"
-args = [
-    "-y",
-    "endorctl",
-    "ai-tools",
-    "mcp-server",
-]
