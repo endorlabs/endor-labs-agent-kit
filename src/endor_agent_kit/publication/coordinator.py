@@ -21,7 +21,7 @@ from endor_agent_kit.catalog_schema import (
 )
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 
-from .records import BundleRecord, PublicationRecord
+from .records import BundleRecord, PublicationRecord, with_evidence_plan_artifacts
 
 
 class HostAdapter(Protocol):
@@ -63,7 +63,11 @@ class HostArtifactPublication:
             adapter = self._adapters[host]
         except KeyError as exc:
             raise ValueError(f"Unsupported publication host {host!r}") from exc
-        bundle = adapter.publish(prepared, destination)
+        bundle = with_evidence_plan_artifacts(
+            adapter.publish(prepared, destination),
+            destination,
+            prepared,
+        )
         catalog_manifest = self._write_manifest(
             destination,
             prepared,

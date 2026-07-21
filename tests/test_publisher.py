@@ -176,6 +176,46 @@ def test_publish_recipe_catalogues_named_claude_code_profile_variants(tmp_path):
         assert artifact["profile_gate_validator"]["version"] == "1"
 
 
+def test_publish_recipe_emits_identical_inert_evidence_plans_for_every_host(tmp_path):
+    recipe = _copy_agent(tmp_path, "sca-remediation")
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    plan_paths = sorted(dest.glob("*/sca-remediation/evidence-plans/evidence-check.json"))
+    assert {path.parts[-4] for path in plan_paths} == {
+        "claude-code",
+        "codex",
+        "gemini",
+        "portable",
+    }
+    assert len({path.read_bytes() for path in plan_paths}) == 1
+    payload = json.loads(plan_paths[0].read_text(encoding="utf-8"))
+    assert payload["execution"] == {
+        "host_adapter_required": True,
+        "mode": "prompt_fallback",
+        "prompt_recipes_exposed": True,
+    }
+
+    manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+    plan_artifacts = [
+        artifact
+        for agent in manifest["agents"]
+        if agent["id"] == "sca-remediation"
+        for edition in agent["editions"]
+        for artifact in edition["artifacts"]
+        if artifact["path"].endswith("/evidence-plans/evidence-check.json")
+    ]
+    assert len(plan_artifacts) == 4
+    assert {artifact["evidence_execution_mode"] for artifact in plan_artifacts} == {
+        "prompt_fallback"
+    }
+    assert {artifact["evidence_plan_executable"] for artifact in plan_artifacts} == {False}
+    assert {
+        artifact["evidence_plan_digest"] for artifact in plan_artifacts
+    } == {payload["provenance"]["plan_digest"]}
+
+
 def test_claude_plugin_packages_include_named_profile_agents(tmp_path):
     recipe = _copy_agent(tmp_path, "sca-remediation")
     dest = tmp_path / "endor-labs-agent-kit"

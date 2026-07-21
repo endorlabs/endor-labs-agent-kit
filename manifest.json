@@ -66,6 +66,21 @@
               "bytes": 2258,
               "path": "claude-code/ai-sast-triage/endorctl-setup.md",
               "sha256": "db04ae7b048d602a98b4abbcc27c5cfda58a6c099d0c737afc5d99104dd97ca0"
+            },
+            {
+              "bytes": 6043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "de96839a7228a4995bfbbfb5ea3c5483caf79089388617f15bb20dc3845c7db9",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "claude-code/ai-sast-triage/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "76c407e617fa41d1b4cf7c1ba50f651ef6bc1f984eb39a095aca3b610b283f33",
+              "profile_gate_validator": {
+                "id": "ai-sast-triage.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "69ad3cf8f7d1b1954714bdc6de1acbde929d8f50a6b5040d44201993ad5e6d12"
             }
           ],
           "id": "enterprise-edition",
@@ -543,6 +558,36 @@
               "bytes": 2158,
               "path": "claude-code/sca-remediation/endorctl-setup.md",
               "sha256": "3ef148dcc55c69471fc01196d4bd956ef342917099944320bc47905589ef3661"
+            },
+            {
+              "bytes": 4812,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "95d9090ee8e019b66df255e7deb07d3b30fa43a9f3920926058d6dae7d196fc3",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "claude-code/sca-remediation/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "3c6528fa99463464621328761611f6ce6af9b67d5b4153096aafc8ff35fb5435",
+              "profile_gate_validator": {
+                "id": "sca-remediation.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "02f6238eb9b6a8e831f2ad3288f9b64cbe81a1e2c21b8b772d2aed1cc792f4c1"
+            },
+            {
+              "bytes": 5043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "bd241b76eed5f624b1ab7cc67e2b90e5450a762d45917e54c297ce716dbf0299",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "claude-code/sca-remediation/evidence-plans/selection-plan.json",
+              "profile_contract_digest": "2683836e088301ca9a0f9efa238ffa93e0c07b10628595321c216a9c9612c6c2",
+              "profile_gate_validator": {
+                "id": "sca-remediation.structured-output",
+                "version": "1"
+              },
+              "profile_id": "selection-plan",
+              "sha256": "4a7631a21cc2148956bbe1eaee17932bcb60b64f3463cf6b5f2d9886f84d332d"
             },
             {
               "bytes": 24007,
@@ -1220,6 +1265,21 @@
               "bytes": 2258,
               "path": "codex/ai-sast-triage/endorctl-setup.md",
               "sha256": "db04ae7b048d602a98b4abbcc27c5cfda58a6c099d0c737afc5d99104dd97ca0"
+            },
+            {
+              "bytes": 6043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "de96839a7228a4995bfbbfb5ea3c5483caf79089388617f15bb20dc3845c7db9",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "codex/ai-sast-triage/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "76c407e617fa41d1b4cf7c1ba50f651ef6bc1f984eb39a095aca3b610b283f33",
+              "profile_gate_validator": {
+                "id": "ai-sast-triage.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "69ad3cf8f7d1b1954714bdc6de1acbde929d8f50a6b5040d44201993ad5e6d12"
             }
           ],
           "id": "codex-skill",
@@ -1680,6 +1740,36 @@
               "bytes": 2158,
               "path": "codex/sca-remediation/endorctl-setup.md",
               "sha256": "3ef148dcc55c69471fc01196d4bd956ef342917099944320bc47905589ef3661"
+            },
+            {
+              "bytes": 4812,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "95d9090ee8e019b66df255e7deb07d3b30fa43a9f3920926058d6dae7d196fc3",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "codex/sca-remediation/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "3c6528fa99463464621328761611f6ce6af9b67d5b4153096aafc8ff35fb5435",
+              "profile_gate_validator": {
+                "id": "sca-remediation.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "02f6238eb9b6a8e831f2ad3288f9b64cbe81a1e2c21b8b772d2aed1cc792f4c1"
+            },
+            {
+              "bytes": 5043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "bd241b76eed5f624b1ab7cc67e2b90e5450a762d45917e54c297ce716dbf0299",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "codex/sca-remediation/evidence-plans/selection-plan.json",
+              "profile_contract_digest": "2683836e088301ca9a0f9efa238ffa93e0c07b10628595321c216a9c9612c6c2",
+              "profile_gate_validator": {
+                "id": "sca-remediation.structured-output",
+                "version": "1"
+              },
+              "profile_id": "selection-plan",
+              "sha256": "4a7631a21cc2148956bbe1eaee17932bcb60b64f3463cf6b5f2d9886f84d332d"
             }
           ],
           "id": "codex-skill",
@@ -1826,6 +1916,21 @@
               "bytes": 2258,
               "path": "gemini/ai-sast-triage/endorctl-setup.md",
               "sha256": "db04ae7b048d602a98b4abbcc27c5cfda58a6c099d0c737afc5d99104dd97ca0"
+            },
+            {
+              "bytes": 6043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "de96839a7228a4995bfbbfb5ea3c5483caf79089388617f15bb20dc3845c7db9",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "gemini/ai-sast-triage/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "76c407e617fa41d1b4cf7c1ba50f651ef6bc1f984eb39a095aca3b610b283f33",
+              "profile_gate_validator": {
+                "id": "ai-sast-triage.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "69ad3cf8f7d1b1954714bdc6de1acbde929d8f50a6b5040d44201993ad5e6d12"
             }
           ],
           "id": "gemini-cli",
@@ -2333,6 +2438,36 @@
               "sha256": "3ef148dcc55c69471fc01196d4bd956ef342917099944320bc47905589ef3661"
             },
             {
+              "bytes": 4812,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "95d9090ee8e019b66df255e7deb07d3b30fa43a9f3920926058d6dae7d196fc3",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "gemini/sca-remediation/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "3c6528fa99463464621328761611f6ce6af9b67d5b4153096aafc8ff35fb5435",
+              "profile_gate_validator": {
+                "id": "sca-remediation.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "02f6238eb9b6a8e831f2ad3288f9b64cbe81a1e2c21b8b772d2aed1cc792f4c1"
+            },
+            {
+              "bytes": 5043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "bd241b76eed5f624b1ab7cc67e2b90e5450a762d45917e54c297ce716dbf0299",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "gemini/sca-remediation/evidence-plans/selection-plan.json",
+              "profile_contract_digest": "2683836e088301ca9a0f9efa238ffa93e0c07b10628595321c216a9c9612c6c2",
+              "profile_gate_validator": {
+                "id": "sca-remediation.structured-output",
+                "version": "1"
+              },
+              "profile_id": "selection-plan",
+              "sha256": "4a7631a21cc2148956bbe1eaee17932bcb60b64f3463cf6b5f2d9886f84d332d"
+            },
+            {
               "bytes": 84141,
               "path": "gemini/sca-remediation/sca-remediation.md",
               "sha256": "3de5bf460ed323faeb96ced17a96da0ed3a40b58b3b8658ab423e26b835f37dc"
@@ -2492,6 +2627,21 @@
               "bytes": 2267,
               "path": "portable/ai-sast-triage/endorctl-setup.md",
               "sha256": "3ee43d525835126a3459a5a14e64aa99ae907c7ce9148ca1a83962ef580772c9"
+            },
+            {
+              "bytes": 6043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "de96839a7228a4995bfbbfb5ea3c5483caf79089388617f15bb20dc3845c7db9",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "portable/ai-sast-triage/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "76c407e617fa41d1b4cf7c1ba50f651ef6bc1f984eb39a095aca3b610b283f33",
+              "profile_gate_validator": {
+                "id": "ai-sast-triage.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "69ad3cf8f7d1b1954714bdc6de1acbde929d8f50a6b5040d44201993ad5e6d12"
             },
             {
               "bytes": 9609,
@@ -3052,6 +3202,36 @@
               "bytes": 2165,
               "path": "portable/sca-remediation/endorctl-setup.md",
               "sha256": "866e19cc09de6a7f8d34fb69ecfa6effda3e4231a44e1b84f83a606d2180c115"
+            },
+            {
+              "bytes": 4812,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "95d9090ee8e019b66df255e7deb07d3b30fa43a9f3920926058d6dae7d196fc3",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "portable/sca-remediation/evidence-plans/evidence-check.json",
+              "profile_contract_digest": "3c6528fa99463464621328761611f6ce6af9b67d5b4153096aafc8ff35fb5435",
+              "profile_gate_validator": {
+                "id": "sca-remediation.read-only-profile",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "02f6238eb9b6a8e831f2ad3288f9b64cbe81a1e2c21b8b772d2aed1cc792f4c1"
+            },
+            {
+              "bytes": 5043,
+              "evidence_execution_mode": "prompt_fallback",
+              "evidence_plan_digest": "bd241b76eed5f624b1ab7cc67e2b90e5450a762d45917e54c297ce716dbf0299",
+              "evidence_plan_executable": false,
+              "evidence_plan_schema_version": "1",
+              "path": "portable/sca-remediation/evidence-plans/selection-plan.json",
+              "profile_contract_digest": "2683836e088301ca9a0f9efa238ffa93e0c07b10628595321c216a9c9612c6c2",
+              "profile_gate_validator": {
+                "id": "sca-remediation.structured-output",
+                "version": "1"
+              },
+              "profile_id": "selection-plan",
+              "sha256": "4a7631a21cc2148956bbe1eaee17932bcb60b64f3463cf6b5f2d9886f84d332d"
             },
             {
               "bytes": 9528,

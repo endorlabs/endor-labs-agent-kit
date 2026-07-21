@@ -10,6 +10,7 @@ import subprocess
 import tempfile
 from typing import Any, Sequence
 
+from endor_agent_kit.evidence_plans import compile_evidence_plans
 from endor_agent_kit.knowledge_pack import default_task_profile_for_agent, load_knowledge_pack
 from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.publication.plugin_package_common import PLUGIN_NAME, package_version
@@ -231,6 +232,13 @@ def _agent_entry(repo: Path, recipe_path: Path, *, base_ref: str) -> dict[str, A
         for profile in (workflow.task_profiles if workflow else ())
         if agent_id in STRUCTURED_OUTPUT_CONTRACTS
     }
+    evidence_plans = {
+        plan.profile_id: plan.to_dict()
+        for plan in compile_evidence_plans(
+            agent_id,
+            knowledge_pack_root=repo / "source" / "endor-knowledge-pack",
+        )
+    }
 
     compatible_hosts = list(recipe.compatible_hosts if recipe else ())
     generated_targets = _generated_targets_for_recipe(recipe)
@@ -248,9 +256,11 @@ def _agent_entry(repo: Path, recipe_path: Path, *, base_ref: str) -> dict[str, A
         "default_task_profile": default_task_profile_for_agent(agent_id),
         "structured_output_contract": structured_contract,
         "profile_contracts": profile_contracts,
+        "evidence_plans": evidence_plans,
         "coverage": {
             "task_profiles": "present" if task_profiles else "missing",
             "structured_output_contract": "present" if structured_contract else "missing",
+            "evidence_plans": "present" if evidence_plans else "not_declared",
         },
         "warnings": warnings,
         "errors": errors,

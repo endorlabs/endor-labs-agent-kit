@@ -7,6 +7,7 @@ import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
+from endor_agent_kit.evidence_plans import compile_evidence_plans
 from endor_agent_kit.knowledge_pack import default_knowledge_pack_root
 from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import EndorAgentRecipe
@@ -142,6 +143,7 @@ class CatalogBundle:
         files = sorted(path for path in bundle_dir.rglob("*") if path.is_file())
         profiles = artifact_profiles or {}
         profile_metadata: dict[str, dict[str, Any]] = {}
+        evidence_plan_metadata: dict[str, dict[str, Any]] = {}
         source_recipe = (
             default_knowledge_pack_root().parent / "agents" / recipe.id / "recipe.yaml"
         )
@@ -154,6 +156,13 @@ class CatalogBundle:
                         "id": contract.gate_validator_id,
                         "version": contract.gate_validator_version,
                     },
+                }
+            for plan in compile_evidence_plans(recipe.id):
+                evidence_plan_metadata[plan.profile_id] = {
+                    "evidence_plan_schema_version": plan.schema_version,
+                    "evidence_plan_digest": plan.plan_digest,
+                    "evidence_execution_mode": plan.execution_mode,
+                    "evidence_plan_executable": plan.execution_mode == "host_adapter",
                 }
         return cls(
             agent_id=recipe.id,
@@ -168,7 +177,14 @@ class CatalogBundle:
                     destination,
                     path,
                     profile_id=(profile_id := profiles.get(path.relative_to(destination).as_posix())),
-                    extra_fields=profile_metadata.get(profile_id, {}),
+                    extra_fields={
+                        **profile_metadata.get(profile_id, {}),
+                        **(
+                            evidence_plan_metadata.get(profile_id, {})
+                            if path.parent.name == "evidence-plans"
+                            else {}
+                        ),
+                    },
                 )
                 for path in files
             ),

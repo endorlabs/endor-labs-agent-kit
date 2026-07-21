@@ -339,6 +339,22 @@ def validate_knowledge_pack(
         canonical_query_recipes=canonical_query_recipes,
         errors=errors,
     )
+    from endor_agent_kit.evidence_plans import compile_evidence_plans
+
+    evidence_plans_root = pack_root / "evidence-plans"
+    if evidence_plans_root.exists() and not evidence_plans_root.is_dir():
+        errors.append("evidence-plans: must be a directory")
+    elif evidence_plans_root.is_dir():
+        for path in sorted(evidence_plans_root.glob("*.yaml")):
+            if agent_ids is not None and path.stem not in agent_ids:
+                continue
+            try:
+                compile_evidence_plans(path.stem, knowledge_pack_root=pack_root)
+            except Exception as exc:
+                errors.extend(
+                    f"evidence-plans/{path.name}: {line}"
+                    for line in str(exc).splitlines()
+                )
     return errors
 
 
