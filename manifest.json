@@ -373,10 +373,10 @@
               "sha256": "fbda17aa0e5375b2284f364f6a5c221271bc8116cc938c3203919db0a1b7221f"
             },
             {
-              "bytes": 16055,
+              "bytes": 16083,
               "path": "claude-code/probe-droid/probe-droid-evidence-check.md",
               "profile_id": "evidence-check",
-              "sha256": "81192c0df1b7d12ff5c470a30856b45eaff633ccd80d2b653c3deeb4e9eb102c"
+              "sha256": "d1df895fd3756ea98f978ae9656bec09ec18724611e162b2e5cb879396b57561"
             },
             {
               "bytes": 87931,
@@ -3415,9 +3415,9 @@
           "sha256": "ac6c2238c94b9819ad68d1584b07e4d532a520b820797dc4d6274fe7b3c7a7a3"
         },
         {
-          "bytes": 16511,
+          "bytes": 16539,
           "path": "plugins/claude/ai-plugins/agents/probe-droid-evidence-check.md",
-          "sha256": "bbd8a837f48f409d984aa66d3289bf8760b6ee327b37c51126d77558c331175b"
+          "sha256": "fead540c697c6b0b74c51b8604de4082b77fc95aa49b08fa48a0b5a66a8fa1b7"
         },
         {
           "bytes": 24506,
@@ -3580,9 +3580,9 @@
           "sha256": "ac6c2238c94b9819ad68d1584b07e4d532a520b820797dc4d6274fe7b3c7a7a3"
         },
         {
-          "bytes": 16511,
+          "bytes": 16539,
           "path": "plugins/claude/endor-labs-agent-kit/agents/probe-droid-evidence-check.md",
-          "sha256": "bbd8a837f48f409d984aa66d3289bf8760b6ee327b37c51126d77558c331175b"
+          "sha256": "fead540c697c6b0b74c51b8604de4082b77fc95aa49b08fa48a0b5a66a8fa1b7"
         },
         {
           "bytes": 24506,

@@ -264,7 +264,7 @@ Return `policy_context` with status, pack id, version, SHA-256 when known, and s
 
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
-`onboarding_verdict`, `executive_report`, `report_scope`, `coverage_summary`, `github_app_coverage`, `not_onboarded_repositories`, `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`, `ambiguous_matches`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
+`onboarding_verdict`, `executive_report`, `report_scope`, `coverage_summary`, `github_inventory_summary`, `github_app_coverage`, `not_onboarded_repositories`, `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`, `ambiguous_matches`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
