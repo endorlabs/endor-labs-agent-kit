@@ -72,16 +72,18 @@ prose and JSON, preserve `context.type` and `spec.source_code_version.ref`, and
 keep those counts separate from main-context counts. For `endorctl agent api --agent-id ai-sast-triage get` by
 UUID, `api get` cannot apply a filter; inspect the returned `context.type` and
 `spec.source_code_version.ref` before treating the finding as main-context
-evidence.
+evidence. Treat that value as source-ref provenance for the Finding; it does
+not prove the repository default branch. Use explicit repository metadata or a
+corroborating Project record when default-branch labeling matters.
 
 ## Workflow
 
-1. Resolve the Endor project from the current repository or user-supplied repository selector. Ask for clarification only when the match is ambiguous or missing.
+1. Resolve the smallest sufficient Endor scope. When the user supplies a Finding UUID, fetch that Finding first and derive its project UUID, context type, and source ref; fetch Project by that UUID only when repository identity is still absent. Without a Finding UUID, resolve the Endor project from the current repository or user-supplied repository selector. Ask for clarification only when the match is ambiguous or missing.
 2. Pull AI SAST findings + parse Endor's verdict: List findings via FindingService filtered by `spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"` and the resolved project, then run a deterministic regex/markdown parser over each spec.explanation to extract the Classification line, all Verification Scorecard rows, Severity Scoring numbers, Data Flow anchors, Exploit Reproduction, Remediation Guidance, and any sibling-file hints from the Security Controls section. Keep raw finding payloads local to parsing; pass only compact extracted evidence into patch reasoning and summaries.
    - Project scoping is mandatory. After resolving a project, every Endor finding list query must filter by `context.type==CONTEXT_TYPE_MAIN` and the resolved project UUID or an equivalent repository-scoped selector unless the user explicitly requested a PR/CI-run scope. Never list all AI SAST findings in the namespace and choose from unrelated repositories.
-   - For filtered list queries, use a filter shaped like `context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"`, include `context`, `spec.method`, and `spec.source_code_version` in the field mask, and add `--list-all` when the output needs a complete scoped finding list or count.
+   - For filtered list queries, use a filter shaped like `context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"`. Use `--count` for an availability count without finding rows. When rows are actually needed, include `context`, `spec.method`, and `spec.source_code_version` in the field mask, and reserve `--list-all` for a complete scoped finding list.
    - Do not use the shorthand AI SAST method value or a finding-tags selector for AI SAST discovery; those selectors can miss current AI SAST findings.
-   - For a known finding UUID, use `endorctl agent api --agent-id ai-sast-triage get -r Finding -n <namespace> --uuid <finding_uuid> -o json`; `api get` does not accept `--filter`. Use `endorctl agent api --agent-id ai-sast-triage list -r Finding -n <namespace> -f <filter> -o json` only for filtered list queries. After a UUID get, inspect and report the returned `context.type` and `spec.source_code_version.ref`; do not merge a CI/PR-run finding into main-context counts unless the user requested that scope.
+   - For a known finding UUID, use `endorctl agent api --agent-id ai-sast-triage get -r Finding -n <namespace> --uuid <finding_uuid> -o json`; `api get` does not accept `--filter`. Use `endorctl agent api --agent-id ai-sast-triage list -r Finding -n <namespace> -f <filter> -o json` only for filtered list queries. After a UUID get, inspect and report the returned `context.type` and `spec.source_code_version.ref`; do not merge a CI/PR-run finding into main-context counts unless the user requested that scope, and do not label the source ref as the repository default branch without corroborating repository metadata.
    - When parsing `endorctl` JSON in shell commands, tolerate update notices by redirecting non-JSON stderr or by parsing from the first JSON object. Do not let a CLI update notice become a false data gap.
    - Treat `## Exploit Reproduction` and `## Remediation Guidance` as optional sections for backward compatibility. If either section is absent, record the missing section in the per-finding evidence object and continue with the older scorecard/data-flow workflow.
 3. Use Exploit Reproduction for prioritization and validation planning: extract attacker preconditions, trigger input or payload shape, affected route/API/sink, expected impact, exploit reliability, and stated limitations. Raise priority when reproduction is concrete, externally reachable, low-precondition, or high-impact. Lower confidence or require manual review when reproduction depends on unrealistic assumptions, missing source context, or controls that appear to block the path. Never run exploit steps against live or customer systems; translate them into local regression tests, safe fixtures, or PR verification notes where possible.
@@ -173,9 +175,9 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 ### Evidence Query Recipes
 
 - `finding-by-uuid`/evidence-check: `endorctl agent api --agent-id ai-sast-triage get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
-- `ai-sast-list`/evidence-check: `endorctl agent api --agent-id ai-sast-triage list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json`
-- `selected-ai-sast-finding`/selection-plan: `endorctl agent api --agent-id ai-sast-triage get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
-- `selected-source-anchors`/selection-plan: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
+- `project-by-uuid`/evidence-check: `endorctl agent api --agent-id ai-sast-triage get -r Project -n <namespace> --uuid <PROJECT_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
+- `project-by-git`/evidence-check: `endorctl agent api --agent-id ai-sast-triage list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `ai-sast-count`/evidence-check: `endorctl agent api --agent-id ai-sast-triage list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --count -o json`
 
 ## Agent Policy Packs
 

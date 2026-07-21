@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 import re
+import shlex
 from typing import Any
 
 import yaml
@@ -21,6 +22,14 @@ FORBIDDEN_VISIBLE_TERMS = (
     "python " + "package",
     "external client " + "package",
 )
+APPROVED_GROUP_AGGREGATION_PATHS = {
+    "Finding": frozenset(
+        {
+            "spec.level",
+            "spec.target_dependency_package_name",
+        }
+    ),
+}
 REQUIRED_PRECEDENCE_MARKERS = (
     "workflow output contracts",
     "source recipe instructions",
@@ -1003,8 +1012,31 @@ def _validate_query_recipe_template(
         errors.append(f"{prefix}.template: endorctl agent api get must not use filters")
     if "endorctl agent api" in lower and " -n " not in lower and " --namespace " not in lower:
         errors.append(f"{prefix}.template: endorctl agent api commands must include explicit namespace")
-    if "endorctl agent api" in lower and " list " in lower and " --field-mask " not in lower:
+    count_only = bool(re.search(r"(?:^|\s)--count(?:\s|$)", lower))
+    grouped = "--group-aggregation-paths" in lower
+    group_paths = _group_aggregation_paths(template) if grouped else ()
+    if (
+        "endorctl agent api" in lower
+        and " list " in lower
+        and not count_only
+        and not grouped
+        and " --field-mask " not in lower
+    ):
         errors.append(f"{prefix}.template: endorctl agent api list commands must include --field-mask")
+    if count_only and "endorctl agent api" in lower and " list " in lower and "--list-all" in lower:
+        errors.append(f"{prefix}.template: count-only list commands must not include --list-all")
+    if grouped and not group_paths:
+        errors.append(f"{prefix}.template: group aggregation requires at least one path")
+    if grouped and "--list-all" in lower:
+        errors.append(f"{prefix}.template: grouped list commands must not include --list-all")
+    if grouped and group_paths:
+        resource = _query_resource(template)
+        approved_paths = APPROVED_GROUP_AGGREGATION_PATHS.get(resource, frozenset())
+        for path in group_paths:
+            if path not in approved_paths:
+                errors.append(
+                    f"{prefix}.template: group aggregation path {path!r} is not approved for {resource or 'unknown resource'}"
+                )
     field_mask_paths = _field_mask_paths(template)
     if _has_field_mask_path_collision(field_mask_paths):
         errors.append(f"{prefix}.template: field-mask must not include both a parent path and child path")
@@ -1025,6 +1057,40 @@ def _field_mask_paths(template: str) -> tuple[str, ...]:
         for path in match.group("mask").split(",")
         if path.strip()
     )
+
+
+def _group_aggregation_paths(template: str) -> tuple[str, ...]:
+    try:
+        tokens = shlex.split(template)
+    except ValueError:
+        return ()
+    values: list[str] = []
+    for index, token in enumerate(tokens):
+        if token == "--group-aggregation-paths":
+            if index + 1 < len(tokens) and not tokens[index + 1].startswith("-"):
+                values.append(tokens[index + 1])
+        elif token.startswith("--group-aggregation-paths="):
+            values.append(token.split("=", 1)[1])
+    return tuple(
+        path.strip()
+        for value in values
+        for path in value.split(",")
+        if path.strip()
+    )
+
+
+def _query_resource(template: str) -> str:
+    try:
+        tokens = shlex.split(template)
+    except ValueError:
+        return ""
+    for index, token in enumerate(tokens):
+        if token in {"-r", "--resource"}:
+            if index + 1 < len(tokens) and not tokens[index + 1].startswith("-"):
+                return tokens[index + 1]
+        elif token.startswith("--resource="):
+            return token.split("=", 1)[1]
+    return ""
 
 
 def _has_field_mask_path_collision(paths: tuple[str, ...]) -> bool:

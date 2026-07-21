@@ -11,6 +11,7 @@ from endor_agent_kit.instruction_sections import (
     parse_instruction_sections,
 )
 from endor_agent_kit.knowledge_pack import load_knowledge_pack, render_knowledge_pack_section
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.prompt_compaction import (
     compact_marked_sections,
     strip_compaction_marker_lines,
@@ -173,10 +174,16 @@ def instructions_for_edition(
                 else TASK_STATE_RESUME_CONTRACT
             )
             sections_to_render.append(task_state_contract.rstrip())
+        profile_output_fields = None
+        if selected_profile and selected_profile.output_fields and recipe_id is not None:
+            profile_output_fields = compile_profile_contract(
+                recipe_id,
+                selected_profile.id,
+            ).output_fields
         structured_output = render_structured_output_contract(
             structured_output_recipe,
             compact=effective_compact,
-            output_fields=selected_profile.output_fields if selected_profile and selected_profile.output_fields else None,
+            output_fields=profile_output_fields,
         ).rstrip()
         if structured_output:
             sections_to_render.append(structured_output)

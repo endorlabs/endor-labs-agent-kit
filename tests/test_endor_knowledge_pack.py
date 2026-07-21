@@ -5,6 +5,7 @@ from pathlib import Path
 import yaml
 
 from conftest import repo_root
+from endor_agent_kit.ai_sast_triage import validate_ai_sast_gate_payload
 from endor_agent_kit.knowledge_pack import (
     PACK_SECTION_HEADING,
     default_task_profile_for_agent,
@@ -30,6 +31,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
 
     assert pack.name == "Endor Knowledge Pack"
     assert sorted(pack.query_recipes) == [
+        "ai-sast-count",
         "ai-sast-list",
         "cicd-posture-findings",
         "current-malware-intelligence",
@@ -53,14 +55,17 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "package-version-exact",
         "project-branch-coverage",
         "project-by-git",
+        "project-by-uuid",
         "sca-exploited-finding-availability",
         "sca-finding-availability",
+        "sca-finding-package-severity-groups",
         "scan-result-by-uuid",
         "selected-source-usage",
         "tenant-malware-findings",
         "tenant-package-inventory",
         "tenant-package-version-exact",
         "version-upgrade-by-package",
+        "version-upgrade-count",
         "version-upgrade-detail",
         "version-upgrade-summary",
     ]
@@ -110,18 +115,21 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     ]
     query_efficiency = next(rule for rule in pack.global_rules if rule.id == "query-efficiency")
     assert "--list-all" in query_efficiency.guidance
-    assert "complete scoped inventory or count" in query_efficiency.guidance
+    assert "Use `--count` when only a complete scoped total matters" in query_efficiency.guidance
+    assert "approved group aggregation paths" in query_efficiency.guidance
+    assert "`--list-all` only when complete matching rows are required" in query_efficiency.guidance
     assert "Run independent compatible reads concurrently" in query_efficiency.guidance
     assert "early-stop" in query_efficiency.guidance
     ai_sast_recipe = next(
         recipe
         for recipe in pack.workflow_for("ai-sast-triage").evidence_query_recipes
-        if recipe.id == "ai-sast-list"
+        if recipe.id == "ai-sast-count"
     )
-    assert ai_sast_recipe.canonical_id == "ai-sast-list"
+    assert ai_sast_recipe.canonical_id == "ai-sast-count"
     assert "SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST" in ai_sast_recipe.template
     assert 'finding_tags contains "AI_SAST"' not in ai_sast_recipe.template
-    assert "--list-all" in ai_sast_recipe.template
+    assert "--count" in ai_sast_recipe.template
+    assert "--list-all" not in ai_sast_recipe.template
     assert "spec.explanation" not in ai_sast_recipe.template
     assert "spec.explanation" not in ai_sast_recipe.fields
     assert all(
@@ -129,6 +137,162 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         for workflow in pack.workflows.values()
         for recipe in workflow.evidence_query_recipes
     )
+
+
+def test_canonical_sca_finding_aggregation_preserves_package_and_severity_dimensions():
+    recipe = load_knowledge_pack().query_recipes["sca-finding-package-severity-groups"]
+
+    assert recipe.resource == "Finding"
+    assert (
+        "--group-aggregation-paths spec.target_dependency_package_name,spec.level"
+        in recipe.template
+    )
+    assert "--field-mask" not in recipe.template
+    assert "--list-all" not in recipe.template
+    assert recipe.fields == (
+        "group_response.groups",
+        "aggregation_count.count",
+        "spec.target_dependency_package_name",
+        "spec.level",
+    )
+
+
+def test_canonical_version_upgrade_count_is_count_only_and_project_scoped():
+    recipe = load_knowledge_pack().query_recipes["version-upgrade-count"]
+
+    assert recipe.resource == "VersionUpgrade"
+    assert 'spec.project_uuid=="<PROJECT_UUID>"' in recipe.template
+    assert "spec.upgrade_info.worth_it==true" in recipe.template
+    assert "--count" in recipe.template
+    assert "--field-mask" not in recipe.template
+    assert "--list-all" not in recipe.template
+    assert recipe.fields == ("count",)
+
+
+def test_canonical_ai_sast_count_is_metadata_free_and_main_context_scoped():
+    recipe = load_knowledge_pack().query_recipes["ai-sast-count"]
+
+    assert recipe.resource == "Finding"
+    assert "context.type==CONTEXT_TYPE_MAIN" in recipe.template
+    assert 'spec.project_uuid=="<PROJECT_UUID>"' in recipe.template
+    assert 'spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' in recipe.template
+    assert "--count" in recipe.template
+    assert "--field-mask" not in recipe.template
+    assert "--list-all" not in recipe.template
+    assert "spec.explanation" not in recipe.template
+    assert recipe.fields == ("count",)
+
+
+def test_canonical_project_by_uuid_uses_exact_get_without_filter():
+    recipe = load_knowledge_pack().query_recipes["project-by-uuid"]
+
+    assert recipe.resource == "Project"
+    assert " get -r Project " in recipe.template
+    assert "--uuid <PROJECT_UUID>" in recipe.template
+    assert "--filter" not in recipe.template
+    assert recipe.fields == (
+        "uuid",
+        "meta.name",
+        "meta.parent_uuid",
+        "spec.git",
+    )
+
+
+def test_sca_composite_aggregation_fixture_preserves_counts_and_package_set():
+    fixture = yaml.safe_load(
+        (repo_root() / "tests" / "fixtures" / "sca_finding_aggregation.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    recipe = load_knowledge_pack().query_recipes["sca-finding-package-severity-groups"]
+    encoded_paths = recipe.template.split("--group-aggregation-paths ", 1)[1].split(" ", 1)[0]
+    paths = tuple(encoded_paths.split(","))
+
+    grouped: dict[tuple[str, str], int] = {}
+    for finding in fixture["findings"]:
+        spec = finding["spec"]
+        key = (spec["target_dependency_package_name"], spec["level"])
+        grouped[key] = grouped.get(key, 0) + 1
+
+    expected_groups = {
+        (row["package"], row["severity"]): row["count"]
+        for row in fixture["expected"]["groups"]
+    }
+    packages = sorted({package for package, _severity in grouped})
+    severity_counts: dict[str, int] = {}
+    for (_package, severity), count in grouped.items():
+        severity_counts[severity] = severity_counts.get(severity, 0) + count
+
+    assert paths == tuple(fixture["required_group_paths"])
+    assert grouped == expected_groups
+    assert packages == fixture["expected"]["packages"]
+    assert severity_counts == fixture["expected"]["severity_counts"]
+    assert sum(grouped.values()) == fixture["expected"]["total_count"]
+
+
+def test_sca_evidence_check_promotes_two_bounded_reads_after_fixture_parity():
+    workflow = load_knowledge_pack().workflow_for("sca-remediation")
+    assert workflow is not None
+    recipes = workflow.evidence_query_recipes_for("evidence-check")
+    plan = workflow.evidence_query_plan_for("evidence-check")
+
+    assert [recipe.id for recipe in recipes] == [
+        "finding-package-severity-groups",
+        "version-upgrade-count",
+    ]
+    assert [recipe.canonical_id for recipe in recipes] == [
+        "sca-finding-package-severity-groups",
+        "version-upgrade-count",
+    ]
+    assert all("--list-all" not in recipe.template for recipe in recipes)
+    assert plan is not None
+    assert any("concurrently" in step for step in plan.query_order)
+    assert any("exploited" in item for item in plan.stop_after)
+
+
+def test_ai_sast_routing_fixture_preserves_uuid_and_no_uuid_evidence_contracts():
+    fixture = yaml.safe_load(
+        (repo_root() / "tests" / "fixtures" / "ai_sast_routing.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    workflow = load_knowledge_pack().workflow_for("ai-sast-triage")
+    assert workflow is not None
+    recipes = {
+        recipe.id: recipe
+        for recipe in workflow.evidence_query_recipes_for("evidence-check")
+    }
+    plan = workflow.evidence_query_plan_for("evidence-check")
+
+    known_uuid = fixture["cases"]["known_uuid"]
+    without_uuid = fixture["cases"]["without_uuid"]
+
+    assert known_uuid["expected_route"]["initial_recipe"] == "finding-by-uuid"
+    assert known_uuid["expected_route"]["conditional_recipe"] == "project-by-uuid"
+    assert known_uuid["expected_route"]["maximum_endor_operations"] == 2
+    assert validate_ai_sast_gate_payload(known_uuid["expected_output"]) == []
+    assert (
+        known_uuid["expected_output"]["verdicts"][0]["source_ref_provenance"]
+        == "finding_source_ref_not_default_branch_proof"
+    )
+
+    assert without_uuid["expected_route"]["recipes"] == [
+        "project-by-git",
+        "ai-sast-count",
+    ]
+    assert without_uuid["expected_route"]["maximum_endor_operations"] == 2
+    assert set(recipes) == {
+        "finding-by-uuid",
+        "project-by-uuid",
+        "project-by-git",
+        "ai-sast-count",
+    }
+    assert "--count" in recipes["ai-sast-count"].template
+    assert "--list-all" not in recipes["ai-sast-count"].template
+    assert "spec.explanation" not in recipes["ai-sast-count"].template
+    assert plan is not None
+    assert any("Finding UUID first" in step for step in plan.query_order)
+    assert any("not proof of the repository default branch" in item for item in plan.avoid)
 
 
 def test_runtime_task_profile_prompts_carry_gemini_contract_guards():
@@ -472,6 +636,105 @@ def test_knowledge_pack_validator_rejects_unsafe_canonical_query_recipe_template
     assert any("query-recipes.yaml recipes[0].template: endorctl agent api commands must include explicit namespace" in error for error in errors)
     assert any("query-recipes.yaml recipes[0].template: endorctl agent api list commands must include --field-mask" in error for error in errors)
     assert any("query-recipes.yaml recipes[0].template: broad Finding --list-all templates are not allowed" in error for error in errors)
+
+
+def test_knowledge_pack_validator_accepts_count_only_list_without_field_mask(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+            "--filter 'context.type==CONTEXT_TYPE_MAIN' --count -o json"
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert not any("must include --field-mask" in error for error in errors)
+
+
+def test_knowledge_pack_validator_rejects_count_with_list_all(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+            "--filter 'context.type==CONTEXT_TYPE_MAIN' --count --list-all -o json"
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert any("count-only list commands must not include --list-all" in error for error in errors)
+
+
+def test_knowledge_pack_validator_accepts_approved_finding_grouping_without_field_mask(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+            "--filter 'context.type==CONTEXT_TYPE_MAIN' "
+            "--group-aggregation-paths spec.target_dependency_package_name,spec.level -o json"
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert not any("must include --field-mask" in error for error in errors)
+    assert not any("group aggregation" in error for error in errors)
+
+
+def test_knowledge_pack_validator_rejects_empty_group_aggregation_paths(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+            "--filter 'context.type==CONTEXT_TYPE_MAIN' --group-aggregation-paths -o json"
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert any("group aggregation requires at least one path" in error for error in errors)
+
+
+def test_knowledge_pack_validator_rejects_unapproved_finding_group_path(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+            "--filter 'context.type==CONTEXT_TYPE_MAIN' "
+            "--group-aggregation-paths spec.finding_metadata -o json"
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert any(
+        "group aggregation path 'spec.finding_metadata' is not approved for Finding"
+        in error
+        for error in errors
+    )
+
+
+def test_knowledge_pack_validator_rejects_grouping_with_list_all(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(
+        tmp_path,
+        template=(
+            "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+            "--filter 'context.type==CONTEXT_TYPE_MAIN' "
+            "--group-aggregation-paths spec.target_dependency_package_name,spec.level "
+            "--list-all -o json"
+        ),
+    )
+
+    errors = validate_knowledge_pack(tmp_path)
+
+    assert any("grouped list commands must not include --list-all" in error for error in errors)
 
 
 def test_knowledge_pack_validator_rejects_field_mask_parent_child_collisions(tmp_path):

@@ -11,6 +11,7 @@ import tempfile
 from typing import Any, Sequence
 
 from endor_agent_kit.knowledge_pack import default_task_profile_for_agent, load_knowledge_pack
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.publication.plugin_package_common import PLUGIN_NAME, package_version
 from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.recipe import EndorAgentRecipe, load_recipe
@@ -221,6 +222,16 @@ def _agent_entry(repo: Path, recipe_path: Path, *, base_ref: str) -> dict[str, A
     else:
         warnings.append(f"{relative_recipe}: no structured output contract found")
 
+    profile_contracts = {
+        profile.id: compile_profile_contract(
+            agent_id,
+            profile.id,
+            knowledge_pack_root=repo / "source" / "endor-knowledge-pack",
+        ).to_dict()
+        for profile in (workflow.task_profiles if workflow else ())
+        if agent_id in STRUCTURED_OUTPUT_CONTRACTS
+    }
+
     compatible_hosts = list(recipe.compatible_hosts if recipe else ())
     generated_targets = _generated_targets_for_recipe(recipe)
     provider_targets = _provider_targets_for_recipe(recipe)
@@ -236,6 +247,7 @@ def _agent_entry(repo: Path, recipe_path: Path, *, base_ref: str) -> dict[str, A
         "task_profiles": task_profiles,
         "default_task_profile": default_task_profile_for_agent(agent_id),
         "structured_output_contract": structured_contract,
+        "profile_contracts": profile_contracts,
         "coverage": {
             "task_profiles": "present" if task_profiles else "missing",
             "structured_output_contract": "present" if structured_contract else "missing",

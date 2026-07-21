@@ -1,0 +1,52 @@
+from __future__ import annotations
+
+from endor_agent_kit.profile_contracts import (
+    compile_profile_contract,
+    validate_profile_output_payload,
+)
+
+
+def test_compiled_sca_evidence_profile_contract_is_projected_and_source_bound():
+    contract = compile_profile_contract("sca-remediation", "evidence-check")
+    payload = contract.to_dict()
+
+    expected_fields = (
+        "summary",
+        "project_resolution",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    assert contract.agent_id == "sca-remediation"
+    assert contract.profile_id == "evidence-check"
+    assert contract.output_fields == expected_fields
+    assert contract.required_fields == expected_fields
+    assert contract.gate_validator_id == "sca-remediation.read-only-profile"
+    assert contract.gate_validator_version == "1"
+    assert contract.policy_pack_support is True
+    assert payload["provider_neutral_schema"]["required"] == list(expected_fields)
+    assert tuple(payload["provider_neutral_schema"]["properties"]) == expected_fields
+    for digest_name in ("source_digest", "recipe_digest", "knowledge_pack_digest", "contract_digest"):
+        assert len(payload[digest_name]) == 64
+        int(payload[digest_name], 16)
+
+
+def test_read_only_profile_validator_accepts_projected_evidence_and_rejects_mutation_fields():
+    payload = {
+        "summary": "Evidence is unavailable.",
+        "project_resolution": None,
+        "evidence_queries": [],
+        "data_gaps": ["Endor Project evidence was unavailable."],
+        "policy_context": {},
+        "policy_evaluations": [],
+    }
+
+    assert validate_profile_output_payload("sca-remediation", "evidence-check", payload) == []
+
+    errors = validate_profile_output_payload(
+        "sca-remediation",
+        "evidence-check",
+        {**payload, "selected_remediation": {"name": "not allowed"}},
+    )
+    assert errors == ["selected_remediation: not allowed by task profile evidence-check"]

@@ -12,6 +12,7 @@ from endor_agent_kit.structured_output_contracts import (
     json_schema_for_agent,
     normalize_structured_output_payload,
     required_fields_for,
+    strict_transport_schema_for_agent,
     validate_structured_output_payload,
 )
 
@@ -76,10 +77,12 @@ def test_all_structured_contracts_require_evidence_queries():
 
 def test_json_schema_for_agent_preserves_required_fields_and_shapes():
     schema = json_schema_for_agent("sca-remediation")
+    strict_schema = strict_transport_schema_for_agent("sca-remediation")
 
     assert schema["type"] == "object"
     assert schema["additionalProperties"] is False
-    assert schema["required"] == list(schema["properties"])
+    assert schema["required"] == list(required_fields_for("sca-remediation"))
+    assert strict_schema["required"] == list(strict_schema["properties"])
     assert schema["properties"]["evidence_queries"]["type"] == "array"
     assert schema["properties"]["policy_context"]["type"] == ["object", "null"]
     assert schema["properties"]["policy_evaluations"]["type"] == "array"
@@ -101,9 +104,13 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
 
 def test_task_state_is_strict_nullable_and_legacy_omittable() -> None:
     for agent_id in ("sca-remediation", "ai-sast-triage"):
-        schema = json_schema_for_agent(agent_id)
+        logical_schema = json_schema_for_agent(agent_id)
+        schema = strict_transport_schema_for_agent(agent_id)
         task_state = schema["properties"]["task_state"]
 
+        assert "task_state" not in logical_schema["required"]
+        assert "task_state" in logical_schema["properties"]
+        assert schema["required"] == list(schema["properties"])
         assert task_state["type"] == ["object", "null"]
         assert task_state["additionalProperties"] is False
         assert set(task_state["required"]) == set(task_state["properties"])
@@ -238,7 +245,7 @@ def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
 
 def test_json_schema_for_all_agents_is_codex_strict_object_compatible():
     for agent_id in STRUCTURED_OUTPUT_CONTRACTS:
-        schema = json_schema_for_agent(agent_id)
+        schema = strict_transport_schema_for_agent(agent_id)
         _assert_strict_objects(schema)
 
 
@@ -249,6 +256,32 @@ def test_json_schema_cli_prints_agent_schema(capsys):
     assert status == 0
     assert '"title": "Endor Agent Kit sca-remediation final output"' in output
     assert '"evidence_queries"' in output
+
+
+def test_json_schema_cli_prints_profile_projected_logical_schema(capsys):
+    status = main(
+        [
+            "structured-output-schema",
+            "--agent",
+            "sca-remediation",
+            "--task-profile",
+            "evidence-check",
+        ]
+    )
+    schema = json.loads(capsys.readouterr().out)
+
+    expected = (
+        "summary",
+        "project_resolution",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    assert status == 0
+    assert tuple(schema["properties"]) == expected
+    assert tuple(schema["required"]) == expected
+    assert "task_state" not in schema["properties"]
 
 
 def test_policy_evaluation_schema_includes_invalid_fact_provenance():

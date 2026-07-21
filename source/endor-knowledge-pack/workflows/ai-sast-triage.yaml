@@ -5,6 +5,13 @@ summary: Use namespace-scoped main-context AI SAST findings, exploit reproductio
 task_profiles:
   - id: resolve-scope
     compact: true
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
     included_sections:
       - scope-resolution
     title: Resolve Scope
@@ -13,7 +20,8 @@ task_profiles:
       - The user gives a repository or finding reference and asks what Endor scope applies.
       - A patch or exception decision would be premature.
     minimal_evidence:
-      - Repository identity, namespace provenance, Project lookup, and any supplied finding UUID or source ref.
+      - Namespace provenance plus one exact Finding lookup when a Finding UUID is supplied; otherwise one repository-scoped
+        Project lookup.
     stop_when:
       - Project and finding scope are resolved or blocked with precise data_gaps.
       - Do not inspect source files or propose patches in this profile.
@@ -21,6 +29,14 @@ task_profiles:
       - Return project resolution, finding selector attempts, evidence_queries, and data_gaps.
   - id: evidence-check
     compact: true
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - verdicts
+      - data_gaps
+      - policy_context
+      - policy_evaluations
     included_sections:
       - scope-resolution
     title: Evidence Check
@@ -29,9 +45,11 @@ task_profiles:
       - The user asks whether a finding is actionable, reproducible, or has enough context.
       - A read-only host check needs evidence discipline without patch generation.
     minimal_evidence:
-      - Resolved Project, main-context AI SAST Finding availability with metadata-only fields, and selected Finding detail only when a Finding UUID is supplied.
+      - One exact Finding when a Finding UUID is supplied, with a conditional Project-by-UUID lookup only when repository identity
+        is absent; otherwise one Project lookup followed by one main-context AI SAST count.
     stop_when:
-      - Finding evidence and source availability are known.
+      - The exact Finding scope is known, or the project-scoped AI SAST count is known when no Finding UUID was supplied.
+      - Do not fetch source files, Finding explanations, or finding inventories in this profile.
       - Do not generate diffs, policies, or change requests unless the user asks for remediation.
     output_focus:
       - Return verdict placeholders, evidence_queries, availability counts, and data_gaps for missing finding detail or source evidence.
@@ -84,8 +102,10 @@ resources:
 retrieval_steps:
   - Inspect supplied context manifests or local `.endorlabs-context` snapshots before live Endor lookups and confirm namespace,
     project UUID, source ref, and finding UUID freshness.
-  - Resolve project identity from repository metadata, then query `Finding` with `context.type==CONTEXT_TYPE_MAIN`,
-    `spec.project_uuid`, and `spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"` by default.
+  - When a Finding UUID is supplied, fetch that Finding first and derive project UUID, context type, and source ref; fetch Project
+    by the returned UUID only when repository identity is still absent.
+  - When no Finding UUID is supplied, resolve project identity from repository metadata, then count `Finding` records with
+    `context.type==CONTEXT_TYPE_MAIN`, `spec.project_uuid`, and `spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"`.
   - Use exploit reproduction for prioritization and validation planning while redacting concrete exploit strings from review-facing
     output.
   - Treat remediation guidance as advisory evidence and verify source locations before proposing patches.
@@ -106,8 +126,9 @@ evidence_query_plans:
     objective: Resolve namespace, project, finding selector, and source ref before reading finding bodies.
     query_order:
       - Read user-provided finding UUID, repository identity, branch/ref, and namespace provenance.
-      - Resolve Project by scoped repository selector when a project is not already proven.
-      - If a finding UUID is provided, get that Finding by UUID and confirm project_uuid, context.type, and source_code_version.ref.
+      - If a Finding UUID is provided, get that Finding first and confirm project_uuid, context.type, and source_code_version.ref.
+      - Fetch Project by the Finding's project UUID only when repository identity is absent; without a Finding UUID, resolve
+        Project by the scoped repository selector.
     avoid:
       - Do not list broad AI SAST findings when the user supplied a specific finding UUID.
       - Do not mix CI/PR finding evidence into main-context counts unless requested.
@@ -119,18 +140,18 @@ evidence_query_plans:
     title: AI SAST Evidence Query Plan
     objective: Confirm AI SAST evidence and pinned source context without generating a patch.
     query_order:
-      - Resolve project and namespace first.
-      - If the user supplied a Finding UUID, get that Finding by UUID and extract classification, severity, verification scorecard,
-        data-flow anchors, exploit reproduction, and remediation guidance.
-      - If no Finding UUID was supplied, list all main-context AI SAST findings for the resolved project with metadata-only
-        fields and `--list-all`; do not include `spec.explanation` in the list query.
-      - Verify local source file and pinned commit/ref only for the selected finding path when a selected finding exists.
+      - With a supplied Finding UUID, query that Finding UUID first and derive project UUID, context type, source ref, and any
+        repository identity already present in the returned evidence.
+      - Fetch Project by the returned project UUID only when the Finding evidence does not establish repository identity.
+      - With no Finding UUID, resolve Project once by repository selector, then run the main-context AI SAST count query.
     avoid:
       - Do not fetch unrelated SAST finding bodies or inspect the whole repository.
-      - Do not include bulky `spec.explanation` fields in complete-list availability queries.
+      - Do not list Finding inventories or fetch explanations, exploit evidence, remediation guidance, or source in this profile.
+      - Treat Finding `spec.source_code_version.ref` as source-ref provenance, not proof of the repository default branch.
       - Do not create exception policies, branches, or source edits.
     stop_after:
-      - Stop after selected finding detail and source context are available or blocked, or after metadata-only availability is known when no Finding UUID was supplied.
+      - Stop after exact Finding scope and conditional repository labeling are known, or after the project-scoped count is known
+        when no Finding UUID was supplied.
     data_gaps:
       - Record missing finding body, missing selected Finding UUID, missing exploit/remediation sections, source ref mismatch,
         unavailable file, and host-blocked Endor reads in data_gaps.
@@ -183,6 +204,20 @@ evidence_query_recipes:
     constraints:
       - Do not use --filter with api get.
       - After get, report context.type and source ref before merging with project counts.
+  - profile_id: resolve-scope
+    id: project-by-uuid
+    canonical_id: project-by-uuid
+    resource: Project
+    purpose: Fetch one exact Project for repository labeling only when a known Finding supplies the project UUID.
+    template: endorctl agent api --agent-id <agent-id> get -r Project -n <namespace> --uuid <PROJECT_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Run only when the Finding evidence does not establish repository identity.
+      - Preserve the Finding as project UUID provenance and do not treat its source ref as default-branch proof.
   - profile_id: evidence-check
     id: finding-by-uuid
     canonical_id: finding-by-uuid
@@ -198,28 +233,47 @@ evidence_query_recipes:
       - spec.explanation
     constraints:
       - Do not use --filter with api get.
-      - After get, report context.type and source ref before merging with project counts.
+      - Query this recipe first when a Finding UUID is supplied.
+      - Report context.type and source ref; the source ref is not proof of the repository default branch.
   - profile_id: evidence-check
-    id: ai-sast-list
-    canonical_id: ai-sast-list
-    resource: Finding
-    purpose: List only AI SAST finding availability for a resolved project when no Finding UUID was supplied.
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata"
-      --list-all -o json
+    id: project-by-uuid
+    canonical_id: project-by-uuid
+    resource: Project
+    purpose: Fetch one exact Project for repository labeling only when a known Finding supplies the project UUID.
+    template: endorctl agent api --agent-id <agent-id> get -r Project -n <namespace> --uuid <PROJECT_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
-      - context.type
-      - spec.project_uuid
-      - spec.method
-      - spec.source_code_version
-      - spec.finding_metadata
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
     constraints:
-      - Prefer finding-by-uuid when supplied.
-      - Do not include spec.explanation in complete list queries; fetch it only for one selected Finding by UUID.
-      - Use `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST`; do not use shorthand method values or finding-tags selectors.
-      - Use `--list-all` only with the resolved project UUID, main context, method filter, and field mask.
-      - Do not list unrelated SAST findings or broad namespace Finding inventories.
+      - Run only when the Finding evidence does not establish repository identity.
+      - Preserve the Finding as project UUID provenance and do not treat its source ref as default-branch proof.
+  - profile_id: evidence-check
+    id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve repository identity once when no Finding UUID was supplied.
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use only when no Finding UUID was supplied.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
+  - profile_id: evidence-check
+    id: ai-sast-count
+    canonical_id: ai-sast-count
+    resource: Finding
+    purpose: Count AI SAST finding availability for a resolved project when no Finding UUID was supplied.
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --count -o json
+    fields:
+      - count
+    constraints:
+      - Use only when no Finding UUID was supplied and one project UUID plus namespace provenance is resolved.
+      - Stop after availability is known; do not fetch metadata, explanations, or source bodies.
   - profile_id: selection-plan
     id: selected-ai-sast-finding
     canonical_id: finding-by-uuid

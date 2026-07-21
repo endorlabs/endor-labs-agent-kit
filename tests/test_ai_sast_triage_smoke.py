@@ -60,8 +60,11 @@ def test_ai_sast_triage_does_not_require_project_uuid_for_normal_use(tmp_path):
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' in prompt
     assert 'spec.method=="AI_SAST"' not in prompt
     assert 'spec.finding_tags contains "AI_SAST"' not in prompt
-    assert "add `--list-all` when the output needs a complete scoped finding list or count" in prompt
+    assert "Use `--count` for an availability count without finding rows" in prompt
+    assert "reserve `--list-all` for a complete scoped finding list" in prompt
     assert "inspect and report the returned `context.type` and `spec.source_code_version.ref`" in prompt
+    assert "source-ref provenance for the Finding" in prompt
+    assert "repository default branch" in prompt
     assert "do not merge a CI/PR-run finding into main-context counts" in prompt
     assert "Namespace Provenance" in prompt
     assert "If the user supplied a namespace in the current request" in prompt

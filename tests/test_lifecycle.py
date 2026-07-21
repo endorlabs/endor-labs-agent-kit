@@ -51,6 +51,20 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     assert agent["id"] == "sca-remediation"
     assert agent["recipe"] == "source/agents/sca-remediation/recipe.yaml"
     assert agent["structured_output_contract"]["id"] == "sca-remediation"
+    evidence_contract = agent["profile_contracts"]["evidence-check"]
+    assert evidence_contract["output_fields"] == [
+        "summary",
+        "project_resolution",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    ]
+    assert evidence_contract["gate_validator"] == {
+        "id": "sca-remediation.read-only-profile",
+        "version": "1",
+    }
+    assert len(evidence_contract["contract_digest"]) == 64
     assert "selection-plan" in agent["task_profiles"]
     assert agent["default_task_profile"] == "selection-plan"
     assert agent["provider_targets"] == ["antigravity", "claude", "codex", "cursor", "gemini"]

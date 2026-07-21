@@ -7,6 +7,8 @@ import hashlib
 from pathlib import Path
 from typing import Any, Mapping
 
+from endor_agent_kit.knowledge_pack import default_knowledge_pack_root
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 MANIFEST_PATH = "manifest.json"
@@ -45,6 +47,7 @@ class CatalogArtifact:
         path: Path,
         *,
         profile_id: str | None = None,
+        extra_fields: Mapping[str, Any] | None = None,
     ) -> "CatalogArtifact":
         """Return manifest metadata for one published artifact file."""
 
@@ -54,6 +57,7 @@ class CatalogArtifact:
             sha256=hashlib.sha256(data).hexdigest(),
             bytes=len(data),
             profile_id=profile_id,
+            extra_fields=dict(extra_fields or {}),
         )
 
     @property
@@ -137,6 +141,20 @@ class CatalogBundle:
 
         files = sorted(path for path in bundle_dir.rglob("*") if path.is_file())
         profiles = artifact_profiles or {}
+        profile_metadata: dict[str, dict[str, Any]] = {}
+        source_recipe = (
+            default_knowledge_pack_root().parent / "agents" / recipe.id / "recipe.yaml"
+        )
+        if source_recipe.is_file():
+            for profile_id in sorted(set(profiles.values())):
+                contract = compile_profile_contract(recipe.id, profile_id)
+                profile_metadata[profile_id] = {
+                    "profile_contract_digest": contract.contract_digest,
+                    "profile_gate_validator": {
+                        "id": contract.gate_validator_id,
+                        "version": contract.gate_validator_version,
+                    },
+                }
         return cls(
             agent_id=recipe.id,
             agent_name=recipe.name,
@@ -149,7 +167,8 @@ class CatalogBundle:
                 CatalogArtifact.from_published_file(
                     destination,
                     path,
-                    profile_id=profiles.get(path.relative_to(destination).as_posix()),
+                    profile_id=(profile_id := profiles.get(path.relative_to(destination).as_posix())),
+                    extra_fields=profile_metadata.get(profile_id, {}),
                 )
                 for path in files
             ),

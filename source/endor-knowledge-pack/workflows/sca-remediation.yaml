@@ -5,6 +5,13 @@ summary: Use namespace-scoped project, Finding, and VersionUpgrade evidence befo
 task_profiles:
   - id: resolve-scope
     compact: true
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
     included_sections:
       - scope-resolution
     title: Resolve Scope
@@ -25,6 +32,13 @@ task_profiles:
       - Include branch provenance and `project_resolution.traverse_attempted`.
   - id: evidence-check
     compact: true
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
     included_sections:
       - scope-resolution
     title: Evidence Check
@@ -147,14 +161,13 @@ evidence_query_plans:
     objective: Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without selecting a remediation.
     query_order:
       - Resolve namespace and project first.
-      - Query a narrow main-context Finding availability view with package, severity, and fixability fields only.
-      - Query VersionUpgrade/UIA availability with rank, risk, findings fixed, findings introduced, CIA status, and manifest
-        fields.
+      - After project resolution, run the package-by-severity Finding aggregation and worthwhile VersionUpgrade count concurrently.
+      - Preserve every returned package/severity group and both result counts in the evidence ledger.
     avoid:
       - Do not inspect local source files, fetch every finding body, or prepare branch names.
       - Do not turn local README or dependency files into Endor finding counts.
     stop_after:
-      - Stop after availability and counts are known or blocked; do not choose a remediation candidate.
+      - Stop after availability and counts are known or blocked, before exploited-finding prioritization, Finding bodies, source inspection, or candidate selection.
     data_gaps:
       - Record unavailable Finding or VersionUpgrade/UIA lanes, stale context scope, and any missing namespace or project
         evidence in data_gaps.
@@ -208,52 +221,33 @@ evidence_query_recipes:
       - Retry with --traverse only for the same proven namespace before reporting data_gaps.
     profile_id: resolve-scope
   - profile_id: evidence-check
-    id: finding-availability
-    canonical_id: sca-finding-availability
+    id: finding-package-severity-groups
+    canonical_id: sca-finding-package-severity-groups
     resource: Finding
-    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    purpose: Count main-context vulnerability findings by target package and severity without fetching finding rows.
     template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
+      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --group-aggregation-paths spec.target_dependency_package_name,spec.level
       -o json
     fields:
-      - uuid
-      - context.type
-      - spec.project_uuid
+      - group_response.groups
+      - aggregation_count.count
       - spec.target_dependency_package_name
       - spec.level
     constraints:
-      - Use for availability or selected-candidate reconciliation only.
-      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+      - Use only after resolving one project UUID and explicit namespace provenance.
+      - Preserve composite package/severity keys and counts; record missing dimensions in data_gaps.
   - profile_id: evidence-check
-    id: exploited-finding-availability
-    canonical_id: sca-exploited-finding-availability
-    resource: Finding
-    purpose: Identify exploited vulnerability findings for a resolved project to prioritize remediation order.
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false and spec.finding_tags contains FINDING_TAGS_EXPLOITED' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level,spec.finding_tags" -o json
-    fields:
-      - uuid
-      - context.type
-      - spec.project_uuid
-      - spec.target_dependency_package_name
-      - spec.level
-      - spec.finding_tags
-    constraints:
-      - Use to prioritize remediation order for exploited vulnerabilities; pair with VersionUpgrade/UIA ranking before selecting a fix.
-      - Keep bounded; do not add --list-all before VersionUpgrade narrowing.
-  - profile_id: evidence-check
-    id: version-upgrade-summary
-    canonical_id: version-upgrade-summary
+    id: version-upgrade-count
+    canonical_id: version-upgrade-count
     resource: VersionUpgrade
-    purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+    purpose: Count worthwhile main-context VersionUpgrade records without fetching candidate details.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
+      and spec.upgrade_info.worth_it==true' --count -o json
     fields:
-      - uuid
-      - spec.name
-      - spec.upgrade_info
+      - count
     constraints:
-      - Run before detailed Finding expansion for selection plans.
-      - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
+      - Use only for evidence availability after resolving one project UUID and explicit namespace provenance.
+      - Stop after recording the count; candidate ranking belongs to selection-plan.
   - profile_id: selection-plan
     id: version-upgrade-summary
     canonical_id: version-upgrade-summary
