@@ -56,10 +56,17 @@ class ClaudeCodeHostAdapter:
         for edition in editions:
             edition_dir = _published_edition_dir(agent_root, editions, edition)
             edition_dir.mkdir(parents=True, exist_ok=True)
-            artifact = edition_dir / f"{recipe.id}.md"
-            source_artifact = recipe_file.parent / "dist" / HOST / edition / f"{recipe.id}.md"
-            shutil.copyfile(source_artifact, artifact)
-            written.append(artifact)
+            source_dir = recipe_file.parent / "dist" / HOST / edition
+            artifact_profiles: dict[str, str] = {}
+            for source_artifact in sorted(source_dir.glob(f"{recipe.id}*.md")):
+                artifact = edition_dir / source_artifact.name
+                shutil.copyfile(source_artifact, artifact)
+                written.append(artifact)
+                profile_prefix = f"{recipe.id}-"
+                if source_artifact.stem.startswith(profile_prefix):
+                    artifact_profiles[artifact.relative_to(destination).as_posix()] = (
+                        source_artifact.stem.removeprefix(profile_prefix)
+                    )
 
             readme = edition_dir / "README.md"
             readme.write_text(
@@ -84,7 +91,7 @@ class ClaudeCodeHostAdapter:
                 shutil.copyfile(actions, published_actions)
                 written.append(published_actions)
 
-            if edition == "enterprise-edition" and posture.uses_endorctl_api:
+            if posture.uses_endor_api_transport:
                 setup = edition_dir / "endorctl-setup.md"
                 shutil.copyfile(recipe_file.parent / "dist" / "raw" / "endorctl-setup.md", setup)
                 written.append(setup)
@@ -98,8 +105,9 @@ class ClaudeCodeHostAdapter:
                     edition_name(edition),
                     edition_dir,
                     requires_endorctl=recipe.requires_endorctl
-                    if edition == "enterprise-edition" and posture.uses_endorctl_api
+                    if posture.uses_endor_api_transport
                     else "",
+                    artifact_profiles=artifact_profiles,
                 )
             )
         return BundleRecord(
@@ -125,7 +133,7 @@ def claude_code_edition_readme(
     if posture.is_mutating:
         requirements = [
             "Claude Code with the generated subagent file installed.",
-            "Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.",
+            f"Endor tenant access through authenticated `endorctl agent api --agent-id {recipe.id}`.",
             "A local workspace checkout for any repository the agent will patch.",
             "Git and source-provider credentials that can push a branch and open the requested pull request or merge request.",
         ]
@@ -156,7 +164,7 @@ def claude_code_edition_readme(
             notes.append(
                 "`actions.yaml` lists the semantic side effects and any external adapter requirements."
             )
-    elif edition == "developer-edition" or not posture.uses_endorctl_api:
+    elif not posture.uses_endor_api_transport:
         requirements = [
             "Claude Code with the generated subagent file installed.",
             "Endor MCP access through the subagent's bundled MCP server config.",
@@ -184,9 +192,9 @@ def claude_code_edition_readme(
             )
         notes = [
             (
-                f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals."
+                f"This {artifact_label} uses MCP first, then read-only `endorctl agent api --agent-id {recipe.id}` lookups for richer signals."
                 if posture.uses_mcp
-                else f"This {artifact_label} uses read-only endorctl api lookups and does not require Endor MCP."
+                else f"This {artifact_label} uses read-only `endorctl agent api --agent-id {recipe.id}` lookups and does not require Endor MCP."
             ),
             "Bash use is limited by prompt to the documented Endor lookup commands.",
         ]
@@ -358,7 +366,7 @@ def claude_code_agent_setup_section(
             "```",
             "",
             "Endor Troubleshooter does not need an Endor MCP server. It uses only",
-            "documented read-only `endorctl api` lookups and user-provided redacted",
+            f"documented read-only `endorctl agent api --agent-id {recipe.id}` lookups and user-provided redacted",
             "error text. If Endor access, project selectors, scan evidence, workflow",
             "evidence, or integration evidence are unavailable, the agent should report",
             "the missing setup in `data_gaps`.",
@@ -399,7 +407,7 @@ def claude_code_agent_setup_section(
             "```",
             "",
             "Claude Code does not need an Endor MCP server for this agent. If `endorctl`,",
-            "direct Endor API credentials, local dependency-manager tooling, or",
+            "agent-attributed Endor API authentication, local dependency-manager tooling, or",
             "source-provider credentials are not authenticated, the agent should report",
             "the missing setup in `data_gaps`.",
             "",
@@ -456,7 +464,7 @@ def claude_code_agent_setup_section(
         "```",
         "",
         "Claude Code does not need an Endor MCP server for this agent. If `endorctl`,",
-        "direct Endor API credentials, or source-provider credentials are not",
+        "agent-attributed Endor API authentication or source-provider credentials are not",
         "authenticated, the agent should report the missing setup in `data_gaps`.",
         "",
         "### 3. Understand Finding Evidence",

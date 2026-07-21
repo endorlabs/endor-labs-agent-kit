@@ -6,7 +6,7 @@
     "architecture": null,
     "output_contract": "output-contract.md",
     "runtime_contract": "agent.manifest.json",
-    "runtime_setup": null
+    "runtime_setup": "endorctl-setup.md"
   },
   "data_gap_policy": "Record unavailable transport, credential, adapter, runtime, or evidence signals in data_gaps instead of fabricating evidence.",
   "declared_actions": [],
@@ -16,7 +16,11 @@
     "supports_plan_only": true
   },
   "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
-  "endorctl_api_invocations": [],
+  "endorctl_agent_api_invocations": [
+    "resolve_project_by_git",
+    "lookup_exact_package_version",
+    "lookup_selected_package_findings"
+  ],
   "generated_files_are_editable": false,
   "id": "repository-dependency-reviewer",
   "inputs": [
@@ -195,7 +199,8 @@
     }
   ],
   "required_transports": [
-    "mcp"
+    "mcp",
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": ">=2.4",
   "requires_endorctl": ">=1.0.0",
@@ -206,8 +211,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -314,11 +318,10 @@
     {
       "confirmation_required": null,
       "declared_by_recipe": false,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "unavailable"
     },

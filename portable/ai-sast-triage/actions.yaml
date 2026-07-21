@@ -5,8 +5,7 @@ actions:
   safety_class: read_only
   confirmation_required: false
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   required_runtime_capabilities:
   - run_commands
   inputs:
@@ -154,8 +153,7 @@ actions:
   safety_class: mutating
   confirmation_required: true
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   required_runtime_capabilities:
   - run_commands
   inputs:
@@ -174,13 +172,14 @@ actions:
   - status
   - idempotency_status
   availability: available
-  notes: Create the scoped Endor exception policy only after rendering the policy
-    spec, verifying AppSec approval evidence, checking existing Endor policies by
-    generated policy name and stable match fingerprint, and receiving explicit user
-    confirmation in the runtime session. Finding UUID is current-scan evidence only;
-    do not use it as the policy matcher. If an active matching policy already exists
-    for the same stable match fingerprint, project, and reason, reuse it and do not
-    create another policy.
+  notes: Create or update the scoped Endor exception Policy only after rendering the
+    policy spec, verifying AppSec approval evidence, checking existing Endor policies
+    by generated policy name and stable match fingerprint, and receiving explicit
+    user confirmation in the active session. The only permitted Endor mutations are
+    Policy create and Policy update; Policy delete and every mutation of another resource
+    are forbidden. Finding UUID is current-scan evidence only; do not use it as the
+    policy matcher. If an active matching policy already exists for the same stable
+    match fingerprint, project, and reason, reuse it without a write.
 - id: post-decision-comment
   kind: scm.comment
   portable_kind: source.comment.create

@@ -20,7 +20,7 @@ then restart Claude Code if needed.
 ## Requirements
 
 - Claude Code with the generated subagent file installed.
-- Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.
+- Endor tenant access through authenticated `endorctl agent api --agent-id sca-remediation`.
 - A local workspace checkout for any repository the agent will patch.
 - Git and source-provider credentials that can push a branch and open the requested pull request or merge request.
 
@@ -49,7 +49,7 @@ glab auth status      # GitLab repositories
 ```
 
 Claude Code does not need an Endor MCP server for this agent. If `endorctl`,
-direct Endor API credentials, local dependency-manager tooling, or
+agent-attributed Endor API authentication, local dependency-manager tooling, or
 source-provider credentials are not authenticated, the agent should report
 the missing setup in `data_gaps`.
 

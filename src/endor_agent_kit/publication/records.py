@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Mapping
 
 from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
@@ -36,6 +37,7 @@ def artifact_bundle_record(
     bundle_dir: Path,
     *,
     requires_endorctl: str = "",
+    artifact_profiles: Mapping[str, str] | None = None,
 ) -> CatalogBundle:
     """Return manifest metadata for one published artifact bundle."""
 
@@ -47,6 +49,7 @@ def artifact_bundle_record(
         bundle_name,
         bundle_dir,
         requires_endorctl=requires_endorctl,
+        artifact_profiles=artifact_profiles,
     )
 
 

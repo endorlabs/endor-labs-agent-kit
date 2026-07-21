@@ -170,7 +170,7 @@ Every response must include `evidence_queries[]`. Each entry records:
 
 - name: short human-readable evidence lane
 - resource: Endor resource, public-doc page, or provided-input field
-- source: `endorctl_api`, `endor_mcp`, `user_input`, `local_repository`, or
+- source: `endorctl_agent_api`, `endor_mcp`, `user_input`, `local_repository`, or
   `public_docs`
 - status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
 - query_template_id: compact recipe id, API path id, or null
@@ -201,7 +201,7 @@ not match. If no lookup could be attempted at all, return
 <!-- compact-plugin:omit-start -->
 ## Read-Only Endor Query Shapes
 
-Use documented read-only `endorctl api list`, `get`, or query commands only.
+Use documented read-only `endorctl agent api --agent-id <agent-id> list`, `get`, or query commands only.
 Prefer broad stable field masks such as `uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec`
 when the tenant rejects narrower masks. If a field mask or filter fails, retry
 at most once with a broader projection, record the failure in `data_gaps`, and
@@ -227,7 +227,7 @@ Never merge PR/CI-run finding counts into main-context finding counts.
 Project or repository selector resolution:
 
 ```bash
-endorctl api list --resource Project --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource Project --namespace <namespace> \
   --filter '<name_or_repository_selector_filter>' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
@@ -240,7 +240,7 @@ that point at a parent namespace while the repository project lives in a child
 namespace.
 
 ```bash
-endorctl api list --resource Project --namespace <namespace> --traverse \
+endorctl agent api --agent-id <agent-id> list --resource Project --namespace <namespace> --traverse \
   --filter '<name_or_repository_selector_filter>' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
@@ -256,13 +256,13 @@ until both attempts have been evaluated.
 Scan execution evidence:
 
 ```bash
-endorctl api get --resource ScanResult --namespace <namespace> --uuid <scan_result_uuid> \
+endorctl agent api --agent-id <agent-id> get --resource ScanResult --namespace <namespace> --uuid <scan_result_uuid> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
 ```
 
 ```bash
-endorctl api list --resource ScanResult --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource ScanResult --namespace <namespace> \
   --filter 'meta.parent_uuid=="<project_uuid>"' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
@@ -300,14 +300,14 @@ jq '{
 Workflow evidence:
 
 ```bash
-endorctl api list --resource ScanWorkflowResult --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource ScanWorkflowResult --namespace <namespace> \
   --filter 'meta.parent_uuid=="<project_uuid>"' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
 ```
 
 ```bash
-endorctl api list --resource ScanWorkflow --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource ScanWorkflow --namespace <namespace> \
   --filter 'meta.parent_uuid=="<project_uuid>"' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
@@ -316,7 +316,7 @@ endorctl api list --resource ScanWorkflow --namespace <namespace> \
 Scan profile and automated scan configuration:
 
 ```bash
-endorctl api list --resource ScanProfile --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource ScanProfile --namespace <namespace> \
   --filter 'meta.parent_uuid=="<project_uuid>"' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
@@ -325,7 +325,7 @@ endorctl api list --resource ScanProfile --namespace <namespace> \
 Package and dependency evidence:
 
 ```bash
-endorctl api list --resource PackageVersion --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource PackageVersion --namespace <namespace> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
   --field-mask "uuid,context,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
@@ -335,7 +335,7 @@ For a supplied `PackageVersion` UUID, use `get` and project dependency and
 reachability evidence without printing the full dependency graph:
 
 ```bash
-endorctl api get --resource PackageVersion --namespace <namespace> --uuid <package_version_uuid> \
+endorctl agent api --agent-id <agent-id> get --resource PackageVersion --namespace <namespace> --uuid <package_version_uuid> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json | jq '{
     uuid,
@@ -373,7 +373,7 @@ endorctl api get --resource PackageVersion --namespace <namespace> --uuid <packa
 Private package manager evidence:
 
 ```bash
-endorctl api list --resource PackageManager --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource PackageManager --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
@@ -398,7 +398,7 @@ jq 'def objs: (.list.objects // .objects // .items // []);
 Private source credential evidence:
 
 ```bash
-endorctl api list --resource SCMCredential --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource SCMCredential --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
@@ -406,7 +406,7 @@ endorctl api list --resource SCMCredential --namespace <namespace> \
 Source-provider integration evidence:
 
 ```bash
-endorctl api list --resource Installation --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource Installation --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
@@ -414,7 +414,7 @@ endorctl api list --resource Installation --namespace <namespace> \
 SSO evidence:
 
 ```bash
-endorctl api list --resource IdentityProvider --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource IdentityProvider --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
@@ -422,7 +422,7 @@ endorctl api list --resource IdentityProvider --namespace <namespace> \
 PR comment configuration evidence:
 
 ```bash
-endorctl api list --resource PRCommentConfig --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource PRCommentConfig --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
@@ -430,13 +430,13 @@ endorctl api list --resource PRCommentConfig --namespace <namespace> \
 Notification and exporter evidence:
 
 ```bash
-endorctl api list --resource NotificationTarget --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource NotificationTarget --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
 ```
 
 ```bash
-endorctl api list --resource Exporter --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource Exporter --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
   -o json
 ```
@@ -447,14 +447,14 @@ API tokens, credentials, headers, or destination-specific secret fields.
 Policy and finding evidence:
 
 ```bash
-endorctl api list --resource Finding --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource Finding --namespace <namespace> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
   --field-mask "uuid,context,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
 
 ```bash
-endorctl api list --resource Policy --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource Policy --namespace <namespace> \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,spec" \
   -o json
 ```
@@ -462,7 +462,7 @@ endorctl api list --resource Policy --namespace <namespace> \
 Reachability and call graph evidence:
 
 ```bash
-endorctl api list --resource CallGraphData --namespace <namespace> \
+endorctl agent api --agent-id <agent-id> list --resource CallGraphData --namespace <namespace> \
   --filter 'meta.parent_uuid=="<project_uuid>"' \
   --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,context,related_object,storage_url" \
   -o json
@@ -1028,7 +1028,7 @@ The JSON object must include:
     {
       "name": "Troubleshooting evidence lane",
       "resource": "Project | ScanResult | Integration | user_input",
-      "source": "endorctl_api | endor_mcp | user_input | public_docs",
+      "source": "endorctl_agent_api | endor_mcp | user_input | public_docs",
       "status": "succeeded | partial | failed | skipped",
       "query_template_id": "lane-specific-read | public-doc-reference | null",
       "filter_summary": "Issue selector, resource id, or provided-input field",
@@ -1095,7 +1095,7 @@ For every recommended action, optimize for least friction:
 
 Recommended actions, lane next steps, hypotheses, and validation steps must be
 human-readable intent, not copy/paste shell commands. Do not put raw
-`endorctl api`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command
+`endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command
 strings in `issue_lanes[]`, `root_cause_hypotheses[]`,
 `recommended_actions[]`, `validation_plan[]`, `support_escalation_packet`, or
 `future_action_contracts[]`. If a future action would require a scan rerun,
@@ -1117,7 +1117,7 @@ including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`,
 `support_escalation_packet.include[]`. If you need a validation step, describe
 the intended evidence in prose, for example "Confirm the scoped Project lookup
 returns the current repository in the selected namespace." Do not include raw
-tool names or partial command-shaped text such as `endorctl`, `endorctl api
+tool names or partial command-shaped text such as `endorctl`, `endorctl agent api --agent-id <agent-id>
 list`, `git`, `gh`, `shell`, `run a scan`, or `run a baseline scan`, because a
 partial query without an explicit namespace and field mask is invalid output.
 
@@ -1147,15 +1147,15 @@ tools unless the recipe is updated and republished.
 <!-- enterprise-edition:start -->
 ## Enterprise Edition Tools
 
-Use Bash only for the documented read-only `endorctl api` lookups in these
+Use Bash only for the documented read-only `endorctl agent api --agent-id <agent-id>` lookups in these
 instructions. Do not generalize them into create, update, delete, scan,
 integration-write, policy-write, comment, or source-provider mutation commands.
 
 Allowed:
 
 - `endorctl --version`
-- `endorctl api get ...` for a supplied UUID and documented resource
-- `endorctl api list ...` for documented lane-specific resources
+- `endorctl agent api --agent-id <agent-id> get ...` for a supplied UUID and documented resource
+- `endorctl agent api --agent-id <agent-id> list ...` for documented lane-specific resources
 - local shell projection tools such as `jq` when they only summarize command
   output and do not alter state
 
@@ -1163,9 +1163,9 @@ Not allowed:
 
 - Endor MCP server setup or MCP tool use
 - `endorctl scan`
-- `endorctl api create`, including `CreateScanLogRequest`
-- `endorctl api update`
-- `endorctl api delete`
+- any Endor agent API create action, including `CreateScanLogRequest`
+- any Endor agent API update action
+- any Endor agent API delete action
 - package manager installs, builds, tests, or toolchain detection
 - source-provider mutation commands
 - filesystem writes

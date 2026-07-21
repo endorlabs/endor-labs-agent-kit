@@ -33,7 +33,7 @@ def test_findings_browser_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_p
     assert report.ok
     assert data["id"] == "findings-browser"
     assert data["safety_class"] == "read_only"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []

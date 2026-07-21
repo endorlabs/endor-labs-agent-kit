@@ -129,7 +129,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
       --list-all -o json
     fields:
       - uuid
@@ -145,7 +145,7 @@ evidence_query_recipes:
     canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
-    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
       and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
       -o json
     fields:
@@ -162,7 +162,7 @@ evidence_query_recipes:
     canonical_id: version-upgrade-summary
     resource: VersionUpgrade
     purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
-    template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+    template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
       and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
     fields:
       - uuid
@@ -176,7 +176,7 @@ evidence_query_recipes:
     canonical_id: version-upgrade-summary
     resource: VersionUpgrade
     purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
-    template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+    template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
       and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
     fields:
       - uuid
@@ -190,7 +190,7 @@ evidence_query_recipes:
     canonical_id: version-upgrade-detail
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-    template: endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+    template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
       and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
@@ -205,7 +205,7 @@ evidence_query_recipes:
     canonical_id: sca-finding-availability
     resource: Finding
     purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
-    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
       and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
       -o json
     fields:

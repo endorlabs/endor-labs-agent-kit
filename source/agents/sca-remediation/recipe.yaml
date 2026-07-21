@@ -10,7 +10,7 @@ safety_class: mutating
 endor_tier_minimum: enterprise
 policy_pack_support: true
 supported_transports:
-- endorctl_api
+- endorctl_agent_api
 host_capabilities_required:
   run_commands: true
   read_files: true
@@ -53,6 +53,10 @@ inputs:
   kind: integer
   required: false
   description: Maximum SCA findings to evaluate before ranking package-level remediations.
+- name: task_state
+  kind: object
+  required: false
+  description: Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving approved evidence. Never carries secrets or approvals.
 outputs:
 - name: summary
   kind: string
@@ -102,6 +106,10 @@ outputs:
   kind: list[string]
   required: true
   description: Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.
+- name: task_state
+  kind: object
+  required: false
+  description: Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 - name: policy_context
   kind: object
   required: true
@@ -126,7 +134,7 @@ mutations:
 - write_files
 - open_pr
 required_endor_mcp_tools: []
-endorctl_api_invocations:
+endorctl_agent_api_invocations:
 - resolve_project_from_repository
 - list_sca_findings
 - list_version_upgrade_recommendations

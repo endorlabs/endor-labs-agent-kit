@@ -71,6 +71,7 @@ class EndorAgentRecipe:
     mutations: tuple[str, ...] = ()
     required_endor_mcp_tools: tuple[str, ...] = ()
     endorctl_api_invocations: tuple[str, ...] = ()
+    endorctl_agent_api_invocations: tuple[str, ...] = ()
     endor_tier_minimum: str = "free"
     instructions_path: str = "instructions.md"
     model: str = ""
@@ -133,6 +134,9 @@ def recipe_from_dict(data: dict[str, Any]) -> EndorAgentRecipe:
         mutations=tuple(str(v) for v in data.get("mutations", ())),
         required_endor_mcp_tools=tuple(str(v) for v in data.get("required_endor_mcp_tools", ())),
         endorctl_api_invocations=tuple(str(v) for v in data.get("endorctl_api_invocations", ())),
+        endorctl_agent_api_invocations=tuple(
+            str(v) for v in data.get("endorctl_agent_api_invocations", ())
+        ),
         endor_tier_minimum=str(data.get("endor_tier_minimum", "free")),
         instructions_path=str(data.get("instructions_path", "instructions.md")),
         model=str(data.get("model", "")),
@@ -174,6 +178,7 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
         "mutations": list(recipe.mutations),
         "required_endor_mcp_tools": list(recipe.required_endor_mcp_tools),
         "endorctl_api_invocations": list(recipe.endorctl_api_invocations),
+        "endorctl_agent_api_invocations": list(recipe.endorctl_agent_api_invocations),
         "endor_tier_minimum": recipe.endor_tier_minimum,
         "instructions_path": recipe.instructions_path,
         "model": recipe.model,

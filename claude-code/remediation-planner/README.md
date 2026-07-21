@@ -36,5 +36,5 @@ This dry-run workflow resolves project or finding context, gathers Endor remedia
 
 ## Notes
 
-- This agent uses read-only endorctl api lookups and does not require Endor MCP.
+- This agent uses read-only `endorctl agent api --agent-id remediation-planner` lookups and does not require Endor MCP.
 - Bash use is limited by prompt to the documented Endor lookup commands.

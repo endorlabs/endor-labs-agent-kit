@@ -155,28 +155,26 @@ def _managed_system(
     )
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     posture = source_recipe_safety_posture(recipe)
-    if edition == "developer-edition":
-        label = "This Managed Agents artifact" if single_edition else "Managed Agents Developer Edition"
-        transport = f"{label}. Use Endor MCP tools only. Do not use Bash, filesystem, web, or mutating tools."
-    elif not posture.uses_endorctl_api:
-        label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
+    if not posture.uses_endor_api_transport:
+        label = "This Managed Agents artifact" if single_edition else f"Managed Agents {_edition_name(edition)}"
         transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
     else:
-        label = "This Managed Agents artifact" if single_edition else "Managed Agents Enterprise Edition"
+        label = "This Managed Agents artifact" if single_edition else f"Managed Agents {_edition_name(edition)}"
+        agent_command = f"endorctl agent api --agent-id {recipe.id}"
         if _uses_github_evidence(recipe):
             transport = (
-                f"{label}. Use Bash only for the documented read-only `endorctl api` "
+                f"{label}. Use Bash only for the documented read-only `{agent_command}` "
                 "lookups and GitHub.com inventory/file lookups in these instructions. "
                 "Do not require Endor MCP."
             )
         elif posture.uses_mcp:
             transport = (
                 f"{label}. Use Endor MCP first. Bash is available only for the documented "
-                "read-only `endorctl api` lookups in these instructions."
+                f"read-only `{agent_command}` lookups in these instructions."
             )
         else:
             transport = (
-                f"{label}. Use Bash only for the documented read-only `endorctl api` "
+                f"{label}. Use Bash only for the documented read-only `{agent_command}` "
                 "lookups in these instructions. Do not require Endor MCP."
             )
     setup = (
@@ -233,7 +231,7 @@ def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
             },
         })
 
-    if edition == "enterprise-edition" and posture.uses_endorctl_api:
+    if posture.uses_endor_api_transport:
         tools.append({
             "type": "agent_toolset_20260401",
             "default_config": {
@@ -270,7 +268,7 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
             },
         },
     }
-    if edition == "enterprise-edition" and posture.uses_endorctl_api:
+    if posture.uses_endor_api_transport:
         config["config"]["packages"] = {"npm": ["endorctl"]}
         config["config"]["networking"]["allow_package_managers"] = True
     return config

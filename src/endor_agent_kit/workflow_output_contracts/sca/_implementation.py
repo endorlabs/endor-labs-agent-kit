@@ -170,6 +170,15 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
         )
 
+    if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation:
+        _validate_change_request_inventory(
+            payload,
+            selected=selected,
+            gate=gate,
+            risk_status=risk_status,
+            errors=errors,
+        )
+
     if gate == "pr":
         body = _text(_first_present(payload, "pr_body", "body", "pull_request_body"))
         if not body:
@@ -178,6 +187,111 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             errors.extend(f"pr_body: {error}" for error in lint_sca_pr_body(body))
 
     return errors
+
+
+def _validate_change_request_inventory(
+    payload: dict[str, Any],
+    *,
+    selected: dict[str, Any],
+    gate: str,
+    risk_status: str,
+    errors: list[str],
+) -> None:
+    requests = [item for item in _list(payload.get("change_requests")) if isinstance(item, dict)]
+    if not requests:
+        errors.append("change_requests[0].inventory: required before selection or mutation")
+        return
+    request = requests[0]
+    prefix = "change_requests[0].inventory"
+    inventory = _dict(request.get("inventory"))
+    if not inventory:
+        errors.append(f"{prefix}: required before selection or mutation")
+        return
+
+    status = _text(inventory.get("status"))
+    allowed_statuses = {"none_found", "exact_duplicate", "different_target", "unavailable"}
+    if status not in allowed_statuses:
+        errors.append(f"{prefix}.status: must be one of {', '.join(sorted(allowed_statuses))}")
+    for field_name in ("lookup_method", "checked_at"):
+        if not _text(inventory.get(field_name)):
+            errors.append(f"{prefix}.{field_name}: required")
+
+    key = _dict(inventory.get("key"))
+    for field_name in (
+        "repository",
+        "base_branch",
+        "ecosystem",
+        "normalized_package",
+        "manifest",
+        "current_version",
+        "target_version",
+    ):
+        if not _text(key.get(field_name)):
+            errors.append(f"{prefix}.key.{field_name}: required")
+    if not isinstance(key.get("finding_set"), list):
+        errors.append(f"{prefix}.key.finding_set: required array")
+    selected_target = _text(selected.get("to_version") or selected.get("target_version"))
+    selected_current = _text(selected.get("from_version") or selected.get("current_version"))
+    if selected_target and _text(key.get("target_version")) != selected_target:
+        errors.append(f"{prefix}.key.target_version: must match selected remediation")
+    if selected_current and _text(key.get("current_version")) != selected_current:
+        errors.append(f"{prefix}.key.current_version: must match selected remediation")
+
+    candidates = inventory.get("candidates")
+    if not isinstance(candidates, list):
+        errors.append(f"{prefix}.candidates: required array")
+        candidates = []
+    for index, candidate in enumerate(candidates):
+        candidate_prefix = f"{prefix}.candidates[{index}]"
+        if not isinstance(candidate, dict):
+            errors.append(f"{candidate_prefix}: must be an object")
+            continue
+        for field_name in ("author", "author_type", "branch", "state", "url", "current_version", "target_version"):
+            if not _text(candidate.get(field_name)):
+                errors.append(f"{candidate_prefix}.{field_name}: required")
+        if not isinstance(candidate.get("files"), list):
+            errors.append(f"{candidate_prefix}.files: required array")
+        if not isinstance(candidate.get("exact_duplicate"), bool):
+            errors.append(f"{candidate_prefix}.exact_duplicate: required boolean")
+
+    reconciliation = _dict(inventory.get("reconciliation"))
+    reconciliation_status = _text(reconciliation.get("status"))
+    if not reconciliation_status:
+        errors.append(f"{prefix}.reconciliation.status: required")
+    if status == "exact_duplicate":
+        request_status = _text(request.get("status"))
+        if reconciliation_status not in {"reuse_existing", "blocked_duplicate"} or request_status in {
+            "created",
+            "opened",
+            "pushed",
+        }:
+            errors.append(f"{prefix}: exact duplicate must be reused or block creation")
+    if status == "different_target":
+        if reconciliation_status == "operator_choice_required" or reconciliation.get(
+            "operator_choice_required"
+        ) is True:
+            errors.append(
+                f"{prefix}.reconciliation: unresolved target divergence requires operator choice"
+            )
+            if risk_status.startswith("approved"):
+                errors.append(
+                    "risk_decision.status: cannot be approved while target-version divergence is unresolved"
+                )
+        elif reconciliation_status == "resolved":
+            for field_name in ("uia_evidence_checked_at", "upstream_evidence_checked_at"):
+                if not _text(reconciliation.get(field_name)):
+                    errors.append(
+                        f"{prefix}.reconciliation.{field_name}: required for different-target reconciliation"
+                    )
+        else:
+            errors.append(
+                f"{prefix}.reconciliation.status: different target must be resolved or require operator choice"
+            )
+    if gate == "pr":
+        if status == "unavailable":
+            errors.append(f"{prefix}: unavailable inventory fails closed before push/open")
+        if inventory.get("fresh_recheck") is not True:
+            errors.append(f"{prefix}.fresh_recheck: required immediately before push/open")
 
 
 def render_sca_pr_body(payload: dict[str, Any]) -> str:

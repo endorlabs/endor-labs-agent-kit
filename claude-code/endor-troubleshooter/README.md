@@ -48,7 +48,7 @@ endorctl --version
 ```
 
 Endor Troubleshooter does not need an Endor MCP server. It uses only
-documented read-only `endorctl api` lookups and user-provided redacted
+documented read-only `endorctl agent api --agent-id endor-troubleshooter` lookups and user-provided redacted
 error text. If Endor access, project selectors, scan evidence, workflow
 evidence, or integration evidence are unavailable, the agent should report
 the missing setup in `data_gaps`.

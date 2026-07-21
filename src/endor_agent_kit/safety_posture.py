@@ -44,8 +44,20 @@ class SourceRecipeSafetyPosture:
         )
 
     @property
+    def uses_endorctl_agent_api(self) -> bool:
+        return "endorctl_agent_api" in self.recipe.supported_transports and bool(
+            self.recipe.endorctl_agent_api_invocations
+        )
+
+    @property
+    def uses_endor_api_transport(self) -> bool:
+        """Return whether either supported Endor CLI API transport is configured."""
+
+        return self.uses_endorctl_agent_api or self.uses_endorctl_api
+
+    @property
     def requires_endorctl_setup(self) -> bool:
-        return self.uses_endorctl_api or self.is_mutating
+        return self.uses_endor_api_transport or self.is_mutating
 
     @property
     def can_run_commands(self) -> bool:

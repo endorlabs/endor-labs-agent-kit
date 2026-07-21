@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "2a9bbb276a20ef4760195a6167ae767a1f3fa207877c8961656646694af13b60"
+ENTERPRISE_EDITION_SHA256 = "48fec447e64fab3c100ef0cb26dacf565e1c25197d835062f3cc4a8319fd140a"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -72,11 +72,51 @@ def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     assert "alwaysLoad: true" in enterprise_header
     assert "disallowedTools: Bash" not in enterprise_header
     assert "model: sonnet" in enterprise_header
-    assert "endorctl api list" in enterprise
+    assert "endorctl agent api --agent-id dependency-decision-helper list" in enterprise
     assert "data_gaps" in enterprise
     assert "## Endor Knowledge Pack" in enterprise
     assert "## Structured Output Contract" in enterprise
     assert "Context first" in enterprise
+
+
+def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundle(tmp_path):
+    source = repo_root() / "source" / "agents" / "sca-remediation"
+    target = tmp_path / "sca-remediation"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    outputs = compile_claude_code(target / "recipe.yaml", edition="enterprise-edition")
+
+    assert [path.name for path in outputs] == [
+        "sca-remediation.md",
+        "sca-remediation-resolve-scope.md",
+        "sca-remediation-evidence-check.md",
+        "sca-remediation-selection-plan.md",
+    ]
+    scoped = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-evidence-check.md").read_text()
+    base = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation.md").read_text()
+    assert "name: sca-remediation-evidence-check" in scoped
+    assert "Profiles: `evidence-check`" in scoped
+    assert "`selection-plan` - Selection Plan" not in scoped
+    assert len(scoped) < len(base) * 0.7
+    assert "Never edit files" in scoped
+    assert "Do not fabricate findings" in scoped
+    assert "## PR/MR Body And Comment Requirements" not in scoped
+
+
+def test_ai_sast_profile_variant_reduces_input_without_losing_safety_invariants(tmp_path):
+    source = repo_root() / "source" / "agents" / "ai-sast-triage"
+    target = tmp_path / "ai-sast-triage"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    compile_claude_code(target / "recipe.yaml", edition="enterprise-edition")
+
+    out_dir = target / "dist" / "claude-code" / "enterprise-edition"
+    base = (out_dir / "ai-sast-triage.md").read_text()
+    scoped = (out_dir / "ai-sast-triage-evidence-check.md").read_text()
+    assert len(scoped) < len(base) * 0.7
+    assert "Do not execute exploit steps against live systems" in scoped
+    assert "Never let the developer requesting an exception self-approve it" in scoped
+    assert "Create the Endor exception policy only after verified AppSec approval" not in scoped
 
 
 def test_plugin_package_prompts_stay_within_compact_budgets(tmp_path):
@@ -169,7 +209,7 @@ def test_claude_managed_agents_compiler_emits_selected_customer_artifact(tmp_pat
             "permission_policy": {"type": "always_ask"},
         }
     ]
-    assert "endorctl api list" in enterprise["system"]
+    assert "endorctl agent api --agent-id dependency-decision-helper list" in enterprise["system"]
     assert enterprise_environment["name"] == "endor-dependency-decision-helper"
     assert enterprise_environment["config"]["packages"] == {"npm": ["endorctl"]}
 
@@ -258,32 +298,27 @@ def test_claude_code_enterprise_edition_pins_read_only_endorctl_command_shapes(t
 
     bash_blocks = _fenced_blocks(enterprise, "bash")
     assert bash_blocks == [
-        """endorctl api list \\
+        """endorctl agent api --agent-id dependency-decision-helper list \\
   --resource PackageVersion \\
   --namespace oss \\
   --filter 'meta.name=="<prefix>://<package_name>@<version>"' \\
   --field-mask "uuid,meta.name"
 """,
-        """endorctl api list \\
+        """endorctl agent api --agent-id dependency-decision-helper list \\
   --resource Metric \\
   --namespace oss \\
   --filter 'meta.name=="package_version_scorecard" and meta.parent_uuid=="<package_version_uuid>"' \\
   --field-mask "spec.metric_values.scorecard.score_card.category_scores"
 """,
-        """endorctl api list \\
+        """endorctl agent api --agent-id dependency-decision-helper list \\
   --resource Metric \\
   --namespace oss \\
   --filter 'meta.name=="pkg_version_info_for_license" and meta.parent_uuid=="<package_version_uuid>"' \\
   --field-mask "spec.metric_values.licenseInfoType.license_info.all_licenses"
 """,
-        """endorctl api create \\
-  --resource QuerySimilarPackages \\
-  --namespace oss \\
-  --data '{"meta":{"name":"similar-packages-query-<package_name>"},"spec":{"name":"<package_name>","edit_distance":2,"repo":"<ECOSYSTEM_ENUM>","exact_match":false}}'
-""",
     ]
-    assert "The only allowed `endorctl api create` form" in enterprise
-    assert "do not generalize this exception to other resources" in enterprise
+    assert "Do not call a create-style query service through" in enterprise
+    assert "QuerySimilarPackages" not in enterprise
 
 
 def test_raw_compiler_emits_setup_bundle(tmp_path):
@@ -316,7 +351,7 @@ def test_codex_compiler_emits_skill_artifact(tmp_path):
     assert "## Codex Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
     assert "## Structured Output Contract" in skill
-    assert "endorctl api list" in skill
+    assert "endorctl agent api --agent-id dependency-decision-helper list" in skill
 
 
 def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
@@ -343,7 +378,7 @@ def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
     assert "## Gemini CLI Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
     assert "## Structured Output Contract" in skill
-    assert "endorctl api list" in skill
+    assert "endorctl agent api --agent-id dependency-decision-helper list" in skill
     assert "data_gaps" in skill
     assert agent_frontmatter["kind"] == "local"
     assert agent_frontmatter["model"] == "inherit"
@@ -420,7 +455,12 @@ def _prompt_budget(relative_path: str) -> int:
         return 14_000
     if agent_id in {"cicd-posture", "endor-troubleshooter", "probe-droid"}:
         return 26_000
-    if agent_id in {"sca-remediation", "ai-sast-triage"}:
+    if agent_id == "sca-remediation":
+        # Full fallback carries resume, duplicate-PR, and worktree-isolation safety contracts.
+        # Scoped read profiles remain subject to the same canonical-agent budget here and
+        # have separate <70% size assertions above.
+        return 38_000
+    if agent_id == "ai-sast-triage":
         return 36_000
     return 13_000
 
@@ -438,4 +478,23 @@ def _agent_id_from_prompt_path(relative_path: str) -> str:
         stem = stem[len("endor-"):]
     if stem.endswith("-agent"):
         stem = stem[: -len("-agent")]
+    known_agent_ids = {
+        "ai-sast-triage",
+        "cicd-posture",
+        "dependency-decision-helper",
+        "endor-agent-kit-setup",
+        "endor-troubleshooter",
+        "findings-browser",
+        "malware-response",
+        "package-risk-summary",
+        "probe-droid",
+        "remediation-planner",
+        "repository-dependency-reviewer",
+        "sca-remediation",
+        "upgrade-impact-analysis",
+        "vulnerability-explainer",
+    }
+    for agent_id in sorted(known_agent_ids, key=len, reverse=True):
+        if stem == agent_id or stem.startswith(f"{agent_id}-"):
+            return agent_id
     return stem

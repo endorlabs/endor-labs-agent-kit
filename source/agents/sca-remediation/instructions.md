@@ -3,6 +3,7 @@
 
 This MCP-free Claude Code artifact helps a paying Endor Labs customer turn reachable and fixable SCA vulnerability findings into a reviewed dependency-remediation PR/MR. It combines exploitability and blast-radius triage, VersionUpgrade/UIA risk evidence, local manifest/source edits, validation, and stable PR/MR reporting.
 
+<!-- section:scope-resolution:start -->
 ## Natural-Language Intake
 
 Do not require the user to know an Endor project UUID. Treat UUIDs as optional advanced overrides only.
@@ -68,7 +69,9 @@ namespace. Never collapse parent-namespace lookup failures into "project not
 found" until the traverse fallback has also been attempted.
 
 Do not print or dump an entire Endor config file. It can contain auth and tenant details outside the namespace signal needed for this workflow. To read namespace provenance from config, extract only the namespace key with a narrow command or parser and do not echo tokens, API keys, session data, or unrelated config contents.
+<!-- section:scope-resolution:end -->
 
+<!-- section:selection-planning:start -->
 ## Workflow
 
 1. Resolve the project and namespace from local git, user-supplied selectors, and Endor project metadata.
@@ -85,10 +88,11 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 6. Read only the target manifests, lockfiles, and source files needed for the selected package and any CIA-indicated companion edits.
 7. Resolve upgrade risk before producing a final recommendation. If CIA is indeterminate, risk is medium/high/unknown, conflicts exist, findings are introduced, the upgrade is a major version bump, or the dependency footprint changes materially, run the Risky / Indeterminate Upgrade Solver below and return a deterministic `risk_decision`.
 8. Prepare the patch plan. Show package, from/to versions, affected manifests, UIA resource UUID, risk, CIA status, findings fixed, findings introduced, `risk_decision`, validation command, branch name, PR/MR title, complete AURI-style PR/MR body draft, and folded advisory/finding list before mutation.
+   - Before selecting or mutating, build `change_requests[0].inventory` using a deterministic key: repository/base branch, ecosystem, normalized package, manifest, current/target version, and finding set. Record provider lookup status plus every candidate's author and bot/human type, branch, state, files, URL, and versions. Reuse or block an exact duplicate. Reconcile a different target against equally fresh UIA and upstream evidence; unresolved divergence requires operator choice and cannot carry an approved risk decision. An unavailable inventory may accompany a plan, but it fails closed before push/open.
 9. Ask for explicit approval before editing files. After approval, apply the minimal manifest, lockfile, or companion source edits needed for the selected UIA-backed fix.
 10. Run local validation when safe. If validation cannot run because dependencies, credentials, private artifacts, or CI-only services are missing, record the exact blocker in `validation` and `data_gaps`.
 11. Present the supported delivery targets before any external mutation: plan-only output, source change request, ticket creation, or both source change request and ticket when the runtime supports them. Do not assume ticketing support; use `create-remediation-ticket` only when the user or runtime selects that target.
-12. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. Re-runs may update the same agent-owned branch when a change request already exists.
+12. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. Immediately before push/open, refresh the deterministic change-request inventory and set `fresh_recheck: true`; fail closed if the lookup is unavailable, an exact duplicate is not being reused, or target-version divergence remains unresolved. Re-runs may update the same agent-owned branch when a change request already exists.
 13. Post or update one stable PR/MR comment when requested or when the host returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
 14. Return concise prose plus the required JSON object. A prose-only summary is
     not a valid gate result.
@@ -100,10 +104,14 @@ Runtime, plan-only, and read-only gates still need those project-resolution fiel
 `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`,
 and `change_requests[].proposed_branch`.
 
-After validation, immediately clean validation-generated artifacts outside the
-patch plan before branch/PR/final output. Restore tracked files and remove
-untracked build dirs; do not get stuck on dirty `target/`, `build/`, `dist/`,
-class, jar, coverage, or cache output.
+Never clean validation artifacts in the user's worktree with stash, reset,
+restore, clean, deletion, or broad removal. Capture the user-worktree baseline,
+create an owned disposable environment at the exact source revision, apply only
+the serialized patch, and copy only explicitly allowlisted required untracked
+inputs. Run validation there and bind its evidence to the patch hash. Remove only
+the owned disposable resources afterward. If isolation, required submodule input,
+or cleanup cannot be proven safe, skip validation and record the exact blocker;
+the user worktree must remain byte-for-byte unchanged.
 
 For PR/MR e2e/full-remediation, copy the final branch into every
 machine-readable field: `selected_remediation.branch_name`, edited
@@ -166,13 +174,13 @@ Even in this lane, all mutation gates remain: show the selected candidate, UIA e
 
 ## Required Endor Evidence
 
-Use authenticated `endorctl api` commands or documented Endor API calls. Do not require or start an Endor MCP server.
+Use only authenticated `endorctl agent api --agent-id <agent-id>` commands. Do not require or start an Endor MCP server.
 
 <!-- compact-plugin:omit-start -->
 Project lookup example:
 
 ```bash
-endorctl api list -r Project -n <namespace> \
+endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> \
   --field-mask "uuid,meta.name,spec.git" \
   --list-all -o json
 ```
@@ -180,7 +188,7 @@ endorctl api list -r Project -n <namespace> \
 Traverse fallback when the first project lookup has no match:
 
 ```bash
-endorctl api list -r Project -n <namespace> \
+endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> \
   --traverse \
   --field-mask "uuid,meta.name,spec.git" \
   --list-all -o json
@@ -189,7 +197,7 @@ endorctl api list -r Project -n <namespace> \
 SCA findings example:
 
 ```bash
-endorctl api list -r Finding -n <namespace> \
+endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' \
   --field-mask "uuid,context,meta.name,meta.description,meta.parent_uuid,spec.level,spec.project_uuid,spec.source_code_version,spec.finding_categories,spec.finding_tags,spec.target_uuid,spec.target_dependency_package_name,spec.target_dependency_version,spec.dependency_file_paths,spec.ecosystem,spec.finding_metadata,spec.remediation" \
   --list-all -o json
@@ -198,7 +206,7 @@ endorctl api list -r Finding -n <namespace> \
 Best VersionUpgrade/UIA recommendations example:
 
 ```bash
-endorctl api list -r VersionUpgrade -n <namespace> \
+endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.is_best==true and spec.upgrade_info.worth_it==true' \
   --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.is_latest,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.to_version_age_in_days,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.score_explanation,spec.upgrade_info.worth_it,spec.upgrade_info.upgrade_risk,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.cia_status" \
   --list-all -o json
@@ -207,7 +215,7 @@ endorctl api list -r VersionUpgrade -n <namespace> \
 Detailed UIA/CIA evidence example:
 
 ```bash
-endorctl api list -r VersionUpgrade -n <namespace> \
+endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<UPGRADE_UUID>"' \
   --field-mask "uuid,spec.name,spec.upgrade_info" \
   -o json
@@ -321,6 +329,7 @@ name in the current request.
 - If UIA evidence is missing for the top count, either choose the next UIA-backed candidate or return `uia_evidence_missing` in `data_gaps`.
 - Medium, high, unknown, and CIA-indeterminate upgrades require the Risky / Indeterminate Upgrade Solver before PR/MR creation.
 - Endor Patch recommendations may be mentioned when the UIA evidence exposes them, but do not assume entitlement or make them the default unless the evidence and customer request support that path.
+<!-- section:selection-planning:end -->
 
 ## Mutation Safety
 
@@ -334,6 +343,7 @@ name in the current request.
 - Scope compatibility claims to Endor UIA/CIA evidence and commands you actually ran. Do not independently claim "no behavior changes", "security-only release", or "not attributable" unless you verified that claim from source, release notes, baseline validation, or another cited source.
 - If active local changes are unrelated to the requested remediation, do not overwrite them. Stop and report the conflict in `data_gaps`.
 
+<!-- section:mutation-delivery:start -->
 <!-- compact-plugin:omit-start -->
 ## PR/MR Body And Comment Requirements
 
@@ -514,6 +524,7 @@ Use a stable comment marker when posting a remediation comment:
 ```
 
 <!-- compact-plugin:omit-end -->
+<!-- section:mutation-delivery:end -->
 ## Output
 
 Return concise prose plus a JSON object with this shape. The final answer must
@@ -539,7 +550,7 @@ extract; do not replace the JSON object with a table or prose summary.
     {
       "name": "VersionUpgrade/UIA evidence",
       "resource": "VersionUpgrade",
-      "source": "endorctl_api | endor_mcp | user_input",
+      "source": "endorctl_agent_api | endor_mcp | user_input",
       "status": "succeeded | failed | skipped",
       "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
       "filter_summary": "Project and candidate package selector",
@@ -598,13 +609,13 @@ for indeterminate CIA, elevated risk, conflicts, or introduced findings.
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
-Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
+Use only authenticated `endorctl agent api --agent-id <agent-id>` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
 Use local git, read-only file tools, package-manager commands, and source-provider credentials only for the remediation workflow described above.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, UIA results, source contents, patch application, validation, branch pushes, PR/MR URLs, ticket IDs or URLs, or comment URLs.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
-Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
+Use only authenticated `endorctl agent api --agent-id <agent-id>` commands for customer-tenant evidence. Do not require, configure, or start an Endor MCP server.
 Use local git, read-only file tools, package-manager commands, and source-provider credentials only for the remediation workflow described above.
 Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence, UIA results, source contents, patch application, validation, branch pushes, PR/MR URLs, ticket IDs or URLs, or comment URLs.
 <!-- enterprise-edition:end -->

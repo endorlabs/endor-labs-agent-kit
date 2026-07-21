@@ -103,7 +103,7 @@ def test_upgrade_impact_analysis_managed_agents_artifacts_carry_expected_rules(t
     assert enterprise_tools["agent_toolset_20260401"]["configs"][0]["name"] == "bash"
     assert "This Managed Agents artifact" in enterprise["system"]
     assert "does not declare MCP servers" in enterprise["system"]
-    assert "endorctl api list" in enterprise["system"]
+    assert "endorctl agent api --agent-id upgrade-impact-analysis list" in enterprise["system"]
     assert "--resource VersionUpgrade" in enterprise["system"]
     assert "finding_fixing_upgrades" in enterprise["system"]
     assert "cia_results" in enterprise["system"]

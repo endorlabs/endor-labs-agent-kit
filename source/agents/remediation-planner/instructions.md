@@ -71,15 +71,15 @@ missing Endor evidence in `data_gaps`.
 <!-- shared:end -->
 
 <!-- developer-edition:start -->
-Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+Use only authenticated `endorctl agent api --agent-id <agent-id>` commands for customer-tenant evidence.
+Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
-Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+Use only authenticated `endorctl agent api --agent-id <agent-id>` commands for customer-tenant evidence.
+Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
 <!-- enterprise-edition:end -->

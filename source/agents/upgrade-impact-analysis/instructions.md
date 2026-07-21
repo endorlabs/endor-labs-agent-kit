@@ -171,7 +171,7 @@ shape:
     {
       "name": "Upgrade impact evidence",
       "resource": "VersionUpgrade",
-      "source": "endorctl_api | endor_mcp | user_input",
+      "source": "endorctl_agent_api | endor_mcp | user_input",
       "status": "succeeded | failed | skipped",
       "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
       "filter_summary": "Project, package, current version, and target version selector",
@@ -240,9 +240,9 @@ server.
 
 This artifact mirrors Endor's read-only Upgrade Impact Analysis workflow. Use
 `VersionUpgrade` resources first. Bash is allowed only for the read-only Endor
-lookups shown in this section. Do not run `endorctl scan`,
-`endorctl api update`, `endorctl api delete`, file edits, package manager
-installs, pull-request commands, or Endor MCP tooling.
+lookups shown in this section. Do not run scans, Endor agent API
+create/update/delete actions, file edits, package manager installs, pull-request
+commands, or Endor MCP tooling.
 
 Use `<namespace_flag>` below as `--namespace <namespace>` when the user provides
 `namespace`; otherwise omit it and rely on the configured `endorctl` namespace.
@@ -284,7 +284,7 @@ Use the most specific Endor mode available:
 Run the default `best_only=true` query:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource VersionUpgrade \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>" and spec.upgrade_info.is_best==true and spec.upgrade_info.worth_it==true' \
@@ -326,7 +326,7 @@ If no candidate remains and `package_name` was provided, run the fallback
 lookup without the `best_only` filters:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource VersionUpgrade \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
@@ -345,7 +345,7 @@ finding because the platform caps the server-side recommendation to one
 upgrade candidate per finding.
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource VersionUpgrade \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>" and meta.parent_kind=="PackageVersion"'
@@ -370,7 +370,7 @@ clearly "no breaking changes", or when the user asks about breaking API surface,
 config compatibility, or call-site impact.
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource VersionUpgrade \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>" and uuid=="<upgrade_uuid>"' \

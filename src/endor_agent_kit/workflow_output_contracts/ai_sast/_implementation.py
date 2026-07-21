@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -51,6 +53,134 @@ SEVERITY_EMOJI = {
     "MEDIUM": "🟡",
     "LOW": "🟢",
 }
+
+CHANGE_IMPACT_STATUSES = frozenset({"verified", "blocked", "unavailable", "not_applicable"})
+SUPPORTED_CHANGE_IMPACT_EXTENSIONS = {
+    ".py": "python",
+    ".java": "java",
+    ".js": "javascript",
+    ".jsx": "javascript",
+    ".mjs": "javascript",
+    ".cjs": "javascript",
+    ".ts": "typescript",
+    ".tsx": "typescript",
+    ".go": "go",
+}
+_VOLATILE_DIFF_METADATA_RE = re.compile(
+    r"^(?:index [0-9a-f]+\.\.[0-9a-f]+(?: \d+)?|similarity index|dissimilarity index|old mode|new mode)"
+)
+
+
+@dataclass(frozen=True)
+class ChangeImpactClassification:
+    status: str
+    trigger_classes: tuple[str, ...]
+    touched_paths: tuple[str, ...]
+    languages: tuple[str, ...]
+
+
+def canonical_ai_sast_diff(diff: str | bytes) -> bytes:
+    """Return the frozen byte-exact canonical representation of a unified diff."""
+
+    if isinstance(diff, bytes):
+        try:
+            text = diff.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError("patch diff is not valid UTF-8") from exc
+    else:
+        text = diff
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    lines = [line for line in text.split("\n") if not _VOLATILE_DIFF_METADATA_RE.match(line)]
+    while lines and lines[-1] == "":
+        lines.pop()
+    return ("\n".join(lines) + "\n").encode("utf-8")
+
+
+def ai_sast_patch_digest(diff: str | bytes, *, source_sha: str, finding_uuid: str) -> str:
+    """Bind canonical patch bytes to the source revision and finding identity."""
+
+    material = (
+        canonical_ai_sast_diff(diff)
+        + b"\x1e"
+        + source_sha.encode("utf-8")
+        + b"\x1e"
+        + finding_uuid.encode("utf-8")
+    )
+    return hashlib.sha256(material).hexdigest()
+
+
+def classify_ai_sast_change_impact(diff: str | bytes) -> ChangeImpactClassification:
+    """Classify compatibility-sensitive trigger classes from supported-language diff lines."""
+
+    try:
+        text = canonical_ai_sast_diff(diff).decode("utf-8")
+    except ValueError:
+        return ChangeImpactClassification("unknown", (), (), ())
+    if _lint_unified_diff(text):
+        return ChangeImpactClassification("unknown", (), tuple(_diff_touched_paths(text)), ())
+    paths = tuple(_diff_touched_paths(text))
+    languages = tuple(
+        sorted(
+            {
+                SUPPORTED_CHANGE_IMPACT_EXTENSIONS[Path(path).suffix.lower()]
+                for path in paths
+                if Path(path).suffix.lower() in SUPPORTED_CHANGE_IMPACT_EXTENSIONS
+            }
+        )
+    )
+    if not languages:
+        return ChangeImpactClassification("unknown", (), paths, ())
+
+    changed_lines = [
+        line[1:]
+        for line in text.splitlines()
+        if line.startswith(("+", "-")) and not line.startswith(("+++", "---"))
+    ]
+    triggers: set[str] = set()
+    for line in changed_lines:
+        if _change_impact_signature_line(line, languages):
+            triggers.add("A")
+        if re.search(
+            r"(?:@(?:Inject|Autowired|Provides|Bean|ConfigurationProperties|Value|Injectable)\b|"
+            r"\bDepends\s*\(|\b(?:process\.env|os\.Getenv|viper\.|config\[|config\.)|"
+            r"\b(?:wire\.Build|fx\.Provide)\b)",
+            line,
+        ):
+            triggers.add("B")
+        if re.match(r"\s*(?:import\b|from\s+\S+\s+import\b|const\s+\S+\s*=\s*require\s*\()", line):
+            triggers.add("C")
+        if re.search(
+            r"(?i)(?:\bfactory\b|\bprovider\b|\bregister(?:ed|ing)?\b|"
+            r"container\.bind|services\.add|@Bean\b|fx\.Provide\b|wire\.Build\b)",
+            line,
+        ):
+            triggers.add("D")
+    return ChangeImpactClassification("classified", tuple(sorted(triggers)), paths, languages)
+
+
+def _change_impact_signature_line(line: str, languages: tuple[str, ...]) -> bool:
+    patterns = {
+        "python": r"\s*(?:async\s+)?def\s+(?:__init__|[A-Za-z][A-Za-z0-9_]*)\s*\(",
+        "java": r"\s*(?:public|protected)\s+(?:[\w<>\[\],.?]+\s+)?[A-Za-z][A-Za-z0-9_]*\s*\(",
+        "javascript": r"\s*(?:export\s+)?(?:async\s+)?function\s+[A-Za-z][A-Za-z0-9_]*\s*\(",
+        "typescript": r"\s*(?:(?:export\s+)?(?:async\s+)?function\s+[A-Za-z][A-Za-z0-9_]*|(?:public\s+)?constructor)\s*\(",
+        "go": r"\s*func\s+(?:\([^)]*\)\s*)?[A-Z][A-Za-z0-9_]*\s*\(",
+    }
+    return any(re.match(patterns[language], line) for language in languages)
+
+
+def _diff_touched_paths(diff: str) -> list[str]:
+    paths: list[str] = []
+    for line in diff.splitlines():
+        if not line.startswith(("--- ", "+++ ")):
+            continue
+        path = line[4:].split("\t", 1)[0]
+        if path == "/dev/null":
+            continue
+        if path.startswith(("a/", "b/")):
+            path = path[2:]
+        paths.append(path)
+    return sorted(dict.fromkeys(paths))
 
 
 def load_json_payload(path: str | Path) -> dict[str, Any]:
@@ -604,6 +734,7 @@ def _validate_patches(payload: dict[str, Any], errors: list[str]) -> None:
     if not patches:
         errors.append("patches: required for remediation gate")
         return
+    seen_patch_digests: set[str] = set()
     for index, patch in enumerate(patches):
         if not isinstance(patch, dict):
             errors.append(f"patches[{index}]: must be an object")
@@ -615,6 +746,13 @@ def _validate_patches(payload: dict[str, Any], errors: list[str]) -> None:
         patch_diff = _text(patch.get("patch_diff"))
         if patch_diff:
             errors.extend(f"{prefix}.patch_diff: {error}" for error in _lint_unified_diff(patch_diff))
+        confidence = _first_present(patch, "patch_confidence", "confidence")
+        if confidence is not None and (
+            isinstance(confidence, bool)
+            or not isinstance(confidence, int)
+            or not 0 <= confidence <= 100
+        ):
+            errors.append(f"{prefix}.patch_confidence: must be an integer from 0 to 100")
         if _is_empty(patch.get("remediation_guidance_used")) and _is_empty(
             patch.get("remediation_guidance_rejected")
         ):
@@ -624,6 +762,86 @@ def _validate_patches(payload: dict[str, Any], errors: list[str]) -> None:
         branch = _text(_first_present(patch, "branch_name", "branch", "proposed_branch"))
         if branch:
             _validate_branch(branch, f"{prefix}.branch_name", errors)
+        if "change_impact" in patch:
+            _validate_patch_change_impact(
+                patch,
+                prefix=prefix,
+                seen_patch_digests=seen_patch_digests,
+                errors=errors,
+            )
+
+
+def _validate_patch_change_impact(
+    patch: dict[str, Any],
+    *,
+    prefix: str,
+    seen_patch_digests: set[str],
+    errors: list[str],
+) -> None:
+    patch_diff = _text(patch.get("patch_diff"))
+    source_sha = _text(patch.get("source_sha"))
+    finding_uuid = _text(patch.get("finding_uuid"))
+    classification = classify_ai_sast_change_impact(patch_diff)
+    impact = patch.get("change_impact")
+    if not isinstance(impact, dict):
+        errors.append(f"{prefix}.change_impact: required non-null object for strict patch gates")
+        return
+
+    status = _text(impact.get("status"))
+    if status not in CHANGE_IMPACT_STATUSES:
+        errors.append(
+            f"{prefix}.change_impact.status: must be one of {', '.join(sorted(CHANGE_IMPACT_STATUSES))}"
+        )
+    expected_digest = ""
+    try:
+        expected_digest = ai_sast_patch_digest(
+            patch_diff,
+            source_sha=source_sha,
+            finding_uuid=finding_uuid,
+        )
+    except ValueError:
+        if status not in {"blocked", "unavailable"}:
+            errors.append(f"{prefix}.change_impact.status: invalid UTF-8 patch must be unavailable or blocked")
+    actual_digest = _text(impact.get("patch_digest"))
+    if expected_digest and actual_digest != expected_digest:
+        errors.append(f"{prefix}.change_impact.patch_digest: does not match canonical patch digest")
+    if actual_digest:
+        if actual_digest in seen_patch_digests:
+            errors.append(f"{prefix}.change_impact.patch_digest: duplicate patch digest")
+        seen_patch_digests.add(actual_digest)
+
+    if classification.status == "unknown":
+        if status not in {"blocked", "unavailable"}:
+            errors.append(
+                f"{prefix}.change_impact.status: unsupported or unparseable diff must be blocked or unavailable"
+            )
+    elif classification.trigger_classes:
+        if status != "verified":
+            errors.append(
+                f"{prefix}.change_impact.status: compatibility-triggering diff requires verified status"
+            )
+        required_evidence = {"validation_evidence"}
+        trigger_requirements = {
+            "A": {"searched_call_sites", "tests"},
+            "B": {"framework_providers", "config_keys"},
+            "C": {"searched_call_sites", "tests"},
+            "D": {"factories", "searched_call_sites"},
+        }
+        for trigger in classification.trigger_classes:
+            required_evidence.update(trigger_requirements[trigger])
+        for field_name in sorted(required_evidence):
+            if not _string_list(impact.get(field_name)):
+                errors.append(
+                    f"{prefix}.change_impact.{field_name}: required for trigger classes "
+                    f"{', '.join(classification.trigger_classes)}"
+                )
+    elif status != "not_applicable":
+        errors.append(
+            f"{prefix}.change_impact.status: non-triggering supported diff must be not_applicable"
+        )
+
+    if status in {"blocked", "unavailable"}:
+        errors.append(f"{prefix}.change_impact.status: {status} fails closed for remediation and PR gates")
 
 
 def _validate_change_requests(payload: dict[str, Any], errors: list[str]) -> None:

@@ -39,6 +39,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("exception_policies", "list[object]"),
         StructuredOutputField("tickets", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
+        StructuredOutputField("task_state", "object", required=False),
     ),
     "cicd-posture": (
         StructuredOutputField("posture_verdict", "enum"),
@@ -168,6 +169,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("change_requests", "list[object]"),
         StructuredOutputField("tickets", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
+        StructuredOutputField("task_state", "object", required=False),
     ),
     "upgrade-impact-analysis": (
         StructuredOutputField("upgrade_recommendation", "enum"),
@@ -245,6 +247,7 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
     contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
     if not contract:
         return []
+    payload = normalize_structured_output_payload(agent_id, payload)
     errors: list[str] = []
     for field in contract:
         if field.name not in payload:
@@ -255,6 +258,40 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
     errors.extend(_evidence_query_ledger_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
+
+
+def normalize_structured_output_payload(agent_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    """Normalize strict present-null optional keys to legacy omitted-key form."""
+
+    normalized = dict(payload)
+    for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()):
+        if not field.required and normalized.get(field.name) is None:
+            normalized.pop(field.name, None)
+    if agent_id == "ai-sast-triage" and isinstance(normalized.get("patches"), list):
+        normalized["patches"] = [
+            _normalize_ai_sast_patch(item) if isinstance(item, dict) else item
+            for item in normalized["patches"]
+        ]
+    return normalized
+
+
+def _normalize_ai_sast_patch(patch: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(patch)
+    aliases = {
+        "branch_name": ("branch", "proposed_branch"),
+        "changed_files": ("modified_files", "files"),
+        "patch_confidence": ("confidence",),
+        "patch_reason": ("patch_summary", "reason"),
+        "exploit_reproduction_used": ("exploit_context",),
+    }
+    for canonical, candidates in aliases.items():
+        if normalized.get(canonical) is not None:
+            continue
+        for alias in candidates:
+            if normalized.get(alias) is not None:
+                normalized[canonical] = normalized[alias]
+                break
+    return normalized
 
 
 def _json_schema_for_field(field: StructuredOutputField) -> dict[str, Any]:
@@ -738,6 +775,74 @@ def _validation_schema() -> dict[str, Any]:
     }
 
 
+def _patch_validation_plan_schema() -> dict[str, Any]:
+    return {
+        "type": ["array", "null"],
+        "items": _strict_object_schema(
+            {
+                "command": _nullable_string(),
+                "status": _nullable_string(),
+                "purpose": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _change_impact_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "patch_digest": {
+                "type": ["string", "null"],
+                "pattern": "^[0-9a-f]{64}$",
+            },
+            "status": {
+                "type": ["string", "null"],
+                "enum": ["verified", "blocked", "unavailable", "not_applicable", None],
+            },
+            "searched_call_sites": _nullable_string_array(),
+            "factories": _nullable_string_array(),
+            "tests": _nullable_string_array(),
+            "framework_providers": _nullable_string_array(),
+            "config_keys": _nullable_string_array(),
+            "validation_evidence": _nullable_string_array(),
+        }
+    )
+
+
+def _patches_schema() -> dict[str, Any]:
+    nullable_strings = (
+        "finding_uuid",
+        "source_sha",
+        "patch_diff",
+        "patch_reason",
+        "patch_summary",
+        "reason",
+        "remediation_guidance_used",
+        "remediation_guidance_rejected",
+        "exploit_reproduction_used",
+        "exploit_context",
+        "file_path",
+        "branch_name",
+        "branch",
+        "proposed_branch",
+    )
+    nullable_arrays = (
+        "changed_files",
+        "modified_files",
+        "files",
+        "sibling_files_referenced",
+    )
+    properties = {name: _nullable_string() for name in nullable_strings}
+    properties.update({name: _nullable_integer() for name in ("patch_confidence", "confidence")})
+    properties.update({name: _nullable_string_array() for name in nullable_arrays})
+    properties["validation_plan"] = _patch_validation_plan_schema()
+    properties["change_impact"] = _with_nullable(_change_impact_schema(), nullable=True)
+    return {
+        "type": "array",
+        "items": _strict_object_schema(properties),
+    }
+
+
 def _change_requests_schema() -> dict[str, Any]:
     return {
         "type": "array",
@@ -750,9 +855,59 @@ def _change_requests_schema() -> dict[str, Any]:
                 "body": _nullable_string(),
                 "url": _nullable_string(),
                 "reason": _nullable_string(),
+                "inventory": _with_nullable(_change_request_inventory_schema(), nullable=True),
             }
         ),
     }
+
+
+def _change_request_inventory_schema() -> dict[str, Any]:
+    candidate = _strict_object_schema(
+        {
+            "author": _nullable_string(),
+            "author_type": _nullable_string(),
+            "branch": _nullable_string(),
+            "state": _nullable_string(),
+            "files": _nullable_string_array(),
+            "url": _nullable_string(),
+            "current_version": _nullable_string(),
+            "target_version": _nullable_string(),
+            "exact_duplicate": _nullable_boolean(),
+        }
+    )
+    key = _strict_object_schema(
+        {
+            "repository": _nullable_string(),
+            "base_branch": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "normalized_package": _nullable_string(),
+            "manifest": _nullable_string(),
+            "current_version": _nullable_string(),
+            "target_version": _nullable_string(),
+            "finding_set": _nullable_string_array(),
+        }
+    )
+    reconciliation = _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "reason": _nullable_string(),
+            "selected_target_version": _nullable_string(),
+            "uia_evidence_checked_at": _nullable_string(),
+            "upstream_evidence_checked_at": _nullable_string(),
+            "operator_choice_required": _nullable_boolean(),
+        }
+    )
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "lookup_method": _nullable_string(),
+            "checked_at": _nullable_string(),
+            "fresh_recheck": _nullable_boolean(),
+            "key": _with_nullable(key, nullable=True),
+            "candidates": {"type": ["array", "null"], "items": candidate},
+            "reconciliation": _with_nullable(reconciliation, nullable=True),
+        }
+    )
 
 
 def _tickets_schema() -> dict[str, Any]:
@@ -799,6 +954,34 @@ def _policy_evaluations_schema() -> dict[str, Any]:
     }
 
 
+def _task_state_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "schema_version": {"type": "string", "const": "1"},
+            "run_id": _nullable_string(),
+            "workflow_instance_id": _nullable_string(),
+            "workflow_intent_digest": _nullable_string(),
+            "phase": _nullable_string(),
+            "source_profile": _nullable_string(),
+            "target_profile": _nullable_string(),
+            "source_phase": _nullable_string(),
+            "target_phase": _nullable_string(),
+            "parent_state_digest": _nullable_string(),
+            "repository": _nullable_string(),
+            "namespace": _nullable_string(),
+            "head_fingerprint": _nullable_string(),
+            "diff_fingerprint": _nullable_string(),
+            "status": _nullable_string(),
+            "evidence": _nullable_object(),
+            "plan": _nullable_object(),
+            "validation": _nullable_object_array(),
+            "change_request_inventory": _nullable_object_array(),
+            "external_action_ids": _nullable_string_array(),
+            "data_gaps": _nullable_string_array(),
+        }
+    )
+
+
 FIELD_SCHEMA_OVERRIDES = {
     "executive_report": _executive_report_schema,
     "executive_summary": _executive_summary_schema,
@@ -819,12 +1002,14 @@ FIELD_SCHEMA_OVERRIDES = {
     "remediation_options": _remediation_candidates_schema,
     "upgrade_candidates": _remediation_candidates_schema,
     "patch_plan": _patch_plan_schema,
+    "patches": _patches_schema,
     "validation": _validation_schema,
     "validation_plan": _validation_schema,
     "change_requests": _change_requests_schema,
     "tickets": _tickets_schema,
     "policy_context": _policy_context_schema,
     "policy_evaluations": _policy_evaluations_schema,
+    "task_state": _task_state_schema,
 }
 
 

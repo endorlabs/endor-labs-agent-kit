@@ -16,11 +16,10 @@
     "supports_plan_only": true
   },
   "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
-  "endorctl_api_invocations": [
+  "endorctl_agent_api_invocations": [
     "lookup_package_version_uuid",
     "get_package_scores",
-    "get_package_license",
-    "query_similar_packages"
+    "get_package_license"
   ],
   "generated_files_are_editable": false,
   "id": "dependency-decision-helper",
@@ -188,7 +187,7 @@
   ],
   "required_transports": [
     "mcp",
-    "endorctl_api"
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": ">=2.4",
   "requires_endorctl": ">=1.0.0",
@@ -199,8 +198,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -307,11 +305,10 @@
     {
       "confirmation_required": null,
       "declared_by_recipe": false,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "unavailable"
     },

@@ -43,8 +43,8 @@ def test_package_risk_summary_compiled_artifacts_carry_expected_rules(tmp_path):
     assert "retry the project lookup with `--traverse`" in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
     assert "PackageVersion UUID Lookup" in enterprise
-    assert "QuerySimilarPackages" in enterprise
-    assert "endorctl api create" in enterprise
+    assert "QuerySimilarPackages" not in enterprise
+    assert "Do not call a create-style query service" in enterprise
 
 
 def test_package_risk_summary_eval_cases_cover_v0_postures():

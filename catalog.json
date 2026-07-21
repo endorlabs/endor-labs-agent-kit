@@ -15,7 +15,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-triage/ai-sast-triage.md .claude/agents/ai-sast-triage.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-triage/ai-sast-triage.md .claude/agents/ai-sast-triage.md && for profile in claude-code/ai-sast-triage/ai-sast-triage-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         }
       ]
     },
@@ -33,7 +33,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/cicd-posture/cicd-posture.md .claude/agents/cicd-posture.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/cicd-posture/cicd-posture.md .claude/agents/cicd-posture.md && for profile in claude-code/cicd-posture/cicd-posture-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -55,7 +55,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/dependency-decision-helper/dependency-decision-helper.md .claude/agents/dependency-decision-helper.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/dependency-decision-helper/dependency-decision-helper.md .claude/agents/dependency-decision-helper.md && for profile in claude-code/dependency-decision-helper/dependency-decision-helper-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -77,7 +77,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/endor-troubleshooter/endor-troubleshooter.md .claude/agents/endor-troubleshooter.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/endor-troubleshooter/endor-troubleshooter.md .claude/agents/endor-troubleshooter.md && for profile in claude-code/endor-troubleshooter/endor-troubleshooter-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -99,7 +99,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/findings-browser/findings-browser.md .claude/agents/findings-browser.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/findings-browser/findings-browser.md .claude/agents/findings-browser.md && for profile in claude-code/findings-browser/findings-browser-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -121,7 +121,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/malware-response/malware-response.md .claude/agents/malware-response.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/malware-response/malware-response.md .claude/agents/malware-response.md && for profile in claude-code/malware-response/malware-response-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -143,7 +143,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/package-risk-summary/package-risk-summary.md .claude/agents/package-risk-summary.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/package-risk-summary/package-risk-summary.md .claude/agents/package-risk-summary.md && for profile in claude-code/package-risk-summary/package-risk-summary-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -165,7 +165,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/probe-droid/probe-droid.md .claude/agents/probe-droid.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/probe-droid/probe-droid.md .claude/agents/probe-droid.md && for profile in claude-code/probe-droid/probe-droid-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -187,7 +187,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planner/remediation-planner.md .claude/agents/remediation-planner.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planner/remediation-planner.md .claude/agents/remediation-planner.md && for profile in claude-code/remediation-planner/remediation-planner-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         }
       ]
     },
@@ -205,7 +205,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md .claude/agents/repository-dependency-reviewer.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md .claude/agents/repository-dependency-reviewer.md && for profile in claude-code/repository-dependency-reviewer/repository-dependency-reviewer-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         }
       ]
     },
@@ -223,7 +223,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/sca-remediation/sca-remediation.md .claude/agents/sca-remediation.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/sca-remediation/sca-remediation.md .claude/agents/sca-remediation.md && for profile in claude-code/sca-remediation/sca-remediation-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         }
       ]
     },
@@ -232,7 +232,7 @@
       "name": "Endor Labs Upgrade Impact Analysis",
       "audience": "developer",
       "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
-      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through the agent-attributed read-only CLI transport.\n",
       "endorctl_min_version": "1.0.0",
       "version": "1.0.0",
       "authors": [
@@ -241,7 +241,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md .claude/agents/upgrade-impact-analysis.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md .claude/agents/upgrade-impact-analysis.md && for profile in claude-code/upgrade-impact-analysis/upgrade-impact-analysis-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
@@ -263,7 +263,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/vulnerability-explainer/vulnerability-explainer.md .claude/agents/vulnerability-explainer.md"
+          "command": "mkdir -p .claude/agents && cp claude-code/vulnerability-explainer/vulnerability-explainer.md .claude/agents/vulnerability-explainer.md && for profile in claude-code/vulnerability-explainer/vulnerability-explainer-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",

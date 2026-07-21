@@ -22,9 +22,13 @@ If the process environment and default config namespaces both exist and differ,
 surface both values with provenance and stop before scoped Endor lookups or
 Endor MCP calls. Ask the user which namespace to use for this workflow.
 
-After a namespace is selected, every scoped `endorctl api` lookup must pass it
+After a namespace is selected, every scoped `endorctl agent api --agent-id ai-sast-triage` lookup must pass it
 explicitly with `-n <namespace>` or `--namespace <namespace>`. Do not rely on
 bare `endorctl` namespace resolution.
+
+Capability preflight: `endorctl agent api --help` must succeed.
+Fail closed with a setup data gap if the command is unavailable; never
+fall back to the unattributed legacy API command.
 
 The recipe documents these Endor lookup groups:
 
@@ -42,5 +46,6 @@ those mutations.
 
 For standalone exception policies, the agent must verify a GitHub/GitLab
 approval artifact from a configured AppSec approver, render the Endor
-policy spec, and get explicit confirmation before calling Endor API or
-`endorctl api` to create the policy.
+policy spec, and get explicit confirmation before using
+`endorctl agent api --agent-id ai-sast-triage` to create or update a Policy. Policy delete and
+mutations of every other Endor resource are forbidden.

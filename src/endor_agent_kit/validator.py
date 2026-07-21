@@ -19,7 +19,9 @@ PUBLIC_MCP_TOOLS = frozenset(
     }
 )
 
-SUPPORTED_TRANSPORTS = frozenset({"mcp", "endorctl_api", "direct_api"})
+SUPPORTED_TRANSPORTS = frozenset(
+    {"mcp", "endorctl_api", "endorctl_agent_api", "direct_api"}
+)
 SUPPORTED_HOSTS = frozenset({
     "claude-code",
     "claude-managed-agents",
@@ -149,8 +151,13 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
         if bool(capabilities.get("open_pr", False)) and not bool(capabilities.get("run_commands", False)):
             errors.append("host_capabilities_required.run_commands: required when opening pull requests")
 
-    if "endorctl_api" in transports and not bool(capabilities.get("run_commands", False)):
-        errors.append("host_capabilities_required.run_commands: must be true when supported_transports includes endorctl_api")
+    if {"endorctl_api", "endorctl_agent_api"}.intersection(transports) and not bool(
+        capabilities.get("run_commands", False)
+    ):
+        errors.append(
+            "host_capabilities_required.run_commands: must be true when supported_transports "
+            "includes endorctl_api or endorctl_agent_api"
+        )
 
     mcp_tools = _list_of_strings(data.get("required_endor_mcp_tools", []), "required_endor_mcp_tools", errors)
     if "mcp" in transports and not mcp_tools:
@@ -160,6 +167,16 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
             errors.append(f"required_endor_mcp_tools: unknown public Endor MCP tool {tool!r}")
 
     _list_of_strings(data.get("endorctl_api_invocations", []), "endorctl_api_invocations", errors)
+    agent_api_invocations = _list_of_strings(
+        data.get("endorctl_agent_api_invocations", []),
+        "endorctl_agent_api_invocations",
+        errors,
+    )
+    if "endorctl_agent_api" in transports and not agent_api_invocations:
+        errors.append(
+            "endorctl_agent_api_invocations: required when supported_transports includes "
+            "endorctl_agent_api"
+        )
 
     if "policy_pack_support" in data and not isinstance(data.get("policy_pack_support"), bool):
         errors.append("policy_pack_support: must be boolean")

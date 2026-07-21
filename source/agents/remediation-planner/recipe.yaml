@@ -10,7 +10,7 @@ safety_class: read_only
 endor_tier_minimum: enterprise
 policy_pack_support: true
 supported_transports:
-- endorctl_api
+- endorctl_agent_api
 host_capabilities_required:
   run_commands: true
   read_files: false
@@ -89,7 +89,7 @@ host_editions:
   - enterprise-edition
 mutations: []
 required_endor_mcp_tools: []
-endorctl_api_invocations:
+endorctl_agent_api_invocations:
 - resolve_project_from_repository
 - list_version_upgrade_recommendations
 - get_version_upgrade_details

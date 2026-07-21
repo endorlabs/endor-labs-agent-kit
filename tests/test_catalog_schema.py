@@ -51,6 +51,7 @@ def test_catalog_schema_round_trips_manifest_agent_records_with_unknown_fields()
                         "path": "claude-code/schema-fixture/schema-fixture.md",
                         "sha256": "abc123",
                         "bytes": 42,
+                        "profile_id": "evidence-check",
                         "future_artifact_field": "preserved",
                     }
                 ],
@@ -64,6 +65,7 @@ def test_catalog_schema_round_trips_manifest_agent_records_with_unknown_fields()
     agent = CatalogAgent.from_manifest_record(record)
 
     assert agent.editions[0].artifact_named("schema-fixture.md").sha256 == "abc123"
+    assert agent.editions[0].artifact_named("schema-fixture.md").profile_id == "evidence-check"
     assert agent.to_manifest_record() == record
 
 
@@ -95,6 +97,7 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
         "Enterprise Edition",
         bundle_dir,
         requires_endorctl=">=1.0",
+        artifact_profiles={artifact.relative_to(destination).as_posix(): "evidence-check"},
     )
     agent = CatalogAgent.from_recipe(recipe, "claude-code", (bundle,))
 
@@ -108,3 +111,4 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
     assert manifest_artifact["path"] == "claude-code/schema-fixture/schema-fixture.md"
     assert manifest_artifact["bytes"] == len("current")
     assert manifest_artifact["sha256"] == hashlib.sha256(b"current").hexdigest()
+    assert manifest_artifact["profile_id"] == "evidence-check"

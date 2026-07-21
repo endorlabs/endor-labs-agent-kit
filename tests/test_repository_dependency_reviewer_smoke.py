@@ -43,14 +43,15 @@ def test_repository_dependency_reviewer_compiled_artifacts_allow_read_only_files
             .split(",")
         }
         assert not {"Read", "Glob", "Grep", "LS"} & blocked
-        assert {"Bash", "Write", "Edit", "MultiEdit", "NotebookRead", "NotebookEdit"} <= blocked
+        assert "Bash" not in blocked
+        assert {"Write", "Edit", "MultiEdit", "NotebookRead", "NotebookEdit"} <= blocked
         assert {"WebFetch", "WebSearch", "TodoWrite"} <= blocked
         assert "Endor Labs Repository Dependency Reviewer" in body
         assert "host read-only file tools" in body
         assert "check_dependency_for_risks" in body
         assert "check_dependency_for_vulnerabilities" in body
         assert "get_endor_vulnerability" in body
-        assert "Do not use Bash" in body
+        assert "endorctl agent api --agent-id repository-dependency-reviewer" in body
         assert "Default Endor Context Scope" in body
         assert "context.type==CONTEXT_TYPE_MAIN" in body
         assert "Keep non-main counts separate" in body
@@ -83,32 +84,36 @@ def test_repository_dependency_reviewer_publish_writes_claude_code_codex_and_por
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert_host_bundle_files(
         dest / "claude-code" / "repository-dependency-reviewer",
-        {"repository-dependency-reviewer.md", "README.md"},
+        {"repository-dependency-reviewer.md", "README.md", "endorctl-setup.md"},
     )
     assert_host_bundle_files(
         dest / "portable" / "repository-dependency-reviewer",
-        {"README.md", "agent.md", "agent.manifest.json", "output-contract.md"},
+        {"README.md", "agent.md", "agent.manifest.json", "output-contract.md", "endorctl-setup.md"},
     )
     assert_host_bundle_files(
         dest / "codex" / "repository-dependency-reviewer",
-        {"README.md", "SKILL.md"},
+        {"README.md", "SKILL.md", "endorctl-setup.md"},
     )
     assert_host_bundle_files(
         dest / "gemini" / "repository-dependency-reviewer",
-        {"README.md", "SKILL.md", "repository-dependency-reviewer.md"},
+        {"README.md", "SKILL.md", "repository-dependency-reviewer.md", "endorctl-setup.md"},
     )
     assert written_paths == {
         "claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md",
         "claude-code/repository-dependency-reviewer/README.md",
+        "claude-code/repository-dependency-reviewer/endorctl-setup.md",
         "codex/repository-dependency-reviewer/README.md",
         "codex/repository-dependency-reviewer/SKILL.md",
+        "codex/repository-dependency-reviewer/endorctl-setup.md",
         "gemini/repository-dependency-reviewer/README.md",
         "gemini/repository-dependency-reviewer/SKILL.md",
         "gemini/repository-dependency-reviewer/repository-dependency-reviewer.md",
+        "gemini/repository-dependency-reviewer/endorctl-setup.md",
         "portable/repository-dependency-reviewer/README.md",
         "portable/repository-dependency-reviewer/agent.md",
         "portable/repository-dependency-reviewer/agent.manifest.json",
         "portable/repository-dependency-reviewer/output-contract.md",
+        "portable/repository-dependency-reviewer/endorctl-setup.md",
         "manifest.json",
         "README.md",
         "catalog.json",
@@ -121,8 +126,9 @@ def test_repository_dependency_reviewer_publish_writes_claude_code_codex_and_por
     developer_readme = (
         dest / "claude-code" / "repository-dependency-reviewer" / "README.md"
     ).read_text()
-    assert "Read-only access to dependency manifests in the target workspace." in developer_readme
-    assert "Endor MCP tools plus Claude Code read-only file inspection" in developer_readme
+    assert "Endor MCP access through the subagent's bundled MCP server config." in developer_readme
+    assert "Authenticated endorctl for the read-only API lookups" in developer_readme
+    assert "endorctl agent api --agent-id repository-dependency-reviewer" in developer_readme
 
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [

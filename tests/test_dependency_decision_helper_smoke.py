@@ -44,7 +44,8 @@ def test_dependency_decision_helper_compiled_artifacts_carry_load_bearing_rules(
     assert "Keep non-main counts separate" in enterprise
     assert "retry the project lookup with `--traverse`" in enterprise
     assert "PackageVersion UUID Lookup" in enterprise
-    assert "QuerySimilarPackages" in enterprise
+    assert "QuerySimilarPackages" not in enterprise
+    assert "Do not call a create-style query service" in enterprise
 
 
 def test_eval_cases_cover_v0_outcomes():

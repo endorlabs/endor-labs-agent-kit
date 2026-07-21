@@ -40,5 +40,5 @@ This diagram shows the generated agent contract, host responsibilities, and exte
 
 ## Notes
 
-- This agent uses read-only endorctl api lookups and does not require Endor MCP.
+- This agent uses read-only `endorctl agent api --agent-id findings-browser` lookups and does not require Endor MCP.
 - Bash use is limited by prompt to the documented Endor lookup commands.

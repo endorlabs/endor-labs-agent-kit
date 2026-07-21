@@ -13,7 +13,7 @@ This is the Codex generated skill for `repository-dependency-reviewer`.
 | Reader | First move |
 | --- | --- |
 | Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the repository-dependency-reviewer skill to help with this Endor Labs workflow. |
-| Agent installer | Copy the generated files exactly, including the generated prompt or skill file. Do not summarize or rewrite the generated prompt. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/repository-dependency-reviewer/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
 ## Install

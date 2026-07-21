@@ -106,6 +106,16 @@ def test_unknown_resource_is_flagged():
     assert "resource" in errors[0]
 
 
+def test_agent_attributed_unknown_resource_is_flagged():
+    errors = endor_api_template_errors(
+        "recipe",
+        "endorctl agent api --agent-id findings-browser list -r Frobnicate "
+        "-n x --field-mask a -o json",
+    )
+
+    assert any("Frobnicate" in error and "resource" in error for error in errors)
+
+
 def test_long_resource_flag_is_policed():
     # Agents query diagnostic lanes via the long --resource flag, not -r.
     errors = endor_api_template_errors(

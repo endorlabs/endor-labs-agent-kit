@@ -168,9 +168,11 @@ summarize the available tenant choices and ask the user before retrying.
 
 ## Endor MCP
 
-Prefer documented Endor API or `endorctl api` lookups for workflows that support
-them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
-the user explicitly asks for it.
+Require `endorctl agent api --help` to succeed for workflows that use Endor CLI
+API calls. Each selected workflow must pass its canonical recipe id through
+`--agent-id`; never fall back to the unattributed legacy API command. Configure
+Endor MCP only when a selected MCP-capable workflow needs it or the user
+explicitly asks for it.
 
 The distribution may include ready-to-use Endor MCP config snippets such as
 root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
@@ -192,8 +194,9 @@ When MCP setup is requested:
 
 Do not claim Endor MCP tools are available to a workflow until the host exposes
 them in the current session. If MCP tools are unavailable, continue with
-CLI-first workflows when they support `endorctl api`; otherwise record the
-missing MCP capability in `data_gaps`.
+CLI-first workflows when they support `endorctl agent api --agent-id
+<canonical-recipe-id>`; otherwise record the missing MCP capability in
+`data_gaps`.
 
 ## GitHub CLI
 

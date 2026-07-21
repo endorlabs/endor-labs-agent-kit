@@ -11,7 +11,7 @@ def test_recipe_yaml_round_trips_core_fields():
     assert recipe.id == "dependency-decision-helper"
     assert recipe.recipe_schema_version == 1
     assert recipe.safety_class == "read_only"
-    assert recipe.supported_transports == ("mcp", "endorctl_api")
+    assert recipe.supported_transports == ("mcp", "endorctl_agent_api")
     assert recipe.host_capabilities_required.run_commands is True
     assert recipe.compatible_hosts == ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
     assert recipe.host_editions == {
@@ -44,3 +44,15 @@ def test_recipe_parses_host_edition_overrides():
 
     assert recipe.compatible_hosts == ("claude-code",)
     assert recipe.host_editions == {"claude-code": ("enterprise-edition",)}
+
+
+def test_recipe_round_trips_agent_attributed_endor_api_transport():
+    data = recipe_to_dict(load_recipe(recipe_path()))
+    data["supported_transports"] = ["mcp", "endorctl_agent_api"]
+    data["endorctl_api_invocations"] = []
+    data["endorctl_agent_api_invocations"] = ["lookup_package_version_uuid"]
+
+    recipe = recipe_from_dict(data)
+
+    assert recipe.endorctl_agent_api_invocations == ("lookup_package_version_uuid",)
+    assert recipe_from_dict(recipe_to_dict(recipe)) == recipe

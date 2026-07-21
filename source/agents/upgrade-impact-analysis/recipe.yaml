@@ -7,7 +7,7 @@ description: |
   safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
   Analysis, breaking changes, manifest targeting, or whether a dependency
   upgrade should happen now. The artifact queries Endor's read-only
-  VersionUpgrade workflow through documented Endor API or endorctl paths.
+  VersionUpgrade workflow through the agent-attributed read-only CLI transport.
 audience: developer
 short_description: "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact."
 authors: ["Endor Labs"]
@@ -15,7 +15,7 @@ safety_class: read_only
 endor_tier_minimum: free
 policy_pack_support: true
 supported_transports:
-  - endorctl_api
+  - endorctl_agent_api
 host_capabilities_required:
   run_commands: true
   read_files: false
@@ -169,7 +169,7 @@ host_editions:
     - enterprise-edition
 mutations: []
 required_endor_mcp_tools: []
-endorctl_api_invocations:
+endorctl_agent_api_invocations:
   - resolve_project_from_repository
   - list_version_upgrade_recommendations
   - get_version_upgrade_details

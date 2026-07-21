@@ -45,7 +45,7 @@ def test_endor_troubleshooter_recipe_is_read_only_and_mcp_free(tmp_path):
     assert validate_recipe_file(recipe) == []
     assert data["id"] == "endor-troubleshooter"
     assert data["safety_class"] == "read_only"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
@@ -112,7 +112,7 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert '`troubleshooting_verdict: "using_skill"`' in artifact
     assert 'status: "succeeded"` and `result_count: 0' in artifact
     assert "return\n`evidence_queries: []` only with non-empty `data_gaps[]`" in artifact
-    assert "Do not put raw\n`endorctl api`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command" in artifact
+    assert "Do not put raw\n`endorctl agent api --agent-id endor-troubleshooter`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command" in artifact
     assert "`issue_lanes[]`, `root_cause_hypotheses[]`" in artifact
     assert "place it only in `future_action_contracts[]` with\n`confirmation_required: true`" in artifact
     assert "check every `future_action_contracts[]` object" in artifact
@@ -124,7 +124,7 @@ def test_endor_troubleshooter_compiled_artifact_carries_diagnostic_contract(tmp_
     assert "including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`" in artifact
     assert "recommended_actions[].validation" in artifact
     assert "tool names or partial command-shaped text" in artifact
-    assert "`endorctl`, `endorctl api\nlist`, `git`, `gh`" in artifact
+    assert "`endorctl`, `endorctl agent api --agent-id endor-troubleshooter\nlist`, `git`, `gh`" in artifact
     assert "`shell`, `run a scan`, or `run a baseline scan`" in artifact
     assert "SCAN_EXECUTION_FAILURE" in artifact
     assert "PR_SCAN_AND_BASELINE" in artifact
@@ -221,7 +221,7 @@ def test_endor_troubleshooter_managed_agents_artifacts_are_read_only(tmp_path):
     assert "mcp_toolset" not in tools
     assert tools["agent_toolset_20260401"]["configs"][0]["name"] == "bash"
     assert "This Managed Agents artifact" in managed["system"]
-    assert "read-only `endorctl api` lookups" in managed["system"]
+    assert "read-only `endorctl agent api --agent-id endor-troubleshooter` lookups" in managed["system"]
     assert "Do not require Endor MCP" in managed["system"]
     assert "create scan log requests" in managed["system"]
     assert_mcp_free_generated_artifact(managed_text)

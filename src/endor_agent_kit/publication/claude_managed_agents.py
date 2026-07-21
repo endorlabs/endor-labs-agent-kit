@@ -86,7 +86,7 @@ class ClaudeManagedAgentsHostAdapter:
                 shutil.copyfile(actions, published_actions)
                 written.append(published_actions)
 
-            if edition == "enterprise-edition" and posture.uses_endorctl_api:
+            if posture.uses_endor_api_transport:
                 setup = edition_dir / "endorctl-setup.md"
                 shutil.copyfile(recipe_file.parent / "dist" / "raw" / "endorctl-setup.md", setup)
                 written.append(setup)
@@ -100,7 +100,7 @@ class ClaudeManagedAgentsHostAdapter:
                     edition_name(edition),
                     edition_dir,
                     requires_endorctl=recipe.requires_endorctl
-                    if edition == "enterprise-edition" and posture.uses_endorctl_api
+                    if posture.uses_endor_api_transport
                     else "",
                 )
             )
@@ -124,7 +124,7 @@ def managed_agents_edition_readme(
     title = f"{recipe.name} {name}" if show_edition_name else recipe.name
     artifact_label = "edition" if show_edition_name else "agent"
     posture = source_recipe_safety_posture(recipe)
-    if edition == "developer-edition" or not posture.uses_endorctl_api:
+    if not posture.uses_endor_api_transport:
         requirements = [
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
             "A remote Endor MCP server URL configured in agent.yaml.",
@@ -148,9 +148,9 @@ def managed_agents_edition_readme(
             ]
         notes = [
             (
-                f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals."
+                f"This {artifact_label} uses MCP first, then read-only `endorctl agent api --agent-id {recipe.id}` lookups for richer signals."
                 if posture.uses_mcp
-                else f"This {artifact_label} uses read-only endorctl api lookups and does not require Endor MCP."
+                else f"This {artifact_label} uses read-only `endorctl agent api --agent-id {recipe.id}` lookups and does not require Endor MCP."
             ),
             "The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.",
             "Bash use remains limited by prompt to the documented Endor lookup commands.",

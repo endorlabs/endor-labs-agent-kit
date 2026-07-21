@@ -16,7 +16,7 @@
     "supports_plan_only": true
   },
   "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
-  "endorctl_api_invocations": [
+  "endorctl_agent_api_invocations": [
     "list_cicd_supply_chain_findings",
     "resolve_project_or_repository_selector",
     "list_endor_projects",
@@ -268,7 +268,7 @@
     }
   ],
   "required_transports": [
-    "endorctl_api"
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": "",
   "requires_endorctl": ">=1.0.0",
@@ -279,8 +279,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -387,11 +386,10 @@
     {
       "confirmation_required": null,
       "declared_by_recipe": false,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "unavailable"
     },

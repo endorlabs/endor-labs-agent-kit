@@ -123,7 +123,7 @@
     {
       "agent_name": "endor-upgrade-impact-analysis-agent",
       "default_model": "composer-2.5",
-      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis: safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact Analysis, breaking changes, manifest targeting, or whether a dependency upgrade should happen now. The artifact queries Endor's read-only VersionUpgrade workflow through documented Endor API or endorctl paths.",
+      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis: safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact Analysis, breaking changes, manifest targeting, or whether a dependency upgrade should happen now. The artifact queries Endor's read-only VersionUpgrade workflow through the agent-attributed read-only CLI transport.",
       "id": "upgrade-impact-analysis",
       "prompt_file": "agents/endor-upgrade-impact-analysis-agent.md",
       "readonly": true,

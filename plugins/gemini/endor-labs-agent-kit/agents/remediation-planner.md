@@ -104,7 +104,7 @@ missing Endor evidence in `data_gaps`.
 
 ## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl api` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl agent api --agent-id remediation-planner` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Project Resolution Preflight
 
@@ -142,10 +142,10 @@ Preview remediation options only from verified Endor findings and VersionUpgrade
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 ### Evidence Query Recipes
 
-- `version-upgrade-summary`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json`
-- `version-upgrade-detail`/selection-plan: `endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
-- `selected-finding-detail`/selection-plan: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
-- `finding-availability`/evidence-check: `endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
+- `version-upgrade-summary`/selection-plan: `endorctl agent api --agent-id remediation-planner list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json`
+- `version-upgrade-detail`/selection-plan: `endorctl agent api --agent-id remediation-planner list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- `selected-finding-detail`/selection-plan: `endorctl agent api --agent-id remediation-planner list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
+- `finding-availability`/evidence-check: `endorctl agent api --agent-id remediation-planner list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
 
 ## Agent Policy Packs
 
@@ -164,7 +164,7 @@ Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; 
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
-Use documented Endor API lookups or authenticated `endorctl api` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl api` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+Use only authenticated `endorctl agent api --agent-id remediation-planner` commands for customer-tenant evidence.
+Use Bash only for read-only `endorctl agent api --agent-id remediation-planner` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.

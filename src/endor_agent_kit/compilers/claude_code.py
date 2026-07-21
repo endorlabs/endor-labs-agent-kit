@@ -21,6 +21,7 @@ from endor_agent_kit.recipe import (
     EndorAgentRecipe,
     editions_for_host,
 )
+from endor_agent_kit.knowledge_pack import load_knowledge_pack
 from endor_agent_kit.safety_posture import (
     GITHUB_EVIDENCE_AGENT_IDS,
     source_recipe_safety_posture,
@@ -53,6 +54,7 @@ def compile_claude_code(
     *,
     edition: str | None = None,
     variant: str | None = None,
+    profile_id: str | None = None,
 ) -> list[Path]:
     """Compile a recipe to Claude Code subagent markdown.
 
@@ -68,6 +70,7 @@ def compile_claude_code(
         prepare_source_recipe(recipe_path),
         edition=edition,
         variant=variant,
+        profile_id=profile_id,
     )
 
 
@@ -76,6 +79,7 @@ def compile_claude_code_prepared(
     *,
     edition: str | None = None,
     variant: str | None = None,
+    profile_id: str | None = None,
 ) -> list[Path]:
     """Compile a prepared Source Recipe to Claude Code subagent markdown."""
 
@@ -91,19 +95,42 @@ def compile_claude_code_prepared(
         else (_normalize_edition(selected_edition),)
     )
     outputs: list[Path] = []
+    workflow = load_knowledge_pack().workflow_for(recipe.id)
+    profiles = tuple(profile for profile in (workflow.task_profiles if workflow else ()) if profile.compact)
+    if profile_id is not None and profile_id not in {profile.id for profile in profiles}:
+        raise ValueError(f"unknown or non-compact task profile {profile_id!r} for agent {recipe.id!r}")
     _remove_legacy_output_dirs(recipe_file.parent / "dist" / "claude-code")
     for item in EDITIONS:
         if item not in editions:
             shutil.rmtree(recipe_file.parent / "dist" / HOST / item, ignore_errors=True)
     for item in editions:
         out_dir = recipe_file.parent / "dist" / HOST / item
+        if profile_id is None:
+            shutil.rmtree(out_dir, ignore_errors=True)
         out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / f"{recipe.id}.md"
-        out_path.write_text(
-            _render_subagent(recipe, prepared.instructions, prepared.actions, edition=item),
-            encoding="utf-8",
-        )
-        outputs.append(out_path)
+        if profile_id is None:
+            out_path = out_dir / f"{recipe.id}.md"
+            out_path.write_text(
+                _render_subagent(recipe, prepared.instructions, prepared.actions, edition=item),
+                encoding="utf-8",
+            )
+            outputs.append(out_path)
+            selected_profiles = profiles
+        else:
+            selected_profiles = tuple(profile for profile in profiles if profile.id == profile_id)
+        for profile in selected_profiles:
+            out_path = out_dir / f"{recipe.id}-{profile.id}.md"
+            out_path.write_text(
+                _render_subagent(
+                    recipe,
+                    prepared.instructions,
+                    prepared.actions,
+                    edition=item,
+                    profile_id=profile.id,
+                ),
+                encoding="utf-8",
+            )
+            outputs.append(out_path)
     return outputs
 
 
@@ -120,22 +147,24 @@ def _render_subagent(
     actions: tuple[ActionContract, ...] = (),
     *,
     edition: str,
+    profile_id: str | None = None,
 ) -> str:
     body = _instructions_for_edition(
         instructions,
         edition,
         recipe_id=recipe.id,
         structured_output_recipe=recipe,
+        profile_id=profile_id,
     )
     action_contracts = _render_action_contracts(actions)
     disallowed_tools = _disallowed_tools(recipe)
     posture = source_recipe_safety_posture(recipe)
-    if edition == "developer-edition" or not posture.can_run_commands:
+    if not posture.can_run_commands:
         disallowed_tools = ("Bash",) + disallowed_tools
 
     return (
         "---\n"
-        f"name: {recipe.id}\n"
+        f"name: {recipe.id}{f'-{profile_id}' if profile_id else ''}\n"
         "description: |\n"
         f"{_indent(recipe.description.strip(), 2)}\n"
         f"{_mcp_server_frontmatter(recipe)}"
@@ -169,24 +198,18 @@ def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
         label = "This artifact" if single_edition else "Enterprise Edition"
         transport = (
             f"{label} may run commands, edit files, open change requests, and call "
-            "authenticated Endor API/endorctl workflows when explicitly required."
+            f"authenticated `endorctl agent api --agent-id {recipe.id}` workflows "
+            "when explicitly required."
         )
-    elif edition == "developer-edition":
+    elif not posture.uses_endor_api_transport:
         if posture.uses_mcp:
-            label = "This artifact" if single_edition else "Developer Edition"
-            transport = f"{label} is MCP-only; do not use Bash or endorctl in this artifact."
-        else:
-            label = "This artifact" if single_edition else "Developer Edition"
-            transport = f"{label} must not use Bash or authenticated endorctl."
-    elif not posture.uses_endorctl_api:
-        if posture.uses_mcp:
-            label = "This artifact" if single_edition else "Enterprise Edition"
+            label = "This artifact" if single_edition else edition.replace("-", " ").title()
             transport = f"{label} is MCP-only; it does not require Bash or endorctl."
         else:
-            label = "This artifact" if single_edition else "Enterprise Edition"
+            label = "This artifact" if single_edition else edition.replace("-", " ").title()
             transport = f"{label} does not require Bash or endorctl."
     else:
-        label = "This artifact" if single_edition else "Enterprise Edition"
+        label = "This artifact" if single_edition else edition.replace("-", " ").title()
         if _uses_github_evidence(recipe):
             transport = (
                 f"{label} allows Bash only for documented read-only Endor "
@@ -195,7 +218,7 @@ def _compiler_notice(recipe: EndorAgentRecipe, edition: str) -> str:
         else:
             transport = (
                 f"{label} allows Bash only for read-only Endor lookups "
-                "through `endorctl api`."
+                f"through `endorctl agent api --agent-id {recipe.id}`."
             )
     return dedent(
         f"""\

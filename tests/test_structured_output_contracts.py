@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import re
 
 from conftest import repo_root
 from endor_agent_kit.cli import main
@@ -8,6 +10,7 @@ from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.structured_output_contracts import (
     STRUCTURED_OUTPUT_CONTRACTS,
     json_schema_for_agent,
+    normalize_structured_output_payload,
     required_fields_for,
     validate_structured_output_payload,
 )
@@ -53,7 +56,7 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
 
     assert schema["type"] == "object"
     assert schema["additionalProperties"] is False
-    assert schema["required"] == list(required_fields_for("sca-remediation"))
+    assert schema["required"] == list(schema["properties"])
     assert schema["properties"]["evidence_queries"]["type"] == "array"
     assert schema["properties"]["policy_context"]["type"] == ["object", "null"]
     assert schema["properties"]["policy_evaluations"]["type"] == "array"
@@ -71,6 +74,112 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
         "reason",
     ]
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
+
+
+def test_task_state_is_strict_nullable_and_legacy_omittable() -> None:
+    for agent_id in ("sca-remediation", "ai-sast-triage"):
+        schema = json_schema_for_agent(agent_id)
+        task_state = schema["properties"]["task_state"]
+
+        assert task_state["type"] == ["object", "null"]
+        assert task_state["additionalProperties"] is False
+        assert set(task_state["required"]) == set(task_state["properties"])
+        assert task_state["properties"]["schema_version"]["const"] == "1"
+
+        legacy_payload = {
+            field: _placeholder_value(kind)
+            for field, kind in _field_kinds(agent_id).items()
+        }
+        legacy_payload["evidence_queries"] = []
+        legacy_payload["data_gaps"] = ["Runtime task state was not supplied."]
+
+        assert validate_structured_output_payload(agent_id, legacy_payload) == []
+        strict_payload = {**legacy_payload, "task_state": None}
+        assert "task_state" not in normalize_structured_output_payload(agent_id, strict_payload)
+        assert validate_structured_output_payload(agent_id, strict_payload) == []
+
+
+def test_ai_sast_patch_schema_is_complete_strict_and_embeds_change_impact() -> None:
+    schema = json_schema_for_agent("ai-sast-triage")
+    assert "change_impact" not in schema["properties"]
+    patch = schema["properties"]["patches"]["items"]
+    expected = {
+        "finding_uuid",
+        "source_sha",
+        "patch_diff",
+        "patch_reason",
+        "patch_summary",
+        "reason",
+        "remediation_guidance_used",
+        "remediation_guidance_rejected",
+        "exploit_reproduction_used",
+        "exploit_context",
+        "file_path",
+        "branch_name",
+        "branch",
+        "proposed_branch",
+        "patch_confidence",
+        "confidence",
+        "changed_files",
+        "modified_files",
+        "files",
+        "sibling_files_referenced",
+        "validation_plan",
+        "change_impact",
+    }
+
+    assert patch["additionalProperties"] is False
+    assert set(patch["required"]) == expected == set(patch["properties"])
+    assert patch["properties"]["patch_confidence"]["type"] == ["integer", "null"]
+    assert patch["properties"]["validation_plan"]["items"]["required"] == [
+        "command",
+        "status",
+        "purpose",
+    ]
+    impact = patch["properties"]["change_impact"]
+    assert impact["type"] == ["object", "null"]
+    assert impact["additionalProperties"] is False
+    assert set(impact["required"]) == set(impact["properties"])
+    assert impact["properties"]["patch_digest"]["pattern"] == "^[0-9a-f]{64}$"
+    assert impact["properties"]["status"]["enum"] == [
+        "verified",
+        "blocked",
+        "unavailable",
+        "not_applicable",
+        None,
+    ]
+
+
+def test_ai_sast_legacy_patch_aliases_normalize_without_dropping_aliases() -> None:
+    payload = {
+        "patches": [
+            {
+                "branch": "remediation/ai-sast/example",
+                "files": ["src/example.py"],
+                "confidence": 84,
+                "patch_summary": "Validate the input.",
+                "exploit_context": "Unsafe input reaches the sink.",
+            }
+        ]
+    }
+
+    normalized = normalize_structured_output_payload("ai-sast-triage", payload)
+    patch = normalized["patches"][0]
+
+    assert patch["branch_name"] == patch["branch"]
+    assert patch["changed_files"] == patch["files"]
+    assert patch["patch_confidence"] == patch["confidence"]
+    assert patch["patch_reason"] == patch["patch_summary"]
+    assert patch["exploit_reproduction_used"] == patch["exploit_context"]
+
+
+def test_materialized_ai_sast_patch_fixture_passes_strict_item_schema() -> None:
+    fixture = json.loads(
+        (repo_root() / "tests" / "fixtures" / "ai-sast-strict-patch.json").read_text(encoding="utf-8")
+    )
+    schema = json_schema_for_agent("ai-sast-triage")["properties"]["patches"]["items"]
+
+    _assert_value_matches_schema(fixture, schema)
 
 
 def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
@@ -239,3 +348,34 @@ def _assert_strict_objects(schema):
     for child in schema.get("properties", {}).values():
         if isinstance(child, dict):
             _assert_strict_objects(child)
+
+
+def _assert_value_matches_schema(value, schema):
+    raw_types = schema.get("type")
+    types = raw_types if isinstance(raw_types, list) else [raw_types]
+    if value is None:
+        assert "null" in types
+        return
+    if "object" in types:
+        assert isinstance(value, dict)
+        assert set(value) == set(schema["required"])
+        if schema.get("additionalProperties") is False:
+            assert set(value) <= set(schema["properties"])
+        for key, child in schema["properties"].items():
+            _assert_value_matches_schema(value[key], child)
+    elif "array" in types:
+        assert isinstance(value, list)
+        for item in value:
+            _assert_value_matches_schema(item, schema["items"])
+    elif "string" in types:
+        assert isinstance(value, str)
+    elif "integer" in types:
+        assert isinstance(value, int) and not isinstance(value, bool)
+    elif "boolean" in types:
+        assert isinstance(value, bool)
+    if "const" in schema:
+        assert value == schema["const"]
+    if "enum" in schema:
+        assert value in schema["enum"]
+    if isinstance(value, str) and "pattern" in schema:
+        assert re.fullmatch(schema["pattern"], value)

@@ -5,8 +5,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Safety And Transports
 
 - safety_class: `read_only`
-- required_transports: `endorctl_api`
-- endorctl_api_invocations: `list_cicd_supply_chain_findings`, `resolve_project_or_repository_selector`, `list_endor_projects`, `summarize_findings_by_category_and_severity`
+- required_transports: `endorctl_agent_api`
+- endorctl_agent_api_invocations: `list_cicd_supply_chain_findings`, `resolve_project_or_repository_selector`, `list_endor_projects`, `summarize_findings_by_category_and_severity`
 - required_endor_mcp_tools: `none`
 
 ## Inputs

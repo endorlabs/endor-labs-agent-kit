@@ -5,8 +5,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Safety And Transports
 
 - safety_class: `mutating`
-- required_transports: `endorctl_api`
-- endorctl_api_invocations: `resolve_project_from_repository`, `list_ai_sast_findings`, `get_finding_explanation`, `fetch_project_source_version`, `create_scoped_exception_policy`
+- required_transports: `endorctl_agent_api`
+- endorctl_agent_api_invocations: `resolve_project_from_repository`, `list_ai_sast_findings`, `get_finding_explanation`, `fetch_project_source_version`, `create_scoped_exception_policy`
 - required_endor_mcp_tools: `none`
 
 ## Inputs
@@ -20,6 +20,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `finding_uuids` (list[string], optional): Optional finding UUID allow-list for targeted re-triage. Do not require this for normal use.
 - `namespace` (string, optional): Optional Endor namespace override when the tenant uses child namespaces.
 - `appsec_approvers` (list[string], optional): Optional source-provider handles or team slugs allowed to approve standalone exception-policy creation.
+- `task_state` (object, optional): Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving source and finding evidence. Never carries secrets or approvals.
 
 ## Outputs
 
@@ -27,12 +28,13 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `project_resolution` (object, required): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
 - `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `verdicts` (list[object], required): Per-finding parsed AI SAST classification, finding UUID, source-location provenance, scorecard evidence, severity scoring, data-flow anchors, exploit reproduction, remediation guidance, priority rationale, and deterministic skip reason when applicable.
-- `patches` (list[object], required): Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and rendered PR/MR body for TRUE_POSITIVE findings with source context.
+- `patches` (list[object], required): Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and embedded change_impact evidence bound to the canonical patch digest for TRUE_POSITIVE findings with source context.
 - `change_requests` (list[object], required): PR/MR URLs, branches, status, failure reason, and existing_change_request_check evidence for any requested change-request creation.
 - `approvals` (list[object], required): Verified AppSec approval evidence for exception requests, including approver, evidence URL, status, and data gaps.
 - `exception_policies` (list[object], required): Endor exception policies created or reused after verified AppSec approval, including policy name, policy UUID, stable exception_match, match-fingerprint idempotency check, human-readable project scope, expiration, decision comment, and approval evidence URL. Finding UUID is current-scan evidence, not the durable policy matcher.
 - `tickets` (list[object], required): Ticket IDs, URLs, status, and failure reasons for requested AI SAST triage, remediation, or exception follow-up ticket creation.
 - `data_gaps` (list[string], required): Missing Endor, source, or runtime signals.
+- `task_state` (object, optional): Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 - `policy_context` (object, required): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (list[object], required): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
@@ -117,6 +119,8 @@ If an expected signal is unavailable because of credentials, account tier, runti
 - `remediation`
 - `pr`
 - `exception`
+
+Each strict `patches[]` row carries embedded `change_impact`; canonical digest mismatch, unknown/unavailable compatibility evidence, or an unverified trigger class fails closed before remediation/PR side effects.
 
 Validation helpers:
 

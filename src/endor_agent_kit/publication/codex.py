@@ -103,7 +103,7 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
     if posture.is_mutating:
         requirements = [
             "Codex with filesystem and terminal access to the target repository.",
-            "Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.",
+            f"Endor tenant access through authenticated `endorctl agent api --agent-id {recipe.id}`.",
             "Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.",
         ]
         if recipe.id == "ai-sast-triage":

@@ -210,7 +210,7 @@ def _render_manifest(
         "requires_endorctl": recipe.requires_endorctl,
         "requires_endor_mcp": recipe.requires_endor_mcp,
         "required_endor_mcp_tools": list(recipe.required_endor_mcp_tools),
-        "endorctl_api_invocations": list(recipe.endorctl_api_invocations),
+        "endorctl_agent_api_invocations": list(recipe.endorctl_agent_api_invocations),
         "required_capabilities": required_capabilities,
         "required_runtime_controls": required_runtime_controls(),
         "declared_actions": declared_actions,
@@ -247,7 +247,7 @@ def _render_output_contract(recipe: EndorAgentRecipe, actions: tuple[ActionContr
         "",
         f"- safety_class: `{recipe.safety_class}`",
         f"- required_transports: {_inline_code_list(recipe.supported_transports)}",
-        f"- endorctl_api_invocations: {_inline_code_list(recipe.endorctl_api_invocations)}",
+        f"- endorctl_agent_api_invocations: {_inline_code_list(recipe.endorctl_agent_api_invocations)}",
         f"- required_endor_mcp_tools: {_inline_code_list(recipe.required_endor_mcp_tools)}",
         "",
         "## Inputs",
@@ -320,6 +320,8 @@ def _gate_contract_section(agent_id: str) -> list[str]:
             "- `pr`",
             "- `exception`",
             "",
+            "Each strict `patches[]` row carries embedded `change_impact`; canonical digest mismatch, unknown/unavailable compatibility evidence, or an unverified trigger class fails closed before remediation/PR side effects.",
+            "",
             "Validation helpers:",
             "",
             "- `endor-agent-kit validate-ai-sast-output <payload.json> --gate remediation`",
@@ -369,7 +371,7 @@ def _portable_action_record(action: ActionContract) -> dict[str, Any]:
 def _derived_capabilities(recipe: EndorAgentRecipe) -> tuple[str, ...]:
     capabilities: list[str] = []
     posture = source_recipe_safety_posture(recipe)
-    if recipe.supported_transports or recipe.endorctl_api_invocations or recipe.required_endor_mcp_tools:
+    if recipe.supported_transports or recipe.endorctl_agent_api_invocations or recipe.required_endor_mcp_tools:
         capabilities.append("endor.query")
     if posture.can_read_files:
         capabilities.append("repository.read")
@@ -470,12 +472,13 @@ def _portable_text(text: str) -> str:
         ("git plus source-provider adapter credentials", "repository plus source-provider adapters"),
         ("source-provider CLIs such as `gh` or `glab`", "source-provider adapters"),
         ("Use Bash only for documented read-only GitHub inventory/file calls", "Use runtime command execution only for documented read-only source-provider inventory/file calls"),
-        ("Use Bash only for the documented read-only `endorctl api` lookups", "Use runtime command execution only for the documented read-only `endorctl api` lookups"),
-        ("Use Bash only for read-only `endorctl api` lookups", "Use runtime command execution only for read-only `endorctl api` lookups"),
+        ("Use Bash only for the documented read-only `endorctl agent api --agent-id <agent-id>` lookups", "Use runtime command execution only for the documented read-only `endorctl agent api --agent-id <agent-id>` lookups"),
+        ("Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups", "Use runtime command execution only for read-only `endorctl agent api --agent-id <agent-id>` lookups"),
         ("Bash is allowed only for the read-only Endor lookups", "Runtime command execution is allowed only for the read-only Endor lookups"),
         ("Bash, authenticated `endorctl`", "runtime command execution, authenticated `endorctl`"),
         ("Do not use Bash or `endorctl`", "Do not use shell command execution or `endorctl`"),
         ("Do not use Bash", "Do not run shell commands"),
+        ("Bash", "runtime command execution"),
         ("even when Bash is available", "even when command execution is available"),
         ("Read-Only gh Or JSON", "Read-Only API Or JSON"),
         ("bounded read-only GitHub API or `gh` CLI calls", "bounded read-only source-provider API calls"),

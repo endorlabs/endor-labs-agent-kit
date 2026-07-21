@@ -4,7 +4,7 @@ Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
 safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
 Analysis, breaking changes, manifest targeting, or whether a dependency
 upgrade should happen now. The artifact queries Endor's read-only
-VersionUpgrade workflow through documented Endor API or endorctl paths.
+VersionUpgrade workflow through the agent-attributed read-only CLI transport.
 
 ## Start Here
 

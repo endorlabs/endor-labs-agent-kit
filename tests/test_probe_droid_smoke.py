@@ -43,7 +43,7 @@ def test_probe_droid_recipe_is_read_only_and_mcp_free(tmp_path):
     assert validate_recipe_file(recipe) == []
     assert data["id"] == "probe-droid"
     assert data["safety_class"] == "read_only"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []

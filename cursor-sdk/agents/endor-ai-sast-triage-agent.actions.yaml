@@ -3,7 +3,7 @@ actions:
     kind: endor.query
     safety_class: read_only
     confirmation_required: false
-    providers: ["endorctl-api", "endor-api"]
+    providers: ["endorctl-agent-api"]
     required_host_capabilities: ["run_commands"]
     inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
     outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
@@ -54,12 +54,12 @@ actions:
     kind: endor.policy_write
     safety_class: mutating
     confirmation_required: true
-    providers: ["endorctl-api", "endor-api"]
+    providers: ["endorctl-agent-api"]
     required_host_capabilities: ["run_commands"]
     inputs: ["finding_uuid", "project_uuid", "exception_match", "policy_name", "exception_reason", "expiration_time", "approver", "approval_evidence_url", "idempotency_check"]
     outputs: ["policy_name", "policy_uuid", "status", "idempotency_status"]
     availability: available
-    notes: "Create the scoped Endor exception policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and stable match fingerprint, and receiving explicit user confirmation in the Cursor session. Finding UUID is current-scan evidence only; do not use it as the policy matcher. If an active matching policy already exists for the same stable match fingerprint, project, and reason, reuse it and do not create another policy."
+    notes: "Create or update the scoped Endor exception Policy only after rendering the policy spec, verifying AppSec approval evidence, checking existing Endor policies by generated policy name and stable match fingerprint, and receiving explicit user confirmation in the active session. The only permitted Endor mutations are Policy create and Policy update; Policy delete and every mutation of another resource are forbidden. Finding UUID is current-scan evidence only; do not use it as the policy matcher. If an active matching policy already exists for the same stable match fingerprint, project, and reason, reuse it without a write."
 
   - id: post-decision-comment
     kind: scm.comment

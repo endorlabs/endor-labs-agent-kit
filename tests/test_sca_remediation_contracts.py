@@ -102,6 +102,31 @@ def _valid_netty_payload() -> dict:
                 "base_branch": "main",
                 "branch": "not_created",
                 "proposed_branch": "remediation/sca/netty-all-4.2.13.Final",
+                "inventory": {
+                    "status": "none_found",
+                    "lookup_method": "source provider branch and change-request inventory",
+                    "checked_at": "2026-07-20T12:00:00Z",
+                    "fresh_recheck": False,
+                    "key": {
+                        "repository": "example/webapp",
+                        "base_branch": "main",
+                        "ecosystem": "maven",
+                        "normalized_package": "io.netty-netty-all",
+                        "manifest": "services/api-gateway/pom.xml",
+                        "current_version": "4.1.42.Final",
+                        "target_version": "4.2.13.Final",
+                        "finding_set": [],
+                    },
+                    "candidates": [],
+                    "reconciliation": {
+                        "status": "not_needed",
+                        "reason": "No existing candidate found.",
+                        "selected_target_version": "4.2.13.Final",
+                        "uia_evidence_checked_at": "2026-07-20T12:00:00Z",
+                        "upstream_evidence_checked_at": "2026-07-20T12:00:00Z",
+                        "operator_choice_required": False,
+                    },
+                },
             }
         ],
         "policy_context": {
@@ -147,6 +172,77 @@ def test_sca_gate_validator_requires_namespace_provenance():
     errors = validate_sca_gate_payload(payload)
 
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
+
+
+def test_sca_duplicate_inventory_allows_plan_but_fails_closed_before_pr_when_unavailable():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "unavailable"
+    inventory["reconciliation"]["status"] = "lookup_unavailable"
+
+    assert not any(
+        "fails closed before push/open" in error
+        for error in validate_sca_gate_payload(payload, gate="selection-plan")
+    )
+
+    payload["pr_body"] = render_sca_pr_body(payload)
+    errors = validate_sca_gate_payload(payload, gate="pr")
+    assert "change_requests[0].inventory: unavailable inventory fails closed before push/open" in errors
+
+
+def test_sca_duplicate_inventory_reuses_exact_duplicate_and_blocks_new_creation():
+    payload = _valid_netty_payload()
+    request = payload["change_requests"][0]
+    inventory = request["inventory"]
+    inventory["status"] = "exact_duplicate"
+    inventory["candidates"] = [
+        {
+            "author": "dependabot[bot]",
+            "author_type": "bot",
+            "branch": "remediation/sca/netty-all-4.2.13.Final",
+            "state": "open",
+            "files": ["services/api-gateway/pom.xml"],
+            "url": "https://example.invalid/pr/42",
+            "current_version": "4.1.42.Final",
+            "target_version": "4.2.13.Final",
+            "exact_duplicate": True,
+        }
+    ]
+    inventory["reconciliation"]["status"] = "reuse_existing"
+    request["status"] = "created"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+    assert "change_requests[0].inventory: exact duplicate must be reused or block creation" in errors
+
+
+def test_sca_different_target_requires_fresh_reconciliation_or_operator_choice():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "different_target"
+    inventory["candidates"] = [
+        {
+            "author": "dependabot[bot]",
+            "author_type": "bot",
+            "branch": "dependabot/cryptography-49",
+            "state": "open",
+            "files": ["requirements.txt"],
+            "url": "https://example.invalid/pr/49",
+            "current_version": "47.0.0",
+            "target_version": "49.0.0",
+            "exact_duplicate": False,
+        }
+    ]
+    inventory["reconciliation"] = {
+        "status": "operator_choice_required",
+        "reason": "Agent selected 47.0.0 while the bot proposed 49.0.0.",
+        "selected_target_version": "4.2.13.Final",
+        "uia_evidence_checked_at": None,
+        "upstream_evidence_checked_at": None,
+        "operator_choice_required": True,
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+    assert "change_requests[0].inventory.reconciliation: unresolved target divergence requires operator choice" in errors
 
 
 def test_sca_gate_validator_rejects_approved_remediation_blocked_by_policy():
@@ -264,7 +360,7 @@ def test_sca_gate_validator_accepts_unresolved_project_without_candidate():
             {
                 "name": "project-lookup-traverse-fallback",
                 "resource": "Project",
-                "source": "endorctl_api",
+                "source": "endorctl_agent_api",
                 "status": "succeeded",
                 "query_template_id": "project-by-repository",
                 "filter_summary": "namespace=auri with child namespace traversal",
@@ -308,10 +404,12 @@ def test_sca_gate_validator_ignores_runtime_base_branch_metadata():
 def test_sca_gate_validator_accepts_pr_e2e_change_request_branch_evidence():
     payload = _valid_netty_payload()
     payload["patch_plan"] = [{"file": "services/api-gateway/pom.xml"}]
+    inventory = payload["change_requests"][0]["inventory"]
     payload["change_requests"][0] = {
         "status": "reused",
         "base_branch": "main",
         "branch": "remediation/sca/netty-all-4.2.13.Final",
+        "inventory": inventory,
     }
 
     assert validate_sca_gate_payload(payload) == []

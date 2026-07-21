@@ -149,7 +149,12 @@ def _primary_edition(agent: CatalogAgent) -> CatalogBundle:
 
 def _install_command(repo_host: str, agent_id: str, bundle_path: str) -> str:
     if repo_host == "claude-code":
-        return f"mkdir -p .claude/agents && cp {bundle_path}/{agent_id}.md .claude/agents/{agent_id}.md"
+        return (
+            f"mkdir -p .claude/agents && cp {bundle_path}/{agent_id}.md "
+            f".claude/agents/{agent_id}.md && for profile in "
+            f"{bundle_path}/{agent_id}-*.md; do [ -e \"$profile\" ] || continue; "
+            'cp "$profile" .claude/agents/; done'
+        )
     if repo_host == "claude-managed-agents":
         return (
             f"cd {bundle_path} && ant beta:agents create < agent.yaml "

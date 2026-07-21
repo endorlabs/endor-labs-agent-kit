@@ -252,7 +252,7 @@ Example adapter mappings:
 
 | Portable action | Example runtime adapters |
 | --- | --- |
-| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |
+| `endor.query` | `endorctl agent api --agent-id <canonical-recipe-id>`, approved Endor MCP adapter |
 | `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |
 | `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |
 | `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |
@@ -309,17 +309,17 @@ advancing mutation gates; the validator recomputes every policy decision.
 
 MCP is not used by the mutating remediation workflows. AI SAST Triage, SCA
 Remediation, Remediation Planner, Upgrade Impact Analysis, Probe Droid,
-and the Codex skills use documented Endor API or `endorctl api` paths
+and the Codex skills use `endorctl agent api --agent-id <canonical-recipe-id>` paths
 instead.
 
 MCP remains in the catalog only where the current public recipe still depends
 on Endor package/vulnerability lookup tools that do not yet have an
-`endorctl api` contract in this kit:
+`endorctl agent api --agent-id <canonical-recipe-id>` contract in this kit:
 
 | Agent | MCP use | Non-MCP path in same artifact |
 | --- | --- | --- |
-| Dependency Decision Helper | Package risk, vulnerability list, and vulnerability enrichment. | `endorctl api` for package scores, license, and similar-package signals. |
-| Endor Labs Package Risk Summary | Package risk, vulnerability list, and vulnerability enrichment. | `endorctl api` for package scores, license, and similar-package signals. |
+| Dependency Decision Helper | Package risk, vulnerability list, and vulnerability enrichment. | Agent-attributed read-only API for package scores and license evidence. |
+| Endor Labs Package Risk Summary | Package risk, vulnerability list, and vulnerability enrichment. | Agent-attributed read-only API for package scores and license evidence. |
 | Endor Labs Repository Dependency Reviewer | Per-dependency risk and vulnerability checks after local read-only manifest inspection. | No non-MCP path currently. |
 | Endor Labs Vulnerability Explainer | Vulnerability detail lookup. | No non-MCP path currently. |
 
@@ -401,8 +401,8 @@ artifact, the published directory is flat and the generated README omits the
 edition label.
 
 Shell access is still controlled by each recipe's host capability contract.
-Read-only agents that do not need `endorctl api` deny Bash. Read-only agents
-that need `endorctl api` allow Bash only for documented read-only Endor
+Read-only agents that do not need the agent API deny Bash. Read-only agents
+that need `endorctl agent api --agent-id <canonical-recipe-id>` allow Bash only for documented read-only Endor
 lookup commands. Mutating agents keep file edits, branch pushes, PR/MR
 creation, comments, approval verification, and Endor policy writes behind
 separate approval gates.
@@ -543,7 +543,7 @@ For cloud agents, pass `--mode cloud --repo-url <repo-url> --ref <branch>`.
 | Access path | Used by | Notes |
 | --- | --- | --- |
 | Endor MCP | Agents whose generated artifact declares an MCP server | Configure it through the target host's MCP mechanism only when the selected agent requires it. |
-| `endorctl api` or direct Endor API | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to documented lookups and writes. Agent or edition README files link to `endorctl-setup.md` when needed. |
+| `endorctl agent api --agent-id <canonical-recipe-id>` | Agents that need tenant, project, finding, or policy data without MCP | The generated prompts constrain commands to attributed lookups; only AI SAST may create or update Policy after approval. Agent or edition README files link to `endorctl-setup.md`. |
 | GitHub read-only inventory credentials | Probe Droid | Required when the agent compares GitHub.com repository inventory with Endor projects without cloning or mutating repositories. |
 | Git and source-provider credentials | Mutating Claude Code agents such as AI SAST Triage and SCA Remediation | Required when the agent is expected to apply patches, open change requests, read PR/MR approval evidence, or post PR/MR comments. |
 | Codex terminal and file-editing tools | Codex skills for mutating agents such as AI SAST Triage and SCA Remediation | The skill keeps file edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes behind separate approval gates. |
@@ -875,14 +875,14 @@ requesting exception-policy approval.
 | --- | --- |
 | `id`, `name`, `version`, `description` | Public catalog identity and copy. |
 | `safety_class`, `mutations` | Safety contract. Recipes may be `read_only`, `dry_run`, or explicitly `mutating` with matching host capabilities. |
-| `supported_transports` | Endor access paths such as `mcp` and `endorctl_api`. |
+| `supported_transports` | Endor access paths such as `mcp` and `endorctl_agent_api`. |
 | `host_capabilities_required` | Abstract host capabilities that compilers map to host-specific tools. |
 | `action_contracts_path` | Optional schema v2 path to `actions.yaml`, which declares semantic side effects and adapter requirements. |
 | `policy_pack_support` | Enables Agent Policy Pack instructions, structured policy outputs, and portable runtime policy-evaluation capability. |
 | `inputs`, `outputs` | User-facing IO contract and expected JSON output shape. |
 | `compatible_hosts` | Hosts that should receive generated artifacts. |
 | `host_editions` | Optional host-specific edition selection. Omit to publish all default editions for that host. |
-| `required_endor_mcp_tools`, `endorctl_api_invocations` | Endor tools and API lookup groups the prompt may use. |
+| `required_endor_mcp_tools`, `endorctl_agent_api_invocations` | Endor tools and API lookup groups the prompt may use. |
 | `instructions_path`, `evals` | Source prompt and eval case files relative to the recipe. |
 | `architecture.svg` | Required source diagram copied into generated catalog artifacts when present. |
 
