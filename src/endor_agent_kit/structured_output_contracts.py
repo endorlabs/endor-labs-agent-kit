@@ -28,7 +28,7 @@ POLICY_OUTPUT_FIELDS = (
 
 
 _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
-    "ai-sast-triage": (
+    "ai-sast-remediation": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("project_resolution", "object"),
         StructuredOutputField("evidence_queries", "list[object]"),
@@ -56,15 +56,23 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "dependency-decision-helper": (
-        StructuredOutputField("verdict", "enum"),
-        StructuredOutputField("conditions", "list[string]"),
-        StructuredOutputField("alternatives", "list[string]"),
+    "dependency-reviewer": (
+        StructuredOutputField("profile", "enum"),
+        StructuredOutputField("verdict", "enum", required=False),
+        StructuredOutputField("conditions", "list[string]", required=False),
+        StructuredOutputField("alternatives", "list[string]", required=False),
+        StructuredOutputField("risk_posture", "enum", required=False),
+        StructuredOutputField("manifests", "list[object]", required=False),
+        StructuredOutputField("dependencies_reviewed", "list[object]", required=False),
+        StructuredOutputField("findings", "list[object]", required=False),
+        StructuredOutputField("strengths", "list[string]", required=False),
+        StructuredOutputField("next_checks", "list[string]", required=False),
+        StructuredOutputField("recommended_actions", "list[string]", required=False),
         StructuredOutputField("summary", "string"),
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "endor-troubleshooter": (
+    "troubleshooting": (
         StructuredOutputField("troubleshooting_verdict", "enum"),
         StructuredOutputField("executive_summary", "object"),
         StructuredOutputField("intake_classification", "object"),
@@ -91,7 +99,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "malware-response": (
+    "malware-responder": (
         StructuredOutputField("incident_verdict", "enum"),
         StructuredOutputField("summary", "string"),
         StructuredOutputField("incident_intake", "object"),
@@ -108,16 +116,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "package-risk-summary": (
-        StructuredOutputField("risk_posture", "enum"),
-        StructuredOutputField("findings", "list[string]"),
-        StructuredOutputField("strengths", "list[string]"),
-        StructuredOutputField("next_checks", "list[string]"),
-        StructuredOutputField("summary", "string"),
-        StructuredOutputField("evidence_queries", "list[object]"),
-        StructuredOutputField("data_gaps", "list[string]"),
-    ),
-    "probe-droid": (
+    "configuration-automation": (
         StructuredOutputField("onboarding_verdict", "enum"),
         StructuredOutputField("executive_report", "object"),
         StructuredOutputField("report_scope", "object"),
@@ -138,22 +137,12 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("data_gaps", "list[string]"),
         StructuredOutputField("future_scope", "list[string]"),
     ),
-    "remediation-planner": (
+    "remediation-planning": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("project_resolution", "object"),
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("remediation_options", "list[object]"),
         StructuredOutputField("selected_remediation", "object"),
-        StructuredOutputField("data_gaps", "list[string]"),
-    ),
-    "repository-dependency-reviewer": (
-        StructuredOutputField("risk_posture", "enum"),
-        StructuredOutputField("manifests", "list[object]"),
-        StructuredOutputField("dependencies_reviewed", "list[object]"),
-        StructuredOutputField("findings", "list[object]"),
-        StructuredOutputField("recommended_actions", "list[string]"),
-        StructuredOutputField("summary", "string"),
-        StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
     "sca-remediation": (
@@ -171,7 +160,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("data_gaps", "list[string]"),
         StructuredOutputField("task_state", "object", required=False),
     ),
-    "upgrade-impact-analysis": (
+    "oss-upgrade-investigator": (
         StructuredOutputField("upgrade_recommendation", "enum"),
         StructuredOutputField("risk_delta", "enum"),
         StructuredOutputField("reasons", "list[string]"),
@@ -310,7 +299,7 @@ def normalize_structured_output_payload(agent_id: str, payload: dict[str, Any]) 
     for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()):
         if not field.required and normalized.get(field.name) is None:
             normalized.pop(field.name, None)
-    if agent_id == "ai-sast-triage" and isinstance(normalized.get("patches"), list):
+    if agent_id == "ai-sast-remediation" and isinstance(normalized.get("patches"), list):
         normalized["patches"] = [
             _normalize_ai_sast_patch(item) if isinstance(item, dict) else item
             for item in normalized["patches"]

@@ -69,18 +69,16 @@ not run scans, run `endorctl host-check`, edit shell profiles, install
 | Job | Codex skill | Codex custom agent | Safety |
 | --- | --- | --- | --- |
 | Set up this machine | `endor-agent-kit-setup` | `endor-agent-kit-setup-agent` | read-only setup |
-| Triage AI SAST findings | `ai-sast-triage` | `endor-ai-sast-triage-agent` | mutating, approval-gated |
+| Triage AI SAST findings | `ai-sast-remediation` | `endor-ai-sast-remediation-agent` | mutating, approval-gated |
 | Assess CI/CD and supply chain posture | `cicd-posture` | `endor-cicd-posture-agent` | read-only |
-| Dependency Decision Helper | `dependency-decision-helper` | `endor-dependency-decision-helper-agent` | read-only |
-| Diagnose Endor setup and scan issues | `endor-troubleshooter` | `endor-troubleshooter-agent` | read-only |
+| Assess GitHub onboarding gaps | `configuration-automation` | `endor-configuration-automation-agent` | read-only |
+| Dependency Reviewer | `dependency-reviewer` | `endor-dependency-reviewer-agent` | read-only |
 | Browse existing Endor findings | `findings-browser` | `endor-findings-browser-agent` | read-only |
-| Malware Response | `malware-response` | `endor-malware-response-agent` | read-only |
-| Package Risk Summary | `package-risk-summary` | `endor-package-risk-summary-agent` | read-only |
-| Assess GitHub onboarding gaps | `probe-droid` | `endor-probe-droid-agent` | read-only |
-| Remediation Planner | `remediation-planner` | `endor-remediation-planner-agent` | read-only |
-| Repository Dependency Reviewer | `repository-dependency-reviewer` | `endor-repository-dependency-reviewer-agent` | read-only |
+| Malware Responder | `malware-responder` | `endor-malware-responder-agent` | read-only |
+| Oss Upgrade Investigator | `oss-upgrade-investigator` | `endor-oss-upgrade-investigator-agent` | read-only |
+| Remediation Planning | `remediation-planning` | `endor-remediation-planning-agent` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `endor-sca-remediation-agent` | mutating, approval-gated |
-| Upgrade Impact Analysis | `upgrade-impact-analysis` | `endor-upgrade-impact-analysis-agent` | read-only |
+| Diagnose Endor setup and scan issues | `troubleshooting` | `endor-troubleshooting-agent` | read-only |
 | Vulnerability Explainer | `vulnerability-explainer` | `endor-vulnerability-explainer-agent` | read-only |
 
 Mutating workflows keep file edits, branch pushes, PR/MR creation,

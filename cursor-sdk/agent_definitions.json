@@ -11,11 +11,11 @@
       "safety_class": "read-only"
     },
     {
-      "agent_name": "endor-ai-sast-triage-agent",
+      "agent_name": "endor-ai-sast-remediation-agent",
       "default_model": "composer-2.5",
       "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
-      "id": "ai-sast-triage",
-      "prompt_file": "agents/endor-ai-sast-triage-agent.md",
+      "id": "ai-sast-remediation",
+      "prompt_file": "agents/endor-ai-sast-remediation-agent.md",
       "readonly": false,
       "recommended_prompt": "Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.",
       "safety_class": "mutating"
@@ -31,23 +31,23 @@
       "safety_class": "read-only"
     },
     {
-      "agent_name": "endor-dependency-decision-helper-agent",
+      "agent_name": "endor-configuration-automation-agent",
       "default_model": "composer-2.5",
-      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific package version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests 2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency verdict with evidence, conditions, alternatives, and any data gaps.",
-      "id": "dependency-decision-helper",
-      "prompt_file": "agents/endor-dependency-decision-helper-agent.md",
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding gaps for Endor Labs monitored-branch coverage. Configuration Automation compares github.com organization or repository inventory with Endor project, GitHub App, package, scan, scan profile, package manager integration, dependency resolution, and reachability evidence, then returns human-readable setup actions without mutating source, GitHub, or Endor state.",
+      "id": "configuration-automation",
+      "prompt_file": "agents/endor-configuration-automation-agent.md",
       "readonly": true,
-      "recommended_prompt": "Use the dependency-decision-helper workflow for this repository.",
+      "recommended_prompt": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
       "safety_class": "read-only"
     },
     {
-      "agent_name": "endor-troubleshooter-agent",
+      "agent_name": "endor-dependency-reviewer-agent",
       "default_model": "composer-2.5",
-      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs errors, warnings, missing integrations, scan failures, slow scans, or unhealthy configuration. Endor Troubleshooter gathers the smallest useful read-only Endor evidence, classifies the issue across scan, integration, authentication, dependency resolution, container, reachability, policy, and workflow lanes, then returns low-friction repair guidance without mutating Endor, source-provider, or repository state.",
-      "id": "endor-troubleshooter",
-      "prompt_file": "agents/endor-troubleshooter-agent.md",
+      "description": "Use this agent when the user wants an exact package decision, a package risk summary, or a repository dependency review. It selects one bounded task profile, gathers only the evidence that profile needs, and returns a read-only decision or review with explicit data gaps.",
+      "id": "dependency-reviewer",
+      "prompt_file": "agents/endor-dependency-reviewer-agent.md",
       "readonly": true,
-      "recommended_prompt": "Diagnose this Endor issue from redacted error text and read-only local evidence. Keep the workflow read-only.",
+      "recommended_prompt": "Use the dependency-reviewer workflow for this repository.",
       "safety_class": "read-only"
     },
     {
@@ -61,53 +61,33 @@
       "safety_class": "read-only"
     },
     {
-      "agent_name": "endor-malware-response-agent",
+      "agent_name": "endor-malware-responder-agent",
       "default_model": "composer-2.5",
       "description": "Use this agent when a customer needs rapid read-only response to a software supply-chain malware incident. It gathers or ingests current malware intelligence, normalizes affected package and version evidence, and correlates that evidence against Endor Labs tenant package inventory across a namespace and child namespaces. It reports confirmed exposure, possible exposure, unaffected scope, indicators of compromise, remediation guidance, and future action contracts without mutating Endor Labs or source systems.",
-      "id": "malware-response",
-      "prompt_file": "agents/endor-malware-response-agent.md",
+      "id": "malware-responder",
+      "prompt_file": "agents/endor-malware-responder-agent.md",
       "readonly": true,
-      "recommended_prompt": "Use the malware-response workflow for this repository.",
+      "recommended_prompt": "Use the malware-responder workflow for this repository.",
       "safety_class": "read-only"
     },
     {
-      "agent_name": "endor-package-risk-summary-agent",
+      "agent_name": "endor-oss-upgrade-investigator-agent",
       "default_model": "composer-2.5",
-      "description": "Use this agent when the user wants a concise risk profile for a specific package version without asking for a yes/no dependency decision. Examples: \"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for log4j-core 2.14.1\", \"What should I know about this package version before I review it?\" Returns an evidence-backed package risk summary with vulnerabilities, malware or typosquat signals, package scores, license notes, recommended next checks, and any data gaps.",
-      "id": "package-risk-summary",
-      "prompt_file": "agents/endor-package-risk-summary-agent.md",
+      "description": "Use this agent to investigate safe OSS upgrade paths, upgrade risk, findings fixed or introduced, Code Impact Analysis, breaking changes, manifest targeting, or whether a dependency upgrade should happen now. It queries Endor's read-only VersionUpgrade workflow through the agent-attributed CLI transport.",
+      "id": "oss-upgrade-investigator",
+      "prompt_file": "agents/endor-oss-upgrade-investigator-agent.md",
       "readonly": true,
-      "recommended_prompt": "Use the package-risk-summary workflow for this repository.",
+      "recommended_prompt": "Use the oss-upgrade-investigator workflow for this repository.",
       "safety_class": "read-only"
     },
     {
-      "agent_name": "endor-probe-droid-agent",
-      "default_model": "composer-2.5",
-      "description": "Use this agent when the user wants to assess GitHub repository onboarding gaps for Endor Labs monitored-branch coverage. Probe Droid compares github.com organization or repository inventory with Endor project, GitHub App, package, scan, scan profile, package manager integration, dependency resolution, and reachability evidence, then returns human-readable setup actions without mutating source, GitHub, or Endor state.",
-      "id": "probe-droid",
-      "prompt_file": "agents/endor-probe-droid-agent.md",
-      "readonly": true,
-      "recommended_prompt": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
-      "safety_class": "read-only"
-    },
-    {
-      "agent_name": "endor-remediation-planner-agent",
+      "agent_name": "endor-remediation-planning-agent",
       "default_model": "composer-2.5",
       "description": "Preview safe remediation options without opening PRs.",
-      "id": "remediation-planner",
-      "prompt_file": "agents/endor-remediation-planner-agent.md",
+      "id": "remediation-planning",
+      "prompt_file": "agents/endor-remediation-planning-agent.md",
       "readonly": true,
-      "recommended_prompt": "Use the remediation-planner workflow for this repository.",
-      "safety_class": "read-only"
-    },
-    {
-      "agent_name": "endor-repository-dependency-reviewer-agent",
-      "default_model": "composer-2.5",
-      "description": "Use this agent inside a source repository when the user wants a read-only dependency risk review based on local manifests. It inspects dependency files, resolves exact package coordinates when possible, checks those coordinates with Endor MCP tools, and reports risky dependencies, unresolved versions, recommended next checks, and data gaps.",
-      "id": "repository-dependency-reviewer",
-      "prompt_file": "agents/endor-repository-dependency-reviewer-agent.md",
-      "readonly": true,
-      "recommended_prompt": "Use the repository-dependency-reviewer workflow for this repository.",
+      "recommended_prompt": "Use the remediation-planning workflow for this repository.",
       "safety_class": "read-only"
     },
     {
@@ -121,13 +101,13 @@
       "safety_class": "mutating"
     },
     {
-      "agent_name": "endor-upgrade-impact-analysis-agent",
+      "agent_name": "endor-troubleshooting-agent",
       "default_model": "composer-2.5",
-      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis: safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact Analysis, breaking changes, manifest targeting, or whether a dependency upgrade should happen now. The artifact queries Endor's read-only VersionUpgrade workflow through the agent-attributed read-only CLI transport.",
-      "id": "upgrade-impact-analysis",
-      "prompt_file": "agents/endor-upgrade-impact-analysis-agent.md",
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs errors, warnings, missing integrations, scan failures, slow scans, or unhealthy configuration. Troubleshooting gathers the smallest useful read-only Endor evidence, classifies the issue across scan, integration, authentication, dependency resolution, container, reachability, policy, and workflow lanes, then returns low-friction repair guidance without mutating Endor, source-provider, or repository state.",
+      "id": "troubleshooting",
+      "prompt_file": "agents/endor-troubleshooting-agent.md",
       "readonly": true,
-      "recommended_prompt": "Use the upgrade-impact-analysis workflow for this repository.",
+      "recommended_prompt": "Diagnose this Endor issue from redacted error text and read-only local evidence. Keep the workflow read-only.",
       "safety_class": "read-only"
     },
     {

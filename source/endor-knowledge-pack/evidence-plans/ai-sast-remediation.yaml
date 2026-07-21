@@ -1,0 +1,166 @@
+schema_version: 1
+agent_id: ai-sast-remediation
+plans:
+  - profile_id: evidence-check
+    safety_class: read_only
+    scope:
+      namespace_required: true
+      namespace_provenance_required: true
+    freshness:
+      max_age_seconds: 300
+    cache_identity:
+      - agent_id
+      - profile_id
+      - namespace
+      - repo_full_name
+      - finding_uuid
+      - source_digest
+    attribution:
+      required: true
+      agent_id: <agent-id>
+    execution:
+      mode: prompt_fallback
+      prompt_recipes_exposed: true
+      host_adapter_required: true
+    gate:
+      expected_calls: 2
+      max_calls: 3
+      stop_conditions:
+        - With a Finding UUID, stop after exact Finding scope and any required Project labeling are known or blocked.
+        - Without a Finding UUID, stop after project-scoped AI SAST availability is known or blocked.
+        - Do not fetch unrelated findings, explanations, source bodies, or begin patch reasoning.
+      data_gaps_required: true
+    routes:
+      - id: known-finding
+        condition: runtime.finding_uuid_present
+        exclusive_group: finding-selector
+        expected_calls: 1
+        max_calls: 2
+        required_outputs:
+          - steps.finding-by-uuid.finding_uuid
+          - steps.finding-by-uuid.project_uuid
+      - id: repository
+        condition: runtime.finding_uuid_absent
+        exclusive_group: finding-selector
+        expected_calls: 2
+        max_calls: 3
+        required_outputs:
+          - steps.project-by-git.project_uuid
+          - steps.ai-sast-count.count
+    steps:
+      - id: finding-by-uuid
+        recipe_id: finding-by-uuid
+        canonical_recipe_id: finding-by-uuid
+        operation: get
+        route_id: known-finding
+        condition: always
+        concurrency_group: finding-scope
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: finding_uuid
+            placeholder: FINDING_UUID
+            source: runtime.finding_uuid
+            type: string
+        outputs:
+          - name: finding_uuid
+            path: $.uuid
+            type: string
+          - name: project_uuid
+            path: $.spec.project_uuid
+            type: string
+          - name: source_ref
+            path: $.spec.source_code_version.ref
+            type: string
+            required: false
+          - name: repository_identity
+            path: $.spec.finding_metadata.repository
+            type: string
+            required: false
+      - id: project-by-uuid
+        recipe_id: project-by-uuid
+        canonical_recipe_id: project-by-uuid
+        operation: get
+        route_id: known-finding
+        condition: steps.finding-by-uuid.repository_identity_missing
+        concurrency_group: repository-label
+        depends_on:
+          - finding-by-uuid
+        max_calls: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.finding-by-uuid.project_uuid
+            type: string
+        outputs:
+          - name: project_name
+            path: $.meta.name
+            type: string
+          - name: git
+            path: $.spec.git
+            type: object
+      - id: project-by-git
+        recipe_id: project-by-git
+        canonical_recipe_id: project-by-git
+        operation: list
+        route_id: repository
+        condition: always
+        concurrency_group: project-scope
+        depends_on: []
+        max_calls: 2
+        retry:
+          eligible: true
+          max_attempts: 2
+          when: parent_namespace_empty_result
+          append_args:
+            - --traverse
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: repo_full_name
+            placeholder: owner/repo
+            source: runtime.repo_full_name
+            type: string
+        outputs:
+          - name: project_uuid
+            path: $.objects[0].uuid
+            type: string
+          - name: project_name
+            path: $.objects[0].meta.name
+            type: string
+          - name: git
+            path: $.objects[0].spec.git
+            type: object
+      - id: ai-sast-count
+        recipe_id: ai-sast-count
+        canonical_recipe_id: ai-sast-count
+        operation: list
+        route_id: repository
+        condition: always
+        concurrency_group: availability
+        depends_on:
+          - project-by-git
+        max_calls: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+        outputs:
+          - name: count
+            path: $.count
+            type: integer

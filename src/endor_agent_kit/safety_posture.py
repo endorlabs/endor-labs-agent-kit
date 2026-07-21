@@ -10,7 +10,7 @@ from endor_agent_kit.recipe import EndorAgentRecipe
 # addition to Endor lookups. Compilers and Host Adapters consume this one
 # shared set for GitHub-boundary wording, setup guidance, and managed-agent
 # network allowlists.
-GITHUB_EVIDENCE_AGENT_IDS = frozenset({"probe-droid", "cicd-posture"})
+GITHUB_EVIDENCE_AGENT_IDS = frozenset({"configuration-automation", "cicd-posture"})
 
 
 def uses_github_evidence(recipe: EndorAgentRecipe) -> bool:

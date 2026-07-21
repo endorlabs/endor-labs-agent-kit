@@ -7,7 +7,7 @@ policies:
     title: WebSphere Liberty Java 17 requires Liberty 21.0.0.10 or newer
     effect: deny
     applies_to:
-      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      agents: ["sca-remediation", "oss-upgrade-investigator"]
       ecosystems: ["maven"]
     when:
       all:
@@ -25,7 +25,7 @@ policies:
     title: WebSphere Liberty Java 21 requires Liberty 23.0.0.10 or newer
     effect: deny
     applies_to:
-      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      agents: ["sca-remediation", "oss-upgrade-investigator"]
       ecosystems: ["maven"]
     when:
       all:

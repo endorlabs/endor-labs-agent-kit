@@ -1,0 +1,81 @@
+cases:
+  - id: package-decision-safe
+    input:
+      task_profile: package-decision
+      ecosystem: npm
+      package_name: lodash
+      version: 4.17.21
+    expected:
+      verdict: SAFE
+      required_evidence:
+        - exact npm lodash 4.17.21 evidence
+        - no blocking risk in available signals
+      data_gaps_allowed: true
+
+  - id: package-decision-blocked
+    input:
+      task_profile: package-decision
+      ecosystem: maven
+      package_name: org.apache.logging.log4j:log4j-core
+      version: 2.14.1
+    expected:
+      verdict: BLOCKED
+      required_evidence:
+        - exact package-version evidence
+        - critical, CISA KEV, known-exploited, or malware evidence
+      data_gaps_allowed: true
+
+  - id: package-risk-evidence-limited
+    input:
+      task_profile: package-risk
+      ecosystem: npm
+      package_name: lodash
+      version: 4.17.20
+    expected:
+      risk_posture: MODERATE
+      required_evidence:
+        - vulnerability evidence for the exact package version
+        - unavailable score or license signals are named instead of fabricated
+      data_gaps_allowed: true
+
+  - id: package-profile-missing-version
+    input:
+      task_profile: package-risk
+      ecosystem: pypi
+      package_name: requests
+    expected:
+      risk_posture: UNKNOWN
+      required_evidence:
+        - missing version is reported without repository inspection
+        - no approximate package coordinate is queried
+      data_gaps_allowed: true
+
+  - id: repository-review-critical-direct-dependency
+    input:
+      task_profile: repository-review
+      repository_files:
+        pom.xml: |
+          <project><dependencies><dependency>
+          <groupId>org.apache.logging.log4j</groupId>
+          <artifactId>log4j-core</artifactId><version>2.14.1</version>
+          </dependency></dependencies></project>
+    expected:
+      risk_posture: CRITICAL
+      required_evidence:
+        - exact Maven coordinate from the manifest
+        - critical, CISA KEV, known-exploited, or malware evidence
+      data_gaps_allowed: true
+
+  - id: repository-review-unresolved-version
+    input:
+      task_profile: repository-review
+      repository_files:
+        requirements.txt: |
+          django>=3.2
+          requests
+    expected:
+      risk_posture: UNKNOWN
+      required_evidence:
+        - unresolved versions are named instead of guessed
+        - no approximate package versions are sent to Endor
+      data_gaps_allowed: true

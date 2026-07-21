@@ -311,7 +311,7 @@ def test_was_traditional_policy_allows_java_8():
     evaluations = evaluate_policy_pack_file(
         _policy_path("examples/was-traditional-java8.yaml"),
         {
-            "agent": {"id": "upgrade-impact-analysis"},
+            "agent": {"id": "oss-upgrade-investigator"},
             "ecosystem": "maven",
             "platform": {"websphere": {"family": "traditional", "present": True}},
             "proposed": {"runtime": {"java": {"major": 8}}},
@@ -567,7 +567,7 @@ def test_liberty_policy_gates_java_versions_by_fixpack():
     java21_old = evaluate_policy_pack_file(
         policy,
         {
-            "agent": {"id": "upgrade-impact-analysis"},
+            "agent": {"id": "oss-upgrade-investigator"},
             "ecosystem": "maven",
             "platform": {"websphere": {"family": "liberty", "liberty": {"version": "23.0.0.9"}}},
             "proposed": {"runtime": {"java": {"major": 21}}},

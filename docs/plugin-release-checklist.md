@@ -88,23 +88,31 @@ test ! -e plugins/gemini/endor-labs-agent-kit.zip
 test -f .cursor-plugin/plugin.json
 test -f agents/endor-agent-kit-setup-agent.md
 test -f agents/endor-cicd-posture-agent.md
-test -f agents/endor-malware-response-agent.md
+test -f agents/endor-malware-responder-agent.md
 test -f agents/endor-findings-browser-agent.md
-test -f agents/endor-probe-droid-agent.md
+test -f agents/endor-configuration-automation-agent.md
 test -f skills/endor-agent-kit-setup/SKILL.md
-test -f skills/ai-sast-triage/architecture.svg
+test -f skills/ai-sast-remediation/architecture.svg
 test -f skills/findings-browser/architecture.svg
-test -f skills/malware-response/architecture.svg
+test -f skills/malware-responder/architecture.svg
 test -f cursor-sdk/README.md
 test -f cursor-sdk/run_cursor_agent.py
 test -f cursor-sdk/agent_definitions.json
 test -f cursor-sdk/agents/endor-findings-browser-agent.md
 test -f cursor-sdk/agents/endor-cicd-posture-agent.md
-test -f cursor-sdk/agents/endor-malware-response-agent.md
-test -f cursor-sdk/agents/endor-probe-droid-agent.md
+test -f cursor-sdk/agents/endor-malware-responder-agent.md
+test -f cursor-sdk/agents/endor-configuration-automation-agent.md
 ```
 
 ## Repository Gates
+
+For releases containing an agent rename or consolidation:
+
+- confirm the Endor backend accepts catalog wire schema v2 and `legacy_ids`
+- confirm all nine legacy identifiers resolve to their canonical agents
+- confirm only the 11 canonical agents are visible
+- verify host installs and telemetry use canonical identifiers
+- follow the rollout and rollback contract in `docs/agent-identity-migration.md`
 
 Run these from the repository root:
 
@@ -183,9 +191,9 @@ for agent in definitions["agents"]:
     assert Path("agents", f"{agent_name}.md").is_file(), agent_name
     assert Path("skills", skill_id, "SKILL.md").is_file(), skill_id
 PY
-test -f skills/ai-sast-triage/architecture.svg
+test -f skills/ai-sast-remediation/architecture.svg
 test -f skills/findings-browser/architecture.svg
-test -f skills/malware-response/architecture.svg
+test -f skills/malware-responder/architecture.svg
 test -f skills/sca-remediation/actions.yaml
 ```
 

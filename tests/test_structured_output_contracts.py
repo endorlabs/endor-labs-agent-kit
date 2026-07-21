@@ -35,10 +35,8 @@ def test_structured_output_contracts_match_recipe_outputs():
 
 
 def test_required_fields_for_preserves_recipe_order():
-    assert required_fields_for("dependency-decision-helper") == (
-        "verdict",
-        "conditions",
-        "alternatives",
+    assert required_fields_for("dependency-reviewer") == (
+        "profile",
         "summary",
         "evidence_queries",
         "data_gaps",
@@ -55,7 +53,7 @@ def test_profile_output_contract_reduces_required_fields_without_weakening_evide
         "policy_context",
         "policy_evaluations",
     )
-    schema = json_schema_for_agent("probe-droid", fields)
+    schema = json_schema_for_agent("configuration-automation", fields)
     payload = {
         "onboarding_verdict": "INSUFFICIENT_DATA",
         "evidence_queries": [],
@@ -64,10 +62,10 @@ def test_profile_output_contract_reduces_required_fields_without_weakening_evide
         "policy_evaluations": [],
     }
 
-    assert required_fields_for("probe-droid", fields) == fields
+    assert required_fields_for("configuration-automation", fields) == fields
     assert tuple(schema["required"]) == fields
     assert tuple(schema["properties"]) == fields
-    assert validate_structured_output_payload("probe-droid", payload, fields) == []
+    assert validate_structured_output_payload("configuration-automation", payload, fields) == []
 
 
 def test_all_structured_contracts_require_evidence_queries():
@@ -103,7 +101,7 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
 
 
 def test_task_state_is_strict_nullable_and_legacy_omittable() -> None:
-    for agent_id in ("sca-remediation", "ai-sast-triage"):
+    for agent_id in ("sca-remediation", "ai-sast-remediation"):
         logical_schema = json_schema_for_agent(agent_id)
         schema = strict_transport_schema_for_agent(agent_id)
         task_state = schema["properties"]["task_state"]
@@ -130,7 +128,7 @@ def test_task_state_is_strict_nullable_and_legacy_omittable() -> None:
 
 
 def test_ai_sast_patch_schema_is_complete_strict_and_embeds_change_impact() -> None:
-    schema = json_schema_for_agent("ai-sast-triage")
+    schema = json_schema_for_agent("ai-sast-remediation")
     assert "change_impact" not in schema["properties"]
     patch = schema["properties"]["patches"]["items"]
     expected = {
@@ -193,7 +191,7 @@ def test_ai_sast_legacy_patch_aliases_normalize_without_dropping_aliases() -> No
         ]
     }
 
-    normalized = normalize_structured_output_payload("ai-sast-triage", payload)
+    normalized = normalize_structured_output_payload("ai-sast-remediation", payload)
     patch = normalized["patches"][0]
 
     assert patch["branch_name"] == patch["branch"]
@@ -207,18 +205,18 @@ def test_materialized_ai_sast_patch_fixture_passes_strict_item_schema() -> None:
     fixture = json.loads(
         (repo_root() / "tests" / "fixtures" / "ai-sast-strict-patch.json").read_text(encoding="utf-8")
     )
-    schema = json_schema_for_agent("ai-sast-triage")["properties"]["patches"]["items"]
+    schema = json_schema_for_agent("ai-sast-remediation")["properties"]["patches"]["items"]
 
     _assert_value_matches_schema(fixture, schema)
 
 
-def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
+def test_json_schema_for_configuration_automation_and_troubleshooter_nested_outputs():
     cicd_schema = json_schema_for_agent("cicd-posture")
     assert cicd_schema["properties"]["posture_verdict"]["type"] == "string"
     assert "raw_counts" in cicd_schema["properties"]
     assert "score_validation" in cicd_schema["properties"]
 
-    probe_schema = json_schema_for_agent("probe-droid")
+    probe_schema = json_schema_for_agent("configuration-automation")
     report_scope = probe_schema["properties"]["report_scope"]
     executive_report = probe_schema["properties"]["executive_report"]
 
@@ -232,7 +230,7 @@ def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
     assert "github_default_branch" in healthy_row["properties"]
     assert "endor_monitored_branch" in healthy_row["properties"]
 
-    troubleshooter_schema = json_schema_for_agent("endor-troubleshooter")
+    troubleshooter_schema = json_schema_for_agent("troubleshooting")
     executive_summary = troubleshooter_schema["properties"]["executive_summary"]
     intake_classification = troubleshooter_schema["properties"]["intake_classification"]
     support_packet = troubleshooter_schema["properties"]["support_escalation_packet"]
@@ -309,8 +307,9 @@ def test_structured_output_contract_rejects_missing_required_fields():
 
 def test_structured_output_contract_rejects_wrong_value_shapes():
     errors = validate_structured_output_payload(
-        "package-risk-summary",
+        "dependency-reviewer",
         {
+            "profile": "package-risk",
             "risk_posture": "elevated",
             "findings": "none",
             "strengths": [],
@@ -326,7 +325,7 @@ def test_structured_output_contract_rejects_wrong_value_shapes():
 
 def test_structured_output_contract_allows_null_object_when_gap_is_recorded():
     errors = validate_structured_output_payload(
-        "remediation-planner",
+        "remediation-planning",
         {
             "summary": "No selected remediation without evidence.",
             "project_resolution": {"status": "unresolved"},
@@ -344,10 +343,10 @@ def test_structured_output_contract_allows_null_object_when_gap_is_recorded():
 
 def test_structured_output_contract_requires_data_gap_when_evidence_queries_empty():
     errors = validate_structured_output_payload(
-        "probe-droid",
+        "configuration-automation",
         {
             field: _placeholder_value(kind)
-            for field, kind in _field_kinds("probe-droid").items()
+            for field, kind in _field_kinds("configuration-automation").items()
         },
     )
 

@@ -75,7 +75,7 @@ def _agent_cases(agent_id: str):
 
 
 def test_mutating_agents_cover_every_injection_vector():
-    for agent_id in ("sca-remediation", "ai-sast-triage"):
+    for agent_id in ("sca-remediation", "ai-sast-remediation"):
         cases = _agent_cases(agent_id)
 
         assert adversarial_eval_errors(cases) == [], agent_id

@@ -27,6 +27,7 @@ def _recipe() -> EndorAgentRecipe:
         outputs=(),
         evals="evals/cases.yaml",
         compatible_hosts=("claude-code",),
+        legacy_ids=("old-schema-fixture",),
         endorctl_api_invocations=("lookup_package_version_uuid",),
         instructions_path="instructions.md",
         model="sonnet",
@@ -110,6 +111,7 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
     manifest_bundle = manifest_agent["editions"][0]
     manifest_artifact = manifest_bundle["artifacts"][0]
     assert manifest_agent["source"]["builder_recipe"] == "source/agents/schema-fixture/recipe.yaml"
+    assert manifest_agent["legacy_ids"] == ["old-schema-fixture"]
     assert manifest_bundle["requires_endorctl"] == ">=1.0"
     assert manifest_artifact["path"] == "claude-code/schema-fixture/schema-fixture.md"
     assert manifest_artifact["bytes"] == len("current")

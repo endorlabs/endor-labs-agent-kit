@@ -7,18 +7,16 @@ skill before live Endor work.
 
 User jobs mapped to installed workflows:
 
-- Triage AI SAST findings: use skill `ai-sast-triage` or subagent `@ai-sast-triage`.
+- Triage AI SAST findings: use skill `ai-sast-remediation` or subagent `@ai-sast-remediation`.
 - Assess CI/CD and supply chain posture: use skill `cicd-posture` or subagent `@cicd-posture`.
-- Dependency Decision Helper: use skill `dependency-decision-helper` or subagent `@dependency-decision-helper`.
-- Diagnose Endor setup and scan issues: use skill `endor-troubleshooter` or subagent `@endor-troubleshooter`.
+- Assess GitHub onboarding gaps: use skill `configuration-automation` or subagent `@configuration-automation`.
+- Dependency Reviewer: use skill `dependency-reviewer` or subagent `@dependency-reviewer`.
 - Browse existing Endor findings: use skill `findings-browser` or subagent `@findings-browser`.
-- Malware Response: use skill `malware-response` or subagent `@malware-response`.
-- Package Risk Summary: use skill `package-risk-summary` or subagent `@package-risk-summary`.
-- Assess GitHub onboarding gaps: use skill `probe-droid` or subagent `@probe-droid`.
-- Remediation Planner: use skill `remediation-planner` or subagent `@remediation-planner`.
-- Repository Dependency Reviewer: use skill `repository-dependency-reviewer` or subagent `@repository-dependency-reviewer`.
+- Malware Responder: use skill `malware-responder` or subagent `@malware-responder`.
+- Oss Upgrade Investigator: use skill `oss-upgrade-investigator` or subagent `@oss-upgrade-investigator`.
+- Remediation Planning: use skill `remediation-planning` or subagent `@remediation-planning`.
 - Find safe SCA remediation paths: use skill `sca-remediation` or subagent `@sca-remediation`.
-- Upgrade Impact Analysis: use skill `upgrade-impact-analysis` or subagent `@upgrade-impact-analysis`.
+- Diagnose Endor setup and scan issues: use skill `troubleshooting` or subagent `@troubleshooting`.
 - Vulnerability Explainer: use skill `vulnerability-explainer` or subagent `@vulnerability-explainer`.
 
 Setup must not run scans, run `endorctl host-check`, edit shell profiles,

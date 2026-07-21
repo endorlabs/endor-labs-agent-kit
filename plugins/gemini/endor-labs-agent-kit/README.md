@@ -76,18 +76,16 @@ package managers.
 
 | Job | Gemini skill | Gemini subagent | Safety |
 | --- | --- | --- | --- |
-| Triage AI SAST findings | `ai-sast-triage` | `@ai-sast-triage` | mutating, approval-gated |
+| Triage AI SAST findings | `ai-sast-remediation` | `@ai-sast-remediation` | mutating, approval-gated |
 | Assess CI/CD and supply chain posture | `cicd-posture` | `@cicd-posture` | read-only |
-| Dependency Decision Helper | `dependency-decision-helper` | `@dependency-decision-helper` | read-only |
-| Diagnose Endor setup and scan issues | `endor-troubleshooter` | `@endor-troubleshooter` | read-only |
+| Assess GitHub onboarding gaps | `configuration-automation` | `@configuration-automation` | read-only |
+| Dependency Reviewer | `dependency-reviewer` | `@dependency-reviewer` | read-only |
 | Browse existing Endor findings | `findings-browser` | `@findings-browser` | read-only |
-| Malware Response | `malware-response` | `@malware-response` | read-only |
-| Package Risk Summary | `package-risk-summary` | `@package-risk-summary` | read-only |
-| Assess GitHub onboarding gaps | `probe-droid` | `@probe-droid` | read-only |
-| Remediation Planner | `remediation-planner` | `@remediation-planner` | read-only |
-| Repository Dependency Reviewer | `repository-dependency-reviewer` | `@repository-dependency-reviewer` | read-only |
+| Malware Responder | `malware-responder` | `@malware-responder` | read-only |
+| Oss Upgrade Investigator | `oss-upgrade-investigator` | `@oss-upgrade-investigator` | read-only |
+| Remediation Planning | `remediation-planning` | `@remediation-planning` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
-| Upgrade Impact Analysis | `upgrade-impact-analysis` | `@upgrade-impact-analysis` | read-only |
+| Diagnose Endor setup and scan issues | `troubleshooting` | `@troubleshooting` | read-only |
 | Vulnerability Explainer | `vulnerability-explainer` | `@vulnerability-explainer` | read-only |
 
 Mutating workflows keep file edits, branch pushes, PR/MR creation,

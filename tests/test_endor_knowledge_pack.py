@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 
 from conftest import repo_root
-from endor_agent_kit.ai_sast_triage import validate_ai_sast_gate_payload
+from endor_agent_kit.ai_sast_remediation import validate_ai_sast_gate_payload
 from endor_agent_kit.knowledge_pack import (
     PACK_SECTION_HEADING,
     default_task_profile_for_agent,
@@ -70,18 +70,16 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "version-upgrade-summary",
     ]
     assert set(pack.workflows) == {
-        "ai-sast-triage",
+        "ai-sast-remediation",
         "cicd-posture",
-        "dependency-decision-helper",
-        "endor-troubleshooter",
+        "dependency-reviewer",
+        "troubleshooting",
         "findings-browser",
-        "malware-response",
-        "package-risk-summary",
-        "probe-droid",
-        "remediation-planner",
-        "repository-dependency-reviewer",
+        "malware-responder",
+        "configuration-automation",
+        "remediation-planning",
         "sca-remediation",
-        "upgrade-impact-analysis",
+        "oss-upgrade-investigator",
         "vulnerability-explainer",
     }
     assert any("workflow output contracts" in item for item in pack.precedence)
@@ -98,6 +96,11 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "resolve-scope",
         "evidence-check",
         "selection-plan",
+    ]
+    assert [profile.id for profile in pack.workflow_for("dependency-reviewer").task_profiles] == [
+        "package-decision",
+        "package-risk",
+        "repository-review",
     ]
     assert [plan.profile_id for plan in pack.workflow_for("sca-remediation").evidence_query_plans] == [
         "resolve-scope",
@@ -122,7 +125,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     assert "early-stop" in query_efficiency.guidance
     ai_sast_recipe = next(
         recipe
-        for recipe in pack.workflow_for("ai-sast-triage").evidence_query_recipes
+        for recipe in pack.workflow_for("ai-sast-remediation").evidence_query_recipes
         if recipe.id == "ai-sast-count"
     )
     assert ai_sast_recipe.canonical_id == "ai-sast-count"
@@ -250,13 +253,13 @@ def test_sca_evidence_check_promotes_two_bounded_reads_after_fixture_parity():
     assert any("exploited" in item for item in plan.stop_after)
 
 
-def test_ai_sast_routing_fixture_preserves_uuid_and_no_uuid_evidence_contracts():
+def test_ai_sast_remediation_routing_fixture_preserves_uuid_and_no_uuid_evidence_contracts():
     fixture = yaml.safe_load(
-        (repo_root() / "tests" / "fixtures" / "ai_sast_routing.yaml").read_text(
+        (repo_root() / "tests" / "fixtures" / "ai_sast_remediation_routing.yaml").read_text(
             encoding="utf-8"
         )
     )
-    workflow = load_knowledge_pack().workflow_for("ai-sast-triage")
+    workflow = load_knowledge_pack().workflow_for("ai-sast-remediation")
     assert workflow is not None
     recipes = {
         recipe.id: recipe
@@ -296,9 +299,9 @@ def test_ai_sast_routing_fixture_preserves_uuid_and_no_uuid_evidence_contracts()
 
 
 def test_runtime_task_profile_prompts_carry_gemini_contract_guards():
-    troubleshooter = render_task_profile_prompt("endor-troubleshooter", "diagnose", compact=True)
-    probe = render_task_profile_prompt("probe-droid", "evidence-check", compact=True)
-    probe_full = render_knowledge_pack_section("probe-droid")
+    troubleshooter = render_task_profile_prompt("troubleshooting", "diagnose", compact=True)
+    probe = render_task_profile_prompt("configuration-automation", "evidence-check", compact=True)
+    probe_full = render_knowledge_pack_section("configuration-automation")
 
     assert "every nested issue_lanes.next_step, validation, action, why, reasoning" in troubleshooter
     assert "free of raw tool names or command-shaped" in troubleshooter
@@ -395,8 +398,8 @@ def test_cicd_posture_compact_profile_keeps_endor_native_recipes():
 
 def test_measured_slow_read_profiles_have_compact_output_contracts():
     pack = load_knowledge_pack()
-    probe = pack.workflow_for("probe-droid").task_profile_for("evidence-check")
-    troubleshooter = pack.workflow_for("endor-troubleshooter").task_profile_for("diagnose")
+    probe = pack.workflow_for("configuration-automation").task_profile_for("evidence-check")
+    troubleshooter = pack.workflow_for("troubleshooting").task_profile_for("diagnose")
 
     assert probe.compact is True
     assert probe.output_fields == (
@@ -421,8 +424,8 @@ def test_measured_slow_read_profiles_have_compact_output_contracts():
 
 
 def test_malware_workflow_uses_supported_finding_category_evidence():
-    workflow = load_knowledge_pack().workflow_for("malware-response")
-    section = render_knowledge_pack_section("malware-response")
+    workflow = load_knowledge_pack().workflow_for("malware-responder")
+    section = render_knowledge_pack_section("malware-responder")
 
     assert workflow is not None
     assert "Malware" not in {resource.name for resource in workflow.resources}

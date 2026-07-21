@@ -320,7 +320,7 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
         "",
         (
             f"This PR upgrades **{package}** from `{from_version}` to `{to_version}` "
-            f"across {_format_manifest_cell(manifests)}. Endor Labs Upgrade Impact Analysis "
+            f"across {_format_manifest_cell(manifests)}. OSS Upgrade Investigator "
             f"reports **{findings_fixed}** Endor finding instances fixed with "
             f"**{findings_introduced}** new Endor finding instances introduced."
         ),

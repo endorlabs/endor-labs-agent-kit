@@ -68,7 +68,7 @@ def test_doctor_new_agent_reports_pre_pr_readiness(tmp_path, capsys):
 
 
 def test_doctor_new_agent_returns_failure_for_incomplete_new_agent(tmp_path, capsys):
-    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent_source(tmp_path, "vulnerability-explainer")
 
     status = main(["doctor-new-agent", str(recipe)])
     output = capsys.readouterr().out
@@ -81,7 +81,7 @@ def test_doctor_new_agent_returns_failure_for_incomplete_new_agent(tmp_path, cap
 
 
 def test_source_authoring_check_requires_new_agent_architecture(tmp_path):
-    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent_source(tmp_path, "vulnerability-explainer")
 
     report = check_source_recipe_authoring(recipe, new_agent=True)
 
@@ -89,7 +89,7 @@ def test_source_authoring_check_requires_new_agent_architecture(tmp_path):
 
 
 def test_source_authoring_check_requires_new_agent_eval_coverage(tmp_path):
-    recipe = _copy_agent_source(tmp_path, "remediation-planner")
+    recipe = _copy_agent_source(tmp_path, "remediation-planning")
 
     report = check_source_recipe_authoring(recipe, new_agent=True)
 
@@ -97,7 +97,7 @@ def test_source_authoring_check_requires_new_agent_eval_coverage(tmp_path):
 
 
 def test_source_authoring_check_uses_shared_instruction_section_parser(tmp_path):
-    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent_source(tmp_path, "vulnerability-explainer")
     instructions = recipe.parent / "instructions.md"
     instructions.write_text(
         instructions.read_text(encoding="utf-8").replace(

@@ -363,7 +363,7 @@ def _check_source_recipes(root: Path, errors: list[str]) -> None:
                     f"{_rel(root, recipe_file)}: mutating action "
                     f"{action.get('id', '<unknown>')!r} must require confirmation"
                 )
-        if recipe.get("id") in {"sca-remediation", "ai-sast-triage"}:
+        if recipe.get("id") in {"sca-remediation", "ai-sast-remediation"}:
             if not any(action.get("kind") == "ticket.create" for action in mutating_actions):
                 errors.append(f"{_rel(root, recipe_file)}: remediation recipe must declare ticket.create")
 
@@ -398,26 +398,33 @@ def _check_claude_code(root: Path, errors: list[str]) -> None:
     if not host_root.is_dir():
         return
     for agent_dir in sorted(item for item in host_root.iterdir() if item.is_dir()):
-        prompt = agent_dir / f"{agent_dir.name}.md"
-        if not prompt.is_file():
-            errors.append(f"{_rel(root, prompt)}: missing Claude Code prompt")
+        direct_prompt = agent_dir / f"{agent_dir.name}.md"
+        bundle_dirs = [agent_dir] if direct_prompt.is_file() else [
+            item
+            for item in sorted(agent_dir.iterdir())
+            if item.is_dir() and (item / f"{agent_dir.name}.md").is_file()
+        ]
+        if not bundle_dirs:
+            errors.append(f"{_rel(root, direct_prompt)}: missing Claude Code prompt")
             continue
-        content = prompt.read_text(encoding="utf-8")
-        disallowed = _claude_code_disallowed_tools(content)
-        if disallowed is None:
-            errors.append(f"{_rel(root, prompt)}: missing disallowedTools frontmatter")
-        else:
-            expected_denied = _claude_code_expected_denied(_recipe_posture(root, agent_dir.name))
-            if not expected_denied <= disallowed:
-                missing = sorted(expected_denied - disallowed)
-                errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
-        if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in content:
-            errors.append(f"{_rel(root, prompt)}: missing untrusted-content boundary")
-        _check_namespace_preflight(root, prompt, content, errors)
-        _check_knowledge_pack_section(root, prompt, content, errors)
-        setup = agent_dir / "endorctl-setup.md"
-        if setup.is_file():
-            _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
+        for bundle_dir in bundle_dirs:
+            prompt = bundle_dir / f"{agent_dir.name}.md"
+            content = prompt.read_text(encoding="utf-8")
+            disallowed = _claude_code_disallowed_tools(content)
+            if disallowed is None:
+                errors.append(f"{_rel(root, prompt)}: missing disallowedTools frontmatter")
+            else:
+                expected_denied = _claude_code_expected_denied(_recipe_posture(root, agent_dir.name))
+                if not expected_denied <= disallowed:
+                    missing = sorted(expected_denied - disallowed)
+                    errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
+            if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in content:
+                errors.append(f"{_rel(root, prompt)}: missing untrusted-content boundary")
+            _check_namespace_preflight(root, prompt, content, errors)
+            _check_knowledge_pack_section(root, prompt, content, errors)
+            setup = bundle_dir / "endorctl-setup.md"
+            if setup.is_file():
+                _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
 
 
 def _claude_code_expected_denied(posture: SourceRecipeSafetyPosture | None) -> set[str]:
@@ -712,11 +719,11 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
         _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
     expected_skills = (
-        "ai-sast-triage",
+        "ai-sast-remediation",
         "cicd-posture",
-        "endor-troubleshooter",
+        "troubleshooting",
         "findings-browser",
-        "probe-droid",
+        "configuration-automation",
         "sca-remediation",
     )
     for skill_id in expected_skills:
@@ -737,14 +744,14 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             errors.append(f"{_rel(root, architecture)}: missing Cursor architecture diagram")
 
     expected_agents = {
-        "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "ai-sast-remediation": "endor-ai-sast-remediation-agent",
         "cicd-posture": "endor-cicd-posture-agent",
-        "endor-troubleshooter": "endor-troubleshooter-agent",
+        "troubleshooting": "endor-troubleshooting-agent",
         "findings-browser": "endor-findings-browser-agent",
-        "probe-droid": "endor-probe-droid-agent",
+        "configuration-automation": "endor-configuration-automation-agent",
         "sca-remediation": "endor-sca-remediation-agent",
     }
-    mutating_agents = {"ai-sast-triage", "sca-remediation"}
+    mutating_agents = {"ai-sast-remediation", "sca-remediation"}
     for skill_id, agent_name in expected_agents.items():
         agent = root / "agents" / f"{agent_name}.md"
         if not agent.is_file():
@@ -840,11 +847,11 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     definitions = _load_json_mapping(root, sdk_root / "agent_definitions.json", errors)
     expected_agents = {
         "endor-agent-kit-setup": "endor-agent-kit-setup-agent",
-        "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "ai-sast-remediation": "endor-ai-sast-remediation-agent",
         "cicd-posture": "endor-cicd-posture-agent",
-        "endor-troubleshooter": "endor-troubleshooter-agent",
+        "troubleshooting": "endor-troubleshooting-agent",
         "findings-browser": "endor-findings-browser-agent",
-        "probe-droid": "endor-probe-droid-agent",
+        "configuration-automation": "endor-configuration-automation-agent",
         "sca-remediation": "endor-sca-remediation-agent",
     }
     if definitions:
@@ -866,17 +873,17 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
             if not isinstance(prompt_file, str) or not (sdk_root / prompt_file).is_file():
                 errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} prompt_file is missing")
             readonly = definition.get("readonly")
-            expected_readonly = agent_id not in {"ai-sast-triage", "sca-remediation"}
+            expected_readonly = agent_id not in {"ai-sast-remediation", "sca-remediation"}
             if readonly is not expected_readonly:
                 errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} readonly must be {expected_readonly}")
 
     expected_prompt_files = {
         "endor-agent-kit-setup-agent": "Endor Agent Kit Setup Agent For Cursor SDK",
-        "endor-ai-sast-triage-agent": "## Cursor SDK Host Contract",
+        "endor-ai-sast-remediation-agent": "## Cursor SDK Host Contract",
         "endor-findings-browser-agent": "## Cursor SDK Host Contract",
         "endor-cicd-posture-agent": "## Cursor SDK Host Contract",
-        "endor-troubleshooter-agent": "## Cursor SDK Host Contract",
-        "endor-probe-droid-agent": "## Cursor SDK Host Contract",
+        "endor-troubleshooting-agent": "## Cursor SDK Host Contract",
+        "endor-configuration-automation-agent": "## Cursor SDK Host Contract",
         "endor-sca-remediation-agent": "## Cursor SDK Host Contract",
     }
     for agent_name, required_heading in expected_prompt_files.items():
@@ -1375,7 +1382,7 @@ def _check_claude_marketplace(
         "SAST remediation",
         "agentic AppSec",
         "AppSec",
-        "Upgrade Impact Analysis",
+        "OSS Upgrade Investigator",
     }
     for plugin_name, expected_source in expected_sources.items():
         entry = next(

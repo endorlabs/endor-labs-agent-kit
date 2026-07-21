@@ -1,0 +1,286 @@
+agent_id: dependency-reviewer
+title: Dependency Reviewer Evidence Contract
+summary: Route once to an exact package decision, exact package risk summary, or bounded repository dependency review.
+task_profiles:
+  - id: package-decision
+    title: Exact Package Decision
+    summary: Decide whether to add, upgrade to, keep, or avoid one explicit package version.
+    when_to_use:
+      - The user asks for an adoption, approval, upgrade, keep, or avoid decision for one package version.
+    minimal_evidence:
+      - Exact ecosystem, package name, version, PackageVersion evidence, and available vulnerability or policy signals.
+    stop_when:
+      - The decision is supported by exact-package evidence or missing signals are recorded in data_gaps.
+      - Do not inspect repository manifests or query unrelated packages.
+    output_focus:
+      - Return profile, verdict, conditions, alternatives, summary, evidence_queries, data_gaps, and policy fields.
+    compact: true
+    output_fields:
+      - profile
+      - verdict
+      - conditions
+      - alternatives
+      - summary
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
+  - id: package-risk
+    title: Exact Package Risk
+    summary: Summarize verified risk for one explicit package version without making an adoption decision.
+    when_to_use:
+      - The user asks for a package risk picture, evidence summary, or review inputs rather than a yes/no decision.
+    minimal_evidence:
+      - Exact ecosystem, package name, version, PackageVersion evidence, and available vulnerability, score, or license signals.
+    stop_when:
+      - The risk posture is evidence-backed or unavailable signals are recorded in data_gaps.
+      - Do not inspect repository manifests or broaden to tenant inventory.
+    output_focus:
+      - Return profile, risk_posture, findings, strengths, next_checks, summary, evidence_queries, data_gaps, and policy fields.
+    compact: true
+    included_sections:
+      - risk-evaluation
+      - risk-summary-ladder
+    output_fields:
+      - profile
+      - risk_posture
+      - findings
+      - strengths
+      - next_checks
+      - summary
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
+  - id: repository-review
+    title: Repository Dependency Review
+    summary: Inspect local manifests and attach bounded Endor evidence only to selected exact direct dependencies.
+    when_to_use:
+      - The user asks to review dependencies, manifests, or dependency risk in the current repository.
+    minimal_evidence:
+      - Repository root, manifest paths, exact direct coordinates, and available package or scoped Finding evidence.
+    stop_when:
+      - The bounded dependency set is categorized with verified evidence or precise data_gaps.
+      - Do not expand into remediation planning or tenant-wide inventory.
+    output_focus:
+      - Return profile, risk_posture, manifests, dependencies_reviewed, findings, recommended_actions, summary, evidence_queries, data_gaps, and policy fields.
+    compact: true
+    included_sections:
+      - risk-evaluation
+      - risk-summary-ladder
+    output_fields:
+      - profile
+      - risk_posture
+      - manifests
+      - dependencies_reviewed
+      - findings
+      - recommended_actions
+      - summary
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
+resources:
+  - name: RepositoryManifest
+    purpose: Discover exact direct dependency coordinates through read-only file inspection for repository-review only.
+    fields:
+      - path
+      - ecosystem
+      - package_name
+      - version
+  - name: PackageVersion
+    purpose: Resolve exact package-version evidence without broad package inventory.
+    fields:
+      - uuid
+      - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
+  - name: Metric
+    purpose: Read score or license signals only after exact PackageVersion resolution.
+    fields:
+      - spec.metric_values
+  - name: Finding
+    purpose: Check scoped vulnerability availability only for a selected package and proven project.
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+  - name: Vulnerability
+    purpose: Enrich exact vulnerability identifiers when the host exposes that evidence.
+    fields:
+      - uuid
+      - spec
+retrieval_steps:
+  - Select exactly one task profile before gathering evidence; never invoke the legacy agents sequentially.
+  - Require exact ecosystem, package name, and version before package-profile lookups.
+  - Inspect local manifests only for repository-review and prefer exact direct runtime dependencies from lockfiles.
+  - Resolve namespace provenance before tenant-scoped reads; package-level oss lookups do not require tenant expansion.
+  - Stop as soon as the selected profile can emit an evidence-backed result or precise data_gaps.
+fallbacks:
+  - If a package coordinate is incomplete, return the selected package profile with coordinate data_gaps and no broad discovery.
+  - If repository files are unavailable, return repository-review with a host capability gap and no guessed inventory.
+  - If Endor evidence is unavailable, preserve local or user-provided facts and return a bounded UNKNOWN or degraded decision.
+data_gaps:
+  - Record missing coordinates, manifest access, unresolved versions, namespace provenance, credentials, PackageVersion evidence, scores, licenses, Findings, and vulnerability enrichment.
+  - Preserve the selected profile and exact evidence source in the final output.
+evidence_query_plans:
+  - profile_id: package-decision
+    title: Exact Package Decision Query Plan
+    objective: Gather only the evidence needed to decide on one named package version.
+    query_order:
+      - Resolve ecosystem, package name, version, and package URL prefix.
+      - Query the exact oss PackageVersion by meta.name.
+      - Query selected vulnerability or policy evidence only when it can change the decision.
+    avoid:
+      - Do not inspect manifests, inventory unrelated versions, or enumerate tenant findings.
+    stop_after:
+      - Stop after a verdict and its conditions are supported or required signals are recorded in data_gaps.
+    data_gaps:
+      - Record incomplete coordinates, PackageVersion misses, unavailable vulnerability evidence, and missing policy facts.
+  - profile_id: package-risk
+    title: Exact Package Risk Query Plan
+    objective: Summarize the risk posture of one named package version without making an adoption decision.
+    query_order:
+      - Resolve ecosystem, package name, version, and package URL prefix.
+      - Query the exact oss PackageVersion by meta.name.
+      - Enrich only exact vulnerability identifiers and available score or license signals.
+    avoid:
+      - Do not inspect manifests, broaden to repository inventory, or infer risk from popularity heuristics.
+    stop_after:
+      - Stop after the posture and caveats are evidence-backed or the evidence boundary is recorded in data_gaps.
+    data_gaps:
+      - Record PackageVersion misses, unavailable score or license signals, and vulnerability enrichment gaps.
+  - profile_id: repository-review
+    title: Repository Dependency Review Query Plan
+    objective: Attach Endor evidence only to exact dependencies discovered in the current repository.
+    query_order:
+      - Inventory supported local manifests and resolve exact direct dependency coordinates.
+      - Resolve project scope only when the user requests tenant-scoped evidence.
+      - Query exact PackageVersion evidence for the bounded selected dependency set.
+      - Query scoped Finding evidence only for risky or user-selected packages.
+    avoid:
+      - Do not enumerate all tenant packages or findings, and do not expand into remediation planning.
+    stop_after:
+      - Stop after the bounded dependency set is categorized with verified evidence or data_gaps.
+    data_gaps:
+      - Record unreadable manifests, unresolved versions, project misses, packages without Endor evidence, and skipped broad queries.
+evidence_query_recipes:
+  - profile_id: package-decision
+    id: decision-package-version-exact
+    canonical_id: package-version-exact
+    resource: PackageVersion
+    purpose: Resolve exact package-version evidence for one adoption decision.
+    template: endorctl agent api --agent-id <agent-id> list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
+    constraints:
+      - Require an exact coordinate and stop on a missing or ambiguous match.
+      - Do not inventory other versions or packages.
+  - profile_id: package-decision
+    id: decision-selected-package-findings
+    canonical_id: sca-finding-availability
+    resource: Finding
+    purpose: Check selected-package project findings only when proven tenant scope can change the decision.
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+    constraints:
+      - Use only for the selected package and proven project scope.
+      - Do not add --list-all.
+  - profile_id: package-risk
+    id: risk-package-version-exact
+    canonical_id: package-version-exact
+    resource: PackageVersion
+    purpose: Resolve exact package-version evidence for one risk summary.
+    template: endorctl agent api --agent-id <agent-id> list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
+    constraints:
+      - Require an exact coordinate and stop on a missing or ambiguous match.
+      - Do not inspect repository manifests.
+  - profile_id: package-risk
+    id: risk-vulnerability-enrichment
+    canonical_id: mcp-vulnerability-enrichment
+    resource: Endor MCP vulnerability evidence
+    purpose: Enrich only exact vulnerability IDs returned for the selected package version.
+    template: get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)
+    fields:
+      - id
+      - severity
+      - epss
+      - cisa_kev
+      - fixed_versions
+    constraints:
+      - Do not broaden to unrelated vulnerability identifiers.
+      - Record unavailable enrichment in data_gaps.
+  - profile_id: repository-review
+    id: repository-local-manifest-inventory
+    canonical_id: local-manifest-inventory
+    resource: local-files
+    purpose: Inventory supported dependency manifests before any Endor expansion.
+    template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+    fields:
+      - manifest_path
+      - ecosystem_hint
+    constraints:
+      - Read files only and prefer exact direct dependencies from lockfiles.
+      - Treat local files as context until Endor evidence backs risk claims.
+  - profile_id: repository-review
+    id: repository-project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository only when tenant-scoped evidence was requested.
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use only a proven namespace and retry the same selector with --traverse on a parent miss.
+      - Do not enumerate unrelated projects.
+  - profile_id: repository-review
+    id: repository-package-version-exact
+    canonical_id: package-version-exact
+    resource: PackageVersion
+    purpose: Fetch exact evidence only for dependencies selected from repository manifests.
+    template: endorctl agent api --agent-id <agent-id> list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec.ecosystem
+      - spec.package_name
+      - spec.release_timestamp
+    constraints:
+      - Query only exact selected coordinates and keep the first pass bounded.
+      - Do not inventory all package versions.
+  - profile_id: repository-review
+    id: repository-selected-package-findings
+    canonical_id: sca-finding-availability
+    resource: Finding
+    purpose: Check scoped findings only for risky or user-selected dependencies.
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+    constraints:
+      - Use only for the selected package and proven project scope.
+      - Do not add --list-all or export unrelated findings.

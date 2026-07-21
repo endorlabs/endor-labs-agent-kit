@@ -15,18 +15,16 @@ Generated for Endor Labs Agent Kit Codex plugin `endor-labs-agent-kit` v2.1.0.
 
 ## Bundled Codex Agents And Skills
 
-- `ai-sast-triage` -> `endor-ai-sast-triage-agent`
+- `ai-sast-remediation` -> `endor-ai-sast-remediation-agent`
 - `cicd-posture` -> `endor-cicd-posture-agent`
-- `dependency-decision-helper` -> `endor-dependency-decision-helper-agent`
-- `endor-troubleshooter` -> `endor-troubleshooter-agent`
+- `configuration-automation` -> `endor-configuration-automation-agent`
+- `dependency-reviewer` -> `endor-dependency-reviewer-agent`
 - `findings-browser` -> `endor-findings-browser-agent`
-- `malware-response` -> `endor-malware-response-agent`
-- `package-risk-summary` -> `endor-package-risk-summary-agent`
-- `probe-droid` -> `endor-probe-droid-agent`
-- `remediation-planner` -> `endor-remediation-planner-agent`
-- `repository-dependency-reviewer` -> `endor-repository-dependency-reviewer-agent`
+- `malware-responder` -> `endor-malware-responder-agent`
+- `oss-upgrade-investigator` -> `endor-oss-upgrade-investigator-agent`
+- `remediation-planning` -> `endor-remediation-planning-agent`
 - `sca-remediation` -> `endor-sca-remediation-agent`
-- `upgrade-impact-analysis` -> `endor-upgrade-impact-analysis-agent`
+- `troubleshooting` -> `endor-troubleshooting-agent`
 - `vulnerability-explainer` -> `endor-vulnerability-explainer-agent`
 - `endor-agent-kit-setup` -> `endor-agent-kit-setup-agent`
 
@@ -239,7 +237,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Codex-Specific Rules

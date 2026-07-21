@@ -62,7 +62,7 @@ of installed into the Cursor IDE.
 ```bash
 python3 -m pip install -r cursor-sdk/requirements.txt
 export CURSOR_API_KEY="crsr_..."
-python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \
+python cursor-sdk/run_cursor_agent.py endor-configuration-automation-agent \
   --workspace /path/to/repo \
   "Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only."
 ```
@@ -94,16 +94,16 @@ package managers, or write credentials.
 
 | Job | Workflow |
 | --- | --- |
-| Triage Endor AI SAST findings | `ai-sast-triage` |
+| Triage Endor AI SAST findings | `ai-sast-remediation` |
 | Assess CI/CD and supply chain posture | `cicd-posture` |
-| Diagnose Endor setup, scan, auth, policy, or integration issues | `endor-troubleshooter` |
+| Diagnose Endor setup, scan, auth, policy, or integration issues | `troubleshooting` |
 | Browse, filter, and summarize existing Endor findings | `findings-browser` |
-| Correlate supply-chain malware intelligence against tenant inventory | `malware-response` |
-| Probe GitHub onboarding and monitored-branch coverage gaps | `probe-droid` |
+| Correlate supply-chain malware intelligence against tenant inventory | `malware-responder` |
+| Probe GitHub onboarding and monitored-branch coverage gaps | `configuration-automation` |
 | Find safe dependency remediation paths with Endor SCA evidence | `sca-remediation` |
-| Compare package risk or a dependency decision | `dependency-decision-helper`, `package-risk-summary` |
-| Review repository dependencies or remediation options | `repository-dependency-reviewer`, `remediation-planner` |
-| Analyze upgrade impact or explain vulnerabilities | `upgrade-impact-analysis`, `vulnerability-explainer` |
+| Compare package risk, make a dependency decision, or review repository dependencies | `dependency-reviewer` with the `package-risk`, `package-decision`, or `repository-review` profile |
+| Preview remediation options without making changes | `remediation-planning` |
+| Analyze upgrade impact or explain vulnerabilities | `oss-upgrade-investigator`, `vulnerability-explainer` |
 
 Each workflow above is generated for the supported host packages. Use the
 selected host README for exact invocation names and install paths.
@@ -111,7 +111,7 @@ selected host README for exact invocation names and install paths.
 ## First Prompts
 
 ```text
-Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate.
+Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate.
 ```
 
 ```text
@@ -119,11 +119,11 @@ Use the sca-remediation skill to check this repository for P0 SCA findings I can
 ```
 
 ```text
-Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only.
+Use the configuration-automation skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only.
 ```
 
 ```text
-Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only.
+Use the troubleshooting skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only.
 ```
 
 ```text
@@ -144,6 +144,7 @@ Use the findings-browser skill to show the critical and high reachable findings 
 ## More Detail
 
 - Agent and host catalog: `README.md`
+- Renamed and consolidated agent identifiers: `docs/agent-identity-migration.md`
 - Agent-facing operating rules: `docs/for-agents.md`
 - Maintainer workflow: `docs/maintainer-guide.md`
 - Public mirror sync: `docs/distribution-sync.md`

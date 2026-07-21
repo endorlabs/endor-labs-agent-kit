@@ -96,7 +96,8 @@ and blocks merge on failure:
 
 | Recipe field | Catalog field | Rule |
 | --- | --- | --- |
-| `id` | `id` | kebab-case `^[a-z][a-z0-9-]{2,63}$`; **immutable once on `main`** (telemetry join key). |
+| `id` | `id` | kebab-case `^[a-z][a-z0-9-]{2,63}$`; canonical telemetry join key. Change only through the reviewed identity-migration contract below. |
+| `legacy_ids` | `legacy_ids` | optional unique kebab-case aliases owned by exactly one canonical agent; must not overlap an active `id`. |
 | `name` | `name` | non-empty. |
 | `version` | `version` | non-empty semver; bump this for behavior changes (never rename `id`). |
 | `audience` | `audience` | required; one of `appsec` or `developer` -- the persona surface the agent lists under. |
@@ -109,11 +110,18 @@ and blocks merge on failure:
 `claude-managed` hosts; no recipe field is needed. `catalog.json` is a generated,
 committed artifact covered by the drift check -- regenerate it with `publish`.
 
+Catalog wire schema v2 carries `legacy_ids` so a backend can resolve an old
+identifier to its canonical agent without publishing the old agent as a second
+visible entry. Renames require backend alias support before the catalog is
+released, an entry in `docs/agent-identity-migration.md`, and tests proving that
+each alias has one owner. Consolidations must also document how the canonical
+agent routes the former workflows without chaining the legacy agents.
+
 The **merge gate** on `agents/**`-affecting PRs is:
 
 - `endor-agent-kit validate` over every recipe (the field contract above)
 - `endor-agent-kit check-id-stability --base-ref origin/<base>` -- fails if an id
-  present on `main` is renamed or removed
+  present on `main` is removed without becoming an explicit `legacy_ids` alias
 - `CODEOWNERS` review on the recipes, validator, emitter, signing logic, release
   workflow, and pinned key
 

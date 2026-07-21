@@ -7,18 +7,16 @@ Generated for Cursor Python SDK automation.
 
 ## Bundled Cursor SDK Workflows
 
-- `Triage AI SAST findings` -> SDK agent `endor-ai-sast-triage-agent`
+- `Triage AI SAST findings` -> SDK agent `endor-ai-sast-remediation-agent`
 - `Assess CI/CD and supply chain posture` -> SDK agent `endor-cicd-posture-agent`
-- `Dependency Decision Helper` -> SDK agent `endor-dependency-decision-helper-agent`
-- `Diagnose Endor setup and scan issues` -> SDK agent `endor-troubleshooter-agent`
+- `Assess GitHub onboarding gaps` -> SDK agent `endor-configuration-automation-agent`
+- `Dependency Reviewer` -> SDK agent `endor-dependency-reviewer-agent`
 - `Findings Browser` -> SDK agent `endor-findings-browser-agent`
-- `Malware Response` -> SDK agent `endor-malware-response-agent`
-- `Package Risk Summary` -> SDK agent `endor-package-risk-summary-agent`
-- `Assess GitHub onboarding gaps` -> SDK agent `endor-probe-droid-agent`
-- `Remediation Planner` -> SDK agent `endor-remediation-planner-agent`
-- `Repository Dependency Reviewer` -> SDK agent `endor-repository-dependency-reviewer-agent`
+- `Malware Responder` -> SDK agent `endor-malware-responder-agent`
+- `Oss Upgrade Investigator` -> SDK agent `endor-oss-upgrade-investigator-agent`
+- `Remediation Planning` -> SDK agent `endor-remediation-planning-agent`
 - `Find safe SCA remediation paths` -> SDK agent `endor-sca-remediation-agent`
-- `Upgrade Impact Analysis` -> SDK agent `endor-upgrade-impact-analysis-agent`
+- `Diagnose Endor setup and scan issues` -> SDK agent `endor-troubleshooting-agent`
 - `Vulnerability Explainer` -> SDK agent `endor-vulnerability-explainer-agent`
 
 ## Cursor SDK Host Contract
@@ -194,7 +192,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Cursor SDK-Specific Rules

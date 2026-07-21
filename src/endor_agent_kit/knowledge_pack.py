@@ -507,18 +507,16 @@ def default_task_profile_for_agent(agent_id: str) -> str:
     """Return the preferred compact profile for runtime proof of an agent."""
 
     defaults = {
-        "ai-sast-triage": "evidence-check",
+        "ai-sast-remediation": "evidence-check",
         "cicd-posture": "posture",
-        "dependency-decision-helper": "explain",
-        "endor-troubleshooter": "diagnose",
+        "dependency-reviewer": "repository-review",
+        "troubleshooting": "diagnose",
         "findings-browser": "browse",
-        "malware-response": "exposure-check",
-        "package-risk-summary": "explain",
-        "probe-droid": "evidence-check",
-        "remediation-planner": "selection-plan",
-        "repository-dependency-reviewer": "evidence-check",
+        "malware-responder": "exposure-check",
+        "configuration-automation": "evidence-check",
+        "remediation-planning": "selection-plan",
         "sca-remediation": "selection-plan",
-        "upgrade-impact-analysis": "evidence-check",
+        "oss-upgrade-investigator": "evidence-check",
         "vulnerability-explainer": "explain",
     }
     return defaults.get(agent_id, "evidence-check")
@@ -723,7 +721,7 @@ def _validate_workflows(
                 errors.append(f"{plan_prefix}: evidence query plan must mention data_gaps")
         for profile_id in sorted(profile_ids - plan_profile_ids):
             errors.append(f"{prefix}.evidence_query_plans: missing plan for task profile {profile_id!r}")
-        if agent_id in {"sca-remediation", "remediation-planner"}:
+        if agent_id in {"sca-remediation", "remediation-planning"}:
             _validate_sca_query_order(prefix, evidence_query_plans, errors)
         evidence_query_recipes = _mappings(data.get("evidence_query_recipes"))
         if not evidence_query_recipes:

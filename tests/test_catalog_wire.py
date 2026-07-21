@@ -29,7 +29,15 @@ def _bundle(agent_id, host, edition_id, *, requires_endorctl=">=1.0.0"):
     )
 
 
-def _agent(agent_id, host, edition_id, *, audience="developer", requires_endorctl=">=1.0.0"):
+def _agent(
+    agent_id,
+    host,
+    edition_id,
+    *,
+    audience="developer",
+    requires_endorctl=">=1.0.0",
+    legacy_ids=(),
+):
     return CatalogAgent(
         id=agent_id,
         host=host,
@@ -40,6 +48,7 @@ def _agent(agent_id, host, edition_id, *, audience="developer", requires_endorct
         description="Long detail markdown.",
         authors=("Endor Labs",),
         requires_endorctl=requires_endorctl,
+        legacy_ids=legacy_ids,
         editions=(_bundle(agent_id, host, edition_id, requires_endorctl=requires_endorctl),),
     )
 
@@ -52,6 +61,10 @@ def test_envelope_shape():
     assert "fetched_at" not in payload
     assert "stale" not in payload
     assert [agent["id"] for agent in payload["agents"]] == ["alpha-agent"]
+
+
+def test_catalog_schema_is_v2_for_identity_aliases():
+    assert CATALOG_SCHEMA_VERSION == "v2"
 
 
 def test_catalog_version_stamped_when_provided():
@@ -87,6 +100,59 @@ def test_endor_agent_field_shape():
             }
         ],
     }
+
+
+def test_endor_agent_emits_sorted_legacy_ids():
+    payload = catalog_wire_payload(
+        [
+            _agent(
+                "dependency-reviewer",
+                "claude-code",
+                "enterprise-edition",
+                legacy_ids=("repository-dependency-reviewer", "dependency-decision-helper"),
+            )
+        ]
+    )
+
+    assert payload["agents"][0]["legacy_ids"] == [
+        "dependency-decision-helper",
+        "repository-dependency-reviewer",
+    ]
+
+
+def test_catalog_rejects_legacy_id_that_is_still_active():
+    agents = [
+        _agent(
+            "dependency-reviewer",
+            "claude-code",
+            "enterprise-edition",
+            legacy_ids=("package-risk-summary",),
+        ),
+        _agent("package-risk-summary", "claude-code", "enterprise-edition"),
+    ]
+
+    with pytest.raises(ValueError, match="active agent id"):
+        catalog_wire_payload(agents)
+
+
+def test_catalog_rejects_legacy_id_claimed_by_multiple_agents():
+    agents = [
+        _agent(
+            "dependency-reviewer",
+            "claude-code",
+            "enterprise-edition",
+            legacy_ids=("package-risk-summary",),
+        ),
+        _agent(
+            "other-reviewer",
+            "claude-code",
+            "enterprise-edition",
+            legacy_ids=("package-risk-summary",),
+        ),
+    ]
+
+    with pytest.raises(ValueError, match="claimed by multiple"):
+        catalog_wire_payload(agents)
 
 
 def test_endorctl_min_version_strips_operator():

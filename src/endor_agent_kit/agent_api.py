@@ -52,7 +52,7 @@ def agent_api_command_errors(
         action = action_match.group(1).lower()
         if action not in {"create", "update", "delete"}:
             continue
-        if agent_id != "ai-sast-triage":
+        if agent_id != "ai-sast-remediation":
             errors.append(
                 f"line {line_number}: {agent_id} is not allowed to mutate Endor resources"
             )
@@ -61,6 +61,6 @@ def agent_api_command_errors(
         resource = resource_match.group(1) if resource_match is not None else ""
         if action not in {"create", "update"} or resource != "Policy":
             errors.append(
-                f"line {line_number}: ai-sast-triage may create or update Policy resources only"
+                f"line {line_number}: ai-sast-remediation may create or update Policy resources only"
             )
     return errors

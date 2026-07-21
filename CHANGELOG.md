@@ -22,6 +22,16 @@ package metadata.
 
 ### Changed
 
+- Renamed and consolidated the public catalog to 11 canonical agents. The new
+  catalog wire schema v2 carries `legacy_ids` for backend-compatible alias
+  resolution, and Dependency Reviewer now selects one bounded
+  `package-decision`, `package-risk`, or `repository-review` profile instead of
+  chaining three overlapping agents.
+- Renamed AI SAST Triage to AI SAST Remediation, Remediation Planner to
+  Remediation Planning, Upgrade Impact Analysis to OSS Upgrade Investigator,
+  Endor Troubleshooter to Troubleshooting, Probe Droid to Configuration
+  Automation, Malware Response Agent to Malware Responder, and the display name
+  Endor Labs Vulnerability Explainer to Vulnerability Explainer.
 - Refreshed the pinned Endor OpenAPI and client/service provenance to
   v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
 - Enhanced `findings-browser` with compact complete-count queries and

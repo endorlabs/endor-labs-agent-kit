@@ -81,7 +81,7 @@ first behavior, `namespace_provenance`, and `data_gaps` guidance.
 Most current agents are read-only. The mutating workflows are:
 
 - `sca-remediation`
-- `ai-sast-triage`
+- `ai-sast-remediation`
 
 Read-only agents must not edit files, create change requests, run scans, dismiss
 findings, create policies, post comments, or mutate Endor Labs state. If a
@@ -100,7 +100,7 @@ Mutating agents use explicit action contracts for semantic side effects such as:
 - `ticket.create` when declared by a recipe
 
 `ticket.create` is part of the portable vocabulary. `sca-remediation` and
-`ai-sast-triage` declare it as an agent-owned action; other portable bundles
+`ai-sast-remediation` declare it as an agent-owned action; other portable bundles
 can use it as a runtime wrapper after final output.
 
 ## Endor Namespace Guardrails

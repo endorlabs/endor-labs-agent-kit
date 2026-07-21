@@ -322,7 +322,7 @@ Required top-level fields must appear in this order:
 - `severity_summary` (`object`): Counts by severity and category for the returned page or exact finding context.
 - `finding_results` (`list[object]`): Table-ready finding rows with UUID, category, severity, project, package/action target, status, reachability when available, concise reason, and evidence reference.
 - `pagination` (`object`): Page size, returned count, truncation status, approximate total when known, and next filter guidance.
-- `recommended_next_steps` (`list[object]`): Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, probe-droid, or cicd-posture, with confirmation requirements for any mutating follow-up.
+- `recommended_next_steps` (`list[object]`): Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, configuration-automation, or cicd-posture, with confirmation requirements for any mutating follow-up.
 - `evidence_queries` (`list[object]`): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (`list[string]`): Missing namespace, project resolution, category, permission, pagination, field availability, or Endor lookup evidence.
 - `policy_context` (`object`): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.

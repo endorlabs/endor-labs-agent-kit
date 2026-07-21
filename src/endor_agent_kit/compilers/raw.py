@@ -170,7 +170,7 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "those mutations.",
             "",
         ]
-        if recipe.id == "ai-sast-triage":
+        if recipe.id == "ai-sast-remediation":
             lines.extend([
                 "For standalone exception policies, the agent must verify a GitHub/GitLab",
                 "approval artifact from a configured AppSec approver, render the Endor",
@@ -228,10 +228,10 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         "gathered.",
     ])
     if _uses_github_evidence(recipe):
-        if recipe.id == "probe-droid":
+        if recipe.id == "configuration-automation":
             lines.extend([
                 "",
-                "Probe Droid also needs read-only GitHub.com inventory access when",
+                "Configuration Automation also needs read-only GitHub.com inventory access when",
                 "the user asks it to compare GitHub repositories with Endor projects.",
                 "GitHub commands must list repositories or fetch specific manifest,",
                 "CI, or Endor setup files only; they must not clone repositories or",
@@ -246,10 +246,10 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
                 "CI, or Endor setup files only; they must not clone repositories or",
                 "mutate GitHub settings.",
             ])
-    elif recipe.id == "endor-troubleshooter":
+    elif recipe.id == "troubleshooting":
         lines.extend([
             "",
-            "Endor Troubleshooter uses only read-only Endor lookups and redacted",
+            "Troubleshooting uses only read-only Endor lookups and redacted",
             "user-provided issue text. It must not run scans, create scan log",
             "requests, change credentials, edit scan profiles, update integrations,",
             "post comments, open PRs/MRs, or mutate Endor state. Any such step",

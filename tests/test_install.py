@@ -245,7 +245,7 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
 
 def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     recipes = [
-        _copy_agent_source(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent_source(tmp_path / "troubleshooter", "troubleshooting"),
         _copy_agent_source(tmp_path / "sca", "sca-remediation"),
     ]
     dest = tmp_path / "endor-labs-agent-kit"
@@ -478,25 +478,25 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(
         catalog,
-        agent_id="probe-droid",
+        agent_id="configuration-automation",
         host="claude-managed-agents",
-        bundle_path="managed-export/probe-droid",
+        bundle_path="managed-export/configuration-automation",
         primary_artifact_name="agent.yaml",
-        primary_artifact_path="managed-export/probe-droid/agent.yaml",
+        primary_artifact_path="managed-export/configuration-automation/agent.yaml",
         primary_content="agent",
         extra_artifacts=[
             {
-                "path": "managed-export/probe-droid/environment.yaml",
+                "path": "managed-export/configuration-automation/environment.yaml",
                 "sha256": _sha256_text("environment"),
                 "bytes": len("environment"),
             },
             {
-                "path": "managed-export/probe-droid/session-template.yaml",
+                "path": "managed-export/configuration-automation/session-template.yaml",
                 "sha256": _sha256_text("session"),
                 "bytes": len("session"),
             },
             {
-                "path": "managed-export/probe-droid/README.md",
+                "path": "managed-export/configuration-automation/README.md",
                 "sha256": _sha256_text("readme"),
                 "bytes": len("readme"),
             },
@@ -508,7 +508,7 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
     (managed_agent_dir / "agent.yaml").write_text("agent", encoding="utf-8")
 
     missing_errors = check_claude_managed_agents_install(
-        "probe-droid",
+        "configuration-automation",
         managed_agent_dir,
         catalog_root=catalog,
     )
@@ -521,7 +521,7 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
     (managed_agent_dir / "README.md").write_text("readme", encoding="utf-8")
 
     stale_errors = check_claude_managed_agents_install(
-        "probe-droid",
+        "configuration-automation",
         managed_agent_dir,
         catalog_root=catalog,
     )
@@ -529,7 +529,7 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
 
     (managed_agent_dir / "environment.yaml").write_text("environment", encoding="utf-8")
     assert check_claude_managed_agents_install(
-        "probe-droid",
+        "configuration-automation",
         managed_agent_dir,
         catalog_root=catalog,
     ) == []
@@ -609,21 +609,21 @@ def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_pa
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(
         catalog,
-        agent_id="probe-droid",
+        agent_id="configuration-automation",
         host="claude-managed-agents",
-        bundle_path="claude-managed-agents/probe-droid",
+        bundle_path="claude-managed-agents/configuration-automation",
         primary_artifact_name="agent.yaml",
-        primary_artifact_path="claude-managed-agents/probe-droid/agent.yaml",
+        primary_artifact_path="claude-managed-agents/configuration-automation/agent.yaml",
         primary_content="agent",
         extra_artifacts=[
             {
-                "path": "claude-managed-agents/probe-droid/environment.yaml",
+                "path": "claude-managed-agents/configuration-automation/environment.yaml",
                 "sha256": _sha256_text("environment"),
                 "bytes": len("environment"),
             }
         ],
     )
-    managed_agent_dir = catalog / "claude-managed-agents" / "probe-droid"
+    managed_agent_dir = catalog / "claude-managed-agents" / "configuration-automation"
     managed_agent_dir.mkdir(parents=True)
     (managed_agent_dir / "agent.yaml").write_text("agent", encoding="utf-8")
     (managed_agent_dir / "environment.yaml").write_text("environment", encoding="utf-8")
@@ -633,7 +633,7 @@ def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_pa
         "--host",
         "claude-managed-agents",
         "--agent",
-        "probe-droid",
+        "configuration-automation",
         "--catalog-root",
         str(catalog),
     ]) == 0

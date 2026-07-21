@@ -48,8 +48,8 @@ import re
 # endorctl resource kinds (the value after ``-r`` or ``--resource``) the catalog
 # may use. The five attested in query-recipes.yaml are the floor; the remainder
 # are Endor resources the agent ``instructions.md`` commands query directly,
-# mostly via the long ``--resource`` flag (endor-troubleshooter and probe-droid
-# diagnostics, package-risk-summary scoring, the legacy SCA agent). This list is
+# mostly via the long ``--resource`` flag (troubleshooting and configuration-automation
+# diagnostics, dependency-reviewer scoring, the legacy SCA agent). This list is
 # the complete set actually emitted by any agent today — derived from a kit-wide
 # grep of every ``-r``/``--resource`` token across source/ and the generated
 # bundles — so it is the single source for the whole catalog.
@@ -61,7 +61,7 @@ ENDOR_API_RESOURCES = frozenset(
         "PackageVersion",
         "VersionUpgrade",
         "ScanResult",
-        # package-risk-summary / dependency-decision-helper scoring + similarity.
+        # dependency-reviewer scoring + similarity.
         "Metric",
         "QuerySimilarPackages",
         # remediation / upgrade / dependency family.
@@ -70,7 +70,7 @@ ENDOR_API_RESOURCES = frozenset(
         "UpgradeImpactAnalysis",
         "DependencyMetadata",
         "CallGraphData",
-        # probe-droid onboarding + endor-troubleshooter diagnostic lanes
+        # configuration-automation onboarding + troubleshooting diagnostic lanes
         # (queried via ``endorctl api list --resource <kind>``).
         "ScanWorkflowResult",
         "ScanWorkflow",
@@ -101,7 +101,7 @@ ENDOR_API_RESOURCES = frozenset(
 # ``v1<Kind>`` message definitions; ``Vulnerability`` and ``Metric`` are
 # service-backed resource kinds (resource-kinds docs + live agent usage), and
 # ``UpgradeImpactAnalysis`` is a legacy kind NOT in the current spec. The fake
-# ``Integration`` placeholder was removed — endor-troubleshooter declares it as a
+# ``Integration`` placeholder was removed — troubleshooting declares it as a
 # resource but never queries it via -r/--resource and the API exposes no such
 # kind. Endor's OpenAPI defines many more message kinds (Malware, FindingLog,
 # PackageLicense, LinterResult, ...), but a definition does not prove an

@@ -16,7 +16,7 @@
     "SAST remediation",
     "agentic AppSec",
     "AppSec",
-    "Upgrade Impact Analysis"
+    "OSS Upgrade Investigator"
   ],
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
