@@ -23,7 +23,7 @@ def _minimal_source_tree(root: Path) -> None:
     _write(root / ".claude-plugin" / "marketplace.json", "{}\n")
     _write(root / ".agents" / "plugins" / "marketplace.json", "{}\n")
     _write(root / "assets" / "logo.png", "<svg />\n")
-    _write(root / "skills" / "probe-droid" / "SKILL.md")
+    _write(root / "skills" / "configuration-automation" / "SKILL.md")
     _write(root / "skills" / "create-endor-labs-agent" / "SKILL.md")
 
 
@@ -42,12 +42,12 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
 
     operations = sync_distribution(source, target)
 
-    assert "probe-droid" in generated_root_skills(source)
+    assert "configuration-automation" in generated_root_skills(source)
     assert (target / "plugins" / "artifact.txt").read_text(encoding="utf-8") == "content\n"
     assert not (target / "plugins" / "stale.txt").exists()
     assert (target / "hooks" / "artifact.txt").read_text(encoding="utf-8") == "content\n"
     assert not (target / "hooks" / "stale-hook.sh").exists()
-    assert (target / "skills" / "probe-droid" / "SKILL.md").exists()
+    assert (target / "skills" / "configuration-automation" / "SKILL.md").exists()
     assert not (target / "skills" / "create-endor-labs-agent").exists()
     assert not (target / "skills" / "old-generated-skill").exists()
     assert (target / ".mcp.json").read_text(encoding="utf-8") == "{}\n"

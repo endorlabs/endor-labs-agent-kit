@@ -36,7 +36,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `severity_summary` (object, required): Counts by severity and category for the returned page or exact finding context.
 - `finding_results` (list[object], required): Table-ready finding rows with UUID, category, severity, project, package/action target, status, reachability when available, concise reason, and evidence reference.
 - `pagination` (object, required): Page size, returned count, truncation status, approximate total when known, and next filter guidance.
-- `recommended_next_steps` (list[object], required): Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, probe-droid, or cicd-posture, with confirmation requirements for any mutating follow-up.
+- `recommended_next_steps` (list[object], required): Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, configuration-automation, or cicd-posture, with confirmation requirements for any mutating follow-up.
 - `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `data_gaps` (list[string], required): Missing namespace, project resolution, category, permission, pagination, field availability, or Endor lookup evidence.
 - `policy_context` (object, required): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.

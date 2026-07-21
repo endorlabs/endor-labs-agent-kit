@@ -11,11 +11,11 @@
     "agentic AppSec",
     "agentic remediation",
     "SAST remediation",
-    "Upgrade Impact Analysis",
+    "OSS Upgrade Investigator",
     "SCA remediation",
     "software composition analysis"
   ],
-  "long_description": "Setup guidance, workflow skills, and subagents for Endor Labs SCA remediation, AI SAST triage, troubleshooting, and onboarding analysis.",
+  "long_description": "Setup guidance, workflow skills, and subagents for Endor Labs SCA remediation, AI SAST remediation, troubleshooting, and onboarding analysis.",
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "short_description": "Endor Labs security workflows for Antigravity.",

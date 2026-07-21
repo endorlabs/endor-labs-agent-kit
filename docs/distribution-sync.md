@@ -54,6 +54,11 @@ signing flow and immediately verifies the signature with
 
 ## Source Repo Regeneration
 
+For an agent identity migration, confirm the target backend accepts catalog
+wire schema v2 and resolves every `legacy_ids` entry before distributing the
+new catalog. See `docs/agent-identity-migration.md`. Do not use generated
+duplicate agents as an alias mechanism.
+
 Run from the Agent Kit source repo:
 
 ```bash

@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 
 from conftest import repo_root
-from endor_agent_kit.ai_sast_triage import (
+from endor_agent_kit.ai_sast_remediation import (
     lint_ai_sast_exception_policy_comment,
     lint_ai_sast_pr_body,
 )
@@ -132,7 +132,7 @@ def test_source_recipes_validate_and_mutating_agents_have_confirmed_actions():
         ]
         assert mutating_actions
         assert all(action["confirmation_required"] is True for action in mutating_actions)
-        if recipe.id in {"sca-remediation", "ai-sast-triage"}:
+        if recipe.id in {"sca-remediation", "ai-sast-remediation"}:
             assert any(action["kind"] == "ticket.create" for action in mutating_actions)
 
 

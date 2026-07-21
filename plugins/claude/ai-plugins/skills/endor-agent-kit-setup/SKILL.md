@@ -17,18 +17,16 @@ Generated for the Endor Labs AI Plugins (Legacy) Claude Code plugin.
 
 ## Bundled Claude Code Agents
 
-- `Triage AI SAST findings` -> Claude Code agent `ai-sast-triage`
+- `Triage AI SAST findings` -> Claude Code agent `ai-sast-remediation`
 - `Assess CI/CD and supply chain posture` -> Claude Code agent `cicd-posture`
-- `Decide whether a dependency is safe to use` -> Claude Code agent `dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> Claude Code agent `endor-troubleshooter`
+- `Assess GitHub onboarding gaps` -> Claude Code agent `configuration-automation`
+- `Review package decisions, package risk, or repository dependencies` -> Claude Code agent `dependency-reviewer`
 - `Browse existing Endor findings` -> Claude Code agent `findings-browser`
-- `Malware Response` -> Claude Code agent `malware-response`
-- `Summarize package-version risk` -> Claude Code agent `package-risk-summary`
-- `Assess GitHub onboarding gaps` -> Claude Code agent `probe-droid`
-- `Plan remediation across findings` -> Claude Code agent `remediation-planner`
-- `Review repository dependency manifests` -> Claude Code agent `repository-dependency-reviewer`
+- `Malware Responder` -> Claude Code agent `malware-responder`
+- `Analyze upgrade impact` -> Claude Code agent `oss-upgrade-investigator`
+- `Plan remediation across findings` -> Claude Code agent `remediation-planning`
 - `Find safe SCA remediation paths` -> Claude Code agent `sca-remediation`
-- `Analyze upgrade impact` -> Claude Code agent `upgrade-impact-analysis`
+- `Diagnose Endor setup and scan issues` -> Claude Code agent `troubleshooting`
 - `Explain vulnerability risk and remediation` -> Claude Code agent `vulnerability-explainer`
 
 ## Claude Code Plugin Install Commands
@@ -219,7 +217,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Claude-Specific Rules

@@ -44,7 +44,7 @@ CLAUDE_DISCOVERY_TERMS = (
     "SAST remediation",
     "agentic AppSec",
     "AppSec",
-    "Upgrade Impact Analysis",
+    "OSS Upgrade Investigator",
 )
 CLAUDE_UNSUPPORTED_AGENT_FRONTMATTER = frozenset({
     "hooks",
@@ -713,17 +713,15 @@ def _claude_install_upgrade_notice(spec: ClaudePluginPackageSpec) -> list[str]:
 
 def _workflow_label(agent_id: str) -> str:
     labels = {
-        "ai-sast-triage": "Triage AI SAST findings",
+        "ai-sast-remediation": "Triage AI SAST findings",
         "cicd-posture": "Assess CI/CD and supply chain posture",
-        "dependency-decision-helper": "Decide whether a dependency is safe to use",
-        "endor-troubleshooter": "Diagnose Endor setup and scan issues",
+        "dependency-reviewer": "Review package decisions, package risk, or repository dependencies",
+        "troubleshooting": "Diagnose Endor setup and scan issues",
         "findings-browser": "Browse existing Endor findings",
-        "package-risk-summary": "Summarize package-version risk",
-        "probe-droid": "Assess GitHub onboarding gaps",
-        "remediation-planner": "Plan remediation across findings",
-        "repository-dependency-reviewer": "Review repository dependency manifests",
+        "configuration-automation": "Assess GitHub onboarding gaps",
+        "remediation-planning": "Plan remediation across findings",
         "sca-remediation": "Find safe SCA remediation paths",
-        "upgrade-impact-analysis": "Analyze upgrade impact",
+        "oss-upgrade-investigator": "Analyze upgrade impact",
         "vulnerability-explainer": "Explain vulnerability risk and remediation",
     }
     return labels.get(agent_id, agent_id.replace("-", " ").title())

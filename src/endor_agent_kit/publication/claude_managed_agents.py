@@ -171,7 +171,7 @@ def managed_agents_edition_readme(
                     "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
                     "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
                 ]
-        elif recipe.id == "endor-troubleshooter":
+        elif recipe.id == "troubleshooting":
             notes = [
                 f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
                 "It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.",
@@ -239,23 +239,23 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
     """Return the Claude Managed Agents example prompt for one recipe."""
 
     input_names = {field.name for field in recipe.inputs}
-    if recipe.id == "ai-sast-triage":
+    if recipe.id == "ai-sast-remediation":
         return "Triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
-    if recipe.id == "remediation-planner":
+    if recipe.id == "remediation-planning":
         return "Preview remediation options for repository <owner>/<repo>."
     if "vulnerability_id" in input_names:
         return "Explain CVE-2021-44228."
-    if recipe.id == "upgrade-impact-analysis":
+    if recipe.id == "oss-upgrade-investigator":
         if edition == "developer-edition":
             return "Assess upgrading npm lodash from 4.17.20 to 4.17.21."
         return "Show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA, findings fixed, manifest files, and breaking changes."
-    if recipe.id == "package-risk-summary":
-        return "Summarize npm lodash version 4.17.20."
-    if recipe.id == "probe-droid":
+    if recipe.id == "dependency-reviewer":
+        return "Summarize the risk of npm lodash version 4.17.20 with the package-risk profile."
+    if recipe.id == "configuration-automation":
         return "Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
     if recipe.id == "cicd-posture":
         return "Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workflow read-only."
-    if recipe.id == "endor-troubleshooter":
+    if recipe.id == "troubleshooting":
         return "Diagnose this Endor scan failure from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
         return "Assess npm lodash version 4.17.20."

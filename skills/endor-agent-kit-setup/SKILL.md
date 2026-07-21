@@ -12,18 +12,16 @@ Generated for the Endor Labs Agent Kit Cursor package.
 
 ## Bundled Cursor Workflows
 
-- `Triage AI SAST findings` -> skill `ai-sast-triage`
+- `Triage AI SAST findings` -> skill `ai-sast-remediation`
 - `Assess CI/CD and supply chain posture` -> skill `cicd-posture`
-- `Dependency Decision Helper` -> skill `dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`
+- `Assess GitHub onboarding gaps` -> skill `configuration-automation`
+- `Dependency Reviewer` -> skill `dependency-reviewer`
 - `Findings Browser` -> skill `findings-browser`
-- `Malware Response` -> skill `malware-response`
-- `Package Risk Summary` -> skill `package-risk-summary`
-- `Assess GitHub onboarding gaps` -> skill `probe-droid`
-- `Remediation Planner` -> skill `remediation-planner`
-- `Repository Dependency Reviewer` -> skill `repository-dependency-reviewer`
+- `Malware Responder` -> skill `malware-responder`
+- `Oss Upgrade Investigator` -> skill `oss-upgrade-investigator`
+- `Remediation Planning` -> skill `remediation-planning`
 - `Find safe SCA remediation paths` -> skill `sca-remediation`
-- `Upgrade Impact Analysis` -> skill `upgrade-impact-analysis`
+- `Diagnose Endor setup and scan issues` -> skill `troubleshooting`
 - `Vulnerability Explainer` -> skill `vulnerability-explainer`
 
 ## Cursor Package Install Notes
@@ -197,7 +195,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Cursor-Specific Rules

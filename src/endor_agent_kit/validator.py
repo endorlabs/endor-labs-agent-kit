@@ -110,6 +110,17 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
     if not isinstance(recipe_id, str) or not SLUG_RE.match(recipe_id):
         errors.append("id: must match ^[a-z][a-z0-9-]{2,63}$")
 
+    legacy_ids = _list_of_strings(data.get("legacy_ids", []), "legacy_ids", errors)
+    seen_legacy_ids: set[str] = set()
+    for legacy_id in legacy_ids:
+        if not SLUG_RE.match(legacy_id):
+            errors.append(f"legacy_ids: {legacy_id!r} must match ^[a-z][a-z0-9-]{{2,63}}$")
+        if legacy_id == recipe_id:
+            errors.append("legacy_ids: must not contain the canonical id")
+        if legacy_id in seen_legacy_ids:
+            errors.append(f"legacy_ids: duplicate legacy id {legacy_id!r}")
+        seen_legacy_ids.add(legacy_id)
+
     safety = data.get("safety_class")
     if safety not in SAFETY_CLASSES:
         errors.append("safety_class: must be one of read_only, dry_run, mutating")

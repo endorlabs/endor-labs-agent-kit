@@ -215,7 +215,7 @@ def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
         "short_description": "Endor Labs security workflows for Antigravity.",
         "long_description": (
             "Setup guidance, workflow skills, and subagents for Endor Labs SCA "
-            "remediation, AI SAST triage, troubleshooting, and onboarding analysis."
+            "remediation, AI SAST remediation, troubleshooting, and onboarding analysis."
         ),
         "author": {
             "name": "Endor Labs",
@@ -229,7 +229,7 @@ def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
             "agentic AppSec",
             "agentic remediation",
             "SAST remediation",
-            "Upgrade Impact Analysis",
+            "OSS Upgrade Investigator",
             "SCA remediation",
             "software composition analysis",
         ],
@@ -433,11 +433,11 @@ def antigravity_text(text: str) -> str:
 
 def _workflow_label(agent_id: str) -> str:
     labels = {
-        "ai-sast-triage": "Triage AI SAST findings",
+        "ai-sast-remediation": "Triage AI SAST findings",
         "cicd-posture": "Assess CI/CD and supply chain posture",
-        "endor-troubleshooter": "Diagnose Endor setup and scan issues",
+        "troubleshooting": "Diagnose Endor setup and scan issues",
         "findings-browser": "Browse existing Endor findings",
-        "probe-droid": "Assess GitHub onboarding gaps",
+        "configuration-automation": "Assess GitHub onboarding gaps",
         "sca-remediation": "Find safe SCA remediation paths",
     }
     return labels.get(agent_id, agent_id.replace("-", " ").title())

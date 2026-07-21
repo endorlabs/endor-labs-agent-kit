@@ -40,17 +40,17 @@ def test_agent_api_contract_limits_mutations_to_ai_sast_policy_create_or_update(
         agent_id="findings-browser",
     ) == ["line 1: findings-browser is not allowed to mutate Endor resources"]
     assert agent_api_command_errors(
-        "endorctl agent api --agent-id ai-sast-triage create -r Policy -n demo\n"
-        "endorctl agent api --agent-id ai-sast-triage update -r Policy -n demo",
-        agent_id="ai-sast-triage",
+        "endorctl agent api --agent-id ai-sast-remediation create -r Policy -n demo\n"
+        "endorctl agent api --agent-id ai-sast-remediation update -r Policy -n demo",
+        agent_id="ai-sast-remediation",
     ) == []
     assert agent_api_command_errors(
-        "endorctl agent api --agent-id ai-sast-triage delete -r Policy -n demo\n"
-        "endorctl agent api --agent-id ai-sast-triage update -r Finding -n demo",
-        agent_id="ai-sast-triage",
+        "endorctl agent api --agent-id ai-sast-remediation delete -r Policy -n demo\n"
+        "endorctl agent api --agent-id ai-sast-remediation update -r Finding -n demo",
+        agent_id="ai-sast-remediation",
     ) == [
-        "line 1: ai-sast-triage may create or update Policy resources only",
-        "line 2: ai-sast-triage may create or update Policy resources only",
+        "line 1: ai-sast-remediation may create or update Policy resources only",
+        "line 2: ai-sast-remediation may create or update Policy resources only",
     ]
 
 
@@ -65,7 +65,7 @@ def test_agent_api_contract_accepts_canonical_source_identity_placeholder():
 def test_agent_api_contract_still_checks_permissions_for_source_identity_placeholder():
     errors = agent_api_command_errors(
         "endorctl agent api --agent-id <agent-id> delete -r Policy -n demo",
-        agent_id="ai-sast-triage",
+        agent_id="ai-sast-remediation",
         allow_template_identity=True,
     )
 

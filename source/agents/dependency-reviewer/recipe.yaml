@@ -1,0 +1,154 @@
+recipe_schema_version: 1
+id: dependency-reviewer
+name: Dependency Reviewer
+legacy_ids:
+  - dependency-decision-helper
+  - package-risk-summary
+  - repository-dependency-reviewer
+version: 1.0.0
+description: |
+  Use this agent when the user wants an exact package decision, a package risk
+  summary, or a repository dependency review. It selects one bounded task
+  profile, gathers only the evidence that profile needs, and returns a
+  read-only decision or review with explicit data gaps.
+audience: developer
+short_description: "Reviews an exact package decision, package risk, or repository dependencies through one bounded evidence profile."
+authors: ["Endor Labs"]
+safety_class: read_only
+endor_tier_minimum: free
+policy_pack_support: true
+supported_transports:
+  - mcp
+  - endorctl_agent_api
+host_capabilities_required:
+  run_commands: true
+  read_files: true
+  write_files: false
+  open_pr: false
+inputs:
+  - name: policy_pack
+    kind: object
+    required: false
+    description: Optional trusted Agent Policy Pack context supplied by runtime or protected workspace configuration.
+  - name: task_profile
+    kind: enum
+    required: false
+    description: Optional package-decision, package-risk, or repository-review override; otherwise infer once from the request.
+  - name: ecosystem
+    kind: string
+    required: false
+    description: Exact package ecosystem for package-decision or package-risk.
+  - name: package_name
+    kind: string
+    required: false
+    description: Exact package name for package-decision or package-risk.
+  - name: version
+    kind: string
+    required: false
+    description: Exact package version for package-decision or package-risk.
+  - name: repository_path
+    kind: string
+    required: false
+    description: Local repository path to inspect. Defaults to the current Claude Code workspace.
+  - name: ecosystems
+    kind: list[string]
+    required: false
+    description: Optional ecosystem filter such as npm, pypi, maven, go, cargo, gem, nuget, or packagist.
+  - name: focus
+    kind: string
+    required: false
+    description: Optional review focus such as production dependencies, direct dependencies, critical findings, or newly added manifests.
+outputs:
+  - name: profile
+    kind: enum
+    required: true
+    description: package-decision, package-risk, or repository-review.
+  - name: verdict
+    kind: enum
+    required: false
+    description: SAFE, SAFE_WITH_CONDITIONS, NOT_RECOMMENDED, or BLOCKED for package-decision.
+  - name: conditions
+    kind: list[string]
+    required: false
+    description: Evidence-backed conditions for package-decision.
+  - name: alternatives
+    kind: list[string]
+    required: false
+    description: Safer versions or packages for package-decision when known.
+  - name: risk_posture
+    kind: enum
+    required: false
+    description: LOW, MODERATE, HIGH, CRITICAL, or UNKNOWN for package-risk or repository-review.
+  - name: manifests
+    kind: list[object]
+    required: false
+    description: Manifest or lock files inspected with detected ecosystems and parsing notes.
+  - name: dependencies_reviewed
+    kind: list[object]
+    required: false
+    description: Exact dependency coordinates checked with Endor evidence.
+  - name: findings
+    kind: list[object]
+    required: false
+    description: Evidence-backed package or repository dependency findings.
+  - name: strengths
+    kind: list[string]
+    required: false
+    description: Positive exact-package evidence for package-risk.
+  - name: next_checks
+    kind: list[string]
+    required: false
+    description: Bounded follow-up checks for package-risk.
+  - name: recommended_actions
+    kind: list[string]
+    required: false
+    description: Follow-up actions such as upgrade, investigate reachability, or run a fuller Endor scan.
+  - name: summary
+    kind: string
+    required: true
+    description: One-paragraph human-readable repository dependency review.
+  - name: evidence_queries
+    kind: list[object]
+    required: true
+    description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
+  - name: data_gaps
+    kind: list[string]
+    required: true
+    description: Signals unavailable because a manifest was unsupported, versions were unresolved, tools failed, or Endor data was unavailable.
+  - name: policy_context
+    kind: object
+    required: true
+    description: Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
+  - name: policy_evaluations
+    kind: list[object]
+    required: true
+    description: Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
+evals: evals/cases.yaml
+compatible_hosts:
+  - claude-code
+  - claude-managed-agents
+  - codex
+  - gemini
+  - portable
+host_editions:
+  claude-code:
+    - developer-edition
+    - enterprise-edition
+  claude-managed-agents:
+    - enterprise-edition
+mutations: []
+required_endor_mcp_tools:
+  - check_dependency_for_risks
+  - check_dependency_for_vulnerabilities
+  - get_endor_vulnerability
+endorctl_agent_api_invocations:
+  - lookup_package_version_uuid
+  - get_package_scores
+  - get_package_license
+  - resolve_project_by_git
+  - lookup_exact_package_version
+  - lookup_selected_package_findings
+instructions_path: instructions.md
+model: sonnet
+requires_endor_mcp: ">=2.4"
+requires_endorctl: ">=1.0.0"

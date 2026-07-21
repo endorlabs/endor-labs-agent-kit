@@ -390,7 +390,7 @@ provenance heading, and generated-by footer literal:
 
 ## Security Remediation: <N> Endor finding instances fixed by dependency upgrade
 
-This PR upgrades **<package>** from `<from_version>` to `<to_version>` across `<manifest(s)>`. Endor Labs Upgrade Impact Analysis reports **<N>** Endor finding instances fixed with **<introduced_count>** new Endor finding instances introduced.
+This PR upgrades **<package>** from `<from_version>` to `<to_version>` across `<manifest(s)>`. OSS Upgrade Investigator reports **<N>** Endor finding instances fixed with **<introduced_count>** new Endor finding instances introduced.
 
 **✅ Not expected to break: Endor UIA/CIA reports LOW upgrade risk and no breaking changes.**
 

@@ -291,7 +291,7 @@ def render_ai_sast_pr_body(payload: dict[str, Any]) -> str:
 
     lines = [
         f"## 🛡️ Endor Labs AURI Security Fix: {finding_name}",
-        "<!-- endor-agent-kit:ai-sast-triage -->",
+        "<!-- endor-agent-kit:ai-sast-remediation -->",
         f"<!-- auri:ai-sast-context {context_json} -->",
         "",
         (
@@ -326,7 +326,7 @@ def render_ai_sast_pr_body(payload: dict[str, Any]) -> str:
         "",
         "```text",
         (
-            "@agent-ai-sast-triage request an AppSec exception review for "
+            "@agent-ai-sast-remediation request an AppSec exception review for "
             f"finding {finding_uuid or '<finding_uuid>'} on PR/MR {change_request_url}. "
             "Request type: false positive. Reason: <why this is not exploitable>. "
             "Allowed AppSec approvers: <@appsec-reviewer>. Do not create an Endor "
@@ -334,7 +334,7 @@ def render_ai_sast_pr_body(payload: dict[str, Any]) -> str:
             "phrase the approver can use."
         ),
         (
-            "@agent-ai-sast-triage request an AppSec exception review for "
+            "@agent-ai-sast-remediation request an AppSec exception review for "
             f"finding {finding_uuid or '<finding_uuid>'} on PR/MR {change_request_url}. "
             "Request type: accept risk until YYYY-MM-DD. Reason: <owner, mitigation, "
             "and why code will not change now>. Allowed AppSec approvers: "
@@ -388,8 +388,8 @@ def lint_ai_sast_pr_body(body: str) -> list[str]:
     errors: list[str] = []
     if body.count("```") % 2:
         errors.append("unclosed fenced code block")
-    if "<!-- endor-agent-kit:ai-sast-triage -->" not in body:
-        errors.append("missing ai-sast-triage marker")
+    if "<!-- endor-agent-kit:ai-sast-remediation -->" not in body:
+        errors.append("missing ai-sast-remediation marker")
     context = AURI_CONTEXT_MARKER_RE.search(body)
     if context is None:
         errors.append("missing auri:ai-sast-context hidden marker")
@@ -415,7 +415,7 @@ def lint_ai_sast_pr_body(body: str) -> list[str]:
             errors.append(f"missing section {heading!r}")
 
     for request_prefix in (
-        "@agent-ai-sast-triage request an AppSec exception review for finding",
+        "@agent-ai-sast-remediation request an AppSec exception review for finding",
         "Request type: false positive",
         "Request type: accept risk until YYYY-MM-DD",
         "Allowed AppSec approvers:",

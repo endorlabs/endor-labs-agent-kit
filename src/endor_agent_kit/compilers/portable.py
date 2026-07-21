@@ -311,7 +311,7 @@ def _gate_contract_section(agent_id: str) -> list[str]:
             "- `endor-agent-kit lint-sca-pr-body <body.md>`",
             "",
         ]
-    if agent_id == "ai-sast-triage":
+    if agent_id == "ai-sast-remediation":
         return [
             "## Mechanical Workflow Gates",
             "",

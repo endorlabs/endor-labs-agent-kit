@@ -49,19 +49,53 @@ def agent_ids_at_ref(ref: str, *, root: Path | str = ".") -> set[str]:
     return ids
 
 
+def legacy_ids_at_ref(ref: str, *, root: Path | str = ".") -> set[str]:
+    """Return legacy ids explicitly claimed by recipes at a git ref."""
+
+    listing = subprocess.run(
+        ["git", "-C", str(root), "ls-tree", "-r", "--name-only", ref, "--", "source/agents"],
+        check=True,
+        text=True,
+        stdout=subprocess.PIPE,
+    )
+    legacy_ids: set[str] = set()
+    for path in listing.stdout.splitlines():
+        if not path.endswith("/recipe.yaml"):
+            continue
+        blob = subprocess.run(
+            ["git", "-C", str(root), "show", f"{ref}:{path}"],
+            check=True,
+            text=True,
+            stdout=subprocess.PIPE,
+        )
+        data = yaml.safe_load(blob.stdout) or {}
+        values = data.get("legacy_ids", ()) if isinstance(data, dict) else ()
+        if isinstance(values, list):
+            legacy_ids.update(value for value in values if isinstance(value, str) and value)
+    return legacy_ids
+
+
 def check_id_stability(
     base_ref: str,
     head_ref: str = "HEAD",
     *,
     root: Path | str = ".",
     loader: IdLoader = agent_ids_at_ref,
+    legacy_loader: IdLoader | None = None,
 ) -> list[str]:
-    """Return errors for any agent id present on ``base_ref`` but missing on ``head_ref``."""
+    """Return errors for ids removed without an explicit canonical legacy alias."""
 
     base_ids = loader(base_ref, root=root)
     head_ids = loader(head_ref, root=root)
+    if legacy_loader is not None:
+        preserved_legacy_ids = legacy_loader(head_ref, root=root)
+    elif loader is agent_ids_at_ref:
+        preserved_legacy_ids = legacy_ids_at_ref(head_ref, root=root)
+    else:
+        preserved_legacy_ids = set()
     return [
         f"id {recipe_id!r} present on {base_ref} is missing on {head_ref}; "
-        "agent ids are immutable (telemetry join key) -- restore it or revert the rename"
-        for recipe_id in sorted(disappeared_ids(base_ids, head_ids))
+        "agent ids are immutable (telemetry join key) -- restore it or claim it in exactly "
+        "one canonical recipe's legacy_ids"
+        for recipe_id in sorted(disappeared_ids(base_ids, head_ids | preserved_legacy_ids))
     ]

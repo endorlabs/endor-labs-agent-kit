@@ -9,18 +9,16 @@ Generated for the Endor Labs Agent Kit Gemini CLI extension.
 
 ## Bundled Gemini CLI Workflows
 
-- `Triage AI SAST findings` -> skill `ai-sast-triage`, subagent `@ai-sast-triage`
+- `Triage AI SAST findings` -> skill `ai-sast-remediation`, subagent `@ai-sast-remediation`
 - `Assess CI/CD and supply chain posture` -> skill `cicd-posture`, subagent `@cicd-posture`
-- `Dependency Decision Helper` -> skill `dependency-decision-helper`, subagent `@dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`, subagent `@endor-troubleshooter`
+- `Assess GitHub onboarding gaps` -> skill `configuration-automation`, subagent `@configuration-automation`
+- `Dependency Reviewer` -> skill `dependency-reviewer`, subagent `@dependency-reviewer`
 - `Browse existing Endor findings` -> skill `findings-browser`, subagent `@findings-browser`
-- `Malware Response` -> skill `malware-response`, subagent `@malware-response`
-- `Package Risk Summary` -> skill `package-risk-summary`, subagent `@package-risk-summary`
-- `Assess GitHub onboarding gaps` -> skill `probe-droid`, subagent `@probe-droid`
-- `Remediation Planner` -> skill `remediation-planner`, subagent `@remediation-planner`
-- `Repository Dependency Reviewer` -> skill `repository-dependency-reviewer`, subagent `@repository-dependency-reviewer`
+- `Malware Responder` -> skill `malware-responder`, subagent `@malware-responder`
+- `Oss Upgrade Investigator` -> skill `oss-upgrade-investigator`, subagent `@oss-upgrade-investigator`
+- `Remediation Planning` -> skill `remediation-planning`, subagent `@remediation-planning`
 - `Find safe SCA remediation paths` -> skill `sca-remediation`, subagent `@sca-remediation`
-- `Upgrade Impact Analysis` -> skill `upgrade-impact-analysis`, subagent `@upgrade-impact-analysis`
+- `Diagnose Endor setup and scan issues` -> skill `troubleshooting`, subagent `@troubleshooting`
 - `Vulnerability Explainer` -> skill `vulnerability-explainer`, subagent `@vulnerability-explainer`
 
 ## Gemini CLI Extension Install Commands
@@ -217,7 +215,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Gemini-Specific Rules

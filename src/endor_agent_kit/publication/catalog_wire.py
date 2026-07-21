@@ -21,7 +21,7 @@ from typing import Any
 from endor_agent_kit.catalog_schema import CatalogAgent, CatalogBundle
 
 CATALOG_PATH = "catalog.json"
-CATALOG_SCHEMA_VERSION = "v1"
+CATALOG_SCHEMA_VERSION = "v2"
 AUDIENCES = frozenset({"appsec", "developer"})
 
 # repo host -> wire host name, in catalog install order. Only the two V1 install
@@ -45,6 +45,8 @@ def catalog_wire_payload(
     by_id: dict[str, list[CatalogAgent]] = {}
     for agent in agents:
         by_id.setdefault(agent.id, []).append(agent)
+
+    _validate_legacy_id_claims(by_id)
 
     records = []
     for _, group in sorted(by_id.items()):
@@ -124,7 +126,7 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
             f"{representative.id}: no V1 install host (claude-code/claude-managed); cannot build install[]"
         )
 
-    return {
+    record = {
         "id": representative.id,
         "name": representative.name,
         "audience": representative.audience,
@@ -135,6 +137,32 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
         "authors": list(representative.authors),
         "install": install,
     }
+    if representative.legacy_ids:
+        record["legacy_ids"] = sorted(representative.legacy_ids)
+    return record
+
+
+def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
+    """Reject ambiguous aliases before signing the catalog wire artifact."""
+
+    active_ids = set(by_id)
+    owners: dict[str, str] = {}
+    for agent_id, group in by_id.items():
+        declarations = {tuple(sorted(agent.legacy_ids)) for agent in group}
+        if len(declarations) > 1:
+            raise ValueError(f"{agent_id}: legacy_ids differ across published hosts")
+        legacy_ids = next(iter(declarations), ())
+        for legacy_id in legacy_ids:
+            if legacy_id in active_ids:
+                raise ValueError(
+                    f"{agent_id}: legacy id {legacy_id!r} is still an active agent id"
+                )
+            owner = owners.setdefault(legacy_id, agent_id)
+            if owner != agent_id:
+                raise ValueError(
+                    f"legacy id {legacy_id!r} is claimed by multiple agents: "
+                    f"{owner!r} and {agent_id!r}"
+                )
 
 
 def _primary_edition(agent: CatalogAgent) -> CatalogBundle:

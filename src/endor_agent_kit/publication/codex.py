@@ -106,7 +106,7 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
             f"Endor tenant access through authenticated `endorctl agent api --agent-id {recipe.id}`.",
             "Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.",
         ]
-        if recipe.id == "ai-sast-triage":
+        if recipe.id == "ai-sast-remediation":
             requirements.extend(
                 [
                     "A configured AppSec approver list before standalone exception-policy creation.",
@@ -184,14 +184,14 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
 def codex_example_prompt(recipe: EndorAgentRecipe) -> str:
     """Return the Codex example prompt for one recipe."""
 
-    if recipe.id == "ai-sast-triage":
-        return "Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
+    if recipe.id == "ai-sast-remediation":
+        return "Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
     if recipe.id == "cicd-posture":
         return "Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score."
-    if recipe.id == "probe-droid":
-        return "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
-    if recipe.id == "endor-troubleshooter":
-        return "Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only."
+    if recipe.id == "configuration-automation":
+        return "Use the configuration-automation skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
+    if recipe.id == "troubleshooting":
+        return "Use the troubleshooting skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if recipe.id == "findings-browser":
         return "Use the findings-browser skill to list active critical and high Endor findings for namespace <namespace>. Keep the workflow read-only and do not run a scan."
     if recipe.id == "sca-remediation":
@@ -233,16 +233,16 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
-    if recipe.id == "probe-droid":
+    if recipe.id == "configuration-automation":
         return [
             "## Example Workflow",
             "",
             "```text",
-            "Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only, do not run scans, do not clone repositories, and separate not-onboarded repositories from already-onboarded repositories with dependency resolution or reachability gaps.",
+            "Use the configuration-automation skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only, do not run scans, do not clone repositories, and separate not-onboarded repositories from already-onboarded repositories with dependency resolution or reachability gaps.",
             "```",
             "",
             "```text",
-            "Use the probe-droid skill to compare these GitHub repositories with Endor namespace <namespace>: <owner/repo>, <owner/repo>. Report the top setup actions for missing package manager integrations, scan profile/toolchain gaps, dependency resolution blockers, reachability blockers, and GitHub App selection gaps.",
+            "Use the configuration-automation skill to compare these GitHub repositories with Endor namespace <namespace>: <owner/repo>, <owner/repo>. Report the top setup actions for missing package manager integrations, scan profile/toolchain gaps, dependency resolution blockers, reachability blockers, and GitHub App selection gaps.",
             "```",
             "",
         ]
@@ -259,20 +259,20 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
-    if recipe.id == "endor-troubleshooter":
+    if recipe.id == "troubleshooting":
         return [
             "## Example Workflow",
             "",
             "```text",
-            "Use the endor-troubleshooter skill to diagnose this Endor scan failure. Namespace: <namespace>. Project: <project>. Error: <redacted error text>. Keep the workflow read-only and tell me the lowest-friction fix.",
+            "Use the troubleshooting skill to diagnose this Endor scan failure. Namespace: <namespace>. Project: <project>. Error: <redacted error text>. Keep the workflow read-only and tell me the lowest-friction fix.",
             "```",
             "",
             "```text",
-            "Use the endor-troubleshooter skill to troubleshoot slow PR scans in a large monorepo. Check whether incremental PR scans, baselines, scan profile settings, or workflow configuration would improve performance. Do not change the profile or rerun scans.",
+            "Use the troubleshooting skill to troubleshoot slow PR scans in a large monorepo. Check whether incremental PR scans, baselines, scan profile settings, or workflow configuration would improve performance. Do not change the profile or rerun scans.",
             "```",
             "",
             "```text",
-            "Use the endor-troubleshooter skill to diagnose why users cannot log in through SSO for namespace <namespace>. Inspect read-only identity provider evidence and do not print secrets.",
+            "Use the troubleshooting skill to diagnose why users cannot log in through SSO for namespace <namespace>. Inspect read-only identity provider evidence and do not print secrets.",
             "```",
             "",
         ]
@@ -289,24 +289,24 @@ def codex_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
-    if recipe.id != "ai-sast-triage":
+    if recipe.id != "ai-sast-remediation":
         return []
     return [
         "## Example Workflow",
         "",
         "```text",
-        "Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy. Show confirmed true positives, likely false positives, inconclusive findings, exploit-driven priority, remediation-guidance usage, and data gaps.",
+        "Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy. Show confirmed true positives, likely false positives, inconclusive findings, exploit-driven priority, remediation-guidance usage, and data gaps.",
         "```",
         "",
         "```text",
-        "Use the ai-sast-triage skill to remediate finding <finding_uuid> for this repository. Use Endor Exploit Reproduction and Remediation Guidance as context, but verify the fix against the source. Show me the patch, branch name, PR/MR title, and PR/MR body before pushing. After I approve, open exactly one PR/MR.",
+        "Use the ai-sast-remediation skill to remediate finding <finding_uuid> for this repository. Use Endor Exploit Reproduction and Remediation Guidance as context, but verify the fix against the source. Show me the patch, branch name, PR/MR title, and PR/MR body before pushing. After I approve, open exactly one PR/MR.",
         "```",
         "",
         "Use the exception workflow only when a finding should be excepted instead",
         "of remediated in code.",
         "",
         "```text",
-        "Use the ai-sast-triage skill to verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, check for an existing active Endor exception policy for this finding/project/reason, then render the Endor exception policy spec for my confirmation. After I confirm, create or reuse the scoped policy and comment on the PR/MR with the policy name, policy UUID, Endor project, approver, expiration, and evidence URL.",
+        "Use the ai-sast-remediation skill to verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, check for an existing active Endor exception policy for this finding/project/reason, then render the Endor exception policy spec for my confirmation. After I confirm, create or reuse the scoped policy and comment on the PR/MR with the policy name, policy UUID, Endor project, approver, expiration, and evidence URL.",
         "```",
         "",
     ]
@@ -316,11 +316,11 @@ def codex_smoke_test_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return Codex smoke test README content."""
 
     if recipe.id not in {
-        "ai-sast-triage",
+        "ai-sast-remediation",
         "cicd-posture",
-        "endor-troubleshooter",
+        "troubleshooting",
         "findings-browser",
-        "probe-droid",
+        "configuration-automation",
         "sca-remediation",
     }:
         return []

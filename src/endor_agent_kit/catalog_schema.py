@@ -273,6 +273,7 @@ class CatalogAgent:
     description: str = ""
     authors: tuple[str, ...] = ()
     requires_endorctl: str = ""
+    legacy_ids: tuple[str, ...] = ()
     source: CatalogSource | None = None
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
@@ -294,6 +295,7 @@ class CatalogAgent:
             description=recipe.description,
             authors=tuple(recipe.authors),
             requires_endorctl=recipe.requires_endorctl,
+            legacy_ids=tuple(recipe.legacy_ids),
             host=host,
             source=CatalogSource.from_recipe(recipe),
             editions=bundles,
@@ -319,6 +321,7 @@ class CatalogAgent:
                 "description",
                 "authors",
                 "requires_endorctl",
+                "legacy_ids",
                 "host",
                 "source",
                 "editions",
@@ -327,6 +330,9 @@ class CatalogAgent:
         authors = record.get("authors", [])
         if not isinstance(authors, list):
             raise ValueError("manifest.json: expected agent authors to be a list")
+        legacy_ids = record.get("legacy_ids", [])
+        if not isinstance(legacy_ids, list):
+            raise ValueError("manifest.json: expected agent legacy_ids to be a list")
         return cls(
             id=str(record.get("id") or ""),
             name=str(record.get("name") or ""),
@@ -336,6 +342,7 @@ class CatalogAgent:
             description=str(record.get("description") or ""),
             authors=tuple(str(author) for author in authors),
             requires_endorctl=str(record.get("requires_endorctl") or ""),
+            legacy_ids=tuple(str(legacy_id) for legacy_id in legacy_ids),
             host=str(record.get("host") or ""),
             source=CatalogSource.from_manifest_record(record.get("source")),
             editions=tuple(CatalogBundle.from_manifest_records(record, edition) for edition in editions),
@@ -361,6 +368,8 @@ class CatalogAgent:
             record["authors"] = list(self.authors)
         if self.requires_endorctl:
             record["requires_endorctl"] = self.requires_endorctl
+        if self.legacy_ids:
+            record["legacy_ids"] = list(self.legacy_ids)
         record["host"] = self.host
         if self.source is not None:
             record["source"] = self.source.to_manifest_record()

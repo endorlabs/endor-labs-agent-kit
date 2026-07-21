@@ -50,7 +50,7 @@ def test_compiled_sca_evidence_plan_is_deterministic_and_source_bound():
 
 
 def test_compiled_ai_sast_plan_has_mutually_exclusive_uuid_routes():
-    plan = compile_evidence_plan("ai-sast-triage", "evidence-check")
+    plan = compile_evidence_plan("ai-sast-remediation", "evidence-check")
 
     routes = {route.id: route for route in plan.routes}
     assert routes["known-finding"].condition == "runtime.finding_uuid_present"
@@ -90,7 +90,7 @@ def test_compile_evidence_plans_returns_only_source_declared_profiles():
     assert [
         plan.profile_id for plan in compile_evidence_plans("sca-remediation")
     ] == ["evidence-check", "selection-plan"]
-    assert compile_evidence_plans("dependency-decision-helper") == ()
+    assert compile_evidence_plans("dependency-reviewer") == ()
 
 
 def test_evidence_plan_validator_rejects_invalid_dag():
@@ -170,12 +170,12 @@ def test_evidence_plan_validator_rejects_unsafe_operation():
 
 def test_evidence_plan_validator_rejects_wrong_agent_attribution():
     plan = compile_evidence_plan("sca-remediation", "evidence-check")
-    invalid = replace(plan, attribution_agent_id="ai-sast-triage")
+    invalid = replace(plan, attribution_agent_id="ai-sast-remediation")
 
     assert any("attribution agent_id" in error for error in validate_evidence_plan(invalid))
     assert any(
         "expected agent_id" in error
-        for error in validate_evidence_plan(plan, expected_agent_id="ai-sast-triage")
+        for error in validate_evidence_plan(plan, expected_agent_id="ai-sast-remediation")
     )
 
 

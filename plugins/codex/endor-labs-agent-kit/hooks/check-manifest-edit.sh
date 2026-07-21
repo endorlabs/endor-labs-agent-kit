@@ -68,8 +68,8 @@ try:
     emit(
         event,
         "Endor Agent Kit manifest advisory: this edit touches a dependency manifest or lockfile. "
-        "Use `dependency-decision-helper` for new dependency approval, `package-risk-summary` for known "
-        "package-version risk, or `repository-dependency-reviewer` for a repository-level manifest review. "
+        "Use `dependency-reviewer` with `package-decision` for new dependency approval, `package-risk` for known "
+        "package-version risk, or `repository-review` for a repository-level manifest review. "
         "Do not run a scan or mutate Endor state from this hook context."
     )
 except Exception:

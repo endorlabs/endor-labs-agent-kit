@@ -76,18 +76,16 @@ package managers.
 
 | Job | Claude Code agent | Safety |
 | --- | --- | --- |
-| Triage AI SAST findings | `ai-sast-triage` | mutating, approval-gated |
+| Triage AI SAST findings | `ai-sast-remediation` | mutating, approval-gated |
 | Assess CI/CD and supply chain posture | `cicd-posture` | read-only |
-| Decide whether a dependency is safe to use | `dependency-decision-helper` | read-only |
-| Diagnose Endor setup and scan issues | `endor-troubleshooter` | read-only |
+| Assess GitHub onboarding gaps | `configuration-automation` | read-only |
+| Review package decisions, package risk, or repository dependencies | `dependency-reviewer` | read-only |
 | Browse existing Endor findings | `findings-browser` | read-only |
-| Malware Response | `malware-response` | read-only |
-| Summarize package-version risk | `package-risk-summary` | read-only |
-| Assess GitHub onboarding gaps | `probe-droid` | read-only |
-| Plan remediation across findings | `remediation-planner` | read-only |
-| Review repository dependency manifests | `repository-dependency-reviewer` | read-only |
+| Malware Responder | `malware-responder` | read-only |
+| Analyze upgrade impact | `oss-upgrade-investigator` | read-only |
+| Plan remediation across findings | `remediation-planning` | read-only |
 | Find safe SCA remediation paths | `sca-remediation` | mutating, approval-gated |
-| Analyze upgrade impact | `upgrade-impact-analysis` | read-only |
+| Diagnose Endor setup and scan issues | `troubleshooting` | read-only |
 | Explain vulnerability risk and remediation | `vulnerability-explainer` | read-only |
 
 Mutating workflows keep file edits, branch pushes, PR/MR creation,

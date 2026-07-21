@@ -1,11 +1,11 @@
 {
-  "schema_version": "v1",
+  "schema_version": "v2",
   "agents": [
     {
-      "id": "ai-sast-triage",
-      "name": "AI SAST Triage",
+      "id": "ai-sast-remediation",
+      "name": "AI SAST Remediation",
       "audience": "appsec",
-      "short_description": "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested.",
+      "short_description": "Remediates Endor AI SAST findings with exploit-reproduction evidence, bounded patches, and approval-gated change requests.",
       "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
@@ -15,8 +15,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-triage/ai-sast-triage.md .claude/agents/ai-sast-triage.md && for profile in claude-code/ai-sast-triage/ai-sast-triage-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-remediation/ai-sast-remediation.md .claude/agents/ai-sast-remediation.md && for profile in claude-code/ai-sast-remediation/ai-sast-remediation-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         }
+      ],
+      "legacy_ids": [
+        "ai-sast-triage"
       ]
     },
     {
@@ -42,33 +45,11 @@
       ]
     },
     {
-      "id": "dependency-decision-helper",
-      "name": "Dependency Decision Helper",
-      "audience": "developer",
-      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
-      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
-      "endorctl_min_version": "1.0.0",
-      "version": "1.0.0",
-      "authors": [
-        "Endor Labs"
-      ],
-      "install": [
-        {
-          "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/dependency-decision-helper/dependency-decision-helper.md .claude/agents/dependency-decision-helper.md && for profile in claude-code/dependency-decision-helper/dependency-decision-helper-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
-        },
-        {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/dependency-decision-helper && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
-        }
-      ]
-    },
-    {
-      "id": "endor-troubleshooter",
-      "name": "Endor Troubleshooter",
-      "audience": "developer",
-      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
-      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
+      "id": "configuration-automation",
+      "name": "Configuration Automation",
+      "audience": "appsec",
+      "short_description": "Read-only configuration assessment for GitHub repository onboarding and Endor monitored-branch coverage.",
+      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Configuration Automation compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -77,12 +58,42 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/endor-troubleshooter/endor-troubleshooter.md .claude/agents/endor-troubleshooter.md && for profile in claude-code/endor-troubleshooter/endor-troubleshooter-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "mkdir -p .claude/agents && cp claude-code/configuration-automation/configuration-automation.md .claude/agents/configuration-automation.md && for profile in claude-code/configuration-automation/configuration-automation-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/endor-troubleshooter && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "cd claude-managed-agents/configuration-automation && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
+      ],
+      "legacy_ids": [
+        "probe-droid"
+      ]
+    },
+    {
+      "id": "dependency-reviewer",
+      "name": "Dependency Reviewer",
+      "audience": "developer",
+      "short_description": "Reviews an exact package decision, package risk, or repository dependencies through one bounded evidence profile.",
+      "description": "Use this agent when the user wants an exact package decision, a package risk\nsummary, or a repository dependency review. It selects one bounded task\nprofile, gathers only the evidence that profile needs, and returns a\nread-only decision or review with explicit data gaps.\n",
+      "endorctl_min_version": "1.0.0",
+      "version": "1.0.0",
+      "authors": [
+        "Endor Labs"
+      ],
+      "install": [
+        {
+          "host": "claude-code",
+          "command": "mkdir -p .claude/agents && cp claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer.md .claude/agents/dependency-reviewer.md && for profile in claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+        },
+        {
+          "host": "claude-managed",
+          "command": "cd claude-managed-agents/dependency-reviewer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+        }
+      ],
+      "legacy_ids": [
+        "dependency-decision-helper",
+        "package-risk-summary",
+        "repository-dependency-reviewer"
       ]
     },
     {
@@ -108,8 +119,8 @@
       ]
     },
     {
-      "id": "malware-response",
-      "name": "Malware Response Agent",
+      "id": "malware-responder",
+      "name": "Malware Responder",
       "audience": "appsec",
       "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
       "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
@@ -121,20 +132,23 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/malware-response/malware-response.md .claude/agents/malware-response.md && for profile in claude-code/malware-response/malware-response-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "mkdir -p .claude/agents && cp claude-code/malware-responder/malware-responder.md .claude/agents/malware-responder.md && for profile in claude-code/malware-responder/malware-responder-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/malware-response && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "cd claude-managed-agents/malware-responder && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
+      ],
+      "legacy_ids": [
+        "malware-response"
       ]
     },
     {
-      "id": "package-risk-summary",
-      "name": "Endor Labs Package Risk Summary",
+      "id": "oss-upgrade-investigator",
+      "name": "OSS Upgrade Investigator",
       "audience": "developer",
-      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
-      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
+      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
+      "description": "Use this agent to investigate safe OSS upgrade paths, upgrade risk, findings\nfixed or introduced, Code Impact Analysis, breaking changes, manifest\ntargeting, or whether a dependency upgrade should happen now. It queries\nEndor's read-only VersionUpgrade workflow through the agent-attributed CLI\ntransport.\n",
       "endorctl_min_version": "1.0.0",
       "version": "1.0.0",
       "authors": [
@@ -143,39 +157,20 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/package-risk-summary/package-risk-summary.md .claude/agents/package-risk-summary.md && for profile in claude-code/package-risk-summary/package-risk-summary-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "mkdir -p .claude/agents && cp claude-code/oss-upgrade-investigator/oss-upgrade-investigator.md .claude/agents/oss-upgrade-investigator.md && for profile in claude-code/oss-upgrade-investigator/oss-upgrade-investigator-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/package-risk-summary && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "cd claude-managed-agents/oss-upgrade-investigator && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
-      ]
-    },
-    {
-      "id": "probe-droid",
-      "name": "Probe Droid",
-      "audience": "appsec",
-      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
-      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
-      "endorctl_min_version": "1.0.0",
-      "version": "0.1.0",
-      "authors": [
-        "Endor Labs"
       ],
-      "install": [
-        {
-          "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/probe-droid/probe-droid.md .claude/agents/probe-droid.md && for profile in claude-code/probe-droid/probe-droid-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
-        },
-        {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/probe-droid && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
-        }
+      "legacy_ids": [
+        "upgrade-impact-analysis"
       ]
     },
     {
-      "id": "remediation-planner",
-      "name": "Remediation Planner",
+      "id": "remediation-planning",
+      "name": "Remediation Planning",
       "audience": "appsec",
       "short_description": "Previews safe remediation options for Endor Labs findings without opening PRs.",
       "description": "Preview safe remediation options without opening PRs.",
@@ -187,26 +182,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planner/remediation-planner.md .claude/agents/remediation-planner.md && for profile in claude-code/remediation-planner/remediation-planner-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planning/remediation-planning.md .claude/agents/remediation-planning.md && for profile in claude-code/remediation-planning/remediation-planning-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         }
-      ]
-    },
-    {
-      "id": "repository-dependency-reviewer",
-      "name": "Endor Labs Repository Dependency Reviewer",
-      "audience": "developer",
-      "short_description": "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence.",
-      "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
-      "endorctl_min_version": "1.0.0",
-      "version": "1.0.0",
-      "authors": [
-        "Endor Labs"
       ],
-      "install": [
-        {
-          "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md .claude/agents/repository-dependency-reviewer.md && for profile in claude-code/repository-dependency-reviewer/repository-dependency-reviewer-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
-        }
+      "legacy_ids": [
+        "remediation-planner"
       ]
     },
     {
@@ -228,30 +208,33 @@
       ]
     },
     {
-      "id": "upgrade-impact-analysis",
-      "name": "Endor Labs Upgrade Impact Analysis",
+      "id": "troubleshooting",
+      "name": "Troubleshooting",
       "audience": "developer",
-      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
-      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through the agent-attributed read-only CLI transport.\n",
+      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
+      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Troubleshooting gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
       "endorctl_min_version": "1.0.0",
-      "version": "1.0.0",
+      "version": "0.1.0",
       "authors": [
         "Endor Labs"
       ],
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md .claude/agents/upgrade-impact-analysis.md && for profile in claude-code/upgrade-impact-analysis/upgrade-impact-analysis-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "mkdir -p .claude/agents && cp claude-code/troubleshooting/troubleshooting.md .claude/agents/troubleshooting.md && for profile in claude-code/troubleshooting/troubleshooting-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/upgrade-impact-analysis && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "cd claude-managed-agents/troubleshooting && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
+      ],
+      "legacy_ids": [
+        "endor-troubleshooter"
       ]
     },
     {
       "id": "vulnerability-explainer",
-      "name": "Endor Labs Vulnerability Explainer",
+      "name": "Vulnerability Explainer",
       "audience": "developer",
       "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
       "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",

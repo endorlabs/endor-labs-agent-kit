@@ -114,7 +114,7 @@ outputs:
   - name: recommended_next_steps
     kind: list[object]
     required: true
-    description: Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, probe-droid, or cicd-posture, with confirmation requirements for any mutating follow-up.
+    description: Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, configuration-automation, or cicd-posture, with confirmation requirements for any mutating follow-up.
   - name: evidence_queries
     kind: list[object]
     required: true

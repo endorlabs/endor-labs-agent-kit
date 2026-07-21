@@ -60,8 +60,8 @@ try:
     emit(
         event,
         "Endor Agent Kit dependency advisory: this command looks like a dependency install or add. "
-        "Before relying on the package, route through `dependency-decision-helper` for new dependency approval "
-        "or `package-risk-summary` for package-version risk. Keep the workflow read-only unless the user has "
+        "Before relying on the package, route through `dependency-reviewer` with `package-decision` for approval "
+        "or `package-risk` for package-version risk. Keep the workflow read-only unless the user has "
         "already approved the install."
     )
 except Exception:

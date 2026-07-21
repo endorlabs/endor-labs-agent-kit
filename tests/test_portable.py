@@ -94,9 +94,9 @@ def test_publish_recipes_writes_portable_bundles_for_all_current_agents(tmp_path
 
 
 def test_portable_manifest_distinguishes_declared_actions_and_wrappers(tmp_path):
-    recipe = _copy_agent(tmp_path, "ai-sast-triage")
+    recipe = _copy_agent(tmp_path, "ai-sast-remediation")
     compile_portable(recipe)
-    bundle = recipe.parent / "dist" / "portable" / "ai-sast-triage"
+    bundle = recipe.parent / "dist" / "portable" / "ai-sast-remediation"
     manifest = json.loads((bundle / "agent.manifest.json").read_text(encoding="utf-8"))
     contract = (bundle / "output-contract.md").read_text(encoding="utf-8")
 

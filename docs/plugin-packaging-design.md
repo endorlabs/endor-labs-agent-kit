@@ -44,7 +44,7 @@ The generated Codex plugin package includes:
   `plugins/codex/.agents/plugins/marketplace.json` for local validation.
 
 Do not add MCP servers to the plugin manifest by default. `sca-remediation` and
-`ai-sast-triage` are `endorctl_agent_api` workflows, and their safety contract depends
+`ai-sast-remediation` are `endorctl_agent_api` workflows, and their safety contract depends
 on local terminal/source-provider state plus explicit approval gates.
 
 ## Implemented Claude Code Plugin Shape
@@ -260,11 +260,11 @@ The first prototype package used this local marketplace shape:
 
 - `marketplace.json`
 - `plugins/endor-agent-kit-security-agents/.codex-plugin/plugin.json`
-- `plugins/endor-agent-kit-security-agents/skills/ai-sast-triage/`
+- `plugins/endor-agent-kit-security-agents/skills/ai-sast-remediation/`
 - `plugins/endor-agent-kit-security-agents/skills/sca-remediation/`
 
 The package copied the generated Codex skill directories byte-for-byte from
-`codex/ai-sast-triage/` and `codex/sca-remediation/`, including each
+`codex/ai-sast-remediation/` and `codex/sca-remediation/`, including each
 `SKILL.md`, `README.md`, `actions.yaml`, `architecture.svg`, and
 `endorctl-setup.md`.
 

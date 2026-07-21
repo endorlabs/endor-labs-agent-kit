@@ -169,7 +169,7 @@ def validate_profile_output_payload(
 def _gate_validator_id(agent_id: str, profile_id: str) -> str:
     if profile_id in {"resolve-scope", "evidence-check"} and agent_id in {
         "sca-remediation",
-        "ai-sast-triage",
+        "ai-sast-remediation",
     }:
         return f"{agent_id}.read-only-profile"
     return f"{agent_id}.structured-output"

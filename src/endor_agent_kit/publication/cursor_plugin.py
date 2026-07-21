@@ -78,12 +78,22 @@ def publish_cursor_plugin_package(
 
     skills_root = destination / "skills"
     skills_root.mkdir(parents=True, exist_ok=True)
-    for skill_id in [prepared.recipe.id for prepared in sorted_recipes] + [CURSOR_SETUP_SKILL]:
+    active_skill_ids = {prepared.recipe.id for prepared in sorted_recipes} | {CURSOR_SETUP_SKILL}
+    active_agent_names = {
+        _cursor_agent_name(prepared.recipe.id) for prepared in sorted_recipes
+    } | {CURSOR_SETUP_AGENT}
+    _prune_stale_managed_cursor_artifacts(
+        skills_root,
+        destination / "agents",
+        active_skill_ids=active_skill_ids,
+        active_agent_names=active_agent_names,
+    )
+    for skill_id in sorted(active_skill_ids):
         shutil.rmtree(skills_root / skill_id, ignore_errors=True)
 
     agents_root = destination / "agents"
     agents_root.mkdir(parents=True, exist_ok=True)
-    for agent_name in [_cursor_agent_name(prepared.recipe.id) for prepared in sorted_recipes] + [CURSOR_SETUP_AGENT]:
+    for agent_name in sorted(active_agent_names):
         (agents_root / f"{agent_name}.md").unlink(missing_ok=True)
 
     assets_root = destination / "assets"
@@ -166,6 +176,32 @@ def publish_cursor_plugin_package(
         ),
     )
     return PluginPackagePublication(package_record=package_record, written=tuple(written))
+
+
+def _prune_stale_managed_cursor_artifacts(
+    skills_root: Path,
+    agents_root: Path,
+    *,
+    active_skill_ids: set[str],
+    active_agent_names: set[str],
+) -> None:
+    """Remove retired generated Cursor entries while preserving user-owned files."""
+
+    managed_marker = "endor_agent_kit_managed=true"
+    for skill_dir in skills_root.iterdir():
+        if not skill_dir.is_dir() or skill_dir.name in active_skill_ids:
+            continue
+        skill = skill_dir / "SKILL.md"
+        if skill.is_file() and managed_marker in skill.read_text(encoding="utf-8"):
+            shutil.rmtree(skill_dir)
+
+    if not agents_root.is_dir():
+        return
+    for agent in agents_root.glob("*.md"):
+        if agent.stem in active_agent_names:
+            continue
+        if managed_marker in agent.read_text(encoding="utf-8"):
+            agent.unlink()
 
 
 def _write_cursor_plugin_hooks(destination: Path) -> tuple[Path, ...]:
@@ -564,10 +600,10 @@ def _cursor_bool(value: bool) -> str:
 
 def _workflow_label(agent_id: str) -> str:
     labels = {
-        "ai-sast-triage": "Triage AI SAST findings",
+        "ai-sast-remediation": "Triage AI SAST findings",
         "cicd-posture": "Assess CI/CD and supply chain posture",
-        "endor-troubleshooter": "Diagnose Endor setup and scan issues",
-        "probe-droid": "Assess GitHub onboarding gaps",
+        "troubleshooting": "Diagnose Endor setup and scan issues",
+        "configuration-automation": "Assess GitHub onboarding gaps",
         "sca-remediation": "Find safe SCA remediation paths",
     }
     return labels.get(agent_id, agent_id.replace("-", " ").title())

@@ -66,6 +66,7 @@ class EndorAgentRecipe:
     outputs: tuple[RecipeField, ...]
     evals: str
     compatible_hosts: tuple[str, ...]
+    legacy_ids: tuple[str, ...] = ()
     host_editions: dict[str, tuple[str, ...]] = field(default_factory=dict)
     action_contracts_path: str = ""
     mutations: tuple[str, ...] = ()
@@ -129,6 +130,7 @@ def recipe_from_dict(data: dict[str, Any]) -> EndorAgentRecipe:
         outputs=_fields_from_list(data.get("outputs", ())),
         evals=str(data.get("evals", "")),
         compatible_hosts=tuple(str(v) for v in data.get("compatible_hosts", ())),
+        legacy_ids=tuple(str(v) for v in data.get("legacy_ids", ())),
         host_editions=_host_editions_from_mapping(data.get("host_editions", {})),
         action_contracts_path=str(data.get("action_contracts_path", "")),
         mutations=tuple(str(v) for v in data.get("mutations", ())),
@@ -170,6 +172,7 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
         "outputs": [_field_to_dict(field) for field in recipe.outputs],
         "evals": recipe.evals,
         "compatible_hosts": list(recipe.compatible_hosts),
+        "legacy_ids": list(recipe.legacy_ids),
         "host_editions": {
             host: list(editions)
             for host, editions in recipe.host_editions.items()

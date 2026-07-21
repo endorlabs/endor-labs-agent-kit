@@ -43,7 +43,7 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
     """Return the shared architecture section for Generated Agent READMEs."""
 
     body = {
-        "ai-sast-triage": (
+        "ai-sast-remediation": (
             "In Agent Kit, PR/MR creation is host-mediated. Claude Code runs in the target "
             "checkout, gathers Endor evidence including exploit reproduction and remediation "
             "guidance when present, applies the confirmed diff locally, creates and pushes a "
@@ -51,13 +51,13 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "If the host cannot perform one of those steps, the agent must stop and report the "
             "missing capability in `data_gaps`."
         ),
-        "upgrade-impact-analysis": (
+        "oss-upgrade-investigator": (
             "This read-only agent resolves a human project selector to the Endor project used "
             "for VersionUpgrade queries. Claude Managed Agents do not inspect local git by "
             "default, so sessions should provide a repository URL, owner/repo, or Endor "
             "project name instead of requiring a project UUID."
         ),
-        "probe-droid": (
+        "configuration-automation": (
             "This read-only agent compares GitHub.com repository inventory with Endor "
             "project, GitHub App, monitored-branch scan, package, scan profile, "
             "toolchain, and package-manager evidence. It returns onboarding lanes, "
@@ -74,7 +74,7 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "protection, editing workflows, dispatching workflows, or mutating "
             "Endor state."
         ),
-        "endor-troubleshooter": (
+        "troubleshooting": (
             "This read-only agent diagnoses Endor Labs errors, warnings, scan failures, "
             "slow scans, missing integrations, and unhealthy configuration from "
             "user-provided issue text plus read-only Endor evidence. It returns a "
@@ -83,7 +83,7 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "future action contracts for anything that would mutate Endor, source-provider, "
             "registry, CI, or repository state."
         ),
-        "remediation-planner": (
+        "remediation-planning": (
             "This dry-run workflow resolves project or finding context, gathers Endor "
             "remediation evidence, and returns a plan only. It does not edit files, push "
             "branches, or open PRs/MRs."

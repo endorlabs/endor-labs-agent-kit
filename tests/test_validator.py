@@ -116,6 +116,34 @@ def test_rejects_bad_slug():
     assert any("id:" in error for error in _errors(data))
 
 
+def test_accepts_valid_legacy_ids():
+    data = _data()
+    data["id"] = "dependency-reviewer"
+    data["legacy_ids"] = [
+        "dependency-decision-helper",
+        "package-risk-summary",
+        "repository-dependency-reviewer",
+    ]
+
+    assert _errors(data) == []
+
+
+def test_rejects_invalid_duplicate_or_self_legacy_ids():
+    data = _data()
+    data["legacy_ids"] = [
+        data["id"],
+        "Invalid Alias",
+        "package-risk-summary",
+        "package-risk-summary",
+    ]
+
+    errors = _errors(data)
+
+    assert any("must not contain the canonical id" in error for error in errors)
+    assert any("must match" in error for error in errors)
+    assert any("duplicate" in error for error in errors)
+
+
 def test_accepts_mutating_recipe_with_matching_host_capabilities():
     data = _data()
     data["safety_class"] = "mutating"
@@ -303,6 +331,6 @@ def test_accepts_requires_endorctl_constraints():
 
 def _copy_recipe_fixture(tmp_path):
     src = recipe_path().parent
-    dst = tmp_path / "dependency-decision-helper"
+    dst = tmp_path / "dependency-reviewer"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"
