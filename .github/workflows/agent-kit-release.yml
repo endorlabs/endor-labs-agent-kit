@@ -3,10 +3,16 @@ name: Agent Kit Release
 # On a catalog release tag (e.g. agents-v1.0.0), run the full gate, build the
 # wire-shape catalog.json, sign it (HSM-backed, gated), verify the signature
 # against the pinned public key, and publish the artifacts to a GitHub Release.
+#
+# workflow_dispatch runs the same gate + sign + verify-against-pinned-key path on
+# demand (no tag, no GitHub Release). It exists so maintainers can exercise the
+# live Key Vault signing round-trip -- which executes nowhere else -- before
+# cutting a public release.
 on:
   push:
     tags:
       - "agents-v*"
+  workflow_dispatch:
 
 permissions:
   contents: write   # create the GitHub Release
@@ -30,6 +36,8 @@ jobs:
           fetch-depth: 0
 
       - name: Verify tagged commit is on main
+        # Only meaningful for a release tag; a dispatch dry-run publishes nothing.
+        if: ${{ github.event_name == 'push' }}
         run: |
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
@@ -95,7 +103,14 @@ jobs:
       - name: Stamp catalog_version
         run: |
           . .venv/bin/activate
-          endor-agent-kit stamp-catalog-version --catalog catalog.json --catalog-version "$CATALOG_TAG"
+          # On a tag push the stamp is the release tag; on a dispatch dry-run the
+          # output is never published, so any non-empty marker keeps the sign path running.
+          if [ "${{ github.event_name }}" = "push" ]; then
+            version="$CATALOG_TAG"
+          else
+            version="dry-run-$(git rev-parse --short HEAD)"
+          fi
+          endor-agent-kit stamp-catalog-version --catalog catalog.json --catalog-version "$version"
 
       # --- Signing (gated behind CATALOG_SIGNING_ENABLED; HSM-backed via Azure Key Vault over OIDC) ---
       - name: Azure login (OIDC)
@@ -125,12 +140,14 @@ jobs:
             --public-key keys/catalog-signing-public-key.pem
 
       - name: Refuse to publish an unsigned catalog
-        if: ${{ vars.CATALOG_SIGNING_ENABLED != 'true' }}
+        # Guards the release path only; a dispatch dry-run publishes nothing to refuse.
+        if: ${{ github.event_name == 'push' && vars.CATALOG_SIGNING_ENABLED != 'true' }}
         run: |
           echo "::error title=Signing required::CATALOG_SIGNING_ENABLED is not 'true'. Refusing to publish an unsigned catalog.json to a release -- consumers verify the signature. Enable Key Vault signing before tagging a release."
           exit 1
 
       - name: Publish GitHub Release
+        if: ${{ github.event_name == 'push' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
