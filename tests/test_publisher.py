@@ -169,6 +169,11 @@ def test_publish_recipe_catalogues_named_claude_code_profile_variants(tmp_path):
         profile_id: f"sca-remediation-{profile_id}.md"
         for profile_id in expected_profiles
     }
+    for artifact in claude_agent["editions"][0]["artifacts"]:
+        if "profile_id" not in artifact:
+            continue
+        assert len(artifact["profile_contract_digest"]) == 64
+        assert artifact["profile_gate_validator"]["version"] == "1"
 
 
 def test_claude_plugin_packages_include_named_profile_agents(tmp_path):

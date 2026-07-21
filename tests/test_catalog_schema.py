@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
+
+import pytest
 
 from endor_agent_kit.catalog_schema import (
     CatalogAgent,
@@ -112,3 +115,36 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
     assert manifest_artifact["bytes"] == len("current")
     assert manifest_artifact["sha256"] == hashlib.sha256(b"current").hexdigest()
     assert manifest_artifact["profile_id"] == "evidence-check"
+    assert "profile_contract_digest" not in manifest_artifact
+    assert "profile_gate_validator" not in manifest_artifact
+
+
+def test_catalog_schema_fails_closed_when_source_backed_profile_contract_is_invalid(
+    tmp_path,
+    monkeypatch,
+):
+    recipe = replace(_recipe(), id="sca-remediation")
+    destination = tmp_path / "catalog"
+    bundle_dir = destination / "claude-code" / recipe.id
+    bundle_dir.mkdir(parents=True)
+    artifact = bundle_dir / f"{recipe.id}.md"
+    artifact.write_text("current", encoding="utf-8")
+
+    def fail_contract_compilation(_agent_id, _profile_id):
+        raise ValueError("invalid canonical profile contract")
+
+    monkeypatch.setattr(
+        "endor_agent_kit.catalog_schema.compile_profile_contract",
+        fail_contract_compilation,
+    )
+
+    with pytest.raises(ValueError, match="invalid canonical profile contract"):
+        CatalogBundle.from_published_bundle(
+            destination,
+            recipe,
+            "claude-code",
+            "enterprise-edition",
+            "Enterprise Edition",
+            bundle_dir,
+            artifact_profiles={artifact.relative_to(destination).as_posix(): "evidence-check"},
+        )

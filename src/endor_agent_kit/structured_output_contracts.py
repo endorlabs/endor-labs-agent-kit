@@ -242,9 +242,25 @@ def json_schema_for_agent(
         "title": f"Endor Agent Kit {agent_id} final output",
         "type": "object",
         "additionalProperties": False,
-        "required": list(properties),
+        "required": [field.name for field in contract if field.required],
         "properties": properties,
     }
+
+
+def strict_transport_schema_for_agent(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None = None,
+) -> dict[str, Any]:
+    """Return a strict-host schema with every logical property present.
+
+    Optional logical fields remain nullable, and
+    :func:`normalize_structured_output_payload` converts present-null values
+    back to omission before logical validation.
+    """
+
+    schema = json_schema_for_agent(agent_id, output_fields)
+    schema["required"] = list(schema["properties"])
+    return schema
 
 
 def validate_structured_output_payload(

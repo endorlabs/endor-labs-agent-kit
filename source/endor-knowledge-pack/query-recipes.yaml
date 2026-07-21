@@ -37,6 +37,24 @@ recipes:
     forbidden:
       - Do not ask for or invent a project UUID before trying repository-scoped project lookup.
 
+  - id: project-by-uuid
+    title: Project Lookup By UUID
+    resource: Project
+    purpose: Fetch one exact Project for repository labeling and branch provenance after another trusted record supplies its project UUID.
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r Project -n <namespace> --uuid <PROJECT_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use only with a project UUID returned by current scoped Endor evidence such as a Finding.
+      - Preserve the source record that supplied the project UUID and explicit namespace provenance.
+    completeness: Exact lookup for one Project UUID; it does not prove that local repository identity matches without corroborating source provenance.
+    forbidden:
+      - Do not add filters to api get or use a project UUID from memory, examples, or a prior session.
+
   - id: project-branch-coverage
     title: Project Branch Coverage Lookup
     resource: Project
@@ -95,6 +113,22 @@ recipes:
     completeness: Uses --list-all because the gate needs the complete scoped AI SAST set for one resolved main-context project.
     forbidden:
       - Do not replace the method enum with AI_SAST or a finding_tags selector.
+
+  - id: ai-sast-count
+    title: Main-Context AI SAST Finding Count
+    resource: Finding
+    purpose: Count AI SAST finding availability for one resolved project and main context without fetching finding metadata or case-file explanations.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --count -o json
+    fields:
+      - count
+    constraints:
+      - Use only when no Finding UUID was supplied and one project UUID plus namespace provenance is resolved.
+      - Prefer finding-by-uuid when a Finding UUID is supplied.
+      - Stop after availability is known; fetch one selected Finding only after an explicit selection.
+    completeness: Complete count of matching main-context AI SAST findings for one resolved project.
+    forbidden:
+      - Do not add --list-all, field masks, finding metadata, spec.explanation, or source bodies to this count-only query.
 
   - id: package-version-exact
     title: Exact PackageVersion Lookup
@@ -266,6 +300,25 @@ recipes:
     completeness: Bounded exploited-finding evidence for the resolved project; pair with VersionUpgrade ranking for remediation selection.
     forbidden:
       - Do not invent finding tags; use only Endor FINDING_TAGS_* enum values.
+
+  - id: sca-finding-package-severity-groups
+    title: Scoped Vulnerability Finding Package And Severity Groups
+    resource: Finding
+    purpose: Count main-context vulnerability findings by target package and severity for one resolved project without fetching finding rows.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --group-aggregation-paths spec.target_dependency_package_name,spec.level -o json
+    fields:
+      - group_response.groups
+      - aggregation_count.count
+      - spec.target_dependency_package_name
+      - spec.level
+    constraints:
+      - Use only after resolving one project UUID and explicit namespace provenance.
+      - Preserve the composite package and severity keys plus each aggregation_count.count value.
+      - Treat a missing package or severity key as a data gap; do not collapse it into another group.
+    completeness: Complete package-by-severity counts for matching main-context vulnerability findings when the scoped aggregation succeeds.
+    forbidden:
+      - Do not add --list-all, field masks, UUID expansion, finding bodies, or exploit-prioritization filters to this aggregation.
 
   - id: finding-browser-filtered
     title: Bounded Finding Browser List
@@ -450,6 +503,21 @@ recipes:
     completeness: Complete only for repositories whose GitHub App ingestion includes tag protection; missing ingestion is a data_gap.
     forbidden:
       - Do not mutate repository tag protection; this is read-only ingested evidence.
+
+  - id: version-upgrade-count
+    title: VersionUpgrade Availability Count
+    resource: VersionUpgrade
+    purpose: Count worthwhile main-context VersionUpgrade records for one resolved project without fetching candidate details.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --count -o json
+    fields:
+      - count
+    constraints:
+      - Use only for evidence availability after resolving one project UUID and explicit namespace provenance.
+      - Stop after recording the count; use version-upgrade-summary only when a later profile needs candidate ranking.
+    completeness: Complete count of matching worthwhile main-context VersionUpgrade records for one resolved project.
+    forbidden:
+      - Do not add --list-all, field masks, candidate fields, or candidate selection to this count-only query.
 
   - id: version-upgrade-summary
     title: VersionUpgrade Candidate Summary

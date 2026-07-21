@@ -380,6 +380,30 @@ evidence_query_recipes:
     ]
 
 
+def test_source_field_references_separates_count_and_group_response_envelopes(tmp_path):
+    pack = tmp_path / "pack"
+    (pack / "workflows").mkdir(parents=True)
+    (pack / "query-recipes.yaml").write_text(
+        """\
+recipes:
+  - resource: Finding
+    template: endorctl agent api --agent-id fixture list -r Finding -n tenant --count -o json
+    fields: [count]
+  - resource: Finding
+    template: endorctl agent api --agent-id fixture list -r Finding -n tenant --group-aggregation-paths spec.level -o json
+    fields:
+      - group_response.groups
+      - aggregation_count.count
+      - spec.level
+""",
+        encoding="utf-8",
+    )
+
+    assert source_field_references(pack) == [
+        ("query-recipes.yaml.recipes[1].fields[2]", "Finding", "spec.level")
+    ]
+
+
 def test_source_field_references_ignores_generic_name_and_fields_objects(tmp_path):
     pack = tmp_path / "pack"
     (pack / "workflows").mkdir(parents=True)
