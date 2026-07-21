@@ -13,7 +13,7 @@ This is the portable runtime generated agent bundle for `repository-dependency-r
 | Reader | First move |
 | --- | --- |
 | Human operator | Load `agent.md` and `agent.manifest.json` into your runtime and wire only the adapters your policy allows. Then use the example prompt below: Use this agent to analyze repository <repo> with `repository-dependency-reviewer`. |
-| Agent installer | Copy the generated files exactly, including the generated prompt or skill file. Do not summarize or rewrite the generated prompt. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/repository-dependency-reviewer/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
 ## Use This When
@@ -25,6 +25,7 @@ Use this bundle when your organization already has an agent runtime, source-prov
 - `agent.md`: generated runtime-neutral agent instructions.
 - `agent.manifest.json`: machine-readable runtime contract.
 - `output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.
+- `endorctl-setup.md`: Endor runtime setup notes.
 - `policy-packs/` in the catalog root: optional templates and examples for trusted runtime policy configuration.
 
 ## Runtime Responsibilities
@@ -51,7 +52,7 @@ These examples are illustrative, not requirements.
 
 | Portable action | Example runtime adapters |
 | --- | --- |
-| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |
+| `endor.query` | `endorctl agent api --agent-id <canonical-recipe-id>`, approved Endor MCP adapter |
 | `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |
 | `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |
 | `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |

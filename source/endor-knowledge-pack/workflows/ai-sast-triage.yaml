@@ -4,6 +4,9 @@ summary: Use namespace-scoped main-context AI SAST findings, exploit reproductio
   before proposing remediation or optional exception work.
 task_profiles:
   - id: resolve-scope
+    compact: true
+    included_sections:
+      - scope-resolution
     title: Resolve Scope
     summary: Prove namespace, repository, project, source ref, and AI SAST finding scope only.
     when_to_use:
@@ -17,6 +20,9 @@ task_profiles:
     output_focus:
       - Return project resolution, finding selector attempts, evidence_queries, and data_gaps.
   - id: evidence-check
+    compact: true
+    included_sections:
+      - scope-resolution
     title: Evidence Check
     summary: Fetch only the AI SAST evidence needed to classify availability; fetch detailed case-file context only for a selected finding.
     when_to_use:
@@ -30,6 +36,10 @@ task_profiles:
     output_focus:
       - Return verdict placeholders, evidence_queries, availability counts, and data_gaps for missing finding detail or source evidence.
   - id: selection-plan
+    compact: true
+    included_sections:
+      - scope-resolution
+      - selection-planning
     title: Remediation Plan
     summary: Decide whether to patch, request approval, or block based on verified AI SAST and source evidence.
     when_to_use:
@@ -88,7 +98,7 @@ data_gaps:
   - Record missing credentials, namespace conflicts, project lookup gaps, absent finding evidence, missing source files, and
     optional exception-policy lookup failures in `data_gaps`.
   - Preserve `namespace_provenance`, source ref, finding UUID, stable exception_match, and context scope in remediation and exception outputs.
-  - Final JSON fields must use concise evidence summaries, not raw `endorctl api`, `git`, `gh`, `curl`, or shell pipeline
+  - Final JSON fields must use concise evidence summaries, not raw `endorctl agent api --agent-id <agent-id>`, `git`, `gh`, `curl`, or shell pipeline
     strings. Keep exact commands in tool execution only.
 evidence_query_plans:
   - profile_id: resolve-scope
@@ -146,7 +156,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
       --list-all -o json
     fields:
       - uuid
@@ -162,7 +172,7 @@ evidence_query_recipes:
     canonical_id: finding-by-uuid
     resource: Finding
     purpose: Fetch one known Finding by UUID; api get does not accept filters.
-    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
     fields:
       - uuid
       - context.type
@@ -178,7 +188,7 @@ evidence_query_recipes:
     canonical_id: finding-by-uuid
     resource: Finding
     purpose: Fetch one known Finding by UUID; api get does not accept filters.
-    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
     fields:
       - uuid
       - context.type
@@ -194,7 +204,7 @@ evidence_query_recipes:
     canonical_id: ai-sast-list
     resource: Finding
     purpose: List only AI SAST finding availability for a resolved project when no Finding UUID was supplied.
-    template: endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
       and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata"
       --list-all -o json
     fields:
@@ -215,7 +225,7 @@ evidence_query_recipes:
     canonical_id: finding-by-uuid
     resource: Finding
     purpose: Fetch one known Finding by UUID; api get does not accept filters.
-    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
     fields:
       - uuid
       - context.type

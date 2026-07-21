@@ -31,8 +31,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api",
+        "endorctl-agent-api",
         "repository-adapter"
       ]
     },
@@ -58,8 +57,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api"
+        "endorctl-agent-api"
       ]
     },
     {
@@ -82,8 +80,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api"
+        "endorctl-agent-api"
       ]
     },
     {
@@ -108,8 +105,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api",
+        "endorctl-agent-api",
         "repository-adapter"
       ]
     },
@@ -159,8 +155,7 @@
       "portable_kind": "repository.read",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api",
+        "endorctl-agent-api",
         "repository-files-adapter",
         "repository-adapter",
         "dependency-manager-adapter"
@@ -280,7 +275,7 @@
     "supports_plan_only": true
   },
   "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
-  "endorctl_api_invocations": [
+  "endorctl_agent_api_invocations": [
     "resolve_project_from_repository",
     "list_sca_findings",
     "list_version_upgrade_recommendations",
@@ -343,6 +338,12 @@
       "description": "Maximum SCA findings to evaluate before ranking package-level remediations.",
       "kind": "integer",
       "name": "finding_limit",
+      "required": false
+    },
+    {
+      "description": "Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving approved evidence. Never carries secrets or approvals.",
+      "kind": "object",
+      "name": "task_state",
       "required": false
     }
   ],
@@ -419,6 +420,12 @@
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true
+    },
+    {
+      "description": "Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.",
+      "kind": "object",
+      "name": "task_state",
+      "required": false
     },
     {
       "description": "Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.",
@@ -521,7 +528,7 @@
     }
   ],
   "required_transports": [
-    "endorctl_api"
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": "",
   "requires_endorctl": ">=1.0.0",
@@ -532,8 +539,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -640,11 +646,10 @@
     {
       "confirmation_required": null,
       "declared_by_recipe": false,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "unavailable"
     },

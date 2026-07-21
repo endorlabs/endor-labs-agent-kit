@@ -121,7 +121,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve repository selector to Endor project identity before finding browse.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
     fields:
       - uuid
       - meta.name
@@ -135,7 +135,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-filtered
     resource: Finding
     purpose: List bounded existing Finding rows for verified filters.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -153,7 +153,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-complete-counts
     resource: Finding
     purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
@@ -167,7 +167,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-by-tag
     resource: Finding
     purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -186,7 +186,7 @@ evidence_query_recipes:
     canonical_id: finding-by-uuid
     resource: Finding
     purpose: Fetch one exact Endor Finding by UUID.
-    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
     fields:
       - uuid
       - context.type

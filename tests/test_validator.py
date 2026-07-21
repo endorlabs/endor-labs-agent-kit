@@ -171,6 +171,24 @@ def test_endorctl_transport_requires_run_commands():
     assert any("run_commands" in error for error in _errors(data))
 
 
+def test_accepts_agent_attributed_endor_api_transport():
+    data = _data()
+    data["supported_transports"] = ["mcp", "endorctl_agent_api"]
+    data["endorctl_api_invocations"] = []
+    data["endorctl_agent_api_invocations"] = ["lookup_package_version_uuid"]
+
+    assert _errors(data) == []
+
+
+def test_agent_attributed_endor_api_transport_requires_invocations():
+    data = _data()
+    data["supported_transports"] = ["mcp", "endorctl_agent_api"]
+    data["endorctl_api_invocations"] = []
+    data["endorctl_agent_api_invocations"] = []
+
+    assert any("endorctl_agent_api_invocations" in error for error in _errors(data))
+
+
 def test_rejects_missing_instructions_file():
     data = _data()
     data["instructions_path"] = "missing.md"

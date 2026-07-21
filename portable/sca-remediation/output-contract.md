@@ -5,8 +5,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Safety And Transports
 
 - safety_class: `mutating`
-- required_transports: `endorctl_api`
-- endorctl_api_invocations: `resolve_project_from_repository`, `list_sca_findings`, `list_version_upgrade_recommendations`, `get_version_upgrade_details`, `get_finding_fixing_upgrades`, `inspect_dependency_metadata`
+- required_transports: `endorctl_agent_api`
+- endorctl_agent_api_invocations: `resolve_project_from_repository`, `list_sca_findings`, `list_version_upgrade_recommendations`, `get_version_upgrade_details`, `get_finding_fixing_upgrades`, `inspect_dependency_metadata`
 - required_endor_mcp_tools: `none`
 
 ## Inputs
@@ -20,6 +20,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `severity_filter` (list[string], optional): Optional Endor severity filter such as CRITICAL or HIGH. Natural-language P0 requests should map to critical/high reachable and fixable SCA findings.
 - `package_name` (string, optional): Optional package name to narrow remediation ranking after project resolution.
 - `finding_limit` (integer, optional): Maximum SCA findings to evaluate before ranking package-level remediations.
+- `task_state` (object, optional): Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving approved evidence. Never carries secrets or approvals.
 
 ## Outputs
 
@@ -35,6 +36,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `change_requests` (list[object], required): PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.
 - `tickets` (list[object], required): Ticket IDs, URLs, status, and failure reasons for requested ticket creation.
 - `data_gaps` (list[string], required): Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.
+- `task_state` (object, optional): Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 - `policy_context` (object, required): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (list[object], required): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 

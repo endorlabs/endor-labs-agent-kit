@@ -24,7 +24,7 @@ recipes:
     resource: Project
     purpose: Resolve a repository selector to namespace-scoped Endor project identity.
     template: >-
-      endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
     fields:
       - uuid
       - meta.name
@@ -42,7 +42,7 @@ recipes:
     resource: Project
     purpose: Resolve selected repositories before monitored-branch fallback checks.
     template: >-
-      endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json
     fields:
       - uuid
       - meta.name
@@ -58,7 +58,7 @@ recipes:
     title: Finding Lookup By UUID
     resource: Finding
     purpose: Fetch an exact Endor Finding when the user or prior evidence provides a Finding UUID.
-    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
     fields:
       - uuid
       - context.type
@@ -78,7 +78,7 @@ recipes:
     resource: Finding
     purpose: List AI SAST finding availability for one resolved project and main context without fetching bulky case-file explanations.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json
     fields:
       - uuid
       - context.type
@@ -101,7 +101,7 @@ recipes:
     resource: PackageVersion
     purpose: Fetch one named package version and compact package metadata from package-level `oss` without inventorying unrelated dependencies.
     template: >-
-      endorctl api list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
+      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json
     fields:
       - uuid
       - meta.name
@@ -121,7 +121,7 @@ recipes:
     resource: PackageVersion
     purpose: Find exact affected package/version evidence across a proven namespace and child namespaces.
     template: >-
-      endorctl api list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
     fields:
       - uuid
       - meta.name
@@ -144,7 +144,7 @@ recipes:
     resource: PackageVersion
     purpose: Inventory bounded PackageVersion rows for a named affected package when exact filtering or version ranges require local correlation.
     template: >-
-      endorctl api list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name matches "<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@.*"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name matches "<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@.*"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
     fields:
       - uuid
       - meta.name
@@ -209,7 +209,7 @@ recipes:
     resource: Finding
     purpose: List Endor's own malware-category findings for a resolved namespace or project as Endor tenant malware evidence.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.finding_categories contains FINDING_CATEGORY_MALWARE and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.ecosystem,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.finding_categories contains FINDING_CATEGORY_MALWARE and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.ecosystem,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -233,7 +233,7 @@ recipes:
     resource: Finding
     purpose: Check vulnerability Finding availability for one resolved project.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json
     fields:
       - uuid
       - context.type
@@ -252,7 +252,7 @@ recipes:
     resource: Finding
     purpose: Identify exploited vulnerability findings for a resolved project to prioritize remediation order.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false and spec.finding_tags contains FINDING_TAGS_EXPLOITED' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level,spec.finding_tags" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false and spec.finding_tags contains FINDING_TAGS_EXPLOITED' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level,spec.finding_tags" -o json
     fields:
       - uuid
       - context.type
@@ -272,7 +272,7 @@ recipes:
     resource: Finding
     purpose: List existing Endor findings for a verified scope and bounded filter set.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -295,7 +295,7 @@ recipes:
     resource: Finding
     purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
@@ -312,7 +312,7 @@ recipes:
     resource: Finding
     purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -340,7 +340,7 @@ recipes:
     resource: Finding
     purpose: List existing Endor posture findings for CI/CD, GitHub Actions, SCPM, and supply-chain categories.
     template: >-
-      endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
     fields:
       - uuid
       - context.type
@@ -397,7 +397,7 @@ recipes:
     resource: Repository
     purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
     template: >-
-      endorctl api list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+      endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
     fields:
       - uuid
       - meta.name
@@ -418,7 +418,7 @@ recipes:
     resource: RepositoryCodeownersFile
     purpose: Read Endor-ingested CODEOWNERS evidence for one resolved repository, filling the cicd-posture codeowners gap without a separate GitHub token.
     template: >-
-      endorctl api list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+      endorctl agent api --agent-id <agent-id> list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
     fields:
       - uuid
       - meta.name
@@ -437,7 +437,7 @@ recipes:
     resource: RepositoryTagProtection
     purpose: Read Endor-ingested tag protection evidence for one resolved repository without a separate GitHub token.
     template: >-
-      endorctl api list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+      endorctl agent api --agent-id <agent-id> list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
     fields:
       - uuid
       - meta.name
@@ -456,7 +456,7 @@ recipes:
     resource: VersionUpgrade
     purpose: Fetch ranked worthwhile upgrade candidates before selecting detailed evidence.
     template: >-
-      endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
     fields:
       - uuid
       - spec.name
@@ -473,7 +473,7 @@ recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed upgrade impact evidence for one selected VersionUpgrade.
     template: >-
-      endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json
     fields:
       - uuid
       - spec.name
@@ -490,7 +490,7 @@ recipes:
     resource: VersionUpgrade
     purpose: Fetch upgrade impact candidates for one selected package in one resolved project.
     template: >-
-      endorctl api list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json
     fields:
       - uuid
       - spec.name
@@ -506,7 +506,7 @@ recipes:
     title: ScanResult Lookup By UUID
     resource: ScanResult
     purpose: Fetch one selected scan result for troubleshooting evidence.
-    template: endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
     fields:
       - uuid
       - meta.name

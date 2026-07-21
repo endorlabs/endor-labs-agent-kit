@@ -30,7 +30,7 @@ subagent manually under your Gemini configuration.
 ## Requirements
 
 - Gemini CLI with filesystem and terminal access to the target repository.
-- Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.
+- Endor tenant access through authenticated `endorctl agent api --agent-id ai-sast-triage`.
 - Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.
 - A configured AppSec approver list before standalone exception-policy creation.
 - Endor policy-write access only after verified AppSec approval and explicit user confirmation.

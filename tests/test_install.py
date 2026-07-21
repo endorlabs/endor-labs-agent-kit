@@ -112,6 +112,53 @@ def test_check_install_detects_stale_repo_level_agent_from_manifest(tmp_path):
     ) == []
 
 
+def test_check_claude_code_install_requires_catalogued_profile_variants(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        extra_artifacts=[
+            {
+                "path": "claude-code/sca-remediation/sca-remediation-evidence-check.md",
+                "sha256": _sha256_text("profile-current"),
+                "bytes": len("profile-current"),
+                "profile_id": "evidence-check",
+            },
+            {
+                "path": "claude-code/sca-remediation/README.md",
+                "sha256": _sha256_text("readme"),
+                "bytes": len("readme"),
+            },
+        ],
+    )
+    installed_agent = tmp_path / "repo" / ".claude" / "agents"
+    installed_agent.mkdir(parents=True)
+    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
+
+    missing = check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    )
+    assert any("sca-remediation-evidence-check.md" in error for error in missing)
+    assert not any("README.md" in error for error in missing)
+
+    profile = installed_agent / "sca-remediation-evidence-check.md"
+    profile.write_text("profile-old", encoding="utf-8")
+    stale = check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    )
+    assert any("sca-remediation-evidence-check.md" in error and "is stale" in error for error in stale)
+
+    profile.write_text("profile-current", encoding="utf-8")
+    assert check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    ) == []
+
+
 def test_catalog_manifest_lookup_returns_full_bundle_record(tmp_path):
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(

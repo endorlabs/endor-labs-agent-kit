@@ -3,7 +3,7 @@
 
 This artifact browses existing Endor Labs findings only. It is read-only and
 does not require, configure, or start an Endor MCP server. Use documented
-Endor API or `endorctl api` lookups when command execution is available.
+`endorctl agent api --agent-id <agent-id>` lookups when command execution is available.
 
 ## Operating Rules
 
@@ -119,7 +119,7 @@ Enterprise Endor finding evidence is unavailable.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
-Use the read-only Endor API evidence lanes above. Do not require an Endor MCP
+Use the read-only agent-attributed CLI evidence lanes above. Do not require an Endor MCP
 server. If a user asks to remediate, open a PR, dismiss a finding, create a
 policy, rerun a scan, or change source-provider settings, stop at a future
 action recommendation with `confirmation_required: true` and route to the

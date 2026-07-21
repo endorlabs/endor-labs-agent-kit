@@ -44,6 +44,6 @@ Assess npm lodash version 4.17.20.
 
 ## Notes
 
-- This agent uses MCP first, then read-only endorctl api lookups for richer signals.
+- This agent uses MCP first, then read-only `endorctl agent api --agent-id dependency-decision-helper` lookups for richer signals.
 - The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.
 - Bash use remains limited by prompt to the documented Endor lookup commands.

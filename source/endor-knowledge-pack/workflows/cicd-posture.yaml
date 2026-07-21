@@ -122,7 +122,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve repository selector to Endor project identity before scoped posture lookup.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
     fields:
       - uuid
       - meta.name
@@ -136,7 +136,7 @@ evidence_query_recipes:
     canonical_id: cicd-posture-findings
     resource: Finding
     purpose: List bounded existing Endor CI/CD and supply-chain posture finding rows.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
     fields:
       - uuid
       - context.type
@@ -152,7 +152,7 @@ evidence_query_recipes:
     canonical_id: endor-repository-config
     resource: Repository
     purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
-    template: endorctl api list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
     fields:
       - uuid
       - meta.name
@@ -169,7 +169,7 @@ evidence_query_recipes:
     canonical_id: endor-repo-codeowners
     resource: RepositoryCodeownersFile
     purpose: Read Endor-ingested CODEOWNERS evidence for one resolved repository, filling the cicd-posture codeowners gap without a separate GitHub token.
-    template: endorctl api list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
     fields:
       - uuid
       - meta.name
@@ -184,7 +184,7 @@ evidence_query_recipes:
     canonical_id: endor-repo-tag-protection
     resource: RepositoryTagProtection
     purpose: Read Endor-ingested tag protection evidence for one resolved repository without a separate GitHub token.
-    template: endorctl api list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json
     fields:
       - uuid
       - meta.name

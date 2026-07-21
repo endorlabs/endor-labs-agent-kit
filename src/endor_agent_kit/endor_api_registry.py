@@ -268,7 +268,7 @@ ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {
     ),
 }
 
-# Only police resources inside actual endorctl api invocations so GitHub REST,
+# Only police resources inside actual Endor CLI API invocations so GitHub REST,
 # Endor MCP, and local-shell recipes are never false-flagged. Match BOTH flag
 # forms: the short ``-r Finding`` (used in query-recipes.yaml) and the long
 # ``--resource Finding`` / ``--resource=Finding`` (used heavily in agent
@@ -276,7 +276,7 @@ ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {
 # the ``-r`` inside the long ``--resource`` flag -- the only ``--r...`` flag
 # endorctl uses here (its namespace recursion flag is ``--traverse``, not
 # ``--recursive``).
-_ENDORCTL_API_MARKER = "endorctl api"
+_ENDORCTL_API_MARKERS = ("endorctl agent api", "endorctl api")
 _RESOURCE_RE = re.compile(r"(?:--resource|(?<![\w-])-r)[=\s]+([A-Z][A-Za-z0-9]*)")
 _ENUM_RES = {
     family: re.compile(rf"\b{family}_[A-Z0-9]+(?:_[A-Z0-9]+)*\b")
@@ -305,7 +305,7 @@ def endor_api_template_errors(prefix: str, template: str) -> list[str]:
     template = re.sub(r"<[^>]*>", " ", template)
     errors: list[str] = []
 
-    if _ENDORCTL_API_MARKER in template.lower():
+    if any(marker in template.lower() for marker in _ENDORCTL_API_MARKERS):
         seen_resources: set[str] = set()
         for resource in _RESOURCE_RE.findall(template):
             if resource in ENDOR_API_RESOURCES or resource in seen_resources:

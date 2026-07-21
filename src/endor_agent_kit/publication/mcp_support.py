@@ -90,7 +90,7 @@ def _root_gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "workflows.",
         "",
         "Use Endor Labs Agent Kit workflows only within their generated safety",
-        "contracts. Prefer documented Endor API or `endorctl api` lookups when a",
+        "contracts. Prefer `endorctl agent api --agent-id <canonical-recipe-id>` lookups when a",
         "workflow supports them. Use Endor MCP only when a selected MCP-capable",
         "workflow needs it or the user explicitly asks for it.",
         "",

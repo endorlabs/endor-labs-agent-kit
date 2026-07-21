@@ -31,7 +31,7 @@ def test_sca_remediation_agent_is_mcp_free_and_action_contract_backed(tmp_path):
     assert validate_recipe_file(recipe) == []
     assert data["recipe_schema_version"] == 2
     assert data["safety_class"] == "mutating"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["action_contracts_path"] == "actions.yaml"
@@ -109,13 +109,13 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "VersionUpgrade/UIA evidence before calling" in prompt
     assert "A high finding count alone is not enough" in prompt
     assert "Do not require, configure, or start an Endor MCP server" in prompt
-    assert "endorctl api list -r Finding" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r Finding" in prompt
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY' in prompt
     assert "uuid,context,meta.name,meta.description,meta.parent_uuid" in prompt
     assert "spec.source_code_version" in prompt
     assert "spec.target_uuid" in prompt
     assert "spec.dependency_file_paths" in prompt
-    assert "endorctl api list -r VersionUpgrade" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade" in prompt
     assert "Do not make current upstream/latest-version claims unless you verified them during the current run" in prompt
     assert "prepare-remediation-diff" in prompt
     assert "post-remediation-comment" in prompt
@@ -143,9 +143,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
     assert "Validation Command Selection" in prompt
-    assert "immediately clean validation-generated artifacts" in prompt
-    assert "do not get stuck on dirty" in prompt
-    assert "`target/`" in prompt
+    assert "Never clean validation artifacts in the user's worktree" in prompt
+    assert "the user worktree must remain byte-for-byte unchanged" in prompt
+    assert "immediately clean validation-generated artifacts" not in prompt
+    assert "stash, reset" in prompt
+    assert "Remove only\nthe owned disposable resources" in prompt
     assert "Do not assume a Java/Maven repository" in prompt
     assert "package manager, and manifest or lockfile" in prompt
     assert "package.json" in prompt

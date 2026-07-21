@@ -1,6 +1,6 @@
 # endorctl Setup
 
-The Endor Labs Package Risk Summary artifact uses read-only Endor lookups through `endorctl api`.
+The Endor Labs Package Risk Summary artifact uses read-only Endor lookups through `endorctl agent api --agent-id package-risk-summary`.
 Install and authenticate `endorctl` before using this artifact.
 
 Required version: `>=1.0.0`
@@ -21,20 +21,19 @@ If the process environment and default config namespaces both exist and differ,
 surface both values with provenance and stop before scoped Endor lookups or
 Endor MCP calls. Ask the user which namespace to use for this workflow.
 
-After a namespace is selected, every scoped `endorctl api` lookup must pass it
+After a namespace is selected, every scoped `endorctl agent api --agent-id package-risk-summary` lookup must pass it
 explicitly with `-n <namespace>` or `--namespace <namespace>`. Do not rely on
 bare `endorctl` namespace resolution.
+
+Capability preflight: `endorctl agent api --help` must succeed.
+Fail closed with a setup data gap if the command is unavailable; never
+fall back to the unattributed legacy API command.
 
 The recipe documents these read-only API invocation groups:
 
 - `lookup_package_version_uuid`
 - `get_package_scores`
 - `get_package_license`
-- `query_similar_packages`
-
-The only allowed `endorctl api create` call is the documented
-QuerySimilarPackages query-service lookup; every other v0 command must
-be a read-only list/get/query operation.
 
 If `endorctl` is missing,
 unauthenticated, or lacks access to a resource, the agent must record the

@@ -3,7 +3,7 @@ actions:
     kind: endor.query
     safety_class: read_only
     confirmation_required: false
-    providers: ["endorctl-api", "endor-api", "local-git"]
+    providers: ["endorctl-agent-api", "local-git"]
     required_host_capabilities: ["run_commands"]
     inputs: ["repository_url", "repo_full_name", "project_name", "namespace"]
     outputs: ["project_uuid", "project_name", "repo_full_name", "namespace", "namespace_provenance"]
@@ -13,7 +13,7 @@ actions:
     kind: endor.query
     safety_class: read_only
     confirmation_required: false
-    providers: ["endorctl-api", "endor-api"]
+    providers: ["endorctl-agent-api"]
     required_host_capabilities: ["run_commands"]
     inputs: ["project_uuid", "namespace", "severity_filter", "finding_uuids", "package_name", "finding_limit"]
     outputs: ["findings", "finding_counts", "affected_packages", "affected_manifests"]
@@ -23,7 +23,7 @@ actions:
     kind: endor.query
     safety_class: read_only
     confirmation_required: false
-    providers: ["endorctl-api", "endor-api"]
+    providers: ["endorctl-agent-api"]
     required_host_capabilities: ["run_commands"]
     inputs: ["project_uuid", "namespace", "package_name", "finding_uuids"]
     outputs: ["version_upgrades", "finding_fixing_upgrades", "cia_results", "selected_upgrade"]
@@ -33,7 +33,7 @@ actions:
     kind: endor.query
     safety_class: read_only
     confirmation_required: false
-    providers: ["endorctl-api", "endor-api", "local-git"]
+    providers: ["endorctl-agent-api", "local-git"]
     required_host_capabilities: ["run_commands", "read_files"]
     inputs: ["project_uuid", "namespace", "repo", "version_upgrades"]
     outputs: ["low_risk_recommendations", "candidate_prs", "ready_to_open", "most_findings_in_one_pr", "p0_duplicates_hidden", "data_gaps"]
@@ -53,7 +53,7 @@ actions:
     kind: scm.source_read
     safety_class: read_only
     confirmation_required: false
-    providers: ["endorctl-api", "endor-api", "local-files", "local-git", "package-manager"]
+    providers: ["endorctl-agent-api", "local-files", "local-git", "package-manager"]
     required_host_capabilities: ["run_commands", "read_files"]
     inputs: ["selected_upgrade", "cia_results", "manifest_text", "lockfile_text", "source_context", "validation_plan"]
     outputs: ["risk_decision", "compatibility_evidence", "required_companion_edits", "validation_requirements"]

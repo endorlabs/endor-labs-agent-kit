@@ -201,7 +201,7 @@ Every response must include `evidence_queries[]`. Each entry records:
 
 - name: short human-readable evidence lane
 - resource: Endor resource, public-doc page, or provided-input field
-- source: `endorctl_api`, `endor_mcp`, `user_input`, `local_repository`, or
+- source: `endorctl_agent_api`, `endor_mcp`, `user_input`, `local_repository`, or
   `public_docs`
 - status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
 - query_template_id: compact recipe id, API path id, or null
@@ -283,7 +283,7 @@ The JSON object must include:
     {
       "name": "Troubleshooting evidence lane",
       "resource": "Project | ScanResult | Integration | user_input",
-      "source": "endorctl_api | endor_mcp | user_input | public_docs",
+      "source": "endorctl_agent_api | endor_mcp | user_input | public_docs",
       "status": "succeeded | partial | failed | skipped",
       "query_template_id": "lane-specific-read | public-doc-reference | null",
       "filter_summary": "Issue selector, resource id, or provided-input field",
@@ -350,7 +350,7 @@ For every recommended action, optimize for least friction:
 
 Recommended actions, lane next steps, hypotheses, and validation steps must be
 human-readable intent, not copy/paste shell commands. Do not put raw
-`endorctl api`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command
+`endorctl agent api --agent-id endor-troubleshooter`, `endorctl scan`, `endorctl --version`, `git`, or `gh` command
 strings in `issue_lanes[]`, `root_cause_hypotheses[]`,
 `recommended_actions[]`, `validation_plan[]`, `support_escalation_packet`, or
 `future_action_contracts[]`. If a future action would require a scan rerun,
@@ -372,7 +372,7 @@ including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`,
 `support_escalation_packet.include[]`. If you need a validation step, describe
 the intended evidence in prose, for example "Confirm the scoped Project lookup
 returns the current repository in the selected namespace." Do not include raw
-tool names or partial command-shaped text such as `endorctl`, `endorctl api
+tool names or partial command-shaped text such as `endorctl`, `endorctl agent api --agent-id endor-troubleshooter
 list`, `git`, `gh`, `shell`, `run a scan`, or `run a baseline scan`, because a
 partial query without an explicit namespace and field mask is invalid output.
 
@@ -391,7 +391,7 @@ the user provided the doc text in the current run.
 
 ## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl api` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl agent api --agent-id endor-troubleshooter` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Knowledge Pack
 
@@ -424,9 +424,9 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 - Plans: `classify`, `diagnose`, `support-packet`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
-- `project-by-git`/diagnose: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
-- `scan-result-by-uuid`/diagnose: `endorctl api get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
-- `finding-by-uuid`/diagnose: `endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
+- `project-by-git`/diagnose: `endorctl agent api --agent-id endor-troubleshooter list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `scan-result-by-uuid`/diagnose: `endorctl agent api --agent-id endor-troubleshooter get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
+- `finding-by-uuid`/diagnose: `endorctl agent api --agent-id endor-troubleshooter get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
 
 ## Agent Policy Packs
 
@@ -447,15 +447,15 @@ Object fields may be `{}` or `null` only when `data_gaps` explains why.
 
 ## Enterprise Edition Tools
 
-Use Bash only for the documented read-only `endorctl api` lookups in these
+Use Bash only for the documented read-only `endorctl agent api --agent-id endor-troubleshooter` lookups in these
 instructions. Do not generalize them into create, update, delete, scan,
 integration-write, policy-write, comment, or source-provider mutation commands.
 
 Allowed:
 
 - `endorctl --version`
-- `endorctl api get ...` for a supplied UUID and documented resource
-- `endorctl api list ...` for documented lane-specific resources
+- `endorctl agent api --agent-id endor-troubleshooter get ...` for a supplied UUID and documented resource
+- `endorctl agent api --agent-id endor-troubleshooter list ...` for documented lane-specific resources
 - local shell projection tools such as `jq` when they only summarize command
   output and do not alter state
 
@@ -463,9 +463,9 @@ Not allowed:
 
 - Endor MCP server setup or MCP tool use
 - `endorctl scan`
-- `endorctl api create`, including `CreateScanLogRequest`
-- `endorctl api update`
-- `endorctl api delete`
+- any Endor agent API create action, including `CreateScanLogRequest`
+- any Endor agent API update action
+- any Endor agent API delete action
 - package manager installs, builds, tests, or toolchain detection
 - source-provider mutation commands
 - filesystem writes

@@ -149,4 +149,4 @@ release matrix.
   under `plugins/*/endor-labs-agent-kit/` must still stay MCP-free unless that
   host package explicitly validates MCP. Setup guidance remains CLI-first and
   must not start, register, or rely on MCP without explicit user approval.
-- Do not run live `endorctl api` smoke tests without explicit user approval and namespace provenance.
+- Do not run live `endorctl agent api --agent-id <canonical-recipe-id>` smoke tests without explicit user approval and namespace provenance.

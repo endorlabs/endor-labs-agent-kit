@@ -42,7 +42,7 @@ Every agent starts with a Source Recipe under `source/agents/<agent>/`.
 Recipes declare:
 
 - `safety_class`: `read_only`, `dry_run`, or `mutating`
-- `supported_transports`: MCP, `endorctl_api`, or direct API
+- `supported_transports`: MCP and the attributed `endorctl_agent_api` transport
 - `host_capabilities_required`: command execution, file reads, file writes, and change-request creation
 - `mutations`: the mutation types a mutating workflow may perform
 - `compatible_hosts`: the hosts intentionally published for that recipe
@@ -121,7 +121,7 @@ Endor or Endor MCP lookups.
 Generated setup and workflow guidance must not read, cat, source, recurse
 through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific,
 customer-specific, production, backup, or other non-default Endor config
-directories. When a namespace is selected, scoped `endorctl api` lookups must
+directories. When a namespace is selected, scoped `endorctl agent api --agent-id <agent-id>` lookups must
 pass it explicitly with `-n <namespace>` or `--namespace <namespace>`.
 
 ## Host Guardrails

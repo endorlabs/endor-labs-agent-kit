@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
 from endor_agent_kit.recipe import EndorAgentRecipe
 
@@ -20,6 +20,7 @@ class CatalogArtifact:
     path: str
     sha256: str
     bytes: int | None = None
+    profile_id: str | None = None
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
     @classmethod
@@ -28,16 +29,23 @@ class CatalogArtifact:
 
         if not isinstance(record, dict):
             raise ValueError("manifest.json: expected artifact records to be objects")
-        extra_fields = _extra_fields(record, {"path", "sha256", "bytes"})
+        extra_fields = _extra_fields(record, {"path", "sha256", "bytes", "profile_id"})
         return cls(
             path=str(record.get("path") or ""),
             sha256=str(record.get("sha256") or ""),
             bytes=_optional_int(record.get("bytes"), "artifact bytes"),
+            profile_id=_optional_str(record.get("profile_id"), "artifact profile_id"),
             extra_fields=extra_fields,
         )
 
     @classmethod
-    def from_published_file(cls, destination: Path, path: Path) -> "CatalogArtifact":
+    def from_published_file(
+        cls,
+        destination: Path,
+        path: Path,
+        *,
+        profile_id: str | None = None,
+    ) -> "CatalogArtifact":
         """Return manifest metadata for one published artifact file."""
 
         data = path.read_bytes()
@@ -45,6 +53,7 @@ class CatalogArtifact:
             path=path.relative_to(destination).as_posix(),
             sha256=hashlib.sha256(data).hexdigest(),
             bytes=len(data),
+            profile_id=profile_id,
         )
 
     @property
@@ -59,6 +68,8 @@ class CatalogArtifact:
         record["sha256"] = self.sha256
         if self.bytes is not None:
             record["bytes"] = self.bytes
+        if self.profile_id is not None:
+            record["profile_id"] = self.profile_id
         return record
 
 
@@ -120,10 +131,12 @@ class CatalogBundle:
         bundle_dir: Path,
         *,
         requires_endorctl: str = "",
+        artifact_profiles: Mapping[str, str] | None = None,
     ) -> "CatalogBundle":
         """Return manifest metadata for one published artifact bundle."""
 
         files = sorted(path for path in bundle_dir.rglob("*") if path.is_file())
+        profiles = artifact_profiles or {}
         return cls(
             agent_id=recipe.id,
             agent_name=recipe.name,
@@ -132,7 +145,14 @@ class CatalogBundle:
             bundle_id=bundle_id,
             bundle_name=bundle_name,
             path=bundle_dir.relative_to(destination).as_posix(),
-            artifacts=tuple(CatalogArtifact.from_published_file(destination, path) for path in files),
+            artifacts=tuple(
+                CatalogArtifact.from_published_file(
+                    destination,
+                    path,
+                    profile_id=profiles.get(path.relative_to(destination).as_posix()),
+                )
+                for path in files
+            ),
             requires_endorctl=requires_endorctl,
             include_requires_endorctl=True,
         )
@@ -483,3 +503,11 @@ def _optional_int(value: Any, field_name: str) -> int | None:
     if isinstance(value, int):
         return value
     raise ValueError(f"manifest.json: expected {field_name} to be an integer")
+
+
+def _optional_str(value: Any, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    raise ValueError(f"manifest.json: expected {field_name} to be a string")

@@ -20,7 +20,7 @@ then restart Claude Code if needed.
 ## Requirements
 
 - Claude Code with the generated subagent file installed.
-- Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.
+- Endor tenant access through authenticated `endorctl agent api --agent-id ai-sast-triage`.
 - A local workspace checkout for any repository the agent will patch.
 - Git and source-provider credentials that can push a branch and open the requested pull request or merge request.
 - GitHub or GitLab credentials that can read PR/MR reviews and comments from the target repository.
@@ -65,7 +65,7 @@ glab auth status      # GitLab repositories
 ```
 
 Claude Code does not need an Endor MCP server for this agent. If `endorctl`,
-direct Endor API credentials, or source-provider credentials are not
+agent-attributed Endor API authentication or source-provider credentials are not
 authenticated, the agent should report the missing setup in `data_gaps`.
 
 ### 3. Understand Finding Evidence

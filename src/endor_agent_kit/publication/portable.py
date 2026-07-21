@@ -173,7 +173,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
             "",
             "| Portable action | Example runtime adapters |",
             "| --- | --- |",
-            "| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |",
+            "| `endor.query` | `endorctl agent api --agent-id <canonical-recipe-id>`, approved Endor MCP adapter |",
             "| `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |",
             "| `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |",
             "| `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |",

@@ -16,7 +16,7 @@
     "supports_plan_only": true
   },
   "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
-  "endorctl_api_invocations": [
+  "endorctl_agent_api_invocations": [
     "list_endor_projects",
     "list_endor_repositories",
     "list_repository_versions",
@@ -323,7 +323,7 @@
     }
   ],
   "required_transports": [
-    "endorctl_api"
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": "",
   "requires_endorctl": ">=1.0.0",
@@ -334,8 +334,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -442,11 +441,10 @@
     {
       "confirmation_required": null,
       "declared_by_recipe": false,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "unavailable"
     },

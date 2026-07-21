@@ -34,5 +34,5 @@ then restart Claude Code if needed.
 
 ## Notes
 
-- This agent uses MCP first, then read-only endorctl api lookups for richer signals.
+- This agent uses MCP first, then read-only `endorctl agent api --agent-id dependency-decision-helper` lookups for richer signals.
 - Bash use is limited by prompt to the documented Endor lookup commands.

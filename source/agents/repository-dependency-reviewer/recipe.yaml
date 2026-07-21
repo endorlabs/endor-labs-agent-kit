@@ -16,8 +16,9 @@ endor_tier_minimum: free
 policy_pack_support: true
 supported_transports:
   - mcp
+  - endorctl_agent_api
 host_capabilities_required:
-  run_commands: false
+  run_commands: true
   read_files: true
   write_files: false
   open_pr: false
@@ -93,7 +94,10 @@ required_endor_mcp_tools:
   - check_dependency_for_risks
   - check_dependency_for_vulnerabilities
   - get_endor_vulnerability
-endorctl_api_invocations: []
+endorctl_agent_api_invocations:
+  - resolve_project_by_git
+  - lookup_exact_package_version
+  - lookup_selected_package_findings
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ">=2.4"

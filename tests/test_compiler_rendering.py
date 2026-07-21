@@ -43,6 +43,22 @@ def test_shared_compiler_rendering_extracts_instruction_sections():
     )
 
 
+def test_shared_compiler_binds_agent_api_identity_from_recipe_id():
+    instructions = INSTRUCTIONS.replace(
+        "Shared rules.",
+        "Run `endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace>`.",
+    )
+
+    rendered = instructions_for_edition(
+        instructions,
+        "enterprise-edition",
+        recipe_id="transport-fixture",
+    )
+
+    assert "endorctl agent api --agent-id transport-fixture list" in rendered
+    assert "--agent-id <agent-id>" not in rendered
+
+
 def test_shared_compiler_rendering_injects_namespace_preflight():
     rendered = instructions_for_edition(INSTRUCTIONS, "enterprise-edition")
 
@@ -127,7 +143,7 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert "Evidence Query Plans" in rendered
     assert "`selection-plan` - Selection Plan Query Plan" in rendered
     assert "Evidence Query Recipes" in rendered
-    assert "endorctl api list -r VersionUpgrade -n <namespace>" in rendered
+    assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace>" in rendered
 
 
 def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
@@ -147,6 +163,22 @@ def test_shared_compiler_rendering_injects_structured_contract_before_workflow_s
     assert rendered.index("## Endor Project Resolution Preflight") < rendered.index(PACK_SECTION_HEADING)
     assert rendered.index(PACK_SECTION_HEADING) < rendered.index(STRUCTURED_OUTPUT_HEADING)
     assert rendered.index(STRUCTURED_OUTPUT_HEADING) < rendered.index("Enterprise rules.")
+
+
+def test_shared_compiler_rendering_injects_task_state_resume_contract_when_declared():
+    rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        structured_output_recipe=_recipe_with_outputs(
+            RecipeField("summary", "string", required=True),
+            RecipeField("task_state", "object", required=False),
+        ),
+    )
+
+    assert "## Task State Resume Contract" in rendered
+    assert "prompt-supplied `task_state`" in rendered
+    assert "Never carry credentials, secrets, or approvals" in rendered
+    assert rendered.index("## Task State Resume Contract") < rendered.index(STRUCTURED_OUTPUT_HEADING)
 
 
 def test_shared_compiler_rendering_compact_plugin_profile_omits_marked_blocks():
@@ -178,6 +210,33 @@ Enterprise rules.
     assert "Shared tail." in compact
 
 
+def test_shared_compiler_rendering_selects_one_profile_without_cross_edition_leakage():
+    instructions = """\
+<!-- shared:start -->
+<!-- section:scope-resolution:start -->Shared invariant.<!-- section:scope-resolution:end -->
+<!-- profile:evidence-check:start -->Evidence lane.<!-- profile:evidence-check:end -->
+<!-- profile:selection-plan:start -->Selection lane.<!-- profile:selection-plan:end -->
+<!-- shared:end -->
+<!-- developer-edition:start -->Developer only.<!-- developer-edition:end -->
+<!-- enterprise-edition:start -->Enterprise only.<!-- enterprise-edition:end -->
+"""
+
+    rendered = instructions_for_edition(
+        instructions,
+        "enterprise-edition",
+        recipe_id="sca-remediation",
+        profile_id="evidence-check",
+    )
+
+    assert "Shared invariant." in rendered
+    assert "Evidence lane." in rendered
+    assert "Selection lane." not in rendered
+    assert "Enterprise only." in rendered
+    assert "Developer only." not in rendered
+    assert "Profiles: `evidence-check`" in rendered
+    assert "`selection-plan` - Selection Plan" not in rendered
+
+
 def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     compact = instructions_for_edition(
         INSTRUCTIONS,
@@ -196,7 +255,7 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     assert "VersionUpgrade/UIA before Finding detail; no broad Finding inventory" in compact
     assert "Evidence Query Recipes" in compact
     assert "version-upgrade-summary" in compact
-    assert "endorctl api list -r VersionUpgrade -n <namespace>" in compact
+    assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace>" in compact
     assert "#### `selection-plan` - Selection Plan" not in compact
 
 
@@ -206,7 +265,7 @@ def test_shared_compiler_rendering_compact_profile_keeps_namespace_guardrail_lit
     assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in compact
     assert "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only" in compact
     assert "surface both values with provenance and stop for user confirmation" in compact
-    assert "`endorctl api` lookup" in compact
+    assert "`endorctl agent api --agent-id <agent-id>` lookup" in compact
     assert "tenant-specific, customer-specific, production, backup" in compact
     assert "non-default Endor config" in compact
 
@@ -328,7 +387,7 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
     assert "no raw commands" in rendered
     assert "put gaps in top-level `data_gaps`" in rendered
-    assert "no raw shell, `endorctl api`, `endorctl scan`, `git`, or `gh` command strings" in rendered
+    assert "no raw shell, `endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `git`, or `gh` command strings" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
 
 

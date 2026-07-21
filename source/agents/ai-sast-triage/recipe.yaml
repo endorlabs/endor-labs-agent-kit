@@ -10,7 +10,7 @@ safety_class: mutating
 endor_tier_minimum: enterprise
 policy_pack_support: true
 supported_transports:
-- endorctl_api
+- endorctl_agent_api
 host_capabilities_required:
   run_commands: true
   read_files: true
@@ -53,6 +53,10 @@ inputs:
   kind: list[string]
   required: false
   description: Optional GitHub/GitLab handles or team slugs allowed to approve standalone exception-policy creation.
+- name: task_state
+  kind: object
+  required: false
+  description: Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving source and finding evidence. Never carries secrets or approvals.
 outputs:
 - name: summary
   kind: string
@@ -73,7 +77,7 @@ outputs:
 - name: patches
   kind: list[object]
   required: true
-  description: Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and rendered PR/MR body for TRUE_POSITIVE findings with source context.
+  description: Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and embedded change_impact evidence bound to the canonical patch digest for TRUE_POSITIVE findings with source context.
 - name: change_requests
   kind: list[object]
   required: true
@@ -94,6 +98,10 @@ outputs:
   kind: list[string]
   required: true
   description: Missing Endor, source, or host signals.
+- name: task_state
+  kind: object
+  required: false
+  description: Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 - name: policy_context
   kind: object
   required: true
@@ -118,7 +126,7 @@ mutations:
 - write_files
 - open_pr
 required_endor_mcp_tools: []
-endorctl_api_invocations:
+endorctl_agent_api_invocations:
 - resolve_project_from_repository
 - list_ai_sast_findings
 - get_finding_explanation

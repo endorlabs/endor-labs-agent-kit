@@ -4,7 +4,7 @@ Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:
 safe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact
 Analysis, breaking changes, manifest targeting, or whether a dependency
 upgrade should happen now. The artifact queries Endor's read-only
-VersionUpgrade workflow through documented Endor API or endorctl paths.
+VersionUpgrade workflow through the agent-attributed read-only CLI transport.
 
 ## Start Here
 
@@ -49,6 +49,6 @@ This read-only agent resolves a human project selector to the Endor project used
 
 ## Notes
 
-- This agent uses read-only endorctl api lookups and does not require Endor MCP.
+- This agent uses read-only `endorctl agent api --agent-id upgrade-impact-analysis` lookups and does not require Endor MCP.
 - The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.
 - Bash use remains limited by prompt to the documented Endor lookup commands.

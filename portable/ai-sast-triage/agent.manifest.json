@@ -31,8 +31,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api"
+        "endorctl-agent-api"
       ]
     },
     {
@@ -173,8 +172,7 @@
       "portable_kind": "endor.policy.write",
       "safety_class": "mutating",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api"
+        "endorctl-agent-api"
       ]
     },
     {
@@ -238,7 +236,7 @@
     "supports_plan_only": true
   },
   "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
-  "endorctl_api_invocations": [
+  "endorctl_agent_api_invocations": [
     "resolve_project_from_repository",
     "list_ai_sast_findings",
     "get_finding_explanation",
@@ -301,6 +299,12 @@
       "kind": "list[string]",
       "name": "appsec_approvers",
       "required": false
+    },
+    {
+      "description": "Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving source and finding evidence. Never carries secrets or approvals.",
+      "kind": "object",
+      "name": "task_state",
+      "required": false
     }
   ],
   "name": "AI SAST Triage",
@@ -330,7 +334,7 @@
       "required": true
     },
     {
-      "description": "Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and rendered PR/MR body for TRUE_POSITIVE findings with source context.",
+      "description": "Generated unified diffs with confidence, patch reason, remediation guidance used or rejected, exploit-informed validation plan, sibling-file references, source SHA, branch name, and embedded change_impact evidence bound to the canonical patch digest for TRUE_POSITIVE findings with source context.",
       "kind": "list[object]",
       "name": "patches",
       "required": true
@@ -364,6 +368,12 @@
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true
+    },
+    {
+      "description": "Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.",
+      "kind": "object",
+      "name": "task_state",
+      "required": false
     },
     {
       "description": "Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.",
@@ -469,7 +479,7 @@
     }
   ],
   "required_transports": [
-    "endorctl_api"
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": "",
   "requires_endorctl": ">=1.0.0",
@@ -480,8 +490,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -588,11 +597,10 @@
     {
       "confirmation_required": true,
       "declared_by_recipe": true,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "declared"
     },

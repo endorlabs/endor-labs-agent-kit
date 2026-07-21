@@ -117,7 +117,7 @@
       <text x="24" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.5">CLAUDE CODE</text>
       <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Local Context Available</text>
       <text x="24" y="94" font-size="12" fill="#9fb4be">- can read git remote for this repository</text>
-      <text x="24" y="118" font-size="12" fill="#9fb4be">- uses read-only Endor API lookups</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- uses agent-attributed read-only CLI lookups</text>
       <text x="24" y="142" font-size="12" fill="#9fb4be">- never edits files or opens PRs</text>
     </g>
 
@@ -146,6 +146,6 @@
     <rect width="1140" height="78" rx="12" fill="#071012" stroke="#17323a"/>
     <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
     <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">INTERNAL QUERY SHAPE</text>
-    <text x="30" y="58" font-size="13" fill="#cfe4e8">The agent may still use spec.project_uuid in Endor API filters after resolving the project. The user-facing contract remains repository or project-name driven.</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">The agent may still use spec.project_uuid in attributed CLI filters after resolving the project. The user-facing contract remains repository or project-name driven.</text>
   </g>
 </svg>

@@ -96,7 +96,7 @@ shape:
     {
       "name": "Exact package risk evidence",
       "resource": "PackageVersion",
-      "source": "endor_mcp | endorctl_api | user_input",
+      "source": "endor_mcp | endorctl_agent_api | user_input",
       "status": "succeeded | failed | skipped",
       "query_template_id": "package-version-exact | risk-tool | null",
       "filter_summary": "Exact ecosystem/package/version selector or null",
@@ -138,21 +138,18 @@ less complete than the Enterprise Edition.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
-# Workflow: MCP + Read-Only endorctl api
+# Workflow: MCP + Agent-Attributed Read-Only Endor API
 
 Use Endor risk evidence from tools actually exposed by the host. Prefer Endor
-MCP tools when they are available. Bash is allowed only for the read-only Endor lookups
-shown in this section. Do not run `endorctl scan`, `endorctl api update`,
-`endorctl api delete`, file edits, package manager installs, or pull-request
-commands. The only allowed `endorctl api create` form is the
-`QuerySimilarPackages` query-service call shown below; Endor uses the same
-CreateQuerySimilarPackages service as a read-only lookup and does not persist a
-customer resource.
+MCP tools when they are available. Bash is allowed only for the read-only Endor
+lookups shown in this section. Do not run scans, file edits, package manager
+installs, pull-request commands, or any Endor agent API create, update, or delete
+action; this workflow is read-only.
 
 ## Fast Path: Exact PackageVersion Lookup
 
 For exact package coordinates, query package-level `oss` evidence before MCP or
-project discovery: `endorctl api list -r PackageVersion -n oss --filter
+project discovery: `endorctl agent api --agent-id <agent-id> list -r PackageVersion -n oss --filter
 'meta.name=="<prefix>://<package_name>@<version>"' --field-mask
 "uuid,meta.name" -o json`. Use the package URL prefix map from the Knowledge
 Pack. For `evidence-check`, stop after this lookup unless the user explicitly
@@ -205,7 +202,7 @@ Build:
 Run:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource PackageVersion \
   --namespace oss \
   --filter 'meta.name=="<prefix>://<package_name>@<version>"' \
@@ -221,7 +218,7 @@ depend on this UUID (`scores`, `license`) should also be marked unavailable.
 Only run this when a PackageVersion UUID exists.
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Metric \
   --namespace oss \
   --filter 'meta.name=="package_version_scorecard" and meta.parent_uuid=="<package_version_uuid>"' \
@@ -237,7 +234,7 @@ If unavailable, add `scores` to `data_gaps`.
 Only run this when a PackageVersion UUID exists.
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Metric \
   --namespace oss \
   --filter 'meta.name=="pkg_version_info_for_license" and meta.parent_uuid=="<package_version_uuid>"' \
@@ -263,29 +260,16 @@ Map the ecosystem to Endor's enum:
 - `nuget` -> `ECOSYSTEM_NUGET`
 - `packagist`, `composer`, `php` -> `ECOSYSTEM_PACKAGIST`
 
-Run the read-only query-service call. The command uses `api create` because
-Endor exposes this query as `QuerySimilarPackagesService.CreateQuerySimilarPackages`;
-do not generalize this exception to other resources.
-
-```bash
-endorctl api create \
-  --resource QuerySimilarPackages \
-  --namespace oss \
-  --data '{"meta":{"name":"similar-packages-query-<package_name>"},"spec":{"name":"<package_name>","edit_distance":2,"repo":"<ECOSYSTEM_ENUM>","exact_match":false}}'
-```
-
-Read rows from top-level `query_response` in `endorctl` output. If a REST-shaped
-wrapper is used by a future compiler, rows may instead be under
-`spec.query_response` or `spec.queryResponse`. Treat numeric strings as numbers.
-A typosquat signal requires a candidate with different name, `edit_distance <= 2`,
-and `dependents_count >= 10000`. Pick the highest `dependents_count` candidate.
-If the resource or command is unavailable, add `typosquat_similarity` to
-`data_gaps`. Do not attempt a local popular-package heuristic.
+Use similarity or typosquat evidence only when it is already returned by an
+exposed read-only MCP risk tool. Do not call a create-style query service through
+the agent API. If no read-only tool supplies the signal, add
+`typosquat_similarity` to `data_gaps`; do not attempt a local popular-package
+heuristic.
 
 <!-- compact-plugin:omit-end -->
 ## Step 8: Apply Decision Ladder and Emit Output
 
-Apply the shared decision ladder using all gathered MCP and `endorctl api`
+Apply the shared decision ladder using all gathered MCP and `endorctl agent api --agent-id <agent-id>`
 signals. If `endorctl` is missing, unauthenticated, denied, edition-limited, or
 returns invalid JSON, add the affected signal to `data_gaps` and continue with
 the MCP evidence.

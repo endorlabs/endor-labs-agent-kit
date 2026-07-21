@@ -109,7 +109,7 @@ Every response must include `evidence_queries[]`. Each entry records:
 
 - name: short human-readable evidence lane
 - resource: GitHub, Endor, or local repository resource inspected
-- source: `github`, `endorctl_api`, `endor_mcp`, `user_input`, or
+- source: `github`, `endorctl_agent_api`, `endor_mcp`, `user_input`, or
   `local_repository`
 - status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
 - query_template_id: compact recipe id, API path id, or null
@@ -407,7 +407,7 @@ from the parent namespace. Record both non-traverse and traverse attempts in
 List Endor projects:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Project \
   <namespace_flag> \
   --list-all \
@@ -417,7 +417,7 @@ endorctl api list \
 Traverse fallback when the first project inventory has no strict match:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Project \
   <namespace_flag> \
   --traverse \
@@ -429,7 +429,7 @@ Try repository and repository-version resources when available. If unavailable,
 record the gap and continue with project and scan evidence:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Repository \
   <namespace_flag> \
   --list-all \
@@ -441,7 +441,7 @@ record the rejected field mask as a query-shape data gap and retry once with
 the narrower stable mask:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Repository \
   <namespace_flag> \
   --list-all \
@@ -449,7 +449,7 @@ endorctl api list \
 ```
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource RepositoryVersion \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN' \
@@ -460,7 +460,7 @@ List GitHub App installation or integration evidence when available. Resource
 names may vary by tenant and version, so record exact attempts:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource Installation \
   <namespace_flag> \
   --list-all \
@@ -503,7 +503,7 @@ Endor-side GitHub App evidence because the GitHub API is unavailable.
 List scan results and scan workflows:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource ScanResult \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and meta.parent_uuid=="<project_uuid>"' \
@@ -511,7 +511,7 @@ endorctl api list \
 ```
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource ScanWorkflow \
   <namespace_flag> \
   --list-all \
@@ -528,7 +528,7 @@ Do not treat a query-shape retry as evidence that the repository is unhealthy.
 List package versions in the main context:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource PackageVersion \
   <namespace_flag> \
   --list-all \
@@ -545,7 +545,7 @@ Use targeted package-version filters for known resolution error categories when
 available. For private registry evidence, attempt a bounded query shaped like:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource PackageVersion \
   <namespace_flag> \
   --list-all \
@@ -565,7 +565,7 @@ available.
 List scan profiles and package manager integrations:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource ScanProfile \
   <namespace_flag> \
   --list-all \
@@ -573,7 +573,7 @@ endorctl api list \
 ```
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource PackageManager \
   <namespace_flag> \
   --list-all \
@@ -590,7 +590,7 @@ profile, package-manager, credential, or toolchain objects.
 List call graph and dependency metadata when available:
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource CallGraphData \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN' \
@@ -598,7 +598,7 @@ endorctl api list \
 ```
 
 ```bash
-endorctl api list \
+endorctl agent api --agent-id <agent-id> list \
   --resource DependencyMetadata \
   <namespace_flag> \
   --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' \
@@ -674,7 +674,7 @@ of pasting raw objects.
 Preserve nonzero command status with `set -o pipefail` or the host shell's
 equivalent whenever a JSON-producing command is piped to `jq`.
 Never pipe stderr into a JSON projection. Do not use `2>&1 | jq` with
-`endorctl api list`, `endorctl api get`, `gh repo list`, `gh repo view`, or
+`endorctl agent api --agent-id <agent-id> list`, `endorctl agent api --agent-id <agent-id> get`, `gh repo list`, `gh repo view`, or
 `gh api` commands because CLI version notices, permission errors, and resource
 errors are non-JSON and will corrupt the parser. Keep stderr separate, let `jq`
 read JSON stdout only, and record nonzero exit status or stderr text as a
@@ -734,19 +734,19 @@ toolchain metadata. In particular:
 Good live-host command shapes pipe to `jq` immediately, for example:
 
 ```bash
-set -o pipefail; endorctl api list --resource Installation <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec" | jq '{count:(.list.objects|length), installations:(.list.objects|map({uuid,name:.meta.name, selected_project_count:((.spec.project_uuids // [])|length), selected_project_uuids:(.spec.project_uuids // []), enabled_features:(.spec.enabled_features // []), invalid:.spec.invalid, sync_errors:(.spec.sync_errors // [])}))}'
+set -o pipefail; endorctl agent api --agent-id <agent-id> list --resource Installation <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,meta.create_time,meta.update_time,spec" | jq '{count:(.list.objects|length), installations:(.list.objects|map({uuid,name:.meta.name, selected_project_count:((.spec.project_uuids // [])|length), selected_project_uuids:(.spec.project_uuids // []), enabled_features:(.spec.enabled_features // []), invalid:.spec.invalid, sync_errors:(.spec.sync_errors // [])}))}'
 ```
 
 ```bash
-set -o pipefail; endorctl api list --resource ScanProfile <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,spec" | jq '{count:(.list.objects|length), profiles:(.list.objects|map({uuid,name:.meta.name, tags:.meta.tags, spec_keys:(.spec|keys), toolchain_present:(.spec.toolchain_profile? != null or .spec.tool_chain_profile? != null), automated_scan_present:(.spec.automated_scan_parameters? != null)}))[0:20]}'
+set -o pipefail; endorctl agent api --agent-id <agent-id> list --resource ScanProfile <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,spec" | jq '{count:(.list.objects|length), profiles:(.list.objects|map({uuid,name:.meta.name, tags:.meta.tags, spec_keys:(.spec|keys), toolchain_present:(.spec.toolchain_profile? != null or .spec.tool_chain_profile? != null), automated_scan_present:(.spec.automated_scan_parameters? != null)}))[0:20]}'
 ```
 
 ```bash
-set -o pipefail; endorctl api list --resource PackageManager <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,spec" | jq '{count:(.list.objects|length), package_managers:(.list.objects|map({uuid,name:.meta.name, tags:.meta.tags, spec_keys:(.spec|keys), status:(.spec.package_manager_status // null), registry_hosts:([.spec[]? | objects | .url? // .registry_url? // empty] | unique)}))[0:20]}'
+set -o pipefail; endorctl agent api --agent-id <agent-id> list --resource PackageManager <namespace_flag> --list-all --field-mask "uuid,meta.name,meta.tags,spec" | jq '{count:(.list.objects|length), package_managers:(.list.objects|map({uuid,name:.meta.name, tags:.meta.tags, spec_keys:(.spec|keys), status:(.spec.package_manager_status // null), registry_hosts:([.spec[]? | objects | .url? // .registry_url? // empty] | unique)}))[0:20]}'
 ```
 
 ```bash
-set -o pipefail; endorctl api list --resource PackageVersion <namespace_flag> --list-all --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' --field-mask "uuid,meta.name,context,spec.ecosystem,spec.project_uuid,spec.resolution_errors" | jq 'def has_meaningful_errors: (.spec.resolution_errors | if . == null then false elif type=="object" then ((keys|length) > 0) elif type=="array" then (length > 0) else false end); {count:(.list.objects|length), meaningful_resolution_error_count:([.list.objects[] | select(has_meaningful_errors)] | length), empty_resolution_error_object_count:([.list.objects[] | select((.spec.resolution_errors|type)=="object" and (.spec.resolution_errors|keys|length)==0)] | length), examples:[.list.objects[] | select(has_meaningful_errors) | {package:.meta.name, ecosystem:.spec.ecosystem, project_uuid:.spec.project_uuid, error_keys:(.spec.resolution_errors|keys), best_category:.spec.resolution_errors.resolved.error_analysis_best_match.error_category, status_error:(.spec.resolution_errors.resolved.status_error // .spec.resolution_errors.unresolved.status_error // .spec.resolution_errors.call_graph.status_error // null), rule:.spec.resolution_errors.resolved.rule}][0:10]}'
+set -o pipefail; endorctl agent api --agent-id <agent-id> list --resource PackageVersion <namespace_flag> --list-all --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"' --field-mask "uuid,meta.name,context,spec.ecosystem,spec.project_uuid,spec.resolution_errors" | jq 'def has_meaningful_errors: (.spec.resolution_errors | if . == null then false elif type=="object" then ((keys|length) > 0) elif type=="array" then (length > 0) else false end); {count:(.list.objects|length), meaningful_resolution_error_count:([.list.objects[] | select(has_meaningful_errors)] | length), empty_resolution_error_object_count:([.list.objects[] | select((.spec.resolution_errors|type)=="object" and (.spec.resolution_errors|keys|length)==0)] | length), examples:[.list.objects[] | select(has_meaningful_errors) | {package:.meta.name, ecosystem:.spec.ecosystem, project_uuid:.spec.project_uuid, error_keys:(.spec.resolution_errors|keys), best_category:.spec.resolution_errors.resolved.error_analysis_best_match.error_category, status_error:(.spec.resolution_errors.resolved.status_error // .spec.resolution_errors.unresolved.status_error // .spec.resolution_errors.call_graph.status_error // null), rule:.spec.resolution_errors.resolved.rule}][0:10]}'
 ```
 <!-- compact-plugin:omit-end -->
 
@@ -1157,7 +1157,7 @@ the count imply exact complete lane membership.
     {
       "name": "Onboarding coverage evidence",
       "resource": "GitHubRepository | Project | ScanResult",
-      "source": "github | endorctl_api | endor_mcp | local_repository",
+      "source": "github | endorctl_agent_api | endor_mcp | local_repository",
       "status": "succeeded | partial | failed | skipped",
       "query_template_id": "github-inventory | project-onboarding-check | null",
       "filter_summary": "Repository, org, project, or monitored-branch selector",
@@ -1228,9 +1228,9 @@ configure, or start an Endor MCP server.
 # Workflow: GitHub Monitored-Branch Coverage Probe
 
 Use Bash only for documented read-only GitHub inventory/file calls,
-`endorctl api list`, `endorctl api get`, and `endorctl --version`. Do not run
-`endorctl scan`, `endorctl api create`, `endorctl api update`, `endorctl api
-delete`, package manager install/build/test commands, `git clone`, `git push`,
+`endorctl agent api --agent-id <agent-id> list`, `endorctl agent api --agent-id <agent-id> get`, and `endorctl --version`. Do not run
+scans, Endor agent API create/update/delete actions, package manager
+install/build/test commands, `git clone`, `git push`,
 GitHub mutation commands, file writes, or Endor MCP tooling.
 
 ## Step 1: Establish Scope

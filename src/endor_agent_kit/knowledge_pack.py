@@ -9,6 +9,7 @@ from typing import Any
 
 import yaml
 
+from endor_agent_kit.agent_api import agent_api_command_errors
 from endor_agent_kit.endor_api_registry import endor_api_template_errors
 
 
@@ -88,7 +89,7 @@ EVIDENCE_GATE_RULES = (
     "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.",
     "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.",
     "If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.",
-    "Final answers must summarize query intent, selectors, and field masks instead of echoing raw `endorctl api` command strings.",
+    "Final answers must summarize query intent, selectors, and field masks instead of echoing raw `endorctl agent api` command strings.",
 )
 SCOPE_NORMALIZATION_RULES = (
     "Normalize repository selectors to `owner/repo` or the equivalent source-provider full path before Endor project lookup.",
@@ -142,6 +143,8 @@ class KnowledgeTaskProfile:
     minimal_evidence: tuple[str, ...]
     stop_when: tuple[str, ...]
     output_focus: tuple[str, ...]
+    included_sections: tuple[str, ...] = ()
+    compact: bool = False
 
 
 @dataclass(frozen=True)
@@ -334,6 +337,7 @@ def render_knowledge_pack_section(
     root: str | Path | None = None,
     *,
     compact: bool = False,
+    profile_id: str | None = None,
 ) -> str:
     """Render compact pack guidance for one generated agent."""
 
@@ -365,16 +369,30 @@ def render_knowledge_pack_section(
 
     workflow = pack.workflow_for(agent_id)
     if workflow is not None:
+        selected_profile = workflow.task_profile_for(profile_id) if profile_id is not None else None
+        if profile_id is not None and selected_profile is None:
+            raise ValueError(f"unknown task profile {profile_id!r} for agent {agent_id!r}")
+        task_profiles = (selected_profile,) if selected_profile is not None else workflow.task_profiles
+        query_plans = (
+            tuple(plan for plan in workflow.evidence_query_plans if plan.profile_id == profile_id)
+            if profile_id is not None
+            else workflow.evidence_query_plans
+        )
+        query_recipes = (
+            tuple(recipe for recipe in workflow.evidence_query_recipes if recipe.profile_id == profile_id)
+            if profile_id is not None
+            else workflow.evidence_query_recipes
+        )
         lines.extend(["", f"### {workflow.title}", "", workflow.summary, ""])
-        if workflow.task_profiles:
+        if task_profiles:
             lines.extend(["### Agent Task Profiles", ""])
             if compact:
-                profiles = ", ".join(f"`{profile.id}`" for profile in workflow.task_profiles)
+                profiles = ", ".join(f"`{profile.id}`" for profile in task_profiles)
                 lines.append(
                     f"- Profiles: {profiles}. Profile bounds workflow; obey stop; full only on request."
                 )
             else:
-                for profile in workflow.task_profiles:
+                for profile in task_profiles:
                     lines.extend([
                         f"#### `{profile.id}` - {profile.title}",
                         "",
@@ -385,10 +403,10 @@ def render_knowledge_pack_section(
                         "- Output focus: " + " ".join(profile.output_focus),
                         "",
                     ])
-        if workflow.evidence_query_plans:
+        if query_plans:
             lines.extend(["### Evidence Query Plans", ""])
             if compact:
-                profiles = ", ".join(f"`{plan.profile_id}`" for plan in workflow.evidence_query_plans)
+                profiles = ", ".join(f"`{plan.profile_id}`" for plan in query_plans)
                 lines.append(
                     f"- Plans: {profiles}. Exact/ranked evidence first; selected detail only; "
                     "skipped lanes -> `data_gaps`."
@@ -398,7 +416,7 @@ def render_knowledge_pack_section(
                         "- SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory."
                     )
             else:
-                for plan in workflow.evidence_query_plans:
+                for plan in query_plans:
                     lines.extend([
                         f"#### `{plan.profile_id}` - {plan.title}",
                         "",
@@ -412,15 +430,20 @@ def render_knowledge_pack_section(
                         "- Data gaps: " + " ".join(plan.data_gaps),
                         "",
                     ])
-        if workflow.evidence_query_recipes:
+        if query_recipes:
             lines.extend(["### Evidence Query Recipes", ""])
             if compact:
-                for recipe in _compact_query_recipes(workflow):
+                compact_recipes = (
+                    query_recipes
+                    if profile_id is not None
+                    else _compact_query_recipes(workflow)
+                )
+                for recipe in compact_recipes:
                     lines.append(
                         f"- `{recipe.id}`/{recipe.profile_id}: `{recipe.template}`"
                     )
             else:
-                for recipe in workflow.evidence_query_recipes:
+                for recipe in query_recipes:
                     if recipe.canonical_id:
                         canonical_line = f"- Canonical: `{recipe.canonical_id}`"
                     else:
@@ -436,19 +459,19 @@ def render_knowledge_pack_section(
                         "- Constraints: " + " ".join(recipe.constraints),
                         "",
                     ])
-        if workflow.resources and not compact:
+        if workflow.resources and not compact and profile_id is None:
             resources = ", ".join(f"`{resource.name}`" for resource in workflow.resources)
             lines.append(f"- Preferred evidence resources: {resources}.")
             for resource in workflow.resources:
                 fields = ", ".join(f"`{field}`" for field in resource.fields)
                 lines.append(f"- `{resource.name}`: {resource.purpose} Fields: {fields}.")
-        if not compact and workflow.retrieval_steps:
+        if not compact and profile_id is None and workflow.retrieval_steps:
             lines.append("- Retrieval order: " + " ".join(
                 f"{index}. {step}" for index, step in enumerate(workflow.retrieval_steps, start=1)
             ))
-        if not compact and workflow.fallbacks:
+        if not compact and profile_id is None and workflow.fallbacks:
             lines.append("- Fallbacks: " + " ".join(workflow.fallbacks))
-        if not compact and workflow.data_gaps:
+        if not compact and profile_id is None and workflow.data_gaps:
             lines.append("- Data gaps: " + " ".join(workflow.data_gaps))
 
     return "\n".join(lines).rstrip() + "\n"
@@ -624,6 +647,18 @@ def _validate_workflows(
             for field in ("when_to_use", "minimal_evidence", "stop_when", "output_focus"):
                 if not _strings(profile.get(field)):
                     errors.append(f"{profile_prefix}.{field}: must be a non-empty list")
+            if "included_sections" in profile:
+                included_sections = _strings(profile.get("included_sections"))
+                raw_included_sections = profile.get("included_sections")
+                if not isinstance(raw_included_sections, list) or len(included_sections) != len(raw_included_sections):
+                    errors.append(f"{profile_prefix}.included_sections: must be an array of strings")
+                if len(set(included_sections)) != len(included_sections):
+                    errors.append(f"{profile_prefix}.included_sections: duplicate section id")
+                for section_id in included_sections:
+                    if not SLUG_RE.fullmatch(section_id):
+                        errors.append(f"{profile_prefix}.included_sections: invalid section id {section_id!r}")
+            if "compact" in profile and not isinstance(profile.get("compact"), bool):
+                errors.append(f"{profile_prefix}.compact: must be a boolean")
             profile_text = _visible_text(profile).lower()
             if "data_gaps" not in profile_text:
                 errors.append(f"{profile_prefix}: task profile guidance must mention data_gaps")
@@ -757,6 +792,8 @@ def _task_profile(data: dict[str, Any]) -> KnowledgeTaskProfile:
         minimal_evidence=tuple(_strings(data.get("minimal_evidence"))),
         stop_when=tuple(_strings(data.get("stop_when"))),
         output_focus=tuple(_strings(data.get("output_focus"))),
+        included_sections=tuple(_strings(data.get("included_sections"))),
+        compact=bool(data.get("compact", False)),
     )
 
 
@@ -945,16 +982,22 @@ def _validate_query_recipe_template(
     if not template:
         return
     lower = template.lower()
-    if "endorctl api get" in lower and (" --filter " in lower or " -f " in lower):
-        errors.append(f"{prefix}.template: endorctl api get must not use filters")
-    if "endorctl api" in lower and " -n " not in lower and " --namespace " not in lower:
-        errors.append(f"{prefix}.template: endorctl api commands must include explicit namespace")
-    if "endorctl api list" in lower and " --field-mask " not in lower:
-        errors.append(f"{prefix}.template: endorctl api list commands must include --field-mask")
+    for error in agent_api_command_errors(
+        template,
+        agent_id="<agent-id>",
+        allow_template_identity=True,
+    ):
+        errors.append(f"{prefix}.template: {error}")
+    if "endorctl agent api" in lower and " get " in lower and (" --filter " in lower or " -f " in lower):
+        errors.append(f"{prefix}.template: endorctl agent api get must not use filters")
+    if "endorctl agent api" in lower and " -n " not in lower and " --namespace " not in lower:
+        errors.append(f"{prefix}.template: endorctl agent api commands must include explicit namespace")
+    if "endorctl agent api" in lower and " list " in lower and " --field-mask " not in lower:
+        errors.append(f"{prefix}.template: endorctl agent api list commands must include --field-mask")
     field_mask_paths = _field_mask_paths(template)
     if _has_field_mask_path_collision(field_mask_paths):
         errors.append(f"{prefix}.template: field-mask must not include both a parent path and child path")
-    if "endorctl api list" in lower and "finding" in lower and "--list-all" in lower:
+    if "endorctl agent api" in lower and " list " in lower and "finding" in lower and "--list-all" in lower:
         if not _is_scoped_finding_list_all_query(lower):
             errors.append(f"{prefix}.template: broad Finding --list-all templates are not allowed")
     if "cat ~/.endorctl/config.yaml" in lower or "cat $home/.endorctl/config.yaml" in lower:

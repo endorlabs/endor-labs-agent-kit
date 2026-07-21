@@ -5,8 +5,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Safety And Transports
 
 - safety_class: `read_only`
-- required_transports: `mcp`
-- endorctl_api_invocations: `none`
+- required_transports: `mcp`, `endorctl_agent_api`
+- endorctl_agent_api_invocations: `resolve_project_by_git`, `lookup_exact_package_version`, `lookup_selected_package_findings`
 - required_endor_mcp_tools: `check_dependency_for_risks`, `check_dependency_for_vulnerabilities`, `get_endor_vulnerability`
 
 ## Inputs

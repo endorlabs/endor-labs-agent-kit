@@ -3,7 +3,7 @@
 
 This artifact assesses CI/CD and supply chain posture from read-only evidence.
 It does not require, configure, or start an Endor MCP server. Use documented
-Endor API, `endorctl api`, GitHub read-only API/CLI, and optional local CI file
+`endorctl agent api --agent-id <agent-id>`, GitHub read-only API/CLI, and optional local CI file
 inspection only when available.
 
 ## Operating Rules
@@ -183,7 +183,7 @@ there is only one lane or one repository. Never return either field as an object
 or map; emit one object row per repository or evidence lane, or `[]` when no
 current evidence was gathered.
 
-Each `evidence_queries` row records `source` as one of `endorctl_api`,
+Each `evidence_queries` row records `source` as one of `endorctl_agent_api`,
 `github`, `local_repository`, or `user_input`, with `resource` naming the
 queried resource (for example `Finding`, `Project`, `GitHub branch
 protection`, `GitHub workflow files`, or `local CI files`).

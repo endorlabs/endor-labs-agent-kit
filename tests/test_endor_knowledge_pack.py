@@ -111,6 +111,8 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     query_efficiency = next(rule for rule in pack.global_rules if rule.id == "query-efficiency")
     assert "--list-all" in query_efficiency.guidance
     assert "complete scoped inventory or count" in query_efficiency.guidance
+    assert "Run independent compatible reads concurrently" in query_efficiency.guidance
+    assert "early-stop" in query_efficiency.guidance
     ai_sast_recipe = next(
         recipe
         for recipe in pack.workflow_for("ai-sast-triage").evidence_query_recipes
@@ -168,7 +170,7 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert "Evidence Query Recipes" in section
     assert "`version-upgrade-summary` (selection-plan)" in section
     assert "Canonical: `version-upgrade-summary`" in section
-    assert "endorctl api list -r VersionUpgrade -n <namespace>" in section
+    assert "endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace>" in section
     assert "narrowing through VersionUpgrade before detailed Finding expansion" in section
     assert "Never use memory" in section
     assert "Never dump or `cat` Endor config files" in section
@@ -177,6 +179,17 @@ def test_knowledge_pack_renders_global_section_for_known_agent():
     assert "namespace_provenance" in section
     assert "data_gaps" in section
     assert "Workflow output contracts" in section
+
+
+def test_profile_scoped_knowledge_section_omits_other_profiles_and_plans():
+    section = render_knowledge_pack_section("sca-remediation", profile_id="evidence-check")
+
+    assert "`evidence-check` - Evidence Check" in section
+    assert "`evidence-check` - Evidence Availability Query Plan" in section
+    assert "`resolve-scope` - Resolve Scope" not in section
+    assert "`selection-plan` - Selection Plan" not in section
+    assert "(resolve-scope)" not in section
+    assert "(selection-plan)" not in section
 
 
 def test_knowledge_pack_renders_task_profile_prompt():
@@ -275,7 +288,7 @@ def test_knowledge_pack_validator_rejects_unknown_workflow_agent(tmp_path):
                         "id": "project-by-git",
                         "resource": "Project",
                         "purpose": "Resolve namespace evidence.",
-                        "template": "endorctl api list -r Project -n <namespace> --field-mask \"uuid,meta.name\" -o json",
+                        "template": "endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --field-mask \"uuid,meta.name\" -o json",
                         "fields": ["uuid", "meta.name"],
                         "constraints": ["Record missing namespace evidence in data_gaps."],
                     }
@@ -365,7 +378,7 @@ def test_knowledge_pack_validator_rejects_unsafe_query_recipe_template(tmp_path)
     workflows = tmp_path / "workflows"
     workflows.mkdir()
     workflow = _minimal_workflow()
-    workflow["evidence_query_recipes"][0]["template"] = "endorctl api list -r Finding --list-all -o json"
+    workflow["evidence_query_recipes"][0]["template"] = "endorctl agent api --agent-id <agent-id> list -r Finding --list-all -o json"
     (workflows / "sca-remediation.yaml").write_text(
         yaml.safe_dump(workflow, sort_keys=False),
         encoding="utf-8",
@@ -405,7 +418,7 @@ def test_knowledge_pack_validator_rejects_canonical_query_recipe_template_drift(
     workflow = _minimal_workflow()
     workflow["evidence_query_recipes"][0]["canonical_id"] = "project-by-git"
     workflow["evidence_query_recipes"][0]["template"] = (
-        'endorctl api list -r Project -n <namespace> --field-mask "uuid" -o json'
+        'endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --field-mask "uuid" -o json'
     )
     (workflows / "sca-remediation.yaml").write_text(
         yaml.safe_dump(workflow, sort_keys=False),
@@ -424,13 +437,13 @@ def test_knowledge_pack_validator_rejects_unsafe_canonical_query_recipe_template
     _write_minimal_pack(tmp_path)
     _write_minimal_query_catalog(
         tmp_path,
-        template="endorctl api list -r Finding --list-all -o json",
+        template="endorctl agent api --agent-id <agent-id> list -r Finding --list-all -o json",
     )
 
     errors = validate_knowledge_pack(tmp_path)
 
-    assert any("query-recipes.yaml recipes[0].template: endorctl api commands must include explicit namespace" in error for error in errors)
-    assert any("query-recipes.yaml recipes[0].template: endorctl api list commands must include --field-mask" in error for error in errors)
+    assert any("query-recipes.yaml recipes[0].template: endorctl agent api commands must include explicit namespace" in error for error in errors)
+    assert any("query-recipes.yaml recipes[0].template: endorctl agent api list commands must include --field-mask" in error for error in errors)
     assert any("query-recipes.yaml recipes[0].template: broad Finding --list-all templates are not allowed" in error for error in errors)
 
 
@@ -439,7 +452,7 @@ def test_knowledge_pack_validator_rejects_field_mask_parent_child_collisions(tmp
     _write_minimal_query_catalog(
         tmp_path,
         template=(
-            'endorctl api list -r VersionUpgrade -n <namespace> '
+            'endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> '
             '--field-mask "uuid,spec.upgrade_info,spec.upgrade_info.cia_results" -o json'
         ),
     )
@@ -455,7 +468,7 @@ def test_knowledge_pack_validator_accepts_scoped_ai_sast_list_all_query(tmp_path
     workflows.mkdir()
     workflow = _minimal_workflow()
     workflow["evidence_query_recipes"][0]["template"] = (
-        'endorctl api list -r Finding -n <namespace> --filter '
+        'endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '
         '\'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" '
         'and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"\' '
         '--field-mask "uuid,context.type,spec.project_uuid,spec.method" --list-all -o json'
@@ -476,7 +489,7 @@ def test_knowledge_pack_validator_accepts_scoped_finding_count_list_all_query(tm
     workflows.mkdir()
     workflow = _minimal_workflow()
     workflow["evidence_query_recipes"][0]["template"] = (
-        "endorctl api list -r Finding -n <namespace> --filter "
+        "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter "
         "'<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] "
         "and spec.finding_categories contains <FINDING_CATEGORY>' "
         '--field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json'
@@ -541,7 +554,7 @@ def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_
 def _write_minimal_query_catalog(
     root: Path,
     *,
-    template: str = 'endorctl api list -r Project -n <namespace> --field-mask "uuid,meta.name" -o json',
+    template: str = 'endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --field-mask "uuid,meta.name" -o json',
 ) -> None:
     (root / "query-recipes.yaml").write_text(
         yaml.safe_dump(
@@ -609,7 +622,7 @@ def _minimal_workflow() -> dict:
                 "id": "project-by-git",
                 "resource": "Project",
                 "purpose": "Resolve namespace evidence.",
-                "template": "endorctl api list -r Project -n <namespace> --field-mask \"uuid,meta.name\" -o json",
+                "template": "endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --field-mask \"uuid,meta.name\" -o json",
                 "fields": ["uuid", "meta.name"],
                 "constraints": ["Record missing namespace evidence in data_gaps."],
             }

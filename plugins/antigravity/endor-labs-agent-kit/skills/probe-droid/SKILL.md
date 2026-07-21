@@ -114,7 +114,7 @@ Every response must include `evidence_queries[]`. Each entry records:
 
 - name: short human-readable evidence lane
 - resource: GitHub, Endor, or local repository resource inspected
-- source: `github`, `endorctl_api`, `endor_mcp`, `user_input`, or
+- source: `github`, `endorctl_agent_api`, `endor_mcp`, `user_input`, or
   `local_repository`
 - status: `succeeded`, `partial`, `failed`, `skipped`, or `unavailable`
 - query_template_id: compact recipe id, API path id, or null
@@ -236,7 +236,7 @@ of pasting raw objects.
 Preserve nonzero command status with `set -o pipefail` or the host shell's
 equivalent whenever a JSON-producing command is piped to `jq`.
 Never pipe stderr into a JSON projection. Do not use `2>&1 | jq` with
-`endorctl api list`, `endorctl api get`, `gh repo list`, `gh repo view`, or
+`endorctl agent api --agent-id probe-droid list`, `endorctl agent api --agent-id probe-droid get`, `gh repo list`, `gh repo view`, or
 `gh api` commands because CLI version notices, permission errors, and resource
 errors are non-JSON and will corrupt the parser. Keep stderr separate, let `jq`
 read JSON stdout only, and record nonzero exit status or stderr text as a
@@ -359,7 +359,7 @@ Before finalizing JSON, perform this strict type and scope self-check:
 
 ## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl api` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl agent api --agent-id probe-droid` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Knowledge Pack
 
@@ -392,7 +392,7 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 - Plans: `resolve-scope`, `evidence-check`, `prescribe-actions`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
-- `project-branch-coverage`/evidence-check: `endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json`
+- `project-branch-coverage`/evidence-check: `endorctl agent api --agent-id probe-droid list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json`
 - `repo-setup-file-inventory`/evidence-check: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
 - `local-git-state`/resolve-scope: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
 - `missing-setup-file-check`/prescribe-actions: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`

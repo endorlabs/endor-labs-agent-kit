@@ -3,6 +3,9 @@ from __future__ import annotations
 import json
 
 from endor_agent_kit.ai_sast_triage import (
+    ai_sast_patch_digest,
+    canonical_ai_sast_diff,
+    classify_ai_sast_change_impact,
     lint_ai_sast_approval_comment,
     lint_ai_sast_exception_policy_comment,
     lint_ai_sast_pr_body,
@@ -227,6 +230,137 @@ def test_ai_sast_gate_validator_requires_project_and_finding_provenance():
 
 def test_ai_sast_gate_validator_accepts_remediation_payload():
     assert validate_ai_sast_gate_payload(_valid_payload(), gate="remediation") == []
+
+
+def _change_impact_payload(*, status: str = "verified") -> dict:
+    payload = _valid_payload()
+    patch = payload["patches"][0]
+    patch["file_path"] = "src/web/redirect_handler.py"
+    patch["changed_files"] = ["src/web/redirect_handler.py"]
+    patch["patch_diff"] = (
+        "--- a/src/web/redirect_handler.py\n"
+        "+++ b/src/web/redirect_handler.py\n"
+        "@@ -1,1 +1,1 @@\n"
+        "-def handle_redirect(target):\n"
+        "+def handle_redirect(validated_target):\n"
+    )
+    payload["verdicts"][0]["file_path"] = "src/web/redirect_handler.py"
+    payload["verdicts"][0]["source_location"] = "src/web/redirect_handler.py:1"
+    patch["change_impact"] = {
+        "patch_digest": ai_sast_patch_digest(
+            patch["patch_diff"],
+            source_sha=patch["source_sha"],
+            finding_uuid=patch["finding_uuid"],
+        ),
+        "status": status,
+        "searched_call_sites": ["src/web/routes.py:12"],
+        "factories": [],
+        "tests": ["tests/test_redirect.py::test_rejects_external_target"],
+        "framework_providers": [],
+        "config_keys": [],
+        "validation_evidence": ["targeted redirect regression test planned"],
+    }
+    payload["change_requests"][0]["body"] = render_ai_sast_pr_body(payload)
+    return payload
+
+
+def test_ai_sast_canonical_diff_and_digest_ignore_only_volatile_metadata() -> None:
+    first = (
+        "diff --git a/src/example.py b/src/example.py\r\n"
+        "index abc123..def456 100644\r\n"
+        "old mode 100644\r\n"
+        "new mode 100755\r\n"
+        "--- a/src/example.py\r\n"
+        "+++ b/src/example.py\r\n"
+        "@@ -1,1 +1,1 @@\r\n"
+        "-value = 1\r\n"
+        "+value = 2\r\n\r\n"
+    )
+    second = first.replace("abc123..def456", "111111..222222").replace("\r\n", "\n")
+
+    canonical = canonical_ai_sast_diff(first)
+    assert b"index " not in canonical
+    assert b"old mode" not in canonical
+    assert canonical.endswith(b"+value = 2\n")
+    assert ai_sast_patch_digest(first, source_sha="sha", finding_uuid="finding") == ai_sast_patch_digest(
+        second,
+        source_sha="sha",
+        finding_uuid="finding",
+    )
+    assert ai_sast_patch_digest(first, source_sha="other", finding_uuid="finding") != ai_sast_patch_digest(
+        first,
+        source_sha="sha",
+        finding_uuid="finding",
+    )
+
+
+def test_ai_sast_change_impact_classifier_and_gate_require_trigger_evidence() -> None:
+    payload = _change_impact_payload()
+    classification = classify_ai_sast_change_impact(payload["patches"][0]["patch_diff"])
+
+    assert classification.status == "classified"
+    assert classification.trigger_classes == ("A",)
+    assert validate_ai_sast_gate_payload(payload, gate="remediation") == []
+
+    payload["patches"][0]["change_impact"]["tests"] = []
+    errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+    assert "patches[0].change_impact.tests: required for trigger classes A" in errors
+
+
+def test_ai_sast_change_impact_classifier_uses_old_path_for_deleted_supported_file() -> None:
+    deletion = (
+        "--- a/src/legacy.py\n"
+        "+++ /dev/null\n"
+        "@@ -1,1 +0,0 @@\n"
+        "-import unsafe_dependency\n"
+    )
+
+    classification = classify_ai_sast_change_impact(deletion)
+
+    assert classification.status == "classified"
+    assert classification.touched_paths == ("src/legacy.py",)
+    assert classification.languages == ("python",)
+    assert classification.trigger_classes == ("C",)
+
+
+def test_ai_sast_change_impact_fails_closed_for_null_mismatch_unknown_and_duplicate() -> None:
+    payload = _change_impact_payload()
+    payload["patches"][0]["change_impact"] = None
+    assert any(
+        "change_impact: required non-null" in error
+        for error in validate_ai_sast_gate_payload(payload, gate="remediation")
+    )
+
+    payload = _change_impact_payload()
+    payload["patches"][0]["change_impact"]["patch_digest"] = "0" * 64
+    assert any(
+        "does not match canonical patch digest" in error
+        for error in validate_ai_sast_gate_payload(payload, gate="remediation")
+    )
+
+    payload = _valid_payload()
+    patch = payload["patches"][0]
+    patch["change_impact"] = {
+        "patch_digest": ai_sast_patch_digest(
+            patch["patch_diff"], source_sha=patch["source_sha"], finding_uuid=patch["finding_uuid"]
+        ),
+        "status": "not_applicable",
+        "searched_call_sites": [],
+        "factories": [],
+        "tests": [],
+        "framework_providers": [],
+        "config_keys": [],
+        "validation_evidence": [],
+    }
+    unknown_errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+    assert any("must be blocked or unavailable" in error for error in unknown_errors)
+
+    payload = _change_impact_payload()
+    duplicate = dict(payload["patches"][0])
+    duplicate["change_impact"] = dict(payload["patches"][0]["change_impact"])
+    payload["patches"].append(duplicate)
+    duplicate_errors = validate_ai_sast_gate_payload(payload, gate="remediation")
+    assert any("duplicate patch digest" in error for error in duplicate_errors)
 
 
 def test_ai_sast_pr_renderer_outputs_lint_clean_body():

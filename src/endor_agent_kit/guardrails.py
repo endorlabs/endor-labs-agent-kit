@@ -8,6 +8,7 @@ from typing import Any
 
 import yaml
 
+from endor_agent_kit.agent_api import agent_api_command_errors
 from endor_agent_kit.portable_runtime_conformance import (
     UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
     assert_portable_text,
@@ -60,7 +61,7 @@ NAMESPACE_PREFLIGHT_REQUIRED_TEXT = (
     "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs",
     "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only",
     "surface both values with provenance and stop for user confirmation",
-    "`endorctl api` lookup",
+    "`endorctl agent api --agent-id",
     "tenant-specific",
     "customer-specific",
     "production, backup",
@@ -136,9 +137,43 @@ def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     _check_root_mcp_support(root, errors)
     _check_plugins(root, errors)
     _check_portable(root, errors)
+    _check_generated_agent_api_contracts(root, errors)
     _check_credentials(root, errors)
     _check_provenance(root, errors)
     return errors
+
+
+def _check_generated_agent_api_contracts(root: Path, errors: list[str]) -> None:
+    """Bind every generated Endor API command to its canonical recipe identity."""
+
+    agent_ids = _source_agent_ids(root) | {"endor-agent-kit-setup"}
+    generated_roots = (
+        "agents",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "cursor-sdk",
+        "gemini",
+        "plugins",
+        "portable",
+        "skills",
+    )
+    text_suffixes = {".json", ".md", ".toml", ".yaml", ".yml"}
+    for generated_root in generated_roots:
+        base = root / generated_root
+        if not base.exists():
+            continue
+        for path in sorted(item for item in base.rglob("*") if item.is_file()):
+            if path.suffix.lower() not in text_suffixes:
+                continue
+            relative = _rel(root, path)
+            matching_ids = [agent_id for agent_id in agent_ids if agent_id in relative]
+            if not matching_ids:
+                continue
+            agent_id = max(matching_ids, key=len)
+            content = path.read_text(encoding="utf-8")
+            for error in agent_api_command_errors(content, agent_id=agent_id):
+                errors.append(f"{relative}: {error}")
 
 
 def _check_credentials(root: Path, errors: list[str]) -> None:
@@ -213,7 +248,7 @@ def _check_root_mcp_support(root: Path, errors: list[str]) -> None:
             "Do not install the repository root as a",
             "Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/`",
             "Do not load the root Cursor skills as Gemini",
-            "Prefer documented Endor API or `endorctl api` lookups",
+            "Prefer `endorctl agent api --agent-id <canonical-recipe-id>` lookups",
             "Use Endor MCP only when a selected MCP-capable",
             "use the `endor-agent-kit-setup` skill",
             "configure Endor MCP without explicit user approval",
@@ -293,6 +328,23 @@ def _check_source_recipes(root: Path, errors: list[str]) -> None:
         except Exception as exc:
             errors.append(f"{_rel(root, recipe_file)}: failed to read YAML: {exc}")
             continue
+        recipe_id = recipe.get("id")
+        transports = recipe.get("supported_transports", [])
+        if "endorctl_agent_api" not in transports:
+            errors.append(
+                f"{_rel(root, recipe_file)}: every agent must support endorctl_agent_api"
+            )
+        instructions_path = recipe_file.parent / str(
+            recipe.get("instructions_path", "instructions.md")
+        )
+        if isinstance(recipe_id, str) and instructions_path.is_file():
+            instructions = instructions_path.read_text(encoding="utf-8")
+            for error in agent_api_command_errors(
+                instructions,
+                agent_id=recipe_id,
+                allow_template_identity=True,
+            ):
+                errors.append(f"{_rel(root, instructions_path)}: {error}")
         if recipe.get("safety_class") != "mutating":
             if recipe.get("mutations") not in (None, []):
                 errors.append(f"{_rel(root, recipe_file)}: read-only recipe declares mutations")

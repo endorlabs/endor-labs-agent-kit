@@ -5,8 +5,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Safety And Transports
 
 - safety_class: `read_only`
-- required_transports: `endorctl_api`
-- endorctl_api_invocations: `resolve_project_or_resource_selector`, `list_scan_results`, `get_scan_result`, `list_scan_workflow_results`, `get_scan_workflow_result`, `list_scan_workflows`, `list_scan_profiles`, `list_package_versions`, `list_package_manager_integrations`, `list_scm_credentials`, `list_installations`, `list_identity_providers`, `list_pr_comment_configs`, `list_findings_and_policies`, `list_call_graph_data`, `inspect_container_registry_scan_evidence`, `inspect_exporter_or_notification_evidence`
+- required_transports: `endorctl_agent_api`
+- endorctl_agent_api_invocations: `resolve_project_or_resource_selector`, `list_scan_results`, `get_scan_result`, `list_scan_workflow_results`, `get_scan_workflow_result`, `list_scan_workflows`, `list_scan_profiles`, `list_package_versions`, `list_package_manager_integrations`, `list_scm_credentials`, `list_installations`, `list_identity_providers`, `list_pr_comment_configs`, `list_findings_and_policies`, `list_call_graph_data`, `inspect_container_registry_scan_evidence`, `inspect_exporter_or_notification_evidence`
 - required_endor_mcp_tools: `none`
 
 ## Inputs
