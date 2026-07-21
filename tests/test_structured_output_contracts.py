@@ -46,6 +46,29 @@ def test_required_fields_for_preserves_recipe_order():
     )
 
 
+def test_profile_output_contract_reduces_required_fields_without_weakening_evidence_gaps():
+    fields = (
+        "onboarding_verdict",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    schema = json_schema_for_agent("probe-droid", fields)
+    payload = {
+        "onboarding_verdict": "INSUFFICIENT_DATA",
+        "evidence_queries": [],
+        "data_gaps": ["unavailable: project evidence not returned"],
+        "policy_context": {},
+        "policy_evaluations": [],
+    }
+
+    assert required_fields_for("probe-droid", fields) == fields
+    assert tuple(schema["required"]) == fields
+    assert tuple(schema["properties"]) == fields
+    assert validate_structured_output_payload("probe-droid", payload, fields) == []
+
+
 def test_all_structured_contracts_require_evidence_queries():
     for agent_id in STRUCTURED_OUTPUT_CONTRACTS:
         assert "evidence_queries" in required_fields_for(agent_id)

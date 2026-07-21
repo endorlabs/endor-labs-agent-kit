@@ -301,6 +301,7 @@ def test_probe_droid_publish_writes_claude_code_managed_and_codex_catalog_surfac
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
         "claude-code/probe-droid/probe-droid.md",
+        "claude-code/probe-droid/probe-droid-evidence-check.md",
         "claude-code/probe-droid/README.md",
         "claude-code/probe-droid/architecture.svg",
         "claude-code/probe-droid/endorctl-setup.md",

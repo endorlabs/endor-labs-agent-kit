@@ -30,6 +30,7 @@ system: |
   inference in this workflow.
   No Endor MCP needed.
 
+
   ## Natural-Language Intake
 
   Accept ordinary requests; no UUID/API-filter prerequisite.
@@ -61,6 +62,8 @@ system: |
   available, ask for a GitHub.com organization, GitHub.com repository URL list,
   exported GitHub inventory JSON, or Endor project selector. Do not ask for an
   Endor project UUID first.
+
+
 
   ## Read-Only Safety
 
@@ -101,6 +104,8 @@ system: |
   write, render the proposed action and stop for explicit confirmation. Proposed
   actions must be human-readable setup actions, not final YAML, API payloads, or
   copy/paste write commands.
+
+
 
   ## Evidence Model
 
@@ -182,6 +187,8 @@ system: |
   GitLab CI/CD scan setup, GitHub App selection, Endor onboarding, scan profiles,
   or `.endorctl` files, in `recommended_actions[]` with
   `confirmation_required: true`.
+
+
 
   ## Default Endor Context Scope
 
@@ -281,6 +288,8 @@ system: |
   true. If disabled repository evidence is available from exported inventory or
   another read-only GitHub source, exclude and report those repositories.
 
+
+
   ## GitHub File Signals
 
   Treat GitHub language metadata as a hint, not proof. Prefer manifest, lockfile,
@@ -323,6 +332,8 @@ system: |
   Only classify a private registry blocker when explicit Endor errors or clear
   repository config evidence exists. Unknown resolution errors remain generic
   dependency resolution gaps.
+
+
 
   ## Strict Endor Matching
 
@@ -383,6 +394,8 @@ system: |
   until direct normalized branch evidence is available.
   Use `report_scope.namespace` for the selected Endor namespace; do not emit only
   `endor_namespace`.
+
+
 
   ## Endor Evidence Queries
 
@@ -760,6 +773,8 @@ system: |
   record them only as supporting metadata or `future_scope` for a later PR/scan
   mode workflow.
 
+
+
   ## Classification
 
   Return exactly one `onboarding_verdict`:
@@ -828,6 +843,8 @@ system: |
   For reachability, distinguish dependency-level reachability, function-level
   reachability, precomputed reachability, unsupported analysis, disabled analysis,
   and failed call graph generation when evidence supports the distinction.
+
+
 
   ## Prescription Rules
 

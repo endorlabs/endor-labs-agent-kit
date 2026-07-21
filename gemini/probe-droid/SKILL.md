@@ -44,6 +44,7 @@ scan coverage, local repository cloning, or local command-based toolchain
 inference in this workflow.
 No Endor MCP needed.
 
+
 ## Natural-Language Intake
 
 Accept ordinary requests; no UUID/API-filter prerequisite.
@@ -75,6 +76,8 @@ If no GitHub scope, repository list, exported inventory, or Endor selector is
 available, ask for a GitHub.com organization, GitHub.com repository URL list,
 exported GitHub inventory JSON, or Endor project selector. Do not ask for an
 Endor project UUID first.
+
+
 
 ## Read-Only Safety
 
@@ -115,6 +118,8 @@ Endor package manager integration, Endor policy, or any Endor configuration
 write, render the proposed action and stop for explicit confirmation. Proposed
 actions must be human-readable setup actions, not final YAML, API payloads, or
 copy/paste write commands.
+
+
 
 ## Evidence Model
 
@@ -196,6 +201,8 @@ sampled inventory findings. Put single-repository future setup work, including
 GitLab CI/CD scan setup, GitHub App selection, Endor onboarding, scan profiles,
 or `.endorctl` files, in `recommended_actions[]` with
 `confirmation_required: true`.
+
+
 
 ## Default Endor Context Scope
 
@@ -295,6 +302,8 @@ Inactive repositories are flagged by default using `inactive_threshold_days`
 true. If disabled repository evidence is available from exported inventory or
 another read-only GitHub source, exclude and report those repositories.
 
+
+
 ## GitHub File Signals
 
 Treat GitHub language metadata as a hint, not proof. Prefer manifest, lockfile,
@@ -337,6 +346,8 @@ For private registry hints, classify confidence:
 Only classify a private registry blocker when explicit Endor errors or clear
 repository config evidence exists. Unknown resolution errors remain generic
 dependency resolution gaps.
+
+
 
 ## Strict Endor Matching
 
@@ -397,6 +408,8 @@ when scan evidence exists; classify it under `onboarded_repositories_with_gaps`
 until direct normalized branch evidence is available.
 Use `report_scope.namespace` for the selected Endor namespace; do not emit only
 `endor_namespace`.
+
+
 
 ## Endor Evidence Queries
 
@@ -774,6 +787,8 @@ they appear in installation evidence, do not prescribe changes for them in V1;
 record them only as supporting metadata or `future_scope` for a later PR/scan
 mode workflow.
 
+
+
 ## Classification
 
 Return exactly one `onboarding_verdict`:
@@ -842,6 +857,8 @@ Reachability reason codes:
 For reachability, distinguish dependency-level reachability, function-level
 reachability, precomputed reachability, unsupported analysis, disabled analysis,
 and failed call graph generation when evidence supports the distinction.
+
+
 
 ## Prescription Rules
 

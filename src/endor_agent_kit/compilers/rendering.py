@@ -176,6 +176,7 @@ def instructions_for_edition(
         structured_output = render_structured_output_contract(
             structured_output_recipe,
             compact=effective_compact,
+            output_fields=selected_profile.output_fields if selected_profile and selected_profile.output_fields else None,
         ).rstrip()
         if structured_output:
             sections_to_render.append(structured_output)
@@ -217,11 +218,23 @@ def render_structured_output_contract(
     recipe: EndorAgentRecipe,
     *,
     compact: bool = False,
+    output_fields: tuple[str, ...] | None = None,
 ) -> str:
     """Render the recipe's required output shape into generated prompts."""
 
-    required = tuple(field for field in recipe.outputs if field.required)
-    optional = tuple(field for field in recipe.outputs if not field.required)
+    if output_fields is None:
+        required = tuple(field for field in recipe.outputs if field.required)
+        optional = tuple(field for field in recipe.outputs if not field.required)
+    else:
+        fields_by_name = {field.name: field for field in recipe.outputs}
+        unknown = tuple(name for name in output_fields if name not in fields_by_name)
+        if unknown:
+            raise ValueError(f"profile output contract references unknown fields: {', '.join(unknown)}")
+        for safety_field in ("evidence_queries", "data_gaps"):
+            if safety_field in fields_by_name and safety_field not in output_fields:
+                raise ValueError(f"profile output contract must retain {safety_field!r}")
+        required = tuple(fields_by_name[name] for name in output_fields)
+        optional = ()
     if not required:
         return ""
     if compact:

@@ -414,6 +414,38 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
     assert "```json" not in rendered
 
 
+def test_compact_profile_output_contract_requires_only_selected_safe_fields():
+    recipe = _recipe_with_outputs(
+        RecipeField("verdict", "enum", required=True),
+        RecipeField("large_inventory", "list[object]", required=True),
+        RecipeField("evidence_queries", "list[object]", required=True),
+        RecipeField("data_gaps", "list[string]", required=True),
+    )
+
+    rendered = render_structured_output_contract(
+        recipe,
+        compact=True,
+        output_fields=("verdict", "evidence_queries", "data_gaps"),
+    )
+
+    assert "`verdict`, `evidence_queries`, `data_gaps`" in rendered
+    assert "large_inventory" not in rendered
+
+    with pytest.raises(ValueError, match="must retain 'data_gaps'"):
+        render_structured_output_contract(
+            recipe,
+            compact=True,
+            output_fields=("verdict", "evidence_queries"),
+        )
+
+    with pytest.raises(ValueError, match="unknown fields: invented"):
+        render_structured_output_contract(
+            recipe,
+            compact=True,
+            output_fields=("verdict", "evidence_queries", "data_gaps", "invented"),
+        )
+
+
 def test_shared_compiler_rendering_indents_frontmatter_blocks():
     assert indent("one\n\ntwo", 2) == "  one\n  \n  two"
 

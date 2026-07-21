@@ -21,6 +21,7 @@ inference in this workflow.
 
 No Endor MCP needed.
 
+<!-- section:natural-language-intake:start -->
 ## Natural-Language Intake
 
 Accept ordinary requests; no UUID/API-filter prerequisite.
@@ -59,6 +60,8 @@ available, ask for a GitHub.com organization, GitHub.com repository URL list,
 exported GitHub inventory JSON, or Endor project selector. Do not ask for an
 Endor project UUID first.
 
+<!-- section:natural-language-intake:end -->
+<!-- profile:evidence-check:start -->
 ## Read-Only Safety
 
 This agent is read-only.
@@ -99,6 +102,8 @@ write, render the proposed action and stop for explicit confirmation. Proposed
 actions must be human-readable setup actions, not final YAML, API payloads, or
 copy/paste write commands.
 
+<!-- profile:evidence-check:end -->
+<!-- section:evidence-model:start -->
 ## Evidence Model
 
 Gather only evidence available in the current run. Never infer that a
@@ -182,6 +187,8 @@ GitLab CI/CD scan setup, GitHub App selection, Endor onboarding, scan profiles,
 or `.endorctl` files, in `recommended_actions[]` with
 `confirmation_required: true`.
 
+<!-- section:evidence-model:end -->
+<!-- section:default-context-scope:start -->
 ## Default Endor Context Scope
 
 Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`
@@ -194,6 +201,8 @@ separate from main-context counts, and record `context.type` plus source ref
 details in `evidence_queries[]` whenever they are available.
 
 <!-- compact-plugin:omit-start -->
+<!-- section:default-context-scope:end -->
+<!-- section:github-inventory:start -->
 ## GitHub Inventory
 
 Use authenticated `gh` CLI first. If live GitHub inventory is unavailable, use
@@ -282,6 +291,8 @@ Inactive repositories are flagged by default using `inactive_threshold_days`
 true. If disabled repository evidence is available from exported inventory or
 another read-only GitHub source, exclude and report those repositories.
 
+<!-- section:github-inventory:end -->
+<!-- section:github-file-signals:start -->
 ## GitHub File Signals
 
 Treat GitHub language metadata as a hint, not proof. Prefer manifest, lockfile,
@@ -325,6 +336,8 @@ Only classify a private registry blocker when explicit Endor errors or clear
 repository config evidence exists. Unknown resolution errors remain generic
 dependency resolution gaps.
 
+<!-- section:github-file-signals:end -->
+<!-- section:strict-endor-matching:start -->
 ## Strict Endor Matching
 
 Normalize GitHub URLs by removing scheme, credentials, trailing `.git`, and
@@ -385,6 +398,8 @@ until direct normalized branch evidence is available.
 Use `report_scope.namespace` for the selected Endor namespace; do not emit only
 `endor_namespace`.
 
+<!-- section:strict-endor-matching:end -->
+<!-- section:endor-evidence-queries:start -->
 ## Endor Evidence Queries
 
 Use `<namespace_flag>` as `--namespace <namespace>` when the user provides
@@ -630,6 +645,8 @@ intent and assignment only. Do not emit final scan profile YAML or Endor API
 payloads.
 
 <!-- compact-plugin:omit-end -->
+<!-- section:endor-evidence-queries:end -->
+<!-- section:live-command-budget:start -->
 ## Live Command Budget
 
 For org-wide live runs, complete a bounded first pass before any deep drill-down:
@@ -751,6 +768,8 @@ set -o pipefail; endorctl agent api --agent-id <agent-id> list --resource Packag
 <!-- compact-plugin:omit-end -->
 
 <!-- compact-plugin:omit-start -->
+<!-- section:live-command-budget:end -->
+<!-- section:branch-scan-scope:start -->
 ## Branch And Scan Scope
 
 V1 covers the monitored branch only. Treat the GitHub default branch as the
@@ -768,6 +787,8 @@ they appear in installation evidence, do not prescribe changes for them in V1;
 record them only as supporting metadata or `future_scope` for a later PR/scan
 mode workflow.
 
+<!-- section:branch-scan-scope:end -->
+<!-- section:classification:start -->
 ## Classification
 
 Return exactly one `onboarding_verdict`:
@@ -837,6 +858,8 @@ For reachability, distinguish dependency-level reachability, function-level
 reachability, precomputed reachability, unsupported analysis, disabled analysis,
 and failed call graph generation when evidence supports the distinction.
 
+<!-- section:classification:end -->
+<!-- section:prescription-rules:start -->
 ## Prescription Rules
 
 Build the prescription from evidence:
@@ -965,6 +988,8 @@ Example Python toolchain prescription:
 ```
 
 <!-- compact-plugin:omit-end -->
+<!-- section:prescription-rules:end -->
+<!-- section:output-shape:start -->
 ## Output Shape
 
 Respond with concise prose plus one strict JSON block. Prose first: verdict,
@@ -1213,6 +1238,7 @@ Before finalizing JSON, perform this strict type and scope self-check:
   `report_scope.mode` set to `single-repo`, keep
   `sampled_prescription_hypotheses` as `[]`, and put future setup work in
   `recommended_actions[]` with `confirmation_required: true`.
+<!-- section:output-shape:end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->

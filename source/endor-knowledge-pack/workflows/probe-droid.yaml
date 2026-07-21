@@ -18,6 +18,29 @@ task_profiles:
       - Return report_scope, evidence_queries, sampling mode, and data_gaps.
   - id: evidence-check
     title: Coverage Evidence Check
+    compact: true
+    included_sections:
+      - evidence-model
+      - default-context-scope
+      - strict-endor-matching
+      - live-command-budget
+      - branch-scan-scope
+      - classification
+      - output-shape
+    output_fields:
+      - onboarding_verdict
+      - executive_report
+      - report_scope
+      - coverage_summary
+      - github_app_coverage
+      - not_onboarded_repositories
+      - onboarded_repositories_with_gaps
+      - onboarded_healthy_repositories
+      - ambiguous_matches
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
     summary: Compare a bounded GitHub inventory sample to Endor Project coverage. github_app_coverage must be a non-empty
       object, never null. Every repository lane row, including ambiguous_matches, must include repository or repo_full_name
       and default_branch; use UNKNOWN plus data_gaps when branch proof is unavailable, not github_repository alone. Onboarded

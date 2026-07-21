@@ -215,16 +215,22 @@ def known_structured_agent_ids() -> tuple[str, ...]:
     return tuple(sorted(STRUCTURED_OUTPUT_CONTRACTS))
 
 
-def required_fields_for(agent_id: str) -> tuple[str, ...]:
+def required_fields_for(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
     """Return required top-level output fields for an agent."""
 
-    return tuple(field.name for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()) if field.required)
+    return tuple(field.name for field in _contract_for_output_fields(agent_id, output_fields) if field.required)
 
 
-def json_schema_for_agent(agent_id: str) -> dict[str, Any]:
+def json_schema_for_agent(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None = None,
+) -> dict[str, Any]:
     """Return a JSON Schema for the agent's final structured output."""
 
-    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
+    contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
         raise ValueError(f"unknown structured output contract: {agent_id}")
     properties = {
@@ -241,10 +247,14 @@ def json_schema_for_agent(agent_id: str) -> dict[str, Any]:
     }
 
 
-def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -> list[str]:
+def validate_structured_output_payload(
+    agent_id: str,
+    payload: dict[str, Any],
+    output_fields: tuple[str, ...] | None = None,
+) -> list[str]:
     """Validate top-level field presence and basic JSON value shapes."""
 
-    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
+    contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
         return []
     payload = normalize_structured_output_payload(agent_id, payload)
@@ -258,6 +268,23 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
     errors.extend(_evidence_query_ledger_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
+
+
+def _contract_for_output_fields(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None,
+) -> tuple[StructuredOutputField, ...]:
+    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ())
+    if output_fields is None:
+        return contract
+    fields_by_name = {field.name: field for field in contract}
+    unknown = tuple(name for name in output_fields if name not in fields_by_name)
+    if unknown:
+        raise ValueError(f"profile output contract references unknown fields: {', '.join(unknown)}")
+    return tuple(
+        StructuredOutputField(name, fields_by_name[name].kind, required=True)
+        for name in output_fields
+    )
 
 
 def normalize_structured_output_payload(agent_id: str, payload: dict[str, Any]) -> dict[str, Any]:

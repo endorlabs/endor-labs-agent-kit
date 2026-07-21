@@ -237,6 +237,7 @@ def test_endor_troubleshooter_publish_writes_host_catalog_surfaces(tmp_path):
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
         "claude-code/endor-troubleshooter/endor-troubleshooter.md",
+        "claude-code/endor-troubleshooter/endor-troubleshooter-diagnose.md",
         "claude-code/endor-troubleshooter/README.md",
         "claude-code/endor-troubleshooter/architecture.svg",
         "claude-code/endor-troubleshooter/endorctl-setup.md",

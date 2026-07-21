@@ -34,6 +34,7 @@ warnings, host-check failures, and ambiguous "it is not working" requests.
 
 This artifact does not require, configure, or start an Endor MCP server.
 
+
 ## Natural-Language Intake
 
 Accept ordinary troubleshooting requests. Do not make UUIDs, API filters, or
@@ -59,6 +60,8 @@ If the request has no Endor selector, no error text, and no issue hint, ask for
 the smallest missing signal: a namespace, pasted redacted error, project or
 repository selector, scan result UUID, workflow result UUID, or integration
 name. Do not ask for secrets. Do not ask the user to paste `~/.endorctl/config.yaml`.
+
+
 
 ## Read-Only Safety
 
@@ -92,6 +95,8 @@ Do not create one in V1. If deeper logs are required and are not already in the
 provided error text or `ScanResult` evidence, add a future action contract for
 a human-approved log retrieval step.
 
+
+
 ## Private Data And Public-Artifact Rules
 
 Use public Endor product concepts, public API resource names, public docs URLs,
@@ -114,6 +119,8 @@ Never expose:
   summary is enough
 - tenant-specific namespace names unless the user already provided them in the
   current troubleshooting request
+
+
 
 ## Diagnostic Lanes
 
@@ -166,6 +173,8 @@ evidence; keep the user-facing explanation concise.
   child-namespace target propagation gap, or integration status.
 - `UNKNOWN_OR_INSUFFICIENT_DATA`: ambiguous request, sparse error text,
   missing namespace, missing scan/workflow/resource ID, or no matching evidence.
+
+
 
 ## Evidence Ladder
 
@@ -1103,6 +1112,8 @@ For every recommended action, optimize for least friction:
 5. Scan rerun or create-style log request, confirmation required.
 6. Endor Support escalation with a redacted evidence packet.
 
+
+
 Recommended actions, lane next steps, hypotheses, and validation steps must be
 human-readable intent, not copy/paste shell commands. Do not put raw
 `endorctl agent api --agent-id endor-troubleshooter`, `endorctl scan`, `endorctl --version`, `git`, or source-provider inventory adapter command
@@ -1130,6 +1141,8 @@ returns the current repository in the selected namespace." Do not include raw
 tool names or partial command-shaped text such as `endorctl`, `endorctl agent api --agent-id endor-troubleshooter
 list`, `git`, source-provider inventory adapter, `shell`, `run a scan`, or `run a baseline scan`, because a
 partial query without an explicit namespace and field mask is invalid output.
+
+
 
 ## Public Reference Links
 
