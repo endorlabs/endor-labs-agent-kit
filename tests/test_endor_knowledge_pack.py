@@ -240,6 +240,7 @@ def test_measured_slow_read_profiles_have_compact_output_contracts():
         "executive_report",
         "report_scope",
         "coverage_summary",
+        "github_inventory_summary",
         "github_app_coverage",
         "not_onboarded_repositories",
         "onboarded_repositories_with_gaps",
