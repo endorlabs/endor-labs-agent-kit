@@ -145,6 +145,7 @@ class KnowledgeTaskProfile:
     output_focus: tuple[str, ...]
     included_sections: tuple[str, ...] = ()
     compact: bool = False
+    output_fields: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -659,6 +660,15 @@ def _validate_workflows(
                         errors.append(f"{profile_prefix}.included_sections: invalid section id {section_id!r}")
             if "compact" in profile and not isinstance(profile.get("compact"), bool):
                 errors.append(f"{profile_prefix}.compact: must be a boolean")
+            if "output_fields" in profile:
+                output_fields = _strings(profile.get("output_fields"))
+                raw_output_fields = profile.get("output_fields")
+                if not isinstance(raw_output_fields, list) or len(output_fields) != len(raw_output_fields):
+                    errors.append(f"{profile_prefix}.output_fields: must be an array of strings")
+                if len(set(output_fields)) != len(output_fields):
+                    errors.append(f"{profile_prefix}.output_fields: duplicate output field")
+                if output_fields and not bool(profile.get("compact", False)):
+                    errors.append(f"{profile_prefix}.output_fields: requires compact: true")
             profile_text = _visible_text(profile).lower()
             if "data_gaps" not in profile_text:
                 errors.append(f"{profile_prefix}: task profile guidance must mention data_gaps")
@@ -794,6 +804,7 @@ def _task_profile(data: dict[str, Any]) -> KnowledgeTaskProfile:
         output_focus=tuple(_strings(data.get("output_focus"))),
         included_sections=tuple(_strings(data.get("included_sections"))),
         compact=bool(data.get("compact", False)),
+        output_fields=tuple(_strings(data.get("output_fields"))),
     )
 
 

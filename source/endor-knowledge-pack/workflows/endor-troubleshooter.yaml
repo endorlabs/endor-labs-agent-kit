@@ -18,6 +18,24 @@ task_profiles:
       - Return intake classification, evidence_queries, recommended next read-only checks, and data_gaps.
   - id: diagnose
     title: Diagnose Narrow Lane
+    compact: true
+    included_sections:
+      - private-data-rules
+      - live-command-budget
+      - output-safety
+    output_fields:
+      - troubleshooting_verdict
+      - executive_summary
+      - issue_lanes
+      - evidence_queries
+      - evidence_summary
+      - root_cause_hypotheses
+      - recommended_actions
+      - validation_plan
+      - data_gaps
+      - future_action_contracts
+      - policy_context
+      - policy_evaluations
     summary: Query only the Endor resources needed for the classified issue lane. Final JSON must keep every nested
       issue_lanes.next_step, validation, action, why, reasoning, and support-packet string free of raw tool names or command-shaped
       text such as endorctl, git, gh, run a scan, or run a baseline scan. Every future_action_contracts row must include

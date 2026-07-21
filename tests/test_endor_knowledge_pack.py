@@ -229,6 +229,32 @@ def test_cicd_posture_compact_profile_keeps_endor_native_recipes():
     assert "github-branch-protection" not in compact
 
 
+def test_measured_slow_read_profiles_have_compact_output_contracts():
+    pack = load_knowledge_pack()
+    probe = pack.workflow_for("probe-droid").task_profile_for("evidence-check")
+    troubleshooter = pack.workflow_for("endor-troubleshooter").task_profile_for("diagnose")
+
+    assert probe.compact is True
+    assert probe.output_fields == (
+        "onboarding_verdict",
+        "executive_report",
+        "report_scope",
+        "coverage_summary",
+        "github_app_coverage",
+        "not_onboarded_repositories",
+        "onboarded_repositories_with_gaps",
+        "onboarded_healthy_repositories",
+        "ambiguous_matches",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    assert troubleshooter.compact is True
+    assert "evidence_queries" in troubleshooter.output_fields
+    assert "data_gaps" in troubleshooter.output_fields
+
+
 def test_malware_workflow_uses_supported_finding_category_evidence():
     workflow = load_knowledge_pack().workflow_for("malware-response")
     section = render_knowledge_pack_section("malware-response")
