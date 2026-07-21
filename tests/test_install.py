@@ -242,7 +242,6 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
         catalog_root=catalog,
     ) == []
 
-
 def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     recipes = [
         _copy_agent_source(tmp_path / "troubleshooter", "troubleshooting"),
@@ -472,6 +471,59 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert blocked.returncode == 1
     assert "refusing to overwrite blocked unmanaged skill" in blocked.stdout
     assert setup_skill.read_text(encoding="utf-8") == "# unmanaged user setup skill\n"
+
+
+def test_check_codex_install_accepts_generated_plugin_skill_install(tmp_path):
+    recipe = _copy_agent_source(tmp_path / "sca", "sca-remediation")
+    catalog = tmp_path / "endor-labs-agent-kit"
+    publish_recipes([recipe], catalog, include_plugins=True)
+    script = (
+        catalog
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "scripts"
+        / "install_codex_agents.py"
+    )
+    codex_home = tmp_path / "codex-home"
+    skills_home = tmp_path / "agents-home" / "skills"
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--skills-only",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert check_codex_install(
+        "sca-remediation",
+        skills_home,
+        catalog_root=catalog,
+    ) == []
+
+    installed_skill = skills_home / "sca-remediation" / "SKILL.md"
+    installed_skill.write_text(
+        installed_skill.read_text(encoding="utf-8") + "\nlocal edit\n",
+        encoding="utf-8",
+    )
+    assert any(
+        "SKILL.md" in error and "is stale" in error
+        for error in check_codex_install(
+            "sca-remediation",
+            skills_home,
+            catalog_root=catalog,
+        )
+    )
 
 
 def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(tmp_path):

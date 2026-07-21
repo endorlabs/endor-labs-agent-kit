@@ -73,10 +73,26 @@ def check_codex_install(
 ) -> list[str]:
     """Check whether a Codex skill install matches the catalog."""
 
+    try:
+        manifest = CatalogManifest.load(catalog_root)
+    except FileNotFoundError:
+        return [f"catalog: missing {Path(catalog_root) / MANIFEST_PATH}"]
+    except ValueError as exc:
+        return [f"catalog: {exc}"]
+
+    target_root = Path(skills_home) / agent_id
+    plugin_artifacts = _installed_codex_plugin_skill_artifacts(
+        manifest,
+        agent_id,
+        target_root,
+    )
+    if plugin_artifacts:
+        return _compare_expected_artifacts(agent_id, plugin_artifacts)
+
     return _check_bundle_artifact_install(
         agent_id,
         CODEX_HOST,
-        Path(skills_home) / agent_id,
+        target_root,
         catalog_root=catalog_root,
     )
 
@@ -191,6 +207,32 @@ def _installed_bundle_artifacts(
         )
         for artifact in bundle.artifacts
     )
+
+
+def _installed_codex_plugin_skill_artifacts(
+    manifest: CatalogManifest,
+    agent_id: str,
+    target_root: Path,
+) -> tuple[ExpectedInstallArtifact, ...]:
+    packages = sorted(
+        manifest.plugin_packages,
+        key=lambda item: (item.name, item.path),
+    )
+    for package in packages:
+        if package.host != CODEX_HOST or agent_id not in package.included_agents:
+            continue
+        skill_root = Path(package.path) / "skills" / agent_id
+        expected = tuple(
+            ExpectedInstallArtifact(
+                artifact=artifact,
+                target=target_root / Path(artifact.path).relative_to(skill_root),
+            )
+            for artifact in package.artifacts
+            if Path(artifact.path).is_relative_to(skill_root)
+        )
+        if expected:
+            return expected
+    return ()
 
 
 def _primary_bundle_priority(bundle: CatalogBundle) -> tuple[int, str]:
