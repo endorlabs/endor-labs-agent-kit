@@ -65,10 +65,17 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
         "version": "1",
     }
     assert len(evidence_contract["contract_digest"]) == 64
+    evidence_plan = agent["evidence_plans"]["evidence-check"]
+    assert evidence_plan["execution"]["mode"] == "prompt_fallback"
+    assert evidence_plan["execution"]["prompt_recipes_exposed"] is True
+    assert evidence_plan["gate"]["expected_calls"] == 3
+    assert evidence_plan["gate"]["max_calls"] == 4
+    assert len(evidence_plan["provenance"]["plan_digest"]) == 64
     assert "selection-plan" in agent["task_profiles"]
     assert agent["default_task_profile"] == "selection-plan"
     assert agent["provider_targets"] == ["antigravity", "claude", "codex", "cursor", "gemini"]
     assert "plugin:antigravity" in agent["generated_targets"]
+    assert agent["coverage"]["evidence_plans"] == "present"
     assert str(repo_root()) not in output.read_text(encoding="utf-8")
 
 
