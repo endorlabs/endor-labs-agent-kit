@@ -525,6 +525,7 @@ Use a stable comment marker when posting a remediation comment:
 
 <!-- compact-plugin:omit-end -->
 <!-- section:mutation-delivery:end -->
+<!-- compact-plugin:omit-start -->
 ## Output
 
 Return concise prose plus a JSON object with this shape. The final answer must
@@ -606,6 +607,7 @@ JSON object even when no mutation is allowed. `uia_evidence` must be a JSON
 array, not an object. Mirror the remediation branch in
 `change_requests[].proposed_branch`. Include `risk_decision.source_usage_summary`
 for indeterminate CIA, elevated risk, conflicts, or introduced findings.
+<!-- compact-plugin:omit-end -->
 <!-- shared:end -->
 
 <!-- developer-edition:start -->

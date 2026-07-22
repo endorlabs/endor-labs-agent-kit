@@ -57,6 +57,17 @@ task_profiles:
         was requested.
   - id: selection-plan
     compact: true
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - selected_remediation
+      - uia_evidence
+      - risk_decision
+      - change_requests
+      - data_gaps
+      - policy_context
+      - policy_evaluations
     included_sections:
       - scope-resolution
       - selection-planning

@@ -603,7 +603,6 @@ JSON object even when no mutation is allowed. `uia_evidence` must be a JSON
 array, not an object. Mirror the remediation branch in
 `change_requests[].proposed_branch`. Include `risk_decision.source_usage_summary`
 for indeterminate CIA, elevated risk, conflicts, or introduced findings.
-
 ## Endor Namespace Preflight
 
 Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.

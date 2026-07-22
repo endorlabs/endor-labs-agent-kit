@@ -174,6 +174,14 @@ def test_sca_gate_validator_requires_namespace_provenance():
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
 
 
+def test_sca_selection_gate_accepts_profile_projected_plan_without_apply_fields():
+    payload = _valid_netty_payload()
+    payload.pop("patch_plan")
+    payload.pop("validation")
+
+    assert validate_sca_gate_payload(payload, gate="selection-plan") == []
+
+
 def test_sca_duplicate_inventory_allows_plan_but_fails_closed_before_pr_when_unavailable():
     payload = _valid_netty_payload()
     inventory = payload["change_requests"][0]["inventory"]
