@@ -52,7 +52,7 @@ def test_model_recommendations_cover_supported_hosts_and_never_block_overrides()
     assert recommendations["codex"].recommended_model == "gpt-5.6-luna"
     assert recommendations["codex"].standard_effort == "medium"
     assert recommendations["codex"].complex_remediation_effort == "high"
-    assert recommendations["gemini"].recommended_model == "gemini-3.6-flash"
+    assert recommendations["gemini"].recommended_model == "gemini-3.5-flash"
     assert recommendations["antigravity"].recommended_model == "Gemini 3.6 Flash (Low)"
     assert recommendations["antigravity"].standard_effort == "low"
     assert recommendations["antigravity"].complex_remediation_effort == "low"
@@ -135,7 +135,7 @@ def test_publication_writes_machine_and_host_model_recommendations(tmp_path):
     assert "Recommended model: `gpt-5.6-luna`" in (
         destination / "codex" / "dependency-reviewer" / "README.md"
     ).read_text(encoding="utf-8")
-    assert "Recommended model: `gemini-3.6-flash`" in (
+    assert "Recommended model: `gemini-3.5-flash`" in (
         destination
         / "plugins"
         / "gemini"
@@ -183,7 +183,7 @@ def test_publication_writes_machine_and_host_model_recommendations(tmp_path):
     assert "model: sonnet" in claude_agent.split("---", 2)[1]
     assert 'model = "gpt-5.6-luna"' in codex_agent
     assert 'model_reasoning_effort = "medium"' in codex_agent
-    assert "model: gemini-3.6-flash" in gemini_agent.split("---", 2)[1]
+    assert "model: gemini-3.5-flash" in gemini_agent.split("---", 2)[1]
     assert "model: composer-2.5[fast=false]" in cursor_agent.split("---", 2)[1]
     assert 'DEFAULT_MODEL = os.environ.get("CURSOR_MODEL", "composer-2.5")' in cursor_sdk_runner
     assert 'ModelParameterValue(id="fast", value="false")' in cursor_sdk_runner

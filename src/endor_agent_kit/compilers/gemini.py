@@ -17,7 +17,7 @@ from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 HOST = "gemini"
 GEMINI_SECTION_EDITION = "enterprise-edition"
-GEMINI_DEFAULT_MODEL = "gemini-3.6-flash"
+GEMINI_DEFAULT_MODEL = "gemini-3.5-flash"
 
 
 def compile_gemini(recipe_path: str | Path) -> list[Path]:

@@ -9,7 +9,7 @@ description: |
   workflow lanes, then returns low-friction repair guidance without mutating
   Endor, source-provider, or repository state.
 kind: local
-model: gemini-3.6-flash
+model: gemini-3.5-flash
 max_turns: 30
 tools:
   - run_shell_command

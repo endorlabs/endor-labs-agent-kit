@@ -87,11 +87,11 @@ HOST_MODEL_RECOMMENDATIONS = (
     HostModelRecommendation(
         host="gemini",
         label="Gemini CLI",
-        recommended_model="gemini-3.6-flash",
+        recommended_model="gemini-3.5-flash",
         selection_mode="pinned",
         standard_effort="host managed",
         complex_remediation_effort="host managed",
-        generated_artifact_behavior="subagent frontmatter pins model: gemini-3.6-flash",
+        generated_artifact_behavior="subagent frontmatter pins model: gemini-3.5-flash",
         customer_override="explicit subagent definition or host subagent configuration wins",
         provider_guidance_url="https://geminicli.com/docs/core/subagents/",
     ),

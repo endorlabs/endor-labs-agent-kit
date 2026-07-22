@@ -3,7 +3,7 @@ name: sca-remediation
 description: |
   Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
 kind: local
-model: gemini-3.6-flash
+model: gemini-3.5-flash
 max_turns: 30
 tools:
   - read_file

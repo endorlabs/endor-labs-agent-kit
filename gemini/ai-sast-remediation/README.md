@@ -17,10 +17,10 @@ This is the Gemini CLI generated skill and subagent bundle for `ai-sast-remediat
 This is a release-QA target, not a requirement or model allowlist.
 Agent Kit does not block compatible customer-selected host models.
 
-- Recommended model: `gemini-3.6-flash`.
+- Recommended model: `gemini-3.5-flash`.
 - Selection mode: `pinned`.
 - Recommended reasoning/effort: `host managed`.
-- Generated behavior: subagent frontmatter pins model: gemini-3.6-flash.
+- Generated behavior: subagent frontmatter pins model: gemini-3.5-flash.
 - Override behavior: explicit subagent definition or host subagent configuration wins.
 - Provider guidance: <https://geminicli.com/docs/core/subagents/>.
 

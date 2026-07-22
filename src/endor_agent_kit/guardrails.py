@@ -561,9 +561,9 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
             if required not in agent_text:
                 errors.append(f"{_rel(root, agent)}: missing required guardrail text {required!r}")
         frontmatter = _frontmatter_mapping(root, agent, agent_text, errors)
-        if frontmatter.get("model") != "gemini-3.6-flash":
+        if frontmatter.get("model") != "gemini-3.5-flash":
             errors.append(
-                f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.6-flash"
+                f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.5-flash"
             )
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
@@ -1482,8 +1482,8 @@ def _check_gemini_plugin_package(
         frontmatter = _frontmatter_mapping(root, agent, text, errors)
         if frontmatter.get("kind") != "local":
             errors.append(f"{_rel(root, agent)}: Gemini subagent kind must be local")
-        if frontmatter.get("model") != "gemini-3.6-flash":
-            errors.append(f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.6-flash")
+        if frontmatter.get("model") != "gemini-3.5-flash":
+            errors.append(f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.5-flash")
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini plugin subagent must not declare {forbidden}")

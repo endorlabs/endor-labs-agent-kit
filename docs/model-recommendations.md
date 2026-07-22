@@ -23,7 +23,7 @@ This generated documentation is checked for source drift but is not part of the 
 | Claude Code | `sonnet` | `host default` | `host default` | `pinned` | agent frontmatter defaults to sonnet |
 | Claude Managed Agents | `sonnet` | `host default` | `host default` | `pinned` | recipe sonnet alias compiles to claude-sonnet-4-6 |
 | Codex | `gpt-5.6-luna` | `medium` | `high` | `pinned` | custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort |
-| Gemini CLI | `gemini-3.6-flash` | `host managed` | `host managed` | `pinned` | subagent frontmatter pins model: gemini-3.6-flash |
+| Gemini CLI | `gemini-3.5-flash` | `host managed` | `host managed` | `pinned` | subagent frontmatter pins model: gemini-3.5-flash |
 | Antigravity CLI | `Gemini 3.6 Flash (Low)` | `low` | `low` | `host_pinned` | pin Gemini 3.6 Flash (Low) in Antigravity Model Usage; plugins cannot set a per-agent model |
 | Cursor IDE | `composer-2.5` | `host managed` | `host managed` | `pinned` | plugin-agent frontmatter pins composer-2.5 standard with fast=false |
 | Cursor SDK | `composer-2.5` | `host managed` | `host managed` | `pinned` | SDK runner pins composer-2.5 standard with fast=false |
