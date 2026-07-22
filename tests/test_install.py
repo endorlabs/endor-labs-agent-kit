@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from conftest import repo_root
 from endor_agent_kit.catalog_manifest import CatalogManifest
 from endor_agent_kit.cli import main
@@ -242,6 +244,7 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
         catalog_root=catalog,
     ) == []
 
+@pytest.mark.publication
 def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     recipes = [
         _copy_agent_source(tmp_path / "troubleshooter", "troubleshooting"),
@@ -473,6 +476,7 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert setup_skill.read_text(encoding="utf-8") == "# unmanaged user setup skill\n"
 
 
+@pytest.mark.publication
 def test_check_codex_install_accepts_generated_plugin_skill_install(tmp_path):
     recipe = _copy_agent_source(tmp_path / "sca", "sca-remediation")
     catalog = tmp_path / "endor-labs-agent-kit"

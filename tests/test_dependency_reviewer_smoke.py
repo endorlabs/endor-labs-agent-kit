@@ -4,6 +4,7 @@ import json
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.compilers import compile_claude_code
@@ -74,6 +75,7 @@ def test_dependency_reviewer_compiled_artifacts_allow_read_only_files(tmp_path):
         assert "must be exactly one parseable JSON\n  object" in body
 
 
+@pytest.mark.publication
 def test_dependency_reviewer_publish_writes_claude_code_codex_and_portable(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"

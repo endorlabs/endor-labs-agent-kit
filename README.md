@@ -36,6 +36,7 @@ A machine-readable index is available in `llms.txt`.
 ## Table Of Contents
 
 - [🚀 Plugin Quick Start](#-plugin-quick-start)
+- [Recommended Model Configurations](#recommended-model-configurations)
 - [🐍 Cursor SDK Quick Start](#-cursor-sdk-quick-start)
 - [Agent Quick Start](#agent-quick-start)
 - [🧩 Capabilities And Skills](#-capabilities-and-skills)
@@ -98,6 +99,41 @@ After installing a plugin, ask the host to use the `endor-agent-kit-setup`
 skill first. Setup checks local readiness, guides `endorctl` authentication
 and namespace selection, reports `gh` and toolchain gaps, and offers
 host-specific self-checks before live Endor lookups.
+
+## Recommended Model Configurations
+
+These configurations are the Agent Kit targets recommended for release QA.
+They are not installation requirements and never restrict a customer's model picker.
+Record the actual resolved model and effort in runtime QA because provider aliases can move.
+Until an accepted source SHA and benchmark digest are recorded, they are recommendations rather than release-tested claims.
+This generated documentation is checked for source drift but is not part of the signed catalog or manifest schema.
+
+### Supported
+
+- Agent Kit enforces no model allowlist; compatibility still depends on the host's required tools, context, and structured output.
+- Explicit customer model and reasoning selections take precedence over Agent Kit recommendations.
+- An untested model may produce different quality or latency, but Agent Kit does not block it.
+
+### Recommended
+
+| Host | Model | Standard effort | Complex remediation effort | Selection mode | Generated behavior |
+| --- | --- | --- | --- | --- | --- |
+| Claude Code | `sonnet` | `host default` | `host default` | `pinned` | agent frontmatter defaults to sonnet |
+| Claude Managed Agents | `sonnet` | `host default` | `host default` | `pinned` | recipe sonnet alias compiles to claude-sonnet-4-6 |
+| Codex | `gpt-5.6-luna` | `medium` | `high` | `pinned` | custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort |
+| Gemini CLI | `gemini-3.6-flash` | `host managed` | `host managed` | `pinned` | subagent frontmatter pins model: gemini-3.6-flash |
+| Antigravity CLI | `Gemini 3.6 Flash (Low)` | `low` | `low` | `host_pinned` | pin Gemini 3.6 Flash (Low) in Antigravity Model Usage; plugins cannot set a per-agent model |
+| Cursor IDE | `composer-2.5` | `host managed` | `host managed` | `pinned` | plugin-agent frontmatter pins composer-2.5 standard with fast=false |
+| Cursor SDK | `composer-2.5` | `host managed` | `host managed` | `pinned` | SDK runner pins composer-2.5 standard with fast=false |
+| Portable runtime | `runtime-selected compatible agentic model` | `runtime managed` | `runtime managed` | `runtime_selected` | portable bundles do not select a provider model |
+
+Standard agent tier: `cicd-posture, configuration-automation, dependency-reviewer, findings-browser, malware-responder, oss-upgrade-investigator, remediation-planning, troubleshooting, vulnerability-explainer`.
+
+Complex remediation agent tier: `ai-sast-remediation, sca-remediation`.
+
+Unclassified agents requiring benchmark review: `none`.
+
+Recommendation date: `2026-07-22`. Promote or change a default only after the quality and latency benchmark gate passes for that host and workflow profile.
 
 ## 🐍 Cursor SDK Quick Start
 
@@ -800,7 +836,7 @@ endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 endor-agent-kit verify-endor-context --upstream
 python -m pytest -q
-git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini hooks plugins portable skills
+git diff --exit-code -- README.md manifest.json model-recommendations.json docs/model-recommendations.md .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini hooks plugins portable skills
 ```
 
 Pull requests should include both source changes and regenerated artifacts.

@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.compilers.codex import HOST, compile_codex_prepared
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -32,7 +31,6 @@ class CodexHostAdapter:
     ) -> BundleRecord:
         """Publish one Codex Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_codex_prepared(prepared)
 
         recipe_file = prepared.path
@@ -135,6 +133,7 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
     )
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="Codex",
         artifact_label="skill",
         install_summary="Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session.",

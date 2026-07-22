@@ -592,6 +592,7 @@ def _claude_plugin_readme(
     ]
     install_notice = _claude_install_upgrade_notice(spec)
     start_here = plugin_readme_start_here(
+        host_id="claude-code",
         host_label="Claude Code",
         install_summary=f"Install `{spec.name}@{CLAUDE_MARKETPLACE_NAME}` from the public marketplace or a local checkout.",
         setup_summary=f"ask Claude Code to use the `{CLAUDE_SETUP_SKILL}` skill.",

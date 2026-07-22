@@ -32,6 +32,7 @@ from endor_agent_kit.publication.records import (
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
+from endor_agent_kit.publication.model_recommendations import model_recommendation_lines
 
 CURSOR_SDK_HOST = "cursor-sdk"
 CURSOR_SDK_PACKAGE_NAME = "endor-labs-agent-kit-cursor-sdk"
@@ -317,6 +318,7 @@ def _render_readme(prepared_recipes: list[PreparedSourceRecipe], version: str) -
         "Use it for automation, CI, backend services, orchestration, and scripted local or cloud runs.",
         "Use the root Cursor plugin package when the customer wants interactive Cursor IDE agents.",
         "",
+        *model_recommendation_lines("cursor-sdk"),
         "## Quick Start",
         "",
         "```bash",
@@ -473,7 +475,14 @@ def _runner_script() -> str:
 
         def _run_agent(args: argparse.Namespace, definition: dict[str, Any], prompt: str) -> int:
             try:
-                from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions
+                from cursor_sdk import (
+                    Agent,
+                    CloudAgentOptions,
+                    CloudRepository,
+                    LocalAgentOptions,
+                    ModelParameterValue,
+                    ModelSelection,
+                )
             except ImportError as exc:
                 raise SystemExit(
                     "cursor-sdk is not installed. From cursor-sdk, run: "
@@ -481,8 +490,14 @@ def _runner_script() -> str:
                     "python3 -m pip install -r cursor-sdk/requirements.txt"
                 ) from exc
 
+            selected_model: Any = args.model
+            if args.model == "composer-2.5":
+                selected_model = ModelSelection(
+                    id="composer-2.5",
+                    params=(ModelParameterValue(id="fast", value="false"),),
+                )
             create_kwargs: dict[str, Any] = {
-                "model": args.model,
+                "model": selected_model,
                 "name": str(definition["agent_name"]),
             }
             if args.api_key:

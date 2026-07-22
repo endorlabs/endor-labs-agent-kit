@@ -6,7 +6,7 @@ description: |
   profile, gathers only the evidence that profile needs, and returns a
   read-only decision or review with explicit data gaps.
 kind: local
-model: inherit
+model: gemini-3.6-flash
 max_turns: 30
 tools:
   - read_file

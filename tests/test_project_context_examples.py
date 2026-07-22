@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.publisher import publish_recipe
@@ -17,6 +18,7 @@ def _copy_agent(tmp_path: Path, agent_id: str) -> Path:
     return dst / "recipe.yaml"
 
 
+@pytest.mark.publication
 def test_upgrade_impact_managed_readme_uses_project_selector_not_uuid(tmp_path):
     recipe = _copy_agent(tmp_path, "oss-upgrade-investigator")
     dest = tmp_path / "endor-labs-agent-kit"
@@ -42,6 +44,7 @@ def test_upgrade_impact_managed_readme_uses_project_selector_not_uuid(tmp_path):
     ).is_file()
 
 
+@pytest.mark.publication
 def test_remediation_planning_uses_repository_context_not_required_uuid(tmp_path):
     recipe = _copy_agent(tmp_path, "remediation-planning")
     dest = tmp_path / "endor-labs-agent-kit"

@@ -3,7 +3,7 @@ name: remediation-planning
 description: |
   Preview safe remediation options without opening PRs.
 kind: local
-model: inherit
+model: gemini-3.6-flash
 max_turns: 30
 tools:
   - run_shell_command

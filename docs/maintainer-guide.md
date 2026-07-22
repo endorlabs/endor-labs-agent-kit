@@ -63,6 +63,23 @@ and `manifest.json` checksums stay aligned.
 
 ## Validate
 
+Use the smallest test lane that proves the current change while iterating:
+
+```bash
+# Pure validation, rendering, contract, and helper feedback.
+python -m pytest -q -m "not publication and not release"
+
+# Source Recipe compilation and Host Artifact Publication. Read-only catalog
+# assertions share one immutable all-provider GeneratedCatalog per test session.
+python -m pytest -q -m "publication and not release"
+
+# Authoritative release-only generation and installation behavior.
+python -m pytest -q -m "release"
+```
+
+Pytest always reports the 25 slowest tests or fixtures. Run the complete suite
+before release or when a change crosses more than one lane:
+
 ```bash
 python -m pytest -q
 endor-agent-kit validate source/agents/<agent>/recipe.yaml

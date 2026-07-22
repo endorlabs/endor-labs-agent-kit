@@ -12,7 +12,6 @@ from endor_agent_kit.compilers.portable import (
     portable_text,
     render_portable_actions_yaml,
 )
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.portable_runtime_conformance import PORTABLE_UNTRUSTED_CONTENT_RULE
 from endor_agent_kit.recipe import EndorAgentRecipe
@@ -39,7 +38,6 @@ class PortableHostAdapter:
     ) -> BundleRecord:
         """Publish one portable Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_portable_prepared(prepared)
 
         recipe_file = prepared.path
@@ -129,6 +127,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
     architecture = _portable_architecture_readme_section(recipe) if has_architecture else []
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="portable runtime",
         artifact_label="agent bundle",
         install_summary="Load `agent.md` and `agent.manifest.json` into your runtime and wire only the adapters your policy allows.",

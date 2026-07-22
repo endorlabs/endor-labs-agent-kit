@@ -6,7 +6,7 @@ description: |
   to list matching findings, explain applied filters, surface pagination and
   truncation limits, and identify data gaps without starting new scans or
   performing remediation actions.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

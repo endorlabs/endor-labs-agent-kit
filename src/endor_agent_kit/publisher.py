@@ -26,8 +26,11 @@ from endor_agent_kit.publication.cursor_sdk import publish_cursor_sdk_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
 from endor_agent_kit.publication.catalog_wire import write_catalog
 from endor_agent_kit.publication.mcp_support import publish_root_mcp_support
+from endor_agent_kit.publication.model_recommendations import (
+    write_model_recommendation_artifacts,
+)
 from endor_agent_kit.catalog_manifest import CatalogManifest
-from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe, prepare_source_recipe
+from endor_agent_kit.prepared_source_recipe import prepare_source_recipe
 
 _HOST_ARTIFACT_PUBLICATION = HostArtifactPublication({
     CLAUDE_CODE_HOST: ClaudeCodeHostAdapter(),
@@ -50,48 +53,6 @@ def publish_recipe(
     return publish_recipes([recipe_path], dest, include_plugins=include_plugins)
 
 
-def _publish_prepared_recipe(prepared: PreparedSourceRecipe, dest: str | Path) -> list[Path]:
-    """Publish one prepared Source Recipe into ``dest``."""
-
-    recipe = prepared.recipe
-    destination = Path(dest)
-    destination.mkdir(parents=True, exist_ok=True)
-
-    written: list[Path] = []
-    manifest: Path | None = None
-
-    if CLAUDE_CODE_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(CLAUDE_CODE_HOST, prepared, destination)
-        written.extend(publication.bundle.written)
-        manifest = publication.catalog_manifest
-
-    if CLAUDE_MANAGED_AGENTS_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(CLAUDE_MANAGED_AGENTS_HOST, prepared, destination)
-        written.extend(publication.bundle.written)
-        manifest = publication.catalog_manifest
-
-    if CODEX_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(CODEX_HOST, prepared, destination)
-        written.extend(publication.bundle.written)
-        manifest = publication.catalog_manifest
-
-    if GEMINI_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(GEMINI_HOST, prepared, destination)
-        written.extend(publication.bundle.written)
-        manifest = publication.catalog_manifest
-
-    if PORTABLE_HOST in recipe.compatible_hosts:
-        publication = _HOST_ARTIFACT_PUBLICATION.publish(PORTABLE_HOST, prepared, destination)
-        written.extend(publication.bundle.written)
-        manifest = publication.catalog_manifest
-
-    if manifest is not None:
-        written.append(manifest)
-    root_readme = _write_root_readme(destination)
-    written.append(root_readme)
-    return written
-
-
 def publish_recipes(
     recipe_paths: list[str | Path],
     dest: str | Path,
@@ -102,25 +63,29 @@ def publish_recipes(
     """Publish recipes, optionally removing previously published stale agents."""
 
     destination = Path(dest)
-    prepared_recipes = [prepare_source_recipe(recipe_path) for recipe_path in recipe_paths]
+    destination.mkdir(parents=True, exist_ok=True)
+    prepared_recipes = tuple(
+        prepare_source_recipe(recipe_path)
+        for recipe_path in recipe_paths
+    )
     active_host_agents: set[tuple[str, str]] = set()
     for prepared in prepared_recipes:
         recipe = prepared.recipe
         for host in recipe.compatible_hosts:
             active_host_agents.add((host, recipe.id))
 
-    written: list[Path] = []
-    for prepared in prepared_recipes:
-        written.extend(_publish_prepared_recipe(prepared, destination))
+    publication = _HOST_ARTIFACT_PUBLICATION.publish_bundles(
+        prepared_recipes,
+        destination,
+    )
+    written = [
+        path
+        for bundle in publication.bundles
+        for path in bundle.written
+    ]
 
-    if prune:
-        manifest = _HOST_ARTIFACT_PUBLICATION.prune_stale_agents(destination, active_host_agents)
-        if manifest is not None:
-            written.append(manifest)
-            written.append(_write_root_readme(destination))
-
+    plugin_packages = []
     if include_plugins:
-        plugin_packages = []
         codex_plugin = publish_codex_plugin_package(prepared_recipes, destination)
         if codex_plugin is not None:
             written.extend(codex_plugin.written)
@@ -146,13 +111,28 @@ def publish_recipes(
         if cursor_sdk is not None:
             written.extend(cursor_sdk.written)
             plugin_packages.append(cursor_sdk.package_record)
-        if plugin_packages:
-            manifest = _HOST_ARTIFACT_PUBLICATION.write_plugin_packages(
+    manifest = _HOST_ARTIFACT_PUBLICATION.finalize_manifest(
+        destination,
+        generated_agents=publication.agents,
+        plugin_packages=tuple(plugin_packages),
+        replace_plugin_hosts={package.host for package in plugin_packages},
+        prune_active_host_agents=active_host_agents if prune else None,
+    )
+    if manifest is not None:
+        written.append(manifest)
+
+    if prepared_recipes or manifest is not None:
+        written.append(_write_root_readme(destination))
+        catalog_agent_ids = {
+            agent.id
+            for agent in _HOST_ARTIFACT_PUBLICATION.catalog_agents(destination)
+        }
+        written.extend(
+            write_model_recommendation_artifacts(
                 destination,
-                tuple(plugin_packages),
-                replace_hosts={package.host for package in plugin_packages},
+                catalog_agent_ids or (prepared.recipe.id for prepared in prepared_recipes),
             )
-            written.append(manifest)
+        )
 
     catalog = _write_catalog_wire(destination)
     if catalog is not None:

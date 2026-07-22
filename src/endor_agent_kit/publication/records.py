@@ -6,7 +6,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Mapping
 
-from endor_agent_kit.catalog_schema import CatalogBundle
+from endor_agent_kit.catalog_schema import CatalogAgent, CatalogBundle
 from endor_agent_kit.evidence_plans import compile_evidence_plans
 from endor_agent_kit.knowledge_pack import load_knowledge_pack
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
@@ -30,6 +30,14 @@ class PublicationRecord:
 
     bundle: BundleRecord
     catalog_manifest: Path
+
+
+@dataclass(frozen=True)
+class PublicationBatchRecord:
+    """Internal result of publishing prepared recipes before catalog finalization."""
+
+    bundles: tuple[BundleRecord, ...]
+    agents: tuple[CatalogAgent, ...]
 
 
 def with_evidence_plan_artifacts(

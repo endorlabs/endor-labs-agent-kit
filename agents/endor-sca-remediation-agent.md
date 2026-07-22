@@ -2,7 +2,7 @@
 name: endor-sca-remediation-agent
 description: |
   Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: false
 ---
 

@@ -6,7 +6,7 @@ description: |
   targeting, or whether a dependency upgrade should happen now. It queries
   Endor's read-only VersionUpgrade workflow through the agent-attributed CLI
   transport.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

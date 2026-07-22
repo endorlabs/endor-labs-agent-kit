@@ -80,8 +80,10 @@ jobs:
             claude-managed-agents \
             codex \
             cursor-sdk \
+            docs/model-recommendations.md \
             gemini \
             hooks \
+            model-recommendations.json \
             plugins \
             portable \
             skills

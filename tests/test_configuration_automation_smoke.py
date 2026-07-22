@@ -3,13 +3,14 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
 from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.validator import validate_recipe_file
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, repo_root
 from host_artifact_bundle_contract import (
     assert_codex_skill_bundle,
     assert_host_bundle_files,
@@ -293,6 +294,7 @@ def test_configuration_automation_managed_agents_artifacts_carry_github_boundary
     assert "Run at most one all-project `PackageVersion` summary query" in managed["system"]
 
 
+@pytest.mark.publication
 def test_configuration_automation_publish_writes_claude_code_managed_and_codex_catalog_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -327,10 +329,7 @@ def test_configuration_automation_publish_writes_claude_code_managed_and_codex_c
         "portable/configuration-automation/output-contract.md",
         "portable/configuration-automation/architecture.svg",
         "portable/configuration-automation/endorctl-setup.md",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    } | compiled_evidence_artifact_paths(
+    } | CATALOG_AGGREGATE_PATHS | compiled_evidence_artifact_paths(
         "configuration-automation",
         evidence_plan_ids=("evidence-check",),
         profile_contract_ids=("resolve-scope", "evidence-check", "prescribe-actions"),

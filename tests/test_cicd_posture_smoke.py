@@ -3,9 +3,10 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, repo_root
 from endor_agent_kit.cli import main
 from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
 from endor_agent_kit.publisher import publish_recipe
@@ -174,6 +175,7 @@ def test_cicd_posture_managed_agents_artifacts_carry_github_boundary(tmp_path):
     assert "score_validation" in managed["system"]
 
 
+@pytest.mark.publication
 def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -207,10 +209,7 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
         "portable/cicd-posture/output-contract.md",
         "portable/cicd-posture/architecture.svg",
         "portable/cicd-posture/endorctl-setup.md",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    } | compiled_evidence_artifact_paths(
+    } | CATALOG_AGGREGATE_PATHS | compiled_evidence_artifact_paths(
         "cicd-posture",
         evidence_plan_ids=("posture",),
         profile_contract_ids=("resolve-scope", "posture"),

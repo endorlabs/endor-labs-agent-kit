@@ -29,6 +29,9 @@ def compiled_evidence_artifact_paths(
 
     paths: set[str] = set()
     for host in PUBLISHED_EVIDENCE_HOSTS:
+        paths.add(
+            f"{host}/{agent_id}/runtime/summarize_endor_artifact.py"
+        )
         paths.update(
             f"{host}/{agent_id}/evidence-plans/{plan_id}.json"
             for plan_id in evidence_plan_ids

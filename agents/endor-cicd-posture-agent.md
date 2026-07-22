@@ -8,7 +8,7 @@ description: |
   evidence and optional local CI file inspection, then returns deterministic
   scores, critical overrides, evidence queries, and data gaps without mutating
   Endor, GitHub, or repository state.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

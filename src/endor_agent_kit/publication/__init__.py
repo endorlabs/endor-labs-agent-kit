@@ -7,7 +7,11 @@ from endor_agent_kit.publication.codex import CodexHostAdapter
 from endor_agent_kit.publication.coordinator import HostArtifactPublication
 from endor_agent_kit.publication.gemini import GeminiHostAdapter
 from endor_agent_kit.publication.portable import PortableHostAdapter
-from endor_agent_kit.publication.records import BundleRecord, PublicationRecord
+from endor_agent_kit.publication.records import (
+    BundleRecord,
+    PublicationBatchRecord,
+    PublicationRecord,
+)
 
 __all__ = [
     "BundleRecord",
@@ -17,6 +21,7 @@ __all__ = [
     "GeminiHostAdapter",
     "HostArtifactPublication",
     "PortableHostAdapter",
+    "PublicationBatchRecord",
     "PublicationRecord",
     "RootCatalogAggregate",
 ]

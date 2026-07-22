@@ -52,16 +52,20 @@ When installing generated artifacts:
 Use this command sequence after source edits:
 
 ```bash
+python -m pytest -q -m "not publication and not release"
 endor-agent-kit validate source/agents/<agent>/recipe.yaml
 endor-agent-kit doctor-new-agent source/agents/<agent>/recipe.yaml
 endor-agent-kit authoring-check source/agents/<agent>/recipe.yaml
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
-python -m pytest -q
+python -m pytest -q -m "publication and not release"
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 endor-agent-kit verify-endor-context --upstream
 git diff --check
 ```
+
+Run `python -m pytest -q` for cross-lane changes and before release. The
+release lane is available separately with `python -m pytest -q -m "release"`.
 
 If the shell cannot run `endor-agent-kit`, use the local source package with
 `PYTHONPATH=src python3 -m endor_agent_kit.cli ...`.

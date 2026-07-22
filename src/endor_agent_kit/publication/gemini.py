@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.compilers.gemini import HOST, compile_gemini_prepared
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -32,7 +31,6 @@ class GeminiHostAdapter:
     ) -> BundleRecord:
         """Publish one Gemini CLI Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_gemini_prepared(prepared)
 
         recipe_file = prepared.path
@@ -134,6 +132,7 @@ def gemini_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) -
         notes.append("- This read-only workflow must report unavailable signals in `data_gaps`.")
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="Gemini CLI",
         artifact_label="skill and subagent bundle",
         install_summary="Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI.",

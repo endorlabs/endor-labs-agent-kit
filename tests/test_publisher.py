@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
@@ -18,7 +20,10 @@ from endor_agent_kit.publication import HostArtifactPublication, RootCatalogAggr
 from endor_agent_kit.publication.plugin_package_common import LOGO_SHA256, logo_png
 from endor_agent_kit.publisher import publish_recipe, publish_recipes
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, CATALOG_ROOT_NAMES, repo_root
+
+
+pytestmark = pytest.mark.publication
 
 
 def _copy_agent(tmp_path: Path, agent_id: str = "dependency-reviewer") -> Path:
@@ -125,7 +130,7 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
         | _codex_paths("dependency-reviewer", has_setup=True)
         | _gemini_paths("dependency-reviewer", has_setup=True, has_architecture=True)
         | _portable_paths("dependency-reviewer", has_setup=True, has_architecture=True)
-        | {"manifest.json", "README.md", "catalog.json"}
+        | CATALOG_AGGREGATE_PATHS
     ) <= written_paths
     runtime_helper = "runtime/summarize_endor_artifact.py"
     assert {
@@ -155,16 +160,7 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     assert (dest / "claude-code" / "dependency-reviewer" / "developer-edition").is_dir()
     assert (dest / "claude-code" / "dependency-reviewer" / "enterprise-edition").is_dir()
     assert "endorctl agent api --agent-id dependency-reviewer list" in artifact
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_catalogues_named_claude_code_profile_variants(tmp_path):
@@ -311,12 +307,15 @@ def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_
     import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
     import endor_agent_kit.compilers.portable as portable_compiler
     import endor_agent_kit.compilers.raw as raw_compiler
+    import endor_agent_kit.publication.coordinator as publication_coordinator
     import endor_agent_kit.publisher as publisher
 
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
     prepare_calls: list[Path] = []
+    raw_compile_calls: list[Path] = []
     real_prepare = publisher.prepare_source_recipe
+    real_compile_raw = publication_coordinator.compile_raw_prepared
 
     def prepare_once(recipe_path: str | Path):
         prepare_calls.append(Path(recipe_path))
@@ -325,15 +324,21 @@ def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_
     def fail_if_compiler_reprepares(*_args, **_kwargs):
         raise AssertionError("publication should pass prepared recipes to compilers")
 
+    def compile_raw_once(prepared):
+        raw_compile_calls.append(prepared.path)
+        return real_compile_raw(prepared)
+
     monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
     monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(portable_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(publication_coordinator, "compile_raw_prepared", compile_raw_once)
 
     publish_recipe(recipe, dest)
 
     assert prepare_calls == [recipe]
+    assert raw_compile_calls == [recipe]
 
 
 def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch):
@@ -341,13 +346,16 @@ def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch)
     import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
     import endor_agent_kit.compilers.portable as portable_compiler
     import endor_agent_kit.compilers.raw as raw_compiler
+    import endor_agent_kit.publication.coordinator as publication_coordinator
     import endor_agent_kit.publisher as publisher
 
     dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-reviewer")
     vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
     dest = tmp_path / "endor-labs-agent-kit"
     prepare_calls: list[Path] = []
+    raw_compile_calls: list[Path] = []
     real_prepare = publisher.prepare_source_recipe
+    real_compile_raw = publication_coordinator.compile_raw_prepared
 
     def prepare_once(recipe_path: str | Path):
         prepare_calls.append(Path(recipe_path))
@@ -356,15 +364,72 @@ def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch)
     def fail_if_compiler_reprepares(*_args, **_kwargs):
         raise AssertionError("publication should pass prepared recipes to compilers")
 
+    def compile_raw_once(prepared):
+        raw_compile_calls.append(prepared.path)
+        return real_compile_raw(prepared)
+
     monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
     monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(portable_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(publication_coordinator, "compile_raw_prepared", compile_raw_once)
 
     publish_recipes([dependency_recipe, vulnerability_recipe], dest, prune=True)
 
     assert prepare_calls == [dependency_recipe, vulnerability_recipe]
+    assert raw_compile_calls == [dependency_recipe, vulnerability_recipe]
+
+
+def test_publish_recipes_finalizes_catalog_aggregates_once(tmp_path, monkeypatch):
+    import endor_agent_kit.publisher as publisher
+
+    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-reviewer")
+    vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
+    dest = tmp_path / "endor-labs-agent-kit"
+    manifest_writes = 0
+    readme_writes = 0
+    catalog_writes = 0
+    real_manifest_write = publisher._HOST_ARTIFACT_PUBLICATION._write_manifest_payload
+    real_readme_write = publisher._ROOT_CATALOG_AGGREGATE.write_readme
+    real_catalog_write = publisher.write_catalog
+
+    def write_manifest_once(destination, agents, plugin_packages):
+        nonlocal manifest_writes
+        manifest_writes += 1
+        return real_manifest_write(destination, agents, plugin_packages)
+
+    def write_readme_once(destination, agents):
+        nonlocal readme_writes
+        readme_writes += 1
+        return real_readme_write(destination, agents)
+
+    def write_catalog_once(destination, agents):
+        nonlocal catalog_writes
+        catalog_writes += 1
+        return real_catalog_write(destination, agents)
+
+    monkeypatch.setattr(
+        publisher._HOST_ARTIFACT_PUBLICATION,
+        "_write_manifest_payload",
+        write_manifest_once,
+    )
+    monkeypatch.setattr(
+        publisher._ROOT_CATALOG_AGGREGATE,
+        "write_readme",
+        write_readme_once,
+    )
+    monkeypatch.setattr(publisher, "write_catalog", write_catalog_once)
+
+    publish_recipes(
+        [dependency_recipe, vulnerability_recipe],
+        dest,
+        prune=True,
+    )
+
+    assert manifest_writes == 1
+    assert readme_writes == 1
+    assert catalog_writes == 1
 
 
 def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path):
@@ -395,10 +460,9 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
         "claude-managed-agents/vulnerability-explainer/endorctl-setup.md",
         "claude-managed-agents/vulnerability-explainer/environment.yaml",
         "claude-managed-agents/vulnerability-explainer/session-template.yaml",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    } | _codex_paths("vulnerability-explainer", has_setup=True) | _gemini_paths(
+    } | CATALOG_AGGREGATE_PATHS | _codex_paths(
+        "vulnerability-explainer", has_setup=True
+    ) | _gemini_paths(
         "vulnerability-explainer",
         has_setup=True,
     ) | _portable_paths("vulnerability-explainer", has_setup=True) | contract_and_plan_paths | runtime_paths
@@ -414,16 +478,7 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
         / "vulnerability-explainer"
         / "endorctl-setup.md"
     ).exists()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
@@ -444,16 +499,7 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
     for profile in ("package-decision", "package-risk", "repository-review"):
         assert (enterprise_dir / f"dependency-reviewer-{profile}.md").is_file()
     assert (enterprise_dir / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_writes_oss_upgrade_investigator_distribution(tmp_path):
@@ -489,16 +535,7 @@ def test_publish_recipe_writes_oss_upgrade_investigator_distribution(tmp_path):
     assert (dest / "claude-managed-agents" / "oss-upgrade-investigator" / "architecture.svg").is_file()
     assert (dest / "claude-code" / "oss-upgrade-investigator" / "endorctl-setup.md").is_file()
     assert (dest / "claude-managed-agents" / "oss-upgrade-investigator" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
@@ -669,16 +706,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         "summarize_endor_artifact.py",
         "vulnerability-explainer.md",
     }
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
@@ -700,16 +728,7 @@ def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
         / "enterprise-edition"
         / "dependency-reviewer.md"
     ).is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_cli_publish_writes_distribution(tmp_path, capsys):
@@ -730,18 +749,10 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
         / "dependency-reviewer.md"
     ).is_file()
     assert (dest / "portable" / "dependency-reviewer" / "agent.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
+@pytest.mark.release
 def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_path):
     canonical_agent_ids = (
         "ai-sast-remediation",
@@ -1281,7 +1292,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     cursor_agent = (dest / "agents" / "endor-configuration-automation-agent.md").read_text()
     assert "endor_agent_kit_managed=true" in cursor_agent
     assert "name: endor-configuration-automation-agent" in cursor_agent.split("---", 2)[1]
-    assert "model: inherit" in cursor_agent.split("---", 2)[1]
+    assert "model: composer-2.5[fast=false]" in cursor_agent.split("---", 2)[1]
     assert "readonly: true" in cursor_agent.split("---", 2)[1]
     assert "Cursor Host Contract" in cursor_agent
     assert "matching support skill `skills/configuration-automation/`" in cursor_agent
@@ -1311,7 +1322,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Filter > Source > SDK" in cursor_sdk_readme
     assert "must not run `endorctl scan` or `endorctl host-check`" in cursor_sdk_readme
     cursor_sdk_runner = (dest / "cursor-sdk" / "run_cursor_agent.py").read_text()
-    assert "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions" in cursor_sdk_runner
+    assert "from cursor_sdk import (" in cursor_sdk_runner
+    assert "ModelParameterValue" in cursor_sdk_runner
+    assert "ModelSelection" in cursor_sdk_runner
+    assert 'ModelParameterValue(id="fast", value="false")' in cursor_sdk_runner
     assert "agent_definitions.json" in cursor_sdk_runner
     assert "CURSOR_API_KEY" in cursor_sdk_runner
     assert "import sys" not in cursor_sdk_runner

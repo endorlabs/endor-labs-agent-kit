@@ -20,13 +20,25 @@ Content releases require a package version bump. If a host still shows old promp
 
 This package is host-specific for Antigravity CLI. Use the root README when choosing between hosts.
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `Gemini 3.6 Flash (Low)`.
+- Selection mode: `host_pinned`.
+- Recommended reasoning/effort: `low`.
+- Generated behavior: pin Gemini 3.6 Flash (Low) in Antigravity Model Usage; plugins cannot set a per-agent model.
+- Override behavior: customer may explicitly select another available Antigravity model.
+- Provider guidance: <https://antigravity.google/docs/models>.
+
 ## Host Metadata
 
 - Manifest: `plugin.json`.
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Subagents: `agents/<agent>.md`.
 - Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
-- Model/runtime: generated skills and subagents inherit Antigravity CLI defaults; the plugin does not set a plugin-wide default model.
+- Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.
 - MCP: no plugin-wide MCP server is declared by default.
 
 ## Install From A Local Checkout

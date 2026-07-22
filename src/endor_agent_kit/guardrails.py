@@ -561,6 +561,10 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
             if required not in agent_text:
                 errors.append(f"{_rel(root, agent)}: missing required guardrail text {required!r}")
         frontmatter = _frontmatter_mapping(root, agent, agent_text, errors)
+        if frontmatter.get("model") != "gemini-3.6-flash":
+            errors.append(
+                f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.6-flash"
+            )
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini subagent must not declare {forbidden}")
@@ -761,7 +765,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
         frontmatter = text.split("---", 2)[1] if text.startswith("---") else ""
         for required in (
             f"name: {agent_name}",
-            "model: inherit",
+            "model: composer-2.5[fast=false]",
             "## Cursor Host Contract",
             "data_gaps",
             "host=cursor",
@@ -785,6 +789,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
         setup_agent_text = setup_agent.read_text(encoding="utf-8")
         for required in (
             "Endor Agent Kit Setup Agent For Cursor",
+            "model: composer-2.5[fast=false]",
             "agents/",
             "skills/",
             "separate from the Gemini CLI extension",
@@ -834,12 +839,15 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     else:
         runner_text = runner.read_text(encoding="utf-8")
         for required in (
-            "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions",
+            "from cursor_sdk import (",
             "CURSOR_API_KEY",
             "Agent.create",
             "agent_definitions.json",
             "CloudAgentOptions",
             "LocalAgentOptions",
+            "ModelParameterValue",
+            "ModelSelection",
+            'ModelParameterValue(id="fast", value="false")',
         ):
             if required not in runner_text:
                 errors.append(f"cursor-sdk/run_cursor_agent.py: missing required SDK runner text {required!r}")
@@ -857,6 +865,8 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     if definitions:
         if definitions.get("sdk") != "cursor-python":
             errors.append("cursor-sdk/agent_definitions.json: sdk must be cursor-python")
+        if definitions.get("default_model") != "composer-2.5":
+            errors.append("cursor-sdk/agent_definitions.json: default_model must be composer-2.5")
         agents = _list(definitions.get("agents"))
         by_id = {
             str(_dict(agent).get("id")): _dict(agent)
@@ -1030,6 +1040,8 @@ def _check_codex_plugin_package(
         if agent.stem == "endor-agent-kit-setup-agent":
             for required in (
                 "# endor_agent_kit_managed = true",
+                'model = "gpt-5.6-luna"',
+                'model_reasoning_effort = "medium"',
                 "developer_instructions = ",
                 "Codex Host Contract",
                 "Do not run",
@@ -1040,6 +1052,8 @@ def _check_codex_plugin_package(
             continue
         for required in (
             "# endor_agent_kit_managed = true",
+            'model = "gpt-5.6-luna"',
+            "model_reasoning_effort = ",
             "developer_instructions = ",
             "Codex Host Contract",
         ):
@@ -1468,6 +1482,8 @@ def _check_gemini_plugin_package(
         frontmatter = _frontmatter_mapping(root, agent, text, errors)
         if frontmatter.get("kind") != "local":
             errors.append(f"{_rel(root, agent)}: Gemini subagent kind must be local")
+        if frontmatter.get("model") != "gemini-3.6-flash":
+            errors.append(f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.6-flash")
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini plugin subagent must not declare {forbidden}")
@@ -1546,6 +1562,10 @@ def _check_antigravity_plugin_package(
         frontmatter = _frontmatter_mapping(root, agent, text, errors)
         if frontmatter.get("kind") != "local":
             errors.append(f"{_rel(root, agent)}: Antigravity subagent kind must be local")
+        if frontmatter.get("model") != "inherit":
+            errors.append(
+                f"{_rel(root, agent)}: Antigravity plugin cannot pin a per-agent model; host-pinned agents must retain model: inherit"
+            )
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Antigravity plugin subagent must not declare {forbidden}")

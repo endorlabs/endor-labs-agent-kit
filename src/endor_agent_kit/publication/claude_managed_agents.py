@@ -8,7 +8,6 @@ from pathlib import Path
 from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.compilers.rendering import EDITIONS
 from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude_managed_agents_prepared
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import (
@@ -37,7 +36,6 @@ class ClaudeManagedAgentsHostAdapter:
     ) -> BundleRecord:
         """Publish one Claude Managed Agents Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_claude_managed_agents_prepared(prepared)
 
         recipe_file = prepared.path
@@ -181,6 +179,7 @@ def managed_agents_edition_readme(
     architecture = architecture_readme_section(recipe) if has_architecture else []
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="Claude Managed Agents",
         artifact_label=artifact_label,
         install_summary="Update generated YAML placeholders, then create the managed agent and environment.",

@@ -7,7 +7,7 @@ description: |
   truncation limits, and identify data gaps without starting new scans or
   performing remediation actions.
 kind: local
-model: inherit
+model: gemini-3.6-flash
 max_turns: 30
 tools:
   - run_shell_command

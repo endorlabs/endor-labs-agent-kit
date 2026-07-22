@@ -4,13 +4,14 @@ import re
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents
 from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.validator import validate_recipe_file
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, repo_root
 from host_artifact_bundle_contract import (
     assert_codex_skill_bundle,
     assert_host_bundle_files,
@@ -229,6 +230,7 @@ def test_troubleshooting_managed_agents_artifacts_are_read_only(tmp_path):
     _assert_no_private_source_references(managed_text)
 
 
+@pytest.mark.publication
 def test_troubleshooting_publish_writes_host_catalog_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -263,10 +265,7 @@ def test_troubleshooting_publish_writes_host_catalog_surfaces(tmp_path):
         "portable/troubleshooting/output-contract.md",
         "portable/troubleshooting/architecture.svg",
         "portable/troubleshooting/endorctl-setup.md",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    } | compiled_evidence_artifact_paths(
+    } | CATALOG_AGGREGATE_PATHS | compiled_evidence_artifact_paths(
         "troubleshooting",
         evidence_plan_ids=("diagnose",),
         profile_contract_ids=("classify", "diagnose", "support-packet"),

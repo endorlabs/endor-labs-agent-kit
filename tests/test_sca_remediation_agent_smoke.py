@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.publisher import publish_recipe
@@ -61,6 +62,7 @@ def test_sca_remediation_agent_is_mcp_free_and_action_contract_backed(tmp_path):
             assert action["confirmation_required"] is True
 
 
+@pytest.mark.publication
 def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"

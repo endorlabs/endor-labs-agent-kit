@@ -86,7 +86,14 @@ def _compose_prompt(definition: dict[str, Any], user_prompt: str, execution_cont
 
 def _run_agent(args: argparse.Namespace, definition: dict[str, Any], prompt: str) -> int:
     try:
-        from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions
+        from cursor_sdk import (
+            Agent,
+            CloudAgentOptions,
+            CloudRepository,
+            LocalAgentOptions,
+            ModelParameterValue,
+            ModelSelection,
+        )
     except ImportError as exc:
         raise SystemExit(
             "cursor-sdk is not installed. From cursor-sdk, run: "
@@ -94,8 +101,14 @@ def _run_agent(args: argparse.Namespace, definition: dict[str, Any], prompt: str
             "python3 -m pip install -r cursor-sdk/requirements.txt"
         ) from exc
 
+    selected_model: Any = args.model
+    if args.model == "composer-2.5":
+        selected_model = ModelSelection(
+            id="composer-2.5",
+            params=(ModelParameterValue(id="fast", value="false"),),
+        )
     create_kwargs: dict[str, Any] = {
-        "model": args.model,
+        "model": selected_model,
         "name": str(definition["agent_name"]),
     }
     if args.api_key:

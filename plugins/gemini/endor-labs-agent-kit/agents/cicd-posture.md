@@ -9,7 +9,7 @@ description: |
   scores, critical overrides, evidence queries, and data gaps without mutating
   Endor, GitHub, or repository state.
 kind: local
-model: inherit
+model: gemini-3.6-flash
 max_turns: 30
 tools:
   - read_file
