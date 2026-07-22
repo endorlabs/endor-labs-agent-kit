@@ -35,8 +35,14 @@ jobs:
       - name: Smoke test disposable provider installations
         run: .venv/bin/python scripts/smoke_test_provider_installations.py --root .
 
-      - name: Test
-        run: .venv/bin/python -m pytest -q
+      - name: Test fast lane
+        run: .venv/bin/python -m pytest -q -m "not publication and not release"
+
+      - name: Test publication lane
+        run: .venv/bin/python -m pytest -q -m "publication and not release"
+
+      - name: Test release lane
+        run: .venv/bin/python -m pytest -q -m "release"
 
       - name: Validate recipes
         run: |
@@ -91,7 +97,9 @@ jobs:
             claude-managed-agents \
             codex \
             cursor-sdk \
+            docs/model-recommendations.md \
             gemini \
+            model-recommendations.json \
             hooks \
             plugins \
             portable \

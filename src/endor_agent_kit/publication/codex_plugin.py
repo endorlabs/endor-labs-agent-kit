@@ -253,6 +253,11 @@ def _codex_agent_name(recipe_id: str) -> str:
 def _render_codex_agent_toml(prepared: PreparedSourceRecipe, version: str) -> str:
     recipe = prepared.recipe
     posture = source_recipe_safety_posture(recipe)
+    reasoning_effort = (
+        "high"
+        if recipe.id in {"ai-sast-remediation", "sca-remediation"}
+        else "medium"
+    )
     skill_text = render_codex_skill(
         prepared,
         generated_context="Endor Labs Agent Kit Codex custom agent",
@@ -274,6 +279,8 @@ def _render_codex_agent_toml(prepared: PreparedSourceRecipe, version: str) -> st
         "",
         f"name = {_toml_string(_codex_agent_name(recipe.id))}",
         f"description = {_toml_string(_single_line(recipe.description))}",
+        'model = "gpt-5.6-luna"',
+        f'model_reasoning_effort = "{reasoning_effort}"',
     ]
     if not posture.is_mutating:
         lines.append('sandbox_mode = "read-only"')
@@ -353,6 +360,8 @@ def _render_codex_setup_agent_toml(prepared_recipes: list[PreparedSourceRecipe],
         "",
         f"name = {_toml_string(CODEX_SETUP_AGENT)}",
         'description = "Set up and validate Endor Labs Agent Kit readiness for Codex."',
+        'model = "gpt-5.6-luna"',
+        'model_reasoning_effort = "medium"',
         'sandbox_mode = "read-only"',
         f"developer_instructions = {_toml_string(instructions)}",
         "",
@@ -547,6 +556,7 @@ def _codex_plugin_readme(
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
+        host_id="codex",
         host_label="Codex",
         install_summary=f"Install `{PLUGIN_NAME}@{PLUGIN_NAME}` from the local or public Codex marketplace metadata.",
         setup_summary=f"ask Codex to use the `{CODEX_SETUP_SKILL}` skill.",
@@ -569,7 +579,7 @@ def _codex_plugin_readme(
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         f"- Custom agents: `agents/endor-*-agent.toml`, including `{CODEX_SETUP_AGENT}.toml`, installed by the setup skill only after approval.",
         "- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
-        "- Model/runtime: custom agents inherit Codex defaults unless the user or host overrides them; read-only custom agents set `sandbox_mode = \"read-only\"`.",
+        "- Model/runtime: custom agents pin `gpt-5.6-luna`; standard workflows use medium reasoning and complex remediation workflows use high reasoning. Explicit customer overrides remain authoritative.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
         "## Install Locally",

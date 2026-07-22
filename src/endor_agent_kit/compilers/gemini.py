@@ -17,6 +17,7 @@ from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
 HOST = "gemini"
 GEMINI_SECTION_EDITION = "enterprise-edition"
+GEMINI_DEFAULT_MODEL = "gemini-3.6-flash"
 
 
 def compile_gemini(recipe_path: str | Path) -> list[Path]:
@@ -64,6 +65,7 @@ def render_gemini_agent(
     *,
     generated_context: str = "Gemini CLI subagent",
     compact_plugin: bool = False,
+    model: str = GEMINI_DEFAULT_MODEL,
 ) -> str:
     """Render a Gemini CLI subagent from a prepared Source Recipe."""
 
@@ -86,7 +88,7 @@ def render_gemini_agent(
         "description: |",
         f"{indent(recipe.description.strip(), 2)}",
         "kind: local",
-        "model: inherit",
+        f"model: {model}",
         "max_turns: 30",
     ]
     if tools:

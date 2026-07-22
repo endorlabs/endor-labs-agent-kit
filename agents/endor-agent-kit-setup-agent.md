@@ -1,7 +1,7 @@
 ---
 name: endor-agent-kit-setup-agent
 description: Use when setting up Endor Labs Agent Kit for Cursor, checking readiness, verifying Endor auth, choosing namespaces, or diagnosing missing endorctl, gh, Endor MCP, or workflow prerequisites.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

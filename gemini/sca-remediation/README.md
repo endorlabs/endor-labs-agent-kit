@@ -12,6 +12,18 @@ This is the Gemini CLI generated skill and subagent bundle for `sca-remediation`
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gemini-3.6-flash`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host managed`.
+- Generated behavior: subagent frontmatter pins model: gemini-3.6-flash.
+- Override behavior: explicit subagent definition or host subagent configuration wins.
+- Provider guidance: <https://geminicli.com/docs/core/subagents/>.
+
 ## Install Through The Generated Extension
 
 Prefer the generated extension package under `plugins/gemini/endor-labs-agent-kit`.

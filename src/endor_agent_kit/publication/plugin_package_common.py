@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from importlib import metadata, resources
 from pathlib import Path
+
+from endor_agent_kit.publication.model_recommendations import model_recommendation_lines
 import re
 
 PLUGIN_NAME = "endor-labs-agent-kit"
@@ -56,6 +58,7 @@ def write_logo(assets_root: Path) -> Path:
 
 def plugin_readme_start_here(
     *,
+    host_id: str,
     host_label: str,
     install_summary: str,
     setup_summary: str,
@@ -75,6 +78,7 @@ def plugin_readme_start_here(
         "",
         f"This package is host-specific for {host_label}. Use the root README when choosing between hosts.",
         "",
+        *model_recommendation_lines(host_id),
     ]
 
 

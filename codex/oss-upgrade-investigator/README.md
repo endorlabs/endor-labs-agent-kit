@@ -16,6 +16,18 @@ This is the Codex generated skill for `oss-upgrade-investigator`.
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/oss-upgrade-investigator/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gpt-5.6-luna`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `medium`.
+- Generated behavior: custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort.
+- Override behavior: explicit Codex model and reasoning settings win.
+- Provider guidance: <https://developers.openai.com/codex/subagents>.
+
 ## Install
 
 Copy this generated skill directory into your Codex skills directory:

@@ -32,3 +32,8 @@ packages = ["src/endor_agent_kit"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "--durations=25"
+markers = [
+    "publication: exercises Source Recipe compilation or Host Artifact Publication",
+    "release: exercises authoritative release-only generation or installation behavior",
+]

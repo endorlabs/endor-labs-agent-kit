@@ -5,7 +5,7 @@ description: |
   summary, or a repository dependency review. It selects one bounded task
   profile, gathers only the evidence that profile needs, and returns a
   read-only decision or review with explicit data gaps.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

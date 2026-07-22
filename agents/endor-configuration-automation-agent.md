@@ -7,7 +7,7 @@ description: |
   App, package, scan, scan profile, package manager integration, dependency
   resolution, and reachability evidence, then returns human-readable setup
   actions without mutating source, GitHub, or Endor state.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

@@ -351,6 +351,7 @@ def _gemini_plugin_readme(
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
+        host_id="gemini",
         host_label="Gemini CLI",
         install_summary="Install the generated extension directory locally or the tagged public GitHub repository.",
         setup_summary=f"ask Gemini CLI to use the `{GEMINI_SETUP_SKILL}` skill.",
@@ -374,7 +375,7 @@ def _gemini_plugin_readme(
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Preview subagents: `agents/<agent>.md`.",
         "- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
-        "- Model/runtime: generated skills and subagents inherit Gemini CLI defaults; the extension does not set a plugin-wide default model.",
+        "- Model/runtime: generated subagents pin `gemini-3.6-flash`; skills used directly in the main session still use the customer's selected host model.",
         "- MCP: no extension-wide MCP server is declared by default.",
         "",
         "## Install From A Local Checkout",

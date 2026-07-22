@@ -11,7 +11,6 @@ from endor_agent_kit.catalog_schema import (
     GENERATOR_NAME,
     MANIFEST_PATH,
     CatalogAgent,
-    CatalogBundle,
     CatalogPluginPackage,
     catalog_agent_sort_key,
     catalog_agents_from_manifest_payload,
@@ -19,9 +18,15 @@ from endor_agent_kit.catalog_schema import (
     catalog_plugin_package_sort_key,
     catalog_plugin_packages_from_manifest_payload,
 )
+from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 
-from .records import BundleRecord, PublicationRecord, with_evidence_plan_artifacts
+from .records import (
+    BundleRecord,
+    PublicationBatchRecord,
+    PublicationRecord,
+    with_evidence_plan_artifacts,
+)
 
 
 class HostAdapter(Protocol):
@@ -59,22 +64,125 @@ class HostArtifactPublication:
     ) -> PublicationRecord:
         """Publish one host artifact bundle."""
 
-        try:
-            adapter = self._adapters[host]
-        except KeyError as exc:
-            raise ValueError(f"Unsupported publication host {host!r}") from exc
-        bundle = with_evidence_plan_artifacts(
+        if host not in self._adapters:
+            raise ValueError(f"Unsupported publication host {host!r}")
+        compile_raw_prepared(prepared)
+        bundle = self._publish_bundle(host, prepared, destination)
+        agent = CatalogAgent.from_recipe(
+            prepared.recipe,
+            host,
+            bundle.manifest_records,
+        )
+        catalog_manifest = self.finalize_manifest(
+            destination,
+            generated_agents=(agent,),
+        )
+        if catalog_manifest is None:  # pragma: no cover - generated_agents always writes
+            raise AssertionError("publishing a host bundle must finalize the Catalog Manifest")
+        return PublicationRecord(bundle=bundle, catalog_manifest=catalog_manifest)
+
+    def publish_bundles(
+        self,
+        prepared_recipes: tuple[PreparedSourceRecipe, ...],
+        destination: Path,
+    ) -> PublicationBatchRecord:
+        """Publish prepared recipes without incrementally writing catalog aggregates."""
+
+        bundles: list[BundleRecord] = []
+        agents: list[CatalogAgent] = []
+        destination.mkdir(parents=True, exist_ok=True)
+        for prepared in prepared_recipes:
+            hosts = tuple(
+                host
+                for host in self._adapters
+                if host in prepared.recipe.compatible_hosts
+            )
+            if not hosts:
+                continue
+            compile_raw_prepared(prepared)
+            for host in hosts:
+                bundle = self._publish_bundle(host, prepared, destination)
+                bundles.append(bundle)
+                agents.append(
+                    CatalogAgent.from_recipe(
+                        prepared.recipe,
+                        host,
+                        bundle.manifest_records,
+                    )
+                )
+        return PublicationBatchRecord(
+            bundles=tuple(bundles),
+            agents=tuple(agents),
+        )
+
+    def finalize_manifest(
+        self,
+        destination: Path,
+        *,
+        generated_agents: tuple[CatalogAgent, ...] = (),
+        plugin_packages: tuple[CatalogPluginPackage, ...] = (),
+        replace_plugin_hosts: set[str] | None = None,
+        prune_active_host_agents: set[tuple[str, str]] | None = None,
+    ) -> Path | None:
+        """Finalize generated agents, pruning, and plugin packages in one manifest write."""
+
+        path = self.catalog_manifest_path(destination)
+        existing_agents, existing_packages = self._existing_catalog(path)
+        agents_by_key = {
+            (agent.host, agent.id): agent
+            for agent in existing_agents
+        }
+        for agent in generated_agents:
+            agents_by_key[(agent.host, agent.id)] = agent
+
+        stale_agents: list[CatalogAgent] = []
+        if prune_active_host_agents is not None:
+            stale_agents = [
+                agent
+                for key, agent in agents_by_key.items()
+                if key not in prune_active_host_agents
+            ]
+            for agent in stale_agents:
+                agents_by_key.pop((agent.host, agent.id), None)
+                if agent.host in self._adapters and agent.id:
+                    shutil.rmtree(
+                        destination / agent.host / agent.id,
+                        ignore_errors=True,
+                    )
+
+        replace_hosts = replace_plugin_hosts or set()
+        merged_packages = [
+            package
+            for package in existing_packages
+            if package.host not in replace_hosts
+        ]
+        merged_packages.extend(plugin_packages)
+
+        changed = bool(
+            generated_agents
+            or plugin_packages
+            or stale_agents
+            or any(package.host in replace_hosts for package in existing_packages)
+        )
+        if not changed:
+            return None
+
+        agents = sorted(agents_by_key.values(), key=catalog_agent_sort_key)
+        merged_packages.sort(key=catalog_plugin_package_sort_key)
+        return self._write_manifest_payload(destination, agents, merged_packages)
+
+    def _publish_bundle(
+        self,
+        host: str,
+        prepared: PreparedSourceRecipe,
+        destination: Path,
+    ) -> BundleRecord:
+        adapter = self._adapters[host]
+        return with_evidence_plan_artifacts(
             adapter.publish(prepared, destination),
             destination,
             prepared,
         )
-        catalog_manifest = self._write_manifest(
-            destination,
-            prepared,
-            host,
-            bundle.manifest_records,
-        )
-        return PublicationRecord(bundle=bundle, catalog_manifest=catalog_manifest)
 
     def prune_stale_agents(
         self,
@@ -83,31 +191,10 @@ class HostArtifactPublication:
     ) -> Path | None:
         """Remove stale published agents and update the Catalog Manifest."""
 
-        path = self.catalog_manifest_path(destination)
-        if not path.exists():
-            return None
-
-        agents = self._existing_agents(path)
-        kept_agents = [
-            agent
-            for agent in agents
-            if (agent.host, agent.id) in active_host_agents
-        ]
-        stale_agents = [
-            agent
-            for agent in agents
-            if (agent.host, agent.id) not in active_host_agents
-        ]
-        if not stale_agents:
-            return None
-
-        for agent in stale_agents:
-            if agent.host not in self._adapters or not agent.id:
-                continue
-            shutil.rmtree(destination / agent.host / agent.id, ignore_errors=True)
-
-        kept_agents.sort(key=catalog_agent_sort_key)
-        return self._write_agents(destination, kept_agents)
+        return self.finalize_manifest(
+            destination,
+            prune_active_host_agents=active_host_agents,
+        )
 
     def catalog_agents(self, destination: Path) -> list[CatalogAgent]:
         """Return agents currently recorded in the Catalog Manifest."""
@@ -128,44 +215,19 @@ class HostArtifactPublication:
     ) -> Path:
         """Write plugin package records while preserving unrelated package hosts."""
 
-        path = self.catalog_manifest_path(destination)
-        agents = self._existing_agents(path)
-        existing_packages = [
-            package
-            for package in self._existing_plugin_packages(path)
-            if package.host not in replace_hosts
-        ]
-        merged = existing_packages + list(packages)
-        merged.sort(key=catalog_plugin_package_sort_key)
-        return self._write_manifest_payload(destination, agents, merged)
+        path = self.finalize_manifest(
+            destination,
+            plugin_packages=packages,
+            replace_plugin_hosts=replace_hosts,
+        )
+        if path is None:  # pragma: no cover - packages always writes
+            raise AssertionError("writing plugin packages must finalize the Catalog Manifest")
+        return path
 
     def catalog_manifest_path(self, destination: Path) -> Path:
         """Return the Catalog Manifest path for a destination."""
 
         return destination / self._manifest_path
-
-    def _write_manifest(
-        self,
-        destination: Path,
-        prepared: PreparedSourceRecipe,
-        host: str,
-        edition_records: tuple[CatalogBundle, ...],
-    ) -> Path:
-        path = self.catalog_manifest_path(destination)
-        recipe = prepared.recipe
-        agents = self._existing_agents(path)
-        agents = [
-            agent
-            for agent in agents
-            if not (agent.id == recipe.id and agent.host == host)
-        ]
-        agents.append(CatalogAgent.from_recipe(recipe, host, edition_records))
-        agents.sort(key=catalog_agent_sort_key)
-        return self._write_agents(destination, agents)
-
-    def _write_agents(self, destination: Path, agents: list[CatalogAgent]) -> Path:
-        packages = self._existing_plugin_packages(self.catalog_manifest_path(destination))
-        return self._write_manifest_payload(destination, agents, packages)
 
     def _write_manifest_payload(
         self,
@@ -183,13 +245,26 @@ class HostArtifactPublication:
         return path
 
     def _existing_agents(self, path: Path) -> list[CatalogAgent]:
-        if not path.exists():
-            return []
-        data = json.loads(path.read_text(encoding="utf-8"))
-        return list(catalog_agents_from_manifest_payload(data, manifest_path=self._manifest_path))
+        agents, _ = self._existing_catalog(path)
+        return agents
 
     def _existing_plugin_packages(self, path: Path) -> list[CatalogPluginPackage]:
+        _, packages = self._existing_catalog(path)
+        return packages
+
+    def _existing_catalog(
+        self,
+        path: Path,
+    ) -> tuple[list[CatalogAgent], list[CatalogPluginPackage]]:
         if not path.exists():
-            return []
+            return [], []
         data = json.loads(path.read_text(encoding="utf-8"))
-        return list(catalog_plugin_packages_from_manifest_payload(data, manifest_path=self._manifest_path))
+        return (
+            list(catalog_agents_from_manifest_payload(data, manifest_path=self._manifest_path)),
+            list(
+                catalog_plugin_packages_from_manifest_payload(
+                    data,
+                    manifest_path=self._manifest_path,
+                )
+            ),
+        )

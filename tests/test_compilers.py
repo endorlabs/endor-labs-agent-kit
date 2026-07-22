@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.cli import main
@@ -14,14 +15,13 @@ from endor_agent_kit.compilers import (
     compile_gemini,
     compile_raw,
 )
-from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
 from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 
-from conftest import repo_root
+from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "97db17910c1f625a0bf966c2878e30dfccc97959daeef0e2754b6334e37742fa"
+ENTERPRISE_EDITION_SHA256 = "a0cb365f6d0f6234a2a4c0dae934e368ab215f9c02ff4bfbb924111b2a81290c"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -132,11 +132,11 @@ def test_ai_sast_profile_variant_reduces_input_without_losing_safety_invariants(
     assert "Create the Endor exception policy only after verified AppSec approval" not in scoped
 
 
-def test_plugin_package_prompts_stay_within_compact_budgets(tmp_path):
-    recipes = sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
-    dest = tmp_path / "catalog"
-
-    publish_recipes(recipes, dest, prune=True, include_plugins=True)
+@pytest.mark.publication
+def test_plugin_package_prompts_stay_within_compact_budgets(
+    generated_catalog: GeneratedCatalog,
+):
+    dest = generated_catalog.root
 
     errors: list[str] = []
     for path in _plugin_prompt_files(dest):
@@ -377,7 +377,7 @@ def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
     assert "endorctl agent api --agent-id dependency-reviewer list" in skill
     assert "data_gaps" in skill
     assert agent_frontmatter["kind"] == "local"
-    assert agent_frontmatter["model"] == "inherit"
+    assert agent_frontmatter["model"] == "gemini-3.6-flash"
     assert agent_frontmatter["max_turns"] == 30
     assert "mcpServers" not in agent_frontmatter
     assert "endor_agent_kit_managed=true" in agent

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import shutil
 
+import pytest
 import yaml
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, repo_root
 from endor_agent_kit.compilers import compile_claude_code
 from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
@@ -100,6 +101,7 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert_mcp_free_generated_artifact(artifact)
 
 
+@pytest.mark.publication
 def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -133,10 +135,7 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
         "portable/findings-browser/output-contract.md",
         "portable/findings-browser/architecture.svg",
         "portable/findings-browser/endorctl-setup.md",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    } | compiled_evidence_artifact_paths(
+    } | CATALOG_AGGREGATE_PATHS | compiled_evidence_artifact_paths(
         "findings-browser",
         evidence_plan_ids=("browse",),
         profile_contract_ids=("resolve-scope", "browse", "exact-finding"),

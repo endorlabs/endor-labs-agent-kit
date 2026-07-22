@@ -2,7 +2,7 @@
 name: endor-ai-sast-remediation-agent
 description: |
   Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: false
 ---
 

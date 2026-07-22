@@ -20,13 +20,25 @@ Content releases require a package version bump. If a host still shows old promp
 
 This package is host-specific for Codex. Use the root README when choosing between hosts.
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gpt-5.6-luna`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `medium`.
+- Generated behavior: custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort.
+- Override behavior: explicit Codex model and reasoning settings win.
+- Provider guidance: <https://developers.openai.com/codex/subagents>.
+
 ## Host Metadata
 
 - Manifest: `.codex-plugin/plugin.json`.
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Custom agents: `agents/endor-*-agent.toml`, including `endor-agent-kit-setup-agent.toml`, installed by the setup skill only after approval.
 - Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
-- Model/runtime: custom agents inherit Codex defaults unless the user or host overrides them; read-only custom agents set `sandbox_mode = "read-only"`.
+- Model/runtime: custom agents pin `gpt-5.6-luna`; standard workflows use medium reasoning and complex remediation workflows use high reasoning. Explicit customer overrides remain authoritative.
 - MCP: no plugin-wide MCP server is declared by default.
 
 ## Install Locally

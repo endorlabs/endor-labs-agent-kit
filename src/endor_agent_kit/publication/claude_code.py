@@ -11,7 +11,6 @@ from endor_agent_kit.compilers.claude_code import (
     HOST,
     compile_claude_code_prepared,
 )
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -37,7 +36,6 @@ class ClaudeCodeHostAdapter:
     ) -> BundleRecord:
         """Publish one Claude Code Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_claude_code_prepared(prepared)
 
         recipe_file = prepared.path
@@ -226,6 +224,7 @@ def claude_code_edition_readme(
     architecture = architecture_readme_section(recipe) if has_architecture else []
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="Claude Code",
         artifact_label=artifact_label,
         install_summary="Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed.",

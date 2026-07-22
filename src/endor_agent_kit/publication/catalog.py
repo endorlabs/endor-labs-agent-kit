@@ -12,6 +12,7 @@ from endor_agent_kit.compilers.codex import HOST as CODEX_HOST
 from endor_agent_kit.compilers.gemini import HOST as GEMINI_HOST
 from endor_agent_kit.compilers.portable import HOST as PORTABLE_HOST
 from endor_agent_kit.publication.plugin_package_common import package_version
+from endor_agent_kit.publication.model_recommendations import model_requirements_lines
 
 DEFAULT_PUBLISHED_HOSTS = (
     CLAUDE_CODE_HOST,
@@ -159,6 +160,7 @@ def root_catalog_readme(
         "## Table Of Contents",
         "",
         "- [🚀 Plugin Quick Start](#-plugin-quick-start)",
+        "- [Recommended Model Configurations](#recommended-model-configurations)",
         "- [🐍 Cursor SDK Quick Start](#-cursor-sdk-quick-start)",
         "- [Agent Quick Start](#agent-quick-start)",
         "- [🧩 Capabilities And Skills](#-capabilities-and-skills)",
@@ -222,6 +224,7 @@ def root_catalog_readme(
         "and namespace selection, reports `gh` and toolchain gaps, and offers",
         "host-specific self-checks before live Endor lookups.",
         "",
+        *model_requirements_lines(item.id for item in catalog),
         "## 🐍 Cursor SDK Quick Start",
         "",
         "Use `cursor-sdk/` when you want to launch Cursor agents from Python code, CI, orchestration, or a backend service.",
@@ -794,7 +797,7 @@ def root_catalog_readme(
         "endor-agent-kit verify-provenance --catalog-root .",
         "endor-agent-kit verify-endor-context --upstream",
         "python -m pytest -q",
-        "git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini hooks plugins portable skills",
+        "git diff --exit-code -- README.md manifest.json model-recommendations.json docs/model-recommendations.md .agents/plugins .claude-plugin .cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk gemini hooks plugins portable skills",
         "```",
         "",
         "Pull requests should include both source changes and regenerated artifacts.",

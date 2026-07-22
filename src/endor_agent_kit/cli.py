@@ -661,7 +661,8 @@ def _doctor_new_agent(recipe_path: Path) -> int:
     print(
         "git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin "
         ".cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk "
-        "gemini plugins portable skills"
+        "docs/model-recommendations.md gemini hooks model-recommendations.json plugins "
+        "portable skills"
     )
 
     if report.errors:

@@ -3,6 +3,8 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
+
 from endor_agent_kit.publisher import publish_recipe
 
 from conftest import repo_root
@@ -21,6 +23,7 @@ def _copy_agent(tmp_path: Path) -> Path:
     return dst / "recipe.yaml"
 
 
+@pytest.mark.publication
 def test_ai_sast_remediation_does_not_require_project_uuid_for_normal_use(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"

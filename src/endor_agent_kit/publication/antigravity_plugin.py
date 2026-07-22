@@ -94,6 +94,9 @@ def publish_antigravity_plugin_package(
                     prepared,
                     generated_context="Endor Labs Agent Kit Antigravity CLI plugin subagent",
                     compact_plugin=True,
+                    # Antigravity plugins cannot declare a per-agent model.
+                    # The recommended model is pinned in Antigravity host settings.
+                    model="inherit",
                 )
             ),
             encoding="utf-8",
@@ -316,6 +319,7 @@ def _antigravity_plugin_readme(
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
+        host_id="antigravity",
         host_label="Antigravity CLI",
         install_summary="Validate and install the generated Antigravity plugin directory with `antigravity plugin` commands.",
         setup_summary=f"ask Antigravity CLI to use the `{ANTIGRAVITY_SETUP_SKILL}` skill.",
@@ -338,7 +342,7 @@ def _antigravity_plugin_readme(
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Subagents: `agents/<agent>.md`.",
         "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
-        "- Model/runtime: generated skills and subagents inherit Antigravity CLI defaults; the plugin does not set a plugin-wide default model.",
+        "- Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
         "## Install From A Local Checkout",

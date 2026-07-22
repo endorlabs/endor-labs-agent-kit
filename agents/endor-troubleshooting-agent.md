@@ -8,7 +8,7 @@ description: |
   authentication, dependency resolution, container, reachability, policy, and
   workflow lanes, then returns low-friction repair guidance without mutating
   Endor, source-provider, or repository state.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

@@ -1,0 +1,131 @@
+{
+  "acceptance": {
+    "acceptance_digest": null,
+    "source_commit": null,
+    "status": "target_for_release_qa"
+  },
+  "agent_tiers": {
+    "complex_remediation": {
+      "agent_ids": [
+        "ai-sast-remediation",
+        "sca-remediation"
+      ]
+    },
+    "standard": {
+      "agent_ids": [
+        "cicd-posture",
+        "configuration-automation",
+        "dependency-reviewer",
+        "findings-browser",
+        "malware-responder",
+        "oss-upgrade-investigator",
+        "remediation-planning",
+        "troubleshooting",
+        "vulnerability-explainer"
+      ]
+    },
+    "unclassified": {
+      "agent_ids": [],
+      "recommendation": "host default pending tier validation"
+    }
+  },
+  "customer_override_precedence": [
+    "explicit_customer_override",
+    "host_or_session_selection",
+    "agent_kit_recommendation",
+    "host_fallback"
+  ],
+  "hosts": [
+    {
+      "complex_remediation_effort": "host default",
+      "customer_override": "Claude environment or per-invocation subagent override wins",
+      "generated_artifact_behavior": "agent frontmatter defaults to sonnet",
+      "host": "claude-code",
+      "label": "Claude Code",
+      "provider_guidance_url": "https://code.claude.com/docs/en/sub-agents",
+      "recommended_model": "sonnet",
+      "selection_mode": "pinned",
+      "standard_effort": "host default"
+    },
+    {
+      "complex_remediation_effort": "host default",
+      "customer_override": "managed host configuration remains authoritative",
+      "generated_artifact_behavior": "recipe sonnet alias compiles to claude-sonnet-4-6",
+      "host": "claude-managed-agents",
+      "label": "Claude Managed Agents",
+      "provider_guidance_url": "https://code.claude.com/docs/en/sub-agents",
+      "recommended_model": "sonnet",
+      "selection_mode": "pinned",
+      "standard_effort": "host default"
+    },
+    {
+      "complex_remediation_effort": "high",
+      "customer_override": "explicit Codex model and reasoning settings win",
+      "generated_artifact_behavior": "custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort",
+      "host": "codex",
+      "label": "Codex",
+      "provider_guidance_url": "https://developers.openai.com/codex/subagents",
+      "recommended_model": "gpt-5.6-luna",
+      "selection_mode": "pinned",
+      "standard_effort": "medium"
+    },
+    {
+      "complex_remediation_effort": "host managed",
+      "customer_override": "explicit subagent definition or host subagent configuration wins",
+      "generated_artifact_behavior": "subagent frontmatter pins model: gemini-3.6-flash",
+      "host": "gemini",
+      "label": "Gemini CLI",
+      "provider_guidance_url": "https://geminicli.com/docs/core/subagents/",
+      "recommended_model": "gemini-3.6-flash",
+      "selection_mode": "pinned",
+      "standard_effort": "host managed"
+    },
+    {
+      "complex_remediation_effort": "low",
+      "customer_override": "customer may explicitly select another available Antigravity model",
+      "generated_artifact_behavior": "pin Gemini 3.6 Flash (Low) in Antigravity Model Usage; plugins cannot set a per-agent model",
+      "host": "antigravity",
+      "label": "Antigravity CLI",
+      "provider_guidance_url": "https://antigravity.google/docs/models",
+      "recommended_model": "Gemini 3.6 Flash (Low)",
+      "selection_mode": "host_pinned",
+      "standard_effort": "low"
+    },
+    {
+      "complex_remediation_effort": "host managed",
+      "customer_override": "Cursor model selection remains authoritative",
+      "generated_artifact_behavior": "plugin-agent frontmatter pins composer-2.5 standard with fast=false",
+      "host": "cursor",
+      "label": "Cursor IDE",
+      "provider_guidance_url": "https://cursor.com/composer",
+      "recommended_model": "composer-2.5",
+      "selection_mode": "pinned",
+      "standard_effort": "host managed"
+    },
+    {
+      "complex_remediation_effort": "host managed",
+      "customer_override": "--model or CURSOR_MODEL wins",
+      "generated_artifact_behavior": "SDK runner pins composer-2.5 standard with fast=false",
+      "host": "cursor-sdk",
+      "label": "Cursor SDK",
+      "provider_guidance_url": "https://cursor.com/composer",
+      "recommended_model": "composer-2.5",
+      "selection_mode": "pinned",
+      "standard_effort": "host managed"
+    },
+    {
+      "complex_remediation_effort": "runtime managed",
+      "customer_override": "runtime operator owns model selection",
+      "generated_artifact_behavior": "portable bundles do not select a provider model",
+      "host": "portable",
+      "label": "Portable runtime",
+      "provider_guidance_url": "",
+      "recommended_model": "runtime-selected compatible agentic model",
+      "selection_mode": "runtime_selected",
+      "standard_effort": "runtime managed"
+    }
+  ],
+  "policy": "recommendation_only",
+  "recommendation_date": "2026-07-22",
+  "schema_version": 1
+}

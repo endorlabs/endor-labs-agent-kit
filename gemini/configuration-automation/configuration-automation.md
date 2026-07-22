@@ -8,7 +8,7 @@ description: |
   resolution, and reachability evidence, then returns human-readable setup
   actions without mutating source, GitHub, or Endor state.
 kind: local
-model: inherit
+model: gemini-3.6-flash
 max_turns: 30
 tools:
   - run_shell_command

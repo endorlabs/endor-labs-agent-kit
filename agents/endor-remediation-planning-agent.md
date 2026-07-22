@@ -2,7 +2,7 @@
 name: endor-remediation-planning-agent
 description: |
   Preview safe remediation options without opening PRs.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 

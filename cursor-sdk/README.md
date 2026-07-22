@@ -8,6 +8,18 @@ This package runs Endor Labs Agent Kit workflows through Cursor's Python SDK.
 Use it for automation, CI, backend services, orchestration, and scripted local or cloud runs.
 Use the root Cursor plugin package when the customer wants interactive Cursor IDE agents.
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `composer-2.5`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host managed`.
+- Generated behavior: SDK runner pins composer-2.5 standard with fast=false.
+- Override behavior: --model or CURSOR_MODEL wins.
+- Provider guidance: <https://cursor.com/composer>.
+
 ## Quick Start
 
 ```bash

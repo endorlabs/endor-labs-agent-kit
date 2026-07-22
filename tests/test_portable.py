@@ -4,14 +4,15 @@ import json
 import shutil
 from pathlib import Path
 
+import pytest
+
 from endor_agent_kit.cli import main
 from endor_agent_kit.compilers.portable import compile_portable
 from endor_agent_kit.portable_runtime_conformance import assert_portable_text
-from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
 
-from conftest import repo_root
+from conftest import GeneratedCatalog, repo_root
 
 
 def test_portable_compiler_emits_runtime_neutral_bundle(tmp_path):
@@ -59,11 +60,12 @@ def test_portable_cli_compile_target(tmp_path, capsys):
     assert "agent.manifest.json" in output
 
 
-def test_publish_recipes_writes_portable_bundles_for_all_current_agents(tmp_path):
-    source_recipes = sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
-    dest = tmp_path / "endor-labs-agent-kit"
-
-    publish_recipes(source_recipes, dest, prune=True)
+@pytest.mark.publication
+def test_publish_recipes_writes_portable_bundles_for_all_current_agents(
+    generated_catalog: GeneratedCatalog,
+):
+    source_recipes = generated_catalog.recipes
+    dest = generated_catalog.root
 
     manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
     portable_agents = [

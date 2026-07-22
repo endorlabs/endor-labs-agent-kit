@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.model_recommendations import model_recommendation_lines
 
 
 def agent_readme_start_here(
     recipe: EndorAgentRecipe,
     *,
+    host_id: str,
     host_label: str,
     artifact_label: str,
     install_summary: str,
@@ -36,6 +38,7 @@ def agent_readme_start_here(
         f"| Agent installer | Copy the generated files exactly, including {support_file_text}. Do not summarize or rewrite the generated prompt. |",
         f"| Maintainer | Change `source/agents/{recipe.id}/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |",
         "",
+        *model_recommendation_lines(host_id, agent_id=recipe.id),
     ]
 
 
