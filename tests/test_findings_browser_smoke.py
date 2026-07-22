@@ -14,6 +14,7 @@ from host_artifact_bundle_contract import (
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
+    compiled_evidence_artifact_paths,
 )
 
 
@@ -127,7 +128,11 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
         "manifest.json",
         "README.md",
         "catalog.json",
-    }
+    } | compiled_evidence_artifact_paths(
+        "findings-browser",
+        evidence_plan_ids=("browse",),
+        profile_contract_ids=("resolve-scope", "browse", "exact-finding"),
+    )
 
     claude_dir = dest / "claude-code" / "findings-browser"
     managed_dir = dest / "claude-managed-agents" / "findings-browser"

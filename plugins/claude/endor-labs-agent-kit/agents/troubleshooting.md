@@ -413,7 +413,7 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 - Plans: `classify`, `diagnose`, `support-packet`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
-- `project-by-git`/diagnose: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `project-by-git`/diagnose: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - `scan-result-by-uuid`/diagnose: `endorctl agent api --agent-id troubleshooting get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
 - `finding-by-uuid`/diagnose: `endorctl agent api --agent-id troubleshooting get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
 

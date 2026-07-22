@@ -246,7 +246,7 @@ def _gemini_extension_manifest(version: str) -> dict[str, object]:
 def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -318,7 +318,7 @@ def _setup_source(prepared_recipes: list[PreparedSourceRecipe]) -> str:
 
 def _gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     rows = [
-        f"- {_workflow_label(prepared.recipe.id)}: use skill `{prepared.recipe.id}` or subagent `@{prepared.recipe.id}`."
+        f"- {prepared.recipe.name}: use skill `{prepared.recipe.id}` or subagent `@{prepared.recipe.id}`."
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -344,7 +344,7 @@ def _gemini_plugin_readme(
     version: str,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
@@ -442,18 +442,6 @@ def _gemini_plugin_readme(
         "- https://geminicli.com/docs/core/subagents/",
         "",
     ])
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-remediation": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "troubleshooting": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "configuration-automation": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
-
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:
     return "mutating, approval-gated" if source_recipe_safety_posture(prepared.recipe).is_mutating else "read-only"

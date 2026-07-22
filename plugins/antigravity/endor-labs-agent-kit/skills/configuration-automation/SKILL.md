@@ -392,7 +392,7 @@ Compare GitHub repository inventory with namespace-scoped Endor project and moni
 - Plans: `resolve-scope`, `evidence-check`, `prescribe-actions`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
-- `project-branch-coverage`/evidence-check: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json`
+- `project-branch-coverage`/evidence-check: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git" -o json`
 - `repo-setup-file-inventory`/evidence-check: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
 - `local-git-state`/resolve-scope: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
 - `missing-setup-file-check`/prescribe-actions: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`

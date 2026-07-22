@@ -10,6 +10,35 @@ MCP_SETUP_TOKENS = (
     "endorctl ai-tools mcp-server",
 )
 
+PUBLISHED_EVIDENCE_HOSTS = (
+    "claude-code",
+    "claude-managed-agents",
+    "codex",
+    "gemini",
+    "portable",
+)
+
+
+def compiled_evidence_artifact_paths(
+    agent_id: str,
+    *,
+    evidence_plan_ids: tuple[str, ...],
+    profile_contract_ids: tuple[str, ...],
+) -> set[str]:
+    """Return the exact cross-host paths emitted for compiled evidence support."""
+
+    paths: set[str] = set()
+    for host in PUBLISHED_EVIDENCE_HOSTS:
+        paths.update(
+            f"{host}/{agent_id}/evidence-plans/{plan_id}.json"
+            for plan_id in evidence_plan_ids
+        )
+        paths.update(
+            f"{host}/{agent_id}/profile-contracts/{profile_id}.json"
+            for profile_id in profile_contract_ids
+        )
+    return paths
+
 
 def assert_host_bundle_files(bundle_dir: Path, relative_paths: set[str]) -> None:
     """Assert the expected bundle files exist under one published host directory."""

@@ -208,7 +208,7 @@ Route once to an exact package decision, exact package risk summary, or bounded 
 ### Evidence Query Recipes
 
 - `repository-local-manifest-inventory`/repository-review: `find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod' -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print`
-- `repository-project-by-git`/repository-review: `endorctl agent api --agent-id dependency-reviewer list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `repository-project-by-git`/repository-review: `endorctl agent api --agent-id dependency-reviewer list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - `repository-package-version-exact`/repository-review: `endorctl agent api --agent-id dependency-reviewer list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
 - `repository-selected-package-findings`/repository-review: `endorctl agent api --agent-id dependency-reviewer list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
 

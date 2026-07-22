@@ -118,11 +118,20 @@ Run these from the repository root:
 
 ```bash
 pytest
+python scripts/check_repository_hygiene.py
+python scripts/smoke_test_provider_installations.py --root .
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 endor-agent-kit verify-endor-context --upstream
 git status --short --ignored plugins/gemini plugins/antigravity
 ```
+
+For a real source-to-mirror publish, also require both release evidence bundles:
+
+- private QA `benchmark-acceptance.json` with a passing frozen timing and semantic-quality gate whose treatment commit is the exact 40-character publishing source SHA;
+- backend telemetry acceptance conforming to `schemas/backend-agent-telemetry-acceptance.schema.json`, including all canonical IDs, all legacy aliases, attributed `endorctl agent api` transport, and passing Audit Log correlation.
+
+Validate the pair with `scripts/validate_release_evidence.py`; see `docs/backend-agent-telemetry-acceptance.md`. A missing or stale bundle blocks publication. A manual `dry_run=true` may regenerate and validate packages, but cannot publish.
 
 The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not
@@ -170,6 +179,10 @@ Before release, verify:
 - The generated `ai-plugins` PR includes the current `CHANGELOG.md`.
 - The PR body links to the source Agent Kit commit and lists validation,
   manifest digest, and provenance bundle digest.
+- `python scripts/validate_mirror_provenance.py` passes in the generated mirror.
+- The package version and `agents-v<version>` tag are new and unused. Never move
+  or reuse a published catalog tag; the existing `2.1.0` package version must be
+  intentionally advanced before the next release.
 
 Use `docs/distribution-sync.md` only for local dry runs or manual fallback.
 

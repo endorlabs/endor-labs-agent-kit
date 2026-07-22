@@ -15,6 +15,7 @@ from host_artifact_bundle_contract import (
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
+    compiled_evidence_artifact_paths,
 )
 
 
@@ -329,7 +330,11 @@ def test_configuration_automation_publish_writes_claude_code_managed_and_codex_c
         "manifest.json",
         "README.md",
         "catalog.json",
-    }
+    } | compiled_evidence_artifact_paths(
+        "configuration-automation",
+        evidence_plan_ids=("evidence-check",),
+        profile_contract_ids=("resolve-scope", "evidence-check", "prescribe-actions"),
+    )
     agent_dir = dest / "claude-code" / "configuration-automation"
     managed_dir = dest / "claude-managed-agents" / "configuration-automation"
     codex_dir = dest / "codex" / "configuration-automation"

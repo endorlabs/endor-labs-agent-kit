@@ -74,7 +74,7 @@ def publish_root_mcp_support(
 
 def _root_gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     rows = [
-        f"- {_workflow_label(prepared.recipe.id)}: use skill `{prepared.recipe.id}`."
+        f"- {prepared.recipe.name}: use skill `{prepared.recipe.id}`."
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -107,16 +107,3 @@ def _root_gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "configure Endor MCP without explicit user approval.",
         "",
     ])
-
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-remediation": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "troubleshooting": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "malware-responder": "Malware Response",
-        "configuration-automation": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())

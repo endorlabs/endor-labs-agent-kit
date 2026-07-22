@@ -9,16 +9,16 @@ Generated for the Endor Labs Agent Kit Gemini CLI extension.
 
 ## Bundled Gemini CLI Workflows
 
-- `Triage AI SAST findings` -> skill `ai-sast-remediation`, subagent `@ai-sast-remediation`
-- `Assess CI/CD and supply chain posture` -> skill `cicd-posture`, subagent `@cicd-posture`
-- `Assess GitHub onboarding gaps` -> skill `configuration-automation`, subagent `@configuration-automation`
+- `AI SAST Remediation` -> skill `ai-sast-remediation`, subagent `@ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> skill `cicd-posture`, subagent `@cicd-posture`
+- `Configuration Automation` -> skill `configuration-automation`, subagent `@configuration-automation`
 - `Dependency Reviewer` -> skill `dependency-reviewer`, subagent `@dependency-reviewer`
-- `Browse existing Endor findings` -> skill `findings-browser`, subagent `@findings-browser`
+- `Findings Browser` -> skill `findings-browser`, subagent `@findings-browser`
 - `Malware Responder` -> skill `malware-responder`, subagent `@malware-responder`
-- `Oss Upgrade Investigator` -> skill `oss-upgrade-investigator`, subagent `@oss-upgrade-investigator`
+- `OSS Upgrade Investigator` -> skill `oss-upgrade-investigator`, subagent `@oss-upgrade-investigator`
 - `Remediation Planning` -> skill `remediation-planning`, subagent `@remediation-planning`
-- `Find safe SCA remediation paths` -> skill `sca-remediation`, subagent `@sca-remediation`
-- `Diagnose Endor setup and scan issues` -> skill `troubleshooting`, subagent `@troubleshooting`
+- `SCA Remediation` -> skill `sca-remediation`, subagent `@sca-remediation`
+- `Troubleshooting` -> skill `troubleshooting`, subagent `@troubleshooting`
 - `Vulnerability Explainer` -> skill `vulnerability-explainer`, subagent `@vulnerability-explainer`
 
 ## Gemini CLI Extension Install Commands

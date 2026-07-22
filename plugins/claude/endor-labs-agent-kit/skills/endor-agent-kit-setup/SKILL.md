@@ -16,17 +16,17 @@ Generated for the Endor Labs Agent Kit Claude Code plugin.
 
 ## Bundled Claude Code Agents
 
-- `Triage AI SAST findings` -> Claude Code agent `ai-sast-remediation`
-- `Assess CI/CD and supply chain posture` -> Claude Code agent `cicd-posture`
-- `Assess GitHub onboarding gaps` -> Claude Code agent `configuration-automation`
-- `Review package decisions, package risk, or repository dependencies` -> Claude Code agent `dependency-reviewer`
-- `Browse existing Endor findings` -> Claude Code agent `findings-browser`
+- `AI SAST Remediation` -> Claude Code agent `ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> Claude Code agent `cicd-posture`
+- `Configuration Automation` -> Claude Code agent `configuration-automation`
+- `Dependency Reviewer` -> Claude Code agent `dependency-reviewer`
+- `Findings Browser` -> Claude Code agent `findings-browser`
 - `Malware Responder` -> Claude Code agent `malware-responder`
-- `Analyze upgrade impact` -> Claude Code agent `oss-upgrade-investigator`
-- `Plan remediation across findings` -> Claude Code agent `remediation-planning`
-- `Find safe SCA remediation paths` -> Claude Code agent `sca-remediation`
-- `Diagnose Endor setup and scan issues` -> Claude Code agent `troubleshooting`
-- `Explain vulnerability risk and remediation` -> Claude Code agent `vulnerability-explainer`
+- `OSS Upgrade Investigator` -> Claude Code agent `oss-upgrade-investigator`
+- `Remediation Planning` -> Claude Code agent `remediation-planning`
+- `SCA Remediation` -> Claude Code agent `sca-remediation`
+- `Troubleshooting` -> Claude Code agent `troubleshooting`
+- `Vulnerability Explainer` -> Claude Code agent `vulnerability-explainer`
 
 ## Claude Code Plugin Install Commands
 

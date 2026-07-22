@@ -20,16 +20,16 @@ before live Endor work.
 
 User jobs mapped to root skills:
 
-- Triage AI SAST findings: use skill `ai-sast-remediation`.
-- Assess CI/CD and supply chain posture: use skill `cicd-posture`.
-- Assess GitHub onboarding gaps: use skill `configuration-automation`.
+- AI SAST Remediation: use skill `ai-sast-remediation`.
+- CI/CD And Supply Chain Posture: use skill `cicd-posture`.
+- Configuration Automation: use skill `configuration-automation`.
 - Dependency Reviewer: use skill `dependency-reviewer`.
-- Browse existing Endor findings: use skill `findings-browser`.
-- Malware Response: use skill `malware-responder`.
-- Oss Upgrade Investigator: use skill `oss-upgrade-investigator`.
+- Findings Browser: use skill `findings-browser`.
+- Malware Responder: use skill `malware-responder`.
+- OSS Upgrade Investigator: use skill `oss-upgrade-investigator`.
 - Remediation Planning: use skill `remediation-planning`.
-- Find safe SCA remediation paths: use skill `sca-remediation`.
-- Diagnose Endor setup and scan issues: use skill `troubleshooting`.
+- SCA Remediation: use skill `sca-remediation`.
+- Troubleshooting: use skill `troubleshooting`.
 - Vulnerability Explainer: use skill `vulnerability-explainer`.
 
 Setup must not run scans, run `endorctl host-check`, edit shell profiles,

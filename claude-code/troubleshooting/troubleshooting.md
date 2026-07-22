@@ -1273,7 +1273,7 @@ Prepare a minimal support packet without secrets or mutation.
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-- Template: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
@@ -1282,7 +1282,7 @@ Prepare a minimal support packet without secrets or mutation.
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-- Template: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
@@ -1318,7 +1318,7 @@ Prepare a minimal support packet without secrets or mutation.
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-- Template: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 

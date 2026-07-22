@@ -217,7 +217,7 @@ recipes:
       - Do not fabricate affected packages, versions, IOCs, behavior, attribution, or references.
 
   - id: exposure-guidance-source
-    title: Malware Response Guidance Source
+    title: Malware Responder Guidance Source
     resource: external-intelligence
     purpose: Tie response guidance, IOCs, and remediation recommendations to the intelligence source that supports them.
     template: host_search_or_user_references(malware_name=<MALWARE_NAME>, reference_urls=<REFERENCE_URLS>)

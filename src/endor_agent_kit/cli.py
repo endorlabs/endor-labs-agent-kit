@@ -264,6 +264,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Print the SLSA-style in-toto provenance statement for the catalog",
     )
     provenance_statement_parser.add_argument("--catalog-root", default=Path("."), type=Path)
+    provenance_statement_parser.add_argument(
+        "--output",
+        type=Path,
+        help="Write the deterministic statement to a file instead of stdout.",
+    )
 
     add_workflow_command_parsers(subparsers)
 
@@ -547,7 +552,13 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, ValueError) as exc:
             print(f"ERROR: {exc}")
             return 1
-        print(json.dumps(statement, indent=2, sort_keys=True))
+        encoded = json.dumps(statement, indent=2, sort_keys=True) + "\n"
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(encoded, encoding="utf-8")
+            print(f"OK: {args.output}")
+        else:
+            print(encoded, end="")
         return 0
 
     workflow_result = run_workflow_command(args)

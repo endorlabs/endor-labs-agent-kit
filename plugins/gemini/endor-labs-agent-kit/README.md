@@ -76,16 +76,16 @@ package managers.
 
 | Job | Gemini skill | Gemini subagent | Safety |
 | --- | --- | --- | --- |
-| Triage AI SAST findings | `ai-sast-remediation` | `@ai-sast-remediation` | mutating, approval-gated |
-| Assess CI/CD and supply chain posture | `cicd-posture` | `@cicd-posture` | read-only |
-| Assess GitHub onboarding gaps | `configuration-automation` | `@configuration-automation` | read-only |
+| AI SAST Remediation | `ai-sast-remediation` | `@ai-sast-remediation` | mutating, approval-gated |
+| CI/CD And Supply Chain Posture | `cicd-posture` | `@cicd-posture` | read-only |
+| Configuration Automation | `configuration-automation` | `@configuration-automation` | read-only |
 | Dependency Reviewer | `dependency-reviewer` | `@dependency-reviewer` | read-only |
-| Browse existing Endor findings | `findings-browser` | `@findings-browser` | read-only |
+| Findings Browser | `findings-browser` | `@findings-browser` | read-only |
 | Malware Responder | `malware-responder` | `@malware-responder` | read-only |
-| Oss Upgrade Investigator | `oss-upgrade-investigator` | `@oss-upgrade-investigator` | read-only |
+| OSS Upgrade Investigator | `oss-upgrade-investigator` | `@oss-upgrade-investigator` | read-only |
 | Remediation Planning | `remediation-planning` | `@remediation-planning` | read-only |
-| Find safe SCA remediation paths | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
-| Diagnose Endor setup and scan issues | `troubleshooting` | `@troubleshooting` | read-only |
+| SCA Remediation | `sca-remediation` | `@sca-remediation` | mutating, approval-gated |
+| Troubleshooting | `troubleshooting` | `@troubleshooting` | read-only |
 | Vulnerability Explainer | `vulnerability-explainer` | `@vulnerability-explainer` | read-only |
 
 Mutating workflows keep file edits, branch pushes, PR/MR creation,

@@ -17,6 +17,10 @@ plans:
       - finding_category
       - finding_tag
       - source_digest
+    inventory:
+      default_mode: bounded
+      exhaustive_supported: true
+      exhaustive_max_pages: 20
     attribution:
       required: true
       agent_id: <agent-id>

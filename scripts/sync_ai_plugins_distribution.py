@@ -24,6 +24,8 @@ SYNC_FILES = (
     ("GEMINI.md", "GEMINI.md"),
     (".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"),
     (".agents/plugins/marketplace.json", ".agents/plugins/marketplace.json"),
+    ("scripts/check_repository_hygiene.py", "scripts/check_repository_hygiene.py"),
+    ("scripts/validate_mirror_provenance.py", "scripts/validate_mirror_provenance.py"),
 )
 
 STALE_GENERATED_FILES = (

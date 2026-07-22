@@ -136,3 +136,20 @@ def test_provenance_statement_cli_emits_valid_json(capsys):
     statement = json.loads(output)
     assert statement["_type"] == STATEMENT_TYPE
     assert statement["subject"][0]["name"] == "manifest.json"
+
+
+def test_provenance_statement_cli_writes_output_file(tmp_path):
+    output = tmp_path / "statement.json"
+
+    status = main(
+        [
+            "provenance-statement",
+            "--catalog-root",
+            str(repo_root()),
+            "--output",
+            str(output),
+        ]
+    )
+
+    assert status == 0
+    assert json.loads(output.read_text(encoding="utf-8"))["_type"] == STATEMENT_TYPE

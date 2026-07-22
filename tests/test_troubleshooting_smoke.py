@@ -16,6 +16,7 @@ from host_artifact_bundle_contract import (
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
+    compiled_evidence_artifact_paths,
 )
 
 
@@ -265,7 +266,11 @@ def test_troubleshooting_publish_writes_host_catalog_surfaces(tmp_path):
         "manifest.json",
         "README.md",
         "catalog.json",
-    }
+    } | compiled_evidence_artifact_paths(
+        "troubleshooting",
+        evidence_plan_ids=("diagnose",),
+        profile_contract_ids=("classify", "diagnose", "support-packet"),
+    )
     agent_dir = dest / "claude-code" / "troubleshooting"
     managed_dir = dest / "claude-managed-agents" / "troubleshooting"
     codex_dir = dest / "codex" / "troubleshooting"

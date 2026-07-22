@@ -362,7 +362,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
@@ -371,7 +371,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-by-package`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch UIA impact candidates for one package/from/to selector.
-- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 - Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Filter by the selected package or exact upgrade selector. Do not query broad Findings to estimate upgrade impact.
 
@@ -380,7 +380,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-by-package`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch UIA impact candidates for one package/from/to selector.
-- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 - Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Filter by the selected package or exact upgrade selector. Do not query broad Findings to estimate upgrade impact.
 
@@ -389,7 +389,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 - Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
 
@@ -398,7 +398,7 @@ Explain one selected upgrade impact using VersionUpgrade detail and minimal loca
 - Canonical: `version-upgrade-detail`
 - Resource: `VersionUpgrade`
 - Purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 - Fields: `uuid`, `spec.name`, `spec.upgrade_info`
 - Constraints: Use after candidate summary ranking. If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
 

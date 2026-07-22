@@ -323,7 +323,7 @@ Gather read-only posture evidence and compute deterministic scores.
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve repository selector to Endor project identity before scoped posture lookup.
-- Template: `endorctl agent api --agent-id cicd-posture list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id cicd-posture list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
@@ -341,7 +341,7 @@ Gather read-only posture evidence and compute deterministic scores.
 - Canonical: `endor-repository-config`
 - Resource: `Repository`
 - Purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
-- Template: `endorctl agent api --agent-id cicd-posture list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json`
+- Template: `endorctl agent api --agent-id cicd-posture list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json`
 - Fields: `uuid`, `meta.name`, `spec.default_branch`, `spec.branch_protections`, `spec.vulnerability_alerts_enabled`, `spec.org`
 - Constraints: The Repository resource is listed namespace-wide; match selected repositories locally by meta.name or repository identity. Some tenants do not expose the Repository resource or reject nested spec field masks; record the gap and fall back to the read-only GitHub branch-protection recipe. Treat ingested configuration as read-only evidence.
 

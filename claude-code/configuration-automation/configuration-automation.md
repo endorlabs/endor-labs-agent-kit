@@ -1341,7 +1341,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 - Canonical: `project-branch-coverage`
 - Resource: `Project`
 - Purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
-- Template: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `spec.git`
 - Constraints: Compare only selected repositories. Do not run scans or mutate GitHub or Endor settings.
 
@@ -1350,7 +1350,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 - Canonical: `project-branch-coverage`
 - Resource: `Project`
 - Purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
-- Template: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `spec.git`
 - Constraints: Compare only selected repositories. Do not run scans or mutate GitHub or Endor settings.
 
@@ -1368,7 +1368,7 @@ Prescribe read-only onboarding fixes from verified coverage gaps.
 - Canonical: `project-branch-coverage`
 - Resource: `Project`
 - Purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
-- Template: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id configuration-automation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `spec.git`
 - Constraints: Compare only selected repositories. Do not run scans or mutate GitHub or Endor settings.
 

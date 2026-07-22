@@ -246,7 +246,7 @@ Fetch one exact Finding UUID and avoid unrelated list expansion.
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve repository selector to Endor project identity before finding browse.
-- Template: `endorctl agent api --agent-id findings-browser list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id findings-browser list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
@@ -255,7 +255,7 @@ Fetch one exact Finding UUID and avoid unrelated list expansion.
 - Canonical: `finding-browser-filtered`
 - Resource: `Finding`
 - Purpose: List bounded existing Finding rows for verified filters.
-- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
+- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.finding_tags`, `spec.target_dependency_package_name`, `spec.finding_metadata`
 - Constraints: Keep list requests bounded and projected. Do not use broad unfiltered Finding --list-all queries.
 
@@ -273,7 +273,7 @@ Fetch one exact Finding UUID and avoid unrelated list expansion.
 - Canonical: `finding-browser-by-tag`
 - Resource: `Finding`
 - Purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
-- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
+- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.finding_tags`, `spec.target_dependency_package_name`, `spec.finding_metadata`
 - Constraints: Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags. Combine the tag clause with severity, category, or project scope for exploit-first triage and keep the page bounded. Surface the returned spec.finding_tags in finding_results so exploit and fix status are visible.
 

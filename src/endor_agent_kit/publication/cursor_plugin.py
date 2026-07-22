@@ -398,7 +398,7 @@ def _cursor_host_contract(recipe: EndorAgentRecipe) -> str:
 def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> skill `{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> skill `{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -440,7 +440,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
 def _render_setup_agent(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> agent `{_cursor_agent_name(prepared.recipe.id)}` and skill `{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> agent `{_cursor_agent_name(prepared.recipe.id)}` and skill `{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -596,14 +596,3 @@ def _cursor_agent_name(agent_id: str) -> str:
 
 def _cursor_bool(value: bool) -> str:
     return "true" if value else "false"
-
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-remediation": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "troubleshooting": "Diagnose Endor setup and scan issues",
-        "configuration-automation": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())

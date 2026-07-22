@@ -42,7 +42,7 @@ def test_upgrade_impact_managed_readme_uses_project_selector_not_uuid(tmp_path):
     ).is_file()
 
 
-def test_remediation_planner_uses_repository_context_not_required_uuid(tmp_path):
+def test_remediation_planning_uses_repository_context_not_required_uuid(tmp_path):
     recipe = _copy_agent(tmp_path, "remediation-planning")
     dest = tmp_path / "endor-labs-agent-kit"
 

@@ -22,7 +22,6 @@ from endor_agent_kit.publication.cursor_plugin import (
     _cursor_agent_name,
     _cursor_text,
     _setup_source,
-    _workflow_label,
 )
 from endor_agent_kit.publication.plugin_package_common import (
     PLUGIN_DISPLAY_NAME,
@@ -227,7 +226,7 @@ def _cursor_sdk_host_contract(prepared: PreparedSourceRecipe) -> str:
 def _render_setup_prompt(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> SDK agent `{_cursor_agent_name(prepared.recipe.id)}`"
+        f"- `{prepared.recipe.name}` -> SDK agent `{_cursor_agent_name(prepared.recipe.id)}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([

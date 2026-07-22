@@ -15,6 +15,10 @@ plans:
       - scope_filter
       - repo_full_name
       - source_digest
+    inventory:
+      default_mode: bounded
+      exhaustive_supported: true
+      exhaustive_max_pages: 20
     attribution:
       required: true
       agent_id: <agent-id>
