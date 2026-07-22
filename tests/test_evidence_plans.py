@@ -64,6 +64,38 @@ def test_compiled_ai_sast_plan_has_mutually_exclusive_uuid_routes():
     assert project_label.condition == "steps.finding-by-uuid.repository_identity_missing"
 
 
+def test_compiled_ai_sast_known_finding_emits_compact_domain_evidence():
+    plan = compile_evidence_plan("ai-sast-remediation", "evidence-check")
+    finding = next(step for step in plan.steps if step.id == "finding-by-uuid")
+    outputs = {output.name: output for output in finding.outputs}
+
+    assert tuple(outputs) == (
+        "finding_uuid",
+        "project_uuid",
+        "source_ref",
+        "repository_identity",
+        "finding_name",
+        "severity",
+        "cwe",
+        "source_location",
+        "file_path",
+        "source_sha",
+        "sast_rule_id",
+        "classification_evidence",
+        "data_flow_summary",
+    )
+    assert outputs["classification_evidence"].path == (
+        "$.spec.finding_metadata.ai_sast_data.verification_scorecard"
+    )
+    assert outputs["classification_evidence"].required is False
+    assert outputs["file_path"].path == (
+        "$.spec.finding_metadata.ai_sast_data.location.relative_path"
+    )
+    assert all(output.required is False for output in tuple(outputs.values())[2:])
+    assert all("exploit_reproduction" not in output.path for output in outputs.values())
+    assert all("remediation" not in output.path for output in outputs.values())
+
+
 def test_compiled_sca_selection_plan_narrows_summary_before_one_candidate_detail():
     plan = compile_evidence_plan("sca-remediation", "selection-plan")
 
@@ -77,6 +109,13 @@ def test_compiled_sca_selection_plan_narrows_summary_before_one_candidate_detail
     ]
     summary = plan.steps[1]
     detail = plan.steps[2]
+    assert "spec.upgrade_info.is_best==true" in summary.template
+    assert "--sort-path spec.upgrade_info.score --sort-order descending" in summary.template
+    assert "--page-size 1" in summary.template
+    assert "--list-all" not in summary.template
+    assert "spec.upgrade_info.vuln_finding_info" not in summary.fields
+    assert "spec.upgrade_info.is_best" in summary.fields
+    assert "spec.upgrade_info.score" in summary.fields
     assert detail.depends_on == (summary.id,)
     assert next(binding for binding in detail.inputs if binding.name == "candidate_uuid").source == (
         "steps.version-upgrade-summary.best_candidate_uuid"

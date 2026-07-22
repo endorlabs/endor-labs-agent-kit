@@ -522,19 +522,22 @@ recipes:
   - id: version-upgrade-summary
     title: VersionUpgrade Candidate Summary
     resource: VersionUpgrade
-    purpose: Fetch ranked worthwhile upgrade candidates before selecting detailed evidence.
+    purpose: Select one server-ranked worthwhile upgrade candidate before fetching its detailed evidence.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true and spec.upgrade_info.is_best==true' --sort-path spec.upgrade_info.score --sort-order descending --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.score" -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.score
     constraints:
       - Run before detailed Finding expansion for selection plans.
+      - Let Endor rank `is_best` candidates by score and return only the first bounded summary.
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
-    completeness: Uses --list-all because candidate selection needs the complete scoped worthwhile-upgrade set for the resolved project.
+    completeness: Selects one highest-score `is_best` candidate for the resolved project; the next query fetches complete detail only for that UUID.
     forbidden:
       - Do not select remediation from broad Finding counts before this candidate evidence exists.
+      - Do not fetch every candidate or full `spec.upgrade_info` bodies in the summary query.
 
   - id: version-upgrade-detail
     title: VersionUpgrade Candidate Detail

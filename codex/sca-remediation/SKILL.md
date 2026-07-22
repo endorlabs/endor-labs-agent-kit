@@ -768,10 +768,10 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 
 - Canonical: `version-upgrade-summary`
 - Resource: `VersionUpgrade`
-- Purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
-- Template: `endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json`
-- Fields: `uuid`, `spec.name`, `spec.upgrade_info`
-- Constraints: Run before detailed Finding expansion for selection plans. Do not call a candidate safe without UIA/CIA evidence or data_gaps.
+- Purpose: Select one server-ranked UIA candidate with compact fields before any detailed Finding expansion.
+- Template: `endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true and spec.upgrade_info.is_best==true' --sort-path spec.upgrade_info.score --sort-order descending --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.score" -o json`
+- Fields: `uuid`, `spec.name`, `spec.upgrade_info.is_best`, `spec.upgrade_info.score`
+- Constraints: Run before detailed Finding expansion for selection plans. Let Endor rank `is_best` candidates by score and return only the first bounded summary. Do not call a candidate safe without UIA/CIA evidence or data_gaps.
 
 #### `version-upgrade-detail` (selection-plan)
 

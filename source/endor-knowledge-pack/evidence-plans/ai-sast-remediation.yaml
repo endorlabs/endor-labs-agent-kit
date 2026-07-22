@@ -81,6 +81,42 @@ plans:
             path: $.spec.finding_metadata.repository
             type: string
             required: false
+          - name: finding_name
+            path: $.spec.finding_metadata.custom.ai_title
+            type: string
+            required: false
+          - name: severity
+            path: $.spec.level
+            type: string
+            required: false
+          - name: cwe
+            path: $.spec.finding_metadata.custom.cwes[0]
+            type: string
+            required: false
+          - name: source_location
+            path: $.spec.finding_metadata.custom.location
+            type: string
+            required: false
+          - name: file_path
+            path: $.spec.finding_metadata.ai_sast_data.location.relative_path
+            type: string
+            required: false
+          - name: source_sha
+            path: $.spec.source_code_version.sha
+            type: string
+            required: false
+          - name: sast_rule_id
+            path: $.spec.finding_metadata.custom.sast_rule_id
+            type: string
+            required: false
+          - name: classification_evidence
+            path: $.spec.finding_metadata.ai_sast_data.verification_scorecard
+            type: string
+            required: false
+          - name: data_flow_summary
+            path: $.spec.finding_metadata.ai_sast_data.summary
+            type: string
+            required: false
       - id: project-by-uuid
         recipe_id: project-by-uuid
         canonical_recipe_id: project-by-uuid

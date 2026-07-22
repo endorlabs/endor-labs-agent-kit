@@ -50,3 +50,43 @@ def test_read_only_profile_validator_accepts_projected_evidence_and_rejects_muta
         {**payload, "selected_remediation": {"name": "not allowed"}},
     )
     assert errors == ["selected_remediation: not allowed by task profile evidence-check"]
+
+
+def test_compiled_ai_sast_evidence_profile_uses_compact_domain_verdicts():
+    contract = compile_profile_contract("ai-sast-remediation", "evidence-check")
+    verdicts = contract.provider_neutral_schema["properties"]["verdicts"]
+    verdict = verdicts["items"]
+    expected_fields = {
+        "finding_uuid",
+        "finding_name",
+        "classification",
+        "severity",
+        "cwe",
+        "source_location",
+        "file_path",
+        "source_sha",
+        "source_ref",
+        "source_ref_provenance",
+        "sast_rule_id",
+        "data_flow_summary",
+        "scorecard_summary",
+        "exploit_reproduction_summary",
+        "remediation_guidance_summary",
+        "priority_rationale",
+        "result_count",
+        "evidence",
+    }
+
+    assert verdict["additionalProperties"] is False
+    assert set(verdict["properties"]) == expected_fields
+    assert set(verdict["required"]) == expected_fields
+    assert verdict["properties"]["result_count"]["type"] == ["integer", "null"]
+    assert set(verdict["properties"]["evidence"]["items"]["properties"]) == {
+        "label",
+        "location",
+        "url",
+        "snippet",
+        "note",
+    }
+    assert "branch_name" not in verdict["properties"]
+    assert "malware_name" not in verdict["properties"]
