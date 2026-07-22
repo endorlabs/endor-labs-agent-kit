@@ -161,29 +161,35 @@ evidence_query_recipes:
     id: version-upgrade-summary
     canonical_id: version-upgrade-summary
     resource: VersionUpgrade
-    purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+    purpose: Select one server-ranked UIA candidate with compact fields before any detailed Finding expansion.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
+      and spec.upgrade_info.worth_it==true and spec.upgrade_info.is_best==true' --sort-path spec.upgrade_info.score --sort-order descending --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.score"
+      -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.score
     constraints:
       - Run before detailed Finding expansion for selection plans.
+      - Let Endor rank `is_best` candidates by score and return only the first bounded summary.
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
   - profile_id: selection-plan
     id: version-upgrade-summary
     canonical_id: version-upgrade-summary
     resource: VersionUpgrade
-    purpose: List ranked UIA candidates with compact fields before any detailed Finding expansion.
+    purpose: Select one server-ranked UIA candidate with compact fields before any detailed Finding expansion.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.worth_it==true' --field-mask "uuid,spec.name,spec.upgrade_info" --list-all -o json
+      and spec.upgrade_info.worth_it==true and spec.upgrade_info.is_best==true' --sort-path spec.upgrade_info.score --sort-order descending --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.is_best,spec.upgrade_info.score"
+      -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.score
     constraints:
       - Run before detailed Finding expansion for selection plans.
+      - Let Endor rank `is_best` candidates by score and return only the first bounded summary.
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
   - profile_id: selection-plan
     id: version-upgrade-detail

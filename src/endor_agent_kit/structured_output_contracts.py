@@ -216,6 +216,8 @@ def required_fields_for(
 def json_schema_for_agent(
     agent_id: str,
     output_fields: tuple[str, ...] | None = None,
+    *,
+    profile_id: str | None = None,
 ) -> dict[str, Any]:
     """Return a JSON Schema for the agent's final structured output."""
 
@@ -223,7 +225,11 @@ def json_schema_for_agent(
     if not contract:
         raise ValueError(f"unknown structured output contract: {agent_id}")
     properties = {
-        field.name: _json_schema_for_field(field)
+        field.name: _json_schema_for_field(
+            field,
+            agent_id=agent_id,
+            profile_id=profile_id,
+        )
         for field in contract
     }
     return {
@@ -239,6 +245,8 @@ def json_schema_for_agent(
 def strict_transport_schema_for_agent(
     agent_id: str,
     output_fields: tuple[str, ...] | None = None,
+    *,
+    profile_id: str | None = None,
 ) -> dict[str, Any]:
     """Return a strict-host schema with every logical property present.
 
@@ -247,7 +255,11 @@ def strict_transport_schema_for_agent(
     back to omission before logical validation.
     """
 
-    schema = json_schema_for_agent(agent_id, output_fields)
+    schema = json_schema_for_agent(
+        agent_id,
+        output_fields,
+        profile_id=profile_id,
+    )
     schema["required"] = list(schema["properties"])
     return schema
 
@@ -326,8 +338,18 @@ def _normalize_ai_sast_patch(patch: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
-def _json_schema_for_field(field: StructuredOutputField) -> dict[str, Any]:
+def _json_schema_for_field(
+    field: StructuredOutputField,
+    *,
+    agent_id: str,
+    profile_id: str | None,
+) -> dict[str, Any]:
     nullable = not field.required or field.kind == "object"
+    profile_override = PROFILE_FIELD_SCHEMA_OVERRIDES.get(
+        (agent_id, profile_id, field.name)
+    )
+    if profile_override is not None:
+        return _with_nullable(profile_override(), nullable=nullable)
     if field.name in FIELD_SCHEMA_OVERRIDES:
         return _with_nullable(FIELD_SCHEMA_OVERRIDES[field.name](), nullable=nullable)
     return _json_schema_for_kind(field.kind, nullable=nullable)
@@ -755,6 +777,43 @@ def _uia_evidence_schema() -> dict[str, Any]:
     }
 
 
+def _ai_sast_evidence_verdicts_schema() -> dict[str, Any]:
+    evidence_item = _strict_object_schema(
+        {
+            "label": _nullable_string(),
+            "location": _nullable_string(),
+            "url": _nullable_string(),
+            "snippet": _nullable_string(),
+            "note": _nullable_string(),
+        }
+    )
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "finding_uuid": _nullable_string(),
+                "finding_name": _nullable_string(),
+                "classification": _nullable_string(),
+                "severity": _nullable_string(),
+                "cwe": _nullable_string(),
+                "source_location": _nullable_string(),
+                "file_path": _nullable_string(),
+                "source_sha": _nullable_string(),
+                "source_ref": _nullable_string(),
+                "source_ref_provenance": _nullable_string(),
+                "sast_rule_id": _nullable_string(),
+                "data_flow_summary": _nullable_string(),
+                "scorecard_summary": _nullable_string(),
+                "exploit_reproduction_summary": _nullable_string(),
+                "remediation_guidance_summary": _nullable_string(),
+                "priority_rationale": _nullable_string(),
+                "result_count": _nullable_integer(),
+                "evidence": {"type": ["array", "null"], "items": evidence_item},
+            }
+        ),
+    }
+
+
 def _remediation_candidates_schema() -> dict[str, Any]:
     return {
         "type": "array",
@@ -1012,6 +1071,15 @@ def _task_state_schema() -> dict[str, Any]:
             "data_gaps": _nullable_string_array(),
         }
     )
+
+
+PROFILE_FIELD_SCHEMA_OVERRIDES = {
+    (
+        "ai-sast-remediation",
+        "evidence-check",
+        "verdicts",
+    ): _ai_sast_evidence_verdicts_schema,
+}
 
 
 FIELD_SCHEMA_OVERRIDES = {

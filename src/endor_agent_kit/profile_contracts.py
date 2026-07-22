@@ -96,7 +96,11 @@ def compile_profile_contract(
         raise ValueError(f"unknown task profile {profile_id!r} for agent {agent_id!r}")
 
     projected_fields = profile.output_fields or None
-    schema = json_schema_for_agent(agent_id, projected_fields)
+    schema = json_schema_for_agent(
+        agent_id,
+        projected_fields,
+        profile_id=profile_id,
+    )
     output_fields = tuple(schema["properties"])
     required_fields = tuple(schema["required"])
     schema_json = json.dumps(schema, ensure_ascii=False, separators=(",", ":"))
