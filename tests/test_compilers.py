@@ -100,6 +100,7 @@ def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundl
         "sca-remediation-selection-plan.md",
     ]
     scoped = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-evidence-check.md").read_text()
+    selection = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-selection-plan.md").read_text()
     base = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation.md").read_text()
     assert "name: sca-remediation-evidence-check" in scoped
     assert "Profiles: `evidence-check`" in scoped
@@ -108,6 +109,11 @@ def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundl
     assert "Never edit files" in scoped
     assert "Do not fabricate findings" in scoped
     assert "## PR/MR Body And Comment Requirements" not in scoped
+    assert "`summary`, `project_resolution`, `evidence_queries`, `selected_remediation`" in selection
+    assert '"remediation_candidates": []' not in selection
+    assert '"patch_plan": []' not in selection
+    assert '"tickets": []' not in selection
+    assert "## Task State Resume Contract" not in selection
 
 
 def test_ai_sast_profile_variant_reduces_input_without_losing_safety_invariants(tmp_path):

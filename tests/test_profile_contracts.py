@@ -32,6 +32,36 @@ def test_compiled_sca_evidence_profile_contract_is_projected_and_source_bound():
         int(payload[digest_name], 16)
 
 
+def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state():
+    contract = compile_profile_contract("sca-remediation", "selection-plan")
+
+    expected_fields = (
+        "summary",
+        "project_resolution",
+        "evidence_queries",
+        "selected_remediation",
+        "uia_evidence",
+        "risk_decision",
+        "change_requests",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    assert contract.projection_applied is True
+    assert contract.output_fields == expected_fields
+    assert contract.required_fields == expected_fields
+    assert tuple(contract.provider_neutral_schema["properties"]) == expected_fields
+    assert len(contract.provider_neutral_schema_json) < 10_000
+    for omitted_field in (
+        "remediation_candidates",
+        "patch_plan",
+        "validation",
+        "tickets",
+        "task_state",
+    ):
+        assert omitted_field not in contract.provider_neutral_schema["properties"]
+
+
 def test_read_only_profile_validator_accepts_projected_evidence_and_rejects_mutation_fields():
     payload = {
         "summary": "Evidence is unavailable.",

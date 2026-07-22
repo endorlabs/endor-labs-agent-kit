@@ -165,21 +165,23 @@ def instructions_for_edition(
     if knowledge_pack:
         sections_to_render.append(knowledge_pack)
     if structured_output_recipe is not None:
-        if structured_output_recipe.policy_pack_support:
-            sections_to_render.append(POLICY_PACK_GUIDANCE.rstrip())
-        if recipe_declares_output(structured_output_recipe, "task_state"):
-            task_state_contract = (
-                TASK_STATE_RESUME_CONTRACT_COMPACT
-                if effective_compact
-                else TASK_STATE_RESUME_CONTRACT
-            )
-            sections_to_render.append(task_state_contract.rstrip())
         profile_output_fields = None
         if selected_profile and selected_profile.output_fields and recipe_id is not None:
             profile_output_fields = compile_profile_contract(
                 recipe_id,
                 selected_profile.id,
             ).output_fields
+        if structured_output_recipe.policy_pack_support:
+            sections_to_render.append(POLICY_PACK_GUIDANCE.rstrip())
+        if recipe_declares_output(structured_output_recipe, "task_state") and (
+            profile_output_fields is None or "task_state" in profile_output_fields
+        ):
+            task_state_contract = (
+                TASK_STATE_RESUME_CONTRACT_COMPACT
+                if effective_compact
+                else TASK_STATE_RESUME_CONTRACT
+            )
+            sections_to_render.append(task_state_contract.rstrip())
         structured_output = render_structured_output_contract(
             structured_output_recipe,
             compact=effective_compact,
