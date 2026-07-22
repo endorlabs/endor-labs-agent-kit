@@ -25,6 +25,7 @@ cases:
       findings_verdict: EXACT_FINDING_FOUND
       required_evidence:
         - prefer exact Finding UUID get over list queries
+        - keep exact Finding lookup scoped to the selected namespace without child traversal
         - return one table-ready finding row with exact UUID and source context
         - include evidence_queries with query_template_id finding-by-uuid
         - avoid claiming project-wide or namespace-wide counts from one exact lookup
@@ -60,6 +61,7 @@ cases:
       findings_verdict: PARTIAL_RESULTS
       required_evidence:
         - keep namespace-wide finding listing bounded and record pagination or truncation
+        - include child namespaces with --traverse and record namespace_traversal as include_children
         - apply CICD and GHACTIONS categories without inventing complete tenant counts
         - recommend cicd-posture or other future workflow only as a read-only next step when available
         - record data_gaps for complete inventory or unavailable category fields

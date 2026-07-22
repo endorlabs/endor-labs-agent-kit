@@ -101,7 +101,7 @@
       "name": "Findings Browser",
       "audience": "appsec",
       "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
-      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
+      "description": "Use this agent proactively when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [

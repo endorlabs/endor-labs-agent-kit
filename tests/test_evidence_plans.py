@@ -216,6 +216,30 @@ def test_compiled_findings_browser_plan_routes_tag_or_filter_to_one_bounded_page
     )
 
 
+def test_compiled_findings_browser_plan_defaults_to_child_namespace_coverage():
+    plan = compile_evidence_plan("findings-browser", "browse")
+
+    assert plan.namespace_traversal_default == "include_children"
+    assert plan.exact_namespace_opt_out is True
+    assert "namespace_traversal" in plan.cache_identity
+    assert all("--traverse" in step.template for step in plan.steps)
+    assert plan.to_dict()["scope"]["namespace_traversal_default"] == "include_children"
+
+
+def test_evidence_plan_rejects_missing_default_child_namespace_traversal():
+    plan = compile_evidence_plan("findings-browser", "browse")
+    first, *remaining = plan.steps
+    invalid = replace(
+        plan,
+        steps=(replace(first, template=first.template.replace(" --traverse", "")), *remaining),
+    )
+
+    assert any(
+        "default child namespace coverage requires --traverse" in error
+        for error in validate_evidence_plan(invalid)
+    )
+
+
 def test_compiled_troubleshooting_plan_routes_one_classified_issue_lane():
     plan = compile_evidence_plan("troubleshooting", "diagnose")
 

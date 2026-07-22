@@ -180,6 +180,22 @@ def test_canonical_sca_finding_aggregation_preserves_package_and_severity_dimens
     )
 
 
+def test_findings_browser_queries_keep_traversal_and_pagination_independent():
+    pack = load_knowledge_pack()
+    filtered = pack.query_recipes["finding-browser-filtered"]
+    complete = pack.query_recipes["finding-browser-complete-counts"]
+    tagged = pack.query_recipes["finding-browser-by-tag"]
+    exact = pack.query_recipes["finding-by-uuid"]
+
+    assert "--traverse" in filtered.template
+    assert "--list-all" not in filtered.template
+    assert "--traverse" in tagged.template
+    assert "--list-all" not in tagged.template
+    assert "--traverse" in complete.template
+    assert "--list-all" in complete.template
+    assert "--traverse" not in exact.template
+
+
 def test_canonical_version_upgrade_count_is_count_only_and_project_scoped():
     recipe = load_knowledge_pack().query_recipes["version-upgrade-count"]
 

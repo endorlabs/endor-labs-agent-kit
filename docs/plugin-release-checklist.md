@@ -260,8 +260,13 @@ Local release validation:
 ```bash
 claude plugin validate plugins/claude/endor-labs-agent-kit
 claude plugin validate plugins/claude/ai-plugins
+python scripts/smoke_test_provider_installations.py --root . --require-claude-cli-validation
 claude --plugin-dir plugins/claude/endor-labs-agent-kit
 ```
+
+Never run `claude --plugin-dir .` from the repository root. That path exposes
+Cursor workflow skills and Cursor hook events to Claude Code and is an invalid
+host package boundary.
 
 Inside Claude Code, validate the package-local marketplace from the repository
 root:

@@ -7,6 +7,11 @@ import re
 
 _BARE_ENDORCTL_API_RE = re.compile(r"\bendorctl\s+api\b", re.IGNORECASE)
 _AGENT_API_RE = re.compile(r"\bendorctl\s+agent\s+api\b", re.IGNORECASE)
+_WRAPPED_AGENT_API_RE = re.compile(
+    r"\b(?:npx(?:\s+--?[a-z0-9-]+)*|npm\s+exec|pnpm\s+dlx|yarn\s+dlx)"
+    r"\s+endorctl\s+agent\s+api\b",
+    re.IGNORECASE,
+)
 _AGENT_ID_RE = re.compile(r"--agent-id(?:=|\s+)([a-z0-9-]+|<agent-id>)", re.IGNORECASE)
 _ACTION_RE = re.compile(r"\b(list|get|create|update|delete)\b", re.IGNORECASE)
 _RESOURCE_RE = re.compile(r"(?:--resource|(?<![\w-])-r)(?:=|\s+)([A-Za-z0-9]+)")
@@ -22,6 +27,12 @@ def agent_api_command_errors(
 
     errors: list[str] = []
     for line_number, line in enumerate(text.splitlines(), start=1):
+        if _WRAPPED_AGENT_API_RE.search(line):
+            errors.append(
+                f"line {line_number}: agent-facing Endor calls must invoke installed "
+                "`endorctl` directly"
+            )
+            continue
         if _BARE_ENDORCTL_API_RE.search(line):
             errors.append(
                 f"line {line_number}: agent-facing Endor calls must use `endorctl agent api`"
