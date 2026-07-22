@@ -149,6 +149,7 @@ Return `policy_context` with status, pack id, version, SHA-256 when known, and s
 ## Structured Output Contract
 
 Return exactly one parseable JSON object in the final answer.
+This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields, in order:
 `summary`, `project_resolution`, `evidence_queries`, `verdicts`, `data_gaps`, `policy_context`, `policy_evaluations`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.

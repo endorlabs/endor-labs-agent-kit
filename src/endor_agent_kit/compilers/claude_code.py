@@ -8,11 +8,9 @@ from textwrap import dedent
 
 from endor_agent_kit.compilers.rendering import (
     EDITIONS,
-    EDITION_CHOICES,
     LEGACY_EDITION_ALIASES,
     indent as _indent,
     instructions_for_edition as _instructions_for_edition,
-    instructions_for_variant as _instructions_for_variant,
     normalize_edition as _normalize_edition,
     render_action_contracts as _render_action_contracts,
 )
@@ -96,9 +94,16 @@ def compile_claude_code_prepared(
     )
     outputs: list[Path] = []
     workflow = load_knowledge_pack().workflow_for(recipe.id)
-    profiles = tuple(profile for profile in (workflow.task_profiles if workflow else ()) if profile.compact)
+    profiles = tuple(
+        profile
+        for profile in (workflow.task_profiles if workflow else ())
+        if profile.compact or profile.output_fields
+    )
     if profile_id is not None and profile_id not in {profile.id for profile in profiles}:
-        raise ValueError(f"unknown or non-compact task profile {profile_id!r} for agent {recipe.id!r}")
+        raise ValueError(
+            f"unknown task profile without a publishable projection {profile_id!r} "
+            f"for agent {recipe.id!r}"
+        )
     _remove_legacy_output_dirs(recipe_file.parent / "dist" / "claude-code")
     for item in EDITIONS:
         if item not in editions:

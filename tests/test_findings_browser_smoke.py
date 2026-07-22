@@ -111,6 +111,7 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
         "claude-code/findings-browser/findings-browser.md",
+        "claude-code/findings-browser/findings-browser-browse.md",
         "claude-code/findings-browser/README.md",
         "claude-code/findings-browser/architecture.svg",
         "claude-code/findings-browser/endorctl-setup.md",
@@ -147,7 +148,10 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
     gemini_dir = dest / "gemini" / "findings-browser"
     portable_dir = dest / "portable" / "findings-browser"
 
-    assert_host_bundle_files(claude_dir, {"findings-browser.md", "README.md", "architecture.svg", "endorctl-setup.md"})
+    assert_host_bundle_files(
+        claude_dir,
+        {"findings-browser.md", "findings-browser-browse.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
     assert_host_bundle_files(managed_dir, {"agent.yaml", "environment.yaml", "session-template.yaml", "README.md", "architecture.svg", "endorctl-setup.md"})
     assert_codex_skill_bundle(
         codex_dir,
