@@ -116,6 +116,27 @@ def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundl
     assert "## Task State Resume Contract" not in selection
 
 
+def test_claude_code_compiler_emits_noncompact_projected_profile_contract(tmp_path):
+    source = repo_root() / "source" / "agents" / "findings-browser"
+    target = tmp_path / "findings-browser"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    outputs = compile_claude_code(target / "recipe.yaml", edition="enterprise-edition")
+
+    assert [path.name for path in outputs] == [
+        "findings-browser.md",
+        "findings-browser-browse.md",
+    ]
+    out_dir = target / "dist" / "claude-code" / "enterprise-edition"
+    base = (out_dir / "findings-browser.md").read_text()
+    browse = (out_dir / "findings-browser-browse.md").read_text()
+    assert "name: findings-browser-browse" in browse
+    assert "This task-profile field projection is authoritative" in browse
+    assert "omit every other recipe field" in browse
+    assert "`recommended_next_steps` (`list[object]`)" in base
+    assert "`recommended_next_steps` (`list[object]`)" not in browse
+
+
 def test_ai_sast_profile_variant_reduces_input_without_losing_safety_invariants(tmp_path):
     source = repo_root() / "source" / "agents" / "ai-sast-remediation"
     target = tmp_path / "ai-sast-remediation"
@@ -449,7 +470,11 @@ def _prompt_budget(relative_path: str) -> int:
         return 18_000
     if agent_id == "oss-upgrade-investigator":
         return 15_000
-    if agent_id in {"cicd-posture", "troubleshooting", "configuration-automation"}:
+    if agent_id == "configuration-automation":
+        # Its generated Codex wrapper carries the full deterministic setup and
+        # action-prescription safety boundary; keep a small non-semantic cushion.
+        return 26_100
+    if agent_id in {"cicd-posture", "troubleshooting"}:
         return 26_000
     if agent_id == "sca-remediation":
         # Full fallback carries resume, duplicate-PR, and worktree-isolation safety contracts.

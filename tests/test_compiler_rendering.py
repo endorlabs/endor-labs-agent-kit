@@ -165,6 +165,22 @@ def test_shared_compiler_rendering_injects_structured_contract_before_workflow_s
     assert rendered.index(STRUCTURED_OUTPUT_HEADING) < rendered.index("Enterprise rules.")
 
 
+def test_projected_structured_contract_explicitly_forbids_extra_recipe_fields():
+    rendered = render_structured_output_contract(
+        _recipe_with_outputs(
+            RecipeField("verdict", "string", required=True),
+            RecipeField("recommended_next_steps", "list[object]", required=True),
+            RecipeField("evidence_queries", "list[object]", required=True),
+            RecipeField("data_gaps", "list[string]", required=True),
+        ),
+        output_fields=("verdict", "evidence_queries", "data_gaps"),
+    )
+
+    assert "This task-profile field projection is authoritative" in rendered
+    assert "omit every other recipe field" in rendered
+    assert "`recommended_next_steps`" not in rendered
+
+
 def test_shared_compiler_rendering_injects_task_state_resume_contract_when_declared():
     rendered = instructions_for_edition(
         INSTRUCTIONS,

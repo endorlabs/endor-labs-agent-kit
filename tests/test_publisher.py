@@ -454,6 +454,7 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
     assert written_paths == {
         "claude-code/vulnerability-explainer/README.md",
         "claude-code/vulnerability-explainer/endorctl-setup.md",
+        "claude-code/vulnerability-explainer/vulnerability-explainer-explain.md",
         "claude-code/vulnerability-explainer/vulnerability-explainer.md",
         "claude-managed-agents/vulnerability-explainer/README.md",
         "claude-managed-agents/vulnerability-explainer/agent.yaml",
@@ -704,6 +705,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         "evidence-check.json",
         "explain.json",
         "summarize_endor_artifact.py",
+        "vulnerability-explainer-explain.md",
         "vulnerability-explainer.md",
     }
     assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES

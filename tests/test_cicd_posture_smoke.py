@@ -185,6 +185,7 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
         "claude-code/cicd-posture/cicd-posture.md",
+        "claude-code/cicd-posture/cicd-posture-posture.md",
         "claude-code/cicd-posture/README.md",
         "claude-code/cicd-posture/architecture.svg",
         "claude-code/cicd-posture/endorctl-setup.md",
@@ -220,7 +221,10 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
     codex_dir = dest / "codex" / "cicd-posture"
     gemini_dir = dest / "gemini" / "cicd-posture"
     portable_dir = dest / "portable" / "cicd-posture"
-    assert_host_bundle_files(agent_dir, {"cicd-posture.md", "README.md", "architecture.svg", "endorctl-setup.md"})
+    assert_host_bundle_files(
+        agent_dir,
+        {"cicd-posture.md", "cicd-posture-posture.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
     assert_host_bundle_files(
         managed_dir,
         {"agent.yaml", "environment.yaml", "session-template.yaml", "README.md", "architecture.svg", "endorctl-setup.md"},

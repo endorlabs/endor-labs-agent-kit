@@ -20,7 +20,7 @@
               "sha256": "e2d7779cc225d248c72d355a9ff31d822e3f016cd44c2189f6f6d0f9d5a8606a"
             },
             {
-              "bytes": 24284,
+              "bytes": 24448,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-evidence-check.md",
               "profile_contract_digest": "5435bf1d722b9d0d617b5138c9c2059767cb95a5cd67159c0cad05d2bf7e3cf1",
               "profile_gate_validator": {
@@ -28,10 +28,10 @@
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "5e2cc2c2bda003a944030a9ff441f68e9b426fc544ed4a3c4a64e92ca0657148"
+              "sha256": "c22434c8a5af337c51a6ded050e8228488c035c963115eac08b28e035f77b914"
             },
             {
-              "bytes": 23987,
+              "bytes": 24151,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-resolve-scope.md",
               "profile_contract_digest": "cc9f36ecdb911ea5b99a36c901eb6c96bd3310fdb014df247c9fbf0b8e904367",
               "profile_gate_validator": {
@@ -39,7 +39,7 @@
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "b859c1c2380e4beab0f75821418a228a0953072b8537df37a4684b08cb5e348f"
+              "sha256": "30fb26b0b1b309de7e406301fcc7015710c13250f6520516e63552452bc26604"
             },
             {
               "bytes": 35603,
@@ -161,6 +161,17 @@
               "sha256": "df8cc0de5ffcdb32c3dc4697d96f76e5bfde6d0aaffe7df48d3e5e695b65b9ef"
             },
             {
+              "bytes": 32663,
+              "path": "claude-code/cicd-posture/cicd-posture-posture.md",
+              "profile_contract_digest": "2e54cdc9b480b7d7d88efd6aa58d34018be5ba27e59095e21d19b258cc59af68",
+              "profile_gate_validator": {
+                "id": "cicd-posture.structured-output",
+                "version": "1"
+              },
+              "profile_id": "posture",
+              "sha256": "7d832899acb9912ef06663b41dab71d2ac035c8314051b0b5e896c2954ef0576"
+            },
+            {
               "bytes": 36997,
               "path": "claude-code/cicd-posture/cicd-posture.md",
               "sha256": "d1315f824562554e2c1deec0d262c591344556f06e1db27d25e5903bfb4ea318"
@@ -250,7 +261,7 @@
               "sha256": "a825cf16cc1d1a74948f48bf77847501ccd68df4abf80ffd4f48312b8c23ea53"
             },
             {
-              "bytes": 16534,
+              "bytes": 16698,
               "path": "claude-code/configuration-automation/configuration-automation-evidence-check.md",
               "profile_contract_digest": "4a05189b235adc02eb29d098a478f6c22e502bd74201c04620411f30f152ccd8",
               "profile_gate_validator": {
@@ -258,7 +269,7 @@
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "87c0c82e5d341c1cd59c87b86213debc3412b4fde47426657638870e4d593b35"
+              "sha256": "2a21070a7f84a4694fced30ff0099d746540d390a44514882dbbcb880a4ccb67"
             },
             {
               "bytes": 90163,
@@ -364,7 +375,7 @@
               "sha256": "1b73a837c210eb139a9a12695d538849858517eb1a11487945c9c4a5ea7547f7"
             },
             {
-              "bytes": 13518,
+              "bytes": 13682,
               "path": "claude-code/dependency-reviewer/developer-edition/dependency-reviewer-package-decision.md",
               "profile_contract_digest": "9686417d3be39a24b7b5d154d5b79e741cf5f1ecde9125cae1885c825f1caa4d",
               "profile_gate_validator": {
@@ -372,10 +383,10 @@
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "41f4aff6112b1754422cc42a877de02c5c15fe247257bcfd03a7b7f4e032053a"
+              "sha256": "a6f88ed052b8d9c2440c00d5db24c261868f75539a599682a959c130c7b5e4af"
             },
             {
-              "bytes": 13230,
+              "bytes": 13394,
               "path": "claude-code/dependency-reviewer/developer-edition/dependency-reviewer-package-risk.md",
               "profile_contract_digest": "ea31ad99ac7a09e6f433c1b0340e6a4c645ec9cafc46d37c3d4b79b29c1783cc",
               "profile_gate_validator": {
@@ -383,10 +394,10 @@
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "f94cf43b0d77ee834e7b5be70045b50c970f1b668413ef4aac970294ac5e8e07"
+              "sha256": "a4fea72f2bf5467773ec537073c7fd1588ef733744fd1efcaeaa17054ed01cdf"
             },
             {
-              "bytes": 14912,
+              "bytes": 15076,
               "path": "claude-code/dependency-reviewer/developer-edition/dependency-reviewer-repository-review.md",
               "profile_contract_digest": "7235650c2bcb31b289ef5154be5713e84d0e09c3497881615237be9245a701a1",
               "profile_gate_validator": {
@@ -394,7 +405,7 @@
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "e0417d0a0c589bfcbe31b1a2d52a78e97ea9e1dfdc76f514631c3ce9207bd64a"
+              "sha256": "edf7217b54300408ffc35ef868b38f74f904074be78bb9343f9d16ee5293adfb"
             },
             {
               "bytes": 39252,
@@ -478,7 +489,7 @@
               "sha256": "1b73a837c210eb139a9a12695d538849858517eb1a11487945c9c4a5ea7547f7"
             },
             {
-              "bytes": 13421,
+              "bytes": 13585,
               "path": "claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-package-decision.md",
               "profile_contract_digest": "9686417d3be39a24b7b5d154d5b79e741cf5f1ecde9125cae1885c825f1caa4d",
               "profile_gate_validator": {
@@ -486,10 +497,10 @@
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "1fa7e5e2d9c42f6999c0ecc111b622b2e1f98eed8e2ed0a188fc4acc56237ea8"
+              "sha256": "0d88cf2dca63471aa96614b3a00525fa8b62e7aca066908f7f1b6df1f1d6aeae"
             },
             {
-              "bytes": 13133,
+              "bytes": 13297,
               "path": "claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-package-risk.md",
               "profile_contract_digest": "ea31ad99ac7a09e6f433c1b0340e6a4c645ec9cafc46d37c3d4b79b29c1783cc",
               "profile_gate_validator": {
@@ -497,10 +508,10 @@
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "2ab30680750bad640c6f8c75e07bd003e975931ad03c4e7e500fae858e7b9bd0"
+              "sha256": "7dab0f7ce1d6097868cec041bd7bd5f8f0824bbc655ac84f84e980c747f7844b"
             },
             {
-              "bytes": 14815,
+              "bytes": 14979,
               "path": "claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-repository-review.md",
               "profile_contract_digest": "7235650c2bcb31b289ef5154be5713e84d0e09c3497881615237be9245a701a1",
               "profile_gate_validator": {
@@ -508,7 +519,7 @@
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "7edaf2aed1513770113ef7f336da00f2df26331895a79ad0754760e1e530cc78"
+              "sha256": "54b02e77f4bc69859371777aa9b7030eb0e28264adfb87447d234379165bfe82"
             },
             {
               "bytes": 39155,
@@ -636,6 +647,17 @@
               "sha256": "dd1dc4b104032186af0608fe9d2985eb62e90a9efdfb86462ef012580d567617"
             },
             {
+              "bytes": 24908,
+              "path": "claude-code/findings-browser/findings-browser-browse.md",
+              "profile_contract_digest": "56252e1ff2b7e3f30118a66a1d1f2cb148218e79640c096f88c926aa7a6b6580",
+              "profile_gate_validator": {
+                "id": "findings-browser.structured-output",
+                "version": "1"
+              },
+              "profile_id": "browse",
+              "sha256": "8881d31ca12d0ed5e7ea26751ec8382933e6f7a1fb7f9a091ffc478e59a9d5c0"
+            },
+            {
               "bytes": 30111,
               "path": "claude-code/findings-browser/findings-browser.md",
               "sha256": "67b55feede719376f28024e1dbbe4f85b3b0e295dafde464be4cfa1db2449d1e"
@@ -734,6 +756,17 @@
               },
               "profile_id": "exposure-check",
               "sha256": "d950bcb6d12c133d8207bb8adfc23f110aed07dfd01f46c8b6aa64563af9e402"
+            },
+            {
+              "bytes": 37304,
+              "path": "claude-code/malware-responder/malware-responder-exposure-check.md",
+              "profile_contract_digest": "de603b79d4e8742ced22c2a14633892b08d4006da29ce88568245a88a4ee4a64",
+              "profile_gate_validator": {
+                "id": "malware-responder.structured-output",
+                "version": "1"
+              },
+              "profile_id": "exposure-check",
+              "sha256": "300ae8119e799a8c4c9bc343da79b90b6e07fd5d5089564ae8a83976936a198c"
             },
             {
               "bytes": 44968,
@@ -837,6 +870,17 @@
               },
               "profile_id": "evidence-check",
               "sha256": "3c1819ee9e110ebab8b8f337512525e6758dc53ec9476fa03383c3197ee65d4a"
+            },
+            {
+              "bytes": 39115,
+              "path": "claude-code/oss-upgrade-investigator/oss-upgrade-investigator-evidence-check.md",
+              "profile_contract_digest": "1b4be74393ca9e1904bea932c6411b86bc74bc9574856ea4355908f3c3949336",
+              "profile_gate_validator": {
+                "id": "oss-upgrade-investigator.structured-output",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "fa16a4ccfc0664433934772ab83fc9b1fe20ae74adc89a78e4e2d60b745e858e"
             },
             {
               "bytes": 46477,
@@ -975,6 +1019,39 @@
               "sha256": "c7d782712284c3f342f6e0b2a150f5d32594f3df23096a1a5708141d69f1a4f6"
             },
             {
+              "bytes": 22230,
+              "path": "claude-code/remediation-planning/remediation-planning-evidence-check.md",
+              "profile_contract_digest": "0de58cadc7dc309b16379ecf2d168736d98ba4dbe4ea0ef395d0e65a6c96ec6f",
+              "profile_gate_validator": {
+                "id": "remediation-planning.structured-output",
+                "version": "1"
+              },
+              "profile_id": "evidence-check",
+              "sha256": "324a94718f241cab530665183b63edb249c4baac9cde07948563f3ab93e20767"
+            },
+            {
+              "bytes": 20710,
+              "path": "claude-code/remediation-planning/remediation-planning-resolve-scope.md",
+              "profile_contract_digest": "2b48b73e1970d50c46dd8372f3667291132d1c4c431230a1c2579213b01eaad4",
+              "profile_gate_validator": {
+                "id": "remediation-planning.structured-output",
+                "version": "1"
+              },
+              "profile_id": "resolve-scope",
+              "sha256": "1c13cf0575447b148c3deecd4167de2729920f55fc2ce1561029372dbf3601dc"
+            },
+            {
+              "bytes": 23118,
+              "path": "claude-code/remediation-planning/remediation-planning-selection-plan.md",
+              "profile_contract_digest": "dc7986ca0676f89fa531b34fc5751f18f7daa90a77f37bc1ff197f161749dbce",
+              "profile_gate_validator": {
+                "id": "remediation-planning.structured-output",
+                "version": "1"
+              },
+              "profile_id": "selection-plan",
+              "sha256": "98fd442b99aeba5a0191682ee731c3a48641f6cc275e9c5c6f4c81c0dfe789cc"
+            },
+            {
               "bytes": 29964,
               "path": "claude-code/remediation-planning/remediation-planning.md",
               "sha256": "9eea2a0be6512c9f34fb00315a97e69f43f3d81bab138ba408b9bd9e1307fa12"
@@ -1103,7 +1180,7 @@
               "sha256": "44351481d84634e4fcf279f4a3173bfbdc9046969dc2a1c14a9591959c0287b5"
             },
             {
-              "bytes": 20747,
+              "bytes": 20911,
               "path": "claude-code/sca-remediation/sca-remediation-evidence-check.md",
               "profile_contract_digest": "ee5d7e1192ffb118324f19d7dcceecc222a04a19d65c6090a842840aacdde590",
               "profile_gate_validator": {
@@ -1111,10 +1188,10 @@
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "ba18efd4b73be8d932fbbf9f4a4ebfbc35e9fffcfb8ccc023b18c81284744a61"
+              "sha256": "54dde5aaba2adbd684e6e447ac100ef9f7bc8b2287a947440f053efe07a1f607"
             },
             {
-              "bytes": 20456,
+              "bytes": 20620,
               "path": "claude-code/sca-remediation/sca-remediation-resolve-scope.md",
               "profile_contract_digest": "ecc5b6172eb71c6acd25a1bbe5f29d975344ccdfe6d551054610499a0ac0379c",
               "profile_gate_validator": {
@@ -1122,10 +1199,10 @@
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f183b804e347269758b22dd13d1db319a0a953f3d66977cce15a4528b9535972"
+              "sha256": "9e3bec609e7d3120726d48da863abc80cc2596d7dd407025d873de7ba083ff47"
             },
             {
-              "bytes": 37863,
+              "bytes": 38027,
               "path": "claude-code/sca-remediation/sca-remediation-selection-plan.md",
               "profile_contract_digest": "54f912b3d6842c8857d0ea93f783d39147bd370036ecf05aaa9f0a34f3657241",
               "profile_gate_validator": {
@@ -1133,7 +1210,7 @@
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "f822d501cdd43328876cec54f8f9af2d757a94ee8916bcbbed8cc6b3cdefeb19"
+              "sha256": "6b90a31a52e8cc66ae22a51d4993351c79bbe9b84c83f9e9c5e036a62348e35e"
             },
             {
               "bytes": 85208,
@@ -1236,7 +1313,7 @@
               "sha256": "44351481d84634e4fcf279f4a3173bfbdc9046969dc2a1c14a9591959c0287b5"
             },
             {
-              "bytes": 12794,
+              "bytes": 12958,
               "path": "claude-code/troubleshooting/troubleshooting-diagnose.md",
               "profile_contract_digest": "cb6a8528a44d111299e5764d931459a70f09a695010b80c6c452a7d88d4a08a2",
               "profile_gate_validator": {
@@ -1244,7 +1321,7 @@
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "3ad0903f79b3a86cbcf95d5265fd470294ef58355899c71348c34d5fbcbc5332"
+              "sha256": "ac4e129f6b474567c43a4a193ffe755c612af62dfbad7378dc20340fa805c32a"
             },
             {
               "bytes": 81218,
@@ -1332,6 +1409,17 @@
               "bytes": 13436,
               "path": "claude-code/vulnerability-explainer/runtime/summarize_endor_artifact.py",
               "sha256": "44351481d84634e4fcf279f4a3173bfbdc9046969dc2a1c14a9591959c0287b5"
+            },
+            {
+              "bytes": 23619,
+              "path": "claude-code/vulnerability-explainer/vulnerability-explainer-explain.md",
+              "profile_contract_digest": "b5930b37bfefcd81e0655598a0a3a17f9139f632871e613854a901d69e698527",
+              "profile_gate_validator": {
+                "id": "vulnerability-explainer.structured-output",
+                "version": "1"
+              },
+              "profile_id": "explain",
+              "sha256": "eb8a68521a796ffc1bc636431824329214df9be3c24592f8a4e0a75ba6d3e057"
             },
             {
               "bytes": 27385,
@@ -5952,14 +6040,14 @@
           "sha256": "2295d241f8d9af84ca79c51f80c5d4b7c0ca4352e6b2230e34497b730642fe20"
         },
         {
-          "bytes": 19762,
+          "bytes": 19926,
           "path": "plugins/claude/ai-plugins/agents/ai-sast-remediation-evidence-check.md",
-          "sha256": "8084ea446321279f6a6240ca7581193c905c27d3b697b51819c2bc06cefdaa70"
+          "sha256": "a7bafb4b743b5a9eae754dfbc9e925135366d2077e5f98cda45b1b07718c9b9d"
         },
         {
-          "bytes": 19464,
+          "bytes": 19628,
           "path": "plugins/claude/ai-plugins/agents/ai-sast-remediation-resolve-scope.md",
-          "sha256": "78482325beda20ab15281b30fd4b1384ae7f676f23de4439b98558aa0486099f"
+          "sha256": "dc84b1b40ae312baf453b422730676b6e958fcafa9dfc30f22edbdbe52ee4139"
         },
         {
           "bytes": 31081,
@@ -5972,14 +6060,19 @@
           "sha256": "6d3dbb6ef94506450cb0115a6a834c725888ce27bd3d1c4e1e8fb75c4c04afda"
         },
         {
+          "bytes": 16848,
+          "path": "plugins/claude/ai-plugins/agents/cicd-posture-posture.md",
+          "sha256": "743efd8a3bba4b638c2a292c427b0fd3700bac5ccef1f1f7a456585670184e68"
+        },
+        {
           "bytes": 16469,
           "path": "plugins/claude/ai-plugins/agents/cicd-posture.md",
           "sha256": "e5a4a5ca58ea9efbfaa480b4232f5b3a67cd81436531a1dbc1ef47f0a5c80c9d"
         },
         {
-          "bytes": 17003,
+          "bytes": 17167,
           "path": "plugins/claude/ai-plugins/agents/configuration-automation-evidence-check.md",
-          "sha256": "86f9d6bd5d126a72eef3b6020e935dce05f9b30be5bc4a74d1ad2ad13204af5e"
+          "sha256": "045da2d6ff0a72e3c19d5e396028d1bb223e444beef8cf054d2dfa72492765d5"
         },
         {
           "bytes": 24922,
@@ -5987,19 +6080,19 @@
           "sha256": "8b460cd20fe6e964c0b1838324c3c9f2bf3a3cbd31d2cb9c8ee97514630a1f5e"
         },
         {
-          "bytes": 13737,
+          "bytes": 13901,
           "path": "plugins/claude/ai-plugins/agents/dependency-reviewer-package-decision.md",
-          "sha256": "5d379aa2a657c72f20c33a81a5e7e2a65ed2b64d9e7417bf38147144e1a5cbd7"
+          "sha256": "c46afb1406af2379a98700df843fe55fcceac012c32919281c48700c7f06e72d"
         },
         {
-          "bytes": 13445,
+          "bytes": 13609,
           "path": "plugins/claude/ai-plugins/agents/dependency-reviewer-package-risk.md",
-          "sha256": "7a5cb0bd0aaa74481cae3924a942190d82dc7dbe0abf240ee1f615c25239f4d0"
+          "sha256": "a843b8a1634988098219a3605994c855c7bd2af9e1a9cba7a311c795a6344d0e"
         },
         {
-          "bytes": 15132,
+          "bytes": 15296,
           "path": "plugins/claude/ai-plugins/agents/dependency-reviewer-repository-review.md",
-          "sha256": "e553e9826e4b45f1c5f2de8adc41f8ca1cced2e26de30ff66782f6225e38053a"
+          "sha256": "d27c8499a364d894306a603b83ea6e2fc23f49ce99a395c028254c82a3b4ce04"
         },
         {
           "bytes": 16136,
@@ -6007,9 +6100,19 @@
           "sha256": "3957c16e240ea3a1caddd26670dbc43b2b212b7bf6998b76d66f85d9ef46c0f7"
         },
         {
+          "bytes": 12011,
+          "path": "plugins/claude/ai-plugins/agents/findings-browser-browse.md",
+          "sha256": "240a8a0ed8f3140443d4177f231e214df6c40aa43a98ba21577299eb9e43fa18"
+        },
+        {
           "bytes": 12170,
           "path": "plugins/claude/ai-plugins/agents/findings-browser.md",
           "sha256": "fc4b28624c7a8276303d8b9f8ea1a1d5c63887239f7fabc58f0ba110b27352d7"
+        },
+        {
+          "bytes": 10679,
+          "path": "plugins/claude/ai-plugins/agents/malware-responder-exposure-check.md",
+          "sha256": "27899cd5aa1dd078a78bf129139af731baa19de151c26acb5e552c9265feb263"
         },
         {
           "bytes": 10830,
@@ -6017,9 +6120,29 @@
           "sha256": "962250b4d01b0739ff73a1472d846a1c27f6dc19a6db5d11a5f540b435d58a27"
         },
         {
+          "bytes": 12650,
+          "path": "plugins/claude/ai-plugins/agents/oss-upgrade-investigator-evidence-check.md",
+          "sha256": "d53a3b34e9e5f7777a0318b08c2f945b5e53eb1caf655411687ff67c1b41f4d8"
+        },
+        {
           "bytes": 13139,
           "path": "plugins/claude/ai-plugins/agents/oss-upgrade-investigator.md",
           "sha256": "d09082ff2757f8430f9757dc154691484f3617a7f6a0a086f317d352468ca075"
+        },
+        {
+          "bytes": 11328,
+          "path": "plugins/claude/ai-plugins/agents/remediation-planning-evidence-check.md",
+          "sha256": "f4e2abfdb8a0366bf750c4c36f938022041650f4941176a133cbdc20e62f2bce"
+        },
+        {
+          "bytes": 10684,
+          "path": "plugins/claude/ai-plugins/agents/remediation-planning-resolve-scope.md",
+          "sha256": "a271c17b0dd13772959de375ed123e8cb2a3fb0389acf19b6d69a1f5c529f3e6"
+        },
+        {
+          "bytes": 11677,
+          "path": "plugins/claude/ai-plugins/agents/remediation-planning-selection-plan.md",
+          "sha256": "c852fe563cca55a853b7dd4d2b12054c5cabf68c88575491f5c90919c104ee4a"
         },
         {
           "bytes": 11964,
@@ -6027,19 +6150,19 @@
           "sha256": "dd055344455efc6eca0e1c1c29812cba9ade514cce4e4824424016959eb195c1"
         },
         {
-          "bytes": 16404,
+          "bytes": 16568,
           "path": "plugins/claude/ai-plugins/agents/sca-remediation-evidence-check.md",
-          "sha256": "618367bebf7fe1955dfda48cc0829ddbd780ba6a1eb67704cfc45c123ab8f1d9"
+          "sha256": "3b39a3bdbb1ec083ae90e6be9ab09a58157d5e096aca979c537e2404282e03e6"
         },
         {
-          "bytes": 16112,
+          "bytes": 16276,
           "path": "plugins/claude/ai-plugins/agents/sca-remediation-resolve-scope.md",
-          "sha256": "41a10ea53005bb646fac7287acf3c24ebf7b77b566a794bc85c6b3ccd12b4d86"
+          "sha256": "029c73055ad6d605f7b260bbede3a702f9ce8a7a6d68f88364f335dbd545f21c"
         },
         {
-          "bytes": 33520,
+          "bytes": 33684,
           "path": "plugins/claude/ai-plugins/agents/sca-remediation-selection-plan.md",
-          "sha256": "453d443aa99824042a4a7bf41b58713878be674fa440a5c376b7588f9e464b75"
+          "sha256": "54b7a6a9b5c10b818d67ae73bb54a6d4f65022280d7d40421c69bd825fedddde"
         },
         {
           "bytes": 34141,
@@ -6047,14 +6170,19 @@
           "sha256": "f141e81d0898f21501ee3ed7d60964eb1eef4d4805ca47105809783abd170685"
         },
         {
-          "bytes": 13248,
+          "bytes": 13412,
           "path": "plugins/claude/ai-plugins/agents/troubleshooting-diagnose.md",
-          "sha256": "f96606632a570e930c43ad71f8e3615082a8eae3ae7f49a1cbf6699c9e2ce3ad"
+          "sha256": "d0822a0ace384eea2e64e8000f129c182ef18c3b488fc31a0e82f0a8034925f1"
         },
         {
           "bytes": 24045,
           "path": "plugins/claude/ai-plugins/agents/troubleshooting.md",
           "sha256": "f407b0837ec6ca0a5d554e83b23d266f2960be3175f2a9e3a488c7701d09af07"
+        },
+        {
+          "bytes": 11710,
+          "path": "plugins/claude/ai-plugins/agents/vulnerability-explainer-explain.md",
+          "sha256": "1c29a05b1bfc545d5b309b69721ec3902ca07216e62df620ef144bb9809b7e8c"
         },
         {
           "bytes": 11571,
@@ -6125,14 +6253,14 @@
           "sha256": "179561e21ebbee6eb9ae9bf55fffad37ee0d0bc9e7f76f61e3d772357022c647"
         },
         {
-          "bytes": 19762,
+          "bytes": 19926,
           "path": "plugins/claude/endor-labs-agent-kit/agents/ai-sast-remediation-evidence-check.md",
-          "sha256": "8084ea446321279f6a6240ca7581193c905c27d3b697b51819c2bc06cefdaa70"
+          "sha256": "a7bafb4b743b5a9eae754dfbc9e925135366d2077e5f98cda45b1b07718c9b9d"
         },
         {
-          "bytes": 19464,
+          "bytes": 19628,
           "path": "plugins/claude/endor-labs-agent-kit/agents/ai-sast-remediation-resolve-scope.md",
-          "sha256": "78482325beda20ab15281b30fd4b1384ae7f676f23de4439b98558aa0486099f"
+          "sha256": "dc84b1b40ae312baf453b422730676b6e958fcafa9dfc30f22edbdbe52ee4139"
         },
         {
           "bytes": 31081,
@@ -6145,14 +6273,19 @@
           "sha256": "6d3dbb6ef94506450cb0115a6a834c725888ce27bd3d1c4e1e8fb75c4c04afda"
         },
         {
+          "bytes": 16848,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/cicd-posture-posture.md",
+          "sha256": "743efd8a3bba4b638c2a292c427b0fd3700bac5ccef1f1f7a456585670184e68"
+        },
+        {
           "bytes": 16469,
           "path": "plugins/claude/endor-labs-agent-kit/agents/cicd-posture.md",
           "sha256": "e5a4a5ca58ea9efbfaa480b4232f5b3a67cd81436531a1dbc1ef47f0a5c80c9d"
         },
         {
-          "bytes": 17003,
+          "bytes": 17167,
           "path": "plugins/claude/endor-labs-agent-kit/agents/configuration-automation-evidence-check.md",
-          "sha256": "86f9d6bd5d126a72eef3b6020e935dce05f9b30be5bc4a74d1ad2ad13204af5e"
+          "sha256": "045da2d6ff0a72e3c19d5e396028d1bb223e444beef8cf054d2dfa72492765d5"
         },
         {
           "bytes": 24922,
@@ -6160,19 +6293,19 @@
           "sha256": "8b460cd20fe6e964c0b1838324c3c9f2bf3a3cbd31d2cb9c8ee97514630a1f5e"
         },
         {
-          "bytes": 13737,
+          "bytes": 13901,
           "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-reviewer-package-decision.md",
-          "sha256": "5d379aa2a657c72f20c33a81a5e7e2a65ed2b64d9e7417bf38147144e1a5cbd7"
+          "sha256": "c46afb1406af2379a98700df843fe55fcceac012c32919281c48700c7f06e72d"
         },
         {
-          "bytes": 13445,
+          "bytes": 13609,
           "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-reviewer-package-risk.md",
-          "sha256": "7a5cb0bd0aaa74481cae3924a942190d82dc7dbe0abf240ee1f615c25239f4d0"
+          "sha256": "a843b8a1634988098219a3605994c855c7bd2af9e1a9cba7a311c795a6344d0e"
         },
         {
-          "bytes": 15132,
+          "bytes": 15296,
           "path": "plugins/claude/endor-labs-agent-kit/agents/dependency-reviewer-repository-review.md",
-          "sha256": "e553e9826e4b45f1c5f2de8adc41f8ca1cced2e26de30ff66782f6225e38053a"
+          "sha256": "d27c8499a364d894306a603b83ea6e2fc23f49ce99a395c028254c82a3b4ce04"
         },
         {
           "bytes": 16136,
@@ -6180,9 +6313,19 @@
           "sha256": "3957c16e240ea3a1caddd26670dbc43b2b212b7bf6998b76d66f85d9ef46c0f7"
         },
         {
+          "bytes": 12011,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/findings-browser-browse.md",
+          "sha256": "240a8a0ed8f3140443d4177f231e214df6c40aa43a98ba21577299eb9e43fa18"
+        },
+        {
           "bytes": 12170,
           "path": "plugins/claude/endor-labs-agent-kit/agents/findings-browser.md",
           "sha256": "fc4b28624c7a8276303d8b9f8ea1a1d5c63887239f7fabc58f0ba110b27352d7"
+        },
+        {
+          "bytes": 10679,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/malware-responder-exposure-check.md",
+          "sha256": "27899cd5aa1dd078a78bf129139af731baa19de151c26acb5e552c9265feb263"
         },
         {
           "bytes": 10830,
@@ -6190,9 +6333,29 @@
           "sha256": "962250b4d01b0739ff73a1472d846a1c27f6dc19a6db5d11a5f540b435d58a27"
         },
         {
+          "bytes": 12650,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/oss-upgrade-investigator-evidence-check.md",
+          "sha256": "d53a3b34e9e5f7777a0318b08c2f945b5e53eb1caf655411687ff67c1b41f4d8"
+        },
+        {
           "bytes": 13139,
           "path": "plugins/claude/endor-labs-agent-kit/agents/oss-upgrade-investigator.md",
           "sha256": "d09082ff2757f8430f9757dc154691484f3617a7f6a0a086f317d352468ca075"
+        },
+        {
+          "bytes": 11328,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/remediation-planning-evidence-check.md",
+          "sha256": "f4e2abfdb8a0366bf750c4c36f938022041650f4941176a133cbdc20e62f2bce"
+        },
+        {
+          "bytes": 10684,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/remediation-planning-resolve-scope.md",
+          "sha256": "a271c17b0dd13772959de375ed123e8cb2a3fb0389acf19b6d69a1f5c529f3e6"
+        },
+        {
+          "bytes": 11677,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/remediation-planning-selection-plan.md",
+          "sha256": "c852fe563cca55a853b7dd4d2b12054c5cabf68c88575491f5c90919c104ee4a"
         },
         {
           "bytes": 11964,
@@ -6200,19 +6363,19 @@
           "sha256": "dd055344455efc6eca0e1c1c29812cba9ade514cce4e4824424016959eb195c1"
         },
         {
-          "bytes": 16404,
+          "bytes": 16568,
           "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation-evidence-check.md",
-          "sha256": "618367bebf7fe1955dfda48cc0829ddbd780ba6a1eb67704cfc45c123ab8f1d9"
+          "sha256": "3b39a3bdbb1ec083ae90e6be9ab09a58157d5e096aca979c537e2404282e03e6"
         },
         {
-          "bytes": 16112,
+          "bytes": 16276,
           "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation-resolve-scope.md",
-          "sha256": "41a10ea53005bb646fac7287acf3c24ebf7b77b566a794bc85c6b3ccd12b4d86"
+          "sha256": "029c73055ad6d605f7b260bbede3a702f9ce8a7a6d68f88364f335dbd545f21c"
         },
         {
-          "bytes": 33520,
+          "bytes": 33684,
           "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation-selection-plan.md",
-          "sha256": "453d443aa99824042a4a7bf41b58713878be674fa440a5c376b7588f9e464b75"
+          "sha256": "54b7a6a9b5c10b818d67ae73bb54a6d4f65022280d7d40421c69bd825fedddde"
         },
         {
           "bytes": 34141,
@@ -6220,14 +6383,19 @@
           "sha256": "f141e81d0898f21501ee3ed7d60964eb1eef4d4805ca47105809783abd170685"
         },
         {
-          "bytes": 13248,
+          "bytes": 13412,
           "path": "plugins/claude/endor-labs-agent-kit/agents/troubleshooting-diagnose.md",
-          "sha256": "f96606632a570e930c43ad71f8e3615082a8eae3ae7f49a1cbf6699c9e2ce3ad"
+          "sha256": "d0822a0ace384eea2e64e8000f129c182ef18c3b488fc31a0e82f0a8034925f1"
         },
         {
           "bytes": 24045,
           "path": "plugins/claude/endor-labs-agent-kit/agents/troubleshooting.md",
           "sha256": "f407b0837ec6ca0a5d554e83b23d266f2960be3175f2a9e3a488c7701d09af07"
+        },
+        {
+          "bytes": 11710,
+          "path": "plugins/claude/endor-labs-agent-kit/agents/vulnerability-explainer-explain.md",
+          "sha256": "1c29a05b1bfc545d5b309b69721ec3902ca07216e62df620ef144bb9809b7e8c"
         },
         {
           "bytes": 11571,

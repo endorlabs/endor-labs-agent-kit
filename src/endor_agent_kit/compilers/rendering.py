@@ -252,9 +252,17 @@ def render_structured_output_contract(
             STRUCTURED_OUTPUT_HEADING,
             "",
             "Return exactly one parseable JSON object in the final answer.",
+        ]
+        if output_fields is not None:
+            lines.append(
+                "This task-profile field projection is authoritative: return only these "
+                "top-level fields and omit every other recipe field, even if broader "
+                "instructions mention it."
+            )
+        lines.extend([
             "Required top-level fields, in order:",
             _inline_field_list(required),
-        ]
+        ])
         if optional:
             lines.extend([
                 "Optional fields when verified:",
@@ -282,9 +290,17 @@ def render_structured_output_contract(
         "",
         "Return exactly one parseable JSON object in the final answer.",
         "Keep any prose brief and do not emit multiple competing JSON objects.",
+    ]
+    if output_fields is not None:
+        lines.append(
+            "This task-profile field projection is authoritative: return only these "
+            "top-level fields and omit every other recipe field, even if broader "
+            "instructions mention it."
+        )
+    lines.extend([
         "Required top-level fields must appear in this order:",
         "",
-    ]
+    ])
     for field in required:
         lines.append(f"- `{field.name}` (`{field.kind}`): {field.description or 'Required by recipe output contract.'}")
     if optional:

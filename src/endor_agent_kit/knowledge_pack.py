@@ -602,6 +602,12 @@ def render_task_profile_prompt(
             prompt += f" Minimal evidence: {_compact_list(profile.minimal_evidence)}."
         if profile.output_focus:
             prompt += f" Required output focus: {_compact_list(profile.output_focus)}."
+        if profile.output_fields:
+            fields = ", ".join(f"`{field}`" for field in profile.output_fields)
+            prompt += (
+                f" Authoritative output field projection: {fields}. Return only these "
+                "top-level fields and omit every other recipe field."
+            )
         if plan is not None:
             prompt += (
                 f" Evidence query plan: {_compact_order(plan.query_order)} "
@@ -638,6 +644,13 @@ def render_task_profile_prompt(
         "Output focus:",
         *[f"- {item}" for item in profile.output_focus],
     ]
+    if profile.output_fields:
+        fields = ", ".join(f"`{field}`" for field in profile.output_fields)
+        lines.extend([
+            "Authoritative output field projection:",
+            f"- Return only these top-level fields: {fields}.",
+            "- Omit every other recipe field even if the base workflow contract mentions it.",
+        ])
     if plan is not None:
         lines.extend([
             "Evidence query plan:",
