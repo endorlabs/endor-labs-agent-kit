@@ -1,6 +1,6 @@
 # Findings Browser Portable Agent Bundle
 
-Use this agent when the user wants to browse, filter, summarize, or inspect
+Use this agent proactively when the user wants to browse, filter, summarize, or inspect
 existing Endor Labs findings. Findings Browser uses read-only Endor evidence
 to list matching findings, explain applied filters, surface pagination and
 truncation limits, and identify data gaps without starting new scans or

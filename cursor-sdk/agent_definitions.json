@@ -53,7 +53,7 @@
     {
       "agent_name": "endor-findings-browser-agent",
       "default_model": "composer-2.5",
-      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect existing Endor Labs findings. Findings Browser uses read-only Endor evidence to list matching findings, explain applied filters, surface pagination and truncation limits, and identify data gaps without starting new scans or performing remediation actions.",
+      "description": "Use this agent proactively when the user wants to browse, filter, summarize, or inspect existing Endor Labs findings. Findings Browser uses read-only Endor evidence to list matching findings, explain applied filters, surface pagination and truncation limits, and identify data gaps without starting new scans or performing remediation actions.",
       "id": "findings-browser",
       "prompt_file": "agents/endor-findings-browser-agent.md",
       "readonly": true,

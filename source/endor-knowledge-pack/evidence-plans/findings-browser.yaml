@@ -6,12 +6,15 @@ plans:
     scope:
       namespace_required: true
       namespace_provenance_required: true
+      namespace_traversal_default: include_children
+      exact_namespace_opt_out: true
     freshness:
       max_age_seconds: 300
     cache_identity:
       - agent_id
       - profile_id
       - namespace
+      - namespace_traversal
       - scope_filter
       - levels
       - finding_category

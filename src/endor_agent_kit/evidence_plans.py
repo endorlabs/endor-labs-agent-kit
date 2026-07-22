@@ -26,6 +26,7 @@ EVIDENCE_PLAN_SCHEMA_VERSION = "1"
 _SAFE_OPERATIONS = frozenset({"get", "list", "local_read"})
 _EXECUTION_MODES = frozenset({"prompt_fallback", "host_adapter"})
 _NAMESPACE_MODES = frozenset({"tenant", "oss"})
+_NAMESPACE_TRAVERSAL_DEFAULTS = frozenset({"exact", "include_children"})
 _PLACEHOLDER_RE = re.compile(r"<([^>]+)>")
 
 
@@ -197,6 +198,8 @@ class CompiledEvidencePlan:
     namespace_mode: str
     namespace_required: bool
     namespace_provenance_required: bool
+    namespace_traversal_default: str
+    exact_namespace_opt_out: bool
     freshness_max_age_seconds: int
     cache_identity: tuple[str, ...]
     inventory_default_mode: str
@@ -223,16 +226,27 @@ class CompiledEvidencePlan:
     def to_dict(self) -> dict[str, Any]:
         """Return the deterministic provider-neutral representation."""
 
+        scope: dict[str, Any] = {
+            "namespace_mode": self.namespace_mode,
+            "namespace_required": self.namespace_required,
+            "namespace_provenance_required": self.namespace_provenance_required,
+        }
+        if (
+            self.namespace_traversal_default != "exact"
+            or self.exact_namespace_opt_out
+        ):
+            scope.update(
+                {
+                    "namespace_traversal_default": self.namespace_traversal_default,
+                    "exact_namespace_opt_out": self.exact_namespace_opt_out,
+                }
+            )
         return {
             "schema_version": self.schema_version,
             "agent_id": self.agent_id,
             "profile_id": self.profile_id,
             "safety_class": self.safety_class,
-            "scope": {
-                "namespace_mode": self.namespace_mode,
-                "namespace_required": self.namespace_required,
-                "namespace_provenance_required": self.namespace_provenance_required,
-            },
+            "scope": scope,
             "freshness": {"max_age_seconds": self.freshness_max_age_seconds},
             "cache_identity": list(self.cache_identity),
             "inventory": {
@@ -393,6 +407,11 @@ def validate_evidence_plan(
         errors.append("Evidence Plans must use read_only safety_class")
     if plan.namespace_mode not in _NAMESPACE_MODES:
         errors.append(f"unknown namespace mode {plan.namespace_mode!r}")
+    if plan.namespace_traversal_default not in _NAMESPACE_TRAVERSAL_DEFAULTS:
+        errors.append(
+            "unknown namespace traversal default "
+            f"{plan.namespace_traversal_default!r}"
+        )
     if plan.namespace_mode == "tenant":
         if not plan.namespace_required:
             errors.append("namespace is required for tenant Endor Evidence Plans")
@@ -403,6 +422,10 @@ def validate_evidence_plan(
             errors.append("runtime namespace must not be required for OSS Evidence Plans")
         if plan.namespace_provenance_required:
             errors.append("runtime namespace provenance must not be required for OSS Evidence Plans")
+        if plan.namespace_traversal_default != "exact":
+            errors.append("OSS Evidence Plans must use exact namespace traversal")
+        if plan.exact_namespace_opt_out:
+            errors.append("OSS Evidence Plans cannot declare an exact namespace opt-out")
     if plan.freshness_max_age_seconds <= 0:
         errors.append("freshness max_age_seconds must be positive")
     if plan.inventory_default_mode != "bounded":
@@ -415,6 +438,11 @@ def validate_evidence_plan(
     required_cache_identity.append(
         "namespace" if plan.namespace_mode == "tenant" else "namespace_mode"
     )
+    if (
+        plan.namespace_traversal_default == "include_children"
+        or plan.exact_namespace_opt_out
+    ):
+        required_cache_identity.append("namespace_traversal")
     for identity in required_cache_identity:
         if identity not in plan.cache_identity:
             errors.append(f"cache_identity must include {identity!r}")
@@ -499,6 +527,18 @@ def validate_evidence_plan(
         _validate_step_condition(step, steps, errors)
         _validate_bindings(step, steps, errors)
         _validate_endor_step(step, plan, errors)
+        if (
+            plan.namespace_traversal_default == "include_children"
+            and step.operation == "list"
+        ):
+            try:
+                template_tokens = shlex.split(step.template)
+            except ValueError:
+                template_tokens = []
+            if "--traverse" not in template_tokens:
+                errors.append(
+                    f"{prefix}: default child namespace coverage requires --traverse"
+                )
 
     if _has_dependency_cycle(plan.steps):
         errors.append("plan contains a dependency cycle")
@@ -571,6 +611,12 @@ def _compile_raw_plan(
         namespace_required=_required_bool(scope, "namespace_required"),
         namespace_provenance_required=_required_bool(
             scope, "namespace_provenance_required"
+        ),
+        namespace_traversal_default=_optional_string(
+            scope, "namespace_traversal_default", "exact"
+        ),
+        exact_namespace_opt_out=_optional_bool(
+            scope, "exact_namespace_opt_out", False
         ),
         freshness_max_age_seconds=_required_int(freshness, "max_age_seconds"),
         cache_identity=_required_strings(raw, "cache_identity"),

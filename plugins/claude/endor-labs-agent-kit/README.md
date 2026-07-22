@@ -52,6 +52,16 @@ From the Agent Kit repository root:
 /plugin install endor-labs-agent-kit@endorlabs
 ```
 
+For one-off development, point Claude Code at this host-specific package:
+
+```bash
+claude --plugin-dir plugins/claude/endor-labs-agent-kit
+```
+
+Do not run `claude --plugin-dir .`. The repository root contains Cursor
+agents, workflow skills, MCP metadata, and Cursor hook events that are not
+a Claude Code plugin package.
+
 Start a new Claude Code session or run `/reload-plugins` after installing
 or reinstalling the plugin.
 If Claude Code still shows stale same-version content, uninstall and

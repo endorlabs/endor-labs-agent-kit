@@ -12,6 +12,18 @@ def test_agent_api_contract_rejects_bare_endorctl_api():
     assert errors == ["line 1: agent-facing Endor calls must use `endorctl agent api`"]
 
 
+def test_agent_api_contract_rejects_package_manager_wrapped_endorctl():
+    errors = agent_api_command_errors(
+        "npx -y endorctl agent api --agent-id findings-browser "
+        "list -r Finding -n demo",
+        agent_id="findings-browser",
+    )
+
+    assert errors == [
+        "line 1: agent-facing Endor calls must invoke installed `endorctl` directly"
+    ]
+
+
 def test_agent_api_contract_requires_canonical_recipe_id():
     missing = agent_api_command_errors(
         "endorctl agent api list -r Finding -n demo",

@@ -75,6 +75,7 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     header = artifact.split("---", 2)[1]
 
     assert "Findings Browser" in artifact
+    assert "Use this agent proactively when the user wants to browse" in artifact
     assert "## Endor Knowledge Pack" in artifact
     assert "Findings Browser Evidence Contract" in artifact
     assert "finding-browser-filtered" in artifact
@@ -87,6 +88,8 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert "Endor MCP server" in artifact
     assert "Never run `endorctl scan`" in artifact
     assert "`--traverse` before reporting the" in artifact
+    assert "Invoke the installed `endorctl` binary directly" in artifact
+    assert "Never use `npx`, `npm exec`, `pnpm dlx`, or `yarn dlx`" in artifact
     assert "hook" not in header
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)

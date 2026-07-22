@@ -47,6 +47,13 @@ Do not enable `endor-labs-agent-kit@endorlabs` and `ai-plugins@endorlabs` in
 the same Claude profile for normal use. They expose the same setup skill and
 agents.
 
+For a local checkout, add the repository marketplace with `/plugin marketplace
+add ./` and install `endor-labs-agent-kit@endorlabs`. For one-off development,
+use `claude --plugin-dir plugins/claude/endor-labs-agent-kit`. Do not use
+`claude --plugin-dir .`: the repository root contains Cursor agents, workflow
+skills, MCP metadata, and Cursor-specific hooks rather than a Claude plugin
+package.
+
 For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
 or package metadata because their public install commands depend on the pushed
 tag and host-specific marketplace behavior. Cursor IDE uses `.cursor-plugin/`,
