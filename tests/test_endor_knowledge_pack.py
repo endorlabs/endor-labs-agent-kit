@@ -108,6 +108,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "context-first",
         "namespace-provenance",
         "query-efficiency",
+        "large-result-delivery",
         "verified-evidence",
         "evidence-ledger",
         "data-gaps",
@@ -162,6 +163,82 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     )
 
 
+def test_large_result_artifact_delivery_contract_renders_for_every_workflow():
+    pack = load_knowledge_pack()
+    rule = next(
+        rule for rule in pack.global_rules if rule.id == "large-result-delivery"
+    )
+
+    assert "runtime.large_result_artifact_required" in rule.guidance
+    assert "--list-all" in rule.guidance
+    assert "64 KiB" in rule.guidance
+    assert "Make exactly one model-directed runtime call" in rule.guidance
+    assert "Never widen the selected recipe's projection" in rule.guidance
+    assert "runtime/summarize_endor_artifact.py" in rule.guidance
+    assert "Do not execute or preflight the selected CLI separately" in rule.guidance
+    assert "a second `--count` query" in rule.guidance
+    assert "one successful summary is authoritative" in rule.guidance
+    assert "Preserve required output shapes" in rule.guidance
+    assert "artifact_ref=" in rule.guidance
+    assert "evidence_queries[].reason" in rule.guidance
+    for agent_id in pack.workflows:
+        full = render_knowledge_pack_section(agent_id)
+        compact = render_knowledge_pack_section(agent_id, compact=True)
+
+        assert "Large result delivery" in full
+        assert "runtime.large_result_artifact_required" in full
+        assert "runtime.large_result_artifact_required" in compact
+        assert "artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>" in compact
+        assert "evidence_queries[].reason" in compact
+        assert "`python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once" in compact
+        assert "no separate API/artifact check/`--count`" in compact
+        assert "Preserve shapes" in compact
+
+
+def test_complete_row_recipes_require_large_result_artifact_delivery():
+    pack = load_knowledge_pack()
+    complete_recipes = [
+        recipe
+        for recipe in pack.query_recipes.values()
+        if "--list-all" in recipe.template
+    ]
+
+    assert {recipe.id for recipe in complete_recipes} == {
+        "ai-sast-list",
+        "finding-browser-complete-counts",
+        "tenant-package-inventory",
+    }
+    assert all(
+        recipe.result_delivery == "runtime.large_result_artifact_required"
+        for recipe in complete_recipes
+    )
+    assert all("uuid" in recipe.fields for recipe in complete_recipes)
+
+
+def test_workflow_complete_row_recipes_render_large_result_delivery_gate():
+    pack = load_knowledge_pack()
+    complete_recipes = [
+        (workflow.agent_id, recipe)
+        for workflow in pack.workflows.values()
+        for recipe in workflow.evidence_query_recipes
+        if "--list-all" in recipe.template
+    ]
+
+    assert {
+        (agent_id, recipe.id) for agent_id, recipe in complete_recipes
+    } == {
+        ("findings-browser", "finding-browser-complete-counts"),
+        ("malware-responder", "tenant-package-inventory"),
+    }
+    for agent_id, recipe in complete_recipes:
+        assert recipe.result_delivery == "runtime.large_result_artifact_required"
+        rendered = render_knowledge_pack_section(agent_id)
+        assert (
+            "Result delivery: `runtime.large_result_artifact_required`"
+            in rendered
+        )
+
+
 def test_canonical_sca_finding_aggregation_preserves_package_and_severity_dimensions():
     recipe = load_knowledge_pack().query_recipes["sca-finding-package-severity-groups"]
 
@@ -194,6 +271,30 @@ def test_findings_browser_queries_keep_traversal_and_pagination_independent():
     assert "--traverse" in complete.template
     assert "--list-all" in complete.template
     assert "--traverse" not in exact.template
+
+
+def test_findings_browser_complete_query_requires_explicit_completeness():
+    pack = load_knowledge_pack()
+    canonical = pack.query_recipes["finding-browser-complete-counts"]
+    workflow = pack.workflow_for("findings-browser")
+    complete = next(
+        recipe
+        for recipe in workflow.evidence_query_recipes_for("browse")
+        if recipe.id == "finding-browser-complete-counts"
+    )
+    plan = workflow.evidence_query_plan_for("browse")
+    rendered = render_knowledge_pack_section("findings-browser")
+
+    assert canonical.selection_condition == "runtime.completeness_required"
+    assert complete.selection_condition == "runtime.completeness_required"
+    assert any(
+        "completeness_required=false" in item
+        and "auxiliary" in item
+        and "--list-all" in item
+        for item in plan.query_order
+    )
+    assert "Selection condition: `runtime.completeness_required`" in rendered
+    assert "Bounded, page, sample, and top-N requests set `completeness_required=false`" in rendered
 
 
 def test_canonical_version_upgrade_count_is_count_only_and_project_scoped():
@@ -637,6 +738,63 @@ def test_knowledge_pack_validator_rejects_unsafe_query_recipe_template(tmp_path)
     assert any("broad Finding --list-all templates are not allowed" in error for error in errors)
 
 
+def test_knowledge_pack_validator_requires_a_runtime_gate_for_list_all(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    recipe = workflow["evidence_query_recipes"][0]
+    recipe.pop("canonical_id", None)
+    recipe["resource"] = "Finding"
+    recipe["template"] = (
+        "endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> "
+        "--filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] "
+        "and spec.finding_categories contains <FINDING_CATEGORY>' "
+        '--field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json'
+    )
+    recipe["fields"] = ["uuid", "spec.level", "spec.finding_categories"]
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any(
+        "--list-all recipes must declare a runtime route condition" in error
+        for error in errors
+    )
+
+
+def test_knowledge_pack_validator_requires_artifact_delivery_for_list_all(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    recipe = workflow["evidence_query_recipes"][0]
+    recipe.pop("canonical_id", None)
+    recipe["resource"] = "PackageVersion"
+    recipe["selection_condition"] = "runtime.complete_inventory_required"
+    recipe["template"] = (
+        "endorctl agent api --agent-id <agent-id> list -r PackageVersion "
+        "-n <namespace> --traverse --filter 'meta.name matches \"pkg:.*\"' "
+        '--field-mask "uuid,meta.name" --list-all -o json'
+    )
+    recipe["fields"] = ["uuid", "meta.name"]
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any(
+        "--list-all recipes must use runtime.large_result_artifact_required"
+        in error
+        for error in errors
+    )
+
+
 def test_knowledge_pack_validator_rejects_unknown_canonical_query_recipe_ref(tmp_path):
     _write_minimal_pack(tmp_path)
     workflows = tmp_path / "workflows"
@@ -675,6 +833,30 @@ def test_knowledge_pack_validator_rejects_canonical_query_recipe_template_drift(
 
     assert any(
         "template does not match canonical query recipe 'project-by-git'" in error
+        for error in errors
+    )
+
+
+def test_knowledge_pack_validator_rejects_canonical_result_delivery_drift(tmp_path):
+    _write_minimal_pack(tmp_path)
+    _write_minimal_query_catalog(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["evidence_query_recipes"][0]["canonical_id"] = "project-by-git"
+    workflow["evidence_query_recipes"][0]["result_delivery"] = (
+        "runtime.large_result_artifact_required"
+    )
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any(
+        "result_delivery does not match canonical query recipe 'project-by-git'"
+        in error
         for error in errors
     )
 
@@ -877,6 +1059,11 @@ def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_
                         "id": "query-efficiency",
                         "title": "Efficient Endor queries",
                         "guidance": "Use field masks.",
+                    },
+                    {
+                        "id": "large-result-delivery",
+                        "title": "Large result delivery",
+                        "guidance": "Use host artifacts for large complete results.",
                     },
                     {
                         "id": "verified-evidence",

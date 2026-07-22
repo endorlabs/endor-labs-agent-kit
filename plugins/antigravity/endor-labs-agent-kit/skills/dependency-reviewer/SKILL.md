@@ -181,7 +181,8 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 
 ### Global Rules
 
-- Context first; Namespace provenance; Efficient Endor queries; Verified evidence only; Evidence ledger; Data gaps.
+- Context first; Namespace provenance; Efficient Endor queries; Large result delivery; Verified evidence only; Evidence ledger; Data gaps.
+- `runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run `python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason` with `result_count`.
 
 ### Evidence Gate Contract
 
@@ -224,7 +225,7 @@ Required top-level fields, in order:
 `profile`, `summary`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
 Optional fields when verified:
 `verdict`:enum, `conditions`:list[string], `alternatives`:list[string], `risk_posture`:enum, `manifests`:list[object], `dependencies_reviewed`:list[object], `findings`:list[object], `strengths`:list[string], `next_checks`:list[string], `recommended_actions`:list[string]
-`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

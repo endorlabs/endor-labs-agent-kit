@@ -100,11 +100,11 @@ evidence_query_plans:
     objective: Return bounded table-ready findings for verified filters.
     query_order:
       - Resolve project or namespace scope first.
-      - Query bounded Finding rows with projected fields and a page-size limit.
-      - Query compact complete matching Finding IDs/count fields with `--list-all` when project scope is resolved, then use the
-        bounded page only for table-ready row details.
-      - Summarize complete counts by severity and category when the compact count query succeeds; otherwise surface pagination
-        and data_gaps.
+      - Set completeness_required=true only for explicitly requested complete or exhaustive rows, exact totals, or output that requires full inventory; scope alone never enables it.
+      - When completeness_required=false, query one bounded projected page and stop; never run an auxiliary `--list-all` query
+        for totals or enrichment, and report pagination or truncation in data_gaps.
+      - When completeness_required=true, prefer `--count` or approved aggregation; use compact complete-counts only for required rows or unsupported dimensions.
+      - Apply namespace traversal independently: include `--traverse` for namespace-wide scope and omit it for proven exact scope.
     avoid:
       - Do not enumerate broad unfiltered Finding inventories.
       - Do not claim complete tenant totals when pagination or permission limits exist.
@@ -166,13 +166,17 @@ evidence_query_recipes:
     canonical_id: finding-browser-complete-counts
     resource: Finding
     purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
+    selection_condition: runtime.completeness_required
+    result_delivery: runtime.large_result_artifact_required
     template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
       - spec.finding_categories
     constraints:
-      - Use only after project or explicit namespace scope is proven.
+      - Use only when completeness_required is true for explicit complete rows or exact multi-dimensional totals.
+      - Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed.
+      - Never run this as an auxiliary enrichment query when `completeness_required=false`.
       - Include child namespaces by default; omit --traverse only for a proven exact-namespace request.
       - Keep table rows bounded; use this compact complete query only for totals and pagination completeness.
       - Do not use broad unfiltered Finding --list-all queries.

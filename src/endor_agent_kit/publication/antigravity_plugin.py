@@ -23,6 +23,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 ANTIGRAVITY_HOST = "antigravity"
 ANTIGRAVITY_PLUGIN_PACKAGE_ROOT = Path("plugins") / ANTIGRAVITY_HOST / PLUGIN_NAME
@@ -107,6 +108,8 @@ def publish_antigravity_plugin_package(
 
     logo = write_logo(package_dir / "assets")
     written.append(logo)
+
+    written.append(write_artifact_summarizer(package_dir))
 
     written.extend(_write_antigravity_plugin_hooks(package_dir))
 

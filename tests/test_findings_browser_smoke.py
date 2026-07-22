@@ -84,6 +84,11 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert "finding_results" in artifact
     assert "pagination" in artifact
     assert "Do not use broad unfiltered `Finding --list-all` queries" in artifact
+    assert "Bounded, page, sample, and top-N requests set `completeness_required=false`" in artifact
+    assert "Never run an auxiliary `--list-all` query" in artifact
+    assert "Selection condition: `runtime.completeness_required`" in artifact
+    assert "For complete rows, use the recipe's exact minimal field mask" in artifact
+    assert "Validate count, shape, and hash once, then stop" in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "Endor MCP server" in artifact
     assert "Never run `endorctl scan`" in artifact
@@ -176,6 +181,8 @@ def test_findings_browser_eval_cases_cover_browse_outcomes():
 
     case_ids = {case["id"] for case in evals["cases"]}
     assert case_ids == {
+        "bounded-exact-namespace-findings",
+        "complete-namespace-finding-counts",
         "critical-reachable-project-findings",
         "exact-finding-uuid-lookup",
         "exploited-finding-prioritization",

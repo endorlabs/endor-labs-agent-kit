@@ -113,6 +113,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
         "`agent.md`: generated runtime-neutral agent instructions.",
         "`agent.manifest.json`: machine-readable runtime contract.",
         "`output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.",
+        "`runtime/summarize_endor_artifact.py`: deterministic large-result integrity summary helper.",
     ]
     if recipe.action_contracts_path:
         setup_files.append("`actions.yaml`: portable action contracts for adapter implementers.")

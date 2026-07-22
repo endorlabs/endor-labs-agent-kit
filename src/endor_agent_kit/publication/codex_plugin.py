@@ -22,6 +22,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 CODEX_PLUGIN_PACKAGE_ROOT = Path("plugins") / "codex" / PLUGIN_NAME
 CODEX_MARKETPLACE_PATH = Path(".agents") / "plugins" / "marketplace.json"
@@ -115,6 +116,8 @@ def publish_codex_plugin_package(
     installer = package_dir / "scripts" / "install_codex_agents.py"
     installer.write_text(_codex_agent_installer_script(version), encoding="utf-8")
     written.append(installer)
+
+    written.append(write_artifact_summarizer(package_dir))
 
     written.extend(_write_codex_plugin_hooks(package_dir))
 

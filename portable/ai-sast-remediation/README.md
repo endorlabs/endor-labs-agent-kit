@@ -21,6 +21,7 @@ Use this bundle when your organization already has an agent runtime, source-prov
 - `agent.md`: generated runtime-neutral agent instructions.
 - `agent.manifest.json`: machine-readable runtime contract.
 - `output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.
+- `runtime/summarize_endor_artifact.py`: deterministic large-result integrity summary helper.
 - `actions.yaml`: portable action contracts for adapter implementers.
 - `endorctl-setup.md`: Endor runtime setup notes.
 - `architecture.svg`: human-readable workflow diagram.

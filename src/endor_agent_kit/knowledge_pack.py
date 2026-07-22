@@ -39,6 +39,7 @@ REQUIRED_GLOBAL_RULE_IDS = (
     "context-first",
     "namespace-provenance",
     "query-efficiency",
+    "large-result-delivery",
     "verified-evidence",
     "data-gaps",
 )
@@ -121,6 +122,12 @@ COMPACT_EVIDENCE_GATE_RULES = (
     "Read-only: no edits/scans/PRs/comments/writes.",
     "No raw commands in final.",
 )
+COMPACT_LARGE_RESULT_DELIVERY_RULE = (
+    "`runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run "
+    "`python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put "
+    "`artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in "
+    "`evidence_queries[].reason` with `result_count`."
+)
 
 
 @dataclass(frozen=True)
@@ -182,6 +189,8 @@ class KnowledgeEvidenceQueryRecipe:
     template: str
     fields: tuple[str, ...]
     constraints: tuple[str, ...]
+    selection_condition: str
+    result_delivery: str
 
 
 @dataclass(frozen=True)
@@ -197,6 +206,8 @@ class KnowledgeCanonicalQueryRecipe:
     constraints: tuple[str, ...]
     completeness: str
     forbidden: tuple[str, ...]
+    selection_condition: str
+    result_delivery: str
 
 
 @dataclass(frozen=True)
@@ -400,6 +411,16 @@ def render_knowledge_pack_section(
     if compact:
         global_titles = "; ".join(rule.title for rule in pack.global_rules)
         lines.append(f"- {global_titles}.")
+        large_result_rule = next(
+            (
+                rule
+                for rule in pack.global_rules
+                if rule.id == "large-result-delivery"
+            ),
+            None,
+        )
+        if large_result_rule is not None:
+            lines.append(f"- {COMPACT_LARGE_RESULT_DELIVERY_RULE}")
     else:
         for rule in pack.global_rules:
             lines.append(f"- {rule.title}: {rule.guidance}")
@@ -499,6 +520,16 @@ def render_knowledge_pack_section(
                         canonical_line,
                         f"- Resource: `{recipe.resource}`",
                         f"- Purpose: {recipe.purpose}",
+                        *(
+                            [f"- Selection condition: `{recipe.selection_condition}`"]
+                            if recipe.selection_condition
+                            else []
+                        ),
+                        *(
+                            [f"- Result delivery: `{recipe.result_delivery}`"]
+                            if recipe.result_delivery
+                            else []
+                        ),
                         f"- Template: `{recipe.template}`",
                         "- Fields: " + ", ".join(f"`{field}`" for field in recipe.fields),
                         "- Constraints: " + " ".join(recipe.constraints),
@@ -578,7 +609,20 @@ def render_task_profile_prompt(
             )
         if recipes:
             rendered_recipes = "; ".join(
-                f"{recipe.id}: `{recipe.template}`"
+                (
+                    f"{recipe.id}"
+                    + (
+                        f" when `{recipe.selection_condition}`"
+                        if recipe.selection_condition
+                        else ""
+                    )
+                    + (
+                        f" delivering `{recipe.result_delivery}`"
+                        if recipe.result_delivery
+                        else ""
+                    )
+                    + f": `{recipe.template}`"
+                )
                 for recipe in recipes[:4]
             )
             prompt += f" Evidence query recipes: {rendered_recipes}."
@@ -615,6 +659,16 @@ def render_task_profile_prompt(
             )
             lines.extend([
                 f"- `{recipe.id}` ({recipe.resource}{canonical}): {recipe.purpose}",
+                *(
+                    [f"  Selection condition: `{recipe.selection_condition}`"]
+                    if recipe.selection_condition
+                    else []
+                ),
+                *(
+                    [f"  Result delivery: `{recipe.result_delivery}`"]
+                    if recipe.result_delivery
+                    else []
+                ),
                 "  ```bash",
                 f"  {recipe.template}",
                 "  ```",
@@ -770,6 +824,12 @@ def _validate_workflows(
                 if not _strings(recipe.get(field)):
                     errors.append(f"{recipe_prefix}.{field}: must be a non-empty list")
             _validate_query_recipe_template(recipe_prefix, template, errors)
+            _validate_list_all_selection_condition(
+                recipe_prefix,
+                recipe,
+                template,
+                errors,
+            )
             _validate_canonical_query_recipe_reference(
                 recipe_prefix,
                 recipe,
@@ -870,6 +930,8 @@ def _evidence_query_recipe(data: dict[str, Any]) -> KnowledgeEvidenceQueryRecipe
         template=str(data.get("template", "")),
         fields=tuple(_strings(data.get("fields"))),
         constraints=tuple(_strings(data.get("constraints"))),
+        selection_condition=str(data.get("selection_condition", "")),
+        result_delivery=str(data.get("result_delivery", "")),
     )
 
 
@@ -884,6 +946,8 @@ def _canonical_query_recipe(data: dict[str, Any]) -> KnowledgeCanonicalQueryReci
         constraints=tuple(_strings(data.get("constraints"))),
         completeness=str(data.get("completeness", "")),
         forbidden=tuple(_strings(data.get("forbidden"))),
+        selection_condition=str(data.get("selection_condition", "")),
+        result_delivery=str(data.get("result_delivery", "")),
     )
 
 
@@ -1175,6 +1239,7 @@ def _validate_canonical_query_recipes(
             errors.append(f"{prefix}.constraints: must be a non-empty list")
         _required_string(recipe, "completeness", prefix, errors)
         _validate_query_recipe_template(prefix, template, errors)
+        _validate_list_all_selection_condition(prefix, recipe, template, errors)
         if recipe_id:
             canonical_recipes[recipe_id] = _canonical_query_recipe(recipe)
     _check_forbidden_visible_terms(catalog_path, catalog, errors, root=pack_root)
@@ -1214,6 +1279,44 @@ def _validate_canonical_query_recipe_reference(
     if _normalize_query_template(template) != _normalize_query_template(canonical.template):
         errors.append(
             f"{prefix}.canonical_id: template does not match canonical query recipe {raw_canonical_id!r}"
+        )
+    selection_condition = str(recipe.get("selection_condition", ""))
+    if selection_condition != canonical.selection_condition:
+        errors.append(
+            f"{prefix}.canonical_id: selection_condition does not match canonical query recipe {raw_canonical_id!r}"
+        )
+    result_delivery = str(recipe.get("result_delivery", ""))
+    if result_delivery != canonical.result_delivery:
+        errors.append(
+            f"{prefix}.canonical_id: result_delivery does not match canonical query recipe {raw_canonical_id!r}"
+        )
+
+
+def _validate_list_all_selection_condition(
+    prefix: str,
+    recipe: dict[str, Any],
+    template: str,
+    errors: list[str],
+) -> None:
+    """Require complete-inventory templates to expose their runtime route gate."""
+
+    if "--list-all" not in template.lower():
+        return
+    condition = recipe.get("selection_condition")
+    if not isinstance(condition, str) or not condition.startswith("runtime."):
+        errors.append(
+            f"{prefix}.selection_condition: --list-all recipes must declare a runtime route condition"
+        )
+    delivery = recipe.get("result_delivery")
+    if delivery != "runtime.large_result_artifact_required":
+        errors.append(
+            f"{prefix}.result_delivery: --list-all recipes must use "
+            "runtime.large_result_artifact_required"
+        )
+    fields = recipe.get("fields")
+    if not isinstance(fields, list) or "uuid" not in fields:
+        errors.append(
+            f"{prefix}.fields: --list-all artifact recipes must include uuid for deterministic uniqueness validation"
         )
 
 

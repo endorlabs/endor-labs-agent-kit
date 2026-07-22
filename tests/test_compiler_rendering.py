@@ -385,6 +385,9 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"conditions": []' in rendered
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
+    assert "/filter_summary/field_mask_summary/result_count/reason" in rendered
+    assert "/filter/field_mask/result_count/reason" not in rendered
+    assert "source is an adapter tag, never a command or path" in rendered
     assert "no raw commands" in rendered
     assert "put gaps in top-level `data_gaps`" in rendered
     assert "no raw shell, `endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `git`, or `gh` command strings" in rendered
