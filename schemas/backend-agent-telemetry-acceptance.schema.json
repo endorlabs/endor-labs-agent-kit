@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://endor.ai/schemas/backend-agent-telemetry-acceptance.schema.json",
+  "title": "Endor Agent Backend Acceptance Evidence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "environment",
+    "catalog_schema_version",
+    "agent_api_transport",
+    "canonical_agent_ids",
+    "legacy_aliases",
+    "audit_log_correlation"
+  ],
+  "properties": {
+    "schema_version": {"const": "1"},
+    "status": {"const": "pass"},
+    "environment": {"type": "string", "minLength": 1},
+    "catalog_schema_version": {"const": 2},
+    "agent_api_transport": {"const": "endorctl agent api"},
+    "canonical_agent_ids": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "legacy_aliases": {
+      "type": "object",
+      "minProperties": 9,
+      "additionalProperties": {"type": "string", "minLength": 1}
+    },
+    "audit_log_correlation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "observed_fields", "canonical_agent_samples"],
+      "properties": {
+        "status": {"const": "pass"},
+        "observed_fields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string"}
+        },
+        "canonical_agent_samples": {"type": "integer", "minimum": 11}
+      }
+    }
+  }
+}

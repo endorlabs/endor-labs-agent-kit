@@ -133,7 +133,7 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 ### Evidence Query Recipes
 
 - `local-git-state`/resolve-scope: `pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url`
-- `project-by-git`/resolve-scope: `endorctl agent api --agent-id sca-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `project-by-git`/resolve-scope: `endorctl agent api --agent-id sca-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 
 ## Agent Policy Packs
 

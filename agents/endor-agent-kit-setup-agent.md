@@ -14,16 +14,16 @@ Generated for the Endor Labs Agent Kit Cursor plugin agent package.
 
 ## Bundled Cursor Workflows
 
-- `Triage AI SAST findings` -> agent `endor-ai-sast-remediation-agent` and skill `ai-sast-remediation`
-- `Assess CI/CD and supply chain posture` -> agent `endor-cicd-posture-agent` and skill `cicd-posture`
-- `Assess GitHub onboarding gaps` -> agent `endor-configuration-automation-agent` and skill `configuration-automation`
+- `AI SAST Remediation` -> agent `endor-ai-sast-remediation-agent` and skill `ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> agent `endor-cicd-posture-agent` and skill `cicd-posture`
+- `Configuration Automation` -> agent `endor-configuration-automation-agent` and skill `configuration-automation`
 - `Dependency Reviewer` -> agent `endor-dependency-reviewer-agent` and skill `dependency-reviewer`
 - `Findings Browser` -> agent `endor-findings-browser-agent` and skill `findings-browser`
 - `Malware Responder` -> agent `endor-malware-responder-agent` and skill `malware-responder`
-- `Oss Upgrade Investigator` -> agent `endor-oss-upgrade-investigator-agent` and skill `oss-upgrade-investigator`
+- `OSS Upgrade Investigator` -> agent `endor-oss-upgrade-investigator-agent` and skill `oss-upgrade-investigator`
 - `Remediation Planning` -> agent `endor-remediation-planning-agent` and skill `remediation-planning`
-- `Find safe SCA remediation paths` -> agent `endor-sca-remediation-agent` and skill `sca-remediation`
-- `Diagnose Endor setup and scan issues` -> agent `endor-troubleshooting-agent` and skill `troubleshooting`
+- `SCA Remediation` -> agent `endor-sca-remediation-agent` and skill `sca-remediation`
+- `Troubleshooting` -> agent `endor-troubleshooting-agent` and skill `troubleshooting`
 - `Vulnerability Explainer` -> agent `endor-vulnerability-explainer-agent` and skill `vulnerability-explainer`
 
 ## Cursor Plugin Install Notes

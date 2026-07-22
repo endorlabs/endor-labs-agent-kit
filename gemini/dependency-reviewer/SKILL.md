@@ -402,7 +402,7 @@ Attach Endor evidence only to exact dependencies discovered in the current repos
 - Canonical: `project-by-git`
 - Resource: `Project`
 - Purpose: Resolve the current repository only when tenant-scoped evidence was requested.
-- Template: `endorctl agent api --agent-id dependency-reviewer list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- Template: `endorctl agent api --agent-id dependency-reviewer list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use only a proven namespace and retry the same selector with --traverse on a parent miss. Do not enumerate unrelated projects.
 

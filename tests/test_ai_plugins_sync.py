@@ -22,6 +22,8 @@ def _minimal_source_tree(root: Path) -> None:
     _write(root / "GEMINI.md", "# Gemini\n")
     _write(root / ".claude-plugin" / "marketplace.json", "{}\n")
     _write(root / ".agents" / "plugins" / "marketplace.json", "{}\n")
+    _write(root / "scripts" / "check_repository_hygiene.py", "# hygiene\n")
+    _write(root / "scripts" / "validate_mirror_provenance.py", "# provenance\n")
     _write(root / "assets" / "logo.png", "<svg />\n")
     _write(root / "skills" / "configuration-automation" / "SKILL.md")
     _write(root / "skills" / "create-endor-labs-agent" / "SKILL.md")
@@ -55,6 +57,8 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert (target / "GEMINI.md").read_text(encoding="utf-8") == "# Gemini\n"
     assert (target / ".claude-plugin" / "marketplace.json").exists()
     assert (target / ".agents" / "plugins" / "marketplace.json").exists()
+    assert (target / "scripts" / "check_repository_hygiene.py").exists()
+    assert (target / "scripts" / "validate_mirror_provenance.py").exists()
     assert (target / "assets" / "logo.png").exists()
     assert not (target / "assets" / "logo.svg").exists()
     assert not (target / "gemini-extension.json").exists()

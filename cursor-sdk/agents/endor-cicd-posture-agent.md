@@ -232,7 +232,7 @@ Assess namespace-wide or repository-subset CI/CD and supply chain posture using 
 ### Evidence Query Recipes
 
 - `cicd-posture-findings`/posture: `endorctl agent api --agent-id cicd-posture list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json`
-- `endor-repository-config`/posture: `endorctl agent api --agent-id cicd-posture list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json`
+- `endor-repository-config`/posture: `endorctl agent api --agent-id cicd-posture list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json`
 - `endor-repo-codeowners`/posture: `endorctl agent api --agent-id cicd-posture list -r RepositoryCodeownersFile -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json`
 - `endor-repo-tag-protection`/posture: `endorctl agent api --agent-id cicd-posture list -r RepositoryTagProtection -n <namespace> --filter 'meta.parent_uuid=="<REPOSITORY_UUID>"' --field-mask "uuid,meta.name,meta.parent_uuid,ingested_object" -o json`
 

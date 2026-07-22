@@ -10,9 +10,11 @@ on:
       - "pyproject.toml"
       - "scripts/sync_ai_plugins_distribution.py"
       - "source/agents/**"
+      - "source/endor-knowledge-pack/**"
       - "source/plugin-support/**"
       - "src/endor_agent_kit/**"
       - "tests/**"
+      - "CHANGELOG.md"
   workflow_dispatch:
     inputs:
       ai_plugins_repository:
@@ -85,6 +87,26 @@ jobs:
         working-directory: endor-labs-agent-kit
         run: .venv/bin/python -m pytest -q
 
+      - name: Check Agent Kit repository hygiene
+        working-directory: endor-labs-agent-kit
+        run: .venv/bin/python scripts/check_repository_hygiene.py
+
+      - name: Smoke test disposable provider installations
+        working-directory: endor-labs-agent-kit
+        run: .venv/bin/python scripts/smoke_test_provider_installations.py --root .
+
+      - name: Require QA and backend release evidence
+        if: ${{ env.DRY_RUN != 'true' }}
+        working-directory: endor-labs-agent-kit
+        env:
+          AGENT_QA_ACCEPTANCE_JSON: ${{ vars.AGENT_QA_ACCEPTANCE_JSON }}
+          ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON: ${{ vars.ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON }}
+        run: |
+          .venv/bin/python scripts/validate_release_evidence.py \
+            --source-commit "$GITHUB_SHA" \
+            --qa-acceptance-env AGENT_QA_ACCEPTANCE_JSON \
+            --backend-acceptance-env ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON
+
       - name: Regenerate catalog
         working-directory: endor-labs-agent-kit
         run: |
@@ -126,7 +148,9 @@ jobs:
         run: |
           . .venv/bin/activate
           mkdir -p dist/provenance
-          endor-agent-kit provenance-statement --catalog-root . > dist/provenance/agent-kit-catalog.intoto.json
+          endor-agent-kit provenance-statement \
+            --catalog-root . \
+            --output dist/provenance/agent-kit-catalog.intoto.json
           sha256sum manifest.json > dist/provenance/manifest.sha256
           python scripts/build_provenance_bundle.py \
             --root . \
@@ -199,6 +223,8 @@ jobs:
         working-directory: ai-plugins
         run: |
           set -e
+          python3 scripts/check_repository_hygiene.py
+          python3 scripts/validate_mirror_provenance.py
           for skill in skills/*; do
             ../endor-labs-agent-kit/.venv/bin/python scripts/quick_validate.py "$skill"
           done

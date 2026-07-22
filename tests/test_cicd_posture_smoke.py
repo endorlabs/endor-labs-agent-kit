@@ -16,6 +16,7 @@ from host_artifact_bundle_contract import (
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
+    compiled_evidence_artifact_paths,
 )
 
 
@@ -209,7 +210,11 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
         "manifest.json",
         "README.md",
         "catalog.json",
-    }
+    } | compiled_evidence_artifact_paths(
+        "cicd-posture",
+        evidence_plan_ids=("posture",),
+        profile_contract_ids=("resolve-scope", "posture"),
+    )
 
     agent_dir = dest / "claude-code" / "cicd-posture"
     managed_dir = dest / "claude-managed-agents" / "cicd-posture"

@@ -36,7 +36,7 @@ package metadata.
   v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
 - Enhanced `findings-browser` with compact complete-count queries and
   `FINDING_TAGS_*` filters for exploited, fix-available, and reachable findings.
-- Extended `malware-response` to query tenant `FINDING_CATEGORY_MALWARE`
+- Extended `malware-responder` to query tenant `FINDING_CATEGORY_MALWARE`
   evidence and distinguish Endor classifications from external intelligence.
 - Extended `cicd-posture` to prefer Endor-ingested repository, CODEOWNERS, and
   tag-protection evidence before falling back to the read-only GitHub API.

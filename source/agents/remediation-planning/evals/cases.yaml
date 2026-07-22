@@ -1,7 +1,7 @@
 cases:
 - id: happy-path
   input:
-    source_agent_id: remediation_planner
+    source_agent_id: remediation_planning
   expected:
     required_evidence:
     - Endor evidence
@@ -9,7 +9,7 @@ cases:
     data_gaps_allowed: true
 - id: missing-signal
   input:
-    source_agent_id: remediation_planner
+    source_agent_id: remediation_planning
     missing_endor_signal: true
   expected:
     required_evidence:

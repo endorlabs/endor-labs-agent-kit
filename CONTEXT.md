@@ -94,7 +94,7 @@ The process that turns a Source Recipe into Host Artifact Bundles plus catalog m
 _Avoid_: copy step, dist sync
 
 **Workflow Gate**:
-A named checkpoint in a generated agent workflow, such as AI SAST triage, AI SAST remediation, AI SAST exception policy, SCA Selection / Plan, SCA apply, SCA validation, or SCA PR/MR publication. Each Workflow Gate owns the structured output requirements and rendered artifact checks needed before that workflow can advance.
+A named checkpoint in a generated agent workflow, such as AI SAST initial assessment, AI SAST remediation, AI SAST exception policy, SCA Selection / Plan, SCA apply, SCA validation, or SCA PR/MR publication. Each Workflow Gate owns the structured output requirements and rendered artifact checks needed before that workflow can advance.
 _Avoid_: phase string, mode flag
 
 **Workflow Output Contract**:

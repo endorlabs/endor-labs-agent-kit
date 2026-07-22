@@ -37,6 +37,15 @@ AI_PLUGINS_SYNC_TOKEN
 The token must be a fine-grained PAT or GitHub App installation token with
 `contents:write` and `pull-requests:write` on `endorlabs/ai-plugins`.
 
+Real publication also requires two non-secret, sanitized JSON repository variables:
+
+```text
+AGENT_QA_ACCEPTANCE_JSON=<passing benchmark-acceptance.json>
+ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON=<passing backend telemetry acceptance bundle>
+```
+
+The first must bind its treatment arm to the exact publishing source SHA. The second must prove catalog schema v2, all canonical and legacy identities, attributed `endorctl agent api`, and Audit Log correlation. See `docs/backend-agent-telemetry-acceptance.md`. Manual `dry_run=true` validation does not require these variables and cannot publish.
+
 Optional Endor Labs signing variables:
 
 ```text
@@ -64,6 +73,7 @@ Run from the Agent Kit source repo:
 ```bash
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 python -m pytest -q
+python scripts/smoke_test_provider_installations.py --root .
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 git diff --check

@@ -176,7 +176,7 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 
 - `finding-by-uuid`/evidence-check: `endorctl agent api --agent-id ai-sast-remediation get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
 - `project-by-uuid`/evidence-check: `endorctl agent api --agent-id ai-sast-remediation get -r Project -n <namespace> --uuid <PROJECT_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
-- `project-by-git`/evidence-check: `endorctl agent api --agent-id ai-sast-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `project-by-git`/evidence-check: `endorctl agent api --agent-id ai-sast-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - `ai-sast-count`/evidence-check: `endorctl agent api --agent-id ai-sast-remediation list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --count -o json`
 
 ## Agent Policy Packs

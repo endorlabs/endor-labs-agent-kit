@@ -12,16 +12,16 @@ Generated for the Endor Labs Agent Kit Cursor package.
 
 ## Bundled Cursor Workflows
 
-- `Triage AI SAST findings` -> skill `ai-sast-remediation`
-- `Assess CI/CD and supply chain posture` -> skill `cicd-posture`
-- `Assess GitHub onboarding gaps` -> skill `configuration-automation`
+- `AI SAST Remediation` -> skill `ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> skill `cicd-posture`
+- `Configuration Automation` -> skill `configuration-automation`
 - `Dependency Reviewer` -> skill `dependency-reviewer`
 - `Findings Browser` -> skill `findings-browser`
 - `Malware Responder` -> skill `malware-responder`
-- `Oss Upgrade Investigator` -> skill `oss-upgrade-investigator`
+- `OSS Upgrade Investigator` -> skill `oss-upgrade-investigator`
 - `Remediation Planning` -> skill `remediation-planning`
-- `Find safe SCA remediation paths` -> skill `sca-remediation`
-- `Diagnose Endor setup and scan issues` -> skill `troubleshooting`
+- `SCA Remediation` -> skill `sca-remediation`
+- `Troubleshooting` -> skill `troubleshooting`
 - `Vulnerability Explainer` -> skill `vulnerability-explainer`
 
 ## Cursor Package Install Notes

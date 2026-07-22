@@ -131,9 +131,9 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 ### Evidence Query Recipes
 
-- `version-upgrade-by-package`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
-- `version-upgrade-detail`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
-- `project-by-git`/resolve-scope: `endorctl agent api --agent-id oss-upgrade-investigator list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json`
+- `version-upgrade-by-package`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- `version-upgrade-detail`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
+- `project-by-git`/resolve-scope: `endorctl agent api --agent-id oss-upgrade-investigator list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - `selected-source-usage`/explain: `rg -n '<PACKAGE_NAME>|<IMPORT_OR_SYMBOL>' <SELECTED_MANIFEST_OR_SOURCE_DIR>`
 
 ## Agent Policy Packs

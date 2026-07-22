@@ -207,6 +207,9 @@ def test_compiled_findings_browser_plan_routes_tag_or_filter_to_one_bounded_page
     assert all("--page-size 25" in step.template for step in plan.steps)
     assert all("--list-all" not in step.template for step in plan.steps)
     assert all(step.max_calls == 1 for step in plan.steps)
+    assert plan.inventory_default_mode == "bounded"
+    assert plan.exhaustive_supported is True
+    assert plan.exhaustive_max_pages == 20
     assert all(
         step.template.startswith("endorctl agent api --agent-id findings-browser")
         for step in plan.steps

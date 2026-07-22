@@ -199,6 +199,9 @@ class CompiledEvidencePlan:
     namespace_provenance_required: bool
     freshness_max_age_seconds: int
     cache_identity: tuple[str, ...]
+    inventory_default_mode: str
+    exhaustive_supported: bool
+    exhaustive_max_pages: int
     attribution_required: bool
     attribution_agent_id: str
     execution_mode: str
@@ -232,6 +235,11 @@ class CompiledEvidencePlan:
             },
             "freshness": {"max_age_seconds": self.freshness_max_age_seconds},
             "cache_identity": list(self.cache_identity),
+            "inventory": {
+                "default_mode": self.inventory_default_mode,
+                "exhaustive_supported": self.exhaustive_supported,
+                "exhaustive_max_pages": self.exhaustive_max_pages,
+            },
             "attribution": {
                 "required": self.attribution_required,
                 "agent_id": self.attribution_agent_id,
@@ -397,6 +405,12 @@ def validate_evidence_plan(
             errors.append("runtime namespace provenance must not be required for OSS Evidence Plans")
     if plan.freshness_max_age_seconds <= 0:
         errors.append("freshness max_age_seconds must be positive")
+    if plan.inventory_default_mode != "bounded":
+        errors.append("bounded inventory mode must remain the default")
+    if plan.exhaustive_max_pages < 1 or plan.exhaustive_max_pages > 100:
+        errors.append("exhaustive max_pages must be between 1 and 100")
+    if not plan.exhaustive_supported and plan.exhaustive_max_pages != 1:
+        errors.append("unsupported exhaustive mode must retain max_pages 1")
     required_cache_identity = ["agent_id", "profile_id", "source_digest"]
     required_cache_identity.append(
         "namespace" if plan.namespace_mode == "tenant" else "namespace_mode"
@@ -536,6 +550,9 @@ def _compile_raw_plan(
     execution = _required_mapping(raw, "execution")
     scope = _required_mapping(raw, "scope")
     freshness = _required_mapping(raw, "freshness")
+    inventory = raw.get("inventory", {})
+    if not isinstance(inventory, dict):
+        raise ValueError("inventory must be an object")
     attribution = _required_mapping(raw, "attribution")
     gate = _required_mapping(raw, "gate")
     routes = tuple(_route(item) for item in _required_mappings(raw, "routes"))
@@ -557,6 +574,9 @@ def _compile_raw_plan(
         ),
         freshness_max_age_seconds=_required_int(freshness, "max_age_seconds"),
         cache_identity=_required_strings(raw, "cache_identity"),
+        inventory_default_mode=_optional_string(inventory, "default_mode", "bounded"),
+        exhaustive_supported=_optional_bool(inventory, "exhaustive_supported", False),
+        exhaustive_max_pages=_optional_int(inventory, "exhaustive_max_pages", 1),
         attribution_required=_required_bool(attribution, "required"),
         attribution_agent_id=_required_string(attribution, "agent_id").replace(
             "<agent-id>", agent_id

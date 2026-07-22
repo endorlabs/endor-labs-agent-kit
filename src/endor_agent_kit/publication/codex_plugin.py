@@ -540,7 +540,7 @@ def _codex_plugin_readme(
     version: str,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `{_codex_agent_name(prepared.recipe.id)}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | `{_codex_agent_name(prepared.recipe.id)}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
@@ -637,18 +637,6 @@ def _codex_plugin_readme(
         "- https://developers.openai.com/codex/subagents",
         "",
     ])
-
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-remediation": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "troubleshooting": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "configuration-automation": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
 
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:

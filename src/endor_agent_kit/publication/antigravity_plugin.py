@@ -239,7 +239,7 @@ def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
 def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -309,7 +309,7 @@ def _antigravity_plugin_readme(
     version: str,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
@@ -429,18 +429,6 @@ def antigravity_text(text: str) -> str:
             1,
         )
     return adapted
-
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-remediation": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "troubleshooting": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "configuration-automation": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
 
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:

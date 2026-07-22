@@ -508,7 +508,7 @@ def _render_setup_skill(
 ) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> Claude Code agent `{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> Claude Code agent `{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     install_notice = _claude_install_upgrade_notice(spec)
@@ -584,7 +584,7 @@ def _claude_plugin_readme(
     spec: ClaudePluginPackageSpec,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     install_notice = _claude_install_upgrade_notice(spec)
@@ -709,22 +709,6 @@ def _claude_install_upgrade_notice(spec: ClaudePluginPackageSpec) -> list[str]:
         "- Do not enable both Claude plugin ids in the same profile because they expose the same agents and setup skill.",
         "- The plugin does not auto-disable, uninstall, or edit Claude settings for either id.",
     ]
-
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-remediation": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "dependency-reviewer": "Review package decisions, package risk, or repository dependencies",
-        "troubleshooting": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "configuration-automation": "Assess GitHub onboarding gaps",
-        "remediation-planning": "Plan remediation across findings",
-        "sca-remediation": "Find safe SCA remediation paths",
-        "oss-upgrade-investigator": "Analyze upgrade impact",
-        "vulnerability-explainer": "Explain vulnerability risk and remediation",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
 
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:
