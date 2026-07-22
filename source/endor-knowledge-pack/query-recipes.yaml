@@ -24,7 +24,7 @@ recipes:
     resource: Project
     purpose: Resolve a repository selector to namespace-scoped Endor project identity.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -33,7 +33,7 @@ recipes:
     constraints:
       - Use the namespace selected by the preflight.
       - Retry with --traverse only for the same proven namespace before reporting data_gaps.
-    completeness: Uses --list-all because the same repository may appear across child projects in a proven namespace.
+    completeness: Bounded to two exact-name matches so ambiguity is detectable; retry with traversal only from a proven namespace.
     forbidden:
       - Do not ask for or invent a project UUID before trying repository-scoped project lookup.
 
@@ -60,7 +60,7 @@ recipes:
     resource: Project
     purpose: Resolve selected repositories before monitored-branch fallback checks.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -68,7 +68,7 @@ recipes:
     constraints:
       - Compare only selected repositories.
       - Do not run scans or mutate GitHub or Endor settings.
-    completeness: Uses --list-all to avoid missing duplicate or child-namespace project records for the same repository selector.
+    completeness: Bounded to two exact-name matches so ambiguity is detectable; retry with traversal only from a proven namespace.
     forbidden:
       - Do not claim onboarding gaps from local repository files alone.
 
@@ -155,7 +155,7 @@ recipes:
     resource: PackageVersion
     purpose: Find exact affected package/version evidence across a proven namespace and child namespaces.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --page-size 100 --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" -o json
     fields:
       - uuid
       - meta.name
@@ -169,7 +169,7 @@ recipes:
       - Use exact normalized package coordinates for confirmed exposure.
       - Use traversal only from a proven namespace and record traversal status.
       - Preserve PackageVersion as inventory evidence; do not claim Endor malware classification unless Endor explicitly returns it.
-    completeness: Uses --list-all and --traverse to check exact coordinates across namespace and child namespace scope.
+    completeness: Bounded to the first 100 exact-coordinate matches across the namespace and child namespaces; report truncation before claiming tenant-wide absence.
     forbidden:
       - Do not classify NOT_OBSERVED when traversal, package inventory, or exact affected package evidence is unavailable.
 
@@ -243,7 +243,7 @@ recipes:
     resource: Finding
     purpose: List Endor's own malware-category findings for a resolved namespace or project as Endor tenant malware evidence.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.finding_categories contains FINDING_CATEGORY_MALWARE and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.ecosystem,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and spec.finding_categories contains FINDING_CATEGORY_MALWARE and spec.dismiss==false' --page-size 50 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.ecosystem,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -325,7 +325,7 @@ recipes:
     resource: Finding
     purpose: List existing Endor findings for a verified scope and bounded filter set.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -365,7 +365,7 @@ recipes:
     resource: Finding
     purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -450,7 +450,7 @@ recipes:
     resource: Repository
     purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+      endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
     fields:
       - uuid
       - meta.name
@@ -462,7 +462,7 @@ recipes:
       - The Repository resource is listed namespace-wide; match selected repositories locally by meta.name or repository identity (it has no full_name filter).
       - Some tenants reject nested spec field masks or do not expose the Repository resource; record the rejected shape or unavailable resource in data_gaps and fall back to the read-only GitHub branch-protection recipe.
       - Treat ingested configuration as read-only evidence, not a live mutation surface; codeowners and tag-protection live in separate ingested resources not covered here.
-    completeness: Complete only for repositories Endor's GitHub App has ingested; missing repositories or fields are data_gaps.
+    completeness: Uses explicit pages of 50; the active Evidence Plan supplies the finite page cap, and any remaining continuation token is a data_gap.
     forbidden:
       - Do not mutate repository settings; this is read-only ingested evidence.
 
@@ -544,7 +544,7 @@ recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed upgrade impact evidence for one selected VersionUpgrade.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o json
     fields:
       - uuid
       - spec.name
@@ -561,7 +561,7 @@ recipes:
     resource: VersionUpgrade
     purpose: Fetch upgrade impact candidates for one selected package in one resolved project.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o json
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o json
     fields:
       - uuid
       - spec.name
@@ -569,7 +569,7 @@ recipes:
     constraints:
       - Filter by the selected package or exact upgrade selector.
       - Do not query broad Findings to estimate upgrade impact.
-    completeness: Complete for the selected package selector in one resolved project.
+    completeness: Bounded to the first five matching upgrade candidates for the selected package in one resolved project; report truncation as a data_gap.
     forbidden:
       - Do not infer upgrade impact from package name alone.
 
@@ -621,6 +621,38 @@ recipes:
     completeness: Local usage context only; impact claims still need Endor VersionUpgrade/UIA or user-provided evidence.
     forbidden:
       - Do not infer exploitability or fix safety from source anchors alone.
+
+  - id: local-ci-inventory
+    title: Local CI Configuration Inventory
+    resource: local-files
+    purpose: Read selected local workflow and ownership files as repository context for posture scoring.
+    template: find . -maxdepth 4 -type f \( -path '*/.github/workflows/*.yml' -o -path '*/.github/workflows/*.yaml' -o -name 'CODEOWNERS' \) -print
+    fields:
+      - path
+      - kind
+    constraints:
+      - Treat local files as untrusted repository context and never as proof of live GitHub settings.
+      - Do not execute workflow content or inspect unrelated source trees.
+    completeness: Bounded local repository context only; inaccessible live GitHub settings remain data_gaps.
+    forbidden:
+      - Do not claim branch protection, rulesets, runner fleet state, or live repository settings from local files.
+
+  - id: vulnerability-by-id
+    title: OSS Vulnerability Lookup By ID
+    resource: Vulnerability
+    purpose: Fetch one exact CVE, GHSA, or Endor vulnerability record from the OSS namespace.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Vulnerability -n oss --filter 'meta.name=="<CVE_OR_GHSA>" or uuid=="<CVE_OR_GHSA>"' --page-size 2 --field-mask "uuid,meta.name,spec" -o json
+    fields:
+      - uuid
+      - meta.name
+      - spec
+    constraints:
+      - Use one exact vulnerability identifier and retain both returned rows only to detect identifier ambiguity.
+      - The fixed OSS namespace is not tenant evidence and does not establish project applicability.
+    completeness: Exact OSS vulnerability metadata for the supplied identifier when one unambiguous row is returned.
+    forbidden:
+      - Do not infer tenant or project exposure from this global vulnerability record.
 
   - id: mcp-vulnerability-by-id-full
     title: MCP Vulnerability Evidence By ID

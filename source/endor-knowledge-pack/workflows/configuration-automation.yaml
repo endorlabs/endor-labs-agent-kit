@@ -186,8 +186,8 @@ evidence_query_recipes:
     canonical_id: project-branch-coverage
     resource: Project
     purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git"
-      --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git"
+      -o json
     fields:
       - uuid
       - meta.name
@@ -200,8 +200,8 @@ evidence_query_recipes:
     canonical_id: project-branch-coverage
     resource: Project
     purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git"
-      --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git"
+      -o json
     fields:
       - uuid
       - meta.name
@@ -226,8 +226,8 @@ evidence_query_recipes:
     canonical_id: project-branch-coverage
     resource: Project
     purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,spec.git"
-      --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git"
+      -o json
     fields:
       - uuid
       - meta.name

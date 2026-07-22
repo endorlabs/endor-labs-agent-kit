@@ -1,0 +1,102 @@
+schema_version: 1
+agent_id: cicd-posture
+plans:
+  - profile_id: posture
+    safety_class: read_only
+    scope:
+      namespace_required: true
+      namespace_provenance_required: true
+    freshness:
+      max_age_seconds: 300
+    cache_identity:
+      - agent_id
+      - profile_id
+      - namespace
+      - scope_filter
+      - repo_full_name
+      - source_digest
+    attribution:
+      required: true
+      agent_id: <agent-id>
+    execution:
+      mode: prompt_fallback
+      prompt_recipes_exposed: true
+      host_adapter_required: true
+    gate:
+      expected_calls: 2
+      max_calls: 4
+      stop_conditions:
+        - Stop after one bounded posture Finding page, one bounded Endor-ingested repository configuration page, and local CI context are known.
+        - Record pagination and missing live GitHub settings as data_gaps; do not expand into namespace-wide exhaustive mode.
+      data_gaps_required: true
+    routes:
+      - id: default
+        condition: always
+        exclusive_group: posture
+        expected_calls: 2
+        max_calls: 4
+        required_outputs:
+          - steps.local-ci-inventory.local_ci_files
+          - steps.cicd-posture-findings.findings
+          - steps.endor-repository-config.repositories
+    steps:
+      - id: local-ci-inventory
+        recipe_id: local-ci-inventory
+        canonical_recipe_id: local-ci-inventory
+        operation: local_read
+        route_id: default
+        condition: always
+        concurrency_group: posture
+        depends_on: []
+        max_calls: 0
+        inputs: []
+        outputs:
+          - name: local_ci_files
+            path: $.paths
+            type: array
+      - id: cicd-posture-findings
+        recipe_id: cicd-posture-findings
+        canonical_recipe_id: cicd-posture-findings
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: posture
+        depends_on: []
+        max_calls: 1
+        pagination:
+          page_size: 100
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: scope_filter
+            placeholder: SCOPE_FILTER
+            source: runtime.scope_filter
+            type: string
+        outputs:
+          - name: findings
+            path: $.objects
+            type: array
+      - id: endor-repository-config
+        recipe_id: endor-repository-config
+        canonical_recipe_id: endor-repository-config
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: posture
+        depends_on: []
+        max_calls: 3
+        pagination:
+          page_size: 50
+          max_pages: 3
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+        outputs:
+          - name: repositories
+            path: $.objects
+            type: array

@@ -29,6 +29,21 @@ task_profiles:
       - Do not edit manifests or create remediation branches.
     output_focus:
       - Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, evidence_queries, and data_gaps.
+    output_fields:
+      - upgrade_recommendation
+      - risk_delta
+      - reasons
+      - breaking_change_notes
+      - next_checks
+      - summary
+      - evidence_queries
+      - data_gaps
+      - selected_upgrade
+      - findings_fixed
+      - findings_introduced
+      - cia_status
+      - policy_context
+      - policy_evaluations
   - id: explain
     title: Explain Impact
     summary: Explain verified upgrade impact in concise user-facing terms.
@@ -124,8 +139,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
-      --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -141,7 +155,7 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid
@@ -156,7 +170,7 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid
@@ -171,7 +185,7 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid
@@ -186,7 +200,7 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid

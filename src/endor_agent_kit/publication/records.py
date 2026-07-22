@@ -8,7 +8,9 @@ from typing import Mapping
 
 from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.evidence_plans import compile_evidence_plans
+from endor_agent_kit.knowledge_pack import load_knowledge_pack
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 
@@ -34,10 +36,19 @@ def with_evidence_plan_artifacts(
     destination: Path,
     prepared: PreparedSourceRecipe,
 ) -> BundleRecord:
-    """Add identical inert Evidence Plans to every published Host bundle."""
+    """Add identical profile contracts and inert plans to every Host bundle."""
 
     plans = compile_evidence_plans(prepared.recipe.id)
-    if not plans:
+    workflow = load_knowledge_pack().workflow_for(prepared.recipe.id)
+    contracts = (
+        tuple(
+            compile_profile_contract(prepared.recipe.id, profile.id)
+            for profile in workflow.task_profiles
+        )
+        if workflow is not None
+        else ()
+    )
+    if not plans and not contracts:
         return bundle
 
     written = list(bundle.written)
@@ -45,7 +56,11 @@ def with_evidence_plan_artifacts(
     for record in bundle.manifest_records:
         bundle_dir = destination / record.path
         plan_dir = bundle_dir / "evidence-plans"
-        plan_dir.mkdir(parents=True, exist_ok=True)
+        contract_dir = bundle_dir / "profile-contracts"
+        if plans:
+            plan_dir.mkdir(parents=True, exist_ok=True)
+        if contracts:
+            contract_dir.mkdir(parents=True, exist_ok=True)
         artifact_profiles = {
             artifact.path: artifact.profile_id
             for artifact in record.artifacts
@@ -56,6 +71,11 @@ def with_evidence_plan_artifacts(
             artifact.write_bytes(plan.to_json_bytes())
             written.append(artifact)
             artifact_profiles[artifact.relative_to(destination).as_posix()] = plan.profile_id
+        for contract in contracts:
+            artifact = contract_dir / f"{contract.profile_id}.json"
+            artifact.write_bytes(contract.to_json_bytes())
+            written.append(artifact)
+            artifact_profiles[artifact.relative_to(destination).as_posix()] = contract.profile_id
         rebuilt = CatalogBundle.from_published_bundle(
             destination,
             prepared.recipe,

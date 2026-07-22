@@ -152,6 +152,9 @@ plans:
         concurrency_group: project-scope
         depends_on: []
         max_calls: 2
+        pagination:
+          page_size: 2
+          max_pages: 1
         retry:
           eligible: true
           max_attempts: 2

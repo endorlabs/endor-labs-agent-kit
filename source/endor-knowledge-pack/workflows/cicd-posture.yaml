@@ -26,6 +26,22 @@ task_profiles:
       - raw_counts, dimension_scores, score_validation, critical_overrides, evidence_queries, and data_gaps are complete enough for validation.
     output_focus:
       - Return posture_verdict, summary, scope, raw_counts, dimension_scores, score_validation, critical_overrides, endor_findings, github_evidence, local_ci_evidence, recommended_actions, evidence_queries, and data_gaps.
+    output_fields:
+      - posture_verdict
+      - summary
+      - scope
+      - raw_counts
+      - dimension_scores
+      - score_validation
+      - critical_overrides
+      - endor_findings
+      - github_evidence
+      - local_ci_evidence
+      - recommended_actions
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
 resources:
   - name: Finding
     purpose: Existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain finding evidence.
@@ -122,7 +138,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve repository selector to Endor project identity before scoped posture lookup.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -152,7 +168,7 @@ evidence_query_recipes:
     canonical_id: endor-repository-config
     resource: Repository
     purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
-    template: endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --list-all --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
     fields:
       - uuid
       - meta.name

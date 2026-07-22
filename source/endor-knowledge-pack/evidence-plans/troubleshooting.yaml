@@ -1,0 +1,137 @@
+schema_version: 1
+agent_id: troubleshooting
+plans:
+  - profile_id: diagnose
+    safety_class: read_only
+    scope:
+      namespace_required: true
+      namespace_provenance_required: true
+    freshness:
+      max_age_seconds: 300
+    cache_identity:
+      - agent_id
+      - profile_id
+      - namespace
+      - issue_lane
+      - repo_full_name
+      - scan_result_uuid
+      - finding_uuid
+      - source_digest
+    attribution:
+      required: true
+      agent_id: <agent-id>
+    execution:
+      mode: prompt_fallback
+      prompt_recipes_exposed: true
+      host_adapter_required: true
+    gate:
+      expected_calls: 1
+      max_calls: 2
+      stop_conditions:
+        - Stop after the one classified Project, ScanResult, or Finding lane is resolved or precisely blocked.
+        - Do not fetch unrelated resource families, run scans, or mutate integrations.
+      data_gaps_required: true
+    routes:
+      - id: project
+        condition: runtime.issue_lane_equals_project
+        exclusive_group: issue-lane
+        expected_calls: 1
+        max_calls: 2
+        required_outputs:
+          - steps.project-by-git.project_uuid
+      - id: scan-result
+        condition: runtime.issue_lane_equals_scan_result
+        exclusive_group: issue-lane
+        expected_calls: 1
+        max_calls: 1
+        required_outputs:
+          - steps.scan-result-by-uuid.scan_result
+      - id: finding
+        condition: runtime.issue_lane_equals_finding
+        exclusive_group: issue-lane
+        expected_calls: 1
+        max_calls: 1
+        required_outputs:
+          - steps.finding-by-uuid.finding
+    steps:
+      - id: project-by-git
+        recipe_id: project-by-git
+        canonical_recipe_id: project-by-git
+        operation: list
+        route_id: project
+        condition: always
+        concurrency_group: issue-evidence
+        depends_on: []
+        max_calls: 2
+        pagination:
+          page_size: 2
+          max_pages: 1
+        retry:
+          eligible: true
+          max_attempts: 2
+          when: parent_namespace_empty_result
+          append_args:
+            - --traverse
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: repo_full_name
+            placeholder: owner/repo
+            source: runtime.repo_full_name
+            type: string
+        outputs:
+          - name: project_uuid
+            path: $.objects[0].uuid
+            type: string
+          - name: project_name
+            path: $.objects[0].meta.name
+            type: string
+          - name: git
+            path: $.objects[0].spec.git
+            type: object
+      - id: scan-result-by-uuid
+        recipe_id: scan-result-by-uuid
+        canonical_recipe_id: scan-result-by-uuid
+        operation: get
+        route_id: scan-result
+        condition: always
+        concurrency_group: issue-evidence
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: scan_result_uuid
+            placeholder: SCAN_RESULT_UUID
+            source: runtime.scan_result_uuid
+            type: string
+        outputs:
+          - name: scan_result
+            path: $
+            type: object
+      - id: finding-by-uuid
+        recipe_id: finding-by-uuid
+        canonical_recipe_id: finding-by-uuid
+        operation: get
+        route_id: finding
+        condition: always
+        concurrency_group: issue-evidence
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: finding_uuid
+            placeholder: FINDING_UUID
+            source: runtime.finding_uuid
+            type: string
+        outputs:
+          - name: finding
+            path: $
+            type: object
