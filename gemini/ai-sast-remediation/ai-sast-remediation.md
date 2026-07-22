@@ -3,7 +3,7 @@ name: ai-sast-remediation
 description: |
   Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
 kind: local
-model: gemini-3.6-flash
+model: gemini-3.5-flash
 max_turns: 30
 tools:
   - read_file

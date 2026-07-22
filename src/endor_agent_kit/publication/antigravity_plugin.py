@@ -408,7 +408,8 @@ def antigravity_text(text: str) -> str:
     """Adapt Gemini-rendered package text for Antigravity CLI wording."""
 
     adapted = (
-        text.replace("Gemini CLI extension subagent", "Antigravity CLI plugin subagent")
+        text.replace("\n  - run_shell_command\n", "\n  - run_command\n")
+        .replace("Gemini CLI extension subagent", "Antigravity CLI plugin subagent")
         .replace("Gemini CLI extension", "Antigravity CLI plugin")
         .replace("Gemini CLI Host Contract", "Antigravity CLI Host Contract")
         .replace("Gemini CLI subagent", "Antigravity CLI subagent")

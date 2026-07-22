@@ -25,10 +25,10 @@ This package is host-specific for Gemini CLI. Use the root README when choosing 
 This is a release-QA target, not a requirement or model allowlist.
 Agent Kit does not block compatible customer-selected host models.
 
-- Recommended model: `gemini-3.6-flash`.
+- Recommended model: `gemini-3.5-flash`.
 - Selection mode: `pinned`.
 - Recommended reasoning/effort: `host managed`.
-- Generated behavior: subagent frontmatter pins model: gemini-3.6-flash.
+- Generated behavior: subagent frontmatter pins model: gemini-3.5-flash.
 - Override behavior: explicit subagent definition or host subagent configuration wins.
 - Provider guidance: <https://geminicli.com/docs/core/subagents/>.
 
@@ -39,7 +39,7 @@ Agent Kit does not block compatible customer-selected host models.
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Preview subagents: `agents/<agent>.md`.
 - Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
-- Model/runtime: generated subagents pin `gemini-3.6-flash`; skills used directly in the main session still use the customer's selected host model.
+- Model/runtime: generated subagents pin `gemini-3.5-flash`; skills used directly in the main session still use the customer's selected host model.
 - MCP: no extension-wide MCP server is declared by default.
 
 ## Install From A Local Checkout

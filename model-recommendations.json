@@ -72,11 +72,11 @@
     {
       "complex_remediation_effort": "host managed",
       "customer_override": "explicit subagent definition or host subagent configuration wins",
-      "generated_artifact_behavior": "subagent frontmatter pins model: gemini-3.6-flash",
+      "generated_artifact_behavior": "subagent frontmatter pins model: gemini-3.5-flash",
       "host": "gemini",
       "label": "Gemini CLI",
       "provider_guidance_url": "https://geminicli.com/docs/core/subagents/",
-      "recommended_model": "gemini-3.6-flash",
+      "recommended_model": "gemini-3.5-flash",
       "selection_mode": "pinned",
       "standard_effort": "host managed"
     },

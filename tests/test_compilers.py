@@ -398,7 +398,7 @@ def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
     assert "endorctl agent api --agent-id dependency-reviewer list" in skill
     assert "data_gaps" in skill
     assert agent_frontmatter["kind"] == "local"
-    assert agent_frontmatter["model"] == "gemini-3.6-flash"
+    assert agent_frontmatter["model"] == "gemini-3.5-flash"
     assert agent_frontmatter["max_turns"] == 30
     assert "mcpServers" not in agent_frontmatter
     assert "endor_agent_kit_managed=true" in agent

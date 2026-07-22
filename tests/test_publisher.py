@@ -1269,6 +1269,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Invoke workflow subagents as `@agent-name`" in antigravity_agent
     assert "Do not narrate tool-planning chatter" in antigravity_agent
     assert "non-empty `data_gaps`" in antigravity_agent
+    assert "\n  - run_command\n" in antigravity_agent
+    assert "\n  - run_shell_command\n" not in antigravity_agent
     cursor_setup = (
         dest / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     ).read_text()

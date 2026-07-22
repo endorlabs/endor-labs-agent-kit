@@ -8,7 +8,7 @@ max_turns: 30
 tools:
   - read_file
   - grep_search
-  - run_shell_command
+  - run_command
   - write_file
 ---
 
