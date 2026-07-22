@@ -355,6 +355,25 @@ def validate_knowledge_pack(
                     f"evidence-plans/{path.name}: {line}"
                     for line in str(exc).splitlines()
                 )
+        if agent_ids is not None:
+            for agent_id in sorted(agent_ids):
+                if not (pack_root / "workflows" / f"{agent_id}.yaml").is_file():
+                    continue
+                try:
+                    compiled = compile_evidence_plans(
+                        agent_id,
+                        knowledge_pack_root=pack_root,
+                    )
+                except Exception:
+                    continue
+                default_profile = default_task_profile_for_agent(agent_id)
+                if not any(
+                    plan.profile_id == default_profile for plan in compiled
+                ):
+                    errors.append(
+                        f"evidence-plans/{agent_id}.yaml: missing default "
+                        f"Evidence Plan {default_profile!r}"
+                    )
     return errors
 
 
@@ -690,8 +709,6 @@ def _validate_workflows(
                     errors.append(f"{profile_prefix}.output_fields: must be an array of strings")
                 if len(set(output_fields)) != len(output_fields):
                     errors.append(f"{profile_prefix}.output_fields: duplicate output field")
-                if output_fields and not bool(profile.get("compact", False)):
-                    errors.append(f"{profile_prefix}.output_fields: requires compact: true")
             profile_text = _visible_text(profile).lower()
             if "data_gaps" not in profile_text:
                 errors.append(f"{profile_prefix}: task profile guidance must mention data_gaps")

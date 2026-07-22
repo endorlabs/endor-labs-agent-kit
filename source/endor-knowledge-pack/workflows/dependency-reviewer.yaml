@@ -245,7 +245,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository only when tenant-scoped evidence was requested.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name

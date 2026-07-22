@@ -28,6 +28,17 @@ task_profiles:
       - Do not continue into remediation, scan execution, or posture changes.
     output_focus:
       - Return findings_verdict, applied_filters, severity_summary, finding_results, pagination, evidence_queries, and data_gaps.
+    output_fields:
+      - findings_verdict
+      - summary
+      - applied_filters
+      - severity_summary
+      - finding_results
+      - pagination
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
   - id: exact-finding
     title: Inspect Exact Finding
     summary: Fetch one supplied Finding UUID and return a compact row without claiming complete project or namespace counts.
@@ -121,7 +132,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve repository selector to Endor project identity before finding browse.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -135,7 +146,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-filtered
     resource: Finding
     purpose: List bounded existing Finding rows for verified filters.
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -167,7 +178,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-by-tag
     resource: Finding
     purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type

@@ -233,6 +233,56 @@ def test_publish_recipe_emits_identical_inert_evidence_plans_for_every_host(tmp_
     } == {payload["provenance"]["plan_digest"]}
 
 
+def test_publish_recipe_emits_verifiable_profile_contracts_for_every_host(tmp_path):
+    recipe = _copy_agent(tmp_path, "sca-remediation")
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    contract_paths = sorted(
+        dest.glob("*/sca-remediation/profile-contracts/evidence-check.json")
+    )
+    assert {path.parts[-4] for path in contract_paths} == {
+        "claude-code",
+        "codex",
+        "gemini",
+        "portable",
+    }
+    assert len({path.read_bytes() for path in contract_paths}) == 1
+    payload = json.loads(contract_paths[0].read_text(encoding="utf-8"))
+    assert payload["agent_id"] == "sca-remediation"
+    assert payload["profile_id"] == "evidence-check"
+
+    plan = json.loads(
+        next(
+            dest.glob(
+                "*/sca-remediation/evidence-plans/evidence-check.json"
+            )
+        ).read_text(encoding="utf-8")
+    )
+    assert (
+        payload["contract_digest"]
+        == plan["provenance"]["profile_contract_digest"]
+    )
+
+    manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+    contract_artifacts = [
+        artifact
+        for agent in manifest["agents"]
+        if agent["id"] == "sca-remediation"
+        for edition in agent["editions"]
+        for artifact in edition["artifacts"]
+        if artifact["path"].endswith(
+            "/profile-contracts/evidence-check.json"
+        )
+    ]
+    assert len(contract_artifacts) == 4
+    assert {
+        artifact["profile_contract_digest"]
+        for artifact in contract_artifacts
+    } == {payload["contract_digest"]}
+
+
 def test_claude_plugin_packages_include_named_profile_agents(tmp_path):
     recipe = _copy_agent(tmp_path, "sca-remediation")
     dest = tmp_path / "endor-labs-agent-kit"
@@ -315,6 +365,14 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
     written = publish_recipe(recipe, dest)
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
+    contract_and_plan_paths = {
+        f"{host}/vulnerability-explainer/profile-contracts/{profile_id}.json"
+        for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
+        for profile_id in ("explain", "evidence-check")
+    } | {
+        f"{host}/vulnerability-explainer/evidence-plans/explain.json"
+        for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
+    }
     assert written_paths == {
         "claude-code/vulnerability-explainer/README.md",
         "claude-code/vulnerability-explainer/endorctl-setup.md",
@@ -330,7 +388,7 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
     } | _codex_paths("vulnerability-explainer", has_setup=True) | _gemini_paths(
         "vulnerability-explainer",
         has_setup=True,
-    ) | _portable_paths("vulnerability-explainer", has_setup=True)
+    ) | _portable_paths("vulnerability-explainer", has_setup=True) | contract_and_plan_paths
     artifact = (dest / "claude-code" / "vulnerability-explainer" / "vulnerability-explainer.md").read_text()
     readme = (dest / "claude-code" / "vulnerability-explainer" / "README.md").read_text()
     assert "disallowedTools: Bash" not in artifact
@@ -593,6 +651,8 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
     assert {artifact["path"].split("/")[-1] for artifact in vulnerability_artifact["artifacts"]} == {
         "README.md",
         "endorctl-setup.md",
+        "evidence-check.json",
+        "explain.json",
         "vulnerability-explainer.md",
     }
     assert {path.name for path in dest.iterdir()} == {

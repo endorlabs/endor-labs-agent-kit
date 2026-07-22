@@ -26,6 +26,24 @@ def test_default_knowledge_pack_validates_against_source_agents():
     assert validate_knowledge_pack(agent_ids=agent_ids) == []
 
 
+def test_knowledge_pack_validator_requires_a_default_plan_when_plan_catalog_exists(
+    tmp_path,
+):
+    _write_minimal_pack(tmp_path)
+    (tmp_path / "workflows").mkdir()
+    (tmp_path / "workflows" / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(_minimal_workflow(), sort_keys=False),
+        encoding="utf-8",
+    )
+    (tmp_path / "evidence-plans").mkdir()
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert any(
+        "missing default Evidence Plan 'selection-plan'" in error for error in errors
+    )
+
+
 def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
     pack = load_knowledge_pack()
 
@@ -45,6 +63,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "finding-by-uuid",
         "github-branch-protection",
         "github-workflow-files",
+        "local-ci-inventory",
         "local-git-state",
         "local-manifest-inventory",
         "mcp-finding-by-uuid-check",
@@ -68,6 +87,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "version-upgrade-count",
         "version-upgrade-detail",
         "version-upgrade-summary",
+        "vulnerability-by-id",
     ]
     assert set(pack.workflows) == {
         "ai-sast-remediation",
@@ -565,6 +585,22 @@ def test_knowledge_pack_validator_rejects_sca_selection_plan_finding_first(tmp_p
     errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
 
     assert any("selection-plan must narrow with VersionUpgrade before Finding detail expansion" in error for error in errors)
+
+
+def test_profile_output_projection_does_not_require_a_compact_named_variant(tmp_path):
+    _write_minimal_pack(tmp_path)
+    workflows = tmp_path / "workflows"
+    workflows.mkdir()
+    workflow = _minimal_workflow()
+    workflow["task_profiles"][0]["output_fields"] = ["summary", "data_gaps"]
+    (workflows / "sca-remediation.yaml").write_text(
+        yaml.safe_dump(workflow, sort_keys=False),
+        encoding="utf-8",
+    )
+
+    errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
+
+    assert not any("output_fields: requires compact: true" in error for error in errors)
 
 
 def test_knowledge_pack_validator_rejects_unsafe_query_recipe_template(tmp_path):

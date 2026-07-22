@@ -9,6 +9,22 @@ from endor_agent_kit.evidence_plans import (
     compile_evidence_plans,
     validate_evidence_plan,
 )
+from endor_agent_kit.profile_contracts import compile_profile_contract
+
+
+DEFAULT_EVIDENCE_PLAN_PROFILES = {
+    "ai-sast-remediation": "evidence-check",
+    "cicd-posture": "posture",
+    "configuration-automation": "evidence-check",
+    "dependency-reviewer": "repository-review",
+    "findings-browser": "browse",
+    "malware-responder": "exposure-check",
+    "oss-upgrade-investigator": "evidence-check",
+    "remediation-planning": "selection-plan",
+    "sca-remediation": "selection-plan",
+    "troubleshooting": "diagnose",
+    "vulnerability-explainer": "explain",
+}
 
 
 def test_compiled_sca_evidence_plan_is_deterministic_and_source_bound():
@@ -125,11 +141,282 @@ def test_compiled_sca_selection_plan_narrows_summary_before_one_candidate_detail
     )
 
 
+def test_compiled_remediation_planning_plan_reuses_the_bounded_selection_dag():
+    plan = compile_evidence_plan("remediation-planning", "selection-plan")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.attribution_agent_id == "remediation-planning"
+    assert plan.expected_calls == 3
+    assert plan.max_calls == 4
+    assert [step.id for step in plan.steps] == [
+        "project-by-git",
+        "version-upgrade-summary",
+        "version-upgrade-detail",
+    ]
+    assert all(
+        step.template.startswith(
+            "endorctl agent api --agent-id remediation-planning"
+        )
+        for step in plan.steps
+    )
+    assert "--page-size 1" in plan.steps[1].template
+    assert "--list-all" not in plan.steps[1].template
+    assert plan.steps[2].depends_on == ("version-upgrade-summary",)
+    assert plan.profile_contract_digest == compile_profile_contract(
+        "remediation-planning", "selection-plan"
+    ).contract_digest
+
+
+def test_compiled_oss_upgrade_plan_fetches_bounded_full_candidates_once():
+    plan = compile_evidence_plan("oss-upgrade-investigator", "evidence-check")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 2
+    assert plan.max_calls == 3
+    assert [step.id for step in plan.steps] == [
+        "project-by-git",
+        "version-upgrade-by-package",
+    ]
+    candidates = plan.steps[1]
+    assert candidates.depends_on == ("project-by-git",)
+    assert "--page-size 5" in candidates.template
+    assert "--list-all" not in candidates.template
+    assert "spec.upgrade_info" in candidates.fields
+    assert all(
+        step.template.startswith(
+            "endorctl agent api --agent-id oss-upgrade-investigator"
+        )
+        for step in plan.steps
+    )
+
+
+def test_compiled_findings_browser_plan_routes_tag_or_filter_to_one_bounded_page():
+    plan = compile_evidence_plan("findings-browser", "browse")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 1
+    assert plan.max_calls == 1
+    assert {route.condition for route in plan.routes} == {
+        "runtime.finding_tag_present",
+        "runtime.finding_tag_absent",
+    }
+    assert {step.id for step in plan.steps} == {
+        "findings-by-tag",
+        "filtered-findings",
+    }
+    assert all("--page-size 25" in step.template for step in plan.steps)
+    assert all("--list-all" not in step.template for step in plan.steps)
+    assert all(step.max_calls == 1 for step in plan.steps)
+    assert all(
+        step.template.startswith("endorctl agent api --agent-id findings-browser")
+        for step in plan.steps
+    )
+
+
+def test_compiled_troubleshooting_plan_routes_one_classified_issue_lane():
+    plan = compile_evidence_plan("troubleshooting", "diagnose")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 1
+    assert plan.max_calls == 2
+    assert {route.condition for route in plan.routes} == {
+        "runtime.issue_lane_equals_project",
+        "runtime.issue_lane_equals_scan_result",
+        "runtime.issue_lane_equals_finding",
+    }
+    assert {step.id for step in plan.steps} == {
+        "project-by-git",
+        "scan-result-by-uuid",
+        "finding-by-uuid",
+    }
+    assert all(
+        step.template.startswith("endorctl agent api --agent-id troubleshooting")
+        for step in plan.steps
+    )
+
+
+def test_evidence_plan_validator_rejects_untyped_multi_lane_routes():
+    plan = compile_evidence_plan("troubleshooting", "diagnose")
+    first, *remaining = plan.routes
+    invalid = replace(
+        plan,
+        routes=(replace(first, condition="runtime.issue_lane_with_project"), *remaining),
+    )
+
+    assert any(
+        "typed equality selectors" in error for error in validate_evidence_plan(invalid)
+    )
+
+
+def test_compiled_vulnerability_explainer_plan_uses_one_attributed_oss_lookup():
+    plan = compile_evidence_plan("vulnerability-explainer", "explain")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.namespace_mode == "oss"
+    assert plan.namespace_required is False
+    assert plan.namespace_provenance_required is False
+    assert plan.expected_calls == plan.max_calls == 1
+    assert [step.id for step in plan.steps] == ["vulnerability-by-id"]
+    step = plan.steps[0]
+    assert step.template.startswith(
+        "endorctl agent api --agent-id vulnerability-explainer list -r Vulnerability -n oss"
+    )
+    assert "--page-size 2" in step.template
+    assert "--list-all" not in step.template
+    assert all(binding.placeholder != "namespace" for binding in step.inputs)
+
+
+def test_compiled_dependency_review_plan_parallelizes_local_scope_and_one_aggregate():
+    plan = compile_evidence_plan("dependency-reviewer", "repository-review")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 2
+    assert plan.max_calls == 3
+    assert [step.id for step in plan.steps] == [
+        "local-manifest-inventory",
+        "project-by-git",
+        "finding-package-severity-groups",
+    ]
+    local, project, findings = plan.steps
+    assert local.operation == "local_read"
+    assert local.max_calls == 0
+    assert local.inputs == ()
+    assert local.concurrency_group == project.concurrency_group == "scope"
+    assert findings.depends_on == ("project-by-git",)
+    assert "--group-aggregation-paths" in findings.template
+    assert "--list-all" not in findings.template
+
+
+def test_compiled_configuration_plan_checks_one_repository_in_one_remote_call():
+    plan = compile_evidence_plan("configuration-automation", "evidence-check")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 1
+    assert plan.max_calls == 2
+    assert [step.id for step in plan.steps] == [
+        "repo-setup-file-inventory",
+        "project-branch-coverage",
+    ]
+    local, coverage = plan.steps
+    assert local.operation == "local_read"
+    assert local.max_calls == 0
+    assert coverage.operation == "list"
+    assert coverage.max_calls == 2
+    assert "--page-size 2" in coverage.template
+    assert "--list-all" not in coverage.template
+    assert local.concurrency_group == coverage.concurrency_group == "coverage"
+
+
+def test_compiled_malware_plan_bounds_package_fanout_and_tenant_findings():
+    plan = compile_evidence_plan("malware-responder", "exposure-check")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 2
+    assert plan.max_calls == 6
+    assert [step.id for step in plan.steps] == [
+        "tenant-package-version-exact",
+        "tenant-malware-findings",
+    ]
+    packages, findings = plan.steps
+    assert packages.fanout is not None
+    assert packages.fanout.source == "runtime.affected_packages"
+    assert packages.fanout.item_name == "affected_package"
+    assert packages.fanout.max_items == 5
+    assert packages.max_calls == 5
+    assert "--page-size 100" in packages.template
+    assert "--list-all" not in packages.template
+    assert findings.fanout is None
+    assert findings.max_calls == 1
+    assert "--page-size 50" in findings.template
+    assert "--list-all" not in findings.template
+
+
+def test_compiled_cicd_posture_plan_parallelizes_two_bounded_remote_reads():
+    plan = compile_evidence_plan("cicd-posture", "posture")
+
+    assert validate_evidence_plan(plan) == []
+    assert plan.expected_calls == 2
+    assert plan.max_calls == 4
+    assert [step.id for step in plan.steps] == [
+        "local-ci-inventory",
+        "cicd-posture-findings",
+        "endor-repository-config",
+    ]
+    local, findings, repository = plan.steps
+    assert local.operation == "local_read"
+    assert local.max_calls == 0
+    assert findings.max_calls == 1
+    assert repository.max_calls == 3
+    assert "--page-size 100" in findings.template
+    assert "--page-size 50" in repository.template
+    assert all("--list-all" not in step.template for step in plan.steps)
+    assert {step.concurrency_group for step in plan.steps} == {"posture"}
+
+
+def test_every_canonical_agent_has_one_bounded_default_evidence_plan():
+    plans = {
+        agent_id: compile_evidence_plan(agent_id, profile_id)
+        for agent_id, profile_id in DEFAULT_EVIDENCE_PLAN_PROFILES.items()
+    }
+
+    assert len(plans) == 11
+    assert all(validate_evidence_plan(plan) == [] for plan in plans.values())
+    assert all(
+        "--list-all" not in step.template
+        for plan in plans.values()
+        for step in plan.steps
+    )
+    assert all(
+        plan.profile_contract_digest
+        == compile_profile_contract(agent_id, plan.profile_id).contract_digest
+        for agent_id, plan in plans.items()
+    )
+
+
+def test_row_list_steps_declare_explicit_page_and_request_limits():
+    plans = (
+        compile_evidence_plan(agent_id, profile_id)
+        for agent_id, profile_id in DEFAULT_EVIDENCE_PLAN_PROFILES.items()
+    )
+    row_lists = [
+        step
+        for plan in plans
+        for step in plan.steps
+        if step.operation == "list"
+        and "--count" not in step.template
+        and "--group-aggregation-paths" not in step.template
+    ]
+
+    assert row_lists
+    assert all(step.pagination is not None for step in row_lists)
+    assert all(step.pagination.page_size >= 1 for step in row_lists if step.pagination)
+    assert all(step.pagination.max_pages >= 1 for step in row_lists if step.pagination)
+    repository = next(
+        step for step in row_lists if step.id == "endor-repository-config"
+    )
+    assert repository.pagination.page_size == 50
+    assert repository.pagination.max_pages == 3
+    assert repository.max_calls == 3
+
+
+def test_evidence_plan_validator_rejects_hidden_unbounded_pagination():
+    plan = compile_evidence_plan("findings-browser", "browse")
+    first, *remaining = plan.steps
+    invalid = replace(
+        plan,
+        steps=(replace(first, template=f"{first.template} --list-all"), *remaining),
+    )
+
+    assert any("--list-all" in error for error in validate_evidence_plan(invalid))
+
+
 def test_compile_evidence_plans_returns_only_source_declared_profiles():
     assert [
         plan.profile_id for plan in compile_evidence_plans("sca-remediation")
     ] == ["evidence-check", "selection-plan"]
-    assert compile_evidence_plans("dependency-reviewer") == ()
+    assert [
+        plan.profile_id for plan in compile_evidence_plans("dependency-reviewer")
+    ] == ["repository-review"]
 
 
 def test_evidence_plan_validator_rejects_invalid_dag():

@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 from endor_agent_kit.knowledge_pack import default_knowledge_pack_root, load_knowledge_pack
@@ -71,6 +73,19 @@ class CompiledProfileContract:
             "contract_digest": self.contract_digest,
         }
 
+    def to_json_bytes(self) -> bytes:
+        """Serialize identically for identical source."""
+
+        return (
+            json.dumps(
+                self.to_dict(),
+                ensure_ascii=False,
+                sort_keys=True,
+                separators=(",", ":"),
+            )
+            + "\n"
+        ).encode("utf-8")
+
 
 def compile_profile_contract(
     agent_id: str,
@@ -80,11 +95,32 @@ def compile_profile_contract(
 ) -> CompiledProfileContract:
     """Compile one task profile from canonical Agent Kit source."""
 
-    pack_root = (
-        Path(knowledge_pack_root)
-        if knowledge_pack_root is not None
-        else default_knowledge_pack_root()
+    if knowledge_pack_root is None:
+        return _compile_default_profile_contract(agent_id, profile_id)
+    return _compile_profile_contract(
+        agent_id,
+        profile_id,
+        Path(knowledge_pack_root),
     )
+
+
+@lru_cache(maxsize=None)
+def _compile_default_profile_contract(
+    agent_id: str,
+    profile_id: str,
+) -> CompiledProfileContract:
+    return _compile_profile_contract(
+        agent_id,
+        profile_id,
+        default_knowledge_pack_root(),
+    )
+
+
+def _compile_profile_contract(
+    agent_id: str,
+    profile_id: str,
+    pack_root: Path,
+) -> CompiledProfileContract:
     source_root = pack_root.parent
     recipe_path = source_root / "agents" / agent_id / "recipe.yaml"
     if not recipe_path.is_file():
@@ -153,6 +189,103 @@ def compile_profile_contract(
     )
 
 
+def profile_contract_from_dict(
+    payload: dict[str, Any],
+    *,
+    expected_agent_id: str | None = None,
+    expected_profile_id: str | None = None,
+) -> CompiledProfileContract:
+    """Verify and restore one immutable lifecycle profile contract."""
+
+    if not isinstance(payload, dict):
+        raise ValueError("profile contract must be an object")
+    schema_version = _serialized_string(payload, "schema_version")
+    if schema_version != PROFILE_CONTRACT_SCHEMA_VERSION:
+        raise ValueError(
+            f"profile contract schema_version must be {PROFILE_CONTRACT_SCHEMA_VERSION}"
+        )
+    agent_id = _serialized_string(payload, "agent_id")
+    profile_id = _serialized_string(payload, "profile_id")
+    if expected_agent_id is not None and agent_id != expected_agent_id:
+        raise ValueError("profile contract agent_id does not match selected agent")
+    if expected_profile_id is not None and profile_id != expected_profile_id:
+        raise ValueError("profile contract profile_id does not match selected profile")
+
+    projection_applied = payload.get("projection_applied")
+    if not isinstance(projection_applied, bool):
+        raise ValueError("profile contract projection_applied must be a boolean")
+    output_fields = _serialized_strings(payload, "output_fields")
+    required_fields = _serialized_strings(payload, "required_fields")
+    gate = _serialized_mapping(payload, "gate_validator")
+    policy = _serialized_mapping(payload, "policy_pack")
+    gate_validator_id = _serialized_string(gate, "id")
+    gate_validator_version = _serialized_string(gate, "version")
+    policy_pack_support = policy.get("supported")
+    if not isinstance(policy_pack_support, bool):
+        raise ValueError("profile contract policy_pack.supported must be a boolean")
+    policy_pack_fields = _serialized_strings(policy, "fields")
+    schema = _serialized_mapping(payload, "provider_neutral_schema")
+    properties = schema.get("properties")
+    if not isinstance(properties, dict) or tuple(properties) != output_fields:
+        raise ValueError("profile contract output_fields do not match schema properties")
+    schema_required = schema.get("required")
+    if not isinstance(schema_required, list) or tuple(schema_required) != required_fields:
+        raise ValueError("profile contract required_fields do not match schema required")
+
+    source_digest = _serialized_digest(payload, "source_digest")
+    recipe_digest = _serialized_digest(payload, "recipe_digest")
+    knowledge_pack_digest = _serialized_digest(payload, "knowledge_pack_digest")
+    contract_digest = _serialized_digest(payload, "contract_digest")
+    digest_payload = {
+        "schema_version": schema_version,
+        "agent_id": agent_id,
+        "profile_id": profile_id,
+        "projection_applied": projection_applied,
+        "output_fields": output_fields,
+        "required_fields": required_fields,
+        "gate_validator_id": gate_validator_id,
+        "gate_validator_version": gate_validator_version,
+        "policy_pack_support": policy_pack_support,
+        "policy_pack_fields": policy_pack_fields,
+        "source_digest": source_digest,
+        "recipe_digest": recipe_digest,
+        "knowledge_pack_digest": knowledge_pack_digest,
+        "provider_neutral_schema": schema,
+    }
+    expected_digest = hashlib.sha256(
+        json.dumps(
+            digest_payload,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+    ).hexdigest()
+    if contract_digest != expected_digest:
+        raise ValueError("profile contract contract_digest does not match content")
+
+    return CompiledProfileContract(
+        agent_id=agent_id,
+        profile_id=profile_id,
+        projection_applied=projection_applied,
+        output_fields=output_fields,
+        required_fields=required_fields,
+        gate_validator_id=gate_validator_id,
+        gate_validator_version=gate_validator_version,
+        policy_pack_support=policy_pack_support,
+        policy_pack_fields=policy_pack_fields,
+        source_digest=source_digest,
+        recipe_digest=recipe_digest,
+        knowledge_pack_digest=knowledge_pack_digest,
+        provider_neutral_schema_json=json.dumps(
+            schema,
+            ensure_ascii=False,
+            separators=(",", ":"),
+        ),
+        contract_digest=contract_digest,
+        schema_version=schema_version,
+    )
+
+
 def validate_profile_output_payload(
     agent_id: str,
     profile_id: str,
@@ -189,3 +322,35 @@ def _digest_files(paths: tuple[Path, ...], *, relative_to: Path) -> str:
         digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+def _serialized_mapping(payload: dict[str, Any], field: str) -> dict[str, Any]:
+    value = payload.get(field)
+    if not isinstance(value, dict):
+        raise ValueError(f"profile contract {field} must be an object")
+    return value
+
+
+def _serialized_string(payload: dict[str, Any], field: str) -> str:
+    value = payload.get(field)
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"profile contract {field} must be a non-empty string")
+    return value
+
+
+def _serialized_strings(payload: dict[str, Any], field: str) -> tuple[str, ...]:
+    value = payload.get(field)
+    if not isinstance(value, list) or not all(
+        isinstance(item, str) and item for item in value
+    ):
+        raise ValueError(f"profile contract {field} must be an array of strings")
+    if len(set(value)) != len(value):
+        raise ValueError(f"profile contract {field} must not contain duplicates")
+    return tuple(value)
+
+
+def _serialized_digest(payload: dict[str, Any], field: str) -> str:
+    value = _serialized_string(payload, field)
+    if not re.fullmatch(r"[0-9a-f]{64}", value):
+        raise ValueError(f"profile contract {field} must be a lowercase SHA-256 digest")
+    return value

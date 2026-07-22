@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
+from functools import lru_cache
 import hashlib
 import json
 from pathlib import Path
@@ -24,6 +25,7 @@ from endor_agent_kit.recipe import load_recipe
 EVIDENCE_PLAN_SCHEMA_VERSION = "1"
 _SAFE_OPERATIONS = frozenset({"get", "list", "local_read"})
 _EXECUTION_MODES = frozenset({"prompt_fallback", "host_adapter"})
+_NAMESPACE_MODES = frozenset({"tenant", "oss"})
 _PLACEHOLDER_RE = re.compile(r"<([^>]+)>")
 
 
@@ -106,6 +108,40 @@ class EvidenceRoute:
 
 
 @dataclass(frozen=True)
+class EvidenceFanout:
+    """One explicitly bounded loop over normalized runtime evidence inputs."""
+
+    source: str
+    item_name: str
+    max_items: int
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "source": self.source,
+            "item_name": self.item_name,
+            "max_items": self.max_items,
+        }
+
+
+@dataclass(frozen=True)
+class EvidencePagination:
+    """A finite request budget for one paginated list operation."""
+
+    page_size: int
+    max_pages: int
+    next_page_token_path: str = "$.response.next_page_token"
+    next_page_id_path: str = "$.response.next_page_id"
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "page_size": self.page_size,
+            "max_pages": self.max_pages,
+            "next_page_token_path": self.next_page_token_path,
+            "next_page_id_path": self.next_page_id_path,
+        }
+
+
+@dataclass(frozen=True)
 class EvidenceStep:
     """One typed canonical evidence operation in a plan DAG."""
 
@@ -122,6 +158,8 @@ class EvidenceStep:
     route_id: str
     condition: str
     concurrency_group: str
+    fanout: EvidenceFanout | None
+    pagination: EvidencePagination | None
     retry: EvidenceRetryPolicy
     max_calls: int
 
@@ -140,6 +178,10 @@ class EvidenceStep:
             "route_id": self.route_id,
             "condition": self.condition,
             "concurrency_group": self.concurrency_group,
+            "fanout": self.fanout.to_dict() if self.fanout is not None else None,
+            "pagination": (
+                self.pagination.to_dict() if self.pagination is not None else None
+            ),
             "retry": self.retry.to_dict(),
             "max_calls": self.max_calls,
         }
@@ -152,6 +194,7 @@ class CompiledEvidencePlan:
     agent_id: str
     profile_id: str
     safety_class: str
+    namespace_mode: str
     namespace_required: bool
     namespace_provenance_required: bool
     freshness_max_age_seconds: int
@@ -183,6 +226,7 @@ class CompiledEvidencePlan:
             "profile_id": self.profile_id,
             "safety_class": self.safety_class,
             "scope": {
+                "namespace_mode": self.namespace_mode,
                 "namespace_required": self.namespace_required,
                 "namespace_provenance_required": self.namespace_provenance_required,
             },
@@ -249,11 +293,22 @@ def compile_evidence_plans(
 ) -> tuple[CompiledEvidencePlan, ...]:
     """Compile every source-declared Evidence Plan for one agent."""
 
-    pack_root = (
-        Path(knowledge_pack_root)
-        if knowledge_pack_root is not None
-        else default_knowledge_pack_root()
-    )
+    if knowledge_pack_root is None:
+        return _compile_default_evidence_plans(agent_id)
+    return _compile_evidence_plans(agent_id, Path(knowledge_pack_root))
+
+
+@lru_cache(maxsize=None)
+def _compile_default_evidence_plans(
+    agent_id: str,
+) -> tuple[CompiledEvidencePlan, ...]:
+    return _compile_evidence_plans(agent_id, default_knowledge_pack_root())
+
+
+def _compile_evidence_plans(
+    agent_id: str,
+    pack_root: Path,
+) -> tuple[CompiledEvidencePlan, ...]:
     source_path = pack_root / "evidence-plans" / f"{agent_id}.yaml"
     if not source_path.is_file():
         return ()
@@ -328,13 +383,25 @@ def validate_evidence_plan(
         errors.append("agent attribution is required")
     if plan.safety_class != "read_only":
         errors.append("Evidence Plans must use read_only safety_class")
-    if not plan.namespace_required:
-        errors.append("namespace is required for Endor Evidence Plans")
-    if not plan.namespace_provenance_required:
-        errors.append("namespace provenance is required for Endor Evidence Plans")
+    if plan.namespace_mode not in _NAMESPACE_MODES:
+        errors.append(f"unknown namespace mode {plan.namespace_mode!r}")
+    if plan.namespace_mode == "tenant":
+        if not plan.namespace_required:
+            errors.append("namespace is required for tenant Endor Evidence Plans")
+        if not plan.namespace_provenance_required:
+            errors.append("namespace provenance is required for tenant Endor Evidence Plans")
+    elif plan.namespace_mode == "oss":
+        if plan.namespace_required:
+            errors.append("runtime namespace must not be required for OSS Evidence Plans")
+        if plan.namespace_provenance_required:
+            errors.append("runtime namespace provenance must not be required for OSS Evidence Plans")
     if plan.freshness_max_age_seconds <= 0:
         errors.append("freshness max_age_seconds must be positive")
-    for identity in ("agent_id", "profile_id", "namespace", "source_digest"):
+    required_cache_identity = ["agent_id", "profile_id", "source_digest"]
+    required_cache_identity.append(
+        "namespace" if plan.namespace_mode == "tenant" else "namespace_mode"
+    )
+    for identity in required_cache_identity:
         if identity not in plan.cache_identity:
             errors.append(f"cache_identity must include {identity!r}")
     if plan.execution_mode not in _EXECUTION_MODES:
@@ -379,6 +446,24 @@ def validate_evidence_plan(
             errors.append(f"{prefix}: unsafe operation {step.operation!r}")
         if step.max_calls < (0 if step.operation == "local_read" else 1):
             errors.append(f"{prefix}: max_calls is too small for its operation")
+        if step.fanout is not None:
+            if step.operation == "local_read":
+                errors.append(f"{prefix}: local reads must not use remote-call fanout")
+            if not step.fanout.source.startswith("runtime."):
+                errors.append(f"{prefix}: fanout source must be a normalized runtime input")
+            if not re.fullmatch(r"[a-z][a-z0-9_]*", step.fanout.item_name):
+                errors.append(f"{prefix}: fanout item_name is invalid")
+            if step.fanout.max_items < 1 or step.fanout.max_items > 25:
+                errors.append(f"{prefix}: fanout max_items must be between 1 and 25")
+        if step.operation != "local_read":
+            page_attempts = step.pagination.max_pages if step.pagination else 1
+            fanout_items = step.fanout.max_items if step.fanout else 1
+            derived_max_calls = page_attempts * fanout_items * step.retry.max_attempts
+            if step.max_calls != derived_max_calls:
+                errors.append(
+                    f"{prefix}: call budget must equal bounded pagination, fanout, "
+                    "and retry attempts"
+                )
         if step.retry.eligible:
             if step.retry.max_attempts < 2:
                 errors.append(f"{prefix}: retry requires bounded max_attempts of at least 2")
@@ -412,15 +497,19 @@ def validate_evidence_plan(
         route_max = sum(step.max_calls for step in route_steps)
         if route.expected_calls < 0 or route.expected_calls > route.max_calls:
             errors.append(f"route {route.id!r}: invalid call budget")
-        if route_max > route.max_calls:
+        if route_max != route.max_calls:
             errors.append(
-                f"route {route.id!r}: step call budget {route_max} exceeds route call budget {route.max_calls}"
+                f"route {route.id!r}: step call budget {route_max} does not equal "
+                f"route call budget {route.max_calls}"
             )
         if route.max_calls > plan.max_calls:
             errors.append(
                 f"route {route.id!r}: call budget {route.max_calls} exceeds gate call budget {plan.max_calls}"
             )
         _validate_required_outputs(route, route_steps, errors)
+
+    if plan.routes and max(route.max_calls for route in plan.routes) != plan.max_calls:
+        errors.append("gate max_calls must equal the largest mutually exclusive route budget")
 
     pack = knowledge_pack or load_knowledge_pack()
     _validate_canonical_recipes(plan, pack, errors)
@@ -461,6 +550,7 @@ def _compile_raw_plan(
         agent_id=agent_id,
         profile_id=profile_id,
         safety_class=_required_string(raw, "safety_class"),
+        namespace_mode=_optional_string(scope, "namespace_mode", "tenant"),
         namespace_required=_required_bool(scope, "namespace_required"),
         namespace_provenance_required=_required_bool(
             scope, "namespace_provenance_required"
@@ -525,6 +615,12 @@ def _step(
         when=_optional_string(retry_raw, "when", "never"),
         append_args=_optional_strings(retry_raw, "append_args"),
     )
+    fanout_raw = raw.get("fanout")
+    if fanout_raw is not None and not isinstance(fanout_raw, dict):
+        raise ValueError(f"step {raw.get('id')!r}: fanout must be an object")
+    pagination_raw = raw.get("pagination")
+    if pagination_raw is not None and not isinstance(pagination_raw, dict):
+        raise ValueError(f"step {raw.get('id')!r}: pagination must be an object")
     return EvidenceStep(
         id=_required_string(raw, "id"),
         recipe_id=recipe_id,
@@ -535,12 +631,16 @@ def _step(
             query_recipe.template if query_recipe else canonical_recipe.template
         ).replace("<agent-id>", agent_id),
         fields=(query_recipe.fields if query_recipe else canonical_recipe.fields),
-        inputs=tuple(_input_binding(item) for item in _required_mappings(raw, "inputs")),
+        inputs=tuple(_input_binding(item) for item in _mapping_list(raw, "inputs")),
         outputs=tuple(_output_binding(item) for item in _required_mappings(raw, "outputs")),
         depends_on=_optional_strings(raw, "depends_on"),
         route_id=_required_string(raw, "route_id"),
         condition=_required_string(raw, "condition"),
         concurrency_group=_required_string(raw, "concurrency_group"),
+        fanout=_fanout(fanout_raw) if fanout_raw is not None else None,
+        pagination=(
+            _pagination(pagination_raw) if pagination_raw is not None else None
+        ),
         retry=retry,
         max_calls=_required_int(raw, "max_calls"),
     )
@@ -576,6 +676,31 @@ def _output_binding(raw: dict[str, Any]) -> EvidenceOutputBinding:
     )
 
 
+def _fanout(raw: dict[str, Any]) -> EvidenceFanout:
+    return EvidenceFanout(
+        source=_required_string(raw, "source"),
+        item_name=_required_string(raw, "item_name"),
+        max_items=_required_int(raw, "max_items"),
+    )
+
+
+def _pagination(raw: dict[str, Any]) -> EvidencePagination:
+    return EvidencePagination(
+        page_size=_required_int(raw, "page_size"),
+        max_pages=_required_int(raw, "max_pages"),
+        next_page_token_path=_optional_string(
+            raw,
+            "next_page_token_path",
+            "$.response.next_page_token",
+        ),
+        next_page_id_path=_optional_string(
+            raw,
+            "next_page_id_path",
+            "$.response.next_page_id",
+        ),
+    )
+
+
 def _validate_route_exclusivity(routes: tuple[EvidenceRoute, ...], errors: list[str]) -> None:
     groups: dict[str, list[EvidenceRoute]] = {}
     for route in routes:
@@ -588,7 +713,7 @@ def _validate_route_exclusivity(routes: tuple[EvidenceRoute, ...], errors: list[
             errors.append(f"route group {group!r}: always route cannot have siblings")
         if len(members) == 1 and conditions != ["always"]:
             errors.append(f"route group {group!r}: a single route must use condition 'always'")
-        if len(members) == 2 and "always" not in conditions:
+        if len(members) > 1 and "always" not in conditions:
             complements = {
                 condition.removesuffix("_present")
                 for condition in conditions
@@ -598,15 +723,30 @@ def _validate_route_exclusivity(routes: tuple[EvidenceRoute, ...], errors: list[
                 for condition in conditions
                 if condition.endswith("_absent")
             }
-            if not complements:
-                errors.append(
-                    f"route group {group!r}: two routes must use complementary present/absent conditions"
-                )
-            if not all(
+            present_absent = len(members) == 2 and bool(complements) and all(
                 re.fullmatch(r"runtime\.[a-z][a-z0-9_]*_(?:present|absent)", condition)
                 for condition in conditions
-            ):
-                errors.append(f"route group {group!r}: conditions use an unsupported selector")
+            )
+            if present_absent:
+                continue
+            equality_selectors = [
+                re.fullmatch(
+                    r"runtime\.([a-z][a-z0-9_]*)_equals_([a-z][a-z0-9_]*)",
+                    condition,
+                )
+                for condition in conditions
+            ]
+            if not all(equality_selectors):
+                errors.append(
+                    f"route group {group!r}: multiple routes must use complementary "
+                    "present/absent conditions or typed equality selectors"
+                )
+                continue
+            selector_names = {match.group(1) for match in equality_selectors if match}
+            if len(selector_names) != 1:
+                errors.append(
+                    f"route group {group!r}: typed equality selectors must use one runtime field"
+                )
 
 
 def _validate_step_condition(
@@ -667,6 +807,13 @@ def _validate_bindings(
                 errors.append(
                     f"{prefix}: binding {binding.name!r} source is not a dependency"
                 )
+        elif binding.source.startswith("fanout."):
+            if step.fanout is None or not binding.source.startswith(
+                f"fanout.{step.fanout.item_name}."
+            ):
+                errors.append(
+                    f"{prefix}: binding {binding.name!r} references unknown fanout item"
+                )
         elif not (
             binding.source.startswith("runtime.") or binding.source == "plan.agent_id"
         ):
@@ -691,21 +838,52 @@ def _validate_endor_step(
         errors.append(f"{prefix}: must use attributed endorctl agent api transport")
     if len(tokens) < 6 or tokens[5] != step.operation:
         errors.append(f"{prefix}: operation does not match the canonical query template")
-    if not plan.namespace_required or "<namespace>" not in step.template:
-        errors.append(f"{prefix}: missing explicit namespace placeholder")
-    namespace_bindings = [
-        binding
-        for binding in step.inputs
-        if binding.placeholder == "namespace"
-        and binding.source == "runtime.namespace"
-        and binding.required
-    ]
-    if not namespace_bindings:
-        errors.append(f"{prefix}: missing required runtime namespace binding")
+    if "--list-all" in tokens:
+        errors.append(f"{prefix}: --list-all hides an unbounded pagination budget")
+    if plan.namespace_mode == "tenant":
+        if "<namespace>" not in step.template:
+            errors.append(f"{prefix}: missing explicit namespace placeholder")
+        namespace_bindings = [
+            binding
+            for binding in step.inputs
+            if binding.placeholder == "namespace"
+            and binding.source == "runtime.namespace"
+            and binding.required
+        ]
+        if not namespace_bindings:
+            errors.append(f"{prefix}: missing required runtime namespace binding")
+    elif plan.namespace_mode == "oss":
+        if "-n oss" not in step.template:
+            errors.append(f"{prefix}: OSS plan must use the fixed oss namespace")
+        if "<namespace>" in step.template or any(
+            binding.placeholder == "namespace" for binding in step.inputs
+        ):
+            errors.append(f"{prefix}: OSS plan must not bind a runtime namespace")
     if step.operation == "list" and not any(
         flag in tokens for flag in ("--field-mask", "--count", "--group-aggregation-paths")
     ):
         errors.append(f"{prefix}: list operation lacks field-mask, count, or aggregation discipline")
+    is_row_list = step.operation == "list" and not any(
+        flag in tokens for flag in ("--count", "--group-aggregation-paths")
+    )
+    if is_row_list:
+        if step.pagination is None:
+            errors.append(f"{prefix}: row list requires an explicit pagination budget")
+        else:
+            if step.pagination.page_size < 1 or step.pagination.max_pages < 1:
+                errors.append(f"{prefix}: pagination limits must be positive")
+            try:
+                page_size_index = tokens.index("--page-size")
+                template_page_size = int(tokens[page_size_index + 1])
+            except (ValueError, IndexError):
+                errors.append(f"{prefix}: row list template must set --page-size")
+            else:
+                if template_page_size != step.pagination.page_size:
+                    errors.append(
+                        f"{prefix}: template page size does not match pagination budget"
+                    )
+    elif step.pagination is not None:
+        errors.append(f"{prefix}: pagination is only valid for row list operations")
     if any(token in {"create", "update", "delete"} for token in tokens[5:7]):
         errors.append(f"{prefix}: query template contains an unsafe operation")
 
@@ -841,6 +1019,13 @@ def _required_mappings(data: dict[str, Any], field: str) -> tuple[dict[str, Any]
     value = data.get(field)
     if not isinstance(value, list) or not value or not all(isinstance(item, dict) for item in value):
         raise ValueError(f"{field}: must be a non-empty list of objects")
+    return tuple(value)
+
+
+def _mapping_list(data: dict[str, Any], field: str) -> tuple[dict[str, Any], ...]:
+    value = data.get(field)
+    if not isinstance(value, list) or not all(isinstance(item, dict) for item in value):
+        raise ValueError(f"{field}: must be a list of objects")
     return tuple(value)
 
 

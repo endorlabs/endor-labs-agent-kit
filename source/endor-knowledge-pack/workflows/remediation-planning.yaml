@@ -17,6 +17,13 @@ task_profiles:
       - Do not report SCA counts or options in this profile.
     output_focus:
       - Return `project_resolution`, `evidence_queries`, and `data_gaps` without remediation options.
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
   - id: evidence-check
     title: Evidence Check
     summary: Check whether verified Finding and VersionUpgrade/UIA evidence exists for planning.
@@ -31,6 +38,14 @@ task_profiles:
       - Do not estimate counts, risk, review time, or touched files from local docs.
     output_focus:
       - Return evidence availability, empty or verified `remediation_options`, and precise `data_gaps`.
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - remediation_options
+      - data_gaps
+      - policy_context
+      - policy_evaluations
   - id: selection-plan
     title: Selection Plan
     summary: Preview one or more verified remediation options without editing files.
@@ -44,6 +59,15 @@ task_profiles:
       - Do not mutate files, create branches, or open change requests.
     output_focus:
       - Return `remediation_options`, optional `selected_remediation`, `evidence_queries`, and `data_gaps`.
+    output_fields:
+      - summary
+      - project_resolution
+      - evidence_queries
+      - remediation_options
+      - selected_remediation
+      - data_gaps
+      - policy_context
+      - policy_evaluations
 resources:
   - name: Project
     purpose: Resolve repository-scoped project identity and namespace provenance before any remediation option.
@@ -129,8 +153,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
-      --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -197,7 +220,7 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid

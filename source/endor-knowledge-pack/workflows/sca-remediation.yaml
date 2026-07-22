@@ -220,8 +220,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
-    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git"
-      --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -282,7 +281,7 @@ evidence_query_recipes:
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --field-mask "uuid,spec.name,spec.upgrade_info" -o
+      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
       json
     fields:
       - uuid

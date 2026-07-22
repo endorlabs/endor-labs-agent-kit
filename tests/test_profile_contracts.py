@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from endor_agent_kit.profile_contracts import (
     compile_profile_contract,
+    profile_contract_from_dict,
     validate_profile_output_payload,
 )
+import pytest
 
 
 def test_compiled_sca_evidence_profile_contract_is_projected_and_source_bound():
@@ -120,3 +122,150 @@ def test_compiled_ai_sast_evidence_profile_uses_compact_domain_verdicts():
     }
     assert "branch_name" not in verdict["properties"]
     assert "malware_name" not in verdict["properties"]
+
+
+def test_remediation_planning_profiles_expose_only_their_decision_gate_outputs():
+    expected = {
+        "resolve-scope": (
+            "summary",
+            "project_resolution",
+            "evidence_queries",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+        "evidence-check": (
+            "summary",
+            "project_resolution",
+            "evidence_queries",
+            "remediation_options",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+        "selection-plan": (
+            "summary",
+            "project_resolution",
+            "evidence_queries",
+            "remediation_options",
+            "selected_remediation",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+    }
+
+    contracts = {
+        profile_id: compile_profile_contract("remediation-planning", profile_id)
+        for profile_id in expected
+    }
+
+    assert {
+        profile_id: contract.output_fields
+        for profile_id, contract in contracts.items()
+    } == expected
+    assert all(contract.projection_applied for contract in contracts.values())
+    assert (
+        len(contracts["resolve-scope"].provider_neutral_schema_json)
+        < len(contracts["selection-plan"].provider_neutral_schema_json)
+    )
+
+
+def test_remaining_default_profiles_have_explicit_output_boundaries():
+    expected = {
+        ("cicd-posture", "posture"): (
+            "posture_verdict",
+            "summary",
+            "scope",
+            "raw_counts",
+            "dimension_scores",
+            "score_validation",
+            "critical_overrides",
+            "endor_findings",
+            "github_evidence",
+            "local_ci_evidence",
+            "recommended_actions",
+            "evidence_queries",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+        ("findings-browser", "browse"): (
+            "findings_verdict",
+            "summary",
+            "applied_filters",
+            "severity_summary",
+            "finding_results",
+            "pagination",
+            "evidence_queries",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+        ("malware-responder", "exposure-check"): (
+            "incident_verdict",
+            "summary",
+            "affected_package_set",
+            "tenant_scope",
+            "tenant_exposure_summary",
+            "impacted_projects",
+            "possible_exposures",
+            "evidence_queries",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+        ("oss-upgrade-investigator", "evidence-check"): (
+            "upgrade_recommendation",
+            "risk_delta",
+            "reasons",
+            "breaking_change_notes",
+            "next_checks",
+            "summary",
+            "evidence_queries",
+            "data_gaps",
+            "selected_upgrade",
+            "findings_fixed",
+            "findings_introduced",
+            "cia_status",
+            "policy_context",
+            "policy_evaluations",
+        ),
+        ("vulnerability-explainer", "explain"): (
+            "action",
+            "severity",
+            "exploitability",
+            "remediation",
+            "summary",
+            "evidence_queries",
+            "data_gaps",
+            "policy_context",
+            "policy_evaluations",
+        ),
+    }
+
+    contracts = {
+        identity: compile_profile_contract(*identity) for identity in expected
+    }
+
+    assert {
+        identity: contract.output_fields for identity, contract in contracts.items()
+    } == expected
+    assert all(contract.projection_applied for contract in contracts.values())
+
+
+def test_serialized_profile_contract_round_trips_and_rejects_tampering():
+    compiled = compile_profile_contract("dependency-reviewer", "repository-review")
+
+    restored = profile_contract_from_dict(
+        compiled.to_dict(),
+        expected_agent_id="dependency-reviewer",
+        expected_profile_id="repository-review",
+    )
+
+    assert restored == compiled
+
+    tampered = compiled.to_dict()
+    tampered["output_fields"].append("selected_remediation")
+    with pytest.raises(ValueError, match="output_fields do not match schema properties"):
+        profile_contract_from_dict(tampered)
