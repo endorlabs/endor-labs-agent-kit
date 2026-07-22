@@ -6,7 +6,13 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 payload="$(cat)"
-HOOK_PAYLOAD="$payload" python3 - "$@" <<'PY' || true
+hook_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)" || exit 0
+plugin_root="$(dirname -- "$hook_dir")"
+artifact_summarizer="$plugin_root/runtime/summarize_endor_artifact.py"
+if [[ ! -f "$artifact_summarizer" ]]; then
+  artifact_summarizer=""
+fi
+HOOK_PAYLOAD="$payload" ENDOR_ARTIFACT_SUMMARIZER="$artifact_summarizer" python3 - "$@" <<'PY' || true
 import json
 import os
 import re
@@ -59,8 +65,24 @@ try:
     if re.search(r"\b(ci/cd|cicd|github actions?|workflow|branch protection|ruleset|runner|supply chain|posture)\b", prompt_lc):
         routes.append("For CI/CD posture questions, keep evidence read-only. Use `findings-browser` for existing CI/CD or GitHub Actions findings and `configuration-automation` for GitHub onboarding evidence until a dedicated posture workflow is available.")
 
+    context = []
     if routes:
-        emit(event, "Endor Agent Kit advisory routing:\n- " + "\n- ".join(dict.fromkeys(routes)))
+        context.append("Endor Agent Kit advisory routing:\n- " + "\n- ".join(dict.fromkeys(routes)))
+    helper = os.environ.get("ENDOR_ARTIFACT_SUMMARIZER", "")
+    endor_relevant = bool(routes) or bool(
+        re.search(r"\b(endor|malware|remediat|triag|upgrade impact|exception policy)\b", prompt_lc)
+    )
+    if helper and endor_relevant:
+        context.append(
+            "Endor Agent Kit runtime helper: for `runtime.large_result_artifact_required`, "
+            f"invoke `python3 {helper} capture -- <direct endorctl agent api list arguments>` exactly "
+            "once. This hook already verified the helper path, and capture reports executable "
+            "errors safely. Run capture immediately: do not test paths or tools, search, "
+            "preflight, execute endorctl separately, inspect the artifact with another command, "
+            "or issue a separate count query."
+        )
+    if context:
+        emit(event, "\n".join(context))
 except Exception:
     pass
 PY

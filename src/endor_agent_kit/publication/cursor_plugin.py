@@ -28,6 +28,7 @@ from endor_agent_kit.publication.records import (
     prepared_architecture_source,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 CURSOR_HOST = "cursor"
 CURSOR_PLUGIN_ROOT = Path(".cursor-plugin")
@@ -145,6 +146,8 @@ def publish_cursor_plugin_package(
 
     logo = write_logo(assets_root)
     written.append(logo)
+
+    written.append(write_artifact_summarizer(destination))
 
     written.extend(_write_cursor_plugin_hooks(destination))
 

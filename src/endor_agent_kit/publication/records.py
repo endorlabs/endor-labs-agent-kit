@@ -12,6 +12,7 @@ from endor_agent_kit.knowledge_pack import load_knowledge_pack
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import EndorAgentRecipe
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 
 @dataclass(frozen=True)
@@ -36,7 +37,7 @@ def with_evidence_plan_artifacts(
     destination: Path,
     prepared: PreparedSourceRecipe,
 ) -> BundleRecord:
-    """Add identical profile contracts and inert plans to every Host bundle."""
+    """Add shared evidence contracts and runtime support to every Host bundle."""
 
     plans = compile_evidence_plans(prepared.recipe.id)
     workflow = load_knowledge_pack().workflow_for(prepared.recipe.id)
@@ -48,9 +49,6 @@ def with_evidence_plan_artifacts(
         if workflow is not None
         else ()
     )
-    if not plans and not contracts:
-        return bundle
-
     written = list(bundle.written)
     records: list[CatalogBundle] = []
     for record in bundle.manifest_records:
@@ -61,6 +59,8 @@ def with_evidence_plan_artifacts(
             plan_dir.mkdir(parents=True, exist_ok=True)
         if contracts:
             contract_dir.mkdir(parents=True, exist_ok=True)
+        summarizer = write_artifact_summarizer(bundle_dir)
+        written.append(summarizer)
         artifact_profiles = {
             artifact.path: artifact.profile_id
             for artifact in record.artifacts

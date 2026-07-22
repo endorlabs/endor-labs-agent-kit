@@ -95,6 +95,8 @@ recipes:
     title: Main-Context AI SAST Finding List
     resource: Finding
     purpose: List AI SAST finding availability for one resolved project and main context without fetching bulky case-file explanations.
+    selection_condition: runtime.complete_project_ai_sast_set_required
+    result_delivery: runtime.large_result_artifact_required
     template: >-
       endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json
     fields:
@@ -177,6 +179,8 @@ recipes:
     title: Tenant Bounded PackageVersion Inventory
     resource: PackageVersion
     purpose: Inventory bounded PackageVersion rows for a named affected package when exact filtering or version ranges require local correlation.
+    selection_condition: runtime.complete_named_package_inventory_required
+    result_delivery: runtime.large_result_artifact_required
     template: >-
       endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> --traverse --filter 'context.type==CONTEXT_TYPE_MAIN and meta.name matches "<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@.*"' --field-mask "uuid,meta.name,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.project_uuid,spec.relative_path" --list-all -o json
     fields:
@@ -348,6 +352,8 @@ recipes:
     title: Complete Finding Browser Count Query
     resource: Finding
     purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
+    selection_condition: runtime.completeness_required
+    result_delivery: runtime.large_result_artifact_required
     template: >-
       endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
@@ -355,7 +361,9 @@ recipes:
       - spec.level
       - spec.finding_categories
     constraints:
-      - Use only after project or explicit namespace scope is proven.
+      - Use only when completeness_required is true because the user explicitly requested complete or exhaustive matching rows or exact multi-dimensional totals.
+      - Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed.
+      - Never run this as an auxiliary enrichment query when `completeness_required=false`.
       - Include child namespaces by default; omit --traverse only for a proven exact-namespace request.
       - Keep table rows bounded; use this compact complete query only for totals and pagination completeness.
     completeness: Complete for matching Finding IDs/counts when scoped filters and list-all succeed; not a full row-detail export.

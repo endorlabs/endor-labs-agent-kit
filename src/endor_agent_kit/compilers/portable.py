@@ -224,6 +224,7 @@ def _render_manifest(
         "outputs": [_field_record(field) for field in recipe.outputs],
         "artifacts": {
             "agent": "agent.md",
+            "artifact_summarizer": "runtime/summarize_endor_artifact.py",
             "runtime_contract": "agent.manifest.json",
             "output_contract": "output-contract.md",
             "actions": "actions.yaml" if actions else None,

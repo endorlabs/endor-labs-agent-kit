@@ -4,6 +4,7 @@
     "actions": "actions.yaml",
     "agent": "agent.md",
     "architecture": "architecture.svg",
+    "artifact_summarizer": "runtime/summarize_endor_artifact.py",
     "output_contract": "output-contract.md",
     "runtime_contract": "agent.manifest.json",
     "runtime_setup": "endorctl-setup.md"

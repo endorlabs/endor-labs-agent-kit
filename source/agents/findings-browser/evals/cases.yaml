@@ -1,4 +1,38 @@
 cases:
+  - id: bounded-exact-namespace-findings
+    input:
+      namespace: demo-namespace
+      namespace_scope: exact
+      severity_levels:
+        - HIGH
+      page_size: 5
+      completeness_required: false
+    expected:
+      findings_verdict: PARTIAL_RESULTS
+      required_evidence:
+        - use one bounded projected Finding query and omit --traverse for the proven exact namespace
+        - omit --list-all and never run an auxiliary complete-count query for totals or enrichment
+        - summarize only returned rows and record pagination or truncation in data_gaps
+      data_gaps_allowed: true
+
+  - id: complete-namespace-finding-counts
+    input:
+      namespace: demo-namespace
+      namespace_scope: include_children
+      finding_categories:
+        - VULNERABILITY
+      completeness_required: true
+      report_mode: complete_counts
+    expected:
+      findings_verdict: ACTIVE_FINDINGS_FOUND
+      required_evidence:
+        - select finding-browser-complete-counts only because completeness_required is explicitly true
+        - include --traverse for namespace-wide child coverage and --list-all for complete matching rows
+        - keep the complete query field mask compact and record the completeness proof in evidence_queries
+        - stream the raw complete result to a host artifact before model context and never cat, split, or reread it into the conversation
+        - return the count plus artifact_ref, SHA-256, format, and byte size in the evidence ledger reason
+      data_gaps_allowed: true
+
   - id: critical-reachable-project-findings
     input:
       namespace: demo-namespace

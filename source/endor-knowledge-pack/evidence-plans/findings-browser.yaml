@@ -19,6 +19,7 @@ plans:
       - levels
       - finding_category
       - finding_tag
+      - completeness_required
       - source_digest
     inventory:
       default_mode: bounded
@@ -36,7 +37,8 @@ plans:
       max_calls: 1
       stop_conditions:
         - Stop after one bounded page for the exact requested filter or tag is returned, empty, or precisely blocked.
-        - Report pagination and truncation; do not silently expand into complete inventory mode.
+        - When completeness_required is false, report pagination and truncation and never add an auxiliary --list-all query.
+        - Do not silently expand into complete inventory mode.
       data_gaps_required: true
     routes:
       - id: tag

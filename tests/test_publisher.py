@@ -127,6 +127,15 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
         | _portable_paths("dependency-reviewer", has_setup=True, has_architecture=True)
         | {"manifest.json", "README.md", "catalog.json"}
     ) <= written_paths
+    runtime_helper = "runtime/summarize_endor_artifact.py"
+    assert {
+        f"claude-code/dependency-reviewer/developer-edition/{runtime_helper}",
+        f"claude-code/dependency-reviewer/enterprise-edition/{runtime_helper}",
+        f"claude-managed-agents/dependency-reviewer/{runtime_helper}",
+        f"codex/dependency-reviewer/{runtime_helper}",
+        f"gemini/dependency-reviewer/{runtime_helper}",
+        f"portable/dependency-reviewer/{runtime_helper}",
+    } <= written_paths
     assert not (dest / "claude-code" / "dependency-reviewer" / "standard").exists()
     assert not (dest / "claude-code" / "dependency-reviewer" / "extended").exists()
     assert not list(dest.rglob("recipe.yaml"))
@@ -373,6 +382,10 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
         f"{host}/vulnerability-explainer/evidence-plans/explain.json"
         for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
     }
+    runtime_paths = {
+        f"{host}/vulnerability-explainer/runtime/summarize_endor_artifact.py"
+        for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
+    }
     assert written_paths == {
         "claude-code/vulnerability-explainer/README.md",
         "claude-code/vulnerability-explainer/endorctl-setup.md",
@@ -388,7 +401,7 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
     } | _codex_paths("vulnerability-explainer", has_setup=True) | _gemini_paths(
         "vulnerability-explainer",
         has_setup=True,
-    ) | _portable_paths("vulnerability-explainer", has_setup=True) | contract_and_plan_paths
+    ) | _portable_paths("vulnerability-explainer", has_setup=True) | contract_and_plan_paths | runtime_paths
     artifact = (dest / "claude-code" / "vulnerability-explainer" / "vulnerability-explainer.md").read_text()
     readme = (dest / "claude-code" / "vulnerability-explainer" / "README.md").read_text()
     assert "disallowedTools: Bash" not in artifact
@@ -653,6 +666,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         "endorctl-setup.md",
         "evidence-check.json",
         "explain.json",
+        "summarize_endor_artifact.py",
         "vulnerability-explainer.md",
     }
     assert {path.name for path in dest.iterdir()} == {
@@ -785,6 +799,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.png" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
@@ -795,6 +810,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
@@ -802,11 +818,13 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
     assert "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/ai-plugins/assets/logo.png" in written_paths
+    assert "plugins/claude/ai-plugins/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/claude/ai-plugins/hooks/hooks.json" not in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
@@ -816,12 +834,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert ".cursor-plugin/plugin.json" in written_paths
     assert ".cursor-plugin/marketplace.json" in written_paths
+    assert "runtime/summarize_endor_artifact.py" in written_paths
     assert "hooks/hooks.json" in written_paths
     assert "hooks/suggest-endor-tools.sh" in written_paths
     assert "hooks/check-dep-install.sh" in written_paths
@@ -831,6 +851,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/README.md" in written_paths
     assert "cursor-sdk/requirements.txt" in written_paths
     assert "cursor-sdk/run_cursor_agent.py" in written_paths
+    assert "cursor-sdk/runtime/summarize_endor_artifact.py" in written_paths
     assert "cursor-sdk/agent_definitions.json" in written_paths
     assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in written_paths
     assert "assets/logo.png" in written_paths

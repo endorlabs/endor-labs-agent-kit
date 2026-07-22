@@ -27,6 +27,7 @@ from endor_agent_kit.publication.plugin_package_common import (
 )
 from endor_agent_kit.recipe import editions_for_host
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 CLAUDE_PLUGIN_PACKAGE_ROOT = Path("plugins") / "claude" / PLUGIN_NAME
 CLAUDE_MARKETPLACE_PATH = Path(".claude-plugin") / "marketplace.json"
@@ -235,6 +236,8 @@ def _write_claude_plugin_package(
 
     logo = write_logo(package_dir / "assets")
     written.append(logo)
+
+    written.append(write_artifact_summarizer(package_dir))
 
     if not spec.legacy:
         written.extend(_write_claude_plugin_hooks(spec, package_dir))

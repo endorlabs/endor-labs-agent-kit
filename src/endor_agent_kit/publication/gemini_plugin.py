@@ -23,6 +23,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 GEMINI_PLUGIN_PACKAGE_ROOT = Path("plugins") / "gemini" / PLUGIN_NAME
 GEMINI_SETUP_SKILL = "endor-agent-kit-setup"
@@ -114,6 +115,8 @@ def publish_gemini_plugin_package(
 
     logo = write_logo(package_dir / "assets")
     written.append(logo)
+
+    written.append(write_artifact_summarizer(package_dir))
 
     written.extend(_write_gemini_extension_hooks(package_dir))
 

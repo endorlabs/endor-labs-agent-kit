@@ -24,7 +24,6 @@ from endor_agent_kit.publication.cursor_plugin import (
     _setup_source,
 )
 from endor_agent_kit.publication.plugin_package_common import (
-    PLUGIN_DISPLAY_NAME,
     package_version,
 )
 from endor_agent_kit.publication.records import (
@@ -32,6 +31,7 @@ from endor_agent_kit.publication.records import (
     prepared_architecture_source,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 CURSOR_SDK_HOST = "cursor-sdk"
 CURSOR_SDK_PACKAGE_NAME = "endor-labs-agent-kit-cursor-sdk"
@@ -76,6 +76,7 @@ def publish_cursor_sdk_package(
         shutil.rmtree(package_root)
     agents_root = destination / CURSOR_SDK_AGENT_DIR
     agents_root.mkdir(parents=True)
+    written.append(write_artifact_summarizer(package_root))
 
     definitions = []
     for prepared in sorted_recipes:

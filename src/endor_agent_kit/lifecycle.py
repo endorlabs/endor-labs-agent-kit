@@ -38,6 +38,7 @@ GENERATED_SURFACES = (
     "gemini",
     "plugins",
     "portable",
+    "runtime",
 )
 
 

@@ -59,7 +59,7 @@ Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
-    "`evidence_queries`: only name/resource/source/status/query_template_id/filter/field_mask/result_count/reason; no raw commands; put gaps in top-level `data_gaps`."
+    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`."
 )
 DATA_GAPS_REASON_GUIDANCE = (
     "`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional."
