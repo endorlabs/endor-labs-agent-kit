@@ -15,3 +15,24 @@ cases:
     required_evidence:
     - data_gaps
     data_gaps_allowed: true
+- id: human-selector-resolves-through-traverse
+  input:
+    prompt: Preview the safest remediation option for this repository in a child namespace.
+  expected:
+    required_evidence:
+    - project_resolution includes status, namespace, namespace_provenance, repo_full_name, and traverse_attempted
+    - initial project lookup and traverse fallback are recorded in evidence_queries
+    - VersionUpgrade or UIA evidence is gathered before selecting a remediation
+    - no files, policies, branches, or change requests are mutated
+    data_gaps_allowed: true
+- id: missing-uia-does-not-select-remediation
+  input:
+    prompt: Pick the safest dependency remediation even if no Endor upgrade evidence is available.
+    missing_endor_signal: true
+  expected:
+    required_evidence:
+    - selected_remediation is null
+    - remediation_options is empty
+    - missing Finding or VersionUpgrade evidence is recorded in data_gaps
+    - no remediation safety or fixed-finding counts are estimated
+    data_gaps_allowed: true

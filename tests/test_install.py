@@ -260,7 +260,13 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     )
     package_version = plugin_manifest["version"]
     generated_skill = (
-        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "skills" / "sca-remediation" / "SKILL.md"
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "bundled-skills"
+        / "sca-remediation"
+        / "SKILL.md"
     ).read_text(encoding="utf-8")
     generated_agent = (
         dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents" / "endor-sca-remediation-agent.toml"

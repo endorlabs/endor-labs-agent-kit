@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/reject-repository-root.sh\" SessionStart",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/.claude-plugin/reject-repository-root.sh\" UserPromptSubmit",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  }
+}

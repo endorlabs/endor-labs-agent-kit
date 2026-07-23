@@ -603,6 +603,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 expected_version=expected_package_version,
                 errors=errors,
             )
+        _check_claude_root_package_guard(root, expected_package_version, errors)
         if not legacy_claude_package.is_dir():
             errors.append("plugins/claude/ai-plugins: missing legacy Claude plugin package")
         else:
@@ -997,6 +998,14 @@ def _check_codex_plugin_package(
     )
 
     setup = codex_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    exposed_skills = sorted(
+        path.parent.name for path in (codex_package / "skills").glob("*/SKILL.md")
+    )
+    if exposed_skills != ["endor-agent-kit-setup"]:
+        errors.append(
+            "plugins/codex/endor-labs-agent-kit/skills: plugin must expose only "
+            "the endor-agent-kit-setup skill before custom-agent installation"
+        )
     if not setup.is_file():
         errors.append(f"{_rel(root, setup)}: missing Codex setup skill")
     else:
@@ -1028,9 +1037,13 @@ def _check_codex_plugin_package(
                 if required not in installer_text:
                     errors.append(f"{_rel(root, installer)}: missing required installer text {required!r}")
 
-    for skill in sorted((codex_package / "skills").glob("*/SKILL.md")):
-        if skill.parent.name == "endor-agent-kit-setup":
-            continue
+    bundled_skills = codex_package / "bundled-skills"
+    if not bundled_skills.is_dir():
+        errors.append(
+            "plugins/codex/endor-labs-agent-kit/bundled-skills: missing optional "
+            "workflow-skill fallback bundle"
+        )
+    for skill in sorted(bundled_skills.glob("*/SKILL.md")):
         text = skill.read_text(encoding="utf-8")
         _check_namespace_preflight(root, skill, text, errors)
         _check_knowledge_pack_section(root, skill, text, errors)
@@ -1070,6 +1083,78 @@ def _check_codex_plugin_package(
     for path in codex_package.rglob("*"):
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+
+def _check_claude_root_package_guard(
+    root: Path,
+    expected_version: str,
+    errors: list[str],
+) -> None:
+    manifest_path = root / ".claude-plugin" / "plugin.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append(".claude-plugin/plugin.json: root guard name must be endor-labs-agent-kit")
+        if manifest.get("version") != expected_version:
+            errors.append(
+                f".claude-plugin/plugin.json: root guard version must be {expected_version}"
+            )
+        if _dict(manifest.get("author")).get("name") != "Endor Labs":
+            errors.append(
+                ".claude-plugin/plugin.json: root guard author must be Endor Labs"
+            )
+        agent_paths = manifest.get("agents")
+        expected_agents = {
+            f"./{_rel(root, path)}"
+            for path in (
+                root / "plugins" / "claude" / "endor-labs-agent-kit" / "agents"
+            ).glob("*.md")
+        }
+        if not isinstance(agent_paths, list) or set(agent_paths) != expected_agents:
+            errors.append(
+                ".claude-plugin/plugin.json: root guard must enumerate every agent in "
+                "the Claude-specific package"
+            )
+        if manifest.get("hooks") != "./.claude-plugin/root-package-guard-hooks.json":
+            errors.append(
+                ".claude-plugin/plugin.json: root guard must use its dedicated hooks file"
+            )
+        if "skills" in manifest:
+            errors.append(".claude-plugin/plugin.json: root guard must not expose another skill path")
+
+    hooks_path = root / ".claude-plugin" / "root-package-guard-hooks.json"
+    hooks = _load_json_mapping(root, hooks_path, errors)
+    hook_events = _dict(hooks.get("hooks")) if hooks else {}
+    if set(hook_events) != {"SessionStart", "UserPromptSubmit"}:
+        errors.append(
+            ".claude-plugin/root-package-guard-hooks.json: root guard events must be "
+            "SessionStart and UserPromptSubmit"
+        )
+    serialized_hooks = json.dumps(hooks)
+    if "reject-repository-root.sh" not in serialized_hooks:
+        errors.append(
+            ".claude-plugin/root-package-guard-hooks.json: missing repository-root guard command"
+        )
+
+    script = root / ".claude-plugin" / "reject-repository-root.sh"
+    if not script.is_file():
+        errors.append(".claude-plugin/reject-repository-root.sh: missing root guard script")
+        return
+    text = script.read_text(encoding="utf-8")
+    for required in (
+        "endor_agent_kit_managed=true",
+        "repository root is the Cursor package",
+        "plugins/claude/endor-labs-agent-kit",
+        "exit 2",
+    ):
+        if required not in text:
+            errors.append(
+                f".claude-plugin/reject-repository-root.sh: missing required text {required!r}"
+            )
+    if "composer-2.5" in text:
+        errors.append(".claude-plugin/reject-repository-root.sh: must not route Claude to Composer")
+    if not (script.stat().st_mode & 0o111):
+        errors.append(".claude-plugin/reject-repository-root.sh: root guard must be executable")
 
 
 def _check_claude_plugin_package(

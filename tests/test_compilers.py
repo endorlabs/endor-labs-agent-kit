@@ -447,6 +447,7 @@ def _plugin_prompt_files(root: Path) -> list[Path]:
         "plugins/claude/endor-labs-agent-kit/agents/*.md",
         "plugins/claude/ai-plugins/agents/*.md",
         "plugins/codex/endor-labs-agent-kit/skills/*/SKILL.md",
+        "plugins/codex/endor-labs-agent-kit/bundled-skills/*/SKILL.md",
         "plugins/codex/endor-labs-agent-kit/agents/*.toml",
         "plugins/gemini/endor-labs-agent-kit/skills/*/SKILL.md",
         "plugins/gemini/endor-labs-agent-kit/agents/*.md",

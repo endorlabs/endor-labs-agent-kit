@@ -347,7 +347,7 @@ advancing mutation gates; the validator recomputes every policy decision.
 
 MCP is not used by the mutating remediation workflows. AI SAST Remediation, SCA
 Remediation, Remediation Planning, OSS Upgrade Investigator, Configuration Automation,
-and the Codex skills use `endorctl agent api --agent-id <canonical-recipe-id>` paths
+and the Codex custom agents and optional fallback skills use `endorctl agent api --agent-id <canonical-recipe-id>` paths
 instead.
 
 MCP remains in the catalog only where the current public recipe still depends
@@ -380,8 +380,8 @@ endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-p
 
 Generated plugin packages currently include:
 
-- `plugins/codex/endor-labs-agent-kit/`: Codex plugin skills, bundled
-  custom-agent TOML files, setup skill, installer script, and Codex
+- `plugins/codex/endor-labs-agent-kit/`: one exposed Codex setup skill,
+  opt-in workflow-skill fallbacks, bundled custom-agent TOML files, installer script, and Codex
   marketplace metadata under `.agents/plugins/marketplace.json` and
   `plugins/codex/.agents/plugins/marketplace.json`.
 - `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup
