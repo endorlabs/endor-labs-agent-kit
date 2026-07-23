@@ -152,8 +152,8 @@ Every SCA output that includes `evidence_queries[]` must include at least one
 `Finding` row, or top-level `data_gaps[]` saying Finding evidence was
 unavailable or not queried. For selection-plan/read-only gates, this is still
 required after VersionUpgrade/UIA narrowing: record the selected-candidate
-Finding lookup, a no-results Finding lookup, or an explicit Finding data gap in
-the final JSON.
+Finding lookup. When that lookup returns zero rows, also add a precise Finding
+evidence gap to top-level `data_gaps`.
 
 When a remediation candidate is selected, include the proposed branch even if
 mutation is not approved. Put `remediation/sca/<package>-<target-version>` in
@@ -163,7 +163,15 @@ mutation is not approved. Put `remediation/sca/<package>-<target-version>` in
 
 For plan-only requests that mention a PR/MR plan, include a `change_requests` entry with status `not_created`, reason `plan_only_awaiting_approval` or equivalent, proposed base branch, proposed branch, proposed title, and a reference to the included PR/MR body draft. Do not return an empty `change_requests` array when a PR/MR is part of the requested plan.
 
-At the `selection-plan` gate, return exactly one `change_requests` entry and always populate its deterministic `inventory`. If source-provider lookup is unavailable, use inventory `status: "unavailable"`, record the attempted or unavailable lookup method and check time, copy the complete repository/base-branch/ecosystem/package/manifest/current-version/target-version/finding-set key from the selected remediation, use `candidates: []`, set a non-empty reconciliation status and reason, and add the blocker to top-level `data_gaps`. Unavailable inventory is a valid plan-only sentinel but still fails closed before push or PR/MR creation.
+At the `selection-plan` gate, return exactly one `change_requests` entry and always populate its deterministic `inventory`. Use this exact nested contract:
+
+- `inventory.status`: exactly `none_found`, `exact_duplicate`, `different_target`, or `unavailable`.
+- `inventory.lookup_method`, `inventory.checked_at`, and boolean `inventory.fresh_recheck`.
+- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`.
+- `inventory.candidates`: an array; use `[]` when none or unavailable.
+- `inventory.reconciliation`: an object with non-empty `status` and `reason`; use `status: "not_needed"` for `none_found` and a fail-closed status for unavailable or divergent evidence.
+
+Do not flatten the key or reconciliation into strings such as `repository_base_branch_key` or `reconciliation_status`, and use `checked_at`, never `check_time`. If source-provider lookup is unavailable, set `inventory.status: "unavailable"`, preserve the complete key above, set `candidates: []`, explain the blocker in reconciliation and top-level `data_gaps`, and fail closed before push or PR/MR creation.
 
 For ticket requests, include a `tickets` entry with status `not_created`, `created`, `failed`, or `unavailable`. Include proposed ticket title/body for `not_created`, ticket ID or URL for `created`, and the exact blocker in `data_gaps` for `failed` or `unavailable`. Do not claim ticket creation unless the ticket adapter returns a ticket ID or URL.
 
