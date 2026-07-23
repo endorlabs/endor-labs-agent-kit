@@ -13,7 +13,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Codex public directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows and the customer's active Codex model. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
-| Cursor | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Cursor plugin metadata with generated workflow agents, support skills, and advisory hooks. |
+| Cursor | `/add-plugin endorlabs` | Public Cursor plugin with generated workflow agents, support skills, advisory hooks, and MCP metadata. |
 | Cursor SDK | `cursor-sdk/README.md` | Python SDK automation for local workspaces, CI, orchestration, backend services, or Cursor cloud agents. |
 | Manual single-agent install | `<host>/<agent>/README.md` | One workflow in one host without the full plugin package. |
 | Runtime-neutral integration | `portable/<agent>/README.md` | Internal runtime with its own adapters, approvals, audit, and credentials. |
@@ -31,8 +31,18 @@ consumer accounts.
 Claude Code public install for new users:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install endor-labs-agent-kit@endorlabs
+/reload-plugins
+/agents
+```
+
+The same package is also available from Anthropic's pre-registered official
+marketplace under its stable technical id. It is displayed as **Endor Labs
+Agent Kit**:
+
+```text
+/plugin install ai-plugins@claude-plugins-official
 /reload-plugins
 /agents
 ```
@@ -40,26 +50,33 @@ Claude Code public install for new users:
 Existing Claude Code users pinned to the historical id can keep using:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install ai-plugins@endorlabs
 ```
 
-Do not enable `endor-labs-agent-kit@endorlabs` and `ai-plugins@endorlabs` in
-the same Claude profile for normal use. They expose the same setup skill and
-agents.
+Choose one Claude distribution path. Do not enable
+`endor-labs-agent-kit@endorlabs`, `ai-plugins@endorlabs`, and
+`ai-plugins@claude-plugins-official` together in the same profile for normal
+use. They expose the same setup skill and agents.
 
 For a local checkout, add the repository marketplace with `/plugin marketplace
 add ./` and install `endor-labs-agent-kit@endorlabs`. For one-off development,
 use `claude --plugin-dir plugins/claude/endor-labs-agent-kit`. Do not use
-`claude --plugin-dir .`: the repository root contains Cursor agents, workflow
-skills, MCP metadata, and Cursor-specific hooks rather than a Claude plugin
-package.
+`claude --plugin-dir .` from the Agent Kit source repository: its root manifest
+is a guard around Cursor artifacts. The generated `ai-plugins` mirror is
+different because synchronization installs the canonical Claude agents,
+setup-only skills, and Claude hooks at that mirror root. The same sync creates
+a self-contained Cursor package under
+`plugins/cursor/endor-labs-agent-kit/` and points the Cursor marketplace at it,
+so neither host auto-discovers the other host's components.
 
 For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
 or package metadata because their public install commands depend on the pushed
-tag and host-specific marketplace behavior. Cursor IDE uses `.cursor-plugin/`,
-root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`;
-Cursor SDK automation uses `cursor-sdk/`; Gemini uses
+tag and host-specific marketplace behavior. In this source repo, Cursor IDE
+uses `.cursor-plugin/`, root `agents/`, root `skills/`, root advisory `hooks/`,
+and `assets/logo.png`; the public mirror marketplace points to the complete
+`plugins/cursor/endor-labs-agent-kit/` package. Cursor SDK automation uses
+`cursor-sdk/`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/`.
 
 Codex plugin installation exposes only the setup skill. Before the first Codex

@@ -13,6 +13,15 @@ Read the host package README first when installing or validating a plugin.
 For release publication, use `docs/plugin-release-checklist.md` from the
 repository root.
 
+The generated `ai-plugins` mirror adds a root Claude compatibility manifest
+during synchronization for the stable official
+`ai-plugins@claude-plugins-official` id. That mirror-only overlay copies the
+canonical Claude agents, setup-only skills, and Claude hooks into their
+conventional root directories. Cursor's full agents, skills, hooks, `mcp.json`,
+and assets move into a self-contained mirror-only package at
+`plugins/cursor/endor-labs-agent-kit/`. This is not the Agent Kit source
+repository's root guard.
+
 Use the Agent Kit source repo for the full two-audience documentation
 map: <https://github.com/endorlabs/endor-labs-agent-kit/blob/main/README.md>,
 <https://github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md>,
@@ -45,17 +54,23 @@ Current generated package slices:
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json` validated with `antigravity plugin validate`.
 
-The Cursor package is generated at repository root as `.cursor-plugin/`,
-root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png` because the public
-Cursor package source is `./`. It is intentionally separate from Gemini
+In the Agent Kit source repo, the Cursor package is generated at repository root as `.cursor-plugin/`,
+root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`
+for source validation. Mirror sync copies that payload into
+`plugins/cursor/endor-labs-agent-kit/`, rewrites the root Cursor marketplace
+entry to that source, and removes the mirror-root Cursor plugin manifest so the
+official Claude root can use conventional auto-discovery. Cursor is
+intentionally separate from Gemini
 CLI extension files under `gemini/endor-labs-agent-kit/`. The repository
-root may include `.mcp.json` and non-installable `GEMINI.md` support
-context, but must not include a root `gemini-extension.json`.
+root may include non-installable `GEMINI.md` support context, but must not
+include a root `gemini-extension.json`. Only the Agent Kit source root
+retains `.mcp.json`; mirror sync writes its contents as the template-compatible
+Cursor package file `plugins/cursor/endor-labs-agent-kit/mcp.json`.
 
 The Cursor SDK automation package is generated under `cursor-sdk/` with
 Python SDK prompt definitions, a runnable `run_cursor_agent.py` launcher,
 and `agent_definitions.json`. Use it for CI, orchestration, and backend
-automation; use the root Cursor plugin for customer-facing Cursor IDE UX.
+automation; use the nested Cursor plugin for customer-facing Cursor IDE UX.
 
 Gemini installs from the generated extension directory for local validation.
 For public distribution, clone the tagged GitHub repository and install

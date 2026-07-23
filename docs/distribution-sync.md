@@ -10,15 +10,16 @@ fallback or for local dry-run validation.
 | Repo | Owns |
 | --- | --- |
 | `endor-labs-agent-kit` | Source recipes, compiler/publisher code, guardrails, tests, provenance, generated catalog, and source documentation. |
-| `ai-plugins` | Public host metadata, the unpacked Codex directory package, Cursor package metadata, root Cursor agents, support skills, advisory hooks, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
+| `ai-plugins` | Public host metadata, the unpacked Codex directory package, the official Claude root package, a self-contained Cursor marketplace package, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
 
-Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
-`endor-labs-agent-kit/plugins/`. Cursor package sync should make
-`ai-plugins/.cursor-plugin/`, generated root workflow `agents/`, generated root
-workflow `skills/`, generated root advisory `hooks/`, and `assets/logo.png`
-match this repo. Cursor SDK sync should make `ai-plugins/cursor-sdk/` match
-this repo. The root `CHANGELOG.md` is also synced so release notes travel with
-generated distribution PRs.
+Normal package sync copies source-owned host packages first. The mirror-only
+provider boundary then reserves conventional root `agents/`, `skills/`, and
+`hooks/` for Claude, while generating the complete Cursor package under
+`plugins/cursor/endor-labs-agent-kit/`. Root
+`.cursor-plugin/marketplace.json` keeps the stable `endorlabs` id and points to
+that nested source; the mirror has no root `.cursor-plugin/plugin.json` and no
+root `.mcp.json`. The root `CHANGELOG.md` is also synced so release notes travel
+with generated distribution PRs.
 
 ## Automated Publication
 
@@ -111,21 +112,28 @@ Run from `ai-plugins`:
 ```bash
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
 
-for skill in skills/*; do python3 scripts/quick_validate.py "$skill"; done
+for skill in skills/* plugins/cursor/endor-labs-agent-kit/skills/*; do
+  python3 scripts/quick_validate.py "$skill"
+done
 python3 scripts/validate_mirror_provenance.py
+python3 scripts/validate_marketplace_host_boundaries.py
 python3 scripts/build_codex_directory_submission.py validate --root .
 python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
 python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
-python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+python3 -m json.tool plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json >/dev/null
 python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
 python3 -m json.tool hooks/hooks.json >/dev/null
+python3 -m json.tool plugins/cursor/endor-labs-agent-kit/mcp.json >/dev/null
+python3 -m json.tool plugins/cursor/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/claude/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/codex/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/gemini/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/antigravity/endor-labs-agent-kit/hooks.json >/dev/null
 test ! -e plugins/claude/ai-plugins/hooks
-for hook_script in hooks/*.sh plugins/*/*/hooks/*.sh; do bash -n "$hook_script"; done
+for hook_script in hooks/*.sh plugins/*/*/hooks/*.sh; do
+  bash -n "$hook_script"
+done
 python3 - <<'PY'
 import py_compile
 
@@ -134,15 +142,25 @@ PY
 test ! -e gemini-extension.json
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
-diff -qr "$AGENT_KIT_REPO/plugins" ./plugins
-diff -qr "$AGENT_KIT_REPO/.cursor-plugin" ./.cursor-plugin
-diff -qr "$AGENT_KIT_REPO/agents" ./agents
+test ! -e .cursor-plugin/plugin.json
+test ! -e cursor/endor-labs-agent-kit
+for provider in antigravity claude codex codex-directory gemini; do
+  diff -qr "$AGENT_KIT_REPO/plugins/$provider" "./plugins/$provider"
+done
+diff -q "$AGENT_KIT_REPO/plugins/README.md" ./plugins/README.md
+diff -qr "$AGENT_KIT_REPO/agents" ./plugins/cursor/endor-labs-agent-kit/agents
 diff -qr "$AGENT_KIT_REPO/cursor-sdk" ./cursor-sdk
-diff -qr "$AGENT_KIT_REPO/hooks" ./hooks
+diff -qr "$AGENT_KIT_REPO/plugins/claude/endor-labs-agent-kit/agents" ./agents
+diff -qr "$AGENT_KIT_REPO/plugins/claude/endor-labs-agent-kit/hooks" ./hooks
+diff -qr "$AGENT_KIT_REPO/plugins/claude/endor-labs-agent-kit/skills" ./skills
+diff -qr "$AGENT_KIT_REPO/hooks" ./plugins/cursor/endor-labs-agent-kit/hooks
+diff -q "$AGENT_KIT_REPO/.mcp.json" ./plugins/cursor/endor-labs-agent-kit/mcp.json
+diff -qr "$AGENT_KIT_REPO/assets" ./plugins/cursor/endor-labs-agent-kit/assets
+test ! -e .mcp.json
 for skill in "$AGENT_KIT_REPO"/skills/*; do
   name=${skill##*/}
   [ "$name" = "create-endor-labs-agent" ] && continue
-  diff -qr "$skill" "./skills/$name"
+  diff -qr "$skill" "./plugins/cursor/endor-labs-agent-kit/skills/$name"
 done
 diff -q "$AGENT_KIT_REPO/assets/logo.png" assets/logo.png
 diff -q "$AGENT_KIT_REPO/CHANGELOG.md" CHANGELOG.md
@@ -152,6 +170,41 @@ git diff --check
 Provider CLI validation is release-gated by availability of the relevant host
 CLIs and public refs. Use `docs/plugin-release-checklist.md` for the full
 release matrix.
+
+## Claude And Cursor Marketplace Boundary
+
+The official Anthropic entry retains the stable technical id
+`ai-plugins@claude-plugins-official` and points at the generated mirror root.
+`scripts/sync_ai_plugins_distribution.py` therefore generates a mirror-only
+provider boundary after the normal package sync:
+
+- `.claude-plugin/plugin.json`, which displays **Endor Labs Agent Kit** and
+  relies on Claude's conventional component discovery;
+- root `agents/`, `skills/`, and `hooks/`, which are byte-identical to the
+  canonical Claude package and therefore expose Sonnet agents, setup, and
+  Claude hook events;
+- `plugins/cursor/endor-labs-agent-kit/`, a self-contained Cursor package with
+  its own `.cursor-plugin/plugin.json`, Composer agents, skills, hooks,
+  `mcp.json`, and assets;
+- `.cursor-plugin/marketplace.json`, which keeps the stable `endorlabs` id and
+  points to that nested package.
+
+The mirror root intentionally has no `.mcp.json` or root Cursor plugin manifest.
+Cursor receives the source-approved MCP config as conventional `mcp.json`
+inside its package. Claude receives no Cursor agent, skill, hook, or MCP path;
+Cursor receives no root Claude component path.
+
+The overlay deliberately omits `version` so the upstream git SHA remains the
+resolved plugin version. It must not be copied back over the Agent Kit source
+repository's root guard. Validate it in the mirror with:
+
+```bash
+python3 scripts/validate_marketplace_host_boundaries.py
+```
+
+After a mirror release, Anthropic's scheduled SHA-bump automation can advance
+the existing official entry through its validation and safety checks. Do not
+submit a second official entry or request a slug rename for routine releases.
 
 ## Codex Directory Archive
 
@@ -179,13 +232,17 @@ authorized. The ZIP is never committed or reconstructed manually. See
 - Do not commit the Codex public-directory ZIP; build it only from an immutable
   `ai-plugins` SHA through the review-gated workflow.
 - Do not enable both Claude package ids in the same profile for normal use.
+- Do not enable the official `ai-plugins@claude-plugins-official` package with
+  either Endor-hosted Claude id in the same profile.
 - Do not couple Cursor package sync to Gemini CLI extension files.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
-- The root `.mcp.json` file may declare the source-approved `endor-cli-tools`
-  MCP server so users can opt into Endor MCP setup. Do not generate a root
+- The Agent Kit source root `.mcp.json` may declare the source-approved
+  `endor-cli-tools` MCP server. In `ai-plugins`, mirror sync writes that config
+  as `plugins/cursor/endor-labs-agent-kit/mcp.json` so the official Claude root
+  does not auto-load it. Do not generate a root
   `gemini-extension.json`; Gemini discovers bundled skills from the installed
   extension root's `skills/` directory, and the repository root's `skills/`
-  directory is the Cursor package surface. Generated host package manifests
+  directory is the Claude setup surface in the mirror. Generated host package manifests
   under `plugins/*/endor-labs-agent-kit/` must still stay MCP-free unless that
   host package explicitly validates MCP. Setup guidance remains CLI-first and
   must not start, register, or rely on MCP without explicit user approval.

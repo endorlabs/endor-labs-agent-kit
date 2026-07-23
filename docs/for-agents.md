@@ -9,7 +9,7 @@ approval gates.
 | User Intent | Work In | Do Not Start By Editing |
 | --- | --- | --- |
 | Install a package | `plugins/<host>/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
-| Install the Cursor package | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Gemini extension files or generated package internals |
+| Install the Cursor package | `/add-plugin endorlabs`; maintainers inspect the source-root package and mirror `plugins/cursor/endor-labs-agent-kit/` | Gemini extension files or generated package internals |
 | Run Cursor SDK automation | `cursor-sdk/README.md` | Cursor IDE plugin metadata or Gemini extension files |
 | Install one agent | `<host>/<agent>/README.md` | `source/agents/<agent>/` |
 | Change agent behavior | `source/agents/<agent>/recipe.yaml`, `instructions.md`, evals, `architecture.svg`, and `actions.yaml` when schema v2 mutating or explicitly adapter-backed | Generated host directories |
@@ -105,10 +105,12 @@ and must record namespace provenance.
 
 [🐙 Endor Labs AI Plugins](https://github.com/endorlabs/ai-plugins/tree/main)
 is the public distribution mirror. Normal package sync should be generated from
-this repo and byte-for-byte identical for `plugins/`. Cursor mirror sync should
-copy only `.cursor-plugin/`, generated root workflow `agents`, generated root
-workflow `skills/`, generated root advisory `hooks/`, and `assets/logo.png`.
-Cursor SDK mirror sync should copy `cursor-sdk/`. Do not copy root Gemini
+this repo and byte-for-byte identical for source-owned host directories under
+`plugins/`. The one deliberate addition is the self-contained Cursor package at
+`plugins/cursor/endor-labs-agent-kit/`; root `.cursor-plugin/marketplace.json`
+must point to it. The mirror root is the conventional Claude package and must
+not retain a Cursor plugin manifest or `.mcp.json`. Cursor SDK mirror sync
+should copy `cursor-sdk/`. Do not copy root Gemini
 compatibility manifests as Cursor package output; the multi-host repo root is
 not a Gemini extension root. Use
 `docs/distribution-sync.md` before editing or syncing that repo.

@@ -34,7 +34,7 @@ Generated for the Endor Labs AI Plugins (Legacy) Claude Code plugin.
 From the public ai-plugins distribution repository:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install ai-plugins@endorlabs
 ```
 
