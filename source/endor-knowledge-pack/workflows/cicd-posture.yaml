@@ -161,7 +161,7 @@ evidence_query_recipes:
       - spec.finding_categories
     constraints:
       - Keep Finding lookup bounded to posture categories and selected scope.
-      - Record next_page_token or truncation as a data_gap instead of fetching bulky posture metadata during runtime QA.
+      - Record next_page_token or truncation as a data_gap instead of fetching bulky posture metadata after bounded evidence is sufficient.
       - Do not run scans or broaden to unrelated finding categories.
   - profile_id: posture
     id: endor-repository-config

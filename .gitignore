@@ -19,5 +19,4 @@ agents/*/dist/
 source/agents/*/dist/
 source/agents/*/provenance.json
 source/agents/*/pluck-report.md
-!plugins/gemini/endor-labs-agent-kit.zip
 HANDOFF.md

@@ -335,7 +335,7 @@ Gather read-only posture evidence and compute deterministic scores.
 - Purpose: List bounded existing Endor CI/CD and supply-chain posture finding rows.
 - Template: `endorctl agent api --agent-id cicd-posture list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json`
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`
-- Constraints: Keep Finding lookup bounded to posture categories and selected scope. Record next_page_token or truncation as a data_gap instead of fetching bulky posture metadata during runtime QA. Do not run scans or broaden to unrelated finding categories.
+- Constraints: Keep Finding lookup bounded to posture categories and selected scope. Record next_page_token or truncation as a data_gap instead of fetching bulky posture metadata after bounded evidence is sufficient. Do not run scans or broaden to unrelated finding categories.
 
 #### `endor-repository-config` (posture)
 

@@ -19,6 +19,8 @@ package metadata.
 - Added an OpenAPI-derived Endor API resource and enum registry with a generator
   for validating source instructions, knowledge-pack query fields, and rendered
   `--field-mask` values.
+- Added host-specific recommended model defaults with explicit customer override
+  precedence across Claude, Codex, Gemini, Antigravity, Cursor, and portable hosts.
 
 ### Changed
 
@@ -42,6 +44,10 @@ package metadata.
   tag-protection evidence before falling back to the read-only GitHub API.
 - Prioritized exploited findings in `sca-remediation` before VersionUpgrade/UIA
   evidence selects an upgrade candidate.
+- Routed generated Endor API commands through `endorctl agent api` with canonical
+  agent identifiers so backend telemetry can attribute agent-originated calls.
+- Added profile-aware execution bounds, compact evidence plans, and deterministic
+  artifact summaries that avoid returning complete large inventories to the model.
 
 ### Fixed
 
@@ -72,7 +78,11 @@ package metadata.
   `project_resolution`, keeping package-level and workspace-independent agents
   out of project-resolution guidance.
 - Clarified generated data-gap taxonomy and findings-browser filter guidance so
-  unavailable evidence and QA-only defaults stay machine-readable.
+  unavailable evidence and bounded-run defaults stay machine-readable.
+- Hardened plugin hooks and disposable provider installations so all supported
+  hosts load the canonical generated agents without competing workflow skills.
+- Made SCA remediation inventory output deterministic across package, manifest,
+  finding, and proposed change-request fields.
 
 ## 2.1.0 - 2026-06-16
 
