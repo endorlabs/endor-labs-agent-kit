@@ -9,7 +9,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Host | Start Here | Good Fit |
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/README.md` | Plugin install with Claude Code agents and setup skill. |
-| Codex | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with Codex skills plus optional managed custom-agent TOML files. |
+| Codex | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with one setup skill plus approval-gated managed custom-agent TOML files. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
 | Cursor | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Cursor plugin metadata with generated workflow agents, support skills, and advisory hooks. |
@@ -61,6 +61,16 @@ root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`;
 Cursor SDK automation uses `cursor-sdk/`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/`.
 
+Codex plugin installation exposes only the setup skill. Before the first Codex
+workflow, ask it:
+
+```text
+Use the endor-agent-kit-setup skill to install only the bundled Codex custom agents. I approve the managed agents-only installation.
+```
+
+Start a fresh Codex task after that installation so the 11 workflow agents and
+the setup agent are discovered. Workflow-skill fallbacks remain opt-in.
+
 ## Run Cursor SDK Automation
 
 Use the SDK lane when the workflow should be launched from Python code instead
@@ -96,6 +106,10 @@ Setup is readiness guidance. It can report missing `endorctl`, `gh`, namespace,
 auth, MCP, or toolchain prerequisites. It must not run scans, run
 `endorctl host-check`, edit shell profiles, install language runtimes, install
 package managers, or write credentials.
+
+For Codex, setup also owns the separately approved managed custom-agent
+installation described above; plugin installation alone does not write to the
+user's custom-agent directory.
 
 ## Choose A Workflow
 

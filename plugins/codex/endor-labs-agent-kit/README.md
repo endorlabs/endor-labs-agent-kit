@@ -5,7 +5,8 @@
 Version: `2.1.0`
 
 This generated Codex plugin package includes Endor Labs setup support,
-Codex skills, and bundled Codex custom-agent TOML files. The plugin is
+one setup skill, optional workflow-skill fallbacks, and bundled Codex
+custom-agent TOML files. The plugin is
 generated from source recipes in the Endor Labs Agent Kit repository.
 
 ## Start Here
@@ -35,7 +36,8 @@ Agent Kit does not block compatible customer-selected host models.
 ## Host Metadata
 
 - Manifest: `.codex-plugin/plugin.json`.
-- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
+- Setup skill: `skills/endor-agent-kit-setup/SKILL.md`, the only skill exposed directly by the plugin.
+- Optional workflow-skill fallbacks: `bundled-skills/<agent>/SKILL.md`, installed only after explicit approval.
 - Custom agents: `agents/endor-*-agent.toml`, including `endor-agent-kit-setup-agent.toml`, installed by the setup skill only after approval.
 - Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
 - Model/runtime: custom agents pin `gpt-5.6-luna`; standard workflows use medium reasoning and complex remediation workflows use high reasoning. Explicit customer overrides remain authoritative.
@@ -58,9 +60,11 @@ codex plugin marketplace add endorlabs/ai-plugins --ref <tag> --sparse .agents -
 codex plugin add endor-labs-agent-kit@endor-labs-agent-kit
 ```
 
-Start a new Codex thread after installing or reinstalling the plugin.
+Plugin installation exposes setup only; it does not install the bundled custom agents.
+Use the setup prompt below to approve the managed agents-only installation,
+then start a new Codex thread so Codex discovers the custom agents.
 If Codex still shows stale same-version content, remove and reinstall
-the plugin, rerun `python plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --yes` from the checkout root,
+the plugin, rerun `python plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --agents-only --yes` from the checkout root,
 and start another fresh thread so host caches reload both skills and agents.
 
 ## Set Up This Machine
@@ -68,11 +72,12 @@ and start another fresh thread so host caches reload both skills and agents.
 Ask Codex:
 
 ```text
-Use the endor-agent-kit-setup skill, or the endor-agent-kit-setup-agent custom agent, to check readiness and install the bundled Codex custom agents and skills.
+Use the endor-agent-kit-setup skill to install only the bundled Codex custom agents. I approve the managed agents-only installation.
 ```
 
 The setup skill can install or update managed Endor Codex custom agents
-under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills` after explicit approval. It does
+under `${CODEX_HOME:-~/.codex}/agents` after explicit approval. Optional
+workflow-skill fallbacks under `$HOME/.agents/skills` require a separate explicit request. It does
 not run scans, run `endorctl host-check`, edit shell profiles, install
 `gh`, or install language runtimes and package managers.
 

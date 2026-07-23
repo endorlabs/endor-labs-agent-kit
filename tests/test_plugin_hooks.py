@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -107,3 +108,52 @@ def test_prompt_hook_omits_runtime_helper_for_unrelated_prompts(tmp_path: Path):
     )
 
     assert completed.stdout == ""
+
+
+def test_codex_prompt_hook_routes_missing_custom_agents_to_setup(tmp_path: Path):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    agents = package / "agents"
+    manifest = package / ".codex-plugin" / "plugin.json"
+    hooks.mkdir(parents=True)
+    agents.mkdir()
+    manifest.parent.mkdir()
+    manifest.write_text('{"name":"endor-labs-agent-kit"}\n', encoding="utf-8")
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+    for name in ("endor-findings-browser-agent.toml", "endor-agent-kit-setup-agent.toml"):
+        (agents / name).write_text("# bundled\n", encoding="utf-8")
+
+    codex_home = tmp_path / "codex-home"
+    environment = os.environ.copy()
+    environment["CODEX_HOME"] = str(codex_home)
+    missing = subprocess.run(
+        ["bash", str(hook), "UserPromptSubmit"],
+        input=json.dumps({"prompt": "Browse Endor findings for this repository."}),
+        text=True,
+        capture_output=True,
+        check=True,
+        env=environment,
+    )
+    missing_context = json.loads(missing.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "2 of 2 bundled Endor custom agents are missing" in missing_context
+    assert "Do not execute the requested Endor workflow in the primary agent" in missing_context
+    assert "endor-agent-kit-setup" in missing_context
+
+    installed = codex_home / "agents"
+    installed.mkdir(parents=True)
+    for source in agents.glob("*.toml"):
+        shutil.copy2(source, installed / source.name)
+    current = subprocess.run(
+        ["bash", str(hook), "UserPromptSubmit"],
+        input=json.dumps({"prompt": "Browse Endor findings for this repository."}),
+        text=True,
+        capture_output=True,
+        check=True,
+        env=environment,
+    )
+    current_context = json.loads(current.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "custom-agent installation boundary" not in current_context

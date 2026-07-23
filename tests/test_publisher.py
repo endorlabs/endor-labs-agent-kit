@@ -810,6 +810,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/bundled-skills/sca-remediation/SKILL.md" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
@@ -820,6 +821,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/codex/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
     assert ".claude-plugin/marketplace.json" in written_paths
+    assert ".claude-plugin/plugin.json" in written_paths
+    assert ".claude-plugin/root-package-guard-hooks.json" in written_paths
+    assert ".claude-plugin/reject-repository-root.sh" in written_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/assets/logo.png" in written_paths
@@ -881,7 +885,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         assert logo_path.read_bytes() == canonical_logo
 
     for agent_id in codex_agent_ids:
-        assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        assert f"plugins/codex/endor-labs-agent-kit/bundled-skills/{agent_id}/SKILL.md" in written_paths
         agent_name = (
             f"{agent_id}-agent"
             if agent_id.startswith("endor-")
@@ -955,9 +959,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
     assert plugin_manifest["interface"]["defaultPrompt"] == [
+        "Install the bundled Endor Agent Kit Codex custom agents. I approve the managed agents-only installation.",
+        "Check whether the bundled Endor Agent Kit Codex custom agents are installed.",
         "Set up Endor Agent Kit for this machine.",
-        "Triage AI SAST findings for this repository.",
-        "Find the safest SCA remediation path.",
     ]
     assert "license" not in plugin_manifest
     claude_plugin_manifest = json.loads(
@@ -971,6 +975,22 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "license" not in claude_plugin_manifest
     assert "mcpServers" not in claude_plugin_manifest
     assert "hooks" not in claude_plugin_manifest
+    claude_root_guard = json.loads(
+        (dest / ".claude-plugin" / "plugin.json").read_text()
+    )
+    expected_root_guard_agents = {
+        f"./{path.relative_to(dest).as_posix()}"
+        for path in (
+            dest / "plugins" / "claude" / "endor-labs-agent-kit" / "agents"
+        ).glob("*.md")
+    }
+    assert set(claude_root_guard["agents"]) == expected_root_guard_agents
+    assert claude_root_guard["hooks"] == "./.claude-plugin/root-package-guard-hooks.json"
+    claude_root_guard_hooks = json.loads(
+        (dest / ".claude-plugin" / "root-package-guard-hooks.json").read_text()
+    )
+    assert set(claude_root_guard_hooks["hooks"]) == {"SessionStart", "UserPromptSubmit"}
+    assert "composer-2.5" not in json.dumps(claude_root_guard)
     claude_hooks = json.loads(
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
     )

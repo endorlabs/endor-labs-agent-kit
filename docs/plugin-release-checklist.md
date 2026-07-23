@@ -264,9 +264,15 @@ python scripts/smoke_test_provider_installations.py --root . --require-claude-cl
 claude --plugin-dir plugins/claude/endor-labs-agent-kit
 ```
 
-Never run `claude --plugin-dir .` from the repository root. That path exposes
-Cursor workflow skills and Cursor hook events to Claude Code and is an invalid
-host package boundary.
+The disposable smoke script validates the supported Claude package and a
+guard-only temporary copy of the repository-root manifest. Directly running
+`claude plugin validate .` validates the root marketplace, not that guard
+manifest.
+
+The repository-root Claude manifest is a guard, not a supported workflow
+package. Confirm its `SessionStart` warning and `UserPromptSubmit` block direct
+users to `plugins/claude/endor-labs-agent-kit`; it must never expose a
+Composer-backed Cursor agent.
 
 Inside Claude Code, validate the package-local marketplace from the repository
 root:
@@ -320,9 +326,10 @@ real Codex home or user skills directory:
 ```bash
 TMP_CODEX_HOME="$(mktemp -d)"
 TMP_CODEX_SKILLS_HOME="$(mktemp -d)"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --yes --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --agents-only --codex-home "$TMP_CODEX_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --agents-only --yes --codex-home "$TMP_CODEX_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --agents-only --codex-home "$TMP_CODEX_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --skills-only --yes --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
 rm -rf "$TMP_CODEX_HOME" "$TMP_CODEX_SKILLS_HOME"
 ```
 
@@ -337,7 +344,9 @@ codex plugin remove endor-labs-agent-kit@endor-labs-agent-kit
 
 Codex custom agents are installed by the setup skill from the plugin package.
 The Codex plugin manifest intentionally does not declare an unsupported `agents`
-field.
+field. Before that approval, the plugin must expose only `endor-agent-kit-setup`;
+the workflow skills under `bundled-skills/` are explicit fallbacks and must not
+compete with named custom-agent delegation.
 
 ## Gemini CLI
 

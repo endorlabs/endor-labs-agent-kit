@@ -12,9 +12,10 @@ artifact_summarizer="$plugin_root/runtime/summarize_endor_artifact.py"
 if [[ ! -f "$artifact_summarizer" ]]; then
   artifact_summarizer=""
 fi
-HOOK_PAYLOAD="$payload" ENDOR_ARTIFACT_SUMMARIZER="$artifact_summarizer" python3 - "$@" <<'PY' || true
+HOOK_PAYLOAD="$payload" ENDOR_ARTIFACT_SUMMARIZER="$artifact_summarizer" ENDOR_PLUGIN_ROOT="$plugin_root" python3 - "$@" <<'PY' || true
 import json
 import os
+from pathlib import Path
 import re
 import sys
 
@@ -44,6 +45,40 @@ def helper_context(helper: str) -> str:
         "command, or issue a separate count query. Preserve the returned `artifact_ref`, "
         "`sha256`, `format`, `bytes`, and `row_count` verbatim in the successful evidence "
         "ledger row."
+    )
+
+
+def codex_agent_install_context(prompt_lc: str) -> str:
+    plugin_root = Path(os.environ.get("ENDOR_PLUGIN_ROOT", ""))
+    if not (plugin_root / ".codex-plugin" / "plugin.json").is_file():
+        return ""
+    bundled = sorted((plugin_root / "agents").glob("*.toml"))
+    if not bundled:
+        return ""
+    codex_home = Path(os.environ.get("CODEX_HOME", "~/.codex")).expanduser()
+    installed_root = codex_home / "agents"
+    missing = [source.name for source in bundled if not (installed_root / source.name).is_file()]
+    if not missing:
+        return ""
+    setup_requested = bool(
+        "endor-agent-kit-setup" in prompt_lc
+        or re.search(r"\b(install|setup|set up|check)\b", prompt_lc)
+    )
+    status = (
+        "Codex custom-agent installation boundary: "
+        f"{len(missing)} of {len(bundled)} bundled Endor custom agents are missing. "
+    )
+    if setup_requested:
+        return (
+            status
+            + "Use `endor-agent-kit-setup` to perform the approved managed agents-only "
+            "installation, then tell the user to start a fresh Codex task."
+        )
+    return (
+        status
+        + "Do not execute the requested Endor workflow in the primary agent or through "
+        "a workflow skill. Use `endor-agent-kit-setup` to request the managed agents-only "
+        "installation, then continue in a fresh Codex task."
     )
 
 
@@ -93,6 +128,9 @@ try:
         routes.append("For CI/CD posture questions, keep evidence read-only. Use `findings-browser` for existing CI/CD or GitHub Actions findings and `configuration-automation` for GitHub onboarding evidence until a dedicated posture workflow is available.")
 
     context = []
+    install_context = codex_agent_install_context(prompt_lc)
+    if install_context:
+        context.append(install_context)
     if routes:
         context.append("Endor Agent Kit advisory routing:\n- " + "\n- ".join(dict.fromkeys(routes)))
     endor_relevant = bool(routes) or bool(

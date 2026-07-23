@@ -64,10 +64,14 @@ def bundled_agents(plugin_root: Path) -> list[Path]:
 
 
 def bundled_skills(plugin_root: Path) -> list[Path]:
-    skills_root = plugin_root / "skills"
-    if not skills_root.is_dir():
-        return []
-    return sorted(path for path in skills_root.iterdir() if (path / "SKILL.md").is_file())
+    roots = [plugin_root / "skills", plugin_root / "bundled-skills"]
+    return sorted(
+        path
+        for skills_root in roots
+        if skills_root.is_dir()
+        for path in skills_root.iterdir()
+        if (path / "SKILL.md").is_file()
+    )
 
 
 def is_managed_agent(path: Path) -> bool:
@@ -232,7 +236,12 @@ def plugin_cache_status(plugin_root: Path, cache_root: Path, manifest: dict) -> 
         )
 
     mismatches = []
-    for relative in ("skills", "agents", ".codex-plugin/plugin.json"):
+    for relative in (
+        "skills",
+        "bundled-skills",
+        "agents",
+        ".codex-plugin/plugin.json",
+    ):
         source = plugin_root / relative
         cached = cache_root / relative
         if not tree_or_file_matches(source, cached):

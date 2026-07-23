@@ -29,6 +29,7 @@ CODEX_MARKETPLACE_PATH = Path(".agents") / "plugins" / "marketplace.json"
 CODEX_LOCAL_MARKETPLACE_PATH = Path("plugins") / "codex" / ".agents" / "plugins" / "marketplace.json"
 CODEX_SETUP_SKILL = "endor-agent-kit-setup"
 CODEX_SETUP_AGENT = "endor-agent-kit-setup-agent"
+CODEX_BUNDLED_SKILLS_DIR = "bundled-skills"
 CODEX_AGENT_SUFFIX = "-agent"
 CODEX_SECTION_EDITION = "enterprise-edition"
 CODEX_INSTALLER_REPO_PATH = CODEX_PLUGIN_PACKAGE_ROOT / "scripts" / "install_codex_agents.py"
@@ -72,6 +73,7 @@ def publish_codex_plugin_package(
     package_dir.mkdir(parents=True)
     (package_dir / ".codex-plugin").mkdir()
     (package_dir / "skills").mkdir()
+    (package_dir / CODEX_BUNDLED_SKILLS_DIR).mkdir()
     (package_dir / "agents").mkdir()
     (package_dir / "scripts").mkdir()
     (package_dir / "hooks").mkdir()
@@ -84,7 +86,7 @@ def publish_codex_plugin_package(
     sorted_recipes = sorted(codex_recipes, key=lambda item: item.recipe.id)
 
     for prepared in sorted_recipes:
-        skill_dir = package_dir / "skills" / prepared.recipe.id
+        skill_dir = package_dir / CODEX_BUNDLED_SKILLS_DIR / prepared.recipe.id
         skill_dir.mkdir(parents=True)
         skill = skill_dir / "SKILL.md"
         skill.write_text(
@@ -319,12 +321,12 @@ def _render_codex_setup_agent_toml(prepared_recipes: list[PreparedSourceRecipe],
         'test -f "$ENDOR_CODEX_INSTALLER"',
         "```",
         "",
-        "After user approval, use only these managed-file commands:",
+        "After user approval, use agents-only installation as the default boundary. "
+        "Workflow-skill fallbacks require a separate explicit request:",
         "",
         "```bash",
-        f"{CODEX_INSTALLER_COMMAND} --status",
+        f"{CODEX_INSTALLER_COMMAND} --status --agents-only",
         f"{CODEX_INSTALLER_COMMAND} --purge-stale-plugin-cache --yes",
-        f"{CODEX_INSTALLER_COMMAND} --install --yes",
         f"{CODEX_INSTALLER_COMMAND} --install --agents-only --yes",
         f"{CODEX_INSTALLER_COMMAND} --install --skills-only --yes",
         f"{CODEX_INSTALLER_COMMAND} --uninstall --yes",
@@ -406,7 +408,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe], version: s
         "",
         f"Generated for Endor Labs Agent Kit Codex plugin `{PLUGIN_NAME}` v{version}.",
         "",
-        "## Bundled Codex Agents And Skills",
+        "## Bundled Codex Agents And Optional Fallback Skills",
         "",
         *workflow_lines,
         f"- `{CODEX_SETUP_SKILL}` -> `{CODEX_SETUP_AGENT}`",
@@ -424,10 +426,10 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe], version: s
         'test -f "$ENDOR_CODEX_INSTALLER"',
         "```",
         "",
-        "Check installed Endor Codex agents and skills:",
+        "Check installed Endor Codex custom agents:",
         "",
         "```bash",
-        f"{CODEX_INSTALLER_COMMAND} --status",
+        f"{CODEX_INSTALLER_COMMAND} --status --agents-only",
         "```",
         "",
         "Move stale Endor Agent Kit plugin-cache copies after user approval:",
@@ -436,16 +438,15 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe], version: s
         f"{CODEX_INSTALLER_COMMAND} --purge-stale-plugin-cache --yes",
         "```",
         "",
-        "Install or update all bundled Endor Codex agents and skills after user approval:",
-        "",
-        "```bash",
-        f"{CODEX_INSTALLER_COMMAND} --install --yes",
-        "```",
-        "",
-        "Install only one surface when diagnosing host discovery:",
+        "Install or update bundled Endor Codex custom agents after user approval:",
         "",
         "```bash",
         f"{CODEX_INSTALLER_COMMAND} --install --agents-only --yes",
+        "```",
+        "",
+        "Install optional workflow-skill fallbacks only when the user explicitly requests them:",
+        "",
+        "```bash",
         f"{CODEX_INSTALLER_COMMAND} --install --skills-only --yes",
         "```",
         "",
@@ -459,7 +460,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe], version: s
         "",
         "## Codex-Specific Rules",
         "",
-        "- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills`.",
+        "- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents`; keep workflow-skill fallbacks opt-in under `$HOME/.agents/skills`.",
         "- Do not write project-local `.codex/agents/` or repo-local `.agents/skills/` files unless the user explicitly requests that advanced option.",
         "- Use provenance-gated updates: missing files may be installed; managed stale files may be updated after approval; unknown files or directories must not be overwritten.",
         "- Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale package and start a fresh Codex thread before judging agent behavior.",
@@ -505,7 +506,7 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
             "displayName": PLUGIN_DISPLAY_NAME,
             "shortDescription": "Endor Labs security workflows for Codex.",
             "longDescription": (
-                "Install setup guidance, Codex skills, and bundled custom agents for "
+                "Install setup guidance and approval-gated custom agents for "
                 "Endor Labs SCA remediation, AI SAST remediation, troubleshooting, and "
                 "onboarding analysis workflows."
             ),
@@ -514,9 +515,9 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
             "capabilities": ["Code", "Security", "Workflow"],
             "websiteURL": "https://www.endorlabs.com/",
             "defaultPrompt": [
+                "Install the bundled Endor Agent Kit Codex custom agents. I approve the managed agents-only installation.",
+                "Check whether the bundled Endor Agent Kit Codex custom agents are installed.",
                 "Set up Endor Agent Kit for this machine.",
-                "Triage AI SAST findings for this repository.",
-                "Find the safest SCA remediation path.",
             ],
             "brandColor": "#4F46E5",
             "logo": f"./{LOGO_PATH}",
@@ -569,14 +570,16 @@ def _codex_plugin_readme(
         f"Version: `{version}`",
         "",
         "This generated Codex plugin package includes Endor Labs setup support,",
-        "Codex skills, and bundled Codex custom-agent TOML files. The plugin is",
+        "one setup skill, optional workflow-skill fallbacks, and bundled Codex",
+        "custom-agent TOML files. The plugin is",
         "generated from source recipes in the Endor Labs Agent Kit repository.",
         "",
         *start_here,
         "## Host Metadata",
         "",
         "- Manifest: `.codex-plugin/plugin.json`.",
-        "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
+        f"- Setup skill: `skills/{CODEX_SETUP_SKILL}/SKILL.md`, the only skill exposed directly by the plugin.",
+        f"- Optional workflow-skill fallbacks: `{CODEX_BUNDLED_SKILLS_DIR}/<agent>/SKILL.md`, installed only after explicit approval.",
         f"- Custom agents: `agents/endor-*-agent.toml`, including `{CODEX_SETUP_AGENT}.toml`, installed by the setup skill only after approval.",
         "- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
         "- Model/runtime: custom agents pin `gpt-5.6-luna`; standard workflows use medium reasoning and complex remediation workflows use high reasoning. Explicit customer overrides remain authoritative.",
@@ -599,9 +602,11 @@ def _codex_plugin_readme(
         f"codex plugin add {PLUGIN_NAME}@{PLUGIN_NAME}",
         "```",
         "",
-        "Start a new Codex thread after installing or reinstalling the plugin.",
+        "Plugin installation exposes setup only; it does not install the bundled custom agents.",
+        "Use the setup prompt below to approve the managed agents-only installation,",
+        "then start a new Codex thread so Codex discovers the custom agents.",
         "If Codex still shows stale same-version content, remove and reinstall",
-        f"the plugin, rerun `{CODEX_INSTALLER_REPO_COMMAND} --install --yes` from the checkout root,",
+        f"the plugin, rerun `{CODEX_INSTALLER_REPO_COMMAND} --install --agents-only --yes` from the checkout root,",
         "and start another fresh thread so host caches reload both skills and agents.",
         "",
         "## Set Up This Machine",
@@ -609,11 +614,12 @@ def _codex_plugin_readme(
         "Ask Codex:",
         "",
         "```text",
-        "Use the endor-agent-kit-setup skill, or the endor-agent-kit-setup-agent custom agent, to check readiness and install the bundled Codex custom agents and skills.",
+        "Use the endor-agent-kit-setup skill to install only the bundled Codex custom agents. I approve the managed agents-only installation.",
         "```",
         "",
         "The setup skill can install or update managed Endor Codex custom agents",
-        "under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills` after explicit approval. It does",
+        "under `${CODEX_HOME:-~/.codex}/agents` after explicit approval. Optional",
+        "workflow-skill fallbacks under `$HOME/.agents/skills` require a separate explicit request. It does",
         "not run scans, run `endorctl host-check`, edit shell profiles, install",
         "`gh`, or install language runtimes and package managers.",
         "",
@@ -725,10 +731,14 @@ def _codex_agent_installer_script(version: str) -> str:
 
 
         def bundled_skills(plugin_root: Path) -> list[Path]:
-            skills_root = plugin_root / "skills"
-            if not skills_root.is_dir():
-                return []
-            return sorted(path for path in skills_root.iterdir() if (path / "SKILL.md").is_file())
+            roots = [plugin_root / "skills", plugin_root / "bundled-skills"]
+            return sorted(
+                path
+                for skills_root in roots
+                if skills_root.is_dir()
+                for path in skills_root.iterdir()
+                if (path / "SKILL.md").is_file()
+            )
 
 
         def is_managed_agent(path: Path) -> bool:
@@ -893,7 +903,12 @@ def _codex_agent_installer_script(version: str) -> str:
                 )
 
             mismatches = []
-            for relative in ("skills", "agents", ".codex-plugin/plugin.json"):
+            for relative in (
+                "skills",
+                "bundled-skills",
+                "agents",
+                ".codex-plugin/plugin.json",
+            ):
                 source = plugin_root / relative
                 cached = cache_root / relative
                 if not tree_or_file_matches(source, cached):

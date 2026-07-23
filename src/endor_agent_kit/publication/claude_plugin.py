@@ -31,6 +31,9 @@ from endor_agent_kit.publication.runtime_support import write_artifact_summarize
 
 CLAUDE_PLUGIN_PACKAGE_ROOT = Path("plugins") / "claude" / PLUGIN_NAME
 CLAUDE_MARKETPLACE_PATH = Path(".claude-plugin") / "marketplace.json"
+CLAUDE_ROOT_GUARD_MANIFEST_PATH = Path(".claude-plugin") / "plugin.json"
+CLAUDE_ROOT_GUARD_HOOKS_PATH = Path(".claude-plugin") / "root-package-guard-hooks.json"
+CLAUDE_ROOT_GUARD_SCRIPT_PATH = Path(".claude-plugin") / "reject-repository-root.sh"
 CLAUDE_LOCAL_MARKETPLACE_PATH = Path("plugins") / "claude" / ".claude-plugin" / "marketplace.json"
 CLAUDE_SETUP_SKILL = "endor-agent-kit-setup"
 CLAUDE_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
@@ -113,6 +116,9 @@ def publish_claude_plugin_package(
     for spec in package_specs:
         written.extend(_write_claude_plugin_package(destination, spec, sorted_recipes))
 
+    root_guard_artifacts = _write_claude_root_package_guard(destination, version)
+    written.extend(root_guard_artifacts)
+
     marketplace_path.write_text(
         json.dumps(
             _claude_marketplace_manifest(
@@ -161,11 +167,134 @@ def publish_claude_plugin_package(
             package_dir=destination / spec.package_root,
             marketplace_path=CLAUDE_MARKETPLACE_PATH.as_posix(),
             included_agents=tuple(prepared.recipe.id for prepared in sorted_recipes),
-            extra_artifacts=(marketplace_path, local_marketplace_path, plugins_readme),
+            extra_artifacts=(
+                marketplace_path,
+                local_marketplace_path,
+                plugins_readme,
+                *root_guard_artifacts,
+            ),
         )
         for spec in package_specs
     )
     return PluginPackagePublication(package_records=package_records, written=tuple(written))
+
+
+def _write_claude_root_package_guard(
+    destination: Path,
+    version: str,
+) -> tuple[Path, ...]:
+    """Keep repository-root Claude loading from discovering Cursor artifacts."""
+
+    manifest_path = destination / CLAUDE_ROOT_GUARD_MANIFEST_PATH
+    hooks_path = destination / CLAUDE_ROOT_GUARD_HOOKS_PATH
+    script_path = destination / CLAUDE_ROOT_GUARD_SCRIPT_PATH
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+
+    command = (
+        'bash "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/'
+        f'{CLAUDE_ROOT_GUARD_SCRIPT_PATH.name}"'
+    )
+    hooks = {
+        "hooks": {
+            "SessionStart": [
+                {
+                    "matcher": "",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": f"{command} SessionStart",
+                            "timeout": 10,
+                        }
+                    ],
+                }
+            ],
+            "UserPromptSubmit": [
+                {
+                    "matcher": "",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": f"{command} UserPromptSubmit",
+                            "timeout": 10,
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    hooks_path.write_text(
+        json.dumps(hooks, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    claude_agents = sorted(
+        (destination / CLAUDE_PLUGIN_PACKAGE_ROOT / "agents").glob("*.md")
+    )
+    if not claude_agents:
+        raise FileNotFoundError(
+            destination / CLAUDE_PLUGIN_PACKAGE_ROOT / "agents"
+        )
+    manifest = {
+        "name": PLUGIN_NAME,
+        "displayName": f"{PLUGIN_DISPLAY_NAME} (Repository Root Guard)",
+        "version": version,
+        "description": (
+            "Prevents Claude Code from loading Cursor artifacts when the Agent "
+            "Kit repository root is passed as a plugin directory."
+        ),
+        "author": {
+            "name": "Endor Labs",
+            "url": "https://www.endorlabs.com/",
+        },
+        "agents": [
+            f"./{agent.relative_to(destination).as_posix()}"
+            for agent in claude_agents
+        ],
+        "hooks": f"./{CLAUDE_ROOT_GUARD_HOOKS_PATH.as_posix()}",
+    }
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    script_path.write_text(_claude_root_guard_script(), encoding="utf-8")
+    script_path.chmod(0o755)
+    return manifest_path, hooks_path, script_path
+
+
+def _claude_root_guard_script() -> str:
+    message = (
+        "Endor Labs Agent Kit: the repository root is the Cursor package and is "
+        "not a supported Claude Code plugin root. Relaunch from the repository "
+        "root with: claude --plugin-dir plugins/claude/endor-labs-agent-kit"
+    )
+    session_payload = json.dumps(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": message,
+            }
+        },
+        separators=(",", ":"),
+    )
+    return dedent(
+        f'''\
+        #!/usr/bin/env bash
+        # endor_agent_kit_managed=true
+
+        event_name="${{1:-UserPromptSubmit}}"
+        cat >/dev/null || true
+        message={json.dumps(message)}
+
+        if [[ "$event_name" == "UserPromptSubmit" ]]; then
+          printf '%s\n' "$message" >&2
+          exit 2
+        fi
+
+        printf '%s\n' {json.dumps(session_payload)}
+        exit 0
+        '''
+    )
 
 
 LEGACY_CLAUDE_PLUGIN_NAME = "ai-plugins"

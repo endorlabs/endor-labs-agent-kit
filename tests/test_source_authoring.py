@@ -90,6 +90,10 @@ def test_source_authoring_check_requires_new_agent_architecture(tmp_path):
 
 def test_source_authoring_check_requires_new_agent_eval_coverage(tmp_path):
     recipe = _copy_agent_source(tmp_path, "remediation-planning")
+    cases_path = recipe.parent / "evals" / "cases.yaml"
+    data = yaml.safe_load(cases_path.read_text(encoding="utf-8"))
+    data["cases"] = data["cases"][:2]
+    cases_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
     report = check_source_recipe_authoring(recipe, new_agent=True)
 

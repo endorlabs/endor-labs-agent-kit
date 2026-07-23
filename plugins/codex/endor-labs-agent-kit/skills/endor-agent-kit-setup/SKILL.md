@@ -13,7 +13,7 @@ description: |
 
 Generated for Endor Labs Agent Kit Codex plugin `endor-labs-agent-kit` v2.1.0.
 
-## Bundled Codex Agents And Skills
+## Bundled Codex Agents And Optional Fallback Skills
 
 - `ai-sast-remediation` -> `endor-ai-sast-remediation-agent`
 - `cicd-posture` -> `endor-cicd-posture-agent`
@@ -41,10 +41,10 @@ fi
 test -f "$ENDOR_CODEX_INSTALLER"
 ```
 
-Check installed Endor Codex agents and skills:
+Check installed Endor Codex custom agents:
 
 ```bash
-python "$ENDOR_CODEX_INSTALLER" --status
+python "$ENDOR_CODEX_INSTALLER" --status --agents-only
 ```
 
 Move stale Endor Agent Kit plugin-cache copies after user approval:
@@ -53,16 +53,15 @@ Move stale Endor Agent Kit plugin-cache copies after user approval:
 python "$ENDOR_CODEX_INSTALLER" --purge-stale-plugin-cache --yes
 ```
 
-Install or update all bundled Endor Codex agents and skills after user approval:
-
-```bash
-python "$ENDOR_CODEX_INSTALLER" --install --yes
-```
-
-Install only one surface when diagnosing host discovery:
+Install or update bundled Endor Codex custom agents after user approval:
 
 ```bash
 python "$ENDOR_CODEX_INSTALLER" --install --agents-only --yes
+```
+
+Install optional workflow-skill fallbacks only when the user explicitly requests them:
+
+```bash
 python "$ENDOR_CODEX_INSTALLER" --install --skills-only --yes
 ```
 
@@ -242,7 +241,7 @@ approval gates.
 
 ## Codex-Specific Rules
 
-- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents` and bundled user skills under `$HOME/.agents/skills`.
+- Install Codex custom agents globally by default under `${CODEX_HOME:-~/.codex}/agents`; keep workflow-skill fallbacks opt-in under `$HOME/.agents/skills`.
 - Do not write project-local `.codex/agents/` or repo-local `.agents/skills/` files unless the user explicitly requests that advanced option.
 - Use provenance-gated updates: missing files may be installed; managed stale files may be updated after approval; unknown files or directories must not be overwritten.
 - Treat stale Endor Agent Kit plugin-cache warnings from `--status` as active-host risk; remove or reinstall the stale package and start a fresh Codex thread before judging agent behavior.

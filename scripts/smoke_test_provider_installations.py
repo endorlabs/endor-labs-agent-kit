@@ -45,23 +45,36 @@ def smoke_test(
         claude_evidence = _claude_package_evidence(root, claude, canonical)
         if claude_command is not None:
             _validate_claude_plugin(claude_command, claude)
+            claude_root_guard = home / "claude-root-guard"
+            _materialize_claude_root_guard(root, claude_root_guard)
+            _validate_claude_plugin(claude_command, claude_root_guard)
             claude_evidence["cli_validation"] = "passed"
+            claude_evidence["root_guard_cli_validation"] = "passed"
         else:
             claude_evidence["cli_validation"] = "not_run"
+            claude_evidence["root_guard_cli_validation"] = "not_run"
         results["claude"] = claude_evidence
 
+        codex_package = root / "plugins/codex/endor-labs-agent-kit"
+        codex_plugin_skills = sorted(
+            item.name
+            for item in (codex_package / "skills").iterdir()
+            if item.is_dir()
+        )
+        if codex_plugin_skills != ["endor-agent-kit-setup"]:
+            raise ValueError(
+                "Codex plugin must expose only the setup skill before custom-agent installation"
+            )
         codex_home = home / "codex"
-        codex_skills = home / "codex-user-skills"
         completed = subprocess.run(
             [
                 sys.executable,
                 str(root / "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py"),
                 "--install",
+                "--agents-only",
                 "--yes",
                 "--codex-home",
                 str(codex_home),
-                "--skills-home",
-                str(codex_skills),
             ],
             check=False,
             capture_output=True,
@@ -74,8 +87,15 @@ def smoke_test(
             tuple(f"endor-{agent_id}-agent" for agent_id in canonical),
             suffix=".toml",
         )
-        _require_directories(codex_skills, canonical)
-        results["codex"] = {"canonical_agents": len(canonical), "status": "passed"}
+        if not (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file():
+            raise ValueError("Codex disposable installer is missing the setup custom agent")
+        results["codex"] = {
+            "canonical_agents": len(canonical),
+            "installed_custom_agents": len(canonical) + 1,
+            "plugin_skills": codex_plugin_skills,
+            "status": "passed",
+            "workflow_skills_installed": False,
+        }
 
         cursor = home / "cursor"
         shutil.copytree(root / "agents", cursor / "agents")
@@ -188,7 +208,7 @@ def _load_json_object(path: Path) -> dict[str, object]:
 
 def _validate_claude_plugin(claude_command: str, package: Path) -> None:
     completed = subprocess.run(
-        [claude_command, "plugin", "validate", str(package)],
+        [claude_command, "plugin", "validate", str(package), "--strict"],
         check=False,
         capture_output=True,
         text=True,
@@ -198,6 +218,23 @@ def _validate_claude_plugin(claude_command: str, package: Path) -> None:
     detail = (completed.stderr or completed.stdout).strip()
     suffix = f": {detail}" if detail else ""
     raise ValueError(f"Claude plugin validation failed{suffix}")
+
+
+def _materialize_claude_root_guard(root: Path, destination: Path) -> None:
+    """Copy only root-guard inputs so Claude validates a plugin, not the marketplace."""
+
+    metadata = destination / ".claude-plugin"
+    metadata.mkdir(parents=True)
+    for filename in (
+        "plugin.json",
+        "root-package-guard-hooks.json",
+        "reject-repository-root.sh",
+    ):
+        shutil.copy2(root / ".claude-plugin" / filename, metadata / filename)
+    shutil.copytree(
+        root / "plugins" / "claude" / "endor-labs-agent-kit" / "agents",
+        destination / "plugins" / "claude" / "endor-labs-agent-kit" / "agents",
+    )
 
 
 def main() -> int:
