@@ -1362,7 +1362,7 @@ system: |
   - `policy_context` (`object`): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
   - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
-  `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+  `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
   `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

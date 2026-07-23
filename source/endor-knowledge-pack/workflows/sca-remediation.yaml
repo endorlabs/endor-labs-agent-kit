@@ -89,6 +89,8 @@ task_profiles:
     output_focus:
       - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change
         request plan, and precise `data_gaps`.
+      - Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable.
+      - 'For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`.'
       - Include branch provenance and `project_resolution.traverse_attempted`.
       - When a remediation candidate is selected, include `selected_remediation.branch_name` and
         `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`.

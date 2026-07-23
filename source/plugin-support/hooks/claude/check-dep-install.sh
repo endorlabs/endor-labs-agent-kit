@@ -22,6 +22,9 @@ INSTALL_RE = re.compile(
 
 
 def emit(event_name: str, message: str) -> None:
+    if event_name == "PreToolUse":
+        print(json.dumps({"decision": "allow", "reason": message}, separators=(",", ":")))
+        return
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": event_name,
@@ -42,7 +45,12 @@ try:
         or payload.get("event")
         or default_event
     )
-    tool_input = payload.get("tool_input") or payload.get("toolInput") or {}
+    tool_input = (
+        payload.get("tool_input")
+        or payload.get("toolInput")
+        or payload.get("toolCall")
+        or {}
+    )
     if not isinstance(tool_input, dict):
         tool_input = {}
     nested_args = tool_input.get("args") if isinstance(tool_input.get("args"), dict) else {}
@@ -50,12 +58,16 @@ try:
     command = str(
         tool_input.get("command")
         or tool_input.get("cmd")
+        or tool_input.get("CommandLine")
         or nested_args.get("command")
+        or nested_args.get("CommandLine")
         or nested_params.get("command")
         or payload.get("command")
         or ""
     )
     if not INSTALL_RE.search(command):
+        if event == "PreToolUse":
+            print('{"decision":"allow"}')
         raise SystemExit(0)
     emit(
         event,

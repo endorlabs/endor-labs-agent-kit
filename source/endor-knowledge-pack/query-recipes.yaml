@@ -329,7 +329,7 @@ recipes:
     resource: Finding
     purpose: List existing Endor findings for a verified scope and bounded filter set.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -341,6 +341,7 @@ recipes:
       - spec.finding_metadata
     constraints:
       - Use only after namespace provenance and scope filters are explicit.
+      - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
       - Include child namespaces by default; omit --traverse only when the user explicitly requests an exact namespace and that scope is proven.
       - Keep result pages bounded and report truncation or unsupported filters in data_gaps.
       - Use exact finding-by-uuid when a Finding UUID is supplied.
@@ -355,13 +356,14 @@ recipes:
     selection_condition: runtime.completeness_required
     result_delivery: runtime.large_result_artifact_required
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
       - spec.finding_categories
     constraints:
       - Use only when completeness_required is true because the user explicitly requested complete or exhaustive matching rows or exact multi-dimensional totals.
+      - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
       - Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed.
       - Never run this as an auxiliary enrichment query when `completeness_required=false`.
       - Include child namespaces by default; omit --traverse only for a proven exact-namespace request.

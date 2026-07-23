@@ -163,6 +163,8 @@ mutation is not approved. Put `remediation/sca/<package>-<target-version>` in
 
 For plan-only requests that mention a PR/MR plan, include a `change_requests` entry with status `not_created`, reason `plan_only_awaiting_approval` or equivalent, proposed base branch, proposed branch, proposed title, and a reference to the included PR/MR body draft. Do not return an empty `change_requests` array when a PR/MR is part of the requested plan.
 
+At the `selection-plan` gate, return exactly one `change_requests` entry and always populate its deterministic `inventory`. If source-provider lookup is unavailable, use inventory `status: "unavailable"`, record the attempted or unavailable lookup method and check time, copy the complete repository/base-branch/ecosystem/package/manifest/current-version/target-version/finding-set key from the selected remediation, use `candidates: []`, set a non-empty reconciliation status and reason, and add the blocker to top-level `data_gaps`. Unavailable inventory is a valid plan-only sentinel but still fails closed before push or PR/MR creation.
+
 For ticket requests, include a `tickets` entry with status `not_created`, `created`, `failed`, or `unavailable`. Include proposed ticket title/body for `not_created`, ticket ID or URL for `created`, and the exact blocker in `data_gaps` for `failed` or `unavailable`. Do not claim ticket creation unless the ticket adapter returns a ticket ID or URL.
 
 ## Other Non-Breaking / Low-Risk UIA-Backed PR Lane
@@ -698,7 +700,7 @@ Select at most one UIA-backed remediation candidate and stop before mutation.
 - Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. A read-only remediation gate needs a complete remediation gate JSON object.
 - Minimal evidence: Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source usage for the selected package. Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`. A final `evidence_queries[]` row whose resource is `Finding` and whose status/result records the selected-candidate lookup, or a precise top-level `data_gaps[]` entry explaining why Finding evidence was unavailable or not queried. Dirty worktree state for affected manifests before proposing any branch.
 - Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
-- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`.
+- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`.
 
 ### Evidence Query Plans
 
@@ -845,7 +847,7 @@ Required top-level fields must appear in this order:
 Optional top-level fields when verified:
 - `task_state` (`object`): Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

@@ -54,12 +54,12 @@ Return `project_resolution` with status, uuid, namespace/provenance, normalized 
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT_COMPACT = """## Endor Project Resolution Preflight
 
-Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. Return project_resolution status/uuid/namespace/provenance/selectors/traverse. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> `data_gaps`; never guess.
+Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
 """
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
-    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`."
+    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`."
 )
 DATA_GAPS_REASON_GUIDANCE = (
     "`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional."

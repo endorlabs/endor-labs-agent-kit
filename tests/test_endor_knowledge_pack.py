@@ -526,6 +526,49 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "selected_remediation.branch_name" in compact
     assert "change_requests[].proposed_branch" in compact
     assert "never use selection labels such as `selected`" in compact
+    assert "exactly one `change_requests` entry" in compact
+    assert "complete deterministic `inventory`" in compact
+    assert "`status: unavailable`" in compact
+
+
+def test_oss_upgrade_evidence_profile_requires_present_selected_upgrade_sentinel():
+    compact = render_task_profile_prompt(
+        "oss-upgrade-investigator",
+        "evidence-check",
+        compact=True,
+    )
+
+    assert "always include `selected_upgrade`" in compact
+    assert "return it as `null`" in compact
+    assert "precise `data_gaps`" in compact
+
+
+def test_oss_upgrade_evidence_profile_stops_after_bounded_exact_candidate_miss():
+    compact = render_task_profile_prompt(
+        "oss-upgrade-investigator",
+        "evidence-check",
+        compact=True,
+    )
+
+    assert "one bounded alternate-identifier retry" in compact
+    assert "return `selected_upgrade: null`" in compact
+    assert "Do not enumerate or paginate all project `VersionUpgrade` rows" in compact
+    assert "explicitly requests exhaustive inventory" in compact
+    assert "project-by-git: `endorctl agent api --agent-id <agent-id> list -r Project" in compact
+    assert 'spec.git.full_name=="<owner/repo>"' in compact
+
+
+def test_findings_browse_profile_maps_explicit_complete_evidence_to_output_counts():
+    compact = render_task_profile_prompt("findings-browser", "browse", compact=True)
+
+    assert "When `completeness_required=true`" in compact
+    assert "complete matching total in `severity_summary.count`" in compact
+    assert "`pagination.result_count`" in compact
+    assert "keep `finding_results` bounded" in compact
+    assert "never substitute the bounded page length for the complete total" in compact
+    assert "For a `--list-all` completeness route, invoke the bundled artifact helper once" in compact
+    assert "use its authoritative `row_count`" in compact
+    assert "do not invoke `endorctl` directly for the same complete query" in compact
 
 
 def test_cicd_posture_compact_profile_keeps_endor_native_recipes():
@@ -1033,6 +1076,28 @@ def test_knowledge_pack_validator_accepts_scoped_finding_count_list_all_query(tm
     errors = validate_knowledge_pack(tmp_path, agent_ids={"sca-remediation"})
 
     assert "workflows/sca-remediation.yaml evidence_query_recipes[0].template: broad Finding --list-all templates are not allowed" not in errors
+
+
+def test_findings_browser_recipes_use_canonical_endor_severity_enums():
+    root = repo_root() / "source" / "endor-knowledge-pack"
+    workflow = yaml.safe_load((root / "workflows" / "findings-browser.yaml").read_text(encoding="utf-8"))
+    recipes = yaml.safe_load((root / "query-recipes.yaml").read_text(encoding="utf-8"))
+
+    templates = [
+        item["template"]
+        for item in workflow["evidence_query_recipes"]
+        if item["id"] in {"finding-browser-filtered", "finding-browser-complete-counts"}
+    ]
+    templates.extend(
+        item["template"]
+        for item in recipes["recipes"]
+        if item["id"] in {"finding-browser-filtered", "finding-browser-complete-counts"}
+    )
+
+    assert len(templates) == 4
+    for template in templates:
+        assert "<LEVELS>" not in template
+        assert "spec.level in [<FINDING_LEVEL_ENUMS>]" in template
 
 
 def _write_minimal_pack(root: Path, *, global_rule_guidance: str = "Record data_gaps.") -> None:

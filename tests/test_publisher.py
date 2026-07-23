@@ -1012,7 +1012,12 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     antigravity_hooks = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "hooks.json").read_text()
     )
-    assert set(antigravity_hooks["hooks"]) == {"PreInvocation", "PreToolUse", "PostToolUse"}
+    assert set(antigravity_hooks) == {"endor-labs-agent-kit"}
+    assert set(antigravity_hooks["endor-labs-agent-kit"]) == {
+        "PreInvocation",
+        "PreToolUse",
+        "PostToolUse",
+    }
     assert "run_command" in json.dumps(antigravity_hooks)
     claude_discovery_terms = {
         "agentic remediation",
@@ -1269,8 +1274,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Invoke workflow subagents as `@agent-name`" in antigravity_agent
     assert "Do not narrate tool-planning chatter" in antigravity_agent
     assert "non-empty `data_gaps`" in antigravity_agent
+    assert "\n  - view_file\n" in antigravity_agent
+    assert "\n  - read_file\n" not in antigravity_agent
     assert "\n  - run_command\n" in antigravity_agent
     assert "\n  - run_shell_command\n" not in antigravity_agent
+    assert "\n  - write_to_file\n" in antigravity_agent
+    assert "\n  - replace_file_content\n" in antigravity_agent
+    assert "\n  - multi_replace_file_content\n" in antigravity_agent
+    assert "\n  - write_file\n" not in antigravity_agent
     cursor_setup = (
         dest / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     ).read_text()

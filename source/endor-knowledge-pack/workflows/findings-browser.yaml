@@ -28,6 +28,8 @@ task_profiles:
       - Do not continue into remediation, scan execution, or posture changes.
     output_focus:
       - Return findings_verdict, applied_filters, severity_summary, finding_results, pagination, evidence_queries, and data_gaps.
+      - When `completeness_required=true`, return the complete matching total in `severity_summary.count` and `pagination.result_count`, keep `finding_results` bounded, and never substitute the bounded page length for the complete total.
+      - For a `--list-all` completeness route, invoke the bundled artifact helper once, use its authoritative `row_count`, and do not invoke `endorctl` directly for the same complete query. The successful complete-count `evidence_queries[]` reason MUST include the helper's exact `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` metadata. Without that metadata, treat the complete route as unavailable and do not claim a complete total.
     output_fields:
       - findings_verdict
       - summary
@@ -147,7 +149,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-filtered
     resource: Finding
     purpose: List bounded existing Finding rows for verified filters.
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -159,6 +161,7 @@ evidence_query_recipes:
       - spec.finding_metadata
     constraints:
       - Keep list requests bounded and projected.
+      - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
       - Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace.
       - Do not use broad unfiltered Finding --list-all queries.
   - profile_id: browse
@@ -168,13 +171,14 @@ evidence_query_recipes:
     purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
     selection_condition: runtime.completeness_required
     result_delivery: runtime.large_result_artifact_required
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
       - spec.finding_categories
     constraints:
       - Use only when completeness_required is true for explicit complete rows or exact multi-dimensional totals.
+      - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
       - Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed.
       - Never run this as an auxiliary enrichment query when `completeness_required=false`.
       - Include child namespaces by default; omit --traverse only for a proven exact-namespace request.

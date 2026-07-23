@@ -23,6 +23,9 @@ MANIFEST_RE = re.compile(
 
 
 def emit(event_name: str, message: str) -> None:
+    if event_name == "PostToolUse":
+        print("{}")
+        return
     print(json.dumps({
         "hookSpecificOutput": {
             "hookEventName": event_name,
@@ -43,7 +46,12 @@ try:
         or payload.get("event")
         or default_event
     )
-    tool_input = payload.get("tool_input") or payload.get("toolInput") or {}
+    tool_input = (
+        payload.get("tool_input")
+        or payload.get("toolInput")
+        or payload.get("toolCall")
+        or {}
+    )
     if not isinstance(tool_input, dict):
         tool_input = {}
     nested_args = tool_input.get("args") if isinstance(tool_input.get("args"), dict) else {}
@@ -54,8 +62,10 @@ try:
     candidate_paths = [
         tool_input.get("file_path"),
         tool_input.get("path"),
+        tool_input.get("TargetFile"),
         nested_args.get("file_path"),
         nested_args.get("path"),
+        nested_args.get("TargetFile"),
         nested_params.get("file_path"),
         nested_params.get("path"),
         payload.get("file_path"),
@@ -64,6 +74,8 @@ try:
     ]
     path = next((str(item) for item in candidate_paths if item), "")
     if not path or not MANIFEST_RE.search(path):
+        if event == "PostToolUse":
+            print("{}")
         raise SystemExit(0)
     emit(
         event,

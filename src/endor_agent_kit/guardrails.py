@@ -1258,12 +1258,17 @@ def _check_advisory_plugin_hooks(
     errors: list[str],
     host_label: str,
     command_uses_quoted_script: bool = False,
+    hook_namespace: str | None = None,
 ) -> None:
     hooks = _load_json_mapping(root, hooks_json_path, errors)
     if not hooks:
         return
 
-    hook_events = _dict(hooks.get("hooks"))
+    if hook_namespace is not None and set(hooks) != {hook_namespace}:
+        errors.append(
+            f"{_rel(root, hooks_json_path)}: {host_label} hooks must be nested under {hook_namespace!r}"
+        )
+    hook_events = _dict(hooks.get(hook_namespace or "hooks"))
     if set(hook_events) != expected_events:
         errors.append(
             f"{_rel(root, hooks_json_path)}: {host_label} hook events must be {sorted(expected_events)}"
@@ -1585,6 +1590,7 @@ def _check_antigravity_plugin_package(
         command_prefix='bash ./hooks/',
         errors=errors,
         host_label="Antigravity",
+        hook_namespace="endor-labs-agent-kit",
     )
 
 

@@ -161,6 +161,8 @@ mutation is not approved. Put `remediation/sca/<package>-<target-version>` in
 
 For plan-only requests that mention a PR/MR plan, include a `change_requests` entry with status `not_created`, reason `plan_only_awaiting_approval` or equivalent, proposed base branch, proposed branch, proposed title, and a reference to the included PR/MR body draft. Do not return an empty `change_requests` array when a PR/MR is part of the requested plan.
 
+At the `selection-plan` gate, return exactly one `change_requests` entry and always populate its deterministic `inventory`. If source-provider lookup is unavailable, use inventory `status: "unavailable"`, record the attempted or unavailable lookup method and check time, copy the complete repository/base-branch/ecosystem/package/manifest/current-version/target-version/finding-set key from the selected remediation, use `candidates: []`, set a non-empty reconciliation status and reason, and add the blocker to top-level `data_gaps`. Unavailable inventory is a valid plan-only sentinel but still fails closed before push or PR/MR creation.
+
 For ticket requests, include a `tickets` entry with status `not_created`, `created`, `failed`, or `unavailable`. Include proposed ticket title/body for `not_created`, ticket ID or URL for `created`, and the exact blocker in `data_gaps` for `failed` or `unavailable`. Do not claim ticket creation unless the ticket adapter returns a ticket ID or URL.
 
 ## Other Non-Breaking / Low-Risk UIA-Backed PR Lane
@@ -269,7 +271,7 @@ Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the d
 
 ## Endor Project Resolution Preflight
 
-Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. Return project_resolution status/uuid/namespace/provenance/selectors/traverse. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> `data_gaps`; never guess.
+Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
 
 ## Endor Knowledge Pack
 
@@ -326,7 +328,7 @@ Required top-level fields, in order:
 `summary`, `remediation_candidates`, `project_resolution`, `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`, `patch_plan`, `validation`, `change_requests`, `tickets`, `data_gaps`, `policy_context`, `policy_evaluations`
 Optional fields when verified:
 `task_state`:object
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

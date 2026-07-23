@@ -34,6 +34,20 @@ ANTIGRAVITY_HOOK_FILENAMES = (
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
+ANTIGRAVITY_ARTIFACT_HELPER = (
+    '"$HOME/.gemini/config/plugins/endor-labs-agent-kit/'
+    'runtime/summarize_endor_artifact.py"'
+)
+ANTIGRAVITY_TOOL_MAP: dict[str, tuple[str, ...]] = {
+    "read_file": ("view_file",),
+    "grep_search": ("grep_search",),
+    "run_shell_command": ("run_command",),
+    "write_file": (
+        "write_to_file",
+        "replace_file_content",
+        "multi_replace_file_content",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -191,11 +205,9 @@ def _antigravity_hooks_config() -> dict[str, object]:
         }
 
     return {
-        "hooks": {
+        PLUGIN_NAME: {
             "PreInvocation": [
-                {
-                    "hooks": [command("suggest-endor-tools.sh", "PreInvocation")],
-                }
+                command("suggest-endor-tools.sh", "PreInvocation")
             ],
             "PreToolUse": [
                 {
@@ -408,8 +420,7 @@ def antigravity_text(text: str) -> str:
     """Adapt Gemini-rendered package text for Antigravity CLI wording."""
 
     adapted = (
-        text.replace("\n  - run_shell_command\n", "\n  - run_command\n")
-        .replace("Gemini CLI extension subagent", "Antigravity CLI plugin subagent")
+        text.replace("Gemini CLI extension subagent", "Antigravity CLI plugin subagent")
         .replace("Gemini CLI extension", "Antigravity CLI plugin")
         .replace("Gemini CLI Host Contract", "Antigravity CLI Host Contract")
         .replace("Gemini CLI subagent", "Antigravity CLI subagent")
@@ -424,6 +435,10 @@ def antigravity_text(text: str) -> str:
         .replace("Gemini-specific", "Antigravity-specific")
         .replace("host=gemini", "host=antigravity")
         .replace("Gemini CLI", "Antigravity CLI")
+        .replace(
+            "python3 runtime/summarize_endor_artifact.py",
+            f"python3 {ANTIGRAVITY_ARTIFACT_HELPER}",
+        )
     )
     host_contract = "Antigravity CLI Host Contract\n"
     if host_contract in adapted and "Invoke workflow subagents as `@agent-name`" not in adapted:
@@ -436,7 +451,34 @@ def antigravity_text(text: str) -> str:
             + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n",
             1,
         )
-    return adapted
+    return _adapt_antigravity_frontmatter_tools(adapted)
+
+
+def _adapt_antigravity_frontmatter_tools(text: str) -> str:
+    """Translate Gemini agent tools to Antigravity's callable tool names."""
+
+    lines = text.splitlines()
+    delimiters = [index for index, line in enumerate(lines) if line == "---"]
+    if len(delimiters) < 2:
+        return text
+    frontmatter_start, frontmatter_end = delimiters[:2]
+    output: list[str] = []
+    in_tools = False
+    for index, line in enumerate(lines):
+        if frontmatter_start < index < frontmatter_end and line == "tools:":
+            in_tools = True
+            output.append(line)
+            continue
+        if in_tools and frontmatter_start < index < frontmatter_end:
+            if line.startswith("  - "):
+                tool = line.removeprefix("  - ").strip()
+                mapped = ANTIGRAVITY_TOOL_MAP.get(tool, (tool,))
+                output.extend(f"  - {name}" for name in mapped)
+                continue
+            in_tools = False
+        output.append(line)
+    suffix = "\n" if text.endswith("\n") else ""
+    return "\n".join(output) + suffix
 
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:

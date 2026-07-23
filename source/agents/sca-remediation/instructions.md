@@ -140,6 +140,8 @@ mutation is not approved. Put `remediation/sca/<package>-<target-version>` in
 
 For plan-only requests that mention a PR/MR plan, include a `change_requests` entry with status `not_created`, reason `plan_only_awaiting_approval` or equivalent, proposed base branch, proposed branch, proposed title, and a reference to the included PR/MR body draft. Do not return an empty `change_requests` array when a PR/MR is part of the requested plan.
 
+At the `selection-plan` gate, return exactly one `change_requests` entry and always populate its deterministic `inventory`. If source-provider lookup is unavailable, use inventory `status: "unavailable"`, record the attempted or unavailable lookup method and check time, copy the complete repository/base-branch/ecosystem/package/manifest/current-version/target-version/finding-set key from the selected remediation, use `candidates: []`, set a non-empty reconciliation status and reason, and add the blocker to top-level `data_gaps`. Unavailable inventory is a valid plan-only sentinel but still fails closed before push or PR/MR creation.
+
 For ticket requests, include a `tickets` entry with status `not_created`, `created`, `failed`, or `unavailable`. Include proposed ticket title/body for `not_created`, ticket ID or URL for `created`, and the exact blocker in `data_gaps` for `failed` or `unavailable`. Do not claim ticket creation unless the ticket adapter returns a ticket ID or URL.
 
 ## Other Non-Breaking / Low-Risk UIA-Backed PR Lane

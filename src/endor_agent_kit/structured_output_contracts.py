@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 
 
@@ -274,7 +275,11 @@ def validate_structured_output_payload(
     contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
         return []
-    payload = normalize_structured_output_payload(agent_id, payload)
+    payload = normalize_structured_output_payload(
+        agent_id,
+        payload,
+        preserve_null_fields=output_fields or (),
+    )
     errors: list[str] = []
     for field in contract:
         if field.name not in payload:
@@ -304,12 +309,22 @@ def _contract_for_output_fields(
     )
 
 
-def normalize_structured_output_payload(agent_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+def normalize_structured_output_payload(
+    agent_id: str,
+    payload: dict[str, Any],
+    *,
+    preserve_null_fields: tuple[str, ...] = (),
+) -> dict[str, Any]:
     """Normalize strict present-null optional keys to legacy omitted-key form."""
 
     normalized = dict(payload)
+    preserved = set(preserve_null_fields)
     for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()):
-        if not field.required and normalized.get(field.name) is None:
+        if (
+            not field.required
+            and field.name not in preserved
+            and normalized.get(field.name) is None
+        ):
             normalized.pop(field.name, None)
     if agent_id == "ai-sast-remediation" and isinstance(normalized.get("patches"), list):
         normalized["patches"] = [
@@ -411,6 +426,10 @@ def _nullable_integer() -> dict[str, Any]:
 
 def _nullable_boolean() -> dict[str, Any]:
     return {"type": ["boolean", "null"]}
+
+
+def _required_string() -> dict[str, Any]:
+    return {"type": "string", "minLength": 1}
 
 
 def _nullable_object() -> dict[str, Any]:
@@ -597,6 +616,85 @@ def _report_scope_schema() -> dict[str, Any]:
             "sampling_basis": _nullable_string(),
             "coverage_limitations": _nullable_string_array(),
             "v1_exclusions": _nullable_string_array(),
+        }
+    )
+
+
+def _findings_browse_applied_filters_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "namespace": _nullable_string(),
+            "namespace_provenance": _nullable_string(),
+            "namespace_traversal": _nullable_string(),
+            "scope": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "repository": _nullable_string(),
+            "finding_categories": _nullable_string_array(),
+            "severity_levels": _nullable_string_array(),
+            "status_filter": _nullable_string(),
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "dependency_scope": _nullable_string(),
+            "reachability_filter": _nullable_string(),
+            "cve_or_ghsa": _nullable_string(),
+            "tag_filter": _nullable_string(),
+            "page_size": _nullable_integer(),
+            "completeness_required": _nullable_boolean(),
+        }
+    )
+
+
+def _findings_browse_severity_summary_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "count": _nullable_integer(),
+            "critical": _nullable_integer(),
+            "high": _nullable_integer(),
+            "medium": _nullable_integer(),
+            "low": _nullable_integer(),
+            "info": _nullable_integer(),
+            "status": _nullable_string(),
+            "summary": _nullable_string(),
+        }
+    )
+
+
+def _findings_browse_results_schema() -> dict[str, Any]:
+    row = _strict_object_schema(
+        {
+            "uuid": _nullable_string(),
+            "finding_uuid": _nullable_string(),
+            "name": _nullable_string(),
+            "title": _nullable_string(),
+            "level": _nullable_string(),
+            "severity": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "categories": _nullable_string_array(),
+            "finding_categories": _nullable_string_array(),
+            "finding_tags": _nullable_string_array(),
+            "target_dependency_package_name": _nullable_string(),
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "aliases": _nullable_string_array(),
+            "summary": _nullable_string(),
+        }
+    )
+    return {"type": "array", "items": row}
+
+
+def _findings_browse_pagination_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "page_size": _nullable_integer(),
+            "result_count": _nullable_integer(),
+            "returned_count": _nullable_integer(),
+            "has_next_page": _nullable_boolean(),
+            "next_page_token": _nullable_string(),
+            "next_page_id": _nullable_string(),
+            "status": _nullable_string(),
+            "summary": _nullable_string(),
+            "complete": _nullable_boolean(),
         }
     )
 
@@ -1001,6 +1099,83 @@ def _change_request_inventory_schema() -> dict[str, Any]:
     )
 
 
+def _selection_plan_change_requests_schema() -> dict[str, Any]:
+    """Require one semantically complete inventory at the SCA selection gate."""
+
+    candidate = _strict_object_schema(
+        {
+            "author": _required_string(),
+            "author_type": _required_string(),
+            "branch": _required_string(),
+            "state": _required_string(),
+            "files": {"type": "array", "items": {"type": "string"}},
+            "url": _required_string(),
+            "current_version": _required_string(),
+            "target_version": _required_string(),
+            "exact_duplicate": {"type": "boolean"},
+        }
+    )
+    key = _strict_object_schema(
+        {
+            "repository": _required_string(),
+            "base_branch": _required_string(),
+            "ecosystem": _required_string(),
+            "normalized_package": _required_string(),
+            "manifest": _required_string(),
+            "current_version": _required_string(),
+            "target_version": _required_string(),
+            "finding_set": {"type": "array", "items": {"type": "string"}},
+        }
+    )
+    reconciliation = _strict_object_schema(
+        {
+            "status": _required_string(),
+            "reason": _nullable_string(),
+            "selected_target_version": _nullable_string(),
+            "uia_evidence_checked_at": _nullable_string(),
+            "upstream_evidence_checked_at": _nullable_string(),
+            "operator_choice_required": _nullable_boolean(),
+        }
+    )
+    inventory = _strict_object_schema(
+        {
+            "status": {
+                "type": "string",
+                "enum": [
+                    "none_found",
+                    "exact_duplicate",
+                    "different_target",
+                    "unavailable",
+                ],
+            },
+            "lookup_method": _required_string(),
+            "checked_at": _required_string(),
+            "fresh_recheck": {"type": "boolean"},
+            "key": key,
+            "candidates": {"type": "array", "items": candidate},
+            "reconciliation": reconciliation,
+        }
+    )
+    request = _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "base_branch": _nullable_string(),
+            "proposed_branch": _nullable_string(),
+            "title": _nullable_string(),
+            "body": _nullable_string(),
+            "url": _nullable_string(),
+            "reason": _nullable_string(),
+            "inventory": inventory,
+        }
+    )
+    return {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 1,
+        "items": request,
+    }
+
+
 def _tickets_schema() -> dict[str, Any]:
     return {
         "type": "array",
@@ -1079,6 +1254,31 @@ PROFILE_FIELD_SCHEMA_OVERRIDES = {
         "evidence-check",
         "verdicts",
     ): _ai_sast_evidence_verdicts_schema,
+    (
+        "sca-remediation",
+        "selection-plan",
+        "change_requests",
+    ): _selection_plan_change_requests_schema,
+    (
+        "findings-browser",
+        "browse",
+        "applied_filters",
+    ): _findings_browse_applied_filters_schema,
+    (
+        "findings-browser",
+        "browse",
+        "severity_summary",
+    ): _findings_browse_severity_summary_schema,
+    (
+        "findings-browser",
+        "browse",
+        "finding_results",
+    ): _findings_browse_results_schema,
+    (
+        "findings-browser",
+        "browse",
+        "pagination",
+    ): _findings_browse_pagination_schema,
 }
 
 
@@ -1171,6 +1371,20 @@ EVIDENCE_QUERY_GAP_STATUSES = (
     "no_results",
     "unavailable",
 )
+LARGE_RESULT_ARTIFACT_QUERY_IDS = frozenset(
+    {
+        "ai-sast-list",
+        "finding-browser-complete-counts",
+        "tenant-package-inventory",
+    }
+)
+EVIDENCE_QUERY_SUCCESS_STATUSES = frozenset(
+    {"completed", "confirmed", "ok", "success", "succeeded"}
+)
+ARTIFACT_METADATA_RE = re.compile(
+    r"artifact_ref=[^;\s]+;sha256=[0-9a-f]{64};"
+    r"format=[A-Za-z0-9._+-]+;bytes=[1-9][0-9]*"
+)
 
 
 def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
@@ -1207,6 +1421,23 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
         if any(marker in status for marker in EVIDENCE_QUERY_GAP_STATUSES):
             if not _text(item.get("reason")) and not data_gaps:
                 errors.append(f"evidence_queries[{index}].reason: required for unavailable or failed evidence")
+        query_template_id = _text(item.get("query_template_id"))
+        filter_summary = _text(item.get("filter_summary")).lower()
+        list_all_delivery = "list-all" in filter_summary and not re.search(
+            r"list-all\s*(?:==|=|:)\s*false\b", filter_summary
+        )
+        if (
+            status in EVIDENCE_QUERY_SUCCESS_STATUSES
+            and (
+                query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
+                or list_all_delivery
+            )
+            and not ARTIFACT_METADATA_RE.search(_text(item.get("reason")))
+        ):
+            errors.append(
+                f"evidence_queries[{index}].reason: successful large-result route "
+                "requires artifact_ref, sha256, format, and bytes metadata"
+            )
     return errors
 
 

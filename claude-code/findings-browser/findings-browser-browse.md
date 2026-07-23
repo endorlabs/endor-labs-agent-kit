@@ -45,6 +45,18 @@ This read-only artifact browses existing Endor Labs findings through documented
 - If true, prefer `--count` or aggregation. For complete rows, use the recipe's exact minimal field mask;
   never add `finding_metadata` or detail fields.
   Validate count, shape, and hash once, then stop.
+- When `completeness_required=true`, put the complete matching total in both
+  `severity_summary.count` and `pagination.result_count`, keep
+  `finding_results` bounded, and never substitute the bounded page length for
+  the complete total. If the complete query fails, leave the total unclaimed
+  and record a precise `data_gaps` entry.
+- For a `--list-all` completeness route, invoke the bundled artifact helper
+  exactly once and use its authoritative `row_count`. The successful
+  complete-count `evidence_queries[]` reason MUST include the helper's exact
+  `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` metadata.
+  Without that metadata, treat the route as unavailable and do not claim a
+  complete total. Do not invoke `endorctl` directly for the same complete
+  query and do not re-count or re-open the artifact.
 - Do not use broad unfiltered `Finding --list-all` queries; record incomplete
   inventory in `data_gaps`.
 
@@ -56,7 +68,7 @@ Normalize user filters into `applied_filters`:
 - `namespace_traversal`: `include_children` or `exact`; record `--traverse` use.
 - `scope`: exact finding, project, repository, namespace, or insufficient.
 - `finding_categories`: Endor category names requested or applied.
-- `severity_levels`: CRITICAL, HIGH, MEDIUM, LOW, or all.
+- `severity_levels`: labels only; API=`FINDING_LEVEL_*`.
 - `status_filter`: active, dismissed, fixed, or all.
 - `package_name`, `ecosystem`, `dependency_scope`, `reachability_filter`,
   and `cve_or_ghsa` when available.
@@ -83,7 +95,8 @@ the field is present, and record the field limitation in `data_gaps`.
 3. Query bounded, projected `Finding` rows for list requests.
 4. If bounded, stop after one page; summarize it without complete-count claims.
 5. If `completeness_required=true`, use the cheapest sufficient complete route
-   and record why escalation was required.
+   and record why escalation was required. Map its verified total to
+   `severity_summary.count` and `pagination.result_count` while keeping rows bounded.
 6. Record query id, filter/field summaries, status, count, and reason in `evidence_queries`.
 
 ## Output Contract
@@ -182,7 +195,7 @@ Query bounded Finding rows and return table-ready results with pagination and da
 - Use when: The user asks to list, filter, summarize, or browse existing findings. A read-only findings page is needed before choosing another workflow.
 - Minimal evidence: Namespace provenance, bounded finding filters, and either project/repository scope or explicit namespace-wide browse intent.
 - Stop when: Matching rows, no matching rows, partial results, or missing evidence are known. Do not continue into remediation, scan execution, or posture changes.
-- Output focus: Return findings_verdict, applied_filters, severity_summary, finding_results, pagination, evidence_queries, and data_gaps.
+- Output focus: Return findings_verdict, applied_filters, severity_summary, finding_results, pagination, evidence_queries, and data_gaps. When `completeness_required=true`, return the complete matching total in `severity_summary.count` and `pagination.result_count`, keep `finding_results` bounded, and never substitute the bounded page length for the complete total. For a `--list-all` completeness route, invoke the bundled artifact helper once, use its authoritative `row_count`, and do not invoke `endorctl` directly for the same complete query. The successful complete-count `evidence_queries[]` reason MUST include the helper's exact `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` metadata. Without that metadata, treat the complete route as unavailable and do not claim a complete total.
 
 ### Evidence Query Plans
 
@@ -201,9 +214,9 @@ Return bounded table-ready findings for verified filters.
 - Canonical: `finding-browser-filtered`
 - Resource: `Finding`
 - Purpose: List bounded existing Finding rows for verified filters.
-- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
+- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json`
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.level`, `spec.finding_categories`, `spec.finding_tags`, `spec.target_dependency_package_name`, `spec.finding_metadata`
-- Constraints: Keep list requests bounded and projected. Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace. Do not use broad unfiltered Finding --list-all queries.
+- Constraints: Keep list requests bounded and projected. Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters. Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace. Do not use broad unfiltered Finding --list-all queries.
 
 #### `finding-browser-complete-counts` (browse)
 
@@ -212,9 +225,9 @@ Return bounded table-ready findings for verified filters.
 - Purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
 - Selection condition: `runtime.completeness_required`
 - Result delivery: `runtime.large_result_artifact_required`
-- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json`
+- Template: `endorctl agent api --agent-id findings-browser list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json`
 - Fields: `uuid`, `spec.level`, `spec.finding_categories`
-- Constraints: Use only when completeness_required is true for explicit complete rows or exact multi-dimensional totals. Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed. Never run this as an auxiliary enrichment query when `completeness_required=false`. Include child namespaces by default; omit --traverse only for a proven exact-namespace request. Keep table rows bounded; use this compact complete query only for totals and pagination completeness. Do not use broad unfiltered Finding --list-all queries.
+- Constraints: Use only when completeness_required is true for explicit complete rows or exact multi-dimensional totals. Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters. Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed. Never run this as an auxiliary enrichment query when `completeness_required=false`. Include child namespaces by default; omit --traverse only for a proven exact-namespace request. Keep table rows bounded; use this compact complete query only for totals and pagination completeness. Do not use broad unfiltered Finding --list-all queries.
 
 #### `finding-browser-by-tag` (browse)
 
@@ -250,7 +263,7 @@ Required top-level fields must appear in this order:
 - `policy_context` (`object`): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

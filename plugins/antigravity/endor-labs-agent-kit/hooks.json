@@ -1,5 +1,5 @@
 {
-  "hooks": {
+  "endor-labs-agent-kit": {
     "PostToolUse": [
       {
         "hooks": [
@@ -14,13 +14,9 @@
     ],
     "PreInvocation": [
       {
-        "hooks": [
-          {
-            "command": "bash ./hooks/suggest-endor-tools.sh PreInvocation",
-            "timeout": 10,
-            "type": "command"
-          }
-        ]
+        "command": "bash ./hooks/suggest-endor-tools.sh PreInvocation",
+        "timeout": 10,
+        "type": "command"
       }
     ],
     "PreToolUse": [

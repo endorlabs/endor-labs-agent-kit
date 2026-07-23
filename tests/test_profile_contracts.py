@@ -64,6 +64,27 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
         assert omitted_field not in contract.provider_neutral_schema["properties"]
 
 
+def test_compiled_sca_selection_plan_contract_requires_inventory_sentinel_shape():
+    contract = compile_profile_contract("sca-remediation", "selection-plan")
+    change_requests = contract.provider_neutral_schema["properties"]["change_requests"]
+
+    assert change_requests["minItems"] == 1
+    assert change_requests["maxItems"] == 1
+    inventory = change_requests["items"]["properties"]["inventory"]
+    assert inventory["type"] == "object"
+    assert inventory["properties"]["status"]["enum"] == [
+        "none_found",
+        "exact_duplicate",
+        "different_target",
+        "unavailable",
+    ]
+    assert inventory["properties"]["lookup_method"]["type"] == "string"
+    assert inventory["properties"]["checked_at"]["type"] == "string"
+    assert inventory["properties"]["key"]["type"] == "object"
+    assert inventory["properties"]["candidates"]["type"] == "array"
+    assert inventory["properties"]["reconciliation"]["type"] == "object"
+
+
 def test_read_only_profile_validator_accepts_projected_evidence_and_rejects_mutation_fields():
     payload = {
         "summary": "Evidence is unavailable.",
@@ -122,6 +143,50 @@ def test_compiled_ai_sast_evidence_profile_uses_compact_domain_verdicts():
     }
     assert "branch_name" not in verdict["properties"]
     assert "malware_name" not in verdict["properties"]
+
+
+def test_compiled_findings_browse_profile_uses_compact_domain_rows():
+    contract = compile_profile_contract("findings-browser", "browse")
+    schema = contract.provider_neutral_schema
+
+    assert set(schema["properties"]["applied_filters"]["properties"]) == {
+        "namespace",
+        "namespace_provenance",
+        "namespace_traversal",
+        "scope",
+        "project_uuid",
+        "repository",
+        "finding_categories",
+        "severity_levels",
+        "status_filter",
+        "package_name",
+        "ecosystem",
+        "dependency_scope",
+        "reachability_filter",
+        "cve_or_ghsa",
+        "tag_filter",
+        "page_size",
+        "completeness_required",
+    }
+    assert set(schema["properties"]["finding_results"]["items"]["properties"]) == {
+        "uuid",
+        "finding_uuid",
+        "name",
+        "title",
+        "level",
+        "severity",
+        "project_uuid",
+        "categories",
+        "finding_categories",
+        "finding_tags",
+        "target_dependency_package_name",
+        "package_name",
+        "ecosystem",
+        "version",
+        "aliases",
+        "summary",
+    }
+    assert len(contract.provider_neutral_schema_json) < 14_000
 
 
 def test_remediation_planning_profiles_expose_only_their_decision_gate_outputs():
@@ -252,6 +317,39 @@ def test_remaining_default_profiles_have_explicit_output_boundaries():
         identity: contract.output_fields for identity, contract in contracts.items()
     } == expected
     assert all(contract.projection_applied for contract in contracts.values())
+
+
+def test_oss_evidence_profile_requires_selected_upgrade_key_but_accepts_null_sentinel():
+    payload = {
+        "upgrade_recommendation": "INSUFFICIENT_DATA",
+        "risk_delta": "UNKNOWN",
+        "reasons": ["No exact upgrade candidate was returned."],
+        "breaking_change_notes": [],
+        "next_checks": ["Retry after VersionUpgrade evidence is available."],
+        "summary": "No exact upgrade candidate is available.",
+        "evidence_queries": [],
+        "data_gaps": ["VersionUpgrade evidence did not contain an exact match."],
+        "selected_upgrade": None,
+        "findings_fixed": 0,
+        "findings_introduced": 0,
+        "cia_status": "unavailable",
+        "policy_context": {},
+        "policy_evaluations": [],
+    }
+
+    assert (
+        validate_profile_output_payload(
+            "oss-upgrade-investigator",
+            "evidence-check",
+            payload,
+        )
+        == []
+    )
+    assert validate_profile_output_payload(
+        "oss-upgrade-investigator",
+        "evidence-check",
+        {key: value for key, value in payload.items() if key != "selected_upgrade"},
+    ) == ["selected_upgrade: required"]
 
 
 def test_serialized_profile_contract_round_trips_and_rejects_tampering():

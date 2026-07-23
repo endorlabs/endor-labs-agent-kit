@@ -83,6 +83,11 @@ Finding, CIA, and manifest evidence have been used.
 
 ## Evidence Rules
 
+- In the `evidence-check` profile, perform the exact package/from-version lookup
+  and at most one bounded alternate-identifier retry. If neither returns an
+  exact candidate, return `selected_upgrade: null` with precise `data_gaps` and
+  stop. Do not enumerate or paginate all project `VersionUpgrade` rows unless
+  the user explicitly requests exhaustive inventory.
 - Never fabricate missing vulnerabilities, fixed versions, exploitability
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
@@ -123,6 +128,9 @@ Finding, CIA, and manifest evidence have been used.
 - Apply the same type discipline inside every `upgrade_candidates[]` item and
   `selected_upgrade`: counts remain numbers, CIA status and score explanation
   remain strings, and missing platform evidence is represented in `data_gaps`.
+  At the `evidence-check` profile, always include the `selected_upgrade` key;
+  use `null` plus a precise `data_gaps` entry when no VersionUpgrade candidate
+  was verified rather than omitting the key.
 ## Recommendations
 
 Return exactly one upgrade recommendation:
@@ -290,19 +298,28 @@ Query VersionUpgrade/UIA evidence for one explicit upgrade candidate.
 - Use when: The user asks whether an upgrade is safe, risky, or worth doing. A read-only host check needs upgrade-impact evidence without remediation planning.
 - Minimal evidence: Resolved project, VersionUpgrade/UIA row for the candidate, and Finding cross-check when a finding UUID is supplied.
 - Stop when: Risk, CIA, fixed findings, introduced findings, and missing evidence are known. Do not edit manifests or create remediation branches.
-- Output focus: Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, evidence_queries, and data_gaps.
+- Output focus: Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, evidence_queries, and data_gaps. In this profile, always include `selected_upgrade` because it is part of this profile projection. If no candidate is verified, return it as `null` and add a precise `data_gaps` entry instead of omitting it.
 
 ### Evidence Query Plans
 
 #### `evidence-check` - Upgrade Impact Evidence Query Plan
 
 Verify VersionUpgrade/UIA impact evidence for a scoped package or candidate.
-- Query order: 1. Resolve namespace, package/version, and optional project scope first. 2. Query VersionUpgrade summaries matching the package and from/to versions or upgrade UUID. 3. Fetch detailed VersionUpgrade evidence only for the selected candidate.
-- Avoid: Do not query broad Findings to estimate upgrade impact when VersionUpgrade is the source of truth.
-- Stop after: Stop after VersionUpgrade evidence is found, absent, ambiguous, or inaccessible.
+- Query order: 1. Resolve namespace, package/version, and optional project scope first. 2. Query VersionUpgrade summaries matching the package and from/to versions or upgrade UUID. 3. If the exact package/from-version lookup misses, make at most one bounded alternate-identifier retry. If that also misses, return `selected_upgrade: null` with precise data_gaps and stop. 4. Fetch detailed VersionUpgrade evidence only for the selected candidate.
+- Avoid: Do not query broad Findings to estimate upgrade impact when VersionUpgrade is the source of truth. Do not enumerate or paginate all project `VersionUpgrade` rows unless the user explicitly requests exhaustive inventory.
+- Stop after: Stop after VersionUpgrade evidence is found, absent after one bounded alternate-identifier retry, ambiguous, or inaccessible.
 - Data gaps: Record absent VersionUpgrade evidence, missing CIA fields, ambiguous package versions, and unavailable namespace/project reads in data_gaps.
 
 ### Evidence Query Recipes
+
+#### `project-by-git` (evidence-check)
+
+- Canonical: `project-by-git`
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template: `endorctl agent api --agent-id oss-upgrade-investigator list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the exact trusted owner/repo identity before any fuzzy name lookup or unfiltered Project listing. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
 #### `version-upgrade-by-package` (evidence-check)
 
@@ -351,7 +368,7 @@ Required top-level fields must appear in this order:
 - `policy_context` (`object`): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
