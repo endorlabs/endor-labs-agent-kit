@@ -81,7 +81,8 @@ or duplicate Codex recipe IDs fail closed.
 The generated Claude Code plugin packages include:
 
 - `.claude-plugin/plugin.json` for plugin metadata.
-- `agents/<agent>.md` files generated from the existing Claude Code artifacts.
+- Exactly 11 canonical `agents/<agent>.md` workflow files generated from the
+  existing Claude Code artifacts.
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
 - `hooks/hooks.json` plus fail-open advisory hook scripts in the primary
@@ -99,6 +100,12 @@ existing Claude Code users pinned to that id can continue to install and update
 without a breaking rename. Both packages expose the same setup skill and agents;
 normal users should not enable both ids in the same Claude profile. The legacy
 package intentionally does not include hooks.
+
+Claude task-profile projections are an execution optimization, not additional
+customer-facing workflows. They remain generated under `claude-code/<agent>/`
+for advanced manual invocation, but neither public Claude package copies them
+into `agents/`. The canonical marketplace agent selects and enforces the same
+bounded profile contracts internally.
 
 Claude Code plugin-shipped agents do not support `mcpServers`,
 `permissionMode`, or `hooks` in agent frontmatter. The generated package strips

@@ -1216,7 +1216,17 @@ def _check_claude_plugin_package(
                     errors.append(f"{_rel(root, setup)}: missing Claude compatibility text {required!r}")
         _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
-    for agent in sorted((claude_package / "agents").glob("*.md")):
+    agent_paths = sorted((claude_package / "agents").glob("*.md"))
+    expected_agent_ids = _source_agent_ids(root)
+    actual_agent_ids = {agent.stem for agent in agent_paths}
+    if expected_agent_ids and actual_agent_ids != expected_agent_ids:
+        errors.append(
+            f"{_rel(root, claude_package / 'agents')}: public Claude package must "
+            f"contain only canonical agents; expected {sorted(expected_agent_ids)}, "
+            f"found {sorted(actual_agent_ids)}"
+        )
+
+    for agent in agent_paths:
         text = agent.read_text(encoding="utf-8")
         for required in (
             "endor_agent_kit_managed=true",

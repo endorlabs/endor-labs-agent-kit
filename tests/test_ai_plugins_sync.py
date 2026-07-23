@@ -66,6 +66,7 @@ def _minimal_source_tree(root: Path) -> None:
     _write(root / "skills" / "endor-agent-kit-setup" / "SKILL.md", "cursor setup\n")
     _write(root / "hooks" / "hooks.json", '{"afterFileEdit": []}\n')
     _write(root / "hooks" / "cursor-hook.sh", "#!/usr/bin/env bash\nexit 0\n")
+    _write(root / "runtime" / "summarize_endor_artifact.py", "# cursor runtime\n")
     claude_root = root / "plugins" / "claude" / "endor-labs-agent-kit"
     _write(
         claude_root / ".claude-plugin" / "plugin.json",
@@ -112,6 +113,10 @@ def _minimal_source_tree(root: Path) -> None:
         claude_root / "hooks" / "suggest-endor-tools.sh",
         "#!/usr/bin/env bash\nexit 0\n",
     )
+    _write(
+        claude_root / "runtime" / "summarize_endor_artifact.py",
+        "# claude runtime\n",
+    )
 
 
 def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_path):
@@ -135,6 +140,9 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert not (target / "hooks" / "cursor-hook.sh").exists()
     assert not (target / "hooks" / "stale-hook.sh").exists()
     assert (target / "hooks" / "suggest-endor-tools.sh").exists()
+    assert (target / "runtime" / "summarize_endor_artifact.py").read_text(
+        encoding="utf-8"
+    ) == "# claude runtime\n"
     assert not (target / "skills" / "configuration-automation").exists()
     assert (target / "skills" / "endor-agent-kit-setup" / "SKILL.md").exists()
     assert not (target / "skills" / "create-endor-labs-agent").exists()
@@ -188,6 +196,9 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     ).exists()
     assert (cursor_package / "agents" / "endor-findings-browser-agent.md").exists()
     assert (cursor_package / "hooks" / "cursor-hook.sh").exists()
+    assert (cursor_package / "runtime" / "summarize_endor_artifact.py").read_text(
+        encoding="utf-8"
+    ) == "# cursor runtime\n"
     assert (cursor_package / "mcp.json").exists()
     assert not (cursor_package / ".mcp.json").exists()
     assert not (target / "cursor" / "endor-labs-agent-kit").exists()

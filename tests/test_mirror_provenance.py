@@ -43,6 +43,22 @@ def test_mirror_provenance_matches_canonical_root_agents(tmp_path: Path) -> None
     assert validate_mirror_provenance(tmp_path) == []
 
 
+def test_mirror_provenance_rejects_public_profile_projections_for_canonical_agents(
+    tmp_path: Path,
+) -> None:
+    _write_mirror(tmp_path)
+    (tmp_path / "agents/agent-0-evidence-check.md").write_text(
+        "<!-- endor_agent_kit_managed=true agent_id=agent-0 "
+        "profile_id=evidence-check host=claude-code-plugin -->\n",
+        encoding="utf-8",
+    )
+
+    errors = validate_mirror_provenance(tmp_path)
+
+    assert "root Claude package must not expose task-profile agents" in errors[0]
+    assert any("exactly 11 canonical agent files" in error for error in errors)
+
+
 def test_mirror_provenance_rejects_checksum_or_identity_drift(tmp_path: Path) -> None:
     _write_mirror(tmp_path)
     (tmp_path / "provenance/manifest.sha256").write_text(

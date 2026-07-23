@@ -87,6 +87,9 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert "Do not use broad unfiltered `Finding --list-all` queries" in artifact
     assert "Bounded, page, sample, and top-N requests set `completeness_required=false`" in artifact
     assert "Never run an auxiliary `--list-all` query" in artifact
+    assert "FINDING_TAGS_REACHABLE_FUNCTION or" in artifact
+    assert "Never issue a `page_size + 1`" in artifact
+    assert "Ledger every attempted Endor query" in artifact
     assert "Selection condition: `runtime.completeness_required`" in artifact
     assert "For complete rows, use the recipe's exact minimal field mask" in artifact
     assert "Validate count, shape, and hash once, then stop" in artifact

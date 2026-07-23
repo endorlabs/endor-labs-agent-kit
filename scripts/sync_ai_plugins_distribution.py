@@ -182,6 +182,12 @@ def _write_cursor_marketplace_overlay(
         operations=operations,
     )
     _sync_tree(
+        source / "runtime",
+        package_root / "runtime",
+        dry_run=dry_run,
+        operations=operations,
+    )
+    _sync_tree(
         source / "assets",
         package_root / "assets",
         dry_run=dry_run,
@@ -276,6 +282,7 @@ def _write_claude_official_root_overlay(
     operations.append(f"replace {target / 'agents'} with canonical Claude agents")
     operations.append(f"replace {target / 'skills'} with Claude setup-only skills")
     operations.append(f"replace {target / 'hooks'} with canonical Claude hooks")
+    operations.append(f"replace {target / 'runtime'} with canonical Claude runtime")
     operations.append(f"remove root MCP auto-discovery file {target / ROOT_MCP_CONFIG}")
     if dry_run:
         return
@@ -296,6 +303,12 @@ def _write_claude_official_root_overlay(
     _sync_tree(
         package_root / "hooks",
         target / "hooks",
+        dry_run=False,
+        operations=[],
+    )
+    _sync_tree(
+        package_root / "runtime",
+        target / "runtime",
         dry_run=False,
         operations=[],
     )

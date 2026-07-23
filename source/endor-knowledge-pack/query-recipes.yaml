@@ -389,8 +389,10 @@ recipes:
       - spec.finding_metadata
     constraints:
       - Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags.
+      - Map a generic reachable request directly to `(spec.finding_tags contains FINDING_TAGS_REACHABLE_FUNCTION or spec.finding_tags contains FINDING_TAGS_REACHABLE_DEPENDENCY)`; never probe the nonexistent FINDING_TAGS_REACHABLE value or spec.reachable path first.
       - Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace.
       - Combine the tag clause with severity, category, or project scope in the scope filter for exploit-first triage and keep the page bounded.
+      - For a bounded top-N request, stop after the requested page and use returned pagination metadata; never issue a page-size-plus-one or count probe solely to infer truncation.
       - Surface the returned spec.finding_tags in finding_results so exploit and fix status are visible.
     completeness: Bounded tag-filtered page evidence; a complete inventory still needs explicit scope and pagination proof in evidence_queries.
     forbidden:

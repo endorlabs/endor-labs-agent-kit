@@ -127,6 +127,10 @@ def validate_marketplace_host_boundaries(root: Path) -> list[str]:
         root / CLAUDE_PACKAGE_ROOT / "hooks"
     ):
         errors.append("root hooks must be byte-identical to canonical Claude hooks")
+    if _tree_snapshot(root / "runtime") != _tree_snapshot(
+        root / CLAUDE_PACKAGE_ROOT / "runtime"
+    ):
+        errors.append("root runtime must be byte-identical to canonical Claude runtime")
     if _tree_snapshot(root / "skills") != _tree_snapshot(
         root / CLAUDE_PACKAGE_ROOT / "skills"
     ):
@@ -161,6 +165,7 @@ def validate_marketplace_host_boundaries(root: Path) -> list[str]:
         cursor_root / "agents",
         cursor_root / "skills",
         cursor_root / "hooks/hooks.json",
+        cursor_root / "runtime/summarize_endor_artifact.py",
         cursor_root / "mcp.json",
         cursor_root / "assets/logo.png",
     )
