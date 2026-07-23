@@ -261,7 +261,7 @@ Return exactly one parseable JSON object in the final answer.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields, in order:
 `onboarding_verdict`, `executive_report`, `report_scope`, `coverage_summary`, `github_inventory_summary`, `github_app_coverage`, `not_onboarded_repositories`, `onboarded_repositories_with_gaps`, `onboarded_healthy_repositories`, `ambiguous_matches`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

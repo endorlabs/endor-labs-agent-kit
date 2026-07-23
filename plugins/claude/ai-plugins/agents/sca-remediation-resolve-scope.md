@@ -101,7 +101,7 @@ Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the d
 
 ## Endor Project Resolution Preflight
 
-Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. Return project_resolution status/uuid/namespace/provenance/selectors/traverse. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> `data_gaps`; never guess.
+Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
 
 ## Endor Knowledge Pack
 
@@ -151,7 +151,7 @@ Return exactly one parseable JSON object in the final answer.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields, in order:
 `summary`, `project_resolution`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

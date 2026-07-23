@@ -29,6 +29,7 @@ task_profiles:
       - Do not edit manifests or create remediation branches.
     output_focus:
       - Return upgrade_recommendation, risk_delta, reasons, breaking_change_notes, next_checks, evidence_queries, and data_gaps.
+      - In this profile, always include `selected_upgrade` because it is part of this profile projection. If no candidate is verified, return it as `null` and add a precise `data_gaps` entry instead of omitting it.
     output_fields:
       - upgrade_recommendation
       - risk_delta
@@ -111,11 +112,13 @@ evidence_query_plans:
     query_order:
       - Resolve namespace, package/version, and optional project scope first.
       - Query VersionUpgrade summaries matching the package and from/to versions or upgrade UUID.
+      - 'If the exact package/from-version lookup misses, make at most one bounded alternate-identifier retry. If that also misses, return `selected_upgrade: null` with precise data_gaps and stop.'
       - Fetch detailed VersionUpgrade evidence only for the selected candidate.
     avoid:
       - Do not query broad Findings to estimate upgrade impact when VersionUpgrade is the source of truth.
+      - Do not enumerate or paginate all project `VersionUpgrade` rows unless the user explicitly requests exhaustive inventory.
     stop_after:
-      - Stop after VersionUpgrade evidence is found, absent, ambiguous, or inaccessible.
+      - Stop after VersionUpgrade evidence is found, absent after one bounded alternate-identifier retry, ambiguous, or inaccessible.
     data_gaps:
       - Record absent VersionUpgrade evidence, missing CIA fields, ambiguous package versions, and unavailable namespace/project
         reads in data_gaps.
@@ -164,6 +167,20 @@ evidence_query_recipes:
     constraints:
       - Filter by the selected package or exact upgrade selector.
       - Do not query broad Findings to estimate upgrade impact.
+  - profile_id: evidence-check
+    id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use the exact trusted owner/repo identity before any fuzzy name lookup or unfiltered Project listing.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
   - profile_id: evidence-check
     id: version-upgrade-by-package
     canonical_id: version-upgrade-by-package

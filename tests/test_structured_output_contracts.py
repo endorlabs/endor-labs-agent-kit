@@ -374,6 +374,63 @@ def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
     assert "evidence_queries[0].source: required" in errors
 
 
+def test_large_result_evidence_requires_authoritative_artifact_metadata():
+    errors = validate_structured_output_payload(
+        "findings-browser",
+        {
+            "evidence_queries": [
+                {
+                    "name": "complete findings",
+                    "resource": "Finding",
+                    "source": "endorctl_agent_api",
+                    "status": "succeeded",
+                    "query_template_id": "finding-browser-complete-counts",
+                    "filter_summary": "project-scoped complete findings",
+                    "field_mask_summary": "uuid,spec.level",
+                    "result_count": 177,
+                    "reason": "Complete matching count returned 177.",
+                }
+            ],
+            "data_gaps": [],
+        },
+        ("evidence_queries", "data_gaps"),
+    )
+
+    assert errors == [
+        "evidence_queries[0].reason: successful large-result route requires "
+        "artifact_ref, sha256, format, and bytes metadata"
+    ]
+
+
+def test_large_result_evidence_accepts_authoritative_artifact_metadata():
+    errors = validate_structured_output_payload(
+        "malware-responder",
+        {
+            "evidence_queries": [
+                {
+                    "name": "complete package inventory",
+                    "resource": "PackageVersion",
+                    "source": "endorctl_agent_api",
+                    "status": "success",
+                    "query_template_id": "tenant-package-inventory",
+                    "filter_summary": "named package inventory",
+                    "field_mask_summary": "uuid,meta.name",
+                    "result_count": 12,
+                    "reason": (
+                        "Complete named-package inventory; "
+                        "artifact_ref=/tmp/endor-agent-artifacts/result.json;"
+                        f"sha256={'a' * 64};format=json;bytes=2048"
+                    ),
+                }
+            ],
+            "data_gaps": [],
+        },
+        ("evidence_queries", "data_gaps"),
+    )
+
+    assert errors == []
+
+
 def _field_kinds(agent_id: str) -> dict[str, str]:
     return {
         field.name: field.kind

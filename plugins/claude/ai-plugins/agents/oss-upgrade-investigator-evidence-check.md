@@ -51,6 +51,11 @@ Finding, CIA, and manifest evidence have been used.
 
 ## Evidence Rules
 
+- In the `evidence-check` profile, perform the exact package/from-version lookup
+  and at most one bounded alternate-identifier retry. If neither returns an
+  exact candidate, return `selected_upgrade: null` with precise `data_gaps` and
+  stop. Do not enumerate or paginate all project `VersionUpgrade` rows unless
+  the user explicitly requests exhaustive inventory.
 - Never fabricate missing vulnerabilities, fixed versions, exploitability
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
@@ -126,6 +131,7 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 ### Evidence Query Recipes
 
+- `project-by-git`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - `version-upgrade-by-package`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 - `version-upgrade-detail`/evidence-check: `endorctl agent api --agent-id oss-upgrade-investigator list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o json`
 
@@ -141,7 +147,7 @@ Return exactly one parseable JSON object in the final answer.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields, in order:
 `upgrade_recommendation`, `risk_delta`, `reasons`, `breaking_change_notes`, `next_checks`, `summary`, `evidence_queries`, `data_gaps`, `selected_upgrade`, `findings_fixed`, `findings_introduced`, `cia_status`, `policy_context`, `policy_evaluations`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

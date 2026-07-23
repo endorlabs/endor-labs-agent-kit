@@ -16,7 +16,7 @@ plans:
       - namespace
       - namespace_traversal
       - scope_filter
-      - levels
+      - finding_level_enums
       - finding_category
       - finding_tag
       - completeness_required
@@ -106,9 +106,9 @@ plans:
             placeholder: SCOPE_FILTER
             source: runtime.scope_filter
             type: string
-          - name: levels
-            placeholder: LEVELS
-            source: runtime.levels
+          - name: finding_level_enums
+            placeholder: FINDING_LEVEL_ENUMS
+            source: runtime.finding_level_enums
             type: string
           - name: finding_category
             placeholder: FINDING_CATEGORY

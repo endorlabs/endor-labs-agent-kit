@@ -248,7 +248,7 @@ Return `policy_context` with status, pack id, version, SHA-256 when known, and s
 Return exactly one parseable JSON object in the final answer.
 Required top-level fields, in order:
 `posture_verdict`, `summary`, `scope`, `raw_counts`, `dimension_scores`, `score_validation`, `critical_overrides`, `endor_findings`, `github_evidence`, `local_ci_evidence`, `recommended_actions`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

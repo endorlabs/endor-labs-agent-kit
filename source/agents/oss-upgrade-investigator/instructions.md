@@ -75,6 +75,11 @@ Finding, CIA, and manifest evidence have been used.
 
 ## Evidence Rules
 
+- In the `evidence-check` profile, perform the exact package/from-version lookup
+  and at most one bounded alternate-identifier retry. If neither returns an
+  exact candidate, return `selected_upgrade: null` with precise `data_gaps` and
+  stop. Do not enumerate or paginate all project `VersionUpgrade` rows unless
+  the user explicitly requests exhaustive inventory.
 - Never fabricate missing vulnerabilities, fixed versions, exploitability
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
@@ -116,6 +121,9 @@ Finding, CIA, and manifest evidence have been used.
 - Apply the same type discipline inside every `upgrade_candidates[]` item and
   `selected_upgrade`: counts remain numbers, CIA status and score explanation
   remain strings, and missing platform evidence is represented in `data_gaps`.
+  At the `evidence-check` profile, always include the `selected_upgrade` key;
+  use `null` plus a precise `data_gaps` entry when no VersionUpgrade candidate
+  was verified rather than omitting the key.
 <!-- compact-plugin:omit-end -->
 
 ## Recommendations

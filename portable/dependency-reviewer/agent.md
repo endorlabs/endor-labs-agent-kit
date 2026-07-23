@@ -456,7 +456,7 @@ Optional top-level fields when verified:
 - `next_checks` (`list[string]`): Bounded follow-up checks for package-risk.
 - `recommended_actions` (`list[string]`): Follow-up actions such as upgrade, investigate reachability, or run a fuller Endor scan.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source is an adapter tag, never a command or path; no raw commands; put gaps in top-level `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

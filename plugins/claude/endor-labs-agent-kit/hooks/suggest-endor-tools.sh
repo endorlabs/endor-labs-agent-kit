@@ -20,6 +20,10 @@ import sys
 
 
 def emit(event_name: str, message: str) -> None:
+    if event_name == "PreInvocation":
+        steps = [{"ephemeralMessage": message}] if message else []
+        print(json.dumps({"injectSteps": steps}, separators=(",", ":")))
+        return
     if not message:
         return
     print(json.dumps({
@@ -28,6 +32,19 @@ def emit(event_name: str, message: str) -> None:
             "additionalContext": message,
         }
     }, separators=(",", ":")))
+
+
+def helper_context(helper: str) -> str:
+    return (
+        "Endor Agent Kit runtime helper: for `runtime.large_result_artifact_required`, "
+        f"invoke `python3 {helper} capture -- <direct endorctl agent api list arguments>` exactly "
+        "once. This hook already verified the helper path, and capture reports executable "
+        "errors safely. Run capture immediately: do not use `python3 -m`; do not test paths or tools, "
+        "search, preflight, execute endorctl separately, inspect the artifact with another "
+        "command, or issue a separate count query. Preserve the returned `artifact_ref`, "
+        "`sha256`, `format`, `bytes`, and `row_count` verbatim in the successful evidence "
+        "ledger row."
+    )
 
 
 try:
@@ -50,6 +67,16 @@ try:
         or ""
     )
     prompt_lc = prompt.lower()
+    helper = os.environ.get("ENDOR_ARTIFACT_SUMMARIZER", "")
+    if event == "PreInvocation":
+        invocation_num = payload.get("invocationNum")
+        message = (
+            helper_context(helper)
+            if helper and invocation_num in (None, 0, "0")
+            else ""
+        )
+        emit(event, message)
+        raise SystemExit(0)
     if not prompt_lc or "endor_agent_kit_managed" in prompt_lc:
         raise SystemExit(0)
 
@@ -68,19 +95,11 @@ try:
     context = []
     if routes:
         context.append("Endor Agent Kit advisory routing:\n- " + "\n- ".join(dict.fromkeys(routes)))
-    helper = os.environ.get("ENDOR_ARTIFACT_SUMMARIZER", "")
     endor_relevant = bool(routes) or bool(
         re.search(r"\b(endor|malware|remediat|triag|upgrade impact|exception policy)\b", prompt_lc)
     )
     if helper and endor_relevant:
-        context.append(
-            "Endor Agent Kit runtime helper: for `runtime.large_result_artifact_required`, "
-            f"invoke `python3 {helper} capture -- <direct endorctl agent api list arguments>` exactly "
-            "once. This hook already verified the helper path, and capture reports executable "
-            "errors safely. Run capture immediately: do not test paths or tools, search, "
-            "preflight, execute endorctl separately, inspect the artifact with another command, "
-            "or issue a separate count query."
-        )
+        context.append(helper_context(helper))
     if context:
         emit(event, "\n".join(context))
 except Exception:
