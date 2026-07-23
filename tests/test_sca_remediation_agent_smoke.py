@@ -195,6 +195,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "selected-candidate" in prompt
     assert "Do not leave" in prompt
     assert "`change_requests: []`" in prompt
+    assert "`inventory.status`: exactly `none_found`, `exact_duplicate`, `different_target`, or `unavailable`" in prompt
+    assert "non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`" in prompt
+    assert "Do not flatten the key or reconciliation" in prompt
+    assert "use `checked_at`, never `check_time`" in prompt
+    assert "When that lookup returns zero rows, also add a precise Finding" in prompt
     assert "workflow labels such as `selected`" in prompt
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
     assert "Do not replace this title shape with a package-only title" in prompt
