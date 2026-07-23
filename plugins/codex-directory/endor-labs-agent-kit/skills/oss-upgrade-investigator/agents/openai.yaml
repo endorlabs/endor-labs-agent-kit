@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $oss-upgrade-investigator for this Endor Labs workflow.",
+    "display_name": "OSS Upgrade Investigator",
+    "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking change\u2026"
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

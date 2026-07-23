@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $findings-browser for this Endor Labs workflow.",
+    "display_name": "Findings Browser",
+    "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence."
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

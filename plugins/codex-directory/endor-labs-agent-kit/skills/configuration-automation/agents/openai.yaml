@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $configuration-automation for this Endor Labs workflow.",
+    "display_name": "Configuration Automation",
+    "short_description": "Read-only configuration assessment for GitHub repository onboarding and Endor monitored-branch cove\u2026"
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

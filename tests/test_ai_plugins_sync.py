@@ -23,7 +23,16 @@ def _minimal_source_tree(root: Path) -> None:
     _write(root / ".claude-plugin" / "marketplace.json", "{}\n")
     _write(root / ".agents" / "plugins" / "marketplace.json", "{}\n")
     _write(root / "scripts" / "check_repository_hygiene.py", "# hygiene\n")
+    _write(root / "scripts" / "build_codex_directory_submission.py", "# builder\n")
     _write(root / "scripts" / "validate_mirror_provenance.py", "# provenance\n")
+    _write(
+        root
+        / "source"
+        / "distribution"
+        / "ai-plugins-workflows"
+        / "build-codex-directory-submission.yml",
+        "name: build\n",
+    )
     _write(root / "assets" / "logo.png", "<svg />\n")
     _write(root / "skills" / "configuration-automation" / "SKILL.md")
     _write(root / "skills" / "create-endor-labs-agent" / "SKILL.md")
@@ -58,7 +67,11 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert (target / ".claude-plugin" / "marketplace.json").exists()
     assert (target / ".agents" / "plugins" / "marketplace.json").exists()
     assert (target / "scripts" / "check_repository_hygiene.py").exists()
+    assert (target / "scripts" / "build_codex_directory_submission.py").exists()
     assert (target / "scripts" / "validate_mirror_provenance.py").exists()
+    assert (
+        target / ".github" / "workflows" / "build-codex-directory-submission.yml"
+    ).exists()
     assert (target / "assets" / "logo.png").exists()
     assert not (target / "assets" / "logo.svg").exists()
     assert not (target / "gemini-extension.json").exists()

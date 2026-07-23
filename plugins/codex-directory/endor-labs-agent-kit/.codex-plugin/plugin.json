@@ -1,0 +1,41 @@
+{
+  "author": {
+    "name": "Endor Labs",
+    "url": "https://www.endorlabs.com/"
+  },
+  "description": "Endor Labs security workflows for Codex.",
+  "homepage": "https://github.com/endorlabs/ai-plugins",
+  "interface": {
+    "brandColor": "#4F46E5",
+    "capabilities": [
+      "Security",
+      "Investigation",
+      "Remediation"
+    ],
+    "category": "Developer Tools",
+    "composerIcon": "./assets/composer-icon.png",
+    "defaultPrompt": [
+      "Browse and summarize my active Endor findings.",
+      "Investigate an Endor vulnerability and explain its impact.",
+      "Plan a safe dependency remediation using Endor evidence."
+    ],
+    "developerName": "Endor Labs",
+    "displayName": "Endor Labs Agent Kit",
+    "logo": "./assets/logo.png",
+    "longDescription": "Use eleven source-generated Endor Labs workflows to investigate, triage, plan, and remediate application security and software supply-chain risks from Codex.",
+    "shortDescription": "Endor security workflows",
+    "websiteURL": "https://www.endorlabs.com/"
+  },
+  "keywords": [
+    "endor-labs",
+    "security",
+    "sca",
+    "sast",
+    "codex"
+  ],
+  "license": "MIT",
+  "name": "endor-labs-agent-kit",
+  "repository": "https://github.com/endorlabs/ai-plugins",
+  "skills": "./skills/",
+  "version": "2.1.0"
+}

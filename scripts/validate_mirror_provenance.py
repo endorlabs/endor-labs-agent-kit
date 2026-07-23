@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -25,6 +26,10 @@ def validate_mirror_provenance(root: Path) -> list[str]:
         checksum_parts = (root / "provenance/manifest.sha256").read_text(
             encoding="utf-8"
         ).strip().split()
+        mirrored_manifest = root / "provenance/agent-kit-manifest.json"
+        source_record = json.loads(
+            (root / "provenance/agent-kit-source.json").read_text(encoding="utf-8")
+        )
     except (OSError, json.JSONDecodeError) as exc:
         return [f"missing or invalid mirror provenance: {exc}"]
 
@@ -47,6 +52,12 @@ def validate_mirror_provenance(root: Path) -> list[str]:
         errors.append("manifest.sha256 must contain one manifest.json checksum")
     elif checksum_parts[0] != subject_digest:
         errors.append("manifest checksum does not match provenance subject")
+    elif hashlib.sha256(mirrored_manifest.read_bytes()).hexdigest() != checksum_parts[0]:
+        errors.append("mirrored Agent Kit manifest does not match provenance checksum")
+
+    source_sha = source_record.get("agent_kit_sha") if isinstance(source_record, Mapping) else None
+    if not isinstance(source_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", source_sha):
+        errors.append("agent-kit-source.json must pin one literal 40-character Agent Kit SHA")
 
     predicate = statement.get("predicate") if isinstance(statement, Mapping) else None
     catalog = predicate.get("catalog") if isinstance(predicate, Mapping) else None

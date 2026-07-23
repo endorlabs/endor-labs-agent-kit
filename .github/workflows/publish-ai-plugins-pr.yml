@@ -9,7 +9,9 @@ on:
       - "assets/**"
       - "pyproject.toml"
       - "scripts/sync_ai_plugins_distribution.py"
+      - "scripts/build_codex_directory_submission.py"
       - "source/agents/**"
+      - "source/distribution/**"
       - "source/endor-knowledge-pack/**"
       - "source/plugin-support/**"
       - "src/endor_agent_kit/**"
@@ -207,6 +209,26 @@ jobs:
             ai-plugins/provenance/agent-kit-catalog.intoto.json
           cp endor-labs-agent-kit/dist/provenance/manifest.sha256 \
             ai-plugins/provenance/manifest.sha256
+          cp endor-labs-agent-kit/manifest.json \
+            ai-plugins/provenance/agent-kit-manifest.json
+          python3 - <<PY
+          import json
+          import pathlib
+
+          pathlib.Path("ai-plugins/provenance/agent-kit-source.json").write_text(
+              json.dumps(
+                  {
+                      "kind": "endor.agent-kit-source/v1",
+                      "agent_kit_repository": "${GITHUB_REPOSITORY}",
+                      "agent_kit_sha": "${GITHUB_SHA}",
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
           cat > ai-plugins/provenance/README.md <<'EOF'
           # Agent Kit Catalog Provenance
 
@@ -216,6 +238,9 @@ jobs:
             statement emitted by `endor-agent-kit provenance-statement`.
           - `manifest.sha256` records the checksum of the Agent Kit `manifest.json`
             that anchors all generated artifact checksums.
+          - `agent-kit-manifest.json` is the source manifest used to validate
+            generated package records and per-file digests from this mirror.
+          - `agent-kit-source.json` pins the exact Agent Kit source commit.
 
           Do not edit these files by hand. Update Agent Kit source, regenerate,
           and let the publish workflow open a new distribution PR.
@@ -227,6 +252,7 @@ jobs:
           set -e
           python3 scripts/check_repository_hygiene.py
           python3 scripts/validate_mirror_provenance.py
+          python3 scripts/build_codex_directory_submission.py validate --root .
           for skill in skills/*; do
             ../endor-labs-agent-kit/.venv/bin/python scripts/quick_validate.py "$skill"
           done

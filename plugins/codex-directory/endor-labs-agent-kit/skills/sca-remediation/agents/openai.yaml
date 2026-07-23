@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $sca-remediation for this Endor Labs workflow.",
+    "display_name": "SCA Remediation",
+    "short_description": "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation\u2026"
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

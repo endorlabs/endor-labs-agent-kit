@@ -9,7 +9,8 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Host | Start Here | Good Fit |
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/README.md` | Plugin install with Claude Code agents and setup skill. |
-| Codex | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with one setup skill plus approval-gated managed custom-agent TOML files. |
+| Codex CLI/custom agents | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with one setup skill plus approval-gated managed custom-agent TOML files. |
+| Codex public directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows and the customer's active Codex model. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
 | Cursor | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Cursor plugin metadata with generated workflow agents, support skills, and advisory hooks. |
@@ -70,6 +71,13 @@ Use the endor-agent-kit-setup skill to install only the bundled Codex custom age
 
 Start a fresh Codex task after that installation so the 11 workflow agents and
 the setup agent are discovered. Workflow-skill fallbacks remain opt-in.
+
+The public-directory artifact is a separate route. It exposes the 11 workflow
+skills directly, does not install custom-agent TOML files, and does not pin a
+model. Installing it must not replace or rewrite the CLI/custom-agent package.
+For a runner or container using the CLI package, set `CODEX_HOME` explicitly to
+a persistent writable directory before running the bundled installer; do not
+rely on a developer workstation's home directory.
 
 ## Run Cursor SDK Automation
 

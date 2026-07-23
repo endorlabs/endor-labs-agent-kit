@@ -26,6 +26,10 @@ Current generated package slices:
   Codex workflow skills, bundled custom-agent TOML files, installer script,
   public marketplace metadata under `../.agents/plugins/marketplace.json`,
   and local validation metadata under `codex/.agents/plugins/marketplace.json`.
+- `codex-directory/endor-labs-agent-kit/`: Codex public-directory
+  skills-only package with exactly 11 canonical workflow skills and
+  skill-local runtime helpers. It excludes setup, installers, custom
+  agents, hooks, MCP/apps, and model pins.
 - `claude/endor-labs-agent-kit/`: Claude Code plugin package with setup skill,
   Claude Code workflow agents, fail-open advisory hooks, minimal assets, and
   marketplace metadata under `.claude-plugin/marketplace.json` and

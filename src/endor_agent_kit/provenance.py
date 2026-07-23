@@ -139,9 +139,17 @@ def build_provenance_statement(
                     "name": package.name,
                     "version": package.version,
                     "path": package.path,
+                    "distribution_channel": package.distribution_channel,
                     "included_agents": list(package.included_agents),
                 }
-                for package in sorted(plugin_packages, key=lambda package: (package.host, package.name))
+                for package in sorted(
+                    plugin_packages,
+                    key=lambda package: (
+                        package.host,
+                        package.name,
+                        package.distribution_channel,
+                    ),
+                )
             ],
         },
     }

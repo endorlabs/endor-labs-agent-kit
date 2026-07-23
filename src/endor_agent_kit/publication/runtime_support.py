@@ -14,6 +14,12 @@ def write_artifact_summarizer(package_root: Path) -> Path:
     """Copy the canonical artifact summarizer into one runtime package."""
 
     target = package_root / RUNTIME_DIRECTORY / ARTIFACT_SUMMARIZER_NAME
+    return write_artifact_summarizer_file(target)
+
+
+def write_artifact_summarizer_file(target: Path) -> Path:
+    """Copy the canonical artifact summarizer to an explicit package-local path."""
+
     target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(_artifact_summarizer_source(), target)
     return target

@@ -1471,19 +1471,39 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "mcpServers:" not in antigravity_agent.split("---", 2)[1]
 
     manifest = json.loads((dest / "manifest.json").read_text())
-    packages = {
-        (package["host"], package["name"]): package
+    packages_by_channel = {
+        (
+            package["host"],
+            package["name"],
+            package.get("distribution_channel", "repository"),
+        ): package
         for package in manifest["plugin_packages"]
     }
-    assert set(packages) == {
-        ("antigravity", "endor-labs-agent-kit"),
-            ("claude-code", "ai-plugins"),
-            ("claude-code", "endor-labs-agent-kit"),
-            ("codex", "endor-labs-agent-kit"),
-            ("cursor", "endorlabs"),
-            ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk"),
-            ("gemini", "endor-labs-agent-kit"),
+    assert set(packages_by_channel) == {
+        ("antigravity", "endor-labs-agent-kit", "repository"),
+        ("claude-code", "ai-plugins", "repository"),
+        ("claude-code", "endor-labs-agent-kit", "repository"),
+        ("codex", "endor-labs-agent-kit", "official-directory"),
+        ("codex", "endor-labs-agent-kit", "repository"),
+        ("cursor", "endorlabs", "repository"),
+        ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk", "repository"),
+        ("gemini", "endor-labs-agent-kit", "repository"),
+    }
+    packages = {
+        (host, name): {
+            key: value
+            for key, value in package.items()
+            if key != "distribution_channel"
         }
+        for (host, name, channel), package in packages_by_channel.items()
+        if channel == "repository"
+    }
+    official_codex_package = packages_by_channel[
+        ("codex", "endor-labs-agent-kit", "official-directory")
+    ]
+    assert official_codex_package["path"] == "plugins/codex-directory/endor-labs-agent-kit"
+    assert official_codex_package["included_agents"] == list(codex_agent_ids)
+    assert official_codex_package["distribution_channel"] == "official-directory"
     assert packages[("codex", "endor-labs-agent-kit")] == {
         "artifacts": packages[("codex", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",

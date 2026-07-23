@@ -1,0 +1,111 @@
+name: Build Codex directory submission
+
+on:
+  workflow_dispatch:
+    inputs:
+      ai_plugins_sha:
+        description: Exact 40-character ai-plugins commit to package
+        required: true
+        type: string
+      publish_release_assets:
+        description: Upload the verified files to an existing GitHub Release
+        required: true
+        type: boolean
+        default: false
+      release_tag:
+        description: Existing ai-plugins release tag when publishing release assets
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate immutable commit input
+        env:
+          AI_PLUGINS_SHA: ${{ inputs.ai_plugins_sha }}
+        run: |
+          if ! printf '%s' "$AI_PLUGINS_SHA" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "ai_plugins_sha must be a literal 40-character lowercase Git SHA"
+            exit 1
+          fi
+
+      - name: Check out immutable ai-plugins commit
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          ref: ${{ inputs.ai_plugins_sha }}
+          fetch-depth: 1
+
+      - name: Verify checked-out commit and source provenance
+        id: provenance
+        env:
+          AI_PLUGINS_SHA: ${{ inputs.ai_plugins_sha }}
+        run: |
+          actual_sha="$(git rev-parse HEAD)"
+          test "$actual_sha" = "$AI_PLUGINS_SHA"
+          python3 - <<'PY'
+          import json
+          import os
+          import pathlib
+          import re
+
+          payload = json.loads(
+              pathlib.Path("provenance/agent-kit-source.json").read_text(encoding="utf-8")
+          )
+          source_sha = payload.get("agent_kit_sha", "")
+          if not re.fullmatch(r"[0-9a-f]{40}", source_sha):
+              raise SystemExit("provenance/agent-kit-source.json has no immutable Agent Kit SHA")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"agent_kit_sha={source_sha}\n")
+          PY
+
+      - name: Validate and build deterministic submission
+        env:
+          AI_PLUGINS_SHA: ${{ inputs.ai_plugins_sha }}
+          AGENT_KIT_SHA: ${{ steps.provenance.outputs.agent_kit_sha }}
+        run: |
+          python3 scripts/build_codex_directory_submission.py validate --root .
+          python3 scripts/build_codex_directory_submission.py build \
+            --root . \
+            --output-dir dist/codex-directory \
+            --ai-plugins-sha "$AI_PLUGINS_SHA" \
+            --agent-kit-source-sha "$AGENT_KIT_SHA"
+
+      - name: Upload immutable workflow artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: codex-directory-${{ inputs.ai_plugins_sha }}
+          path: dist/codex-directory/*
+          if-no-files-found: error
+          retention-days: 30
+
+  publish-release-assets:
+    if: ${{ inputs.publish_release_assets }}
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Require explicit release tag
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: test -n "$RELEASE_TAG"
+
+      - name: Download verified workflow artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: codex-directory-${{ inputs.ai_plugins_sha }}
+          path: codex-directory
+
+      - name: Upload to existing GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY"
+          gh release upload "$RELEASE_TAG" codex-directory/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
