@@ -5,8 +5,11 @@
 Version: `2.1.0`
 
 This generated Claude Code plugin package includes Endor Labs setup
-support and Claude Code agents generated from source recipes in the
+support and the 11 canonical Claude Code workflow agents generated from source recipes in the
 Endor Labs Agent Kit repository.
+Task-profile projections remain available in `claude-code/<agent>/` for
+advanced manual invocation; they are intentionally not separate public
+marketplace agents.
 
 ## Start Here
 

@@ -29,6 +29,9 @@ profile at the start of a run:
 - `repository-review` for bounded local manifest and dependency inspection
 
 The profiles are not separate public agents and must not call one another.
+For Claude Code, profile-specific projections remain available in the manual
+`claude-code/<agent>/` bundles, while marketplace packages expose only these 11
+canonical workflow ids.
 
 ## Rollout Contract
 

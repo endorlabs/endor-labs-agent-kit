@@ -15,6 +15,12 @@ _SHA256 = re.compile(r"^[0-9a-f]{64}$")
 _AGENT_PREFIX = "endor-"
 _AGENT_SUFFIX = "-agent.md"
 _SETUP_AGENT = "endor-agent-kit-setup-agent.md"
+_MANAGED_AGENT_ID = re.compile(
+    r"<!--\s+endor_agent_kit_managed=true\b[^>]*\bagent_id=([a-z0-9-]+)\b"
+)
+_MANAGED_PROFILE_ID = re.compile(
+    r"<!--\s+endor_agent_kit_managed=true\b[^>]*\bprofile_id=([a-z0-9-]+)\b"
+)
 
 
 def validate_mirror_provenance(root: Path) -> list[str]:
@@ -73,30 +79,60 @@ def validate_mirror_provenance(root: Path) -> list[str]:
 
     agents_root = root / "agents"
     try:
-        filenames = {
-            path.name
-            for path in agents_root.iterdir()
-            if path.is_file() and path.name != _SETUP_AGENT
-        }
+        agent_paths = tuple(
+            sorted(
+                path
+                for path in agents_root.iterdir()
+                if path.is_file() and path.name != _SETUP_AGENT
+            )
+        )
     except OSError as exc:
         errors.append(f"missing mirror agents directory: {exc}")
-        filenames = set()
-    invalid_names = sorted(
-        name
-        for name in filenames
-        if not (name.startswith(_AGENT_PREFIX) and name.endswith(_AGENT_SUFFIX))
-    )
-    if invalid_names:
-        errors.append(f"unexpected root agent filenames: {invalid_names}")
-    mirror_ids = {
-        name[len(_AGENT_PREFIX) : -len(_AGENT_SUFFIX)]
-        for name in filenames
-        if name.startswith(_AGENT_PREFIX) and name.endswith(_AGENT_SUFFIX)
-    }
-    if len(provenance_ids) != 11 or len(mirror_ids) != 11:
-        errors.append("mirror provenance and root package must each contain exactly 11 canonical agents")
+        agent_paths = ()
+
+    mirror_ids: set[str] = set()
+    base_ids: set[str] = set()
+    unmanaged_files: list[str] = []
+    profile_files: list[str] = []
+    for path in agent_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            unmanaged_files.append(path.name)
+            continue
+        agent_match = _MANAGED_AGENT_ID.search(text)
+        if agent_match is not None:
+            agent_id = agent_match.group(1)
+            mirror_ids.add(agent_id)
+            profile_match = _MANAGED_PROFILE_ID.search(text)
+            if profile_match is not None and profile_match.group(1) != "base":
+                profile_files.append(path.name)
+            else:
+                base_ids.add(agent_id)
+            continue
+        if path.name.startswith(_AGENT_PREFIX) and path.name.endswith(_AGENT_SUFFIX):
+            agent_id = path.name[len(_AGENT_PREFIX) : -len(_AGENT_SUFFIX)]
+            mirror_ids.add(agent_id)
+            base_ids.add(agent_id)
+            continue
+        unmanaged_files.append(path.name)
+
+    if unmanaged_files:
+        errors.append(f"root agent files lack canonical managed identity: {unmanaged_files}")
+    if profile_files:
+        errors.append(
+            f"root Claude package must not expose task-profile agents: {profile_files}"
+        )
+    if len(provenance_ids) != 11 or len(agent_paths) != 11 or len(mirror_ids) != 11:
+        errors.append(
+            "mirror provenance and root package must each contain exactly 11 "
+            "canonical agent files"
+        )
     if provenance_ids != mirror_ids:
         errors.append("mirror canonical agent ids do not match provenance")
+    missing_base_ids = sorted(provenance_ids - base_ids)
+    if missing_base_ids:
+        errors.append(f"root package missing base agent projections: {missing_base_ids}")
     return errors
 
 

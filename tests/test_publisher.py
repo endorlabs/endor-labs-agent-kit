@@ -288,18 +288,35 @@ def test_publish_recipe_emits_verifiable_profile_contracts_for_every_host(tmp_pa
     } == {payload["contract_digest"]}
 
 
-def test_claude_plugin_packages_include_named_profile_agents(tmp_path):
+def test_claude_plugin_packages_publish_only_canonical_agents_and_retain_manual_profiles(
+    tmp_path: Path,
+):
     recipe = _copy_agent(tmp_path, "sca-remediation")
     dest = tmp_path / "endor-labs-agent-kit"
 
     publish_recipes([recipe], dest, include_plugins=True)
 
+    manual_agents = dest / "claude-code" / "sca-remediation"
+    expected_profiles = {
+        f"sca-remediation-{profile_id}.md"
+        for profile_id in ("resolve-scope", "evidence-check", "selection-plan")
+    }
+    assert expected_profiles <= {
+        path.name for path in manual_agents.glob("sca-remediation-*.md")
+    }
+
     for package_name in ("endor-labs-agent-kit", "ai-plugins"):
         agents_dir = dest / "plugins" / "claude" / package_name / "agents"
-        for profile_id in ("resolve-scope", "evidence-check", "selection-plan"):
-            variant = agents_dir / f"sca-remediation-{profile_id}.md"
-            assert variant.is_file()
-            assert f"name: sca-remediation-{profile_id}" in variant.read_text(encoding="utf-8")
+        assert {path.name for path in agents_dir.glob("*.md")} == {
+            "sca-remediation.md"
+        }
+        canonical = (agents_dir / "sca-remediation.md").read_text(encoding="utf-8")
+        assert "name: sca-remediation" in canonical
+        assert "profile_id=base" in canonical
+        assert (
+            "Profiles: `resolve-scope`, `evidence-check`, `selection-plan`"
+            in canonical
+        )
 
 
 def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_path, monkeypatch):

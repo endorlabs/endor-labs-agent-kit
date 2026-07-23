@@ -34,13 +34,49 @@ def test_prompt_hook_injects_exact_packaged_artifact_summarizer_path(tmp_path: P
     output = json.loads(completed.stdout)
     context = output["hookSpecificOutput"]["additionalContext"]
     assert str(helper) in context
-    assert f"python3 {helper} capture -- <direct endorctl agent api list arguments>" in context
+    assert f"artifact_summarizer_path={helper}" in context
+    assert "python3 <artifact_summarizer_path> capture --" in context
     assert "exactly once" in context
-    assert "hook already verified the helper path" in context
-    assert "do not test paths or tools" in context
-    assert "execute endorctl separately" in context
+    assert "verified absolute path only when" in context
+    assert "otherwise ignore it" in context
+    assert "Run capture immediately" not in context
+    assert "execute the same Endor query separately" in context
     assert "inspect the artifact" in context
     assert "separate count query" in context
+
+
+def test_prompt_hook_omits_runtime_helper_for_bounded_endor_prompt(tmp_path: Path):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    runtime = package / "runtime"
+    hooks.mkdir(parents=True)
+    runtime.mkdir()
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+    helper = runtime / "summarize_endor_artifact.py"
+    helper.write_text("# packaged helper\n", encoding="utf-8")
+
+    completed = subprocess.run(
+        ["bash", str(hook), "UserPromptSubmit"],
+        input=json.dumps(
+            {
+                "prompt": (
+                    "Browse at most three Endor findings. This is a bounded sample, "
+                    "not a complete inventory."
+                )
+            }
+        ),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "findings-browser" in context
+    assert "artifact_summarizer_path" not in context
 
 
 def test_antigravity_pre_invocation_injects_helper_without_prompt_fields(

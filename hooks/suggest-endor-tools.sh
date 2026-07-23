@@ -37,14 +37,33 @@ def emit(event_name: str, message: str) -> None:
 
 def helper_context(helper: str) -> str:
     return (
-        "Endor Agent Kit runtime helper: for `runtime.large_result_artifact_required`, "
-        f"invoke `python3 {helper} capture -- <direct endorctl agent api list arguments>` exactly "
-        "once. This hook already verified the helper path, and capture reports executable "
-        "errors safely. Run capture immediately: do not use `python3 -m`; do not test paths or tools, "
-        "search, preflight, execute endorctl separately, inspect the artifact with another "
-        "command, or issue a separate count query. Preserve the returned `artifact_ref`, "
-        "`sha256`, `format`, `bytes`, and `row_count` verbatim in the successful evidence "
-        "ledger row."
+        "Installed Endor Agent Kit package metadata: "
+        f"`artifact_summarizer_path={helper}`. Use this verified absolute path only when the "
+        "selected workflow recipe sets `runtime.large_result_artifact_required=true`; otherwise "
+        "ignore it. In that route, invoke `python3 <artifact_summarizer_path> capture -- "
+        "<direct endorctl agent api list arguments>` exactly once. Do not preflight or execute "
+        "the same Endor query separately, inspect the artifact with another command, or issue a "
+        "separate count query. Preserve the returned `artifact_ref`, `sha256`, `format`, `bytes`, "
+        "and `row_count` verbatim in the successful evidence ledger row."
+    )
+
+
+def prompt_requests_complete_inventory(prompt_lc: str) -> bool:
+    explicitly_bounded = bool(
+        re.search(
+            r"(?:\bnot (?:a )?complete\b|\bbounded\b.{0,80}\bnot (?:a )?complete\b|"
+            r"\b(?:do not|don't|omit|without|no)\b.{0,24}--list-all)",
+            prompt_lc,
+        )
+    )
+    if explicitly_bounded:
+        return False
+    return bool(
+        re.search(
+            r"(?:--list-all|\blist all\b|\bcomplete\b|\bexhaustive\b|"
+            r"\bexact totals?\b|\bfull inventory\b)",
+            prompt_lc,
+        )
     )
 
 
@@ -136,7 +155,7 @@ try:
     endor_relevant = bool(routes) or bool(
         re.search(r"\b(endor|malware|remediat|triag|upgrade impact|exception policy)\b", prompt_lc)
     )
-    if helper and endor_relevant:
+    if helper and endor_relevant and prompt_requests_complete_inventory(prompt_lc):
         context.append(helper_context(helper))
     if context:
         emit(event, "\n".join(context))

@@ -61,6 +61,11 @@ system: |
   - `tag_filter`: real `FINDING_TAGS_*` values for prioritization.
   - `page_size` and any truncation or pagination decision.
 
+  Map `reachability_filter=reachable` directly to
+  `(spec.finding_tags contains FINDING_TAGS_REACHABLE_FUNCTION or
+  spec.finding_tags contains FINDING_TAGS_REACHABLE_DEPENDENCY)`. Never try the
+  nonexistent generic `FINDING_TAGS_REACHABLE` value or a `spec.reachable` path.
+
   Self-chosen defaults belong in `applied_filters`, not `data_gaps`.
 
   Map conservatively: CVE/GHSA/SCA -> vulnerability; CI/CD -> CICD/GHACTIONS;
@@ -73,10 +78,16 @@ system: |
 
   1. Resolve namespace and optional project/repository scope.
   2. If `finding_uuid` is supplied, get that exact Finding and stop listing.
-  3. Query bounded projected rows; if bounded, stop after one page without complete claims.
+  3. Query bounded projected rows; if bounded, stop after the first successful
+     Finding page without complete claims. Never issue a `page_size + 1`, count,
+     alternate-filter, or other auxiliary probe merely to infer truncation. Use
+     pagination metadata from the requested page; when it is absent, report
+     pagination certainty as a data gap.
   4. If complete, use the cheapest sufficient route, explain escalation, map the
      verified total to both count fields, and keep rows bounded.
-  5. Ledger query id, filter/field summaries, status, count, and reason.
+  5. Ledger every attempted Endor query, including failed, unsupported, and
+     zero-result attempts, with query id, filter/field summaries, status, count,
+     and reason.
 
   ## Output Contract
 
