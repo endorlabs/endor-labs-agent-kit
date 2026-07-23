@@ -847,9 +847,9 @@
               "sha256": "ee5ad82fb19dbec0b10da9c84a085af1b0a43ced648197dd00e4af22a6f58e48"
             },
             {
-              "bytes": 9938,
+              "bytes": 9941,
               "path": "claude-code/oss-upgrade-investigator/architecture.svg",
-              "sha256": "d2a201bfde60682dc7a115e582e8be0f33a5ac4fae89783e7d08aadbb8dba546"
+              "sha256": "8ae22b69110a813afda369b47e516401a8e571613cb7714e5ebff2b7911915a4"
             },
             {
               "bytes": 1806,
@@ -2014,9 +2014,9 @@
               "sha256": "d986fa372098e0856dac3b0f9502e337b7a898dcddf5344b0d231b16b08138cc"
             },
             {
-              "bytes": 9938,
+              "bytes": 9941,
               "path": "claude-managed-agents/oss-upgrade-investigator/architecture.svg",
-              "sha256": "d2a201bfde60682dc7a115e582e8be0f33a5ac4fae89783e7d08aadbb8dba546"
+              "sha256": "8ae22b69110a813afda369b47e516401a8e571613cb7714e5ebff2b7911915a4"
             },
             {
               "bytes": 1806,
@@ -2942,9 +2942,9 @@
               "sha256": "6c041eda87c273ebeb560ba07dd27259d490eb15d27eb32b680a0ad4244cbaa1"
             },
             {
-              "bytes": 9932,
+              "bytes": 9935,
               "path": "codex/oss-upgrade-investigator/architecture.svg",
-              "sha256": "fdad5205b91548e29accf08642b29d12cd0098e6e6ce29813e4e480562195ab1"
+              "sha256": "e3c18b7ce9eec44afdbff2b49f3d705937acb5e9cb1da64965257118b85fd3ab"
             },
             {
               "bytes": 1806,
@@ -4093,9 +4093,9 @@
               "sha256": "219a813fd2345a3ff55f55833f99a65550596c649fdec89380cc5de7a76e2e5f"
             },
             {
-              "bytes": 9937,
+              "bytes": 9940,
               "path": "gemini/oss-upgrade-investigator/architecture.svg",
-              "sha256": "0b73b52279bf6bd1482f2b13e8849d7bfb463d9b3cbadc33050ade6a73a75b80"
+              "sha256": "862916b1fc324c38586c95f37d2d37d19f46677a9e336342e2d0fd3077203303"
             },
             {
               "bytes": 1806,
@@ -5304,9 +5304,9 @@
               "sha256": "1a828f5b6444a779b137144d566bf51b7d1597020e520c1f9b747a194ff023e3"
             },
             {
-              "bytes": 9913,
+              "bytes": 9916,
               "path": "portable/oss-upgrade-investigator/architecture.svg",
-              "sha256": "e256a73952abbbb9bcbe4e29039acd36d4b136f01cefb13e2ce1e6f9e1685691"
+              "sha256": "86224f44dfe3f600ff617197ad5b302dd2bf1cc769b51ebec2fc9ad7c2b96c6e"
             },
             {
               "bytes": 1806,
@@ -6854,9 +6854,9 @@
           "sha256": "14b14a343b904214141dad1cd315a4a3e2873144fb68ee5322edd01e2e3e4dba"
         },
         {
-          "bytes": 9933,
+          "bytes": 9936,
           "path": "skills/oss-upgrade-investigator/architecture.svg",
-          "sha256": "1aaf5ddeeabd5b5992f8772c540ef8ef48bb4440dbf8ee361da11ac4eb68f75f"
+          "sha256": "0fe5b399ecdbe9ee2971f2cb2d69a859980354a2cf300688e8f85a58b9ac6e9d"
         },
         {
           "bytes": 12623,
@@ -7002,9 +7002,9 @@
           "sha256": "5b8ecb37ea862fcb9c0a978af0b019aaa480296ac6a5121b9ee58bd8227d5834"
         },
         {
-          "bytes": 9933,
+          "bytes": 9936,
           "path": "cursor-sdk/agents/endor-oss-upgrade-investigator-agent.architecture.svg",
-          "sha256": "1aaf5ddeeabd5b5992f8772c540ef8ef48bb4440dbf8ee361da11ac4eb68f75f"
+          "sha256": "0fe5b399ecdbe9ee2971f2cb2d69a859980354a2cf300688e8f85a58b9ac6e9d"
         },
         {
           "bytes": 13660,
