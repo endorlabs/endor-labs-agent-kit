@@ -25,7 +25,15 @@ SYNC_FILES = (
     (".claude-plugin/marketplace.json", ".claude-plugin/marketplace.json"),
     (".agents/plugins/marketplace.json", ".agents/plugins/marketplace.json"),
     ("scripts/check_repository_hygiene.py", "scripts/check_repository_hygiene.py"),
+    (
+        "scripts/build_codex_directory_submission.py",
+        "scripts/build_codex_directory_submission.py",
+    ),
     ("scripts/validate_mirror_provenance.py", "scripts/validate_mirror_provenance.py"),
+    (
+        "source/distribution/ai-plugins-workflows/build-codex-directory-submission.yml",
+        ".github/workflows/build-codex-directory-submission.yml",
+    ),
 )
 
 STALE_GENERATED_FILES = (

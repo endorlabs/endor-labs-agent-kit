@@ -1,18 +1,30 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 
 from scripts.validate_mirror_provenance import validate_mirror_provenance
 
 
-def _write_mirror(root: Path, *, checksum: str = "a" * 64) -> None:
+def _write_mirror(root: Path, *, checksum: str | None = None) -> None:
     ids = [f"agent-{index}" for index in range(11)]
     (root / "agents").mkdir(parents=True)
     for agent_id in ids:
         (root / "agents" / f"endor-{agent_id}-agent.md").write_text("agent\n", encoding="utf-8")
     (root / "agents/endor-agent-kit-setup-agent.md").write_text("setup\n", encoding="utf-8")
     (root / "provenance").mkdir()
+    manifest_text = json.dumps({"schema_version": 1}, sort_keys=True) + "\n"
+    (root / "provenance/agent-kit-manifest.json").write_text(
+        manifest_text,
+        encoding="utf-8",
+    )
+    actual_checksum = hashlib.sha256(manifest_text.encode("utf-8")).hexdigest()
+    checksum = checksum or actual_checksum
+    (root / "provenance/agent-kit-source.json").write_text(
+        json.dumps({"agent_kit_sha": "c" * 40}),
+        encoding="utf-8",
+    )
     statement = {
         "subject": [{"name": "manifest.json", "digest": {"sha256": checksum}}],
         "predicate": {"catalog": [{"id": agent_id} for agent_id in ids]},

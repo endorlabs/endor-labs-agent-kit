@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $troubleshooting for this Endor Labs workflow.",
+    "display_name": "Troubleshooting",
+    "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configura\u2026"
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

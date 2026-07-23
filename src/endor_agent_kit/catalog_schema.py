@@ -402,6 +402,7 @@ class CatalogPluginPackage:
     path: str
     included_agents: tuple[str, ...]
     artifacts: tuple[CatalogArtifact, ...]
+    distribution_channel: str = "repository"
     display_name: str = ""
     marketplace_path: str = ""
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
@@ -427,6 +428,7 @@ class CatalogPluginPackage:
                 "version",
                 "path",
                 "marketplace_path",
+                "distribution_channel",
                 "included_agents",
                 "artifacts",
             },
@@ -438,6 +440,7 @@ class CatalogPluginPackage:
             version=str(record.get("version") or ""),
             path=str(record.get("path") or ""),
             marketplace_path=str(record.get("marketplace_path") or ""),
+            distribution_channel=str(record.get("distribution_channel") or "repository"),
             included_agents=tuple(str(item) for item in included_agents),
             artifacts=tuple(CatalogArtifact.from_manifest_record(artifact) for artifact in artifacts),
             extra_fields=extra_fields,
@@ -454,6 +457,7 @@ class CatalogPluginPackage:
         version: str,
         package_dir: Path,
         included_agents: tuple[str, ...],
+        distribution_channel: str = "repository",
         marketplace_path: str = "",
         extra_artifacts: tuple[Path, ...] = (),
     ) -> "CatalogPluginPackage":
@@ -468,6 +472,7 @@ class CatalogPluginPackage:
             version=version,
             path=package_dir.relative_to(destination).as_posix(),
             marketplace_path=marketplace_path,
+            distribution_channel=distribution_channel,
             included_agents=tuple(sorted(included_agents)),
             artifacts=tuple(CatalogArtifact.from_published_file(destination, path) for path in files),
         )
@@ -482,6 +487,7 @@ class CatalogPluginPackage:
             record["display_name"] = self.display_name
         record["version"] = self.version
         record["path"] = self.path
+        record["distribution_channel"] = self.distribution_channel
         if self.marketplace_path:
             record["marketplace_path"] = self.marketplace_path
         record["included_agents"] = list(self.included_agents)
@@ -531,10 +537,10 @@ def catalog_agent_sort_key(agent: CatalogAgent) -> tuple[str, str]:
     return (agent.host, agent.id)
 
 
-def catalog_plugin_package_sort_key(package: CatalogPluginPackage) -> tuple[str, str]:
+def catalog_plugin_package_sort_key(package: CatalogPluginPackage) -> tuple[str, str, str]:
     """Return the stable Catalog Manifest sort key for one plugin package."""
 
-    return (package.host, package.name)
+    return (package.host, package.name, package.distribution_channel)
 
 
 def _extra_fields(record: dict[str, Any], known: set[str]) -> dict[str, Any]:

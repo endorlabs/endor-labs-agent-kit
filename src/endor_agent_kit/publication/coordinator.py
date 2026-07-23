@@ -121,7 +121,7 @@ class HostArtifactPublication:
         *,
         generated_agents: tuple[CatalogAgent, ...] = (),
         plugin_packages: tuple[CatalogPluginPackage, ...] = (),
-        replace_plugin_hosts: set[str] | None = None,
+        replace_plugin_groups: set[tuple[str, str]] | None = None,
         prune_active_host_agents: set[tuple[str, str]] | None = None,
     ) -> Path | None:
         """Finalize generated agents, pruning, and plugin packages in one manifest write."""
@@ -150,11 +150,11 @@ class HostArtifactPublication:
                         ignore_errors=True,
                     )
 
-        replace_hosts = replace_plugin_hosts or set()
+        replace_groups = replace_plugin_groups or set()
         merged_packages = [
             package
             for package in existing_packages
-            if package.host not in replace_hosts
+            if (package.host, package.distribution_channel) not in replace_groups
         ]
         merged_packages.extend(plugin_packages)
 
@@ -162,7 +162,10 @@ class HostArtifactPublication:
             generated_agents
             or plugin_packages
             or stale_agents
-            or any(package.host in replace_hosts for package in existing_packages)
+            or any(
+                (package.host, package.distribution_channel) in replace_groups
+                for package in existing_packages
+            )
         )
         if not changed:
             return None
@@ -211,14 +214,14 @@ class HostArtifactPublication:
         destination: Path,
         packages: tuple[CatalogPluginPackage, ...],
         *,
-        replace_hosts: set[str],
+        replace_groups: set[tuple[str, str]],
     ) -> Path:
-        """Write plugin package records while preserving unrelated package hosts."""
+        """Write plugin package records while preserving unrelated host channels."""
 
         path = self.finalize_manifest(
             destination,
             plugin_packages=packages,
-            replace_plugin_hosts=replace_hosts,
+            replace_plugin_groups=replace_groups,
         )
         if path is None:  # pragma: no cover - packages always writes
             raise AssertionError("writing plugin packages must finalize the Catalog Manifest")

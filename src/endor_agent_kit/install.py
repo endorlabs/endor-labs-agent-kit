@@ -219,9 +219,13 @@ def _installed_codex_plugin_skill_artifacts(
         key=lambda item: (item.name, item.path),
     )
     for package in packages:
-        if package.host != CODEX_HOST or agent_id not in package.included_agents:
+        if (
+            package.host != CODEX_HOST
+            or package.distribution_channel != "repository"
+            or agent_id not in package.included_agents
+        ):
             continue
-        skill_root = Path(package.path) / "skills" / agent_id
+        skill_root = Path(package.path) / "bundled-skills" / agent_id
         expected = tuple(
             ExpectedInstallArtifact(
                 artifact=artifact,

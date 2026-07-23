@@ -11,6 +11,7 @@ Claude Code, Codex, and Gemini support still publish generated artifacts under
 package slices now wrap host-compatible public workflows under:
 
 - `plugins/codex/endor-labs-agent-kit/`
+- `plugins/codex-directory/endor-labs-agent-kit/` for official Codex directory submission
 - `plugins/claude/endor-labs-agent-kit/`
 - `plugins/claude/ai-plugins/` for legacy Claude Code compatibility
 - `plugins/gemini/endor-labs-agent-kit/`
@@ -46,6 +47,34 @@ The generated Codex plugin package includes:
 Do not add MCP servers to the plugin manifest by default. `sca-remediation` and
 `ai-sast-remediation` are `endorctl_agent_api` workflows, and their safety contract depends
 on local terminal/source-provider state plus explicit approval gates.
+
+## Codex Distribution Channels
+
+Codex has two generated packages with the same canonical workflow identities
+and different distribution channels:
+
+- `repository`: `plugins/codex/endor-labs-agent-kit/` remains the CLI,
+  container, runner, setup, installer, and custom-agent package.
+- `official-directory`: `plugins/codex-directory/endor-labs-agent-kit/` is a
+  skills-only public submission package with exactly 11 workflow skills.
+
+`CatalogPluginPackage.distribution_channel` defaults to `repository` for old
+manifests. Package identity is `(host, name, distribution_channel)`, and
+publisher replacement occurs by `(host, distribution_channel)`, so a partial
+publication cannot erase the sibling Codex package. Installation checks select
+only the repository channel.
+
+The directory package has one `.codex-plugin/plugin.json`, square logo and
+composer icon, and `skills/<canonical-id>/` containing only `SKILL.md`,
+`agents/openai.yaml`, and the skill-local artifact summarizer. It has no setup
+skill, custom-agent TOML, installer, hooks, MCP/apps, staging values, or model
+pin. The public skills use the customer's active Codex model. Large-result
+instructions resolve the helper from the active `SKILL.md` path rather than the
+working directory.
+
+Full publication requires the exact canonical 11-recipe set. A strict subset
+skips this package and preserves its directory and manifest record; unexpected
+or duplicate Codex recipe IDs fail closed.
 
 ## Implemented Claude Code Plugin Shape
 
@@ -178,7 +207,7 @@ Kit source recipes and mirrored into `ai-plugins` as a distribution artifact.
 
 ## Blast Radius
 
-Adding first-class plugin publishing would touch:
+First-class plugin publishing touches:
 
 - `src/endor_agent_kit/publisher.py` and `src/endor_agent_kit/publication/`
   for generated plugin directories, manifest records, pruning, README rows, and

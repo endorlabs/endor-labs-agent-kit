@@ -21,6 +21,9 @@ from endor_agent_kit.publication import (
 from endor_agent_kit.publication.antigravity_plugin import publish_antigravity_plugin_package
 from endor_agent_kit.publication.claude_plugin import publish_claude_plugin_package
 from endor_agent_kit.publication.codex_plugin import publish_codex_plugin_package
+from endor_agent_kit.publication.codex_directory_plugin import (
+    publish_codex_directory_plugin_package,
+)
 from endor_agent_kit.publication.cursor_plugin import publish_cursor_plugin_package
 from endor_agent_kit.publication.cursor_sdk import publish_cursor_sdk_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
@@ -90,6 +93,13 @@ def publish_recipes(
         if codex_plugin is not None:
             written.extend(codex_plugin.written)
             plugin_packages.append(codex_plugin.package_record)
+        codex_directory_plugin = publish_codex_directory_plugin_package(
+            prepared_recipes,
+            destination,
+        )
+        if codex_directory_plugin is not None:
+            written.extend(codex_directory_plugin.written)
+            plugin_packages.append(codex_directory_plugin.package_record)
         claude_plugin = publish_claude_plugin_package(prepared_recipes, destination)
         if claude_plugin is not None:
             written.extend(claude_plugin.written)
@@ -115,7 +125,10 @@ def publish_recipes(
         destination,
         generated_agents=publication.agents,
         plugin_packages=tuple(plugin_packages),
-        replace_plugin_hosts={package.host for package in plugin_packages},
+        replace_plugin_groups={
+            (package.host, package.distribution_channel)
+            for package in plugin_packages
+        },
         prune_active_host_agents=active_host_agents if prune else None,
     )
     if manifest is not None:

@@ -61,7 +61,8 @@ Current generated plugin package version: `2.1.0`.
 | Host | Best for | First move |
 | --- | --- | --- |
 | Claude Code | Claude Code plugin agents, setup skill, and advisory hooks | Read `plugins/claude/endor-labs-agent-kit/README.md`, then install `endor-labs-agent-kit@endorlabs`. |
-| Codex | Skills plus optional bundled custom-agent TOML files | Read `plugins/codex/endor-labs-agent-kit/README.md`. |
+| Codex CLI/custom agents | Setup skill plus optional bundled custom-agent TOML files | Read `plugins/codex/endor-labs-agent-kit/README.md`. |
+| Codex public directory | Eleven skills using the active customer model | Install the reviewed skills-only artifact generated from `plugins/codex-directory/endor-labs-agent-kit/`. |
 | Gemini CLI | Extension with skills and preview subagents | Read `plugins/gemini/endor-labs-agent-kit/README.md`. |
 | Antigravity CLI | Plugin with skills and subagents | Read `plugins/antigravity/endor-labs-agent-kit/README.md`. |
 | Cursor IDE | Customer-facing Cursor plugin agents | Install from `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png`. |
@@ -384,6 +385,10 @@ Generated plugin packages currently include:
   opt-in workflow-skill fallbacks, bundled custom-agent TOML files, installer script, and Codex
   marketplace metadata under `.agents/plugins/marketplace.json` and
   `plugins/codex/.agents/plugins/marketplace.json`.
+- `plugins/codex-directory/endor-labs-agent-kit/`: the separate Codex
+  public-directory package with exactly 11 workflow skills, Codex-scoped
+  `openai.yaml` metadata, skill-local artifact helpers, and no setup skill,
+  custom agents, hooks, MCP/apps, installer, or model pin.
 - `plugins/claude/endor-labs-agent-kit/`: Claude Code plugin agents, setup
   skill, and Claude marketplace metadata under `.claude-plugin/marketplace.json`
   plus `plugins/claude/.claude-plugin/marketplace.json` for package-local testing.
@@ -412,7 +417,9 @@ at the repository root because the public Cursor package source is `./`.
 Gemini installs from the
 generated extension directory for local validation or from the tagged
 GitHub repository for public distribution. Antigravity installs from the
-generated plugin directory. No zip artifact is generated for these packages.
+generated plugin directory. The Codex public-directory ZIP is built only
+from an immutable `ai-plugins` SHA and remains a workflow/release artifact;
+no ZIP is committed to either repository.
 See `docs/plugin-packaging-design.md` for blast-radius notes.
 
 ## ✅ Release Checklist

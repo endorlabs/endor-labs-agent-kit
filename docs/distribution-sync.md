@@ -10,7 +10,7 @@ fallback or for local dry-run validation.
 | Repo | Owns |
 | --- | --- |
 | `endor-labs-agent-kit` | Source recipes, compiler/publisher code, guardrails, tests, provenance, generated catalog, and source documentation. |
-| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents, support skills, advisory hooks, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
+| `ai-plugins` | Public host metadata, the unpacked Codex directory package, Cursor package metadata, root Cursor agents, support skills, advisory hooks, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
 
 Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
 `endor-labs-agent-kit/plugins/`. Cursor package sync should make
@@ -54,8 +54,9 @@ ENDOR_NAMESPACE=<endor namespace>
 ENDOR_ARTIFACT_NAME_PREFIX=github.com/endorlabs/ai-plugins/agent-kit-catalog-provenance
 ```
 
-The workflow writes `provenance/agent-kit-catalog.intoto.json` and
-`provenance/manifest.sha256` into the generated `ai-plugins` PR. When signing is
+The workflow writes `provenance/agent-kit-catalog.intoto.json`,
+`provenance/manifest.sha256`, `provenance/agent-kit-manifest.json`, and
+`provenance/agent-kit-source.json` into the generated `ai-plugins` PR. When signing is
 enabled, it signs the provenance bundle with the Endor Labs GitHub Action
 signing flow and immediately verifies the signature with
 `endorlabs/github-action/verify`. Signing and verification are skipped for
@@ -111,6 +112,8 @@ Run from `ai-plugins`:
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
 
 for skill in skills/*; do python3 scripts/quick_validate.py "$skill"; done
+python3 scripts/validate_mirror_provenance.py
+python3 scripts/build_codex_directory_submission.py validate --root .
 python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
 python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
@@ -150,9 +153,31 @@ Provider CLI validation is release-gated by availability of the relevant host
 CLIs and public refs. Use `docs/plugin-release-checklist.md` for the full
 release matrix.
 
+## Codex Directory Archive
+
+Option A keeps only the unpacked directory under
+`plugins/codex-directory/endor-labs-agent-kit/` in Git. After the mirror PR is
+merged, manually dispatch `Build Codex directory submission` in `ai-plugins`
+with the exact 40-character mirror commit SHA. The workflow checks out that
+immutable commit, reads the pinned Agent Kit source SHA, validates every file
+against `provenance/agent-kit-manifest.json`, and builds:
+
+- `endor-labs-agent-kit-codex-directory-<version>.zip`
+- the ZIP SHA-256 file
+- a validation report
+- a non-self-referential attestation containing both repository SHAs and all
+  relevant package/archive digests
+
+Leave `publish_release_assets=false` for validation. Set it to true with an
+existing release tag only when release-asset publication is separately
+authorized. The ZIP is never committed or reconstructed manually. See
+`docs/codex-directory-submission.md` for the portal packet and external gates.
+
 ## Safety Notes
 
 - Do not create or publish a Gemini zip artifact.
+- Do not commit the Codex public-directory ZIP; build it only from an immutable
+  `ai-plugins` SHA through the review-gated workflow.
 - Do not enable both Claude package ids in the same profile for normal use.
 - Do not couple Cursor package sync to Gemini CLI extension files.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.

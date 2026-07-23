@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $dependency-reviewer for this Endor Labs workflow.",
+    "display_name": "Dependency Reviewer",
+    "short_description": "Reviews an exact package decision, package risk, or repository dependencies through one bounded evi\u2026"
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

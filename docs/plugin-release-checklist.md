@@ -14,6 +14,7 @@ Generated package roots:
 - Claude Code: `plugins/claude/endor-labs-agent-kit/`
 - Claude Code legacy compatibility: `plugins/claude/ai-plugins/`
 - Codex: `plugins/codex/endor-labs-agent-kit/`
+- Codex public directory: `plugins/codex-directory/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
 - Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
@@ -26,6 +27,7 @@ Generated marketplace and release files:
 - Claude local marketplace: `plugins/claude/.claude-plugin/marketplace.json`
 - Codex public marketplace: `.agents/plugins/marketplace.json`
 - Codex local marketplace: `plugins/codex/.agents/plugins/marketplace.json`
+- Codex directory manifest: `plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json`
 - Gemini manifest: `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`
 - Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
 - Cursor marketplace and manifest: `.cursor-plugin/marketplace.json`,
@@ -63,6 +65,7 @@ test "$VERSION" = "$(jq -r .version plugins/gemini/endor-labs-agent-kit/gemini-e
 test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "$VERSION" = "$(jq -r .version plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version cursor-sdk/agent_definitions.json)"
 test "1.2.0" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
@@ -102,6 +105,8 @@ test -f cursor-sdk/agents/endor-findings-browser-agent.md
 test -f cursor-sdk/agents/endor-cicd-posture-agent.md
 test -f cursor-sdk/agents/endor-malware-responder-agent.md
 test -f cursor-sdk/agents/endor-configuration-automation-agent.md
+python3 scripts/build_codex_directory_submission.py validate --root .
+test ! -e dist/endor-labs-agent-kit-codex-directory-"$VERSION".zip
 ```
 
 ## Repository Gates
@@ -174,8 +179,9 @@ Before release, verify:
   `ENDOR_ARTIFACT_NAME_PREFIX`.
 - Signing and signature verification are skipped for manual dry runs and both
   run for non-dry-run publication workflows when signing is enabled.
-- The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`
-  and `provenance/manifest.sha256`.
+- The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`,
+  `provenance/manifest.sha256`, `provenance/agent-kit-manifest.json`, and
+  `provenance/agent-kit-source.json`.
 - The generated `ai-plugins` PR includes the current `CHANGELOG.md`.
 - The PR body links to the source Agent Kit commit and lists validation,
   manifest digest, and provenance bundle digest.
@@ -347,6 +353,25 @@ The Codex plugin manifest intentionally does not declare an unsupported `agents`
 field. Before that approval, the plugin must expose only `endor-agent-kit-setup`;
 the workflow skills under `bundled-skills/` are explicit fallbacks and must not
 compete with named custom-agent delegation.
+
+### Codex public directory
+
+The public-directory package is separate from the repository/CLI package.
+Validate its unpacked tree in Agent Kit and the generated mirror:
+
+```bash
+python3 scripts/build_codex_directory_submission.py validate --root .
+```
+
+After the `ai-plugins` mirror PR is merged, dispatch `Build Codex directory
+submission` with the exact immutable 40-character mirror SHA. Keep
+`publish_release_assets=false` for the first proof run. Verify that the workflow
+artifact contains one plugin-root ZIP, checksum, validation report, and
+attestation; the attestation must name both the Agent Kit and `ai-plugins` SHAs.
+Only then, under separate release authorization, attach those same files to an
+existing release or upload the ZIP to the OpenAI portal. Never commit the ZIP.
+Complete the external publisher, permission, URL, reviewer-fixture, and test-case
+gates in `docs/codex-directory-submission.md` immediately before submission.
 
 ## Gemini CLI
 
