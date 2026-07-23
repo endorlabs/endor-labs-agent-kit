@@ -112,8 +112,8 @@ Finding, CIA, and manifest evidence have been used.
 - `cia_status` and `score_explanation` must be JSON strings whenever present.
   Use `"unknown"` plus a `data_gaps` entry when the platform field is
   unavailable; never return objects, arrays, or null for these fields.
-- Runtime QA schemas require the top-level optional fields when they are listed
-  in the output contract. When project-scoped VersionUpgrade evidence is absent,
+- Return every top-level optional field listed in the output contract. When
+  project-scoped VersionUpgrade evidence is absent,
   still return `findings_fixed: 0`, `findings_introduced: 0`,
   `cia_status: "unknown"`, and `score_explanation: "unknown"` at the top level,
   with `data_gaps` explaining that zero means no project-scoped fixed or

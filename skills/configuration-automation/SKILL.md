@@ -347,8 +347,8 @@ Before finalizing JSON, perform this strict type and scope self-check:
 - If any `evidence_queries[]` row uses Endor evidence such as `Project`,
   `ScanResult`, `PackageVersion`, `PackageManager`, `ScanProfile`, or
   `Installation`, then `report_scope` must include both `namespace` and
-  `namespace_provenance`. For runtime QA with an explicit namespace in the
-  prompt, use that namespace value and `namespace_provenance: "current_request"`.
+  `namespace_provenance`. When the current request supplies an explicit namespace,
+  use that namespace value and `namespace_provenance: "current_request"`.
 - For single-repository `runtime-smoke` or `evidence-check`, keep
   `report_scope.mode` set to `single-repo`, keep
   `sampled_prescription_hypotheses` as `[]`, and put future setup work in

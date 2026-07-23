@@ -1,9 +1,9 @@
 """Detached ECDSA-P256 signing/verification for ``catalog.json``.
 
 The signed ``catalog.json`` is the load-bearing release artifact apiserver
-verifies (AI-351). Production signing is HSM-backed via Azure Key Vault
+verifies. Production signing is HSM-backed via Azure Key Vault
 (ECDSA-P256 / ES256) over an OIDC-federated GitHub Actions job -- no signing key
-is stored in GitHub (see ``RELEASES.md`` and AI-418). This module owns the
+is stored in GitHub (see ``RELEASES.md``). This module owns the
 *offline* verification side, which apiserver mirrors: a detached signature over
 the raw ``catalog.json`` bytes, verified against a pinned public key.
 

@@ -4,7 +4,7 @@
 #
 # No private key is stored anywhere: CI authenticates to Azure via OIDC federation
 # (azure/login) and the key never leaves the HSM. The Key Vault key + federation are
-# provisioned under AI-418; this script runs only when CATALOG_SIGNING_ENABLED=true.
+# provisioned for release signing; this script runs only when CATALOG_SIGNING_ENABLED=true.
 # See RELEASES.md.
 set -euo pipefail
 

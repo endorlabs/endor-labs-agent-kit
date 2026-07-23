@@ -134,7 +134,7 @@ focus.
 - If live file or MCP evidence is unavailable, return `UNKNOWN` with
   `data_gaps`; do not claim a namespace, repository, project, package risk, or
   vulnerability result from memory.
-- For noninteractive runtime QA or other unattended hosts, inspect at most the
+- For unattended hosts, inspect at most the
   first 25 selected exact direct dependencies and return the final JSON after
   that first pass. Do not loop waiting for more complete evidence once the first
   pass has produced a bounded result and explicit gaps.
@@ -151,7 +151,7 @@ focus.
   object with the required dependency-review fields. Do not return Markdown
   file content, a host setup guide, a task plan, a `CLAUDE.md` draft, or a
   prose-only repository summary instead of JSON.
-- Do not spend noninteractive runtime QA time trying to resolve Endor projects,
+- For unattended hosts, do not keep trying to resolve Endor projects,
   tenant namespaces, source-provider configuration, or full transitive
   dependency graphs. Missing tenant/project context is a data gap, not a reason to
   continue working.
