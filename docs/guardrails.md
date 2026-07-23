@@ -205,17 +205,19 @@ API secrets.
 
 ### Cursor
 
-Cursor package artifacts include generated root agents, generated root support
-skills, and a host contract that preserves the same recipe safety posture as
-the source recipe.
+Cursor package artifacts include generated agents, generated support skills,
+and a host contract that preserves the same recipe safety posture as the source
+recipe.
 
-The Cursor package declares `.cursor-plugin/` metadata, root generated
-`agents/`, root generated `skills/`, root advisory `hooks/`, and
-`assets/logo.png`. It does not declare plugin-wide MCP by default and does not
-use Gemini extension files. Setup keeps install, update, and uninstall steps
-explicit and evidence-backed. Cursor agents are the customer-facing workflow
-entry points; matching skills remain bundled support material and fallback
-workflow reference.
+The Agent Kit source package declares `.cursor-plugin/` metadata, root
+generated `agents/`, root generated `skills/`, root advisory `hooks/`, and
+`assets/logo.png`. Mirror sync converts that payload into the conventional
+self-contained `plugins/cursor/endor-labs-agent-kit/` package, including the
+source-approved MCP declaration as `mcp.json`. It does not use Gemini extension
+files. Setup keeps install, update, and uninstall steps explicit and
+evidence-backed. Cursor agents are the customer-facing workflow entry points;
+matching skills remain bundled support material and fallback workflow
+reference.
 
 Cursor package setup must not run scans, run `endorctl host-check`, edit shell
 profiles, auto-install `gh`, install language tooling, or collect/write API

@@ -160,7 +160,7 @@ retaining skills and subagents.
 
 ## Implemented Cursor Package Shape
 
-The generated Cursor package includes:
+The source-validation Cursor package includes:
 
 - `.cursor-plugin/plugin.json` for Cursor package metadata.
 - `.cursor-plugin/marketplace.json` for public marketplace metadata.
@@ -177,12 +177,23 @@ The generated Cursor package includes:
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
 - `hooks/hooks.json` plus fail-open advisory hook scripts.
+- `.mcp.json` with the source-approved optional MCP server declaration.
 - `assets/logo.png`.
 
 Cursor is intentionally not a Gemini wrapper. Its installable package does not
 depend on Gemini metadata; the Gemini CLI extension files live under
 `plugins/gemini/endor-labs-agent-kit/`. The repository root `GEMINI.md` is
 support context only, not an installable Gemini extension manifest.
+
+The Agent Kit source checkout keeps those Cursor components at root for source
+guardrails. During `ai-plugins` synchronization, the full Cursor payload is
+copied to `plugins/cursor/endor-labs-agent-kit/`. Its conventional package
+layout contains `.cursor-plugin/plugin.json`, `agents/`, `skills/`, `hooks/`,
+`mcp.json`, and `assets/`. Root `.cursor-plugin/marketplace.json` keeps the
+stable `endorlabs` id and points to that nested package; the mirror removes the
+root Cursor plugin manifest. This mirror-only boundary lets the official Claude
+package safely reserve conventional root `agents/`, `skills/`, and `hooks/`
+without changing Cursor's payload.
 
 ## Implemented Cursor SDK Automation Shape
 
@@ -201,8 +212,8 @@ The generated Cursor SDK automation package includes:
 
 Cursor SDK automation is a separate lane from Cursor plugin delivery. Use it
 for CI, orchestration, backend services, scripted local runs, or Cursor cloud
-agents. Use the root Cursor plugin agents under `agents/` for
-customer-facing Cursor IDE UX. The SDK package is still generated from Agent
+agents. Use the self-contained Cursor plugin package for customer-facing Cursor
+IDE UX. The SDK package is still generated from Agent
 Kit source recipes and mirrored into `ai-plugins` as a distribution artifact.
 
 ## Blast Radius
@@ -227,12 +238,14 @@ The Antigravity package also follows the source-first publication model. It
 installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
 the package root; no release archive is generated for either target.
 
-The Cursor package follows the same source-first publication model, but it is
-root-shaped because Cursor package metadata uses `.cursor-plugin/`, a root
-`agents/` directory, a root `skills/` directory, root advisory `hooks/`, and
-`assets/logo.png`. Generation updates managed workflow agents, managed workflow
-skill directories, and advisory hooks, while preserving unrelated root skills
-such as `skills/create-endor-labs-agent/`.
+The Cursor package follows the same source-first publication model. The Agent
+Kit checkout remains root-shaped for generation and source tests; mirror sync
+materializes the official self-contained package at
+`plugins/cursor/endor-labs-agent-kit/`. Generation updates managed workflow
+agents, managed workflow skill directories, and advisory hooks, while
+preserving unrelated source-root skills such as
+`skills/create-endor-labs-agent/` and excluding them from the public Cursor
+package.
 
 The Cursor SDK package follows the same source-first publication model under
 `cursor-sdk/`. It does not install anything into the Cursor IDE; it launches

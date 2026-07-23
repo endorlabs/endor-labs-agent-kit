@@ -51,7 +51,7 @@ Agent Kit does not block compatible customer-selected host models.
 ## Install From The Public Repository
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install endor-labs-agent-kit@endorlabs
 ```
 

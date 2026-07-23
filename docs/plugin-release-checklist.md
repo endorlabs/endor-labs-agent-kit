@@ -17,8 +17,10 @@ Generated package roots:
 - Codex public directory: `plugins/codex-directory/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
-- Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
-  `skills/`, root advisory `hooks/`, and `assets/logo.png`
+- Cursor source validation: `.cursor-plugin/`, root generated `agents/`, root
+  generated `skills/`, root advisory `hooks/`, `.mcp.json`, and
+  `assets/logo.png`
+- Cursor public mirror: `plugins/cursor/endor-labs-agent-kit/`
 - Cursor SDK: `cursor-sdk/`
 
 Generated marketplace and release files:
@@ -30,8 +32,9 @@ Generated marketplace and release files:
 - Codex directory manifest: `plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json`
 - Gemini manifest: `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`
 - Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
-- Cursor marketplace and manifest: `.cursor-plugin/marketplace.json`,
-  `.cursor-plugin/plugin.json`
+- Cursor marketplace: `.cursor-plugin/marketplace.json`
+- Cursor source manifest: `.cursor-plugin/plugin.json`; generated mirror
+  manifest: `plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json`
 - Cursor SDK definitions: `cursor-sdk/agent_definitions.json`
 
 ## Version Gate
@@ -186,6 +189,10 @@ Before release, verify:
 - The PR body links to the source Agent Kit commit and lists validation,
   manifest digest, and provenance bundle digest.
 - `python scripts/validate_mirror_provenance.py` passes in the generated mirror.
+- `python scripts/validate_marketplace_host_boundaries.py` passes in the
+  generated mirror and proves that the root official package exposes canonical
+  Sonnet agents, setup, and Claude hooks while the nested Cursor package exposes
+  only its Composer agents, skills, hooks, MCP config, and assets.
 - The package version and `agents-v<version>` tag are new and unused. Never move
   or reuse a published catalog tag; the existing `2.1.0` package version must be
   intentionally advanced before the next release.
@@ -217,11 +224,32 @@ test -f skills/sca-remediation/actions.yaml
 ```
 
 Cursor package files are generated at repository root because the public
-package source is `./`. Keep Cursor validation separate from Gemini validation:
-Cursor uses `.cursor-plugin/`, root `agents/`, root `skills/`, root advisory
-`hooks/`, and `assets/logo.png`; Gemini uses
+mirror is derived from that source payload. Keep Cursor validation separate
+from Gemini validation: Cursor source generation uses `.cursor-plugin/`, root
+`agents/`, root `skills/`, root advisory `hooks/`, `.mcp.json`, and
+`assets/logo.png`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/GEMINI.md` and
 `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`.
+
+Generated mirror validation:
+
+```bash
+AI_PLUGINS_REPO="/path/to/ai-plugins"
+python3 "$AI_PLUGINS_REPO/scripts/validate_marketplace_host_boundaries.py" \
+  --root "$AI_PLUGINS_REPO"
+python3 -m json.tool \
+  "$AI_PLUGINS_REPO/plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json" \
+  >/dev/null
+python3 -m json.tool \
+  "$AI_PLUGINS_REPO/plugins/cursor/endor-labs-agent-kit/mcp.json" \
+  >/dev/null
+test ! -e "$AI_PLUGINS_REPO/.cursor-plugin/plugin.json"
+test ! -e "$AI_PLUGINS_REPO/.mcp.json"
+```
+
+The mirror marketplace must retain plugin id `endorlabs` and source
+`./plugins/cursor/endor-labs-agent-kit`, so existing `/add-plugin endorlabs`
+installs upgrade in place.
 
 ## Cursor SDK
 
@@ -310,6 +338,31 @@ Public repository validation after tag push:
 /plugin list
 /agents
 ```
+
+The generated mirror root is also the source for the stable official technical
+id. Validate the mirror-only overlay and, after Anthropic's automated SHA bump
+lands, run a fresh official install:
+
+```bash
+python3 scripts/validate_marketplace_host_boundaries.py --root /path/to/ai-plugins
+claude plugin validate /path/to/ai-plugins
+test ! -e /path/to/ai-plugins/.mcp.json
+```
+
+```text
+/plugin install ai-plugins@claude-plugins-official
+/reload-plugins
+/agents
+```
+
+Confirm that the live official catalog pins the exact released mirror SHA,
+Claude displays **Endor Labs Agent Kit**, every exposed agent uses Sonnet, the
+root exposes only the setup skill, the Claude advisory hooks register, no
+plugin MCP server auto-loads, and no Composer-backed root Cursor agent loads.
+Also confirm `.cursor-plugin/marketplace.json` resolves `endorlabs` to the
+self-contained `plugins/cursor/endor-labs-agent-kit/` package. The official technical id
+remains `ai-plugins`; routine releases rely on Anthropic's SHA-bump automation
+rather than a rename request.
 
 Direct public-repo installation does not require submitting to a website. Submit
 to the Claude community marketplace only if Endor Labs wants discovery through

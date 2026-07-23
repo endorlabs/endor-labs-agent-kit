@@ -9,6 +9,7 @@ on:
       - "assets/**"
       - "pyproject.toml"
       - "scripts/sync_ai_plugins_distribution.py"
+      - "scripts/validate_marketplace_host_boundaries.py"
       - "scripts/build_codex_directory_submission.py"
       - "source/agents/**"
       - "source/distribution/**"
@@ -252,16 +253,23 @@ jobs:
           set -e
           python3 scripts/check_repository_hygiene.py
           python3 scripts/validate_mirror_provenance.py
+          python3 scripts/validate_marketplace_host_boundaries.py
           python3 scripts/build_codex_directory_submission.py validate --root .
           for skill in skills/*; do
             ../endor-labs-agent-kit/.venv/bin/python scripts/quick_validate.py "$skill"
           done
+          for skill in plugins/cursor/endor-labs-agent-kit/skills/*; do
+            ../endor-labs-agent-kit/.venv/bin/python scripts/quick_validate.py "$skill"
+          done
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+          python3 -m json.tool .claude-plugin/plugin.json >/dev/null
           python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
           python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
-          python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+          python3 -m json.tool plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json >/dev/null
           python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
+          python3 -m json.tool plugins/cursor/endor-labs-agent-kit/mcp.json >/dev/null
+          python3 -m json.tool plugins/cursor/endor-labs-agent-kit/hooks/hooks.json >/dev/null
           python3 -m json.tool plugins/claude/endor-labs-agent-kit/hooks/hooks.json >/dev/null
           python3 -m json.tool plugins/codex/endor-labs-agent-kit/hooks/hooks.json >/dev/null
           python3 -m json.tool plugins/gemini/endor-labs-agent-kit/hooks/hooks.json >/dev/null
@@ -276,34 +284,29 @@ jobs:
 
           py_compile.compile("cursor-sdk/run_cursor_agent.py", cfile="/tmp/run_cursor_agent.pyc", doraise=True)
           PY
-          python3 - <<'PY'
-          import json
-          import pathlib
-          import sys
-
-          manifest = json.loads(pathlib.Path(".cursor-plugin/plugin.json").read_text(encoding="utf-8"))
-          missing = sorted(
-              value
-              for value in manifest.values()
-              if isinstance(value, str) and value.startswith("./") and not pathlib.Path(value).exists()
-          )
-          if missing:
-              print(f"dangling .cursor-plugin/plugin.json references: {missing}")
-              sys.exit(1)
-          PY
           test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
           test ! -e plugins/gemini/endor-labs-agent-kit.zip
-          diff -qr ../endor-labs-agent-kit/plugins ./plugins
-          diff -qr ../endor-labs-agent-kit/.cursor-plugin ./.cursor-plugin
-          diff -qr ../endor-labs-agent-kit/agents ./agents
+          test ! -e .mcp.json
+          test ! -e .cursor-plugin/plugin.json
+          test ! -e cursor/endor-labs-agent-kit
+          for provider in antigravity claude codex codex-directory gemini; do
+            diff -qr "../endor-labs-agent-kit/plugins/$provider" "./plugins/$provider"
+          done
+          diff -q ../endor-labs-agent-kit/plugins/README.md ./plugins/README.md
+          diff -qr ../endor-labs-agent-kit/agents ./plugins/cursor/endor-labs-agent-kit/agents
           diff -qr ../endor-labs-agent-kit/cursor-sdk ./cursor-sdk
-          diff -qr ../endor-labs-agent-kit/hooks ./hooks
+          diff -qr ../endor-labs-agent-kit/plugins/claude/endor-labs-agent-kit/agents ./agents
+          diff -qr ../endor-labs-agent-kit/plugins/claude/endor-labs-agent-kit/hooks ./hooks
+          diff -qr ../endor-labs-agent-kit/plugins/claude/endor-labs-agent-kit/skills ./skills
+          diff -qr ../endor-labs-agent-kit/hooks ./plugins/cursor/endor-labs-agent-kit/hooks
+          diff -q ../endor-labs-agent-kit/.mcp.json ./plugins/cursor/endor-labs-agent-kit/mcp.json
+          diff -qr ../endor-labs-agent-kit/assets ./plugins/cursor/endor-labs-agent-kit/assets
           for source_skill in ../endor-labs-agent-kit/skills/*/; do
             skill_name="$(basename "$source_skill")"
             if [ "$skill_name" = "create-endor-labs-agent" ]; then
               continue
             fi
-            diff -qr "../endor-labs-agent-kit/skills/$skill_name" "skills/$skill_name"
+            diff -qr "../endor-labs-agent-kit/skills/$skill_name" "plugins/cursor/endor-labs-agent-kit/skills/$skill_name"
           done
           diff -q ../endor-labs-agent-kit/assets/logo.png assets/logo.png
           git diff --check
@@ -322,7 +325,7 @@ jobs:
           - \`endor-agent-kit publish ... --include-plugins\`
           - \`endor-agent-kit check-guardrails --catalog-root .\`
           - \`endor-agent-kit verify-provenance --catalog-root .\`
-          - ai-plugins root skill validation, JSON checks, Cursor SDK compile check, Gemini no-zip check, and byte-for-byte generated-surface diffs
+          - Claude official root and self-contained Cursor marketplace boundary validation, conventional component checks, JSON checks, Cursor SDK compile check, Gemini no-zip check, and byte-for-byte generated-surface diffs
 
           ## Provenance
 

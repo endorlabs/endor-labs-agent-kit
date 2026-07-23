@@ -33,7 +33,7 @@ Generated for the Endor Labs Agent Kit Claude Code plugin.
 From the public ai-plugins distribution repository:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install endor-labs-agent-kit@endorlabs
 ```
 

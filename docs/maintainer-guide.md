@@ -15,6 +15,7 @@ shape, or release validation.
 | `claude-code/`, `claude-managed-agents/`, `codex/`, `gemini/`, `portable/` | Generated installable agent catalog. |
 | `plugins/` | Generated plugin packages for Claude Code, Codex CLI, Codex public directory, Gemini CLI, and Antigravity CLI. |
 | `.cursor-plugin/`, root generated `agents/`, root generated `skills/`, root advisory `hooks/`, `assets/logo.png` | Generated Cursor package surface. |
+| Mirror `plugins/cursor/endor-labs-agent-kit/` | Self-contained public Cursor package generated during `ai-plugins` synchronization. |
 | `cursor-sdk/` | Generated Cursor Python SDK automation package with prompt definitions and launcher. |
 | `manifest.json` | Generated checksum and provenance catalog. |
 
