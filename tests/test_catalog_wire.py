@@ -92,10 +92,9 @@ def test_endor_agent_field_shape():
             {
                 "host": "claude-code",
                 "command": (
-                    "mkdir -p .claude/agents && cp claude-code/alpha-agent/alpha-agent.md "
-                    ".claude/agents/alpha-agent.md && for profile in "
-                    "claude-code/alpha-agent/alpha-agent-*.md; do [ -e \"$profile\" ] || continue; "
-                    "cp \"$profile\" .claude/agents/; done"
+                    "/plugin marketplace add endorlabs/ai-plugins\n"
+                    "/plugin install endor-labs-agent-kit@endorlabs\n"
+                    "/reload-plugins"
                 ),
             }
         ],
@@ -181,16 +180,17 @@ def test_install_collapses_hosts_and_maps_managed_name():
         {
             "host": "claude-code",
             "command": (
-                "mkdir -p .claude/agents && cp claude-code/alpha-agent/alpha-agent.md "
-                ".claude/agents/alpha-agent.md && for profile in "
-                "claude-code/alpha-agent/alpha-agent-*.md; do [ -e \"$profile\" ] || continue; "
-                "cp \"$profile\" .claude/agents/; done"
+                "/plugin marketplace add endorlabs/ai-plugins\n"
+                "/plugin install endor-labs-agent-kit@endorlabs\n"
+                "/reload-plugins"
             ),
         },
         {
             "host": "claude-managed",
             "command": (
-                "cd claude-managed-agents/alpha-agent && ant beta:agents create < agent.yaml "
+                "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit "
+                "&& cd endor-labs-agent-kit/claude-managed-agents/alpha-agent "
+                "&& ant beta:agents create < agent.yaml "
                 "&& ant beta:environments create < environment.yaml"
             ),
         },
@@ -255,3 +255,61 @@ def test_write_catalog_round_trips(tmp_path):
     payload = json.loads(written.read_text(encoding="utf-8"))
     assert payload["agents"][0]["id"] == "alpha-agent"
     assert written.read_text(encoding="utf-8").endswith("\n")
+
+
+def _claude_code_command(payload, agent_index=0):
+    install = payload["agents"][agent_index]["install"]
+    return next(entry["command"] for entry in install if entry["host"] == "claude-code")
+
+
+def _claude_managed_command(payload, agent_index=0):
+    install = payload["agents"][agent_index]["install"]
+    return next(entry["command"] for entry in install if entry["host"] == "claude-managed")
+
+
+def test_claude_code_install_uses_distribution_marketplace():
+    payload = catalog_wire_payload([_agent("alpha-agent", "claude-code", "enterprise-edition")])
+    command = _claude_code_command(payload)
+
+    assert command == (
+        "/plugin marketplace add endorlabs/ai-plugins\n"
+        "/plugin install endor-labs-agent-kit@endorlabs\n"
+        "/reload-plugins"
+    )
+
+
+def test_claude_code_install_never_references_a_repo_path():
+    payload = catalog_wire_payload([_agent("alpha-agent", "claude-code", "enterprise-edition")])
+    command = _claude_code_command(payload)
+
+    assert "cp " not in command
+    assert ".claude/agents" not in command
+    assert "claude-code/alpha-agent" not in command
+    # The source repo is only for hosts with no marketplace distribution, never claude-code.
+    assert "git clone" not in command
+    assert "endor-labs-agent-kit/claude" not in command
+
+
+def test_claude_code_install_is_identical_across_agents():
+    # The plugin brings every agent, so the command must not vary by agent id.
+    payload = catalog_wire_payload(
+        [
+            _agent("alpha-agent", "claude-code", "enterprise-edition"),
+            _agent("zeta-agent", "claude-code", "enterprise-edition"),
+        ]
+    )
+    assert _claude_code_command(payload, 0) == _claude_code_command(payload, 1)
+
+
+def test_claude_managed_install_is_self_contained():
+    payload = catalog_wire_payload([_agent("alpha-agent", "claude-managed-agents", "enterprise-edition")])
+    command = _claude_managed_command(payload)
+
+    assert command == (
+        "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit "
+        "&& cd endor-labs-agent-kit/claude-managed-agents/alpha-agent "
+        "&& ant beta:agents create < agent.yaml "
+        "&& ant beta:environments create < environment.yaml"
+    )
+    assert command.startswith("git clone")
+    assert "cd endor-labs-agent-kit/" in command

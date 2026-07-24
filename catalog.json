@@ -15,7 +15,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-remediation/ai-sast-remediation.md .claude/agents/ai-sast-remediation.md && for profile in claude-code/ai-sast-remediation/ai-sast-remediation-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         }
       ],
       "legacy_ids": [
@@ -36,11 +36,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/cicd-posture/cicd-posture.md .claude/agents/cicd-posture.md && for profile in claude-code/cicd-posture/cicd-posture-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/cicd-posture && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/cicd-posture && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ]
     },
@@ -58,11 +58,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/configuration-automation/configuration-automation.md .claude/agents/configuration-automation.md && for profile in claude-code/configuration-automation/configuration-automation-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/configuration-automation && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/configuration-automation && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -83,11 +83,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer.md .claude/agents/dependency-reviewer.md && for profile in claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/dependency-reviewer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/dependency-reviewer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -110,11 +110,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/findings-browser/findings-browser.md .claude/agents/findings-browser.md && for profile in claude-code/findings-browser/findings-browser-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/findings-browser && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/findings-browser && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ]
     },
@@ -132,11 +132,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/malware-responder/malware-responder.md .claude/agents/malware-responder.md && for profile in claude-code/malware-responder/malware-responder-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/malware-responder && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/malware-responder && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -157,11 +157,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/oss-upgrade-investigator/oss-upgrade-investigator.md .claude/agents/oss-upgrade-investigator.md && for profile in claude-code/oss-upgrade-investigator/oss-upgrade-investigator-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/oss-upgrade-investigator && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/oss-upgrade-investigator && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -182,7 +182,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planning/remediation-planning.md .claude/agents/remediation-planning.md && for profile in claude-code/remediation-planning/remediation-planning-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         }
       ],
       "legacy_ids": [
@@ -203,7 +203,7 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/sca-remediation/sca-remediation.md .claude/agents/sca-remediation.md && for profile in claude-code/sca-remediation/sca-remediation-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         }
       ]
     },
@@ -221,11 +221,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/troubleshooting/troubleshooting.md .claude/agents/troubleshooting.md && for profile in claude-code/troubleshooting/troubleshooting-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/troubleshooting && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/troubleshooting && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -246,11 +246,11 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/vulnerability-explainer/vulnerability-explainer.md .claude/agents/vulnerability-explainer.md && for profile in claude-code/vulnerability-explainer/vulnerability-explainer-*.md; do [ -e \"$profile\" ] || continue; cp \"$profile\" .claude/agents/; done"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
           "host": "claude-managed",
-          "command": "cd claude-managed-agents/vulnerability-explainer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/vulnerability-explainer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ]
     }
