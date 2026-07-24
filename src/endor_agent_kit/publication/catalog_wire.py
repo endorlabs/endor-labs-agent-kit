@@ -18,20 +18,24 @@ from pathlib import Path
 import re
 from typing import Any
 
-from endor_agent_kit.catalog_schema import CatalogAgent, CatalogBundle
+from endor_agent_kit.catalog_schema import CatalogAgent
+from endor_agent_kit.publication.claude_plugin import (
+    CLAUDE_MARKETPLACE_NAME,
+    PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY,
+)
+from endor_agent_kit.publication.plugin_package_common import PLUGIN_NAME
 
 CATALOG_PATH = "catalog.json"
 CATALOG_SCHEMA_VERSION = "v2"
 AUDIENCES = frozenset({"appsec", "developer"})
 
-# repo host -> wire host name, in catalog install order. Only the two V1 install
-# hosts appear in the wire shape; cursor/codex are proto-reserved and gemini/
+# repo host -> wire host name, in catalog install order. Claude Managed Agents
+# remain generated in the Agent Kit repository but are intentionally omitted
+# from the public catalog/UI. Cursor/Codex are proto-reserved and Gemini/
 # portable are not in the proto host enum.
 _WIRE_INSTALL_HOSTS: tuple[tuple[str, str], ...] = (
     ("claude-code", "claude-code"),
-    ("claude-managed-agents", "claude-managed"),
 )
-_EDITION_PRIORITY = {"enterprise-edition": 0, "developer-edition": 1}
 _ENDORCTL_OPERATOR_RE = re.compile(r"^(?:>=|>)")
 
 
@@ -117,13 +121,10 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
         host_agent = by_host.get(repo_host)
         if host_agent is None or not host_agent.editions:
             continue
-        bundle = _primary_edition(host_agent)
-        install.append(
-            {"host": wire_host, "command": _install_command(repo_host, host_agent.id, bundle.path)}
-        )
+        install.append({"host": wire_host, "command": _install_command(repo_host)})
     if not install:
         raise ValueError(
-            f"{representative.id}: no V1 install host (claude-code/claude-managed); cannot build install[]"
+            f"{representative.id}: no public install host (claude-code); cannot build install[]"
         )
 
     record = {
@@ -165,28 +166,13 @@ def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
                 )
 
 
-def _primary_edition(agent: CatalogAgent) -> CatalogBundle:
-    editions = sorted(
-        agent.editions,
-        key=lambda bundle: (_EDITION_PRIORITY.get(bundle.bundle_id, 2), bundle.path),
-    )
-    if not editions:
-        raise ValueError(f"{agent.id}: host {agent.host} has no published editions")
-    return editions[0]
-
-
-def _install_command(repo_host: str, agent_id: str, bundle_path: str) -> str:
+def _install_command(repo_host: str) -> str:
     if repo_host == "claude-code":
+        # Same plugin install for every agent because the package installs all workflows.
         return (
-            f"mkdir -p .claude/agents && cp {bundle_path}/{agent_id}.md "
-            f".claude/agents/{agent_id}.md && for profile in "
-            f"{bundle_path}/{agent_id}-*.md; do [ -e \"$profile\" ] || continue; "
-            'cp "$profile" .claude/agents/; done'
-        )
-    if repo_host == "claude-managed-agents":
-        return (
-            f"cd {bundle_path} && ant beta:agents create < agent.yaml "
-            f"&& ant beta:environments create < environment.yaml"
+            f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}\n"
+            f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}\n"
+            "/reload-plugins"
         )
     raise ValueError(f"unsupported install host {repo_host!r}")
 

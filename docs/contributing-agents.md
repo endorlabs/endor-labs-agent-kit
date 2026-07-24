@@ -106,9 +106,11 @@ and blocks merge on failure:
 | `authors` | `authors` | required, non-empty list of **display names only**; email/`@handle`/URL is rejected as PII. |
 | `requires_endorctl` | `endorctl_min_version` | required version constraint (`>=`/`>` + full semver, e.g. `>=1.0.0`); the operator is stripped for the catalog. |
 
-`install[]` is derived from the published layout for the `claude-code` and
-`claude-managed` hosts; no recipe field is needed. `catalog.json` is a generated,
-committed artifact covered by the drift check -- regenerate it with `publish`.
+`install[]` is derived from the published `claude-code` layout; no recipe field
+is needed. Claude Managed Agents remain generated and installable from the Agent
+Kit repository but are intentionally omitted from the public catalog and UI.
+`catalog.json` is a generated, committed artifact covered by the drift check --
+regenerate it with `publish`.
 
 Catalog wire schema v2 carries `legacy_ids` so a backend can resolve an old
 identifier to its canonical agent without publishing the old agent as a second

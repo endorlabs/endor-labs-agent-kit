@@ -92,10 +92,9 @@ def test_endor_agent_field_shape():
             {
                 "host": "claude-code",
                 "command": (
-                    "mkdir -p .claude/agents && cp claude-code/alpha-agent/alpha-agent.md "
-                    ".claude/agents/alpha-agent.md && for profile in "
-                    "claude-code/alpha-agent/alpha-agent-*.md; do [ -e \"$profile\" ] || continue; "
-                    "cp \"$profile\" .claude/agents/; done"
+                    "/plugin marketplace add endorlabs/ai-plugins\n"
+                    "/plugin install endor-labs-agent-kit@endorlabs\n"
+                    "/reload-plugins"
                 ),
             }
         ],
@@ -167,7 +166,7 @@ def test_cadence_is_omitted():
     assert "cadence" not in payload["agents"][0]
 
 
-def test_install_collapses_hosts_and_maps_managed_name():
+def test_public_install_only_surfaces_claude_code():
     agents = [
         _agent("alpha-agent", "claude-code", "enterprise-edition"),
         _agent("alpha-agent", "claude-managed-agents", "enterprise-edition"),
@@ -176,22 +175,15 @@ def test_install_collapses_hosts_and_maps_managed_name():
     payload = catalog_wire_payload(agents)
     install = payload["agents"][0]["install"]
 
-    # gemini excluded (not a V1 wire install host); claude-code first, then claude-managed.
+    # Gemini is not a V1 wire install host. Claude Managed artifacts remain in
+    # the repository but are intentionally not surfaced through the public UI.
     assert install == [
         {
             "host": "claude-code",
             "command": (
-                "mkdir -p .claude/agents && cp claude-code/alpha-agent/alpha-agent.md "
-                ".claude/agents/alpha-agent.md && for profile in "
-                "claude-code/alpha-agent/alpha-agent-*.md; do [ -e \"$profile\" ] || continue; "
-                "cp \"$profile\" .claude/agents/; done"
-            ),
-        },
-        {
-            "host": "claude-managed",
-            "command": (
-                "cd claude-managed-agents/alpha-agent && ant beta:agents create < agent.yaml "
-                "&& ant beta:environments create < environment.yaml"
+                "/plugin marketplace add endorlabs/ai-plugins\n"
+                "/plugin install endor-labs-agent-kit@endorlabs\n"
+                "/reload-plugins"
             ),
         },
     ]
@@ -255,3 +247,49 @@ def test_write_catalog_round_trips(tmp_path):
     payload = json.loads(written.read_text(encoding="utf-8"))
     assert payload["agents"][0]["id"] == "alpha-agent"
     assert written.read_text(encoding="utf-8").endswith("\n")
+
+
+def _claude_code_command(payload, agent_index=0):
+    install = payload["agents"][agent_index]["install"]
+    return next(entry["command"] for entry in install if entry["host"] == "claude-code")
+
+
+def test_claude_code_install_uses_distribution_marketplace():
+    payload = catalog_wire_payload([_agent("alpha-agent", "claude-code", "enterprise-edition")])
+    command = _claude_code_command(payload)
+
+    assert command == (
+        "/plugin marketplace add endorlabs/ai-plugins\n"
+        "/plugin install endor-labs-agent-kit@endorlabs\n"
+        "/reload-plugins"
+    )
+
+
+def test_claude_code_install_never_references_a_repo_path():
+    payload = catalog_wire_payload([_agent("alpha-agent", "claude-code", "enterprise-edition")])
+    command = _claude_code_command(payload)
+
+    assert "cp " not in command
+    assert ".claude/agents" not in command
+    assert "claude-code/alpha-agent" not in command
+    # The source repo is only for hosts with no marketplace distribution, never claude-code.
+    assert "git clone" not in command
+    assert "endor-labs-agent-kit/claude" not in command
+
+
+def test_claude_code_install_is_identical_across_agents():
+    # The plugin brings every agent, so the command must not vary by agent id.
+    payload = catalog_wire_payload(
+        [
+            _agent("alpha-agent", "claude-code", "enterprise-edition"),
+            _agent("zeta-agent", "claude-code", "enterprise-edition"),
+        ]
+    )
+    assert _claude_code_command(payload, 0) == _claude_code_command(payload, 1)
+
+
+def test_claude_managed_only_agent_is_not_publicly_installable():
+    agents = [_agent("alpha-agent", "claude-managed-agents", "enterprise-edition")]
+
+    with pytest.raises(ValueError, match="no public install host"):
+        catalog_wire_payload(agents)
