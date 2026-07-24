@@ -33,6 +33,7 @@
     "sast",
     "codex"
   ],
+  "mcpServers": "./.mcp.json",
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",

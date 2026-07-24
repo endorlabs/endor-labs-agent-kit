@@ -460,9 +460,6 @@ def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path
         f"{host}/vulnerability-explainer/profile-contracts/{profile_id}.json"
         for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
         for profile_id in ("explain", "evidence-check")
-    } | {
-        f"{host}/vulnerability-explainer/evidence-plans/explain.json"
-        for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
     }
     runtime_paths = {
         f"{host}/vulnerability-explainer/runtime/summarize_endor_artifact.py"
@@ -513,7 +510,7 @@ def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
     assert "endorctl agent api --agent-id dependency-reviewer list" in enterprise
     assert "QuerySimilarPackages" not in enterprise
-    assert "exact package decision" in enterprise_readme
+    assert "exact package version" in enterprise_readme
     for profile in ("package-decision", "package-risk", "repository-review"):
         assert (enterprise_dir / f"dependency-reviewer-{profile}.md").is_file()
     assert (enterprise_dir / "endorctl-setup.md").is_file()
@@ -824,6 +821,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/.mcp.json" in written_paths
     assert ".agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
@@ -973,6 +971,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert plugin_manifest["version"] == "2.1.0"
     assert plugin_manifest["skills"] == "./skills/"
     assert plugin_manifest["hooks"] == "./hooks/hooks.json"
+    assert plugin_manifest["mcpServers"] == "./.mcp.json"
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
     assert plugin_manifest["interface"]["defaultPrompt"] == [
@@ -981,6 +980,17 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "Set up Endor Agent Kit for this machine.",
     ]
     assert "license" not in plugin_manifest
+    codex_mcp_manifest = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".mcp.json").read_text()
+    )
+    assert codex_mcp_manifest == {
+        "mcpServers": {
+            "endor-cli-tools": {
+                "command": "endorctl",
+                "args": ["ai-tools", "mcp-server"],
+            }
+        }
+    }
     claude_plugin_manifest = json.loads(
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
     )

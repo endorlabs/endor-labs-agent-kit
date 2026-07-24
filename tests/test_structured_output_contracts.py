@@ -323,6 +323,57 @@ def test_structured_output_contract_rejects_wrong_value_shapes():
     assert "data_gaps: must be an array" in errors
 
 
+def test_dependency_reviewer_schema_and_validator_enforce_declared_enums():
+    logical = json_schema_for_agent(
+        "dependency-reviewer",
+        profile_id="package-decision",
+    )
+    strict = strict_transport_schema_for_agent(
+        "dependency-reviewer",
+        profile_id="package-decision",
+    )
+
+    assert logical["properties"]["profile"]["enum"] == [
+        "package-decision",
+        "package-risk",
+        "repository-review",
+    ]
+    assert logical["properties"]["verdict"]["enum"] == [
+        "SAFE",
+        "SAFE_WITH_CONDITIONS",
+        "NOT_RECOMMENDED",
+        "BLOCKED",
+        None,
+    ]
+    assert strict["properties"]["risk_posture"]["enum"] == [
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL",
+        "UNKNOWN",
+        None,
+    ]
+
+    payload = {
+        "profile": "package-decision",
+        "verdict": "avoid",
+        "conditions": [],
+        "alternatives": [],
+        "summary": "The package is not recommended.",
+        "evidence_queries": [],
+        "data_gaps": ["No exact package evidence was returned."],
+        "policy_context": {},
+        "policy_evaluations": [],
+    }
+    assert (
+        "verdict: must be one of SAFE, SAFE_WITH_CONDITIONS, NOT_RECOMMENDED, BLOCKED"
+        in validate_structured_output_payload("dependency-reviewer", payload)
+    )
+
+    payload["verdict"] = "NOT_RECOMMENDED"
+    assert validate_structured_output_payload("dependency-reviewer", payload) == []
+
+
 def test_structured_output_contract_allows_null_object_when_gap_is_recorded():
     errors = validate_structured_output_payload(
         "remediation-planning",

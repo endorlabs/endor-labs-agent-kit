@@ -152,6 +152,28 @@ recipes:
     forbidden:
       - Do not guess package coordinates from unrelated local manifests.
 
+  - id: mcp-dependency-risk-exact
+    title: Exact MCP Dependency Risk Lookup
+    resource: Endor MCP dependency risk
+    purpose: Validate and summarize one exact dependency coordinate with the bounded Endor dependency-risk tool.
+    template: check_dependency_for_risks(ecosystem=<ECOSYSTEM>, dependency_name=<PACKAGE_NAME>, version=<VERSION>)
+    fields:
+      - is_valid_version
+      - is_malware
+      - malware_count
+      - is_vulnerable
+      - vulnerability_count
+      - vulnerability_ids
+      - latest_version
+      - version_recommendations
+    constraints:
+      - Require an exact ecosystem, package name, and version.
+      - Use this before optional vulnerability detail or the exact PackageVersion fallback.
+      - Stop after one risk response unless at most two selected vulnerability details can materially change the result.
+    completeness: Complete for the aggregate risk signals returned for one exact dependency coordinate; missing optional detail remains a data gap.
+    forbidden:
+      - Do not substitute broad Finding, Vulnerability, repository, or tenant inventory.
+
   - id: tenant-package-version-exact
     title: Tenant Exact PackageVersion Exposure Lookup
     resource: PackageVersion
@@ -329,7 +351,7 @@ recipes:
     resource: Finding
     purpose: List existing Endor findings for a verified scope and bounded filter set.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -341,6 +363,7 @@ recipes:
       - spec.finding_metadata
     constraints:
       - Use only after namespace provenance and scope filters are explicit.
+      - Keep context.type==CONTEXT_TYPE_MAIN unless the user explicitly requests PR, CI, or all-context evidence.
       - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
       - Include child namespaces by default; omit --traverse only when the user explicitly requests an exact namespace and that scope is proven.
       - Keep result pages bounded and report truncation or unsupported filters in data_gaps.
@@ -356,13 +379,14 @@ recipes:
     selection_condition: runtime.completeness_required
     result_delivery: runtime.large_result_artifact_required
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
       - spec.finding_categories
     constraints:
       - Use only when completeness_required is true because the user explicitly requested complete or exhaustive matching rows or exact multi-dimensional totals.
+      - Keep context.type==CONTEXT_TYPE_MAIN unless the user explicitly requests PR, CI, or all-context evidence.
       - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
       - Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed.
       - Never run this as an auxiliary enrichment query when `completeness_required=false`.
@@ -377,7 +401,7 @@ recipes:
     resource: Finding
     purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -389,6 +413,7 @@ recipes:
       - spec.finding_metadata
     constraints:
       - Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags.
+      - Keep context.type==CONTEXT_TYPE_MAIN unless the user explicitly requests PR, CI, or all-context evidence.
       - Map a generic reachable request directly to `(spec.finding_tags contains FINDING_TAGS_REACHABLE_FUNCTION or spec.finding_tags contains FINDING_TAGS_REACHABLE_DEPENDENCY)`; never probe the nonexistent FINDING_TAGS_REACHABLE value or spec.reachable path first.
       - Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace.
       - Combine the tag clause with severity, category, or project scope in the scope filter for exploit-first triage and keep the page bounded.
@@ -651,23 +676,6 @@ recipes:
     completeness: Bounded local repository context only; inaccessible live GitHub settings remain data_gaps.
     forbidden:
       - Do not claim branch protection, rulesets, runner fleet state, or live repository settings from local files.
-
-  - id: vulnerability-by-id
-    title: OSS Vulnerability Lookup By ID
-    resource: Vulnerability
-    purpose: Fetch one exact CVE, GHSA, or Endor vulnerability record from the OSS namespace.
-    template: >-
-      endorctl agent api --agent-id <agent-id> list -r Vulnerability -n oss --filter 'meta.name=="<CVE_OR_GHSA>" or uuid=="<CVE_OR_GHSA>"' --page-size 2 --field-mask "uuid,meta.name,spec" -o json
-    fields:
-      - uuid
-      - meta.name
-      - spec
-    constraints:
-      - Use one exact vulnerability identifier and retain both returned rows only to detect identifier ambiguity.
-      - The fixed OSS namespace is not tenant evidence and does not establish project applicability.
-    completeness: Exact OSS vulnerability metadata for the supplied identifier when one unambiguous row is returned.
-    forbidden:
-      - Do not infer tenant or project exposure from this global vulnerability record.
 
   - id: mcp-vulnerability-by-id-full
     title: MCP Vulnerability Evidence By ID

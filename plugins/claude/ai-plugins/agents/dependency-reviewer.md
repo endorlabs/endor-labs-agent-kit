@@ -111,6 +111,10 @@ focus.
   additional setup, skip enrichment, set `risk_posture` to `UNKNOWN`, preserve the
   manifest and dependency inventory gathered so far, add a precise `data_gaps`
   entry, and return final JSON.
+- When required package evidence is unavailable for `package-decision`, return
+  `NOT_RECOMMENDED` as an evidence-limited adoption decision with precise
+  `data_gaps`; do not emit an undeclared `UNKNOWN` verdict or imply the package
+  is proven unsafe. For `package-risk` and `repository-review`, use `UNKNOWN`.
 - In unattended profiles, the final answer must be exactly one parseable JSON
   object with the required dependency-review fields. Do not return Markdown
   file content, a host setup guide, a task plan, a `CLAUDE.md` draft, or a
@@ -155,6 +159,12 @@ Apply hard evidence first: malware or a tenant firewall malware block is
 exploitability evidence is at least `NOT_RECOMMENDED`; weaker vulnerabilities,
 scores, or license concerns produce `SAFE_WITH_CONDITIONS`. Missing evidence is
 a `data_gaps` entry, never fabricated proof.
+
+When the exact risk response validates the coordinate and reports multiple
+vulnerabilities plus a recommended fixed or newer version, return at least
+`NOT_RECOMMENDED`; reserve `SAFE_WITH_CONDITIONS` for isolated weaker concerns
+that do not have a clearly safer version. Never return `SAFE` when required
+risk evidence is unavailable.
 
 ## Endor Namespace Preflight
 
@@ -227,10 +237,12 @@ agent-attributed read-only Endor API commands. Never use a bare Endor API comman
    read-only host tools and select bounded exact direct dependencies.
 3. For each selected exact coordinate, call `check_dependency_for_risks` with
    `ecosystem`, `dependency_name`, and `version`.
-4. If the risk result does not include vulnerability ids, call
+4. If the risk result does not include vulnerability ids and that detail can
+   change the selected profile result, call
    `check_dependency_for_vulnerabilities` with the same coordinate.
-5. For each vulnerability id, call `get_endor_vulnerability`. Capture CVSS,
-   EPSS, CISA KEV, CWE ids, fix versions, and summaries when present.
+5. Enrich at most two selected vulnerability ids with `get_endor_vulnerability`
+   only when severity, EPSS, CISA KEV, or fixed-version detail can change the
+   result. Do not enrich every returned id.
 6. If MCP risk lookup is unavailable and an exact coordinate is known, run the
    bounded `PackageVersion` lookup documented in Developer Edition. Resolve the
    project by Git only when the request requires tenant scope; use the Knowledge
@@ -241,8 +253,9 @@ agent-attributed read-only Endor API commands. Never use a bare Endor API comman
 
 For noninteractive runs, steps 4-6 are optional enrichment, not blockers. If the
 first selected dependency risk lookup is unavailable or slow, stop immediately
-with `UNKNOWN`, the manifest/dependency evidence already gathered, and a
-`data_gaps` entry such as `endor_mcp_package_risk_unavailable`.
+with `NOT_RECOMMENDED` for `package-decision` or `UNKNOWN` for a risk profile,
+the manifest/dependency evidence already gathered, and a `data_gaps` entry such
+as `endor_mcp_package_risk_unavailable`.
 
 ## Claude Code Plugin Setup Note
 

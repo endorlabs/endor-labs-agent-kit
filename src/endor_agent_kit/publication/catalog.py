@@ -437,7 +437,7 @@ def root_catalog_readme(
         "| Agent | MCP use | Non-MCP path in same artifact |",
         "| --- | --- | --- |",
         "| Dependency Reviewer | Exact package decisions, package risk, vulnerability enrichment, and bounded repository manifest review. | Agent-attributed read-only API for exact PackageVersion, score, license, project, and selected Finding evidence. |",
-        "| Vulnerability Explainer | Vulnerability detail lookup. | No non-MCP path currently. |",
+        "| Vulnerability Explainer | Vulnerability detail lookup. | Finding UUID and exact PackageVersion context only; no vulnerability-detail fallback. |",
         "",
         "If MCP is unavailable, those agents must record the missing signal in",
         "`data_gaps` rather than blocking install or fabricating evidence.",

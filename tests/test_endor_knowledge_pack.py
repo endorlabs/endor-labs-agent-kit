@@ -26,6 +26,22 @@ def test_default_knowledge_pack_validates_against_source_agents():
     assert validate_knowledge_pack(agent_ids=agent_ids) == []
 
 
+def test_vulnerability_explainer_uses_only_validated_mcp_for_vulnerability_records():
+    pack = load_knowledge_pack()
+    workflow = pack.workflow_for("vulnerability-explainer")
+    assert workflow is not None
+
+    explain = workflow.evidence_query_recipes_for("explain")
+    vulnerability = next(recipe for recipe in explain if recipe.id == "vulnerability-by-id")
+
+    assert vulnerability.canonical_id == "mcp-vulnerability-by-id-full"
+    assert vulnerability.template.startswith("get_endor_vulnerability(")
+    assert all(
+        "-r Vulnerability" not in recipe.template
+        for recipe in pack.query_recipes.values()
+    )
+
+
 def test_knowledge_pack_validator_requires_a_default_plan_when_plan_catalog_exists(
     tmp_path,
 ):
@@ -65,8 +81,9 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "github-workflow-files",
         "local-ci-inventory",
         "local-git-state",
-        "local-manifest-inventory",
-        "mcp-finding-by-uuid-check",
+            "local-manifest-inventory",
+            "mcp-dependency-risk-exact",
+            "mcp-finding-by-uuid-check",
         "mcp-finding-by-uuid-full",
         "mcp-vulnerability-by-id-check",
         "mcp-vulnerability-by-id-full",
@@ -87,7 +104,6 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "version-upgrade-count",
         "version-upgrade-detail",
         "version-upgrade-summary",
-        "vulnerability-by-id",
     ]
     assert set(pack.workflows) == {
         "ai-sast-remediation",
@@ -271,6 +287,26 @@ def test_findings_browser_queries_keep_traversal_and_pagination_independent():
     assert "--traverse" in complete.template
     assert "--list-all" in complete.template
     assert "--traverse" not in exact.template
+
+
+def test_findings_browser_list_queries_default_to_main_context():
+    pack = load_knowledge_pack()
+    recipe_ids = {
+        "finding-browser-filtered",
+        "finding-browser-complete-counts",
+        "finding-browser-by-tag",
+    }
+    canonical = [pack.query_recipes[recipe_id] for recipe_id in recipe_ids]
+    workflow = pack.workflow_for("findings-browser")
+    projected = [
+        recipe
+        for recipe in workflow.evidence_query_recipes_for("browse")
+        if recipe.id in recipe_ids
+    ]
+
+    assert len(projected) == 3
+    for recipe in [*canonical, *projected]:
+        assert "context.type==CONTEXT_TYPE_MAIN" in recipe.template
 
 
 def test_findings_browser_complete_query_requires_explicit_completeness():

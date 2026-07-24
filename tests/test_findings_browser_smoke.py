@@ -76,7 +76,7 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     header = artifact.split("---", 2)[1]
 
     assert "Findings Browser" in artifact
-    assert "Use this agent proactively when the user wants to browse" in artifact
+    assert "Browses, filters, and summarizes existing Endor findings" in artifact
     assert "## Endor Knowledge Pack" in artifact
     assert "Findings Browser Evidence Contract" in artifact
     assert "finding-browser-filtered" in artifact
@@ -90,6 +90,8 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert "FINDING_TAGS_REACHABLE_FUNCTION or" in artifact
     assert "Never issue a `page_size + 1`" in artifact
     assert "Ledger every attempted Endor query" in artifact
+    assert "context.type==CONTEXT_TYPE_MAIN" in artifact
+    assert "PR, CI, or all-context evidence" in artifact
     assert "Selection condition: `runtime.completeness_required`" in artifact
     assert "For complete rows, use the recipe's exact minimal field mask" in artifact
     assert "Validate count, shape, and hash once, then stop" in artifact
