@@ -2,7 +2,7 @@
   "interface": {
     "default_prompt": "Use $ai-sast-remediation for this Endor Labs workflow.",
     "display_name": "AI SAST Remediation",
-    "short_description": "Remediates Endor AI SAST findings with exploit-reproduction evidence, bounded patches, and approval\u2026"
+    "short_description": "Triages and remediates Endor AI SAST findings with exploit evidence and approval-gated fixes."
   },
   "policy": {
     "allow_implicit_invocation": true

@@ -16,7 +16,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Use this agent to investigate safe OSS upgrade paths, upgrade risk, findings\nfixed or introduced, Code Impact Analysis, breaking changes, manifest\ntargeting, or whether a dependency upgrade should happen now. It queries\nEndor's read-only VersionUpgrade workflow through the agent-attributed CLI\ntransport.\n",
+  "description": "Evaluates candidate dependency upgrades using Endor VersionUpgrade data,\nCode Impact Analysis, findings, breaking-change information, and\nEndor-provided manifest targets. It compares findings fixed or introduced\nand explains the safest available upgrade path, including whether to upgrade\nnow, proceed cautiously, defer, or gather more evidence.\n",
   "endorctl_agent_api_invocations": [
     "resolve_project_from_repository",
     "list_version_upgrade_recommendations",

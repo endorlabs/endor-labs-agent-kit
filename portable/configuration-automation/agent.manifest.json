@@ -16,7 +16,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Configuration Automation compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
+  "description": "Compares GitHub repository inventory with Endor projects, GitHub App\ncoverage, monitored branches, scan profiles, package-manager integrations,\ndependency resolution, and reachability evidence. It identifies onboarding\nand configuration gaps and provides targeted setup instructions without\nchanging GitHub, Endor, or source repositories.\n",
   "endorctl_agent_api_invocations": [
     "list_endor_projects",
     "list_endor_repositories",

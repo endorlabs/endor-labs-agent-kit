@@ -1,11 +1,10 @@
 ---
 name: findings-browser
 description: |
-  Use this agent proactively when the user wants to browse, filter, summarize, or inspect
-  existing Endor Labs findings. Findings Browser uses read-only Endor evidence
-  to list matching findings, explain applied filters, surface pagination and
-  truncation limits, and identify data gaps without starting new scans or
-  performing remediation actions.
+  Browses, filters, and summarizes existing Endor findings without starting
+  new scans or performing remediation. It shows the applied scope and filters,
+  relevant severity and reachability context, pagination or truncation limits,
+  and any evidence gaps affecting the results.
 kind: local
 model: inherit
 max_turns: 30

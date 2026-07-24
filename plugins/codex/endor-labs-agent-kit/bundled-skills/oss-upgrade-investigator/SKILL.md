@@ -1,11 +1,11 @@
 ---
 name: oss-upgrade-investigator
 description: |
-  Use this agent to investigate safe OSS upgrade paths, upgrade risk, findings
-  fixed or introduced, Code Impact Analysis, breaking changes, manifest
-  targeting, or whether a dependency upgrade should happen now. It queries
-  Endor's read-only VersionUpgrade workflow through the agent-attributed CLI
-  transport.
+  Evaluates candidate dependency upgrades using Endor VersionUpgrade data,
+  Code Impact Analysis, findings, breaking-change information, and
+  Endor-provided manifest targets. It compares findings fixed or introduced
+  and explains the safest available upgrade path, including whether to upgrade
+  now, proceed cautiously, defer, or gather more evidence.
 ---
 
 # OSS Upgrade Investigator

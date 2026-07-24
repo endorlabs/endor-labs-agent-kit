@@ -16,7 +16,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Use this agent when the user wants an exact package decision, a package risk\nsummary, or a repository dependency review. It selects one bounded task\nprofile, gathers only the evidence that profile needs, and returns a\nread-only decision or review with explicit data gaps.\n",
+  "description": "Evaluates an exact package version, summarizes package risk, or reviews\ndependencies declared by a repository through one focused workflow. It uses\navailable vulnerability, malware, package-health, license, policy, and Endor\nevidence to provide a read-only recommendation and clearly identify missing\ninformation.\n",
   "endorctl_agent_api_invocations": [
     "lookup_package_version_uuid",
     "get_package_scores",

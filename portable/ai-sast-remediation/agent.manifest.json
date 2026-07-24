@@ -236,7 +236,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
+  "description": "Triages Endor AI SAST findings using exploit-reproduction evidence,\ndata-flow context, and remediation guidance to distinguish actionable\nvulnerabilities from noise. It can prepare targeted code fixes and, after\nexplicit approval, edit files and open change requests. For exception\nworkflows, it can create or update scoped Endor exception policies only\nafter verified AppSec approval and explicit user confirmation.\n",
   "endorctl_agent_api_invocations": [
     "resolve_project_from_repository",
     "list_ai_sast_findings",

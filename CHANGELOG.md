@@ -24,6 +24,8 @@ package metadata.
 
 ### Changed
 
+- Refreshed the public catalog descriptions for all 11 canonical agents to
+  clarify scope, evidence, mutation boundaries, and approval requirements.
 - Renamed and consolidated the public catalog to 11 canonical agents. The new
   catalog wire schema v2 carries `legacy_ids` for backend-compatible alias
   resolution, and Dependency Reviewer now selects one bounded

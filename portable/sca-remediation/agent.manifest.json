@@ -275,7 +275,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
+  "description": "Plans and applies dependency-vulnerability fixes using Endor SCA findings,\nVersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk\ndecisions, and local validation. It separates low-risk changes from upgrades\nrequiring deeper compatibility review and requires explicit approval before\nediting files, pushing branches, opening change requests, or creating\ntickets.\n",
   "endorctl_agent_api_invocations": [
     "resolve_project_from_repository",
     "list_sca_findings",

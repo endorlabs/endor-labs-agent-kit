@@ -1,11 +1,10 @@
 # Configuration Automation Gemini CLI Bundle
 
-Use this agent when the user wants to assess GitHub repository onboarding
-gaps for Endor Labs monitored-branch coverage. Configuration Automation compares
-github.com organization or repository inventory with Endor project, GitHub
-App, package, scan, scan profile, package manager integration, dependency
-resolution, and reachability evidence, then returns human-readable setup
-actions without mutating source, GitHub, or Endor state.
+Compares GitHub repository inventory with Endor projects, GitHub App
+coverage, monitored branches, scan profiles, package-manager integrations,
+dependency resolution, and reachability evidence. It identifies onboarding
+and configuration gaps and provides targeted setup instructions without
+changing GitHub, Endor, or source repositories.
 
 ## Start Here
 

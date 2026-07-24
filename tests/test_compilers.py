@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "996aa30983bfd682fe0491968d9cd1a8e2a22fea9885464ea21af566398ddb9b"
+ENTERPRISE_EDITION_SHA256 = "30f7053a137f07aa5b3ccdebed30d4956bcc90bd5de56e67e839162dd6ef5774"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -474,6 +474,10 @@ def _prompt_budget(relative_path: str) -> int:
     if agent_id == "findings-browser":
         # Traversal, completeness, filter, and query-ledger rules are required
         # safety behavior; retain them with bounded agent-specific headroom.
+        return 14_000
+    if agent_id == "remediation-planning":
+        # The planning evidence and structured-output contracts already sit near
+        # the generic ceiling; retain bounded room for an accurate public description.
         return 14_000
     if agent_id == "configuration-automation":
         # Its generated Codex wrapper carries the full deterministic setup and
