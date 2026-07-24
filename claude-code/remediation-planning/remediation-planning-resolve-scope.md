@@ -1,7 +1,11 @@
 ---
 name: remediation-planning-resolve-scope
 description: |
-  Preview safe remediation options without opening PRs.
+  Previews safe remediation options for existing Endor findings without
+  changing code or opening a pull request. It compares VersionUpgrade and
+  Upgrade Impact Analysis candidates using findings fixed, upgrade risk,
+  compatibility evidence, and available data, then recommends the safest
+  evidence-backed next step.
 disallowedTools: Task, Agent, Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---

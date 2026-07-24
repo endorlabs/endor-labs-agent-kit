@@ -1,13 +1,11 @@
 ---
 name: troubleshooting
 description: |
-  Use this agent when the user needs help diagnosing and fixing Endor Labs
-  errors, warnings, missing integrations, scan failures, slow scans, or
-  unhealthy configuration. Troubleshooting gathers the smallest useful
-  read-only Endor evidence, classifies the issue across scan, integration,
-  authentication, dependency resolution, container, reachability, policy, and
-  workflow lanes, then returns low-friction repair guidance without mutating
-  Endor, source-provider, or repository state.
+  Diagnoses Endor setup, authentication, integration, scanning,
+  dependency-resolution, container, reachability, policy, and workflow
+  problems. It gathers the smallest useful set of read-only evidence needed to
+  identify the likely root cause and recommend the lowest-friction repair
+  without modifying Endor, source-provider, or repository state.
 disallowedTools: Task, Agent, Read, Write, Edit, MultiEdit, Glob, Grep, LS, NotebookRead, NotebookEdit, WebFetch, WebSearch, TodoWrite
 model: sonnet
 ---

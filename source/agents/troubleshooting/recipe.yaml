@@ -5,15 +5,13 @@ legacy_ids:
   - endor-troubleshooter
 version: 0.1.0
 description: |
-  Use this agent when the user needs help diagnosing and fixing Endor Labs
-  errors, warnings, missing integrations, scan failures, slow scans, or
-  unhealthy configuration. Troubleshooting gathers the smallest useful
-  read-only Endor evidence, classifies the issue across scan, integration,
-  authentication, dependency resolution, container, reachability, policy, and
-  workflow lanes, then returns low-friction repair guidance without mutating
-  Endor, source-provider, or repository state.
+  Diagnoses Endor setup, authentication, integration, scanning,
+  dependency-resolution, container, reachability, policy, and workflow
+  problems. It gathers the smallest useful set of read-only evidence needed to
+  identify the likely root cause and recommend the lowest-friction repair
+  without modifying Endor, source-provider, or repository state.
 audience: developer
-short_description: "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration."
+short_description: "Diagnoses Endor setup and workflow problems using focused read-only evidence."
 authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: enterprise

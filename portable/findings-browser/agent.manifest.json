@@ -16,7 +16,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Use this agent proactively when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
+  "description": "Browses, filters, and summarizes existing Endor findings without starting\nnew scans or performing remediation. It shows the applied scope and filters,\nrelevant severity and reachability context, pagination or truncation limits,\nand any evidence gaps affecting the results.\n",
   "endorctl_agent_api_invocations": [
     "resolve_project_or_repository_selector",
     "get_finding_by_uuid",

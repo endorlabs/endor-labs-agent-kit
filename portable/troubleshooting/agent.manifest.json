@@ -16,7 +16,7 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Troubleshooting gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
+  "description": "Diagnoses Endor setup, authentication, integration, scanning,\ndependency-resolution, container, reachability, policy, and workflow\nproblems. It gathers the smallest useful set of read-only evidence needed to\nidentify the likely root cause and recommend the lowest-friction repair\nwithout modifying Endor, source-provider, or repository state.\n",
   "endorctl_agent_api_invocations": [
     "resolve_project_or_resource_selector",
     "list_scan_results",

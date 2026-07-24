@@ -1,6 +1,11 @@
 # AI SAST Remediation Gemini CLI Bundle
 
-Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
+Triages Endor AI SAST findings using exploit-reproduction evidence,
+data-flow context, and remediation guidance to distinguish actionable
+vulnerabilities from noise. It can prepare targeted code fixes and, after
+explicit approval, edit files and open change requests. For exception
+workflows, it can create or update scoped Endor exception policies only
+after verified AppSec approval and explicit user confirmation.
 
 ## Start Here
 

@@ -1,12 +1,12 @@
 # CI/CD And Supply Chain Posture
 
-Use this agent when the user wants a read-only CI/CD and supply chain
-posture assessment for an Endor namespace, GitHub organization, repository
-set, or current repository. The agent combines existing Endor SCPM, CI/CD,
-GitHub Actions, and supply-chain findings with read-only GitHub configuration
-evidence and optional local CI file inspection, then returns deterministic
-scores, critical overrides, evidence queries, and data gaps without mutating
-Endor, GitHub, or repository state.
+Assesses CI/CD and software supply-chain security across an Endor namespace,
+GitHub organization, selected repositories, or the current repository. It
+combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain
+findings with read-only repository configuration evidence and optional local
+CI inspection to produce deterministic scores, critical overrides,
+prioritized improvements, and explicit data gaps. It does not modify Endor,
+GitHub, or repository state.
 
 ## Start Here
 

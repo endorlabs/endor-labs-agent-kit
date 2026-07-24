@@ -4,9 +4,15 @@ name: AI SAST Remediation
 legacy_ids:
 - ai-sast-triage
 version: 0.1.0
-description: Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.
+description: |
+  Triages Endor AI SAST findings using exploit-reproduction evidence,
+  data-flow context, and remediation guidance to distinguish actionable
+  vulnerabilities from noise. It can prepare targeted code fixes and, after
+  explicit approval, edit files and open change requests. For exception
+  workflows, it can create or update scoped Endor exception policies only
+  after verified AppSec approval and explicit user confirmation.
 audience: appsec
-short_description: "Remediates Endor AI SAST findings with exploit-reproduction evidence, bounded patches, and approval-gated change requests."
+short_description: "Triages and remediates Endor AI SAST findings with exploit evidence and approval-gated fixes."
 authors: ["Endor Labs"]
 safety_class: mutating
 endor_tier_minimum: enterprise

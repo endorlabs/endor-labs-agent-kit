@@ -7,12 +7,13 @@ legacy_ids:
   - repository-dependency-reviewer
 version: 1.0.0
 description: |
-  Use this agent when the user wants an exact package decision, a package risk
-  summary, or a repository dependency review. It selects one bounded task
-  profile, gathers only the evidence that profile needs, and returns a
-  read-only decision or review with explicit data gaps.
+  Evaluates an exact package version, summarizes package risk, or reviews
+  dependencies declared by a repository through one focused workflow. It uses
+  available vulnerability, malware, package-health, license, policy, and Endor
+  evidence to provide a read-only recommendation and clearly identify missing
+  information.
 audience: developer
-short_description: "Reviews an exact package decision, package risk, or repository dependencies through one bounded evidence profile."
+short_description: "Reviews package versions, package risk, or repository dependencies using bounded evidence."
 authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: free

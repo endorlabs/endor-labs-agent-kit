@@ -1,7 +1,12 @@
 ---
 name: sca-remediation
 description: |
-  Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
+  Plans and applies dependency-vulnerability fixes using Endor SCA findings,
+  VersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk
+  decisions, and local validation. It separates low-risk changes from upgrades
+  requiring deeper compatibility review and requires explicit approval before
+  editing files, pushing branches, opening change requests, or creating
+  tickets.
 ---
 
 # SCA Remediation
