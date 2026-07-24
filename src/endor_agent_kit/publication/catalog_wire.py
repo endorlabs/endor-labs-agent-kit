@@ -19,10 +19,19 @@ import re
 from typing import Any
 
 from endor_agent_kit.catalog_schema import CatalogAgent, CatalogBundle
+from endor_agent_kit.publication.claude_plugin import (
+    CLAUDE_MARKETPLACE_NAME,
+    PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY,
+)
+from endor_agent_kit.publication.plugin_package_common import PLUGIN_NAME
 
 CATALOG_PATH = "catalog.json"
 CATALOG_SCHEMA_VERSION = "v2"
 AUDIENCES = frozenset({"appsec", "developer"})
+
+# claude-managed has no marketplace distribution; its install clones this repo.
+PUBLIC_SOURCE_REPOSITORY = "endorlabs/endor-labs-agent-kit"
+_SOURCE_CLONE_DIR = PUBLIC_SOURCE_REPOSITORY.split("/", 1)[1]
 
 # repo host -> wire host name, in catalog install order. Only the two V1 install
 # hosts appear in the wire shape; cursor/codex are proto-reserved and gemini/
@@ -119,7 +128,7 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
             continue
         bundle = _primary_edition(host_agent)
         install.append(
-            {"host": wire_host, "command": _install_command(repo_host, host_agent.id, bundle.path)}
+            {"host": wire_host, "command": _install_command(repo_host, bundle.path)}
         )
     if not install:
         raise ValueError(
@@ -175,17 +184,19 @@ def _primary_edition(agent: CatalogAgent) -> CatalogBundle:
     return editions[0]
 
 
-def _install_command(repo_host: str, agent_id: str, bundle_path: str) -> str:
+def _install_command(repo_host: str, bundle_path: str) -> str:
     if repo_host == "claude-code":
+        # Same plugin install for every agent; bundle_path is unused here.
         return (
-            f"mkdir -p .claude/agents && cp {bundle_path}/{agent_id}.md "
-            f".claude/agents/{agent_id}.md && for profile in "
-            f"{bundle_path}/{agent_id}-*.md; do [ -e \"$profile\" ] || continue; "
-            'cp "$profile" .claude/agents/; done'
+            f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}\n"
+            f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}\n"
+            "/reload-plugins"
         )
     if repo_host == "claude-managed-agents":
         return (
-            f"cd {bundle_path} && ant beta:agents create < agent.yaml "
+            f"git clone --depth 1 https://github.com/{PUBLIC_SOURCE_REPOSITORY} "
+            f"&& cd {_SOURCE_CLONE_DIR}/{bundle_path} "
+            f"&& ant beta:agents create < agent.yaml "
             f"&& ant beta:environments create < environment.yaml"
         )
     raise ValueError(f"unsupported install host {repo_host!r}")
