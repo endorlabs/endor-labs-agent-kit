@@ -37,10 +37,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/cicd-posture && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ]
     },
@@ -59,10 +55,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/configuration-automation && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -84,10 +76,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/dependency-reviewer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -111,10 +99,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/findings-browser && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ]
     },
@@ -133,10 +117,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/malware-responder && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -158,10 +138,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/oss-upgrade-investigator && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -222,10 +198,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/troubleshooting && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ],
       "legacy_ids": [
@@ -247,10 +219,6 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
-        },
-        {
-          "host": "claude-managed",
-          "command": "git clone --depth 1 https://github.com/endorlabs/endor-labs-agent-kit && cd endor-labs-agent-kit/claude-managed-agents/vulnerability-explainer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
         }
       ]
     }

@@ -471,6 +471,10 @@ def _prompt_budget(relative_path: str) -> int:
         return 18_000
     if agent_id == "oss-upgrade-investigator":
         return 15_000
+    if agent_id == "findings-browser":
+        # Traversal, completeness, filter, and query-ledger rules are required
+        # safety behavior; retain them with bounded agent-specific headroom.
+        return 14_000
     if agent_id == "configuration-automation":
         # Its generated Codex wrapper carries the full deterministic setup and
         # action-prescription safety boundary; keep a small non-semantic cushion.
