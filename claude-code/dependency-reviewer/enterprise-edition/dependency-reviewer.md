@@ -141,6 +141,10 @@ focus.
   additional setup, skip enrichment, set `risk_posture` to `UNKNOWN`, preserve the
   manifest and dependency inventory gathered so far, add a precise `data_gaps`
   entry, and return final JSON.
+- When required package evidence is unavailable for `package-decision`, return
+  `NOT_RECOMMENDED` as an evidence-limited adoption decision with precise
+  `data_gaps`; do not emit an undeclared `UNKNOWN` verdict or imply the package
+  is proven unsafe. For `package-risk` and `repository-review`, use `UNKNOWN`.
 - In unattended profiles, the final answer must be exactly one parseable JSON
   object with the required dependency-review fields. Do not return Markdown
   file content, a host setup guide, a task plan, a `CLAUDE.md` draft, or a
@@ -201,6 +205,12 @@ Apply hard evidence first: malware or a tenant firewall malware block is
 exploitability evidence is at least `NOT_RECOMMENDED`; weaker vulnerabilities,
 scores, or license concerns produce `SAFE_WITH_CONDITIONS`. Missing evidence is
 a `data_gaps` entry, never fabricated proof.
+
+When the exact risk response validates the coordinate and reports multiple
+vulnerabilities plus a recommended fixed or newer version, return at least
+`NOT_RECOMMENDED`; reserve `SAFE_WITH_CONDITIONS` for isolated weaker concerns
+that do not have a clearly safer version. Never return `SAFE` when required
+risk evidence is unavailable.
 ## Summary Ladder
 
 Apply hard rules first, then weigh the remaining signals:
@@ -297,7 +307,7 @@ Route once to an exact package decision, exact package risk summary, or bounded 
 
 Decide whether to add, upgrade to, keep, or avoid one explicit package version.
 - Use when: The user asks for an adoption, approval, upgrade, keep, or avoid decision for one package version.
-- Minimal evidence: Exact ecosystem, package name, version, PackageVersion evidence, and available vulnerability or policy signals.
+- Minimal evidence: Exact ecosystem, package name, and version validated by the bounded dependency-risk lookup, plus only the vulnerability or policy signals needed to decide.
 - Stop when: The decision is supported by exact-package evidence or missing signals are recorded in data_gaps. Do not inspect repository manifests or query unrelated packages.
 - Output focus: Return profile, verdict, conditions, alternatives, summary, evidence_queries, data_gaps, and policy fields.
 
@@ -305,7 +315,7 @@ Decide whether to add, upgrade to, keep, or avoid one explicit package version.
 
 Summarize verified risk for one explicit package version without making an adoption decision.
 - Use when: The user asks for a package risk picture, evidence summary, or review inputs rather than a yes/no decision.
-- Minimal evidence: Exact ecosystem, package name, version, PackageVersion evidence, and available vulnerability, score, or license signals.
+- Minimal evidence: Exact ecosystem, package name, and version validated by the bounded dependency-risk lookup, plus available vulnerability, score, or license signals.
 - Stop when: The risk posture is evidence-backed or unavailable signals are recorded in data_gaps. Do not inspect repository manifests or broaden to tenant inventory.
 - Output focus: Return profile, risk_posture, findings, strengths, next_checks, summary, evidence_queries, data_gaps, and policy fields.
 
@@ -322,16 +332,16 @@ Inspect local manifests and attach bounded Endor evidence only to selected exact
 #### `package-decision` - Exact Package Decision Query Plan
 
 Gather only the evidence needed to decide on one named package version.
-- Query order: 1. Resolve ecosystem, package name, version, and package URL prefix. 2. Query the exact oss PackageVersion by meta.name. 3. Query selected vulnerability or policy evidence only when it can change the decision.
-- Avoid: Do not inspect manifests, inventory unrelated versions, or enumerate tenant findings.
+- Query order: 1. Resolve ecosystem, package name, version, and package URL prefix. 2. Call check_dependency_for_risks for the exact coordinate and use its version validation, malware flag, vulnerability count and ids, latest version, and recommendations as the primary decision evidence. 3. Query at most two selected vulnerability details only when severity, exploitability, KEV, or fixed-version evidence can change the verdict. 4. If the exact risk tool is unavailable, make one exact PackageVersion lookup by meta.name, record the risk evidence gap, and stop.
+- Avoid: Do not inspect manifests, inventory unrelated versions, use a broad Finding or Vulnerability API fallback, or enumerate tenant findings.
 - Stop after: Stop after a verdict and its conditions are supported or required signals are recorded in data_gaps.
 - Data gaps: Record incomplete coordinates, PackageVersion misses, unavailable vulnerability evidence, and missing policy facts.
 
 #### `package-risk` - Exact Package Risk Query Plan
 
 Summarize the risk posture of one named package version without making an adoption decision.
-- Query order: 1. Resolve ecosystem, package name, version, and package URL prefix. 2. Query the exact oss PackageVersion by meta.name. 3. Enrich only exact vulnerability identifiers and available score or license signals.
-- Avoid: Do not inspect manifests, broaden to repository inventory, or infer risk from popularity heuristics.
+- Query order: 1. Resolve ecosystem, package name, version, and package URL prefix. 2. Call check_dependency_for_risks for the exact coordinate and use its version validation, malware flag, vulnerability count and ids, latest version, and recommendations as the primary risk evidence. 3. Enrich at most two exact vulnerability identifiers and available score or license signals only when they materially change the posture. 4. If the exact risk tool is unavailable, make one exact PackageVersion lookup by meta.name, record the risk evidence gap, and stop.
+- Avoid: Do not inspect manifests, broaden to repository inventory, use a broad Finding or Vulnerability API fallback, or infer risk from popularity heuristics.
 - Stop after: Stop after the posture and caveats are evidence-backed or the evidence boundary is recorded in data_gaps.
 - Data gaps: Record PackageVersion misses, unavailable score or license signals, and vulnerability enrichment gaps.
 
@@ -345,6 +355,15 @@ Attach Endor evidence only to exact dependencies discovered in the current repos
 
 ### Evidence Query Recipes
 
+#### `decision-package-risk-exact` (package-decision)
+
+- Canonical: `mcp-dependency-risk-exact`
+- Resource: `Endor MCP dependency risk`
+- Purpose: Validate and summarize the exact coordinate with one deterministic package-risk call.
+- Template: `check_dependency_for_risks(ecosystem=<ECOSYSTEM>, dependency_name=<PACKAGE_NAME>, version=<VERSION>)`
+- Fields: `is_valid_version`, `is_malware`, `malware_count`, `is_vulnerable`, `vulnerability_count`, `vulnerability_ids`, `latest_version`, `version_recommendations`
+- Constraints: Use this as the first and primary package-decision lookup. Never substitute a broad Finding or Vulnerability inventory.
+
 #### `decision-package-version-exact` (package-decision)
 
 - Canonical: `package-version-exact`
@@ -352,16 +371,25 @@ Attach Endor evidence only to exact dependencies discovered in the current repos
 - Purpose: Resolve exact package-version evidence for one adoption decision.
 - Template: `endorctl agent api --agent-id dependency-reviewer list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
 - Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.release_timestamp`
-- Constraints: Require an exact coordinate and stop on a missing or ambiguous match. Do not inventory other versions or packages.
+- Constraints: Use only once as a fallback when check_dependency_for_risks is unavailable. Require an exact coordinate and stop on a missing or ambiguous match with evidence-limited data_gaps. Do not inventory other versions or packages.
 
-#### `decision-selected-package-findings` (package-decision)
+#### `decision-vulnerability-enrichment` (package-decision)
 
-- Canonical: `sca-finding-availability`
-- Resource: `Finding`
-- Purpose: Check selected-package project findings only when proven tenant scope can change the decision.
-- Template: `endorctl agent api --agent-id dependency-reviewer list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
-- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.level`
-- Constraints: Use only for the selected package and proven project scope. Do not add --list-all.
+- Canonical: `mcp-vulnerability-enrichment`
+- Resource: `Endor MCP vulnerability evidence`
+- Purpose: Enrich at most two exact vulnerability IDs only when detail can change the decision.
+- Template: `get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)`
+- Fields: `id`, `severity`, `epss`, `cisa_kev`, `fixed_versions`
+- Constraints: Enrich no more than two vulnerability ids selected from the exact risk response. Do not broaden to unrelated vulnerability identifiers or use an Agent API Vulnerability fallback.
+
+#### `risk-package-risk-exact` (package-risk)
+
+- Canonical: `mcp-dependency-risk-exact`
+- Resource: `Endor MCP dependency risk`
+- Purpose: Validate and summarize the exact coordinate with one deterministic package-risk call.
+- Template: `check_dependency_for_risks(ecosystem=<ECOSYSTEM>, dependency_name=<PACKAGE_NAME>, version=<VERSION>)`
+- Fields: `is_valid_version`, `is_malware`, `malware_count`, `is_vulnerable`, `vulnerability_count`, `vulnerability_ids`, `latest_version`, `version_recommendations`
+- Constraints: Use this as the first and primary package-risk lookup. Never substitute a broad Finding or Vulnerability inventory.
 
 #### `risk-package-version-exact` (package-risk)
 
@@ -370,7 +398,7 @@ Attach Endor evidence only to exact dependencies discovered in the current repos
 - Purpose: Resolve exact package-version evidence for one risk summary.
 - Template: `endorctl agent api --agent-id dependency-reviewer list -r PackageVersion -n oss --filter 'meta.name=="<PACKAGE_URL_PREFIX>://<PACKAGE_NAME>@<VERSION>"' --field-mask "uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp" -o json`
 - Fields: `uuid`, `meta.name`, `spec.ecosystem`, `spec.package_name`, `spec.release_timestamp`
-- Constraints: Require an exact coordinate and stop on a missing or ambiguous match. Do not inspect repository manifests.
+- Constraints: Use only once as a fallback when check_dependency_for_risks is unavailable. Require an exact coordinate and stop on a missing or ambiguous match with UNKNOWN data_gaps. Do not inspect repository manifests.
 
 #### `risk-vulnerability-enrichment` (package-risk)
 
@@ -379,7 +407,7 @@ Attach Endor evidence only to exact dependencies discovered in the current repos
 - Purpose: Enrich only exact vulnerability IDs returned for the selected package version.
 - Template: `get_endor_vulnerability(vulnerability_id=<CVE_OR_GHSA>, namespace=<namespace>)`
 - Fields: `id`, `severity`, `epss`, `cisa_kev`, `fixed_versions`
-- Constraints: Do not broaden to unrelated vulnerability identifiers. Record unavailable enrichment in data_gaps.
+- Constraints: Enrich no more than two vulnerability ids selected from the exact risk response. Do not broaden to unrelated vulnerability identifiers or use an Agent API Vulnerability fallback. Record unavailable enrichment in data_gaps.
 
 #### `repository-local-manifest-inventory` (repository-review)
 
@@ -423,8 +451,8 @@ Attach Endor evidence only to exact dependencies discovered in the current repos
 - `Metric`: Read score or license signals only after exact PackageVersion resolution. Fields: `spec.metric_values`.
 - `Finding`: Check scoped vulnerability availability only for a selected package and proven project. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.level`.
 - `Vulnerability`: Enrich exact vulnerability identifiers when the host exposes that evidence. Fields: `uuid`, `spec`.
-- Retrieval order: 1. Select exactly one task profile before gathering evidence; never invoke the legacy agents sequentially. 2. Require exact ecosystem, package name, and version before package-profile lookups. 3. Inspect local manifests only for repository-review and prefer exact direct runtime dependencies from lockfiles. 4. Resolve namespace provenance before tenant-scoped reads; package-level oss lookups do not require tenant expansion. 5. Stop as soon as the selected profile can emit an evidence-backed result or precise data_gaps.
-- Fallbacks: If a package coordinate is incomplete, return the selected package profile with coordinate data_gaps and no broad discovery. If repository files are unavailable, return repository-review with a host capability gap and no guessed inventory. If Endor evidence is unavailable, preserve local or user-provided facts and return a bounded UNKNOWN or degraded decision.
+- Retrieval order: 1. Select exactly one task profile before gathering evidence; never invoke the legacy agents sequentially. 2. Require exact ecosystem, package name, and version before package-profile lookups. 3. For package profiles, call check_dependency_for_risks first; use at most two selected vulnerability detail lookups only when they can change the result. 4. If the exact dependency-risk transport is unavailable, make one exact oss PackageVersion fallback lookup and stop with precise data_gaps; never broaden package profiles to Finding or Vulnerability inventory. 5. Inspect local manifests only for repository-review and prefer exact direct runtime dependencies from lockfiles. 6. Resolve namespace provenance before tenant-scoped reads; package-level oss lookups do not require tenant expansion. 7. Stop as soon as the selected profile can emit an evidence-backed result or precise data_gaps.
+- Fallbacks: If a package coordinate is incomplete, return the selected package profile with coordinate data_gaps and no broad discovery. If repository files are unavailable, return repository-review with a host capability gap and no guessed inventory. If exact dependency-risk evidence is unavailable, use at most one exact PackageVersion lookup, preserve user-provided facts, and return a bounded UNKNOWN or evidence-limited decision without a broad Finding fallback.
 - Data gaps: Record missing coordinates, manifest access, unresolved versions, namespace provenance, credentials, PackageVersion evidence, scores, licenses, Findings, and vulnerability enrichment. Preserve the selected profile and exact evidence source in the final output.
 
 ## Agent Policy Packs
@@ -517,10 +545,12 @@ agent-attributed read-only Endor API commands. Never use a bare Endor API comman
    read-only host tools and select bounded exact direct dependencies.
 3. For each selected exact coordinate, call `check_dependency_for_risks` with
    `ecosystem`, `dependency_name`, and `version`.
-4. If the risk result does not include vulnerability ids, call
+4. If the risk result does not include vulnerability ids and that detail can
+   change the selected profile result, call
    `check_dependency_for_vulnerabilities` with the same coordinate.
-5. For each vulnerability id, call `get_endor_vulnerability`. Capture CVSS,
-   EPSS, CISA KEV, CWE ids, fix versions, and summaries when present.
+5. Enrich at most two selected vulnerability ids with `get_endor_vulnerability`
+   only when severity, EPSS, CISA KEV, or fixed-version detail can change the
+   result. Do not enrich every returned id.
 6. If MCP risk lookup is unavailable and an exact coordinate is known, run the
    bounded `PackageVersion` lookup documented in Developer Edition. Resolve the
    project by Git only when the request requires tenant scope; use the Knowledge
@@ -531,5 +561,6 @@ agent-attributed read-only Endor API commands. Never use a bare Endor API comman
 
 For noninteractive runs, steps 4-6 are optional enrichment, not blockers. If the
 first selected dependency risk lookup is unavailable or slow, stop immediately
-with `UNKNOWN`, the manifest/dependency evidence already gathered, and a
-`data_gaps` entry such as `endor_mcp_package_risk_unavailable`.
+with `NOT_RECOMMENDED` for `package-decision` or `UNKNOWN` for a risk profile,
+the manifest/dependency evidence already gathered, and a `data_gaps` entry such
+as `endor_mcp_package_risk_unavailable`.

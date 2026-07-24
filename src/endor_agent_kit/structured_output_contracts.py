@@ -28,6 +28,28 @@ POLICY_OUTPUT_FIELDS = (
 )
 
 
+ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
+    ("dependency-reviewer", "profile"): (
+        "package-decision",
+        "package-risk",
+        "repository-review",
+    ),
+    ("dependency-reviewer", "verdict"): (
+        "SAFE",
+        "SAFE_WITH_CONDITIONS",
+        "NOT_RECOMMENDED",
+        "BLOCKED",
+    ),
+    ("dependency-reviewer", "risk_posture"): (
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL",
+        "UNKNOWN",
+    ),
+}
+
+
 _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
     "ai-sast-remediation": (
         StructuredOutputField("summary", "string"),
@@ -287,6 +309,15 @@ def validate_structured_output_payload(
                 errors.append(f"{field.name}: required")
             continue
         errors.extend(_kind_errors(field, payload[field.name]))
+        enum_values = ENUM_FIELD_VALUES.get((agent_id, field.name))
+        if (
+            enum_values is not None
+            and isinstance(payload[field.name], str)
+            and payload[field.name] not in enum_values
+        ):
+            errors.append(
+                f"{field.name}: must be one of {', '.join(enum_values)}"
+            )
     errors.extend(_evidence_query_ledger_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
@@ -367,6 +398,12 @@ def _json_schema_for_field(
         return _with_nullable(profile_override(), nullable=nullable)
     if field.name in FIELD_SCHEMA_OVERRIDES:
         return _with_nullable(FIELD_SCHEMA_OVERRIDES[field.name](), nullable=nullable)
+    enum_values = ENUM_FIELD_VALUES.get((agent_id, field.name))
+    if enum_values is not None:
+        return _with_nullable(
+            {"type": "string", "enum": list(enum_values)},
+            nullable=nullable,
+        )
     return _json_schema_for_kind(field.kind, nullable=nullable)
 
 
@@ -404,6 +441,9 @@ def _with_nullable(schema: dict[str, Any], *, nullable: bool) -> dict[str, Any]:
     schema_type = result.get("type")
     if isinstance(schema_type, str):
         result["type"] = [schema_type, "null"]
+    enum_values = result.get("enum")
+    if isinstance(enum_values, list) and None not in enum_values:
+        result["enum"] = [*enum_values, None]
     return result
 
 

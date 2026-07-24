@@ -380,12 +380,52 @@ def validate_knowledge_pack(
                 default_profile = default_task_profile_for_agent(agent_id)
                 if not any(
                     plan.profile_id == default_profile for plan in compiled
+                ) and _default_profile_has_agent_api_recipe(
+                    pack_root,
+                    agent_id=agent_id,
+                    profile_id=default_profile,
                 ):
                     errors.append(
                         f"evidence-plans/{agent_id}.yaml: missing default "
                         f"Evidence Plan {default_profile!r}"
                     )
     return errors
+
+
+def _default_profile_has_agent_api_recipe(
+    pack_root: Path,
+    *,
+    agent_id: str,
+    profile_id: str,
+) -> bool:
+    """Return whether a default profile has a plan-eligible Agent API recipe.
+
+    Compiled Evidence Plans currently execute attributed ``endorctl agent api``
+    operations. MCP-only and host-tool-only profiles are prompt/tool contracts,
+    so requiring a synthetic CLI plan for them would advertise an unsupported
+    transport.
+    """
+
+    workflow_path = pack_root / "workflows" / f"{agent_id}.yaml"
+    if not workflow_path.is_file():
+        return False
+    try:
+        workflow = _load_yaml_mapping(workflow_path)
+    except Exception:
+        return False
+    recipes = tuple(
+        recipe
+        for recipe in _mappings(workflow.get("evidence_query_recipes"))
+        if str(recipe.get("profile_id") or "") == profile_id
+    )
+    if not recipes:
+        return True
+    return any(
+        str(recipe.get("template") or "").lstrip().startswith(
+            "endorctl agent api "
+        )
+        for recipe in recipes
+    )
 
 
 def render_knowledge_pack_section(

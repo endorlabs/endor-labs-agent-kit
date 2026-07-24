@@ -23,7 +23,6 @@ DEFAULT_EVIDENCE_PLAN_PROFILES = {
     "remediation-planning": "selection-plan",
     "sca-remediation": "selection-plan",
     "troubleshooting": "diagnose",
-    "vulnerability-explainer": "explain",
 }
 
 
@@ -275,22 +274,8 @@ def test_evidence_plan_validator_rejects_untyped_multi_lane_routes():
     )
 
 
-def test_compiled_vulnerability_explainer_plan_uses_one_attributed_oss_lookup():
-    plan = compile_evidence_plan("vulnerability-explainer", "explain")
-
-    assert validate_evidence_plan(plan) == []
-    assert plan.namespace_mode == "oss"
-    assert plan.namespace_required is False
-    assert plan.namespace_provenance_required is False
-    assert plan.expected_calls == plan.max_calls == 1
-    assert [step.id for step in plan.steps] == ["vulnerability-by-id"]
-    step = plan.steps[0]
-    assert step.template.startswith(
-        "endorctl agent api --agent-id vulnerability-explainer list -r Vulnerability -n oss"
-    )
-    assert "--page-size 2" in step.template
-    assert "--list-all" not in step.template
-    assert all(binding.placeholder != "namespace" for binding in step.inputs)
+def test_mcp_only_vulnerability_explainer_does_not_publish_a_synthetic_cli_plan():
+    assert compile_evidence_plans("vulnerability-explainer") == ()
 
 
 def test_compiled_dependency_review_plan_parallelizes_local_scope_and_one_aggregate():
@@ -380,13 +365,14 @@ def test_compiled_cicd_posture_plan_parallelizes_two_bounded_remote_reads():
     assert {step.concurrency_group for step in plan.steps} == {"posture"}
 
 
-def test_every_canonical_agent_has_one_bounded_default_evidence_plan():
+def test_every_agent_api_default_profile_has_one_bounded_evidence_plan():
     plans = {
         agent_id: compile_evidence_plan(agent_id, profile_id)
         for agent_id, profile_id in DEFAULT_EVIDENCE_PLAN_PROFILES.items()
     }
 
-    assert len(plans) == 11
+    assert len(plans) == 10
+    assert compile_evidence_plans("vulnerability-explainer") == ()
     assert all(validate_evidence_plan(plan) == [] for plan in plans.values())
     assert all(
         "--list-all" not in step.template

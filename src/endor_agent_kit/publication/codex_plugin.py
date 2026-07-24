@@ -115,6 +115,13 @@ def publish_codex_plugin_package(
     setup_agent.write_text(_render_codex_setup_agent_toml(sorted_recipes, version), encoding="utf-8")
     written.append(setup_agent)
 
+    mcp_manifest = package_dir / ".mcp.json"
+    mcp_manifest.write_text(
+        json.dumps(_codex_mcp_manifest(), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    written.append(mcp_manifest)
+
     installer = package_dir / "scripts" / "install_codex_agents.py"
     installer.write_text(_codex_agent_installer_script(version), encoding="utf-8")
     written.append(installer)
@@ -502,6 +509,7 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
         ],
         "skills": "./skills/",
         "hooks": "./hooks/hooks.json",
+        "mcpServers": "./.mcp.json",
         "interface": {
             "displayName": PLUGIN_DISPLAY_NAME,
             "shortDescription": "Endor Labs security workflows for Codex.",
@@ -522,6 +530,19 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
             "brandColor": "#4F46E5",
             "logo": f"./{LOGO_PATH}",
         },
+    }
+
+
+def _codex_mcp_manifest() -> dict[str, object]:
+    """Return the plugin-local Endor MCP server used by Codex workflows."""
+
+    return {
+        "mcpServers": {
+            "endor-cli-tools": {
+                "command": "endorctl",
+                "args": ["ai-tools", "mcp-server"],
+            }
+        }
     }
 
 
