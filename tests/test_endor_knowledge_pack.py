@@ -101,8 +101,10 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "tenant-package-inventory",
         "tenant-package-version-exact",
         "version-upgrade-by-package",
+        "version-upgrade-by-package-exact",
         "version-upgrade-count",
         "version-upgrade-detail",
+        "version-upgrade-detail-compact",
         "version-upgrade-summary",
     ]
     assert set(pack.workflows) == {
@@ -592,6 +594,9 @@ def test_oss_upgrade_evidence_profile_stops_after_bounded_exact_candidate_miss()
     assert "explicitly requests exhaustive inventory" in compact
     assert "project-by-git: `endorctl agent api --agent-id <agent-id> list -r Project" in compact
     assert 'spec.git.full_name=="<owner/repo>"' in compact
+    assert "Run the exact compact candidate recipe once" in compact
+    assert "one selected-candidate detail recipe" in compact
+    assert "Do not retry with broader or alternate field masks" in compact
 
 
 def test_findings_browse_profile_maps_explicit_complete_evidence_to_output_counts():

@@ -237,6 +237,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Record `namespace_provenance`, repo, branch, traverse, `data_gaps`.
 - Missing inputs in noninteractive/final answer: return required JSON with `data_gaps`.
 - Read-only: no edits/scans/PRs/comments/writes.
+- No default scan/rescan advice; only a proven freshness gap may produce an optional human-approved follow-up.
 - No raw commands in final.
 
 ### CI/CD Posture Evidence Contract
@@ -246,6 +247,7 @@ Assess namespace-wide or repository-subset CI/CD and supply chain posture using 
 ### Agent Task Profiles
 
 - Profiles: `resolve-scope`, `posture`. Profile bounds workflow; obey stop; full only on request.
+- Before the first tool call, select the smallest matching profile as a hard boundary: gather only its minimal evidence, obey its stop conditions, and broaden only when the user explicitly asks.
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `posture`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
@@ -262,19 +264,20 @@ If the runtime provides a trusted Agent Policy Pack and fact bag, use its evalua
 
 Return `policy_context` with status, pack id, version, SHA-256 when known, and source. Copy trusted evaluator `policy_evaluations` exactly and completely. `deny` blocks recommendations and mutation. `require_review` permits planning only until runtime approval evidence is returned. For every effect, missing or invalid facts follow `on_missing_facts`; its default `deny` blocks unless explicitly overridden. Record unavailable policy packs, adapters, or required facts in `data_gaps`.
 
-## Structured Output Contract
-
-Return exactly one parseable JSON object in the final answer.
-Required top-level fields, in order:
-`posture_verdict`, `summary`, `scope`, `raw_counts`, `dimension_scores`, `score_validation`, `critical_overrides`, `endor_findings`, `github_evidence`, `local_ci_evidence`, `recommended_actions`, `evidence_queries`, `data_gaps`, `policy_context`, `policy_evaluations`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
-`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
-Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
-Object fields may be `{}` or `null` only when `data_gaps` explains why.
-
 Use the read-only lanes above. Do not require an Endor MCP server. For GitHub
 evidence, prefer GitHub CLI API reads or documented GitHub API reads for
 selected repositories. If GitHub access is missing, continue with Endor
 evidence and record branch protection, workflow, CODEOWNERS, runner, and update
 automation signals in `data_gaps`.
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields and types:
+enum: `posture_verdict`; string: `summary`; object: `scope`, `raw_counts`, `dimension_scores`, `score_validation`, `policy_context`; list[object]: `critical_overrides`, `endor_findings`, `github_evidence`, `local_ci_evidence`, `recommended_actions`, `evidence_queries`, `policy_evaluations`; list[string]: `data_gaps`
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
+Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
+Object fields may be `{}` or `null` only when `data_gaps` explains why.
+FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

@@ -115,7 +115,7 @@ Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the d
 
 ## Endor Project Resolution Preflight
 
-Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
+Before Project reads, parse the local git remote and query its provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
 
 ## Endor Knowledge Pack
 
@@ -135,6 +135,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Record `namespace_provenance`, repo, branch, traverse, `data_gaps`.
 - Missing inputs in noninteractive/final answer: return required JSON with `data_gaps`.
 - Read-only: no edits/scans/PRs/comments/writes.
+- No default scan/rescan advice; only a proven freshness gap may produce an optional human-approved follow-up.
 - No raw commands in final.
 
 ### Remediation Planning Evidence Contract
@@ -144,6 +145,7 @@ Preview remediation options only from verified Endor findings and VersionUpgrade
 ### Agent Task Profiles
 
 - Profiles: `resolve-scope`, `evidence-check`, `selection-plan`. Profile bounds workflow; obey stop; full only on request.
+- Before the first tool call, select the smallest matching profile as a hard boundary: gather only its minimal evidence, obey its stop conditions, and broaden only when the user explicitly asks.
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `selection-plan`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
@@ -161,18 +163,19 @@ If the runtime provides a trusted Agent Policy Pack and fact bag, use its evalua
 
 Return `policy_context` with status, pack id, version, SHA-256 when known, and source. Copy trusted evaluator `policy_evaluations` exactly and completely. `deny` blocks recommendations and mutation. `require_review` permits planning only until runtime approval evidence is returned. For every effect, missing or invalid facts follow `on_missing_facts`; its default `deny` blocks unless explicitly overridden. Record unavailable policy packs, adapters, or required facts in `data_gaps`.
 
-## Structured Output Contract
-
-Return exactly one parseable JSON object in the final answer.
-Required top-level fields, in order:
-`summary`, `project_resolution`, `evidence_queries`, `remediation_options`, `selected_remediation`, `data_gaps`, `policy_context`, `policy_evaluations`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
-`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
-Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
-Object fields may be `{}` or `null` only when `data_gaps` explains why.
-
 Use only authenticated `endorctl agent api --agent-id remediation-planning` commands for customer-tenant evidence.
 Use Bash only for read-only `endorctl agent api --agent-id remediation-planning` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
+
+## Structured Output Contract
+
+Return exactly one parseable JSON object in the final answer.
+Required top-level fields and types:
+string: `summary`; object: `project_resolution`, `selected_remediation`, `policy_context`; list[object]: `evidence_queries`, `remediation_options`, `policy_evaluations`; list[string]: `data_gaps`
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
+Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
+Object fields may be `{}` or `null` only when `data_gaps` explains why.
+FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

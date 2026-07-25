@@ -45,7 +45,7 @@ Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the d
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT = """## Endor Project Resolution Preflight
 
-Before scoped Endor reads, resolve the repo to live Project evidence. Try selectors in order and record them: clone URL, HTTP URL, source-provider full name, `meta.name`, basename. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
+Before scoped Endor reads, parse the local git remote and query its source-provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, and basename, recording each selector. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
 
 If the parent namespace misses, retry the same selector with `--traverse` before declaring a gap. When traversal finds a child project, use that child namespace for later scoped reads when possible; otherwise keep `--traverse` and say so.
 
@@ -54,12 +54,12 @@ Return `project_resolution` with status, uuid, namespace/provenance, normalized 
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT_COMPACT = """## Endor Project Resolution Preflight
 
-Resolve live Project scope before Endor reads. Try clone URL, HTTP URL, provider full name, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
+Before Project reads, parse the local git remote and query its provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
 """
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
 EVIDENCE_LEDGER_GUIDANCE = (
-    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`."
+    "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`."
 )
 DATA_GAPS_REASON_GUIDANCE = (
     "`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional."
@@ -164,8 +164,9 @@ def instructions_for_edition(
         sections_to_render.append(project_preflight.rstrip())
     if knowledge_pack:
         sections_to_render.append(knowledge_pack)
+    profile_output_fields = None
+    structured_output = ""
     if structured_output_recipe is not None:
-        profile_output_fields = None
         if selected_profile and selected_profile.output_fields and recipe_id is not None:
             profile_output_fields = compile_profile_contract(
                 recipe_id,
@@ -187,9 +188,9 @@ def instructions_for_edition(
             compact=effective_compact,
             output_fields=profile_output_fields,
         ).rstrip()
-        if structured_output:
-            sections_to_render.append(structured_output)
     sections_to_render.append(mode.rstrip())
+    if structured_output:
+        sections_to_render.append(structured_output)
     rendered = "\n\n".join(sections_to_render) + "\n"
     if recipe_id is not None:
         rendered = rendered.replace("<agent-id>", recipe_id)
@@ -260,13 +261,13 @@ def render_structured_output_contract(
                 "instructions mention it."
             )
         lines.extend([
-            "Required top-level fields, in order:",
-            _inline_field_list(required),
+            "Required top-level fields and types:",
+            _grouped_field_list_with_kinds(required),
         ])
         if optional:
             lines.extend([
                 "Optional fields when verified:",
-                _inline_field_list_with_kinds(optional),
+                _grouped_field_list_with_kinds(optional),
             ])
         if _has_required_field(required, "evidence_queries"):
             lines.append(EVIDENCE_LEDGER_GUIDANCE)
@@ -276,6 +277,13 @@ def render_structured_output_contract(
             STRUCTURED_OUTPUT_TYPE_GUIDANCE,
             "Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.",
             "Object fields may be `{}` or `null` only when `data_gaps` explains why.",
+        ])
+        if any(field.name == "endor_patch" for field in recipe.outputs):
+            lines.append(
+                "`endor_patch`: target-version string, `\"none\"`, or `\"unknown\"`; never boolean/`\"true\"`/`\"false\"`.",
+            )
+        lines.extend([
+            "FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.",
             "",
         ])
         return "\n".join(lines)
@@ -320,6 +328,14 @@ def render_structured_output_contract(
         "```json",
         json.dumps(skeleton, indent=2),
         "```",
+        "",
+    ])
+    if any(field.name == "endor_patch" for field in recipe.outputs):
+        lines.append(
+            "`endor_patch` is a target-version string, `\"none\"`, or `\"unknown\"`; never a boolean or the strings `\"true\"`/`\"false\"`.",
+        )
+    lines.extend([
+        "FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.",
         "",
     ])
     return "\n".join(lines)
@@ -390,12 +406,11 @@ def render_action_contracts(
     return "\n".join(lines)
 
 
-def _inline_field_list(fields: tuple[RecipeField, ...]) -> str:
-    return ", ".join(f"`{field.name}`" for field in fields)
-
-
-def _inline_field_list_with_kinds(fields: tuple[RecipeField, ...]) -> str:
-    return ", ".join(f"`{field.name}`:{field.kind}" for field in fields)
+def _grouped_field_list_with_kinds(fields: tuple[RecipeField, ...]) -> str:
+    grouped: dict[str, list[str]] = {}
+    for field in fields:
+        grouped.setdefault(field.kind, []).append(f"`{field.name}`")
+    return "; ".join(f"{kind}: {', '.join(names)}" for kind, names in grouped.items())
 
 
 def _json_placeholder(field: RecipeField):

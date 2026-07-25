@@ -111,12 +111,16 @@ evidence_query_plans:
     objective: Verify VersionUpgrade/UIA impact evidence for a scoped package or candidate.
     query_order:
       - Resolve namespace, package/version, and optional project scope first.
+      - Preserve a user-supplied ecosystem-qualified package coordinate byte-for-byte in the first exact lookup; never strip
+        its ecosystem prefix before that attempt.
       - Query VersionUpgrade summaries matching the package and from/to versions or upgrade UUID.
+      - Run the exact compact candidate recipe once, then one selected-candidate detail recipe for the returned UUID.
       - 'If the exact package/from-version lookup misses, make at most one bounded alternate-identifier retry. If that also misses, return `selected_upgrade: null` with precise data_gaps and stop.'
       - Fetch detailed VersionUpgrade evidence only for the selected candidate.
     avoid:
       - Do not query broad Findings to estimate upgrade impact when VersionUpgrade is the source of truth.
       - Do not enumerate or paginate all project `VersionUpgrade` rows unless the user explicitly requests exhaustive inventory.
+      - Do not retry with broader or alternate field masks; record unavailable optional detail in data_gaps.
     stop_after:
       - Stop after VersionUpgrade evidence is found, absent after one bounded alternate-identifier retry, ambiguous, or inaccessible.
     data_gaps:
@@ -153,19 +157,36 @@ evidence_query_recipes:
       - Retry with --traverse only for the same proven namespace before reporting data_gaps.
     profile_id: resolve-scope
   - profile_id: resolve-scope
-    id: version-upgrade-by-package
-    canonical_id: version-upgrade-by-package
+    id: version-upgrade-by-package-exact
+    canonical_id: version-upgrade-by-package-exact
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o
-      json
+      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>" and spec.upgrade_info.from_version=="<CURRENT_VERSION>"
+      and spec.upgrade_info.to_version=="<TARGET_VERSION>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.upgrade_risk,spec.upgrade_info.is_best,spec.upgrade_info.is_latest,spec.upgrade_info.worth_it,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.to_version_age_in_days,spec.upgrade_info.score,spec.upgrade_info.score_explanation,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.is_endor_patch" -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.direct_dependency_package
+      - spec.upgrade_info.from_version
+      - spec.upgrade_info.to_version
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.is_latest
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.to_version_age_in_days
+      - spec.upgrade_info.score
+      - spec.upgrade_info.score_explanation
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info.is_endor_patch
     constraints:
-      - Filter by the selected package or exact upgrade selector.
+      - Filter by the exact selected package, current version, and target version.
+      - Preserve an ecosystem-qualified package coordinate exactly as supplied for the first lookup; use a bare or alternate
+        identifier only for the one allowed zero-result retry.
+      - Use this compact row only to select one candidate UUID; fetch detail once for that UUID.
       - Do not query broad Findings to estimate upgrade impact.
   - profile_id: evidence-check
     id: project-by-git
@@ -182,47 +203,106 @@ evidence_query_recipes:
       - Use the exact trusted owner/repo identity before any fuzzy name lookup or unfiltered Project listing.
       - Retry with --traverse only for the same proven namespace before reporting data_gaps.
   - profile_id: evidence-check
-    id: version-upgrade-by-package
-    canonical_id: version-upgrade-by-package
+    id: version-upgrade-by-package-exact
+    canonical_id: version-upgrade-by-package-exact
     resource: VersionUpgrade
     purpose: Fetch UIA impact candidates for one package/from/to selector.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>"' --page-size 5 --field-mask "uuid,spec.name,spec.upgrade_info" -o
-      json
+      and spec.upgrade_info.direct_dependency_package=="<PACKAGE_NAME>" and spec.upgrade_info.from_version=="<CURRENT_VERSION>"
+      and spec.upgrade_info.to_version=="<TARGET_VERSION>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.upgrade_risk,spec.upgrade_info.is_best,spec.upgrade_info.is_latest,spec.upgrade_info.worth_it,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.to_version_age_in_days,spec.upgrade_info.score,spec.upgrade_info.score_explanation,spec.upgrade_info.cia_status,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.is_endor_patch" -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.direct_dependency_package
+      - spec.upgrade_info.from_version
+      - spec.upgrade_info.to_version
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.is_latest
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.to_version_age_in_days
+      - spec.upgrade_info.score
+      - spec.upgrade_info.score_explanation
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info.is_endor_patch
     constraints:
-      - Filter by the selected package or exact upgrade selector.
+      - Filter by the exact selected package, current version, and target version.
+      - Preserve an ecosystem-qualified package coordinate exactly as supplied for the first lookup; use a bare or alternate
+        identifier only for the one allowed zero-result retry.
+      - Use this compact row only to select one candidate UUID; fetch detail once for that UUID.
       - Do not query broad Findings to estimate upgrade impact.
   - profile_id: evidence-check
-    id: version-upgrade-detail
-    canonical_id: version-upgrade-detail
+    id: version-upgrade-detail-compact
+    canonical_id: version-upgrade-detail-compact
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
-      json
+      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.upgrade_risk,spec.upgrade_info.is_best,spec.upgrade_info.is_latest,spec.upgrade_info.worth_it,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.to_version_age_in_days,spec.upgrade_info.score,spec.upgrade_info.score_explanation,spec.upgrade_info.deps_added,spec.upgrade_info.deps_removed,spec.upgrade_info.conflicts,spec.upgrade_info.conflicts_map,spec.upgrade_info.minor_conflicts,spec.upgrade_info.cia_status,spec.upgrade_info.cia_results,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.is_endor_patch,spec.upgrade_info.vuln_finding_info.current_count,spec.upgrade_info.vuln_finding_info.reduction" -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.direct_dependency_package
+      - spec.upgrade_info.from_version
+      - spec.upgrade_info.to_version
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.is_latest
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.to_version_age_in_days
+      - spec.upgrade_info.score
+      - spec.upgrade_info.score_explanation
+      - spec.upgrade_info.deps_added
+      - spec.upgrade_info.deps_removed
+      - spec.upgrade_info.conflicts
+      - spec.upgrade_info.conflicts_map
+      - spec.upgrade_info.minor_conflicts
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.cia_results
+      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info.is_endor_patch
+      - spec.upgrade_info.vuln_finding_info.current_count
+      - spec.upgrade_info.vuln_finding_info.reduction
     constraints:
       - Use after candidate summary ranking.
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
   - profile_id: explain
-    id: version-upgrade-detail
-    canonical_id: version-upgrade-detail
+    id: version-upgrade-detail-compact
+    canonical_id: version-upgrade-detail-compact
     resource: VersionUpgrade
     purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
     template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
-      json
+      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.upgrade_risk,spec.upgrade_info.is_best,spec.upgrade_info.is_latest,spec.upgrade_info.worth_it,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.to_version_age_in_days,spec.upgrade_info.score,spec.upgrade_info.score_explanation,spec.upgrade_info.deps_added,spec.upgrade_info.deps_removed,spec.upgrade_info.conflicts,spec.upgrade_info.conflicts_map,spec.upgrade_info.minor_conflicts,spec.upgrade_info.cia_status,spec.upgrade_info.cia_results,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.is_endor_patch,spec.upgrade_info.vuln_finding_info.current_count,spec.upgrade_info.vuln_finding_info.reduction" -o json
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.direct_dependency_package
+      - spec.upgrade_info.from_version
+      - spec.upgrade_info.to_version
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.is_latest
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.to_version_age_in_days
+      - spec.upgrade_info.score
+      - spec.upgrade_info.score_explanation
+      - spec.upgrade_info.deps_added
+      - spec.upgrade_info.deps_removed
+      - spec.upgrade_info.conflicts
+      - spec.upgrade_info.conflicts_map
+      - spec.upgrade_info.minor_conflicts
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.cia_results
+      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info.is_endor_patch
+      - spec.upgrade_info.vuln_finding_info.current_count
+      - spec.upgrade_info.vuln_finding_info.reduction
     constraints:
       - Use after candidate summary ranking.
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.

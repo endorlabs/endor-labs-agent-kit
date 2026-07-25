@@ -334,6 +334,11 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert "agent:endor-agent-kit-setup-agent.toml: missing" in status.stdout
     assert "skill:sca-remediation: missing" in status.stdout
     assert "skill:endor-agent-kit-setup: missing" in status.stdout
+    assert "package-provenance: package=endor-labs-agent-kit" in status.stdout
+    assert "custom-agent-provenance:" in status.stdout
+    assert "workflow-skill-fallbacks: none" in status.stdout
+    assert "routing-readiness: not-ready custom-agent-status" in status.stdout
+    assert "fresh-task-boundary:" in status.stdout
     assert (
         "plugin-cache:plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents/0.1.0: "
         "stale-legacy-cache package=endor-agent-kit-security-agents version=0.1.0"
@@ -417,6 +422,24 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
     assert not (skills_home / "sca-remediation" / "SKILL.md").exists()
 
+    agents_status = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--agents-only",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "routing-readiness: ready agents-only" in agents_status.stdout
+    assert "workflow-skill-fallbacks: none" in agents_status.stdout
+
     subprocess.run(
         [
             sys.executable,
@@ -437,6 +460,24 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     setup_skill = skills_home / "endor-agent-kit-setup" / "SKILL.md"
     assert skill.is_file()
     assert setup_skill.is_file()
+
+    fallback_status = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--agents-only",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "workflow-skill-fallbacks: sca-remediation:current,troubleshooting:current" in fallback_status.stdout
+    assert "routing-readiness: warning competing-workflow-skills" in fallback_status.stdout
 
     skill.write_text(skill.read_text(encoding="utf-8") + "\nmanaged local edit\n", encoding="utf-8")
     refresh = subprocess.run(

@@ -28,6 +28,10 @@ Generated for Endor Labs Agent Kit Codex plugin `endor-labs-agent-kit` v2.1.0.
 - `vulnerability-explainer` -> `endor-vulnerability-explainer-agent`
 - `endor-agent-kit-setup` -> `endor-agent-kit-setup-agent`
 
+The value on the left is the canonical Endor API attribution ID; the value on
+the right is only the Codex host custom-agent name. Every Endor API call must
+use the left value with `--agent-id`; never append `-agent`.
+
 ## Codex Install Commands
 
 Resolve the bundled installer from either the Agent Kit/`ai-plugins`

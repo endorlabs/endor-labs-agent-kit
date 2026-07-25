@@ -193,3 +193,129 @@ def test_codex_prompt_hook_routes_missing_custom_agents_to_setup(tmp_path: Path)
     )
     current_context = json.loads(current.stdout)["hookSpecificOutput"]["additionalContext"]
     assert "custom-agent installation boundary" not in current_context
+    assert "MANDATORY ROUTE" in current_context
+    assert "invoke the installed Codex custom agent `endor-findings-browser-agent`" in current_context
+    assert "--agent-id findings-browser" in current_context
+    assert "never append `-agent`" in current_context
+
+
+def test_codex_prompt_hook_routes_all_workflows_to_one_installed_custom_agent(tmp_path: Path):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    agents = package / "agents"
+    manifest = package / ".codex-plugin" / "plugin.json"
+    hooks.mkdir(parents=True)
+    agents.mkdir()
+    manifest.parent.mkdir()
+    manifest.write_text('{"name":"endor-labs-agent-kit"}\n', encoding="utf-8")
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+
+    prompts = {
+        "ai-sast-remediation": "Triage the AI SAST results for this repository.",
+        "cicd-posture": "Assess GitHub Actions and branch protection supply chain posture.",
+        "configuration-automation": "Check monitored branch onboarding and GitHub App selection coverage.",
+        "dependency-reviewer": "Is lodash safe to add as a dependency?",
+        "findings-browser": "Browse active critical reachable findings for this repository.",
+        "malware-responder": "Assess exposure to this compromised package malware campaign.",
+        "oss-upgrade-investigator": "Assess upgrading pypi://pydantic-settings from 2.6.1 to 2.14.2, including findings fixed and CIA status.",
+        "remediation-planning": "Create a prioritized remediation plan for these issues.",
+        "sca-remediation": "Remediate this dependency vulnerability with approval gates.",
+        "troubleshooting": "Diagnose this Endor authentication failure.",
+        "vulnerability-explainer": "Explain CVE-2021-44228 and its exploitability.",
+    }
+    codex_home = tmp_path / "codex-home"
+    installed = codex_home / "agents"
+    installed.mkdir(parents=True)
+    for agent_id in prompts:
+        name = f"endor-{agent_id}-agent.toml"
+        (agents / name).write_text("# bundled\n", encoding="utf-8")
+        shutil.copy2(agents / name, installed / name)
+
+    environment = os.environ.copy()
+    environment["CODEX_HOME"] = str(codex_home)
+    for agent_id, prompt in prompts.items():
+        completed = subprocess.run(
+            ["bash", str(hook), "UserPromptSubmit"],
+            input=json.dumps({"prompt": prompt}),
+            text=True,
+            capture_output=True,
+            check=True,
+            env=environment,
+        )
+        context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
+        expected = f"endor-{agent_id}-agent"
+        assert f"invoke the installed Codex custom agent `{expected}`" in context
+        assert context.count("MANDATORY ROUTE") == 1
+        assert f"--agent-id {agent_id}" in context
+
+
+def test_upgrade_route_preserves_oss_investigator_precedence_without_codex_package(tmp_path: Path):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    hooks.mkdir(parents=True)
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+
+    completed = subprocess.run(
+        ["bash", str(hook), "UserPromptSubmit"],
+        input=json.dumps(
+            {
+                "prompt": (
+                    "Assess upgrading pypi://pydantic-settings from 2.6.1 to 2.14.2 "
+                    "in Endor namespace matt-staging. Return findings fixed and CIA status."
+                )
+            }
+        ),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "Use `oss-upgrade-investigator`" in context
+    assert "dependency-reviewer" not in context
+    assert "findings-browser" not in context
+    assert "troubleshooting" not in context
+
+
+def test_cursor_prompt_hook_prefers_packaged_agent_over_support_skill(tmp_path: Path):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    agents = package / "agents"
+    hooks.mkdir(parents=True)
+    agents.mkdir()
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+    (agents / "endor-oss-upgrade-investigator-agent.md").write_text(
+        "---\nname: endor-oss-upgrade-investigator-agent\n---\n",
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        ["bash", str(hook), "beforeSubmitPrompt"],
+        input=json.dumps(
+            {
+                "prompt": (
+                    "Assess upgrading pypi://pydantic-settings from 2.6.1 to 2.14.2 "
+                    "and return CIA status."
+                )
+            }
+        ),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "Invoke the installed Cursor agent `endor-oss-upgrade-investigator-agent`" in context
+    assert "Do not substitute its matching support skill" in context

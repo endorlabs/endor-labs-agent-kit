@@ -99,6 +99,7 @@ EVIDENCE_GATE_RULES = (
     "Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.",
     "Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.",
     "If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.",
+    "Do not recommend a new scan or rescan as a default next step. Mention one only when current evidence proves a freshness gap, keep it as an optional human-approved follow-up in `data_gaps` or a declared future-action field, and never execute it in a read-only workflow.",
     "Final answers must summarize query intent, selectors, and field masks instead of echoing raw `endorctl agent api` command strings.",
 )
 SCOPE_NORMALIZATION_RULES = (
@@ -120,7 +121,17 @@ COMPACT_EVIDENCE_GATE_RULES = (
     "Record `namespace_provenance`, repo, branch, traverse, `data_gaps`.",
     "Missing inputs in noninteractive/final answer: return required JSON with `data_gaps`.",
     "Read-only: no edits/scans/PRs/comments/writes.",
+    "No default scan/rescan advice; only a proven freshness gap may produce an optional human-approved follow-up.",
     "No raw commands in final.",
+)
+PROFILE_SELECTION_RULE = (
+    "Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. "
+    "That profile is the active workflow boundary: gather only its minimal evidence, obey its stop conditions, and "
+    "do not continue into another profile or the full workflow unless the user explicitly requests the broader work."
+)
+PROFILE_SELECTION_RULE_COMPACT = (
+    "Before the first tool call, select the smallest matching profile as a hard boundary: gather only its minimal "
+    "evidence, obey its stop conditions, and broaden only when the user explicitly asks."
 )
 COMPACT_LARGE_RESULT_DELIVERY_RULE = (
     "`runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run "
@@ -497,7 +508,9 @@ def render_knowledge_pack_section(
                 lines.append(
                     f"- Profiles: {profiles}. Profile bounds workflow; obey stop; full only on request."
                 )
+                lines.append(f"- {PROFILE_SELECTION_RULE_COMPACT}")
             else:
+                lines.extend([PROFILE_SELECTION_RULE, ""])
                 for profile in task_profiles:
                     lines.extend([
                         f"#### `{profile.id}` - {profile.title}",

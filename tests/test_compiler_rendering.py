@@ -91,6 +91,8 @@ def test_shared_compiler_rendering_injects_project_preflight_only_for_project_re
     )
 
     assert "## Endor Project Resolution Preflight" in project_rendered
+    assert "parse the local git remote" in project_rendered
+    assert "never derive `owner/repo` from the cwd path" in project_rendered
     assert "retry the same selector with `--traverse`" in project_rendered
     assert "Repository.spec.default_branch" in project_rendered
     assert "## Endor Project Resolution Preflight" not in package_rendered
@@ -123,6 +125,8 @@ def test_shared_compiler_rendering_compact_project_preflight_is_conditional():
     )
 
     assert "## Endor Project Resolution Preflight" in rendered
+    assert "parse the local git remote" in rendered
+    assert "never derive `owner/repo` from the cwd path" in rendered
     assert "--traverse" in rendered
 
 
@@ -146,7 +150,7 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace>" in rendered
 
 
-def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
+def test_shared_compiler_rendering_places_structured_contract_after_workflow_steps():
     rendered = instructions_for_edition(
         INSTRUCTIONS,
         "enterprise-edition",
@@ -162,7 +166,7 @@ def test_shared_compiler_rendering_injects_structured_contract_before_workflow_s
     assert rendered.index("## Endor Namespace Preflight") < rendered.index(PACK_SECTION_HEADING)
     assert rendered.index("## Endor Project Resolution Preflight") < rendered.index(PACK_SECTION_HEADING)
     assert rendered.index(PACK_SECTION_HEADING) < rendered.index(STRUCTURED_OUTPUT_HEADING)
-    assert rendered.index(STRUCTURED_OUTPUT_HEADING) < rendered.index("Enterprise rules.")
+    assert rendered.index("Enterprise rules.") < rendered.index(STRUCTURED_OUTPUT_HEADING)
 
 
 def test_projected_structured_contract_explicitly_forbids_extra_recipe_fields():
@@ -404,8 +408,11 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert "current claims need >=1 row" in rendered
     assert "/filter_summary/field_mask_summary/result_count/reason" in rendered
     assert "/filter/field_mask/result_count/reason" not in rendered
-    assert "source=adapter, not command/path" in rendered
+    assert "source=endorctl_agent_api for Endor CLI API reads" in rendered
+    assert "source=adapter" not in rendered
     assert "no raw commands" in rendered
+    assert "one row per attempted lookup" in rendered
+    assert "zero-result, failed, and retry attempts" in rendered
     assert "gaps -> `data_gaps`" in rendered
     assert "no raw shell, `endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `git`, or `gh` command strings" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
@@ -422,15 +429,19 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
 
     rendered = render_structured_output_contract(recipe, compact=True)
 
-    assert "Required top-level fields, in order" in rendered
-    assert "`verdict`, `conditions`, `evidence_queries`, `data_gaps`" in rendered
+    assert "Required top-level fields and types" in rendered
+    assert "enum: `verdict`" in rendered
+    assert "list[string]: `conditions`, `data_gaps`" in rendered
+    assert "list[object]: `evidence_queries`" in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
-    assert "`findings_fixed`:integer" in rendered
+    assert "integer: `findings_fixed`" in rendered
     assert "missing inputs return JSON" in rendered
     assert "no raw commands" in rendered
     assert "gaps -> `data_gaps`" in rendered
     assert "prefix task/profile skips with `out_of_scope:`" in rendered
     assert "missing sought evidence with `unavailable:`" in rendered
+    assert "FINAL FORMAT" in rendered
+    assert "No status preamble, heading, Markdown fence, or outside prose" in rendered
     assert "```json" not in rendered
 
 
@@ -448,7 +459,9 @@ def test_compact_profile_output_contract_requires_only_selected_safe_fields():
         output_fields=("verdict", "evidence_queries", "data_gaps"),
     )
 
-    assert "`verdict`, `evidence_queries`, `data_gaps`" in rendered
+    assert "enum: `verdict`" in rendered
+    assert "list[object]: `evidence_queries`" in rendered
+    assert "list[string]: `data_gaps`" in rendered
     assert "large_inventory" not in rendered
 
     with pytest.raises(ValueError, match="must retain 'data_gaps'"):

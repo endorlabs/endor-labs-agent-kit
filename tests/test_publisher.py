@@ -1450,6 +1450,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "mcpServers:" not in claude_mcp_agent.split("---", 2)[1]
     assert "Claude Code Plugin Setup Note" in claude_mcp_agent
     assert "does not declare plugin-wide MCP" in claude_mcp_agent
+    assert claude_mcp_agent.rfind("Claude Code Plugin Setup Note") < claude_mcp_agent.rfind(
+        "## Structured Output Contract"
+    )
     claude_mcp_only_agent = (
         dest
         / "plugins"
