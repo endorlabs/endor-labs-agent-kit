@@ -426,17 +426,41 @@ def test_compiled_configuration_plan_selects_adaptive_scan_readiness_route():
     }
 
 
-def test_compiled_malware_plan_bounds_package_fanout_and_tenant_findings():
+def test_compiled_malware_plan_routes_exact_findings_before_package_fanout():
     plan = compile_evidence_plan("malware-responder", "exposure-check")
 
     assert validate_evidence_plan(plan) == []
     assert plan.expected_calls == 2
     assert plan.max_calls == 6
     assert [step.id for step in plan.steps] == [
+        "finding-by-uuid",
+        "dependency-metadata-by-uuid",
+        "project-by-uuid",
         "tenant-package-version-exact",
         "tenant-malware-findings",
     ]
-    packages, findings = plan.steps
+    assert [
+        (route.id, route.condition, route.expected_calls, route.max_calls)
+        for route in plan.routes
+    ] == [
+        ("known-finding", "runtime.finding_uuid_present", 2, 3),
+        ("package-intelligence", "runtime.finding_uuid_absent", 2, 6),
+    ]
+    exact_finding, dependency, project, packages, findings = plan.steps
+    assert exact_finding.operation == "get"
+    assert exact_finding.max_calls == 1
+    assert "get -r Finding" in exact_finding.template
+    assert "--traverse" not in exact_finding.template
+    assert dependency.operation == "get"
+    assert dependency.max_calls == 1
+    assert dependency.depends_on == ("finding-by-uuid",)
+    assert "get -r DependencyMetadata" in dependency.template
+    assert "spec.dependency_data" in dependency.template
+    assert "spec.importer_data" in dependency.template
+    assert project.operation == "get"
+    assert project.condition == "steps.finding-by-uuid.repository_identity_missing"
+    assert project.max_calls == 1
+    assert "get -r Project" in project.template
     assert packages.fanout is not None
     assert packages.fanout.source == "runtime.affected_packages"
     assert packages.fanout.item_name == "affected_package"

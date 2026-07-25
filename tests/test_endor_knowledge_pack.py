@@ -706,8 +706,14 @@ def test_malware_workflow_uses_supported_finding_category_evidence():
 
     assert workflow is not None
     assert "Malware" not in {resource.name for resource in workflow.resources}
+    assert "DependencyMetadata" in {
+        resource.name for resource in workflow.resources
+    }
     assert "Endor OSS Malware feed" not in section
     assert "FINDING_CATEGORY_MALWARE" in section
+    assert "finding-by-uuid" in section
+    assert "dependency-metadata-by-uuid" in section
+    assert "Finding-to-DependencyMetadata" in section
     assert "tenant-malware-findings" in section
 
 
