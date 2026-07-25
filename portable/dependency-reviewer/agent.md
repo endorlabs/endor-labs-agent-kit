@@ -241,7 +241,7 @@ severity or posture effect, evidence source, and concise explanation. Each
 Do not emit fields owned by another profile.
 ## Endor Namespace Preflight
 
-Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.
+Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal CLI-managed and environment-variable authentication: `endorctl` may consume its default config internally. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit namespace selects tenant scope; it is not proof of authentication.
 
 Resolve namespace candidates in this order:
 
@@ -257,6 +257,8 @@ When no namespace was supplied by the user, if `ENDOR_NAMESPACE` and the default
 After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl agent api --agent-id dependency-reviewer` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl agent api --agent-id dependency-reviewer -n <namespace>` or report a `data_gaps` entry.
 
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
+
+Do not open or parse credential fields to authenticate a request. Invoke the approved `endorctl agent api` command and let the CLI consume its default configuration or supported credential environment internally. A successful current-run Endor call proves authentication; on failure, report the redacted error and a precise `data_gaps` entry without asking the user to paste config or secrets.
 
 ## Endor Knowledge Pack
 

@@ -85,6 +85,37 @@ found" until the traverse fallback has also been attempted.
 
 Do not print or dump an entire Endor config file. It can contain auth and tenant details outside the namespace signal needed for this workflow. To read namespace provenance from config, extract only the namespace key with a narrow command or parser and do not echo tokens, API keys, session data, or unrelated config contents.
 
+An explicit namespace selects tenant scope; it does not authenticate the request.
+Let `endorctl` consume its default configuration or supported credential environment internally. Never expose credential fields to model context. Read
+only the default config namespace key when provenance is missing. On auth
+failure, record a redacted `endor_auth_unavailable` gap; never request config or
+secrets.
+
+## Source And Delivery Capability Preflight
+
+Return `execution_context`: `mode` (`evidence_only|local_checkout`), `endor_auth`
+(`available|unavailable|unknown`), boolean `local_checkout`,
+`source_provider_access` (`read_write|read_only|unavailable|unknown`),
+`local_validation` (`available|unavailable|not_attempted|unknown`), and compact
+`limitations`. Use current host/adapter proof, no paths or secrets. Success
+proves auth. A matching readable checkout is required for `local_checkout`;
+otherwise use `execution_context.mode: "evidence_only"`.
+
+A missing local checkout does not block authenticated Endor evidence gathering:
+continue scoped Project, Finding, and UIA reads from a proven selector. In
+evidence-only mode, no source/package-manager read, diff, branch, validation,
+push, or PR/MR is allowed; Endor manifest paths remain locally unverified. Never
+use `approved_low_risk`; clean UIA may be `approved_with_validation_required`,
+while elevated/indeterminate/conflicting/major/introduced risk is
+`blocked_needs_compatibility_analysis` unless rejected. Return one not-created
+change request with proposed branch and `source_checkout_unavailable`; optional
+provider-read inventory uses `unavailable` when blocked. Record all capability
+gaps.
+
+With checkout but no provider write, local planning/approved validation may
+continue, but use `source_provider_write_unavailable`. Do not use source-provider write access as a substitute for a local checkout. A replacement remote adapter
+must separately prove source read, branch/commit write, and validation.
+
 ## Mutation Safety
 
 - Never edit files, run dependency-manager mutation commands, push branches, open PRs/MRs, create tickets, or post comments without explicit user approval in the Claude Code session.
@@ -99,11 +130,11 @@ Do not print or dump an entire Endor config file. It can contain auth and tenant
 
 ## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit user namespace is authoritative: use it directly and do not inspect environment or config namespace first. Only inspect environment or config namespace after an auth, namespace, or not-found response suggests conflict. Without an explicit namespace, surface both values with provenance and stop for user confirmation when env/config conflict. Use explicit `-n`/`--namespace` for every scoped `endorctl agent api --agent-id sca-remediation` lookup. Never dump/`cat` config or echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; current Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Namespace is scope, not auth: let `endorctl` consume config/env internally; never parse credentials into model context. User scope is authoritative; inspect env/config only after an auth/namespace/not-found conflict. Without it, surface both values with provenance and stop for user confirmation on conflict. Use explicit `-n`/`--namespace` for every scoped `endorctl agent api --agent-id sca-remediation` lookup. Success proves auth; otherwise report a redacted gap. Never dump/`cat` config, echo credentials, or ask users to paste config. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Project Resolution Preflight
 
-Parse the local git remote into its provider full name; never derive `owner/repo` from cwd. Normal read: exact `spec.git.full_name=="<owner/repo>"`, explicit namespace, page size 2, fields `uuid,meta.name,meta.parent_uuid,spec.git`; no `--list-all`. Normalize URLs locally. No schema/describe probes, speculative filters, Repository identity probes, or broad Project inventory. An explicit Endor project name permits one exact `meta.name` fallback after a zero-row full-name read. Parent zero rows -> retry that same selector with `--traverse`; otherwise omit traversal. Use local git branch/default-remote evidence as branch provenance unless the selected profile explicitly requires monitored-branch proof. Return status, UUID, namespace/provenance, normalized repo, attempted selectors, and traverse state; missing proof -> `data_gaps`, never guesses.
+Parse the local git remote for a matching checkout; otherwise normalize a user repo URL, owner/repo, or project selector; never derive `owner/repo` from cwd. Read exact `spec.git.full_name=="<owner/repo>"`, explicit namespace, page size 2, fields `uuid,meta.name,meta.parent_uuid,spec.git`; no `--list-all`. No schema/describe probes or broad Project inventory. Explicit project name permits one exact `meta.name` fallback. Parent zero rows -> same selector with `--traverse`; otherwise omit it. Use local branch evidence when available; missing branch provenance blocks mutation, not read-only Endor evidence. Return status, UUID, scope/provenance, normalized repo, selectors, traverse, and gaps.
 
 ## Endor Knowledge Pack
 
@@ -158,7 +189,7 @@ Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence,
 Return exactly one parseable JSON object in the final answer.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields and types:
-string: `summary`; object: `project_resolution`, `policy_context`; list[object]: `evidence_queries`, `policy_evaluations`; list[string]: `data_gaps`
+string: `summary`; object: `project_resolution`, `execution_context`, `policy_context`; list[object]: `evidence_queries`, `policy_evaluations`; list[string]: `data_gaps`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
@@ -181,7 +212,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`
 - inputs: `repository_url`, `repo_full_name`, `project_name`, `namespace`
 - outputs: `project_uuid`, `project_name`, `repo_full_name`, `namespace`, `namespace_provenance`
-- notes: Resolve from the current repository and human-readable selectors first. Resolve namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml namespace key, or resolved project metadata before using -n. Do not use namespaces from prior sessions or ask for a project UUID unless selectors are missing or ambiguous.
+- notes: Resolve from matching local git or a user-supplied repo URL, owner/repo, or project name; a checkout is not required for Endor reads. Prove namespace from current input, ENDOR_NAMESPACE, the default config namespace key, or current Project metadata. Let endorctl consume auth internally; never read credentials into model context or reuse prior-session scope.
 
 ### query-sca-findings
 
@@ -217,7 +248,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`, `read_files`
 - inputs: `project_uuid`, `namespace`, `repo`, `version_upgrades`
 - outputs: `low_risk_recommendations`, `candidate_prs`, `ready_to_open`, `most_findings_in_one_pr`, `p0_duplicates_hidden`, `data_gaps`
-- notes: List non-breaking low-risk UIA-backed PR candidates separately from the P0/exploited queue and risky solver. Hide P0 or exploited duplicates from the main low-risk list, report them separately, and require repo metadata plus manifest paths before marking candidates ready to open.
+- notes: Keep low-risk UIA candidates separate from P0/exploited and risky lanes. Without a checkout, continue evidence_only, mark candidates not ready, and record source_checkout_unavailable; verified local source is required for ready_to_open.
 
 ### read-local-manifests
 
@@ -229,7 +260,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `read_files`
 - inputs: `repo`, `manifest_files`, `package_name`, `selected_upgrade`
 - outputs: `manifest_text`, `lockfile_text`, `dependency_declaration`, `source_context`
-- notes: Read only the target manifests, lockfiles, and UIA/CIA-indicated source files needed to plan the remediation.
+- notes: local_checkout only: read the minimum target manifests, lockfiles, and UIA/CIA-indicated source. In evidence_only, skip and record source_checkout_unavailable.
 
 ### resolve-upgrade-risk
 
@@ -241,7 +272,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`, `read_files`
 - inputs: `selected_upgrade`, `cia_results`, `manifest_text`, `lockfile_text`, `source_context`, `validation_plan`
 - outputs: `risk_decision`, `compatibility_evidence`, `required_companion_edits`, `validation_requirements`
-- notes: For medium/high/unknown risk, indeterminate CIA, introduced findings, conflicts, major/minor compatibility-sensitive bumps, or material dependency-footprint changes, produce a deterministic approve/block/reject verdict from Endor evidence plus local source usage. Do not hand-wave with release-note suggestions.
+- notes: Resolve elevated/indeterminate risk from Endor plus local source. In evidence_only, clean UIA may be approved_with_validation_required; elevated/indeterminate risk is blocked_needs_compatibility_analysis. approved_low_risk requires local source and successful validation.
 
 ### prepare-remediation-diff
 
@@ -253,7 +284,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`, `read_files`, `write_files`
 - inputs: `repo`, `selected_upgrade`, `manifest_files`, `companion_edits`, `validation_plan`
 - outputs: `patch_diff`, `changed_files`, `branch_name`, `validation_status`
-- notes: Show the selected UIA evidence, target files, and intended diff first. Apply local manifest or companion edits only after explicit approval; this action does not push or open a PR/MR.
+- notes: local_checkout only: show UIA evidence, verified files, and intended diff, then edit only after approval. Never run in evidence_only or push/open a PR here.
 
 ### open-change-request
 
@@ -265,7 +296,7 @@ Do not claim an action completed unless the host performed it and returned evide
 - required_host_capabilities: `run_commands`, `read_files`, `write_files`, `open_pr`
 - inputs: `repo`, `base_branch`, `branch_name`, `patch_diff`, `title`, `body`, `validation_status`
 - outputs: `url`, `branch`, `status`, `failure_reason`
-- notes: Open or update a PR/MR only after local validation has passed or the validation blocker is explicitly documented and the user approves opening anyway.
+- notes: Requires local_checkout, a verified patched branch, provider write, and passed validation or an approved documented blocker. Provider write alone cannot replace local patch preparation.
 
 ### post-remediation-comment
 

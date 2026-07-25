@@ -180,6 +180,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("summary", "string"),
         StructuredOutputField("remediation_candidates", "list[object]"),
         StructuredOutputField("project_resolution", "object"),
+        StructuredOutputField("execution_context", "object"),
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("selected_remediation", "object"),
         StructuredOutputField("uia_evidence", "list[object]"),
@@ -476,6 +477,10 @@ def _nullable_boolean() -> dict[str, Any]:
     return {"type": ["boolean", "null"]}
 
 
+def _nullable_enum(values: tuple[str, ...]) -> dict[str, Any]:
+    return {"type": ["string", "null"], "enum": [*values, None]}
+
+
 def _required_string() -> dict[str, Any]:
     return {"type": "string", "minLength": 1}
 
@@ -632,6 +637,23 @@ def _project_resolution_schema() -> dict[str, Any]:
             "traverse_attempted": _nullable_boolean(),
             "traverse_result": _nullable_string(),
             "attempted_selectors": _nullable_string_array(),
+        }
+    )
+
+
+def _execution_context_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "mode": _nullable_enum(("evidence_only", "local_checkout")),
+            "endor_auth": _nullable_enum(("available", "unavailable", "unknown")),
+            "local_checkout": _nullable_boolean(),
+            "source_provider_access": _nullable_enum(
+                ("read_write", "read_only", "unavailable", "unknown")
+            ),
+            "local_validation": _nullable_enum(
+                ("available", "unavailable", "not_attempted", "unknown")
+            ),
+            "limitations": _nullable_string_array(),
         }
     )
 
@@ -1348,6 +1370,7 @@ FIELD_SCHEMA_OVERRIDES = {
     "github_app_coverage": _github_app_coverage_schema,
     "support_escalation_packet": _support_escalation_packet_schema,
     "project_resolution": _project_resolution_schema,
+    "execution_context": _execution_context_schema,
     "report_scope": _report_scope_schema,
     "selected_remediation": _selected_remediation_schema,
     "selected_upgrade": _selected_remediation_schema,

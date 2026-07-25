@@ -76,6 +76,10 @@ outputs:
   kind: object
   required: true
   description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- name: execution_context
+  kind: object
+  required: true
+  description: Capability preflight with evidence_only or local_checkout mode, Endor authentication status, source-provider access, local-validation availability, and explicit limitations.
 - name: evidence_queries
   kind: list[object]
   required: true

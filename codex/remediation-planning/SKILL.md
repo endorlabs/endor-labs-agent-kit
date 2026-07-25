@@ -103,7 +103,7 @@ zero-result, retry, and fallback calls. Endor CLI API reads use
 
 ## Endor Namespace Preflight
 
-Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.
+Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal CLI-managed and environment-variable authentication: `endorctl` may consume its default config internally. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit namespace selects tenant scope; it is not proof of authentication.
 
 Resolve namespace candidates in this order:
 
@@ -120,9 +120,11 @@ After selecting a namespace, pass it explicitly with `-n <namespace>` or `--name
 
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
 
+Do not open or parse credential fields to authenticate a request. Invoke the approved `endorctl agent api` command and let the CLI consume its default configuration or supported credential environment internally. A successful current-run Endor call proves authentication; on failure, report the redacted error and a precise `data_gaps` entry without asking the user to paste config or secrets.
+
 ## Endor Project Resolution Preflight
 
-Before scoped Endor reads, parse the local git remote into its provider full name; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
+Before scoped Endor reads, parse the local git remote when a matching checkout exists; otherwise normalize the user-supplied repository URL, owner/repo, or project selector; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
 
 Normalize clone and HTTP URLs locally before the read. Do not probe speculative Project fields, call schema/describe commands, query Repository solely for project identity, or fall back to an unfiltered/broad Project inventory. If an explicit Endor project name was supplied and the exact git-full-name read returned zero rows, one exact `meta.name` fallback is allowed and must be ledgered separately.
 

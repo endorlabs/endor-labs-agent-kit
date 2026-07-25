@@ -70,7 +70,7 @@ Use @sca-remediation to prepare the top UIA-backed dependency remediation for th
 
 ![SCA Remediation architecture](architecture.svg)
 
-This mutating Gemini CLI subagent resolves repository context, queries Endor SCA findings, requires VersionUpgrade/UIA evidence before recommending a best first fix, keeps non-breaking low-risk UIA PR candidates separate from the P0/exploited queue and risky solver, resolves risky or CIA-indeterminate upgrades into a deterministic risk_decision, prepares local dependency changes, runs ecosystem-appropriate validation when possible, and opens a PR/MR only after explicit approval. It does not use or require an Endor MCP server.
+This SCA remediation agent resolves repository context from a matching local checkout or a user-supplied repository selector, queries Endor SCA findings, requires VersionUpgrade/UIA evidence before recommending a best first fix, keeps non-breaking low-risk UIA PR candidates separate from the P0/exploited queue and risky solver, resolves risky or CIA-indeterminate upgrades into a deterministic risk_decision, prepares local dependency changes and validation when a checkout exists, and opens a PR/MR only after explicit approval plus source-provider write access. Without a checkout it returns an evidence-only plan and records the missing source, validation, and delivery capabilities instead of fabricating them. It does not use or require an Endor MCP server.
 
 ## Notes
 
