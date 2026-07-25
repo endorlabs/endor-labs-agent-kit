@@ -95,8 +95,12 @@ def test_shared_compiler_rendering_injects_project_preflight_only_for_project_re
     assert "## Endor Project Resolution Preflight" in project_rendered
     assert "parse the local git remote" in project_rendered
     assert "never derive `owner/repo` from the cwd path" in project_rendered
+    assert 'spec.git.full_name=="<owner/repo>"' in project_rendered
+    assert "Do not add `--list-all`" in project_rendered
+    assert "schema/describe commands" in project_rendered
+    assert "unfiltered/broad Project inventory" in project_rendered
     assert "retry the same selector with `--traverse`" in project_rendered
-    assert "Repository.spec.default_branch" in project_rendered
+    assert "use current git branch/default-remote evidence" in project_rendered
     assert "## Endor Project Resolution Preflight" not in package_rendered
 
 
@@ -127,8 +131,12 @@ def test_shared_compiler_rendering_compact_project_preflight_is_conditional():
     )
 
     assert "## Endor Project Resolution Preflight" in rendered
-    assert "parse the local git remote" in rendered
-    assert "never derive `owner/repo` from the cwd path" in rendered
+    assert "Parse the local git remote" in rendered
+    assert "never derive `owner/repo` from cwd" in rendered
+    assert 'spec.git.full_name=="<owner/repo>"' in rendered
+    assert "no `--list-all`" in rendered
+    assert "No schema/describe probes" in rendered
+    assert "broad Project inventory" in rendered
     assert "--traverse" in rendered
 
 

@@ -518,8 +518,9 @@ def _prompt_budget(relative_path: str) -> int:
         return 13_500
     if agent_id == "remediation-planning":
         # The selected-package fallback and evidence-ledger contract add useful
-        # source-level bytes while keeping the normal route to three reads.
-        return 14_950
+        # source-level bytes while keeping the normal route to three reads. The
+        # shared exact-project preflight adds a small bounded identity contract.
+        return 15_100
     if agent_id == "configuration-automation":
         # Adaptive single-, selected-, and fleet-scope readiness routing adds
         # complete-inventory artifact contracts without per-repository fanout.
@@ -531,10 +532,14 @@ def _prompt_budget(relative_path: str) -> int:
     if agent_id == "cicd-posture":
         return 26_000
     if agent_id == "sca-remediation":
-        # Full fallback carries resume, duplicate-PR, and worktree-isolation safety contracts.
-        # Scoped read profiles remain subject to the same canonical-agent budget here and
-        # have separate <70% size assertions above.
-        return 38_000
+        # Full fallback carries resume, duplicate-PR, worktree-isolation, exact
+        # evidence-ledger/count, validation-backed risk-decision, and strict
+        # selection-plan nested-key contracts. The compact selection-evidence
+        # projection and manifest-overlap reconciliation are quality-critical;
+        # this measured, agent-specific ceiling leaves less than 1 KiB above
+        # the largest generated host artifact. Scoped profiles retain separate
+        # <70% checks.
+        return 48_000
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

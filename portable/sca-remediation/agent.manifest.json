@@ -369,19 +369,19 @@
       "required": true
     },
     {
-      "description": "Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.",
+      "description": "One append-only ledger row per actual Endor API invocation, including failed, zero-result, retry, and fallback calls, with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.",
       "kind": "list[object]",
       "name": "evidence_queries",
       "required": true
     },
     {
-      "description": "Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.",
+      "description": "Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, Endor finding-instance count, distinct advisory count, fixed Finding UUIDs, and why it was selected.",
       "kind": "object",
       "name": "selected_remediation",
       "required": true
     },
     {
-      "description": "VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.",
+      "description": "VersionUpgrade/UIA records used for ranking, including risk, CIA status, Endor finding instances fixed, distinct advisories fixed, fixed Finding UUIDs, findings introduced, score explanation, and breaking-change notes.",
       "kind": "list[object]",
       "name": "uia_evidence",
       "required": true

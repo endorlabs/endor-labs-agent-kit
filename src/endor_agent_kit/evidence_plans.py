@@ -836,6 +836,12 @@ def _validate_step_condition(
 ) -> None:
     if step.condition == "always":
         return
+    if (
+        step.condition.startswith("runtime.")
+        and step.condition == step.selection_condition
+        and re.fullmatch(r"runtime\.[a-z][a-z0-9_]*", step.condition)
+    ):
+        return
     match = re.fullmatch(r"steps\.([a-z][a-z0-9-]*)\.([a-z][a-z0-9_]*)_missing", step.condition)
     if match is None:
         errors.append(f"step {step.id!r}: unknown condition {step.condition!r}")

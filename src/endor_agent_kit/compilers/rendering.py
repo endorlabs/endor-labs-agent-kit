@@ -47,16 +47,18 @@ Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the d
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT = """## Endor Project Resolution Preflight
 
-Before scoped Endor reads, parse the local git remote and query its source-provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, and basename, recording each selector. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
+Before scoped Endor reads, parse the local git remote into its provider full name; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
+
+Normalize clone and HTTP URLs locally before the read. Do not probe speculative Project fields, call schema/describe commands, query Repository solely for project identity, or fall back to an unfiltered/broad Project inventory. If an explicit Endor project name was supplied and the exact git-full-name read returned zero rows, one exact `meta.name` fallback is allowed and must be ledgered separately.
 
 If the parent namespace misses, retry the same selector with `--traverse` before declaring a gap. When traversal finds a child project, use that child namespace for later scoped reads when possible; otherwise keep `--traverse` and say so.
 
-Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. Branch proof order: `Repository.spec.default_branch`, `ScanResult.spec.refs`, root `PackageVersion` branch suffix, then local git HEAD as context only. Missing proof goes in `data_gaps`; never guess.
+Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. In a local checkout, use current git branch/default-remote evidence as branch provenance without another Endor call. Workflows that require monitored-branch proof must follow their named Evidence Query Recipe. Missing proof goes in `data_gaps`; never guess.
 """
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT_COMPACT = """## Endor Project Resolution Preflight
 
-Before Project reads, parse the local git remote and query its provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
+Parse the local git remote into its provider full name; never derive `owner/repo` from cwd. Normal read: exact `spec.git.full_name=="<owner/repo>"`, explicit namespace, page size 2, fields `uuid,meta.name,meta.parent_uuid,spec.git`; no `--list-all`. Normalize URLs locally. No schema/describe probes, speculative filters, Repository identity probes, or broad Project inventory. An explicit Endor project name permits one exact `meta.name` fallback after a zero-row full-name read. Parent zero rows -> retry that same selector with `--traverse`; otherwise omit traversal. Use local git branch/default-remote evidence as branch provenance unless the selected profile explicitly requires monitored-branch proof. Return status, UUID, namespace/provenance, normalized repo, attempted selectors, and traverse state; missing proof -> `data_gaps`, never guesses.
 """
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"

@@ -87,9 +87,12 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "github-workflow-files",
         "local-ci-inventory",
         "local-git-state",
-            "local-manifest-inventory",
-            "mcp-dependency-risk-exact",
-            "mcp-finding-by-uuid-check",
+        "local-manifest-inventory",
+        "malware-dependency-metadata-by-uuid",
+        "malware-finding-by-uuid",
+        "malware-project-by-uuid",
+        "mcp-dependency-risk-exact",
+        "mcp-finding-by-uuid-check",
         "mcp-finding-by-uuid-full",
         "mcp-vulnerability-by-id-check",
         "mcp-vulnerability-by-id-full",
@@ -101,8 +104,10 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "sca-exploited-finding-availability",
         "sca-finding-availability",
         "sca-finding-package-severity-groups",
+        "sca-selection-evidence",
         "scan-result-by-uuid",
         "selected-findings-by-package-version",
+        "selected-findings-by-uuid",
         "selected-source-usage",
         "tenant-malware-findings",
         "tenant-package-inventory",
@@ -158,9 +163,9 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         for recipe in pack.workflow_for("sca-remediation").evidence_query_recipes_for("selection-plan")
     ] == [
         "version-upgrade-summary",
-        "version-upgrade-detail",
+        "sca-selection-evidence",
         "selected-source-usage",
-        "selected-finding-detail",
+        "selected-findings-by-uuid",
     ]
     query_efficiency = next(rule for rule in pack.global_rules if rule.id == "query-efficiency")
     assert "--list-all" in query_efficiency.guidance
@@ -575,13 +580,14 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "Required output focus:" in compact
     assert "Authoritative output field projection:" in compact
     assert "Return only these top-level fields" in compact
-    assert "resource is `Finding`" in compact
+    assert "one exact batched Finding lookup" in compact
     assert "selected_remediation.branch_name" in compact
     assert "change_requests[].proposed_branch" in compact
     assert "never use selection labels such as `selected`" in compact
     assert "exactly one `change_requests` entry" in compact
     assert "complete deterministic `inventory`" in compact
     assert "`status: unavailable`" in compact
+    assert "generated selection-plan profile contract is strict" in compact
 
 
 def test_troubleshooting_compact_prompt_exposes_bounded_missing_finding_and_scan_routes():

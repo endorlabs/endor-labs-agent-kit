@@ -147,22 +147,23 @@ plans:
       host_adapter_required: true
     gate:
       expected_calls: 3
-      max_calls: 4
+      max_calls: 5
       stop_conditions:
-        - Stop after one worthwhile VersionUpgrade candidate is selected and its UIA/CIA detail is known or precisely blocked.
-        - Do not enumerate broad Finding inventories, inspect source, edit files, or create change requests.
+        - Stop after one worthwhile VersionUpgrade candidate is selected and its UIA/CIA detail supports the requested claims or is precisely blocked.
+        - The expected call count describes the normal route, not a universal call ceiling; use only the documented parent-namespace retry or exact selected-Finding reconciliation when it closes a named gap.
+        - Inspect only the selected manifest and source usage needed for risk classification; do not enumerate broad Finding or Project inventories, edit files, or create change requests.
       data_gaps_required: true
     routes:
       - id: default
         condition: always
         exclusive_group: selection-plan
         expected_calls: 3
-        max_calls: 4
+        max_calls: 5
         required_outputs:
           - steps.project-by-git.project_uuid
           - steps.version-upgrade-summary.candidates
           - steps.version-upgrade-summary.best_candidate_uuid
-          - steps.version-upgrade-detail.selected_candidate
+          - steps.sca-selection-evidence.selected_candidate
     steps:
       - id: project-by-git
         recipe_id: project-by-git
@@ -230,9 +231,9 @@ plans:
           - name: best_candidate_uuid
             path: $.objects[?(@.spec.upgrade_info.is_best==true)][0].uuid
             type: string
-      - id: version-upgrade-detail
-        recipe_id: version-upgrade-detail
-        canonical_recipe_id: version-upgrade-detail
+      - id: sca-selection-evidence
+        recipe_id: sca-selection-evidence
+        canonical_recipe_id: sca-selection-evidence
         operation: list
         route_id: default
         condition: always
@@ -258,5 +259,43 @@ plans:
             type: string
         outputs:
           - name: selected_candidate
-            path: $.objects[0]
+            path: $
             type: object
+          - name: fixed_finding_evidence
+            path: $.fixed_findings
+            type: array
+            required: false
+          - name: fixed_finding_uuids
+            path: $.fixed_finding_uuids
+            type: array
+            required: false
+      - id: selected-findings-by-uuid
+        recipe_id: selected-findings-by-uuid
+        canonical_recipe_id: selected-findings-by-uuid
+        operation: list
+        route_id: default
+        condition: runtime.selected_finding_reconciliation_required
+        concurrency_group: selected-finding-evidence
+        depends_on:
+          - sca-selection-evidence
+        max_calls: 1
+        pagination:
+          page_size: 100
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+          - name: finding_uuids
+            placeholder: FINDING_UUIDS
+            source: steps.sca-selection-evidence.fixed_finding_uuids
+            type: array
+        outputs:
+          - name: selected_findings
+            path: $.objects
+            type: array

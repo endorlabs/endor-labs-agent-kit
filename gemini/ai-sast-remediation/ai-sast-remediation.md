@@ -227,11 +227,13 @@ Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--conf
 
 ## Endor Project Resolution Preflight
 
-Before scoped Endor reads, parse the local git remote and query its source-provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, and basename, recording each selector. Use the selected namespace explicitly. For CLI-capable hosts, the read shape is Project resource, selected namespace, a repository selector filter, field mask `uuid,meta.name,meta.parent_uuid,spec.git`, list-all, JSON output.
+Before scoped Endor reads, parse the local git remote into its provider full name; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
+
+Normalize clone and HTTP URLs locally before the read. Do not probe speculative Project fields, call schema/describe commands, query Repository solely for project identity, or fall back to an unfiltered/broad Project inventory. If an explicit Endor project name was supplied and the exact git-full-name read returned zero rows, one exact `meta.name` fallback is allowed and must be ledgered separately.
 
 If the parent namespace misses, retry the same selector with `--traverse` before declaring a gap. When traversal finds a child project, use that child namespace for later scoped reads when possible; otherwise keep `--traverse` and say so.
 
-Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. Branch proof order: `Repository.spec.default_branch`, `ScanResult.spec.refs`, root `PackageVersion` branch suffix, then local git HEAD as context only. Missing proof goes in `data_gaps`; never guess.
+Return `project_resolution` with status, uuid, namespace/provenance, normalized repo identity, attempted selectors, and traverse state. In a local checkout, use current git branch/default-remote evidence as branch provenance without another Endor call. Workflows that require monitored-branch proof must follow their named Evidence Query Recipe. Missing proof goes in `data_gaps`; never guess.
 
 ## Endor Knowledge Pack
 
