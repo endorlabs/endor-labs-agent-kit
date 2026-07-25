@@ -22,7 +22,7 @@ EDITION_CHOICES = EDITIONS + tuple(LEGACY_EDITION_ALIASES)
 
 ENDOR_NAMESPACE_PREFLIGHT = """## Endor Namespace Preflight
 
-Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.
+Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal CLI-managed and environment-variable authentication: `endorctl` may consume its default config internally. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit namespace selects tenant scope; it is not proof of authentication.
 
 Resolve namespace candidates in this order:
 
@@ -38,16 +38,18 @@ When no namespace was supplied by the user, if `ENDOR_NAMESPACE` and the default
 After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl agent api --agent-id <agent-id>` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl agent api --agent-id <agent-id> -n <namespace>` or report a `data_gaps` entry.
 
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
+
+Do not open or parse credential fields to authenticate a request. Invoke the approved `endorctl agent api` command and let the CLI consume its default configuration or supported credential environment internally. A successful current-run Endor call proves authentication; on failure, report the redacted error and a precise `data_gaps` entry without asking the user to paste config or secrets.
 """
 
 ENDOR_NAMESPACE_PREFLIGHT_COMPACT = """## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit user namespace is authoritative: use it directly and do not inspect environment or config namespace first. Only inspect environment or config namespace after an auth, namespace, or not-found response suggests conflict. Without an explicit namespace, surface both values with provenance and stop for user confirmation when env/config conflict. Use explicit `-n`/`--namespace` for every scoped `endorctl agent api --agent-id <agent-id>` lookup. Never dump/`cat` config or echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; current Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Namespace is scope, not auth: let `endorctl` consume config/env internally; never parse credentials into model context. User scope is authoritative; inspect env/config only after an auth/namespace/not-found conflict. Without it, surface both values with provenance and stop for user confirmation on conflict. Use explicit `-n`/`--namespace` for every scoped `endorctl agent api --agent-id <agent-id>` lookup. Success proves auth; otherwise report a redacted gap. Never dump/`cat` config, echo credentials, or ask users to paste config. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 """
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT = """## Endor Project Resolution Preflight
 
-Before scoped Endor reads, parse the local git remote into its provider full name; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
+Before scoped Endor reads, parse the local git remote when a matching checkout exists; otherwise normalize the user-supplied repository URL, owner/repo, or project selector; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
 
 Normalize clone and HTTP URLs locally before the read. Do not probe speculative Project fields, call schema/describe commands, query Repository solely for project identity, or fall back to an unfiltered/broad Project inventory. If an explicit Endor project name was supplied and the exact git-full-name read returned zero rows, one exact `meta.name` fallback is allowed and must be ledgered separately.
 
@@ -58,7 +60,7 @@ Return `project_resolution` with status, uuid, namespace/provenance, normalized 
 
 ENDOR_PROJECT_RESOLUTION_PREFLIGHT_COMPACT = """## Endor Project Resolution Preflight
 
-Parse the local git remote into its provider full name; never derive `owner/repo` from cwd. Normal read: exact `spec.git.full_name=="<owner/repo>"`, explicit namespace, page size 2, fields `uuid,meta.name,meta.parent_uuid,spec.git`; no `--list-all`. Normalize URLs locally. No schema/describe probes, speculative filters, Repository identity probes, or broad Project inventory. An explicit Endor project name permits one exact `meta.name` fallback after a zero-row full-name read. Parent zero rows -> retry that same selector with `--traverse`; otherwise omit traversal. Use local git branch/default-remote evidence as branch provenance unless the selected profile explicitly requires monitored-branch proof. Return status, UUID, namespace/provenance, normalized repo, attempted selectors, and traverse state; missing proof -> `data_gaps`, never guesses.
+Parse the local git remote for a matching checkout; otherwise normalize a user repo URL, owner/repo, or project selector; never derive `owner/repo` from cwd. Read exact `spec.git.full_name=="<owner/repo>"`, explicit namespace, page size 2, fields `uuid,meta.name,meta.parent_uuid,spec.git`; no `--list-all`. No schema/describe probes or broad Project inventory. Explicit project name permits one exact `meta.name` fallback. Parent zero rows -> same selector with `--traverse`; otherwise omit it. Use local branch evidence when available; missing branch provenance blocks mutation, not read-only Endor evidence. Return status, UUID, scope/provenance, normalized repo, selectors, traverse, and gaps.
 """
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"

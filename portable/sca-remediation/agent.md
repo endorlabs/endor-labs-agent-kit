@@ -89,35 +89,67 @@ found" until the traverse fallback has also been attempted.
 
 Do not print or dump an entire Endor config file. It can contain auth and tenant details outside the namespace signal needed for this workflow. To read namespace provenance from config, extract only the namespace key with a narrow command or parser and do not echo tokens, API keys, session data, or unrelated config contents.
 
+An explicit namespace selects tenant scope; it does not authenticate the request.
+Let `endorctl` consume its default configuration or supported credential environment internally. Never expose credential fields to model context. Read
+only the default config namespace key when provenance is missing. On auth
+failure, record a redacted `endor_auth_unavailable` gap; never request config or
+secrets.
+
+## Source And Delivery Capability Preflight
+
+Return `execution_context`: `mode` (`evidence_only|local_checkout`), `endor_auth`
+(`available|unavailable|unknown`), boolean `local_checkout`,
+`source_provider_access` (`read_write|read_only|unavailable|unknown`),
+`local_validation` (`available|unavailable|not_attempted|unknown`), and compact
+`limitations`. Use current host/adapter proof, no paths or secrets. Success
+proves auth. A matching readable checkout is required for `local_checkout`;
+otherwise use `execution_context.mode: "evidence_only"`.
+
+A missing runtime-provided checkout does not block authenticated Endor evidence gathering:
+continue scoped Project, Finding, and UIA reads from a proven selector. In
+evidence-only mode, no source/package-manager read, diff, branch, validation,
+push, or PR/MR is allowed; Endor manifest paths remain locally unverified. Never
+use `approved_low_risk`; clean UIA may be `approved_with_validation_required`,
+while elevated/indeterminate/conflicting/major/introduced risk is
+`blocked_needs_compatibility_analysis` unless rejected. Return one not-created
+change request with proposed branch and `source_checkout_unavailable`; optional
+provider-read inventory uses `unavailable` when blocked. Record all capability
+gaps.
+
+With checkout but no provider write, local planning/approved validation may
+continue, but use `source_provider_write_unavailable`. Do not use source-provider write access as a substitute for a runtime-provided checkout. A replacement remote adapter
+must separately prove source read, branch/commit write, and validation.
+
 
 
 ## Workflow
 
-1. Resolve the project and namespace from runtime repository adapter, user-supplied selectors, and Endor project metadata.
-2. Follow the selected Endor Knowledge Pack task profile's Evidence Query Plan. The normal selection path is one exact Project lookup, one ranked VersionUpgrade summary, then one selected VersionUpgrade detail. This is the expected route, not a universal call ceiling. Expand only for the documented parent-namespace retry or a named evidence gap that can change the result, and record what the added read closes. Consume `vuln_finding_info.fixed_findings` and nested fixed-summary UUIDs from VersionUpgrade detail before any Finding query. If that detail cannot support a requested advisory mapping, explicit PR body, or count reconciliation, fetch the current-run Finding UUIDs in one `uuid in [...]` batch; never probe bare package names, broad Finding samples, or one UUID at a time. For evidence-check gates, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
-3. Group verified evidence by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
-4. Query VersionUpgrade/UIA evidence before calling any remediation low-risk, safe, or best. A high finding count alone is not enough.
-5. Select the first remediation candidate using this order:
+1. Resolve the project and namespace from runtime repository adapter when present, otherwise from user-supplied repository/project selectors and Endor project metadata.
+2. Record `execution_context` before any local-source or delivery step. Do not treat a missing checkout as an Endor-evidence failure.
+3. Follow the selected Endor Knowledge Pack task profile's Evidence Query Plan. The normal selection path is one exact Project lookup, one ranked VersionUpgrade summary, then one selected VersionUpgrade detail. This is the expected route, not a universal call ceiling. Expand only for the documented parent-namespace retry or a named evidence gap that can change the result, and record what the added read closes. Consume `vuln_finding_info.fixed_findings` and nested fixed-summary UUIDs from VersionUpgrade detail before any Finding query. If that detail cannot support a requested advisory mapping, explicit PR body, or count reconciliation, fetch the current-run Finding UUIDs in one `uuid in [...]` batch; never probe bare package names, broad Finding samples, or one UUID at a time. For evidence-check gates, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
+4. Group verified evidence by package first, then by affected manifest. A package that fixes fewer findings in one manifest can still be the best first fix if one package upgrade clears findings across multiple manifests with one UIA surface.
+5. Query VersionUpgrade/UIA evidence before calling any remediation low-risk, safe, or best. A high finding count alone is not enough.
+6. Select the first remediation candidate using this order:
    - reachable or exploited critical/high findings with a fix;
    - package-level total findings fixed across all affected manifests;
    - Endor `is_best` and `worth_it` UIA signals;
    - lower `upgrade_risk`, fewer `findings_introduced`, and cleaner CIA status;
    - direct dependency edits before transitive guesses;
    - available local manifests and validation commands.
-6. Read only the target manifests, lockfiles, and source files needed for the selected package and any CIA-indicated companion edits.
-7. Resolve upgrade risk before producing a final recommendation. If CIA is indeterminate, risk is medium/high/unknown, conflicts exist, findings are introduced, the upgrade is a major version bump, or the dependency footprint changes materially, run the Risky / Indeterminate Upgrade Solver below and return a deterministic `risk_decision`.
-8. Prepare the bounded selection plan. Show package, from/to versions, affected manifests, UIA resource UUID, risk, CIA status, finding-instance and unique-advisory counts, `risk_decision`, validation requirements, proposed branch, and change-request inventory. Draft the complete AURI-style PR/MR body and folded advisory list only when the current request explicitly asks for a PR/MR plan, PR/MR body, or mutation preparation; a normal read-only selection gate must not spend tokens generating it.
+7. In `local_checkout` mode, read only the target manifests, lockfiles, and source files needed for the selected package and any CIA-indicated companion edits. In `evidence_only` mode, skip local reads and apply the explicit risk fallback above.
+8. Resolve upgrade risk before producing a final recommendation. If CIA is indeterminate, risk is medium/high/unknown, conflicts exist, findings are introduced, the upgrade is a major version bump, the dependency footprint changes materially, or local source evidence is unavailable, run the Risky / Indeterminate Upgrade Solver below and return a deterministic `risk_decision`.
+9. Prepare the bounded selection plan. Show package, from/to versions, affected manifests, UIA resource UUID, risk, CIA status, finding-instance and unique-advisory counts, `risk_decision`, validation requirements, proposed branch, and change-request inventory. Draft the complete AURI-style PR/MR body and folded advisory list only when the current request explicitly asks for a PR/MR plan, PR/MR body, or mutation preparation; a normal read-only selection gate must not spend tokens generating it.
    - Before selecting or mutating, build `change_requests[0].inventory` using a deterministic key: repository/base branch, ecosystem, normalized package, manifest, current/target version, and finding set. Record provider lookup status plus every candidate's author and bot/human type, branch, state, files, URL, and versions. Reuse or block an exact duplicate. Reconcile a different target against equally fresh UIA and upstream evidence; unresolved divergence requires operator choice and cannot carry an approved risk decision. An unavailable inventory may accompany a plan, but it fails closed before push/open.
-9. Ask for explicit approval before editing files. After approval, apply the minimal manifest, lockfile, or companion source edits needed for the selected UIA-backed fix.
-10. Run local validation when safe. If validation cannot run because dependencies, credentials, private artifacts, or CI-only services are missing, record the exact blocker in `validation` and `data_gaps`.
-11. Present the supported delivery targets before any external mutation: plan-only output, source change request, ticket creation, or both source change request and ticket when the runtime supports them. Do not assume ticketing support; use `create-remediation-ticket` only when the user or runtime selects that target.
-12. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. Immediately before push/open, refresh the deterministic change-request inventory and set `fresh_recheck: true`; fail closed if the lookup is unavailable, an exact duplicate is not being reused, or target-version divergence remains unresolved. Re-runs may update the same agent-owned branch when a change request already exists.
-13. Post or update one stable PR/MR comment when requested or when the runtime returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
-14. Return exactly one bare JSON object. The first non-whitespace character must
+10. Only in `local_checkout` mode, ask for explicit approval before editing files. After approval, apply the minimal manifest, lockfile, or companion source edits needed for the selected UIA-backed fix.
+11. Only in `local_checkout` mode, run local validation when safe. If validation cannot run because dependencies, credentials, private artifacts, or CI-only services are missing, record the exact blocker in `validation` and `data_gaps`.
+12. Present the supported delivery targets before any external mutation: plan-only output, source change request, ticket creation, or both source change request and ticket when the runtime supports them. Do not assume ticketing support; use `create-remediation-ticket` only when the user or runtime selects that target.
+13. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. A source change request additionally requires `local_checkout` mode and `source_provider_access: "read_write"`. Immediately before push/open, refresh the deterministic change-request inventory and set `fresh_recheck: true`; fail closed if the lookup is unavailable, an exact duplicate is not being reused, or target-version divergence remains unresolved. Re-runs may update the same agent-owned branch when a change request already exists.
+14. Post or update one stable PR/MR comment when requested or when the runtime returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
+15. Return exactly one bare JSON object. The first non-whitespace character must
     be `{` and the last must be `}`. Do not add a preamble, trailing explanation,
     Markdown fence, or prose outside the object.
 
-Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, `project_resolution.namespace_provenance`, `project_resolution.traverse_attempted`, and one branch field: `project_resolution.default_branch`, `project_resolution.selected_branch`, `project_resolution.monitored_branch`, or `project_resolution.branch_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` with the blocker in `data_gaps` when evidence is missing, conflicting, or host-blocked. If branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and mirror that blocker in `data_gaps`. If any field is unknown, stop at project resolution instead of ranking or applying a remediation.
+Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, `project_resolution.namespace_provenance`, `project_resolution.traverse_attempted`, `execution_context`, and one branch field: `project_resolution.default_branch`, `project_resolution.selected_branch`, `project_resolution.monitored_branch`, or `project_resolution.branch_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` with the blocker in `data_gaps` when core project or namespace evidence is missing, conflicting, or host-blocked. If branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and mirror that blocker in `data_gaps`; evidence-only ranking may continue, but mutation and PR readiness remain blocked. Stop at project resolution only when the project UUID or namespace cannot be resolved, not merely because a runtime-provided checkout is absent.
 
 Runtime, plan-only, and read-only gates still need those project-resolution fields,
 `selected_remediation.branch_name`, `uia_evidence` as an array,
@@ -335,13 +367,18 @@ This agent includes the risky-remediation decision path. Use it whenever an upgr
 
 For these cases: Do not say "not expected to break", "safe", "no documented breaking changes", or "standard consumers are fine" unless the evidence below supports that exact claim.
 
-The solver must inspect:
+In `local_checkout` mode, the solver must inspect:
 
 1. Detailed VersionUpgrade/UIA fields, including `cia_results`, conflicts, dependency additions/removals, score explanation, introduced findings, direct dependency package, and manifest files.
 2. Local declaration shape: direct dependency, property, BOM, lockfile, transitive parent, or package-manager override.
 3. Local source usage of the upgraded package. Search imports, require statements, package-qualified symbols, config files, generated code references, and framework adapters in the affected module. Capture exact file paths and a short usage summary.
 4. Compatibility-sensitive API surfaces named by Endor CIA, source usage, or dependency metadata. If Endor reports an affected API, search for that API in runtime-provided source before deciding.
 5. Validation commands that specifically exercise dependency resolution, compile/type-check, and tests for the affected module. Run them only when the approval scope allows execution; otherwise list them as required validation.
+
+In `evidence_only`, items 2-5 are unavailable. Preserve UIA/CIA evidence, set
+`source_usage_summary` to `unavailable: source_checkout_unavailable`, list
+required source/validation checks, and apply the preflight risk fallback. Generic
+ecosystem assumptions, release notes, and provider metadata are not local source.
 
 Return exactly one `risk_decision.status`:
 
@@ -364,7 +401,7 @@ required for the selected upgrade; put reuse details in `risk_decision.summary`,
 
 The decision must include `evidence`, `source_usage`, `validation_required`, `companion_edits`, and `reason`. If evidence is unavailable, the deterministic verdict is not "safe"; it is `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`.
 
-For a plan-only request, the solver still produces the deterministic `risk_decision`; it does not need mutation approval to inspect source files or Endor evidence. If the solver cannot reach `approved_low_risk`, select a lower-risk candidate when one exists, or make the risk status explicit in the plan.
+For a plan-only request, the solver still produces the deterministic `risk_decision`; it does not need mutation approval to inspect source files when a checkout exists or to query Endor evidence. If no checkout exists, use the evidence-only fallback instead. If the solver cannot reach `approved_low_risk`, select a lower-risk candidate when one exists, or make the risk status explicit in the plan.
 
 The Selection / Plan gate is not complete until `risk_decision.status` is present. Even if the user asks for a concise restatement, include `risk_decision.status`, the evidence summary, source-usage summary, validation requirements, and whether the next approval gate is allowed. Do not end with "awaiting approval to apply" when `cia_status` is indeterminate and `risk_decision` is missing.
 
@@ -626,6 +663,14 @@ explanation, Markdown fence, table, or other prose outside the object.
     "traverse_attempted": true,
     "attempted_selectors": []
   },
+  "execution_context": {
+    "mode": "evidence_only | local_checkout",
+    "endor_auth": "available | unavailable | unknown",
+    "local_checkout": false,
+    "source_provider_access": "read_write | read_only | unavailable | unknown",
+    "local_validation": "available | unavailable | not_attempted | unknown",
+    "limitations": []
+  },
   "evidence_queries": [
     {
       "name": "VersionUpgrade/UIA evidence",
@@ -691,7 +736,7 @@ array, not an object. Mirror the remediation branch in
 for indeterminate CIA, elevated risk, conflicts, or introduced findings.
 ## Endor Namespace Preflight
 
-Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal environment-variable auth and namespace selection: `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs, but silent namespace conflicts are not.
+Before any Endor project-, finding-, package-, version-upgrade-, policy-, or repository-scoped lookup, resolve the namespace deliberately and record provenance. Preserve normal CLI-managed and environment-variable authentication: `endorctl` may consume its default config internally. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit namespace selects tenant scope; it is not proof of authentication.
 
 Resolve namespace candidates in this order:
 
@@ -708,9 +753,11 @@ After selecting a namespace, pass it explicitly with `-n <namespace>` or `--name
 
 Do not read, cat, source, recurse through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific, customer-specific, production, backup, or other non-default Endor config directories. Do not dump full Endor config files. Extract only the namespace key and never echo credential keys, secrets, tokens, or full config content.
 
+Do not open or parse credential fields to authenticate a request. Invoke the approved `endorctl agent api` command and let the CLI consume its default configuration or supported credential environment internally. A successful current-run Endor call proves authentication; on failure, report the redacted error and a precise `data_gaps` entry without asking the user to paste config or secrets.
+
 ## Endor Project Resolution Preflight
 
-Before scoped Endor reads, parse the runtime repository adapter remote into its provider full name; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
+Before scoped Endor reads, parse the runtime repository adapter remote when a matching checkout exists; otherwise normalize the user-supplied repository URL, owner/repo, or project selector; never derive `owner/repo` from the cwd path. The normal Project read is one exact `spec.git.full_name=="<owner/repo>"` filter in the selected namespace with page size 2 and field mask `uuid,meta.name,meta.parent_uuid,spec.git`. Do not add `--list-all` to this bounded identity lookup.
 
 Normalize clone and HTTP URLs locally before the read. Do not probe speculative Project fields, call schema/describe commands, query Repository solely for project identity, or fall back to an unfiltered/broad Project inventory. If an explicit Endor project name was supplied and the exact git-full-name read returned zero rows, one exact `meta.name` fallback is allowed and must be ledgered separately.
 
@@ -785,9 +832,9 @@ Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without choo
 
 Select at most one UIA-backed remediation candidate and stop before mutation.
 - Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. A read-only remediation gate needs a complete remediation gate JSON object.
-- Minimal evidence: Resolved project, VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance, and local manifest/source usage for the selected package. Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`. Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry. Dirty worktree state for affected manifests before proposing any branch.
+- Minimal evidence: Resolved project and VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance. Local manifest/source usage for the selected package when `execution_context.mode` is `local_checkout`; otherwise an explicit evidence-only risk fallback and source data gap. Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`. Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry. Dirty worktree state for affected manifests before proposing any local mutation. This is not required for an evidence-only plan.
 - Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
-- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`. The selection-plan projection is authoritative: return only summary, project_resolution, evidence_queries, selected_remediation, uia_evidence, risk_decision, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings. The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys. Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`. Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases. Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows. Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation. Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory. Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
+- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request. Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`. The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings. The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys. Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`. Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases. Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows. Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation. Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory. Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
 
 ### Evidence Query Plans
 
@@ -895,7 +942,7 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - `Finding`: Query only main-context vulnerability findings by default and preserve finding UUID, target package, advisory, severity, and dependency file paths. Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.finding_categories`, `spec.target_uuid`, `spec.dependency_file_paths`.
 - `VersionUpgrade`: Verify UIA/CIA upgrade evidence before making low-risk or compatibility claims. Fields: `uuid`, `meta.parent_uuid`, `spec.upgrade_info`, `spec.finding_fixing_upgrades`.
 - Retrieval order: 1. Inspect supplied context manifests or local `.endorlabs-context` snapshots first and verify their namespace, project UUID, and freshness. 2. Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default path. 3. For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion. 4. Query narrow main-context Finding availability for evidence checks. For selection plans, consume VersionUpgrade fixed-finding evidence first and issue at most one exact UUID-batched Finding read only for advisory mapping, explicit PR body detail, or count reconciliation that the UIA detail cannot support.
-- Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. A resolved `project_resolution` needs branch provenance and `project_resolution.traverse_attempted`; if branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and mirror the blocker in `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected. Always ledger the VersionUpgrade/UIA reads. Add a separate `Finding` row only when the selected task actually issued the conditional Finding batch; if that required read is unavailable, add a precise top-level `data_gaps[]` entry. VersionUpgrade `vuln_finding_info` is valid selected-candidate finding provenance without another API call.
+- Fallbacks: If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap. If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling it low risk. Missing checkout -> continue Endor reads in `evidence_only`, no source/diff/validation/PR, and record `source_checkout_unavailable`. Missing provider write keeps an otherwise local plan not-created with `source_provider_write_unavailable`. A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`, `execution_context`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`. A resolved `project_resolution` needs branch provenance and `project_resolution.traverse_attempted`; if branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and mirror the blocker in `data_gaps`. Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`, `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected. Always ledger the VersionUpgrade/UIA reads. Add a separate `Finding` row only when the selected task actually issued the conditional Finding batch; if that required read is unavailable, add a precise top-level `data_gaps[]` entry. VersionUpgrade `vuln_finding_info` is valid selected-candidate finding provenance without another API call.
 - Data gaps: Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade evidence, and unavailable source files in `data_gaps`. Preserve `namespace_provenance`, project query attempts, and context scope in the final gate output. Preserve branch provenance and `project_resolution.traverse_attempted`; mirror missing branch evidence in `data_gaps`. Render `uia_evidence` as an array of VersionUpgrade/UIA records, not as a single object. For elevated, indeterminate, conflicting, or introduced-finding candidates, include `risk_decision.source_usage_summary` and validation requirements instead of returning a prose-only risk summary.
 
 ## Agent Policy Packs
@@ -924,6 +971,7 @@ Required top-level fields must appear in this order:
 - `summary` (`string`): Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.
 - `remediation_candidates` (`list[object]`): Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.
 - `project_resolution` (`object`): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- `execution_context` (`object`): Capability preflight with evidence_only or local_checkout mode, Endor authentication status, source-provider access, local-validation availability, and explicit limitations.
 - `evidence_queries` (`list[object]`): One append-only ledger row per actual Endor API invocation, including failed, zero-result, retry, and fallback calls, with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - `selected_remediation` (`object`): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, Endor finding-instance count, distinct advisory count, fixed Finding UUIDs, and why it was selected.
 - `uia_evidence` (`list[object]`): VersionUpgrade/UIA records used for ranking, including risk, CIA status, Endor finding instances fixed, distinct advisories fixed, fixed Finding UUIDs, findings introduced, score explanation, and breaking-change notes.
@@ -952,6 +1000,7 @@ Final output: no raw shell, `endorctl agent api --agent-id sca-remediation`, `en
   "summary": "string",
   "remediation_candidates": [],
   "project_resolution": {},
+  "execution_context": {},
   "evidence_queries": [
     {
       "name": "Evidence lane name",
@@ -1011,7 +1060,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - source_provider_examples: `endorctl-agent-api`, `repository-adapter`
 - inputs: `repository_url`, `repo_full_name`, `project_name`, `namespace`
 - outputs: `project_uuid`, `project_name`, `repo_full_name`, `namespace`, `namespace_provenance`
-- notes: Resolve from the current repository and human-readable selectors first. Resolve namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml namespace key, or resolved project metadata before using -n. Do not use namespaces from prior sessions or ask for a project UUID unless selectors are missing or ambiguous.
+- notes: Resolve from matching runtime repository adapter or a user-supplied repo URL, owner/repo, or project name; a checkout is not required for Endor reads. Prove namespace from current input, ENDOR_NAMESPACE, the default config namespace key, or current Project metadata. Let endorctl consume auth internally; never read credentials into model context or reuse prior-session scope.
 
 ### query-sca-findings
 
@@ -1047,7 +1096,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - source_provider_examples: `endorctl-agent-api`, `repository-adapter`
 - inputs: `project_uuid`, `namespace`, `repo`, `version_upgrades`
 - outputs: `low_risk_recommendations`, `candidate_prs`, `ready_to_open`, `most_findings_in_one_pr`, `p0_duplicates_hidden`, `data_gaps`
-- notes: List non-breaking low-risk UIA-backed PR candidates separately from the P0/exploited queue and risky solver. Hide P0 or exploited duplicates from the main low-risk list, report them separately, and require repo metadata plus manifest paths before marking candidates ready to open.
+- notes: Keep low-risk UIA candidates separate from P0/exploited and risky lanes. Without a checkout, continue evidence_only, mark candidates not ready, and record source_checkout_unavailable; verified local source is required for ready_to_open.
 
 ### read-local-manifests
 
@@ -1059,7 +1108,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - source_provider_examples: `repository-files-adapter`, `repository-adapter`
 - inputs: `repo`, `manifest_files`, `package_name`, `selected_upgrade`
 - outputs: `manifest_text`, `lockfile_text`, `dependency_declaration`, `source_context`
-- notes: Read only the target manifests, lockfiles, and UIA/CIA-indicated source files needed to plan the remediation.
+- notes: local_checkout only: read the minimum target manifests, lockfiles, and UIA/CIA-indicated source. In evidence_only, skip and record source_checkout_unavailable.
 
 ### resolve-upgrade-risk
 
@@ -1071,7 +1120,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - source_provider_examples: `endorctl-agent-api`, `repository-files-adapter`, `repository-adapter`, `dependency-manager-adapter`
 - inputs: `selected_upgrade`, `cia_results`, `manifest_text`, `lockfile_text`, `source_context`, `validation_plan`
 - outputs: `risk_decision`, `compatibility_evidence`, `required_companion_edits`, `validation_requirements`
-- notes: For medium/high/unknown risk, indeterminate CIA, introduced findings, conflicts, major/minor compatibility-sensitive bumps, or material dependency-footprint changes, produce a deterministic approve/block/reject verdict from Endor evidence plus runtime-provided source usage. Do not hand-wave with release-note suggestions.
+- notes: Resolve elevated/indeterminate risk from Endor plus local source. In evidence_only, clean UIA may be approved_with_validation_required; elevated/indeterminate risk is blocked_needs_compatibility_analysis. approved_low_risk requires local source and successful validation.
 
 ### prepare-remediation-diff
 
@@ -1083,7 +1132,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - source_provider_examples: `repository-adapter`, `dependency-manager-adapter`
 - inputs: `repo`, `selected_upgrade`, `manifest_files`, `companion_edits`, `validation_plan`
 - outputs: `patch_diff`, `changed_files`, `branch_name`, `validation_status`
-- notes: Show the selected UIA evidence, target files, and intended diff first. Apply local manifest or companion edits only after explicit approval; this action does not push or open a PR/MR.
+- notes: local_checkout only: show UIA evidence, verified files, and intended diff, then edit only after approval. Never run in evidence_only or push/open a PR here.
 
 ### open-change-request
 
@@ -1095,7 +1144,7 @@ Do not claim an action completed unless the runtime adapter performed it and ret
 - source_provider_examples: `repository-adapter`, `source-provider-adapter`, `github`, `gitlab`
 - inputs: `repo`, `base_branch`, `branch_name`, `patch_diff`, `title`, `body`, `validation_status`
 - outputs: `url`, `branch`, `status`, `failure_reason`
-- notes: Open or update a PR/MR only after local validation has passed or the validation blocker is explicitly documented and the user approves opening anyway.
+- notes: Requires local_checkout, a verified patched branch, provider write, and passed validation or an approved documented blocker. Provider write alone cannot replace local patch preparation.
 
 ### post-remediation-comment
 

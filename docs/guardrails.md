@@ -111,8 +111,11 @@ Endor lookup. The valid namespace sources are the current user request, the
 current process `ENDOR_NAMESPACE`, the `ENDOR_NAMESPACE` key from the default
 `~/.endorctl/config.yaml`, or already-resolved Endor project metadata.
 
-Environment-variable auth remains supported. Agents and setup workflows may use
-`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*`, but they must not silently
+The namespace selects tenant scope; it is not authentication proof. `endorctl`
+may consume its default config internally, and environment-variable auth remains
+supported. Agents and setup workflows may use `ENDOR_NAMESPACE` and
+`ENDOR_API_CREDENTIALS_*`, but they must not open or parse credential fields
+into model context and must not silently
 trust a namespace when the process environment and default config disagree. If
 both namespace values exist and differ, generated guidance requires surfacing
 both values with provenance and stopping for user confirmation before scoped
@@ -123,6 +126,9 @@ through, or point `ENDORCTL_CONFIG` or `--config-path` at tenant-specific,
 customer-specific, production, backup, or other non-default Endor config
 directories. When a namespace is selected, scoped `endorctl agent api --agent-id <agent-id>` lookups must
 pass it explicitly with `-n <namespace>` or `--namespace <namespace>`.
+Successful current-run Endor evidence proves authentication. Authentication
+failures must be redacted and recorded as data gaps; generated guidance must
+not ask users to paste config files, tokens, or secrets.
 
 ## Host Guardrails
 

@@ -1,7 +1,8 @@
 # Runtime Setup
 
 The AI SAST Remediation agent preserves a mutating workflow.
-Use an authenticated Endor tenant plus local source-provider credentials
+Use an authenticated Endor tenant for evidence gathering. A local target
+checkout and source-provider credentials are separate capabilities required
 before allowing patch or change-request steps.
 
 Required endorctl version: `>=1.0.0`

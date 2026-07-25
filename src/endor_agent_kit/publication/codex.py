@@ -104,6 +104,11 @@ def codex_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) ->
             f"Endor tenant access through authenticated `endorctl agent api --agent-id {recipe.id}`.",
             "Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.",
         ]
+        if recipe.id == "sca-remediation":
+            requirements[0] = (
+                "Codex with terminal access; a matching local target checkout is required "
+                "only for source inspection, patching, validation, and PR/MR delivery."
+            )
         if recipe.id == "ai-sast-remediation":
             requirements.extend(
                 [

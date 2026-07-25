@@ -8,6 +8,7 @@ task_profiles:
     output_fields:
       - summary
       - project_resolution
+      - execution_context
       - evidence_queries
       - data_gaps
       - policy_context
@@ -35,6 +36,7 @@ task_profiles:
     output_fields:
       - summary
       - project_resolution
+      - execution_context
       - evidence_queries
       - data_gaps
       - policy_context
@@ -60,6 +62,7 @@ task_profiles:
     output_fields:
       - summary
       - project_resolution
+      - execution_context
       - evidence_queries
       - selected_remediation
       - uia_evidence
@@ -77,16 +80,18 @@ task_profiles:
       - The user asks for the best next remediation, a PR plan, or a read-only remediation gate.
       - A read-only remediation gate needs a complete remediation gate JSON object.
     minimal_evidence:
-      - Resolved project, VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance, and local manifest/source usage for the selected package.
+      - Resolved project and VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance.
+      - Local manifest/source usage for the selected package when `execution_context.mode` is `local_checkout`; otherwise an explicit evidence-only risk fallback and source data gap.
       - Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`.
       - Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry.
-      - Dirty worktree state for affected manifests before proposing any branch.
+      - Dirty worktree state for affected manifests before proposing any local mutation. This is not required for an evidence-only plan.
     stop_when:
       - One candidate is selected, blocked, or rejected with `risk_decision.status`.
       - Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
     output_focus:
       - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change
         request plan, and precise `data_gaps`.
+      - Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request.
       - Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body.
       - Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable.
       - 'For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`.'
@@ -95,7 +100,7 @@ task_profiles:
         `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`.
       - Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`,
         `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`.
-      - 'The selection-plan projection is authoritative: return only summary, project_resolution, evidence_queries, selected_remediation, uia_evidence, risk_decision, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings.'
+      - 'The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings.'
       - 'The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys.'
       - Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`.
       - For an exact duplicate use `inventory.reconciliation.status: reuse_existing` or `blocked_duplicate` exactly.
@@ -140,8 +145,9 @@ fallbacks:
   - If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap.
   - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling
     it low risk.
+  - Missing checkout -> continue Endor reads in `evidence_only`, no source/diff/validation/PR, and record `source_checkout_unavailable`. Missing provider write keeps an otherwise local plan not-created with `source_provider_write_unavailable`.
   - A read-only evidence gate or plan-only gate is not complete unless the final answer includes one parseable JSON object with `project_resolution`,
-    `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
+    `execution_context`, `selected_remediation`, `uia_evidence`, `risk_decision`, and `data_gaps`.
   - >-
     A resolved `project_resolution` needs branch provenance and `project_resolution.traverse_attempted`;
     if branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>`

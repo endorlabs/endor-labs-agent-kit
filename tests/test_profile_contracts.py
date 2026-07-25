@@ -15,6 +15,7 @@ def test_compiled_sca_evidence_profile_contract_is_projected_and_source_bound():
     expected_fields = (
         "summary",
         "project_resolution",
+        "execution_context",
         "evidence_queries",
         "data_gaps",
         "policy_context",
@@ -40,6 +41,7 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
     expected_fields = (
         "summary",
         "project_resolution",
+        "execution_context",
         "evidence_queries",
         "selected_remediation",
         "uia_evidence",
@@ -92,6 +94,7 @@ def test_read_only_profile_validator_accepts_projected_evidence_and_rejects_muta
     payload = {
         "summary": "Evidence is unavailable.",
         "project_resolution": None,
+        "execution_context": None,
         "evidence_queries": [],
         "data_gaps": ["Endor Project evidence was unavailable."],
         "policy_context": {},

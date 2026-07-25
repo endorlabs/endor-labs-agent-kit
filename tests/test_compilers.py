@@ -535,11 +535,11 @@ def _prompt_budget(relative_path: str) -> int:
         # Full fallback carries resume, duplicate-PR, worktree-isolation, exact
         # evidence-ledger/count, validation-backed risk-decision, and strict
         # selection-plan nested-key contracts. The compact selection-evidence
-        # projection and manifest-overlap reconciliation are quality-critical;
-        # this measured, agent-specific ceiling leaves less than 1 KiB above
-        # the largest generated host artifact. Scoped profiles retain separate
-        # <70% checks.
-        return 48_000
+        # projection, manifest-overlap reconciliation, and source/delivery
+        # capability preflight are quality-critical. This measured,
+        # agent-specific ceiling leaves under 500 characters above the largest
+        # generated host artifact. Scoped profiles retain separate <70% checks.
+        return 50_750
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

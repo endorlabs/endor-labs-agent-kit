@@ -156,6 +156,7 @@ def claude_code_edition_readme(
             notes = [
                 f"This {artifact_label} preserves the SCA remediation workflow capabilities as a mutating agent.",
                 "The agent may query Endor SCA findings and VersionUpgrade/UIA evidence, list separate non-breaking low-risk PR-ready candidates, inspect local manifests, produce a deterministic risk_decision, prepare dependency changes, run validation, open a change request, and post a remediation comment when approved.",
+                "A missing target checkout degrades to an evidence-only plan; it does not block authenticated Endor reads or permit fabricated source, validation, branch, or PR/MR claims.",
                 "Confirm the selected package, UIA evidence, risk_decision, target files, generated diff, validation status, branch, and PR/MR body before allowing mutations.",
             ]
         if recipe.action_contracts_path:

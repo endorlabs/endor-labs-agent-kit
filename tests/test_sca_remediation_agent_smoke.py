@@ -100,6 +100,13 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Traverse fallback when the first project lookup has no match" in prompt
     assert "Do not print or dump an entire Endor config file" in prompt
     assert "extract only the namespace key" in prompt
+    assert "## Source And Delivery Capability Preflight" in prompt
+    assert "An explicit namespace selects tenant scope; it does not authenticate the request" in prompt
+    assert "Let `endorctl` consume its default configuration or supported credential environment internally" in prompt
+    assert "`execution_context.mode: \"evidence_only\"`" in prompt
+    assert "A missing local checkout does not block authenticated Endor evidence gathering" in prompt
+    assert "source_checkout_unavailable" in prompt
+    assert "Do not use source-provider write access as a substitute for a local checkout" in prompt
     assert "namespace_provenance" in prompt
     assert "Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`" in prompt
     assert "project_resolution.traverse_attempted" in prompt
@@ -178,6 +185,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "selected_remediation.branch_name" in prompt
     assert "change_requests[].branch" in prompt
     assert "The generated selection-plan profile contract is strict" in prompt
+    assert "return only summary, project_resolution, execution_context, evidence_queries" in prompt
     assert "Do not reconstruct" in prompt
     assert "character-for-character" in prompt
     assert "Do not emit `project_name`" in prompt
@@ -275,6 +283,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "folded advisory/finding list" in agent_readme
     assert "Advisories This Upgrade Fixes" in agent_readme
     assert "deterministic `risk_decision`" in agent_readme
+    assert "Without a checkout it returns an evidence-only plan" in agent_readme
+    assert "A missing target checkout degrades to an evidence-only plan" in agent_readme
     assert "selection/plan gate is not complete" in agent_readme
     assert "remediation/sca/<package>-<target-version>" in agent_readme
     assert "UIA evidence, risk_decision, target files" in agent_readme
@@ -306,4 +316,7 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "missing-project-or-auth",
         "approved-pr-with-comment",
         "pr-plan-includes-full-body",
+        "no-local-checkout-degrades-to-evidence-only",
+        "explicit-namespace-does-not-expose-auth-config",
+        "checkout-without-provider-write-stops-before-pr",
     }.issubset(ids)

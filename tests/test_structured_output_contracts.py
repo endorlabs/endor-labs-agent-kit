@@ -129,6 +129,27 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
         None,
     ]
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
+    execution_context = schema["properties"]["execution_context"]
+    assert execution_context["type"] == ["object", "null"]
+    assert execution_context["additionalProperties"] is False
+    assert execution_context["properties"]["mode"]["enum"] == [
+        "evidence_only",
+        "local_checkout",
+        None,
+    ]
+    assert execution_context["properties"]["source_provider_access"]["enum"] == [
+        "read_write",
+        "read_only",
+        "unavailable",
+        "unknown",
+        None,
+    ]
+    assert execution_context["properties"]["endor_auth"]["enum"] == [
+        "available",
+        "unavailable",
+        "unknown",
+        None,
+    ]
 
 
 def test_task_state_is_strict_nullable_and_legacy_omittable() -> None:
@@ -302,6 +323,7 @@ def test_json_schema_cli_prints_profile_projected_logical_schema(capsys):
     expected = (
         "summary",
         "project_resolution",
+        "execution_context",
         "evidence_queries",
         "data_gaps",
         "policy_context",
