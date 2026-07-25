@@ -492,8 +492,8 @@ def _render_claude_plugin_agent(
     return "\n\n".join([
         f"---\n{sanitized_frontmatter.rstrip()}\n---",
         provenance,
-        _compact_claude_plugin_body(body, prepared).rstrip(),
         setup_note,
+        _compact_claude_plugin_body(body, prepared).rstrip(),
     ]) + "\n"
 
 

@@ -54,12 +54,24 @@ def test_oss_upgrade_investigator_compiled_artifacts_carry_expected_rules(tmp_pa
     assert "is_endor_patch" in enterprise
     assert "project_uuid" in enterprise
     assert "Do not make Endor project UUID knowledge a prerequisite" in enterprise
+    assert "read and parse the `origin` remote in a separate" in enterprise
+    assert "never derive `owner/repo` from the cwd path" in enterprise
     assert "repository URL, owner/repo, or Endor project name" in enterprise
     assert "retry the same read-only project lookup with `--traverse`" in enterprise
     assert "Record whether `--traverse` was used in project resolution evidence" in enterprise
     assert "Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`" in enterprise
     assert "Do not recommend running a new Endor scan as the default next step" in enterprise
+    assert "do not put a scan or rescan in\n`next_checks`" in enterprise
     assert "optional human-approved follow-up" in enterprise
+    assert "PURL invariant" in enterprise
+    assert "bare-name-first is a contract\n  failure" in enterprise
+    assert "Before the first tool call, select the smallest task profile" in enterprise
+    assert enterprise.rfind("## Structured Output Contract") > enterprise.rfind("## Step 6: Missing Project Context")
+    final_contract = enterprise.split("## Structured Output Contract", 1)[1]
+    assert "`breaking_change_notes` (`list[string]`)" in final_contract
+    assert "`endor_patch` is a target-version string" in final_contract
+    assert "FINAL FORMAT" in final_contract
+    assert "No status preamble, heading, Markdown fence, or outside prose" in final_contract
     assert "Project-scoped `VersionUpgrade` and finding-fixing upgrade lookups default to" in enterprise
     assert "top-level `findings_fixed` and\n  `findings_introduced` must be JSON numbers" in enterprise
     assert "`cia_status` and `score_explanation` must be JSON strings" in enterprise

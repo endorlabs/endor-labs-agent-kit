@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "30f7053a137f07aa5b3ccdebed30d4956bcc90bd5de56e67e839162dd6ef5774"
+ENTERPRISE_EDITION_SHA256 = "75ac8ce833b0f6135e05cc9e96187bef7ea4f9a609ded035020b246ecf633869"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -83,6 +83,8 @@ def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     assert "data_gaps" in enterprise
     assert "## Endor Knowledge Pack" in enterprise
     assert "## Structured Output Contract" in enterprise
+    assert enterprise.rfind("## Structured Output Contract") > enterprise.rfind("## Endor Knowledge Pack")
+    assert "Before the first tool call, select the smallest task profile" in enterprise
     assert "Context first" in enterprise
 
 
@@ -465,16 +467,23 @@ def _plugin_prompt_files(root: Path) -> list[Path]:
 
 def _prompt_budget(relative_path: str) -> int:
     agent_id = _agent_id_from_prompt_path(relative_path)
+    if agent_id == "create-endor-labs-agent":
+        # Authoring support is not a runtime workflow agent. Its schema and
+        # provider-generation guidance are intentionally self-contained.
+        return 15_000
     if agent_id == "endor-agent-kit-setup":
         return 11_000
     if agent_id == "dependency-reviewer":
-        return 18_000
+        # Preserve the cross-agent one-row-per-attempt evidence ledger guard.
+        return 18_550
     if agent_id == "oss-upgrade-investigator":
-        return 15_000
+        # Exact compact VersionUpgrade candidate/detail masks add source-level
+        # prompt bytes while avoiding much larger unbounded response bodies.
+        return 17_000
     if agent_id == "findings-browser":
         # Traversal, completeness, filter, and query-ledger rules are required
         # safety behavior; retain them with bounded agent-specific headroom.
-        return 14_000
+        return 14_250
     if agent_id == "remediation-planning":
         # The planning evidence and structured-output contracts already sit near
         # the generic ceiling; retain bounded room for an accurate public description.
@@ -482,7 +491,7 @@ def _prompt_budget(relative_path: str) -> int:
     if agent_id == "configuration-automation":
         # Its generated Codex wrapper carries the full deterministic setup and
         # action-prescription safety boundary; keep a small non-semantic cushion.
-        return 26_100
+        return 26_600
     if agent_id in {"cicd-posture", "troubleshooting"}:
         return 26_000
     if agent_id == "sca-remediation":
@@ -492,6 +501,8 @@ def _prompt_budget(relative_path: str) -> int:
         return 38_000
     if agent_id == "ai-sast-remediation":
         return 36_000
+    if agent_id == "vulnerability-explainer":
+        return 13_350
     return 13_000
 
 

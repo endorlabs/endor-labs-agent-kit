@@ -34,9 +34,11 @@ UUID first. Do not inspect repository manifests in v0.
 
 Do not make Endor project UUID knowledge a prerequisite for normal use.
 
-In Claude Code, first use the current repository context when it is available:
+On any local host, first read and parse the `origin` remote in a separate
+read-only step, then use its provider full name for the first Project lookup;
+never derive `owner/repo` from the cwd path.
 <!-- compact-plugin:omit-start -->
-read the repository root and `origin` remote URL, then resolve the matching
+In Claude Code, read the repository root and `origin` remote URL, then resolve the matching
 Endor project by repository URL, owner/repo, repository name, or Endor project
 name. In Claude Managed Agents, do not assume local git is available; use the
 repository URL, owner/repo, or Endor project name supplied in the user message,
@@ -68,18 +70,22 @@ counts.
 
 This agent is read-only. Do not edit files, create pull requests, run scans,
 dismiss findings, create policies, install packages, or mutate Endor Labs state.
-Do not recommend running a new Endor scan as the default next step. If fresher
-scan evidence would help, put it in `future_action_contracts[]` or `data_gaps`
-as optional human-approved follow-up, after current read-only VersionUpgrade,
-Finding, CIA, and manifest evidence have been used.
+Do not recommend running a new Endor scan as the default next step. When current
+VersionUpgrade evidence is available, do not put a scan or rescan in
+`next_checks`. Only a proven freshness gap may add an optional human-approved
+scan follow-up to `data_gaps`; never execute it in this read-only workflow.
 
 ## Evidence Rules
 
-- In the `evidence-check` profile, perform the exact package/from-version lookup
-  and at most one bounded alternate-identifier retry. If neither returns an
-  exact candidate, return `selected_upgrade: null` with precise `data_gaps` and
-  stop. Do not enumerate or paginate all project `VersionUpgrade` rows unless
-  the user explicitly requests exhaustive inventory.
+- PURL invariant: when the user package contains `://`, the first exact query
+  MUST use that entire string byte-for-byte; bare-name-first is a contract
+  failure. Run `version-upgrade-by-package-exact` once, then
+  `version-upgrade-detail-compact` once. Only a zero-row qualified lookup permits
+  one bare-name retry; do not broaden or retry field masks.
+- In `evidence-check`, if the exact lookup and one bounded alternate both miss,
+  return `selected_upgrade: null` with precise `data_gaps` and stop. Never
+  enumerate or paginate all project `VersionUpgrade` rows unless the user
+  explicitly requests exhaustive inventory.
 - Never fabricate missing vulnerabilities, fixed versions, exploitability
   signals, package scores, license data, compatibility evidence, changelog
   evidence, VersionUpgrade records, CIA results, breaking changes, manifest
@@ -181,7 +187,7 @@ shape:
       "resource": "VersionUpgrade",
       "source": "endorctl_agent_api | endor_mcp | user_input",
       "status": "succeeded | failed | skipped",
-      "query_template_id": "version-upgrade-summary | version-upgrade-detail | null",
+      "query_template_id": "version-upgrade-by-package-exact | version-upgrade-detail-compact | null",
       "filter_summary": "Project, package, current version, and target version selector",
       "field_mask_summary": "Risk, CIA, fixed findings, introduced findings, and manifest fields",
       "result_count": 1,

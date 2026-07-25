@@ -19,7 +19,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `finding_uuid` (string, optional): Optional finding UUID for the Endor canonical single-finding fixing-upgrade map.
 - `upgrade_uuid` (string, optional): Optional VersionUpgrade UUID for detailed CIA and breaking-change expansion.
 - `ecosystem` (string, optional): Package ecosystem, such as npm, pypi, maven, go, cargo, gem, nuget, or packagist.
-- `package_name` (string, optional): Exact package name as it appears in Endor upgrade_info.direct_dependency_package or a manifest.
+- `package_name` (string, optional): Exact package coordinate as it appears in Endor upgrade_info.direct_dependency_package or a manifest. Preserve an ecosystem-qualified value such as pypi://pydantic-settings byte-for-byte for the first exact lookup.
 - `current_version` (string, optional): Currently used package version, used to filter or cross-check VersionUpgrade records when available.
 - `target_version` (string, optional): Candidate upgrade version, used to filter or cross-check VersionUpgrade records when available.
 - `best_only` (boolean, optional): Defaults to the platform's best_only=true for recommendation lists.

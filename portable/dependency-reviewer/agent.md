@@ -279,6 +279,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 - Every scoped Endor gate must record `namespace_provenance` from user input, environment, default config, or project metadata.
 - Every evidence gate must return required JSON with precise `data_gaps` for missing, stale, unavailable, or blocked evidence.
 - If required user inputs are missing in a noninteractive or final-answer context, return the required JSON shape with `data_gaps` instead of asking a prose-only follow-up.
+- Do not recommend a new scan or rescan as a default next step. Mention one only when current evidence proves a freshness gap, keep it as an optional human-approved follow-up in `data_gaps` or a declared future-action field, and never execute it in a read-only workflow.
 - Final answers must summarize query intent, selectors, and field masks instead of echoing raw `endorctl agent api` command strings.
 
 ### Scope Normalization Contract
@@ -299,6 +300,8 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 Route once to an exact package decision, exact package risk summary, or bounded repository dependency review.
 
 ### Agent Task Profiles
+
+Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary: gather only its minimal evidence, obey its stop conditions, and do not continue into another profile or the full workflow unless the user explicitly requests the broader work.
 
 #### `package-decision` - Exact Package Decision
 
@@ -458,6 +461,37 @@ If the runtime provides a trusted Agent Policy Pack and fact bag, use its evalua
 
 Return `policy_context` with status, pack id, version, SHA-256 when known, and source. Copy trusted evaluator `policy_evaluations` exactly and completely. `deny` blocks recommendations and mutation. `require_review` permits planning only until runtime approval evidence is returned. For every effect, missing or invalid facts follow `on_missing_facts`; its default `deny` blocks unless explicitly overridden. Record unavailable policy packs, adapters, or required facts in `data_gaps`.
 
+# Enterprise Edition Workflow: Bounded Agent-Attributed Endor Evidence
+
+Use Endor MCP tools, host read-only file tools, and only documented
+agent-attributed read-only Endor API commands. Never use a bare Endor API command.
+
+1. Select exactly one task profile.
+2. For a package profile, require one exact coordinate and skip repository
+   inspection. For `repository-review`, inspect supported manifests with
+   read-only host tools and select bounded exact direct dependencies.
+3. For each selected exact coordinate, call `check_dependency_for_risks` with
+   `ecosystem`, `dependency_name`, and `version`.
+4. If the risk result does not include vulnerability ids and that detail can
+   change the selected profile result, call
+   `check_dependency_for_vulnerabilities` with the same coordinate.
+5. Enrich at most two selected vulnerability ids with `get_endor_vulnerability`
+   only when severity, EPSS, CISA KEV, or fixed-version detail can change the
+   result. Do not enrich every returned id.
+6. If MCP risk lookup is unavailable and an exact coordinate is known, run the
+   bounded `PackageVersion` lookup documented in Developer Edition. Resolve the
+   project by Git only when the request requires tenant scope; use the Knowledge
+   Pack `project-by-git` template and preserve namespace provenance.
+7. Query scores or license evidence only when the selected package profile
+   requires it and exact PackageVersion evidence is available.
+8. Apply only the selected profile's ladder and output contract.
+
+For noninteractive runs, steps 4-6 are optional enrichment, not blockers. If the
+first selected dependency risk lookup is unavailable or slow, stop immediately
+with `NOT_RECOMMENDED` for `package-decision` or `UNKNOWN` for a risk profile,
+the manifest/dependency evidence already gathered, and a `data_gaps` entry such
+as `endor_mcp_package_risk_unavailable`.
+
 
 ## Structured Output Contract
 
@@ -484,7 +518,7 @@ Optional top-level fields when verified:
 - `next_checks` (`list[string]`): Bounded follow-up checks for package-risk.
 - `recommended_actions` (`list[string]`): Follow-up actions such as upgrade, investigate reachability, or run a fuller Endor scan.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; source=adapter, not command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
@@ -531,36 +565,7 @@ Final output: no raw shell, `endorctl agent api --agent-id dependency-reviewer`,
 }
 ```
 
-# Enterprise Edition Workflow: Bounded Agent-Attributed Endor Evidence
-
-Use Endor MCP tools, host read-only file tools, and only documented
-agent-attributed read-only Endor API commands. Never use a bare Endor API command.
-
-1. Select exactly one task profile.
-2. For a package profile, require one exact coordinate and skip repository
-   inspection. For `repository-review`, inspect supported manifests with
-   read-only host tools and select bounded exact direct dependencies.
-3. For each selected exact coordinate, call `check_dependency_for_risks` with
-   `ecosystem`, `dependency_name`, and `version`.
-4. If the risk result does not include vulnerability ids and that detail can
-   change the selected profile result, call
-   `check_dependency_for_vulnerabilities` with the same coordinate.
-5. Enrich at most two selected vulnerability ids with `get_endor_vulnerability`
-   only when severity, EPSS, CISA KEV, or fixed-version detail can change the
-   result. Do not enrich every returned id.
-6. If MCP risk lookup is unavailable and an exact coordinate is known, run the
-   bounded `PackageVersion` lookup documented in Developer Edition. Resolve the
-   project by Git only when the request requires tenant scope; use the Knowledge
-   Pack `project-by-git` template and preserve namespace provenance.
-7. Query scores or license evidence only when the selected package profile
-   requires it and exact PackageVersion evidence is available.
-8. Apply only the selected profile's ladder and output contract.
-
-For noninteractive runs, steps 4-6 are optional enrichment, not blockers. If the
-first selected dependency risk lookup is unavailable or slow, stop immediately
-with `NOT_RECOMMENDED` for `package-decision` or `UNKNOWN` for a risk profile,
-the manifest/dependency evidence already gathered, and a `data_gaps` entry such
-as `endor_mcp_package_risk_unavailable`.
+FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
 
 
 ## Action Contracts

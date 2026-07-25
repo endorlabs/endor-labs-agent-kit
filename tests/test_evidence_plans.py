@@ -166,21 +166,36 @@ def test_compiled_remediation_planning_plan_reuses_the_bounded_selection_dag():
     ).contract_digest
 
 
-def test_compiled_oss_upgrade_plan_fetches_bounded_full_candidates_once():
+def test_compiled_oss_upgrade_plan_selects_exact_compact_candidate_before_detail():
     plan = compile_evidence_plan("oss-upgrade-investigator", "evidence-check")
 
     assert validate_evidence_plan(plan) == []
-    assert plan.expected_calls == 2
-    assert plan.max_calls == 3
+    assert plan.expected_calls == 3
+    assert plan.max_calls == 4
     assert [step.id for step in plan.steps] == [
         "project-by-git",
-        "version-upgrade-by-package",
+        "version-upgrade-by-package-exact",
+        "version-upgrade-detail-compact",
     ]
     candidates = plan.steps[1]
+    detail = plan.steps[2]
     assert candidates.depends_on == ("project-by-git",)
-    assert "--page-size 5" in candidates.template
+    assert "--page-size 1" in candidates.template
     assert "--list-all" not in candidates.template
-    assert "spec.upgrade_info" in candidates.fields
+    assert 'spec.upgrade_info.from_version=="<CURRENT_VERSION>"' in candidates.template
+    assert 'spec.upgrade_info.to_version=="<TARGET_VERSION>"' in candidates.template
+    assert "spec.upgrade_info" not in candidates.fields
+    assert "spec.upgrade_info.total_findings_fixed" in candidates.fields
+    assert "spec.upgrade_info.total_findings_introduced" in candidates.fields
+    assert detail.depends_on == (candidates.id,)
+    assert next(binding for binding in detail.inputs if binding.name == "candidate_uuid").source == (
+        "steps.version-upgrade-by-package-exact.candidate_uuid"
+    )
+    assert "spec.upgrade_info" not in detail.fields
+    assert "spec.upgrade_info.conflicts_map" in detail.fields
+    assert plan.routes[0].required_outputs[-1] == (
+        "steps.version-upgrade-detail-compact.selected_candidate"
+    )
     assert all(
         step.template.startswith(
             "endorctl agent api --agent-id oss-upgrade-investigator"

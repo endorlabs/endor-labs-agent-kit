@@ -59,7 +59,7 @@ inputs:
   - name: package_name
     kind: string
     required: false
-    description: Exact package name as it appears in Endor upgrade_info.direct_dependency_package or a manifest.
+    description: Exact package coordinate as it appears in Endor upgrade_info.direct_dependency_package or a manifest. Preserve an ecosystem-qualified value such as pypi://pydantic-settings byte-for-byte for the first exact lookup.
   - name: current_version
     kind: string
     required: false
