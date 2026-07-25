@@ -512,6 +512,10 @@ def _prompt_budget(relative_path: str) -> int:
         # Traversal, completeness, filter, and query-ledger rules are required
         # safety behavior; retain them with bounded agent-specific headroom.
         return 14_750
+    if agent_id == "malware-responder":
+        # The exact Finding-to-DependencyMetadata route prevents broad tenant
+        # inventory reads and incorrect PackageVersion target lookups.
+        return 13_500
     if agent_id == "remediation-planning":
         # The selected-package fallback and evidence-ledger contract add useful
         # source-level bytes while keeping the normal route to three reads.

@@ -291,6 +291,70 @@ recipes:
     forbidden:
       - Do not export broad tenant package inventory when exact affected package names are available.
 
+  - id: malware-finding-by-uuid
+    title: Exact Malware Finding Lookup
+    resource: Finding
+    purpose: Fetch one exact Endor malware Finding and its embedded malware classification when the user supplies a Finding UUID.
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> --field-mask "uuid,meta.name,context.type,spec.project_uuid,spec.target_uuid,spec.level,spec.finding_categories,spec.target_dependency_package_name,spec.target_dependency_version,spec.finding_metadata" -o json
+    fields:
+      - uuid
+      - meta.name
+      - context.type
+      - spec.project_uuid
+      - spec.target_uuid
+      - spec.level
+      - spec.finding_categories
+      - spec.target_dependency_package_name
+      - spec.target_dependency_version
+      - spec.finding_metadata
+    constraints:
+      - Use only with a Finding UUID supplied in the current request or returned by current-run evidence.
+      - Do not add --traverse; an exact UUID get is complete for that Finding.
+      - Treat spec.finding_metadata.malware as Endor classification evidence, including explicit synthetic-test notes.
+    completeness: Complete for the exact Finding UUID; does not prove namespace-wide exposure by itself.
+    forbidden:
+      - Do not use a Finding UUID from memory or broaden to tenant inventory merely to cross-check the same record.
+
+  - id: malware-dependency-metadata-by-uuid
+    title: Malware Finding Dependency Metadata Lookup
+    resource: DependencyMetadata
+    purpose: Resolve an exact malware Finding target into package, version, dependency relationship, reachability, and importer project evidence.
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r DependencyMetadata -n <namespace> --uuid <DEPENDENCY_METADATA_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,context.type,spec.dependency_data,spec.importer_data" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - context.type
+      - spec.dependency_data
+      - spec.importer_data
+    constraints:
+      - Use spec.target_uuid from the exact Finding as DEPENDENCY_METADATA_UUID.
+      - Use dependency_data for exact PURL, version, directness, pinning, and reachability.
+      - Use importer_data for the Endor project and parent package version.
+    completeness: Complete for one exact DependencyMetadata UUID and its embedded importer evidence.
+    forbidden:
+      - Do not reinterpret the Finding target UUID as PackageVersion.
+
+  - id: malware-project-by-uuid
+    title: Malware Exposure Project Label Lookup
+    resource: Project
+    purpose: Resolve a human-readable project or repository label only when exact malware evidence does not already provide it.
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r Project -n <namespace> --uuid <PROJECT_UUID> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Run only when the response needs a human-readable project or repository identity not already established by current evidence.
+      - Use the exact Finding project UUID as provenance and do not add --traverse.
+    completeness: Complete for one exact Project UUID; not a namespace inventory.
+    forbidden:
+      - Do not perform this optional lookup when current evidence already supplies the required project identity.
+
   - id: current-malware-intelligence
     title: Current Malware Intelligence Collection
     resource: external-intelligence
