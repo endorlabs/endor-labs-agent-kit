@@ -24,6 +24,7 @@ task_profiles:
       - Namespace provenance, scoped Endor finding category evidence, repository inventory or explicit data_gaps, and read-only GitHub configuration evidence when available.
     stop_when:
       - raw_counts, dimension_scores, score_validation, critical_overrides, evidence_queries, and data_gaps are complete enough for validation.
+      - For a repository subset, stop after the exact Project lookup, one bounded project-scoped Finding page, one project-filtered Repository page, local CI inspection, and only score-changing conditional fallbacks.
     output_focus:
       - Return posture_verdict, summary, scope, raw_counts, dimension_scores, score_validation, critical_overrides, endor_findings, github_evidence, local_ci_evidence, recommended_actions, evidence_queries, and data_gaps.
     output_fields:
@@ -73,6 +74,7 @@ resources:
     fields:
       - uuid
       - meta.name
+      - meta.parent_uuid
       - spec.default_branch
       - spec.branch_protections
       - spec.vulnerability_alerts_enabled
@@ -93,10 +95,10 @@ resources:
       - ingested_object
 retrieval_steps:
   - Resolve namespace provenance and scope mode.
-  - Resolve selected repositories to Endor projects when repository_urls or project selectors are supplied.
-  - Query existing Endor findings in SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN categories for the selected scope.
-  - Query read-only GitHub configuration evidence for selected repositories or supplied inventory.
-  - Compute raw_counts and deterministic scores, then record any missing evidence as data_gaps.
+  - Resolve selected repositories to Endor projects by exact spec.git.full_name; retry the identical lookup with traversal only after an exact zero result.
+  - For one selected repository, query one bounded project-scoped Finding page and one Repository page filtered by the resolved Project UUID.
+  - Query read-only GitHub configuration only for a score-changing signal that Endor-ingested Repository or local evidence did not resolve.
+  - Compute raw_counts through the package-local deterministic score helper exactly once, then record any missing evidence as data_gaps.
 fallbacks:
   - If GitHub access is unavailable, continue with Endor finding evidence and record missing GitHub configuration lanes in data_gaps.
   - If Endor category evidence is unavailable, continue only with explicit data_gaps and avoid claiming tenant finding counts.
@@ -121,13 +123,15 @@ evidence_query_plans:
     title: CI/CD Posture Scoring Query Plan
     objective: Gather read-only posture evidence and compute deterministic scores.
     query_order:
-      - Query existing Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN findings with compact fields and an explicit page bound.
-      - Query branch protection - prefer Endor-native Repository config (endor-repository-config) when the GitHub App has ingested it, otherwise read-only GitHub branch protection or rulesets for selected repositories.
-      - Query workflow files, CODEOWNERS, action pinning, permissions, risky triggers, runner exposure, and update automation.
-      - Compute raw_counts, dimension_scores, overall_score, verdict_band, and critical_overrides.
+      - For a repository selector, resolve Project by spec.git.full_name before every scoped read; never start with meta.name.
+      - Query one bounded existing Endor SCPM, CICD, GHACTIONS, and SUPPLY_CHAIN Finding page for the resolved project.
+      - Query branch protection from the project-filtered Endor-native Repository config when the GitHub App has ingested it.
+      - Inspect local workflow, CODEOWNERS, action-pinning, permission, trigger, runner, and update-automation signals in parallel; use GitHub only for unresolved score-changing evidence.
+      - Invoke the deterministic score helper once and copy its dimension_scores, overall_score, verdict_band, and posture_verdict.
     avoid:
       - Do not use local workflow files as proof of branch protection, rulesets, runner fleet state, or Endor finding counts.
       - Do not mutate workflow files, branch protection, rulesets, repository settings, GitHub Apps, or Endor state.
+      - Do not repeat successful Endor reads, issue count cross-checks, use anonymous curl after GitHub authentication fails, or search for another provider's workflow artifact.
     stop_after:
       - Stop after scores validate or after missing evidence is recorded in data_gaps.
     data_gaps:
@@ -152,7 +156,7 @@ evidence_query_recipes:
     canonical_id: cicd-posture-findings
     resource: Finding
     purpose: List bounded existing Endor CI/CD and supply-chain posture finding rows.
-    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
     fields:
       - uuid
       - context.type
@@ -164,14 +168,31 @@ evidence_query_recipes:
       - Record next_page_token or truncation as a data_gap instead of fetching bulky posture metadata after bounded evidence is sufficient.
       - Do not run scans or broaden to unrelated finding categories.
   - profile_id: posture
+    id: cicd-posture-findings-by-project
+    canonical_id: cicd-posture-findings-by-project
+    resource: Finding
+    purpose: List a bounded existing Endor CI/CD and supply-chain posture page for one resolved project.
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.level
+      - spec.finding_categories
+    constraints:
+      - Resolve PROJECT_UUID from exact current-run Project evidence first.
+      - Stop after one page; record continuation metadata rather than fetching another page or count.
+      - Never add --traverse or --list-all after project resolution.
+  - profile_id: posture
     id: endor-repository-config
     canonical_id: endor-repository-config
     resource: Repository
     purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
-    template: endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,meta.parent_uuid,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
     fields:
       - uuid
       - meta.name
+      - meta.parent_uuid
       - spec.default_branch
       - spec.branch_protections
       - spec.vulnerability_alerts_enabled
@@ -180,6 +201,24 @@ evidence_query_recipes:
       - The Repository resource is listed namespace-wide; match selected repositories locally by meta.name or repository identity.
       - Some tenants do not expose the Repository resource or reject nested spec field masks; record the gap and fall back to the read-only GitHub branch-protection recipe.
       - Treat ingested configuration as read-only evidence.
+  - profile_id: posture
+    id: endor-repository-config-by-project
+    canonical_id: endor-repository-config-by-project
+    resource: Repository
+    purpose: Read one resolved project's Endor-ingested repository configuration without namespace-wide enumeration.
+    template: endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --filter 'meta.parent_uuid=="<PROJECT_UUID>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.default_branch
+      - spec.branch_protections
+      - spec.vulnerability_alerts_enabled
+      - spec.org
+    constraints:
+      - Resolve PROJECT_UUID from exact current-run Project evidence first.
+      - A zero result or rejected shape is a data gap; use one GitHub fallback only when it can change the score.
+      - Do not broaden to a namespace-wide Repository query for an exact repository request.
   - profile_id: posture
     id: endor-repo-codeowners
     canonical_id: endor-repo-codeowners

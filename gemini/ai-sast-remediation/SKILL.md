@@ -83,16 +83,16 @@ corroborating Project record when default-branch labeling matters.
 ## Workflow
 
 1. Resolve the smallest sufficient Endor scope. When the user supplies a Finding UUID, fetch that Finding first and derive its project UUID, context type, and source ref; fetch Project by that UUID only when repository identity is still absent. Without a Finding UUID, resolve the Endor project from the current repository or user-supplied repository selector. Ask for clarification only when the match is ambiguous or missing.
-2. Pull AI SAST findings + parse Endor's verdict: List findings via FindingService filtered by `spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"` and the resolved project, then run a deterministic regex/markdown parser over each spec.explanation to extract the Classification line, all Verification Scorecard rows, Severity Scoring numbers, Data Flow anchors, Exploit Reproduction, Remediation Guidance, and any sibling-file hints from the Security Controls section. Keep raw finding payloads local to parsing; pass only compact extracted evidence into patch reasoning and summaries.
+2. Select once, then parse one Endor verdict. With no supplied Finding UUID, resolve Project once, capture one complete main-context project AI SAST inventory through the packaged artifact helper with `--projection ai-sast-selection`, and copy only its artifact metadata, severity counts, and selected Finding UUID into model context. The helper applies severity-descending then UUID-ascending selection over every retained row. Fetch `spec.finding_metadata` and `spec.explanation` only for that selected Finding, then parse its Classification line, Verification Scorecard, Severity Scoring, Data Flow anchors, Exploit Reproduction, Remediation Guidance, and sibling-file hints. Never inspect the retained artifact, run a model-written parser over the inventory, repeat the list, or issue a separate count cross-check.
    - Project scoping is mandatory. After resolving a project, every Endor finding list query must filter by `context.type==CONTEXT_TYPE_MAIN` and the resolved project UUID or an equivalent repository-scoped selector unless the user explicitly requested a PR/CI-run scope. Never list all AI SAST findings in the namespace and choose from unrelated repositories.
-   - For filtered list queries, use a filter shaped like `context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"`. Use `--count` for an availability count without finding rows. When rows are actually needed, include `context`, `spec.method`, and `spec.source_code_version` in the field mask, and reserve `--list-all` for a complete scoped finding list.
+   - For the selection-plan inventory, use a filter shaped like `context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"` with only `uuid,context.type,spec.project_uuid,spec.method,spec.level,spec.source_code_version`, `--list-all`, and the packaged helper. Use `--count` only in the separate availability-only evidence-check profile. Never combine a complete selection inventory with another count.
    - Do not use the shorthand AI SAST method value or a finding-tags selector for AI SAST discovery; those selectors can miss current AI SAST findings.
    - For a known finding UUID, use `endorctl agent api --agent-id ai-sast-remediation get -r Finding -n <namespace> --uuid <finding_uuid> -o json`; `api get` does not accept `--filter`. Use `endorctl agent api --agent-id ai-sast-remediation list -r Finding -n <namespace> -f <filter> -o json` only for filtered list queries. After a UUID get, inspect and report the returned `context.type` and `spec.source_code_version.ref`; do not merge a CI/PR-run finding into main-context counts unless the user requested that scope, and do not label the source ref as the repository default branch without corroborating repository metadata.
    - When parsing `endorctl` JSON in shell commands, tolerate update notices by redirecting non-JSON stderr or by parsing from the first JSON object. Do not let a CLI update notice become a false data gap.
    - Treat `## Exploit Reproduction` and `## Remediation Guidance` as optional sections for backward compatibility. If either section is absent, record the missing section in the per-finding evidence object and continue with the older scorecard/data-flow workflow.
 3. Use Exploit Reproduction for prioritization and validation planning: extract attacker preconditions, trigger input or payload shape, affected route/API/sink, expected impact, exploit reliability, and stated limitations. Raise priority when reproduction is concrete, externally reachable, low-precondition, or high-impact. Lower confidence or require manual review when reproduction depends on unrealistic assumptions, missing source context, or controls that appear to block the path. Never run exploit steps against live or customer systems; translate them into local regression tests, safe fixtures, or PR verification notes where possible.
 4. Fetch source at pinned SHA (TPs only): For findings parsed as TRUE_POSITIVE, GET the file at spec.source_code_version.sha via the configured source provider. Reuses the source-host credential path from the local environment. Falls back to available provider tokens only when configured. Honours air-gap configuration by reporting source as unavailable instead of reaching out.
-5. LLM patch generation (TPs with source only): Prompt includes Endor's parsed scorecard, data flow, exploit reproduction summary, remediation guidance, sibling-file hints, and the full source file at the pinned SHA. Treat Remediation Guidance as advisory evidence, not an authority. Use it directly when it fits the codebase and security semantics, adapt it when it is incomplete, and reject it with a specific reason when it is unsafe, incompatible, or contradicted by the code. LLM returns strict JSON: patch_diff (unified diff string or null), patch_confidence (0-100), patch_reason, remediation_guidance_used, remediation_guidance_rejected, exploit_reproduction_used, validation_plan, sibling_files_referenced. FP / INCONCLUSIVE rows skip the LLM entirely with a deterministic reason. Source-unavailable TPs skip the LLM and surface as 'manual fix required' so we never ship a hallucinated diff.
+5. Generate a patch only for explicit patch intent. A request to triage, explain, assess, or provide remediation guidance is read-only: return `patches: []`, do not draft a diff, and do not inspect extra source solely to prepare one. When the user explicitly asks to fix, patch, edit, or prepare a change request for a TRUE_POSITIVE with source, prompt with Endor's parsed scorecard, data flow, exploit reproduction summary, remediation guidance, sibling-file hints, and the full source file at the pinned SHA. Treat Remediation Guidance as advisory evidence, not an authority. For that explicit patch lane, return strict patch JSON with `patch_diff`, `patch_confidence`, `patch_reason`, `remediation_guidance_used`, `remediation_guidance_rejected`, `exploit_reproduction_used`, `validation_plan`, and `sibling_files_referenced`. FP / INCONCLUSIVE and source-unavailable rows skip patch generation with a deterministic reason.
 6. Compute and validate embedded `patches[].change_impact` before any remediation or PR gate. Canonicalize the unified diff, bind its SHA-256 digest to `source_sha` and `finding_uuid`, and classify supported Python, Java, JavaScript, TypeScript, and Go changes. Constructor/public-signature changes require searched call sites and tests; DI/config changes require framework providers and config keys; dependency/import changes require searched call sites and tests; factory/provider/registration changes require factories and searched call sites. Every triggered class also requires validation evidence. Use `verified` only when all triggered evidence is present, `not_applicable` only for a supported non-triggering diff, and `blocked` or `unavailable` for unsupported/unparseable diffs or unavailable validation. A digest mismatch, duplicate digest, null change impact on a strict patch, or blocked/unavailable result fails closed before push/open.
 7. Persist/report verdicts + patches: Per-finding verdict includes classification, scorecard, severity, exploit reproduction summary, remediation guidance summary, priority rationale, patch diff, confidence, reason, source SHA, validation plan, embedded change-impact evidence, and any data gaps.
 7. Validate before change-request creation: run the repository's relevant compile, test, or smoke command when it is discoverable from README, build files, package metadata, or project conventions. Derive validation commands from the actual target repo files and affected artifact; do not guess Maven, npm, Docker, image names, ports, or service names from examples, repository names, or durable defaults. For config findings, validate the config with the real config loader when available; for containerized configs, inspect the Dockerfile or compose service that copies the affected file and validate that image/config, adding required local-only host aliases or compose networking when the config references sibling services. When exploit reproduction is available, prefer a targeted local regression test or safe fixture that proves the exploit path is blocked after the patch. If validation cannot run because dependencies, credentials, CI configuration, service DNS, or private artifacts are missing, record the exact blocker in `data_gaps` and include it in the change-request body. Do not leave placeholder unchecked test-plan items as if validation had not been considered.
@@ -164,7 +164,7 @@ corroborating Project record when default-branch labeling matters.
 
 ## Output
 
-Return concise prose plus a JSON object matching `recipe.yaml` outputs: `summary`, `project_resolution`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, and `data_gaps`. Do not substitute a different top-level key such as `findings`.
+Return exactly one bare JSON object matching `recipe.yaml` outputs, including `summary`, `project_resolution`, `evidence_queries`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, and `data_gaps`. The first non-whitespace character must be `{` and the last must be `}`. Do not add a preamble, trailing explanation, Markdown fence, or a different top-level key such as `findings`.
 
 Final JSON fields must summarize query evidence without raw shell or API command strings. Do not put literal `endorctl agent api --agent-id ai-sast-remediation`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`, `summary`, `project_resolution`, `verdicts`, `evidence_queries[].reason`, or verdict prose. Use compact summaries such as `project lookup by stored project name returned no results` or `selected Finding detail was unavailable`, while keeping the exact safe query recipe in internal tool use only.
 
@@ -206,7 +206,9 @@ Resolve namespace candidates in this order:
 3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only, read with a field-specific command or parser.
 4. Namespace from already-resolved Endor project metadata.
 
-If the user supplied a namespace in the current request, use that namespace explicitly with `-n <namespace>` or `--namespace <namespace>` and report any environment/config mismatch as overridden by the request. If `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
+If the user supplied a namespace in the current request, treat it as authoritative for that request, use it explicitly with `-n <namespace>` or `--namespace <namespace>`, and do not inspect environment or config namespace first. Attempt the smallest scoped API read directly. Only inspect environment or config namespace after that read returns an authentication, authorization, namespace, or not-found signal that could indicate a conflict. If such a conflict is then proven, report it as overridden by the explicit request or stop for confirmation when the request cannot safely resolve it.
+
+When no namespace was supplied by the user, if `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
 
 After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl agent api --agent-id ai-sast-remediation` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl agent api --agent-id ai-sast-remediation -n <namespace>` or report a `data_gaps` entry.
 
@@ -265,7 +267,7 @@ Use namespace-scoped main-context AI SAST findings, exploit reproduction, remedi
 
 ### Agent Task Profiles
 
-Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary: gather only its minimal evidence, obey its stop conditions, and do not continue into another profile or the full workflow unless the user explicitly requests the broader work.
+Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary. Execute its canonical evidence order as the normal route, not a universal call limit. Broaden only for an explicit request or a named evidence gap allowed by its query plan, record what the added read closes, and return to the profile stop condition. Do not add unrelated or repeated cross-check reads.
 
 #### `resolve-scope` - Resolve Scope
 
@@ -287,7 +289,7 @@ Fetch only the AI SAST evidence needed to classify availability; fetch detailed 
 
 Decide whether to patch, request approval, or block based on verified AI SAST and source evidence.
 - Use when: The user asks for triage plus a remediation path. The finding has source context and remediation guidance.
-- Minimal evidence: AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, source file at pinned ref, and sibling-file context.
+- Minimal evidence: One compact complete project inventory reduced by the packaged helper, one selected AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, and only the selected source anchors needed by the requested lane.
 - Stop when: A TRUE_POSITIVE, FALSE_POSITIVE, ACCEPT_RISK, or insufficient-evidence verdict is recorded. Do not open PRs or create policies without explicit approval.
 - Output focus: Return verdicts, patch plan or exception lane, validation plan, change_requests, evidence_queries, and data_gaps.
 
@@ -312,9 +314,9 @@ Confirm AI SAST evidence and pinned source context without generating a patch.
 #### `selection-plan` - AI SAST Selection Query Plan
 
 Choose one actionable AI SAST finding and produce a read-only triage/remediation plan.
-- Query order: 1. Resolve namespace, project, and requested finding selector. 2. Get or narrowly list all main-context AI SAST findings with severity, classification, source path, source ref, finding UUID, tight fields, and `--list-all`. 3. Fetch and parse detail only for the selected finding. 4. Inspect only the selected source file, sibling control files, and referenced data-flow anchors.
-- Avoid: Do not generate diffs or exception policies unless the user explicitly approves that lane. Do not use broad repository search beyond the selected finding's anchors unless data_gaps require it.
-- Stop after: Stop after one finding has a verified triage decision, patch plan or exception path, and validation requirements.
+- Query order: 1. Resolve namespace, project, and requested finding selector. 2. When no Finding UUID is supplied, capture one complete main-context project AI SAST inventory with only UUID, context, project, method, level, and source-version fields; run the packaged `ai-sast-selection` projection exactly once. 3. Copy the helper's counts and deterministically selected Finding UUID; do not inspect retained rows, issue a separate count, or write an ad hoc parser. 4. Fetch and parse detail only for the selected finding. 5. Inspect only the selected source file, sibling control files, and referenced data-flow anchors.
+- Avoid: For read-only triage, explanation, or remediation-guidance requests, keep `patches`, `change_requests`, `exception_policies`, and `tickets` empty. Generate a patch only when the user explicitly asks to fix, patch, edit, or prepare a change request. Do not use broad repository search beyond the selected finding's anchors unless data_gaps require it.
+- Stop after: Stop after one finding has a verified triage decision, patch plan or exception path, and validation requirements. The normal repository route is three Endor reads. This is not a universal call ceiling: use only the documented parent-namespace retry or an explicit evidence-gap branch when it can change the result, and ledger every attempted call.
 - Data gaps: Record missing selected finding evidence, missing source ref, unavailable local files, and unverified exception approval in data_gaps.
 
 ### Evidence Query Recipes
@@ -382,6 +384,26 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 - Fields: `count`
 - Constraints: Use only when no Finding UUID was supplied and one project UUID plus namespace provenance is resolved. Stop after availability is known; do not fetch metadata, explanations, or source bodies.
 
+#### `project-by-git` (selection-plan)
+
+- Canonical: `project-by-git`
+- Resource: `Project`
+- Purpose: Resolve repository identity once before complete project-scoped AI SAST selection.
+- Template: `endorctl agent api --agent-id ai-sast-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use only when no Finding UUID was supplied. Retry with --traverse only after the exact parent-namespace selector returns no result; then use the resolved child namespace for Finding reads.
+
+#### `ai-sast-selection` (selection-plan)
+
+- Canonical: `ai-sast-list`
+- Resource: `Finding`
+- Purpose: Capture one complete compact project inventory and deterministically select one highest-severity Finding.
+- Selection condition: `runtime.complete_project_ai_sast_set_required`
+- Result delivery: `runtime.large_result_artifact_required`
+- Template: `endorctl agent api --agent-id ai-sast-remediation list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.level,spec.source_code_version" --list-all -o json`
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.method`, `spec.level`, `spec.source_code_version`
+- Constraints: Invoke through the packaged artifact helper with `--projection ai-sast-selection` exactly once. Copy only artifact metadata, counts, and selected Finding UUID into model context; never inspect retained rows. Do not issue a separate count, repeat the inventory, add --traverse, or include finding metadata or explanation.
+
 #### `selected-ai-sast-finding` (selection-plan)
 
 - Canonical: `finding-by-uuid`
@@ -389,7 +411,7 @@ Choose one actionable AI SAST finding and produce a read-only triage/remediation
 - Purpose: Fetch one known Finding by UUID; api get does not accept filters.
 - Template: `endorctl agent api --agent-id ai-sast-remediation get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
 - Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.source_code_version`, `spec.finding_metadata`, `spec.explanation`
-- Constraints: Do not use --filter with api get. After get, report context.type and source ref before merging with project counts.
+- Constraints: Do not use --filter with api get. Fetch only the Finding UUID selected by the packaged helper or explicitly supplied by the user. After get, report context.type and source ref before merging with project counts.
 
 #### `selected-source-anchors` (selection-plan)
 
@@ -447,7 +469,7 @@ Required top-level fields must appear in this order:
 Optional top-level fields when verified:
 - `task_state` (`object`): Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

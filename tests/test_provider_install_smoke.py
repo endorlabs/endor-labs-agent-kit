@@ -29,7 +29,7 @@ def test_claude_disposable_install_enforces_host_specific_package_boundary() -> 
     claude = result["providers"]["claude"]
     assert claude["marketplace_source"] == "./plugins/claude/endor-labs-agent-kit"
     assert claude["skills"] == ["endor-agent-kit-setup"]
-    assert claude["hook_events"] == ["PostToolUse", "UserPromptSubmit"]
+    assert claude["hook_events"] == ["PostToolUse", "PreToolUse", "UserPromptSubmit"]
     assert claude["plugin_wide_mcp"] is False
 
 

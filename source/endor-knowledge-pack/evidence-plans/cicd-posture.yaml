@@ -27,30 +27,42 @@ plans:
       prompt_recipes_exposed: true
       host_adapter_required: true
     gate:
-      expected_calls: 2
+      expected_calls: 3
       max_calls: 4
       stop_conditions:
-        - Stop after one bounded posture Finding page, one bounded Endor-ingested repository configuration page, and local CI context are known.
-        - Record pagination and missing live GitHub settings as data_gaps; do not expand into namespace-wide exhaustive mode.
+        - For a repository selector, stop after exact Project resolution, one bounded project Finding page, one project-filtered Repository page, and local CI context are known.
+        - Only a zero-result exact Project query may spend the fourth Endor call on the same query with --traverse.
+        - For namespace-wide posture, stop after one bounded posture Finding page, one bounded Repository page, and local CI context are known.
+        - Record pagination and missing score-changing GitHub settings as data_gaps; do not repeat successful reads or expand into exhaustive mode.
       data_gaps_required: true
     routes:
-      - id: default
-        condition: always
-        exclusive_group: posture
-        expected_calls: 2
+      - id: repository-subset
+        condition: runtime.repo_full_name_present
+        exclusive_group: posture-scope
+        expected_calls: 3
         max_calls: 4
         required_outputs:
-          - steps.local-ci-inventory.local_ci_files
-          - steps.cicd-posture-findings.findings
-          - steps.endor-repository-config.repositories
+          - steps.subset-local-ci-inventory.local_ci_files
+          - steps.subset-project-by-git.project_uuid
+          - steps.subset-cicd-posture-findings.findings
+          - steps.subset-endor-repository-config.repositories
+      - id: namespace-wide
+        condition: runtime.repo_full_name_absent
+        exclusive_group: posture-scope
+        expected_calls: 2
+        max_calls: 2
+        required_outputs:
+          - steps.namespace-local-ci-inventory.local_ci_files
+          - steps.namespace-cicd-posture-findings.findings
+          - steps.namespace-endor-repository-config.repositories
     steps:
-      - id: local-ci-inventory
+      - id: subset-local-ci-inventory
         recipe_id: local-ci-inventory
         canonical_recipe_id: local-ci-inventory
         operation: local_read
-        route_id: default
+        route_id: repository-subset
         condition: always
-        concurrency_group: posture
+        concurrency_group: local-context
         depends_on: []
         max_calls: 0
         inputs: []
@@ -58,13 +70,116 @@ plans:
           - name: local_ci_files
             path: $.paths
             type: array
-      - id: cicd-posture-findings
+      - id: subset-project-by-git
+        recipe_id: project-by-git
+        canonical_recipe_id: project-by-git
+        operation: list
+        route_id: repository-subset
+        condition: always
+        concurrency_group: project-scope
+        depends_on: []
+        max_calls: 2
+        pagination:
+          page_size: 2
+          max_pages: 1
+        retry:
+          eligible: true
+          max_attempts: 2
+          when: parent_namespace_empty_result
+          append_args:
+            - --traverse
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: repo_full_name
+            placeholder: owner/repo
+            source: runtime.repo_full_name
+            type: string
+        outputs:
+          - name: project_uuid
+            path: $.objects[0].uuid
+            type: string
+          - name: project_name
+            path: $.objects[0].meta.name
+            type: string
+          - name: git
+            path: $.objects[0].spec.git
+            type: object
+      - id: subset-cicd-posture-findings
+        recipe_id: cicd-posture-findings-by-project
+        canonical_recipe_id: cicd-posture-findings-by-project
+        operation: list
+        route_id: repository-subset
+        condition: always
+        concurrency_group: scoped-evidence
+        depends_on:
+          - subset-project-by-git
+        max_calls: 1
+        pagination:
+          page_size: 100
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.subset-project-by-git.project_uuid
+            type: string
+        outputs:
+          - name: findings
+            path: $.objects
+            type: array
+      - id: subset-endor-repository-config
+        recipe_id: endor-repository-config-by-project
+        canonical_recipe_id: endor-repository-config-by-project
+        operation: list
+        route_id: repository-subset
+        condition: always
+        concurrency_group: scoped-evidence
+        depends_on:
+          - subset-project-by-git
+        max_calls: 1
+        pagination:
+          page_size: 2
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.subset-project-by-git.project_uuid
+            type: string
+        outputs:
+          - name: repositories
+            path: $.objects
+            type: array
+      - id: namespace-local-ci-inventory
+        recipe_id: local-ci-inventory
+        canonical_recipe_id: local-ci-inventory
+        operation: local_read
+        route_id: namespace-wide
+        condition: always
+        concurrency_group: namespace-evidence
+        depends_on: []
+        max_calls: 0
+        inputs: []
+        outputs:
+          - name: local_ci_files
+            path: $.paths
+            type: array
+      - id: namespace-cicd-posture-findings
         recipe_id: cicd-posture-findings
         canonical_recipe_id: cicd-posture-findings
         operation: list
-        route_id: default
+        route_id: namespace-wide
         condition: always
-        concurrency_group: posture
+        concurrency_group: namespace-evidence
         depends_on: []
         max_calls: 1
         pagination:
@@ -75,26 +190,22 @@ plans:
             placeholder: namespace
             source: runtime.namespace
             type: string
-          - name: scope_filter
-            placeholder: SCOPE_FILTER
-            source: runtime.scope_filter
-            type: string
         outputs:
           - name: findings
             path: $.objects
             type: array
-      - id: endor-repository-config
+      - id: namespace-endor-repository-config
         recipe_id: endor-repository-config
         canonical_recipe_id: endor-repository-config
         operation: list
-        route_id: default
+        route_id: namespace-wide
         condition: always
-        concurrency_group: posture
+        concurrency_group: namespace-evidence
         depends_on: []
-        max_calls: 3
+        max_calls: 1
         pagination:
           page_size: 50
-          max_pages: 3
+          max_pages: 1
         inputs:
           - name: namespace
             placeholder: namespace

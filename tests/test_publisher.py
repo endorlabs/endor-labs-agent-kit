@@ -832,6 +832,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.png" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
@@ -845,6 +846,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/claude/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
@@ -859,6 +861,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/gemini/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" not in written_paths
@@ -869,6 +872,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/antigravity/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert ".cursor-plugin/plugin.json" in written_paths
@@ -876,6 +880,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "runtime/summarize_endor_artifact.py" in written_paths
     assert "hooks/hooks.json" in written_paths
     assert "hooks/suggest-endor-tools.sh" in written_paths
+    assert "hooks/enforce-agent-api.sh" in written_paths
     assert "hooks/check-dep-install.sh" in written_paths
     assert "hooks/check-manifest-edit.sh" in written_paths
     assert "skills/endor-agent-kit-setup/SKILL.md" in written_paths
@@ -1021,9 +1026,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     claude_hooks = json.loads(
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
     )
-    assert set(claude_hooks["hooks"]) == {"UserPromptSubmit", "PostToolUse"}
+    assert set(claude_hooks["hooks"]) == {"UserPromptSubmit", "PreToolUse", "PostToolUse"}
     hook_scripts = {
         "suggest-endor-tools.sh",
+        "enforce-agent-api.sh",
         "check-dep-install.sh",
         "check-manifest-edit.sh",
     }
@@ -1042,7 +1048,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     codex_hooks = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
     )
-    assert set(codex_hooks["hooks"]) == {"UserPromptSubmit", "PostToolUse"}
+    assert set(codex_hooks["hooks"]) == {"UserPromptSubmit", "PreToolUse", "PostToolUse"}
     assert "${PLUGIN_ROOT}/hooks/suggest-endor-tools.sh" in json.dumps(codex_hooks)
     cursor_hooks = json.loads((dest / "hooks" / "hooks.json").read_text())
     assert set(cursor_hooks["hooks"]) == {
@@ -1234,6 +1240,16 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     ).read_text()
     assert "Codex Host Contract" in codex_setup_agent
     assert "endor-agent-kit-setup" in codex_setup_agent
+    codex_configuration_agent = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-configuration-automation-agent.toml"
+    ).read_text()
+    assert "Only after a prerequisite is proven missing" in codex_configuration_agent
+    assert "Do not load setup guidance during a routine workflow" in codex_configuration_agent
     claude_setup = (
         dest
         / "plugins"

@@ -13,6 +13,7 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 
 - `policy_pack` (object, optional): Optional trusted Agent Policy Pack context supplied by runtime or protected workspace configuration.
 - `namespace` (string, optional): Optional Endor namespace. The artifact uses the configured namespace when omitted.
+- `scope_mode` (enum, optional): single_repo, selected_repositories, or fleet. Infer from the request before tools; fleet is required for organization, namespace-wide, all-repository, or 100-percent-success requests.
 - `github_org` (string, optional): GitHub.com organization to inventory. This is the default org-wide workflow.
 - `repository_urls` (list[string], optional): Optional explicit GitHub.com repository URLs or owner/repo selectors for targeted single-repo or subset analysis.
 - `github_inventory_json` (object, optional): Optional exported GitHub inventory JSON fallback when live source-provider inventory is unavailable.
@@ -33,6 +34,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `coverage_summary` (object, required): Executive rollup of repos in scope, excluded repos, matched Endor projects, onboarded healthy repos, onboarding gaps, dependency resolution gaps, reachability gaps, and repeated blockers.
 - `github_inventory_summary` (object, required): GitHub.com inventory source, permission limits, pagination or sampling status, archived/inactive counts, and manifest discovery summary.
 - `github_app_coverage` (object, required): Endor-side GitHub App evidence for installation, selected repos, scanner enablement, sync errors, and archived repo behavior when available.
+- `issue_cohorts` (list[object], required): Distinct scan, dependency-resolution, reachability, onboarding, or configuration failure signatures with affected counts, capped examples, recommended actions, and validation steps.
+- `inventory_artifacts` (list[object], required): Protected complete-inventory artifact references with resource, scope, row count, SHA-256, byte size, projection, and truncation status; never raw rows.
 - `not_onboarded_repositories` (list[object], required): GitHub repos with no strict Endor project or scan match, plus inferred setup prescriptions from GitHub evidence.
 - `onboarded_repositories_with_gaps` (list[object], required): Strictly matched Endor projects with dependency resolution, reachability, scan profile, package manager, GitHub App, branch, stale scan, or evidence gaps.
 - `onboarded_healthy_repositories` (list[object], required): Strictly matched repos with successful monitored-branch scan, dependency resolution, and reachability evidence for supported ecosystems.

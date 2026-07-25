@@ -38,7 +38,7 @@ local docs, repository names, cached notes, memory, or example paths.
 ## Workflow
 
 1. Resolve project context from the current repository, repository URL, owner/repo, Endor project name, finding UUID, or optional project UUID.
-2. Gather remediation options through the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection plans, query VersionUpgrade/UIA summaries before detailed Finding expansion, then fetch Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation. For evidence checks, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
+2. Follow the selected task profile's Evidence Query Plan. The normal selection path is Project lookup, one ranked VersionUpgrade summary, then selected VersionUpgrade detail. It is not a three-call ceiling. Stop when detail supports the requested claims. Expand only for a profile-permitted named gap and record what the added read closes. Fetch Finding rows only for the exact selected package version when detail cannot support requested explanation, advisory mapping, or reconciliation. Evidence checks stop after narrow Finding and VersionUpgrade/UIA availability.
 3. Preview plan: Build a dry-run plan with the selected option and alternatives.
 
 Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
@@ -63,11 +63,15 @@ from main-context counts.
 
 ## Output
 
-Return concise prose plus a JSON object matching `recipe.yaml` outputs. Include
-`project_resolution.status`, `evidence_queries`, `remediation_options`,
-`selected_remediation`, and `data_gaps`. If only context is available, set
-`selected_remediation` to `null`, keep `remediation_options` empty, and list the
-missing Endor evidence in `data_gaps`.
+Return exactly one bare JSON object matching `recipe.yaml` outputs. The first
+non-whitespace character must be `{` and the last non-whitespace character must
+be `}`. Do not add a preamble, trailing explanation, or Markdown fence.
+
+If evidence is insufficient, set `selected_remediation` to `null`, keep
+`remediation_options` empty, and explain it in `data_gaps`. Every attempted
+Endor call must have exactly one `evidence_queries` row, including failed,
+zero-result, retry, and fallback calls. Endor CLI API reads use
+`source: endorctl_agent_api`, never an adapter or legacy transport name.
 <!-- shared:end -->
 
 <!-- developer-edition:start -->

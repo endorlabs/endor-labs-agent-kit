@@ -64,8 +64,8 @@ task_profiles:
       - The user asks for triage plus a remediation path.
       - The finding has source context and remediation guidance.
     minimal_evidence:
-      - AI SAST Finding, exploit reproduction or explicit absence, remediation guidance, source file at pinned ref, and sibling-file
-        context.
+      - One compact complete project inventory reduced by the packaged helper, one selected AI SAST Finding, exploit reproduction
+        or explicit absence, remediation guidance, and only the selected source anchors needed by the requested lane.
     stop_when:
       - A TRUE_POSITIVE, FALSE_POSITIVE, ACCEPT_RISK, or insufficient-evidence verdict is recorded.
       - Do not open PRs or create policies without explicit approval.
@@ -160,15 +160,21 @@ evidence_query_plans:
     objective: Choose one actionable AI SAST finding and produce a read-only triage/remediation plan.
     query_order:
       - Resolve namespace, project, and requested finding selector.
-      - Get or narrowly list all main-context AI SAST findings with severity, classification, source path, source ref,
-        finding UUID, tight fields, and `--list-all`.
+      - When no Finding UUID is supplied, capture one complete main-context project AI SAST inventory with only UUID, context,
+        project, method, level, and source-version fields; run the packaged `ai-sast-selection` projection exactly once.
+      - Copy the helper's counts and deterministically selected Finding UUID; do not inspect retained rows, issue a separate count,
+        or write an ad hoc parser.
       - Fetch and parse detail only for the selected finding.
       - Inspect only the selected source file, sibling control files, and referenced data-flow anchors.
     avoid:
-      - Do not generate diffs or exception policies unless the user explicitly approves that lane.
+      - For read-only triage, explanation, or remediation-guidance requests, keep `patches`, `change_requests`, `exception_policies`,
+        and `tickets` empty. Generate a patch only when the user explicitly asks to fix, patch, edit, or prepare a change request.
       - Do not use broad repository search beyond the selected finding's anchors unless data_gaps require it.
     stop_after:
       - Stop after one finding has a verified triage decision, patch plan or exception path, and validation requirements.
+      - >-
+        The normal repository route is three Endor reads. This is not a universal call ceiling: use only the documented
+        parent-namespace retry or an explicit evidence-gap branch when it can change the result, and ledger every attempted call.
     data_gaps:
       - Record missing selected finding evidence, missing source ref, unavailable local files, and unverified exception approval
         in data_gaps.
@@ -274,6 +280,39 @@ evidence_query_recipes:
       - Use only when no Finding UUID was supplied and one project UUID plus namespace provenance is resolved.
       - Stop after availability is known; do not fetch metadata, explanations, or source bodies.
   - profile_id: selection-plan
+    id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve repository identity once before complete project-scoped AI SAST selection.
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use only when no Finding UUID was supplied.
+      - Retry with --traverse only after the exact parent-namespace selector returns no result; then use the resolved child namespace for Finding reads.
+  - profile_id: selection-plan
+    id: ai-sast-selection
+    canonical_id: ai-sast-list
+    resource: Finding
+    purpose: Capture one complete compact project inventory and deterministically select one highest-severity Finding.
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.level,spec.source_code_version" --list-all -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.method
+      - spec.level
+      - spec.source_code_version
+    selection_condition: runtime.complete_project_ai_sast_set_required
+    result_delivery: runtime.large_result_artifact_required
+    constraints:
+      - Invoke through the packaged artifact helper with `--projection ai-sast-selection` exactly once.
+      - Copy only artifact metadata, counts, and selected Finding UUID into model context; never inspect retained rows.
+      - Do not issue a separate count, repeat the inventory, add --traverse, or include finding metadata or explanation.
+  - profile_id: selection-plan
     id: selected-ai-sast-finding
     canonical_id: finding-by-uuid
     resource: Finding
@@ -288,6 +327,7 @@ evidence_query_recipes:
       - spec.explanation
     constraints:
       - Do not use --filter with api get.
+      - Fetch only the Finding UUID selected by the packaged helper or explicitly supplied by the user.
       - After get, report context.type and source ref before merging with project counts.
   - profile_id: selection-plan
     id: selected-source-anchors

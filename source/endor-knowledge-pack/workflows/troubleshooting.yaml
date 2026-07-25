@@ -126,6 +126,8 @@ evidence_query_plans:
       - Classify the issue lane and resolve namespace provenance.
       - Resolve Project, PackageVersion, Finding, ScanResult, integration, policy, or notification evidence only for that
         lane.
+      - For missing project findings, resolve Project and run the active main-context count; for an exact ScanResult UUID,
+        run the one bounded get-plus-local-projection recipe.
       - Correlate the user's exact error text with the selected resource evidence and local command context.
     avoid:
       - Do not run a new scan, create scan log requests, edit integrations, rotate credentials, or print config contents.
@@ -172,19 +174,43 @@ evidence_query_recipes:
     constraints: *id002
     profile_id: diagnose
   - profile_id: diagnose
+    id: active-main-finding-count
+    canonical_id: active-main-finding-count
+    resource: Finding
+    purpose: Count active non-dismissed findings for one resolved project in the normal main-context UI scope.
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.dismiss==false' --count -o json
+    fields:
+      - count
+    constraints:
+      - Use only after resolving the exact project UUID and namespace for the current request.
+      - Treat spec.dismiss==false as the active non-dismissed semantic used by the normal project UI.
+      - A zero active count does not prove that all findings are dismissed; query another count only when the user explicitly needs that distinction.
+  - profile_id: diagnose
     id: scan-result-by-uuid
     canonical_id: scan-result-by-uuid
     resource: ScanResult
     purpose: Fetch one scan result when troubleshooting a known scan or error lane.
-    template: endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json | jq '{uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,create_time:.meta.create_time,update_time:.meta.update_time,status:.spec.status,type:.spec.type,exit_code:.spec.exit_code,stats:{scan_failures:(.spec.stats.scan_failures // 0),call_graph_errors:(.spec.stats.call_graph_errors // 0),call_graph_available:(.spec.stats.call_graph_available // 0),dependency_analysis_num_unresolved:(.spec.stats.dependency_analysis_num_unresolved // 0),dependency_analysis_num_approx:(.spec.stats.dependency_analysis_num_approx // 0),remediations_num_errors:(.spec.stats.remediations_num_errors // 0),notifications_num_errors:(.spec.stats.notifications_num_errors // 0)},components:((.spec.components_executed // [])[0:16]),refs:(.spec.refs // []),provisioning:{exit_code:(.spec.provisioning_result.exit_code // null),error:(.spec.provisioning_result.error // null),tool_chains_source:(.spec.provisioning_result.tool_chains_source // null),detected_versions:(.spec.provisioning_result.auto_detect_result.detected_versions // {}),tool_chains:(.spec.provisioning_result.tool_chains // {})},logs:((.spec.logs // []) | map(if type=="string" then . else (.summary // .message // .details // .description // tostring) end) | .[0:3])}'
     fields:
       - uuid
       - meta.name
-      - spec.status
-      - spec.exit_code
       - meta.parent_uuid
+      - meta.create_time
+      - meta.update_time
+      - spec.status
+      - spec.type
+      - spec.exit_code
+      - spec.stats
+      - spec.components_executed
+      - spec.refs
+      - spec.provisioning_result
+      - spec.logs
     constraints:
       - Use only for a selected troubleshooting lane.
+      - Execute this exact get-plus-local-projection pipeline once; do not prefetch the full object or repeat the get for individual fields.
+      - Enable shell pipefail without merging stderr into JSON so an API failure remains observable.
+      - Record one evidence ledger row for this API invocation; local jq fields do not create additional rows.
       - Do not start or rerun scans.
   - profile_id: diagnose
     id: finding-by-uuid
@@ -207,15 +233,27 @@ evidence_query_recipes:
     canonical_id: scan-result-by-uuid
     resource: ScanResult
     purpose: Fetch one scan result when troubleshooting a known scan or error lane.
-    template: endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json | jq '{uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,create_time:.meta.create_time,update_time:.meta.update_time,status:.spec.status,type:.spec.type,exit_code:.spec.exit_code,stats:{scan_failures:(.spec.stats.scan_failures // 0),call_graph_errors:(.spec.stats.call_graph_errors // 0),call_graph_available:(.spec.stats.call_graph_available // 0),dependency_analysis_num_unresolved:(.spec.stats.dependency_analysis_num_unresolved // 0),dependency_analysis_num_approx:(.spec.stats.dependency_analysis_num_approx // 0),remediations_num_errors:(.spec.stats.remediations_num_errors // 0),notifications_num_errors:(.spec.stats.notifications_num_errors // 0)},components:((.spec.components_executed // [])[0:16]),refs:(.spec.refs // []),provisioning:{exit_code:(.spec.provisioning_result.exit_code // null),error:(.spec.provisioning_result.error // null),tool_chains_source:(.spec.provisioning_result.tool_chains_source // null),detected_versions:(.spec.provisioning_result.auto_detect_result.detected_versions // {}),tool_chains:(.spec.provisioning_result.tool_chains // {})},logs:((.spec.logs // []) | map(if type=="string" then . else (.summary // .message // .details // .description // tostring) end) | .[0:3])}'
     fields:
       - uuid
       - meta.name
-      - spec.status
-      - spec.exit_code
       - meta.parent_uuid
+      - meta.create_time
+      - meta.update_time
+      - spec.status
+      - spec.type
+      - spec.exit_code
+      - spec.stats
+      - spec.components_executed
+      - spec.refs
+      - spec.provisioning_result
+      - spec.logs
     constraints:
       - Use only for a selected troubleshooting lane.
+      - Execute this exact get-plus-local-projection pipeline once; do not prefetch the full object or repeat the get for individual fields.
+      - Enable shell pipefail without merging stderr into JSON so an API failure remains observable.
+      - Record one evidence ledger row for this API invocation; local jq fields do not create additional rows.
       - Do not start or rerun scans.
   - id: project-by-git
     canonical_id: project-by-git

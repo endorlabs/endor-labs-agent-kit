@@ -14,6 +14,7 @@ if [[ ! -f "$artifact_summarizer" ]]; then
 fi
 HOOK_PAYLOAD="$payload" ENDOR_ARTIFACT_SUMMARIZER="$artifact_summarizer" ENDOR_PLUGIN_ROOT="$plugin_root" python3 - "$@" <<'PY' || true
 import json
+import hashlib
 import os
 from pathlib import Path
 import re
@@ -48,6 +49,32 @@ def helper_context(helper: str) -> str:
     )
 
 
+def cicd_score_context(helper: str) -> str:
+    return (
+        "CI/CD Posture deterministic scoring boundary: use the verified packaged helper "
+        f"`artifact_summarizer_path={helper}` exactly once after raw_counts and verified "
+        "critical override types are known. Invoke `python3 <artifact_summarizer_path> "
+        "score-cicd-posture --raw-counts-json '<RAW_COUNTS_JSON>' "
+        "[--critical-override <TYPE>]`. Copy posture_verdict, dimension_scores, and "
+        "score_validation verbatim. Do not run the helper twice, manually recompute the "
+        "scores, run a separate validator cross-check, or search for another helper."
+    )
+
+
+def ai_sast_selection_context(helper: str) -> str:
+    return (
+        "AI SAST deterministic selection boundary: when the selected profile needs one finding "
+        "and the user did not supply a Finding UUID, use the verified packaged helper "
+        f"`artifact_summarizer_path={helper}` exactly once as `python3 "
+        "<artifact_summarizer_path> capture --projection ai-sast-selection -- "
+        "<direct compact endorctl agent api list arguments>`. Copy only artifact metadata, "
+        "row_count, severity_counts, selected_level, and selected_finding_uuid into model "
+        "context, then fetch detail for that UUID. Do not read the retained artifact, issue a "
+        "separate count, repeat the inventory, or write an ad hoc parser. A supplied Finding "
+        "UUID and the availability-only evidence-check profile do not use this selection route."
+    )
+
+
 def prompt_requests_complete_inventory(prompt_lc: str) -> bool:
     explicitly_bounded = bool(
         re.search(
@@ -76,8 +103,12 @@ def codex_agent_install_context(prompt_lc: str) -> str:
         return ""
     codex_home = Path(os.environ.get("CODEX_HOME", "~/.codex")).expanduser()
     installed_root = codex_home / "agents"
-    missing = [source.name for source in bundled if not (installed_root / source.name).is_file()]
-    if not missing:
+    noncurrent = [
+        source.name
+        for source in bundled
+        if _file_digest(source) != _file_digest(installed_root / source.name)
+    ]
+    if not noncurrent:
         return ""
     setup_requested = bool(
         "endor-agent-kit-setup" in prompt_lc
@@ -85,7 +116,7 @@ def codex_agent_install_context(prompt_lc: str) -> str:
     )
     status = (
         "Codex custom-agent installation boundary: "
-        f"{len(missing)} of {len(bundled)} bundled Endor custom agents are missing. "
+        f"{len(noncurrent)} of {len(bundled)} bundled Endor custom agents are missing or stale. "
     )
     if setup_requested:
         return (
@@ -127,44 +158,77 @@ def codex_custom_agent_name(agent_id: str) -> str:
     return f"endor-{agent_id}-agent"
 
 
-def codex_custom_agent_is_installed(agent_id: str) -> bool:
+def _file_digest(path: Path) -> str:
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError:
+        return ""
+
+
+def codex_installed_agent_provenance(agent_id: str) -> tuple[Path, str] | None:
     plugin_root = codex_plugin_root()
     if plugin_root is None:
-        return False
+        return None
     filename = f"{codex_custom_agent_name(agent_id)}.toml"
-    if not (plugin_root / "agents" / filename).is_file():
-        return False
+    bundled = plugin_root / "agents" / filename
     codex_home = Path(os.environ.get("CODEX_HOME", "~/.codex")).expanduser()
-    return (codex_home / "agents" / filename).is_file()
+    installed = codex_home / "agents" / filename
+    bundled_digest = _file_digest(bundled)
+    installed_digest = _file_digest(installed)
+    if not bundled_digest or installed_digest != bundled_digest:
+        return None
+    return installed, installed_digest
 
 
-def cursor_packaged_agent_name(agent_id: str) -> str | None:
+def cursor_packaged_agent_provenance(agent_id: str) -> tuple[str, Path, str] | None:
     plugin_root = Path(os.environ.get("ENDOR_PLUGIN_ROOT", ""))
     name = codex_custom_agent_name(agent_id)
-    if (plugin_root / "agents" / f"{name}.md").is_file():
-        return name
+    path = plugin_root / "agents" / f"{name}.md"
+    digest = _file_digest(path)
+    if digest:
+        return name, path, digest
     return None
+
+
+def structured_output_relay() -> str:
+    return (
+        "When the workflow agent returns its final structured JSON object, return that "
+        "JSON object verbatim as the user-visible answer. Do not add a preamble or "
+        "Markdown fence, and do not summarize, re-key, omit fields, wrap, or rewrite it."
+    )
 
 
 def route_instruction(agent_id: str, purpose: str) -> str:
     if codex_plugin_root() is None:
-        cursor_agent = cursor_packaged_agent_name(agent_id)
-        if cursor_agent:
+        cursor_provenance = cursor_packaged_agent_provenance(agent_id)
+        if cursor_provenance:
+            cursor_agent, cursor_path, cursor_digest = cursor_provenance
             return (
                 f"Invoke the installed Cursor agent `{cursor_agent}` {purpose}. "
+                f"Verified packaged artifact: `path={cursor_path};sha256={cursor_digest}`. "
                 "Do not substitute its matching support skill for workflow execution; "
-                "the support skill is documentation and reference material."
+                "the support skill is documentation and reference material. Do not search "
+                "the workspace, home directory, or another provider directory for a second "
+                "workflow artifact. "
+                + structured_output_relay()
             )
-        return f"Use `{agent_id}` {purpose}."
+        return f"Use `{agent_id}` {purpose}. " + structured_output_relay()
     custom_agent = codex_custom_agent_name(agent_id)
-    if codex_custom_agent_is_installed(agent_id):
+    codex_provenance = codex_installed_agent_provenance(agent_id)
+    if codex_provenance:
+        installed_path, installed_digest = codex_provenance
         return (
             f"MANDATORY ROUTE: before any setup or shell tool call, invoke the installed Codex "
             f"custom agent `{custom_agent}` through subagent delegation {purpose}, passing the "
-            "full user request. Do not execute this workflow in the primary agent, open the "
+            f"full user request. Verified installed artifact: `path={installed_path};"
+            f"sha256={installed_digest}`. Do not search the workspace, home directory, plugin "
+            "caches, or another provider directory for a second workflow artifact. "
+            "Do not execute this workflow in the primary agent, open the "
             "setup skill, or substitute a workflow-skill fallback. The Endor API attribution "
             f"value remains `--agent-id {agent_id}`; never append `-agent` or use the host "
-            "custom-agent name as the Endor agent ID."
+            "custom-agent name as the Endor agent ID. When the custom agent returns its final "
+            "structured JSON object, return that JSON object verbatim as the user-visible "
+            "answer. Do not summarize, re-key, omit fields, wrap, or rewrite it."
         )
     return (
         f"The `{agent_id}` workflow requires the bundled Codex custom agent "
@@ -260,6 +324,10 @@ try:
         context.append(install_context)
     if routes:
         context.append("Endor Agent Kit advisory routing:\n- " + "\n- ".join(dict.fromkeys(routes)))
+    if helper and route and route[0] == "cicd-posture":
+        context.append(cicd_score_context(helper))
+    if helper and route and route[0] == "ai-sast-remediation":
+        context.append(ai_sast_selection_context(helper))
     endor_relevant = bool(routes) or bool(
         re.search(r"\b(endor|malware|remediat|triag|upgrade impact|exception policy)\b", prompt_lc)
     )

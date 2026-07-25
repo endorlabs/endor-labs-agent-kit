@@ -68,6 +68,29 @@ def test_profile_output_contract_reduces_required_fields_without_weakening_evide
     assert validate_structured_output_payload("configuration-automation", payload, fields) == []
 
 
+def test_configuration_automation_verdict_is_schema_pinned():
+    fields = ("onboarding_verdict", "evidence_queries", "data_gaps")
+    schema = json_schema_for_agent("configuration-automation", fields)
+
+    assert schema["properties"]["onboarding_verdict"]["enum"] == [
+        "READY_TO_ONBOARD",
+        "PARTIAL_COVERAGE",
+        "NOT_ONBOARDED",
+        "INSUFFICIENT_DATA",
+    ]
+    payload = {
+        "onboarding_verdict": "ONBOARDED_WITH_GAPS",
+        "evidence_queries": [],
+        "data_gaps": [],
+    }
+    assert any(
+        "onboarding_verdict" in error
+        for error in validate_structured_output_payload(
+            "configuration-automation", payload, fields
+        )
+    )
+
+
 def test_all_structured_contracts_require_evidence_queries():
     for agent_id in STRUCTURED_OUTPUT_CONTRACTS:
         assert "evidence_queries" in required_fields_for(agent_id)
@@ -96,6 +119,14 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
         "field_mask_summary",
         "result_count",
         "reason",
+    ]
+    assert evidence_query["properties"]["source"]["enum"] == [
+        "endorctl_agent_api",
+        "endor_mcp",
+        "local_repository",
+        "user_input",
+        "public_docs",
+        None,
     ]
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
 
@@ -423,6 +454,38 @@ def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
     assert "evidence_queries[0].query: unsupported ledger field" in errors
     assert "evidence_queries[0].name: required" in errors
     assert "evidence_queries[0].source: required" in errors
+
+
+def test_structured_output_contract_requires_canonical_evidence_source():
+    row = {
+        "name": "selected VersionUpgrade detail",
+        "resource": "VersionUpgrade",
+        "source": "endorctl_api",
+        "status": "succeeded",
+        "query_template_id": "version-upgrade-detail",
+        "filter_summary": "resolved project and selected candidate UUID",
+        "field_mask_summary": "uuid,spec.name,spec.upgrade_info",
+        "result_count": 1,
+        "reason": "Selected candidate detail returned.",
+    }
+
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        {"evidence_queries": [row], "data_gaps": []},
+        ("evidence_queries", "data_gaps"),
+    )
+
+    assert errors == [
+        "evidence_queries[0].source: must be one of endorctl_agent_api, "
+        "endor_mcp, local_repository, user_input, public_docs"
+    ]
+
+    row["source"] = "endorctl_agent_api"
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        {"evidence_queries": [row], "data_gaps": []},
+        ("evidence_queries", "data_gaps"),
+    ) == []
 
 
 def test_large_result_evidence_requires_authoritative_artifact_metadata():

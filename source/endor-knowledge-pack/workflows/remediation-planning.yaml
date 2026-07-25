@@ -53,7 +53,8 @@ task_profiles:
       - The user asks for a remediation plan or ranked options.
       - The host needs a read-only planning gate.
     minimal_evidence:
-      - Resolved project, Finding evidence, VersionUpgrade/UIA evidence, and affected manifest context for each named option.
+      - Resolved project, one server-ranked VersionUpgrade/UIA candidate, and detailed UIA/CIA and manifest evidence for the selected option.
+      - Selected Finding evidence only when the VersionUpgrade detail lacks a fact required by the requested output.
     stop_when:
       - Verified options are ranked, or missing evidence blocks selection.
       - Do not mutate files, create branches, or open change requests.
@@ -136,14 +137,17 @@ evidence_query_plans:
     title: Planner Selection Query Plan
     objective: Preview verified remediation options by ranking VersionUpgrade/UIA before Finding detail expansion.
     query_order:
-      - Resolve namespace and project first.
-      - Query VersionUpgrade/UIA summaries for ranked remediation options with risk, CIA, findings fixed, findings introduced,
-        and manifest fields.
-      - Fetch detailed VersionUpgrade/UIA evidence only for selected or shortlisted options.
-      - Query Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation.
+      - Resolve Project, read one server-ranked VersionUpgrade summary, then fetch selected detail.
+      - Stop when selected detail supports the requested risk, CIA, finding, and manifest claims.
+      - >-
+        Expand only for a named evidence gap: parent traversal, missing selected Finding evidence, comparable candidates, an
+        explicit exhaustive request, or proven freshness uncertainty.
+      - Read exact selected-package Findings only when VersionUpgrade detail cannot support requested explanation, advisory mapping,
+        or reconciliation.
     avoid:
       - Do not enumerate broad Finding inventories as the default way to discover options.
       - Do not select remediation from local SCA counts, README claims, or cached notes.
+      - Do not add Repository, ScanResult, alternative-candidate, or repeated cross-check reads without naming the gap they close.
     stop_after:
       - Stop after selected_remediation is null or backed by verified remediation_options and precise data_gaps.
     data_gaps:
@@ -231,18 +235,22 @@ evidence_query_recipes:
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
   - profile_id: selection-plan
     id: selected-finding-detail
-    canonical_id: sca-finding-availability
+    canonical_id: selected-findings-by-package-version
     resource: Finding
-    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    purpose: Fetch selected Finding evidence only when VersionUpgrade detail lacks facts required by the requested output.
     template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
+      and spec.target_uuid=="<FROM_PACKAGE_VERSION_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY
+      and spec.dismiss==false' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.target_uuid,spec.target_dependency_package_name,spec.level,spec.finding_metadata"
       -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
+      - spec.target_uuid
       - spec.target_dependency_package_name
       - spec.level
+      - spec.finding_metadata
     constraints:
-      - Use for availability or selected-candidate reconciliation only.
-      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+      - Use only after selected VersionUpgrade detail and only for a named missing fact.
+      - Preserve the exact package-version UUID from VersionUpgrade; do not broaden to all project findings.
+      - Keep the result bounded and report truncation instead of adding --list-all by default.

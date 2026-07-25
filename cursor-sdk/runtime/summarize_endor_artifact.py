@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import stat
@@ -16,10 +17,68 @@ from typing import Any, Sequence
 
 
 SCHEMA_VERSION = "endor.agent-artifact-summary/v1"
+CICD_SCORE_SCHEMA_VERSION = "endor.cicd-posture-score/v1"
 DEFAULT_COLLECTION_PATH = "list.objects"
 DEFAULT_UNIQUE_FIELD = "uuid"
 DEFAULT_MAX_BYTES = 512 * 1024 * 1024
 DEFAULT_CAPTURE_TIMEOUT_SECONDS = 300
+PROJECTIONS = frozenset(
+    {
+        "integrity",
+        "ai-sast-selection",
+        "configuration-selected-projects",
+        "configuration-fleet-projects",
+        "configuration-scans",
+        "configuration-packages",
+    }
+)
+CICD_RAW_COUNT_KEYS = (
+    "repositories_in_scope",
+    "repositories_with_branch_protection",
+    "repositories_with_required_reviews",
+    "workflows_reviewed",
+    "third_party_actions",
+    "unpinned_actions",
+    "overbroad_permissions",
+    "risky_triggers",
+    "self_hosted_runners",
+    "update_automation_present",
+    "endor_critical_findings",
+    "endor_high_findings",
+    "endor_cicd_findings",
+    "endor_scpm_findings",
+    "endor_gha_findings",
+    "endor_supply_chain_findings",
+)
+CICD_DIMENSION_SCORE_KEYS = (
+    "branch_protection",
+    "workflow_hardening",
+    "action_pinning",
+    "permissions",
+    "runner_security",
+    "endor_findings",
+)
+CICD_CRITICAL_OVERRIDE_TYPES = (
+    "endor_critical_finding",
+    "exposed_self_hosted_runner",
+    "privileged_workflow_risky_trigger",
+)
+AI_SAST_METHOD = "SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"
+AI_SAST_LEVELS = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO")
+AI_SAST_LEVEL_RANK = {
+    level: len(AI_SAST_LEVELS) - index
+    for index, level in enumerate(AI_SAST_LEVELS)
+}
+AI_SAST_SELECTION_FIELD_MASK = frozenset(
+    {
+        "uuid",
+        "context.type",
+        "spec.project_uuid",
+        "spec.method",
+        "spec.level",
+        "spec.source_code_version",
+    }
+)
 
 
 class ArtifactSummaryError(ValueError):
@@ -37,6 +96,7 @@ def summarize_artifact(
     collection_path: str = DEFAULT_COLLECTION_PATH,
     unique_field: str = DEFAULT_UNIQUE_FIELD,
     max_bytes: int = DEFAULT_MAX_BYTES,
+    projection: str = "integrity",
 ) -> dict[str, Any]:
     """Read one artifact once and return compact integrity metadata.
 
@@ -123,7 +183,9 @@ def summarize_artifact(
             f"{duplicate_count} rows contain duplicate {unique_field!r} values",
         )
 
-    return {
+    if projection not in PROJECTIONS:
+        raise ArtifactSummaryError("invalid_projection", "unknown artifact projection")
+    summary: dict[str, Any] = {
         "artifact_ref": str(path),
         "bytes": len(data),
         "collection_path": collection_path,
@@ -137,6 +199,16 @@ def summarize_artifact(
         "unique_count": unique_count,
         "unique_field": unique_field,
     }
+    if projection == "ai-sast-selection":
+        summary["projection"] = projection
+        summary["selection_summary"] = _ai_sast_selection_projection(objects)
+    elif projection != "integrity":
+        summary["projection"] = projection
+        summary["configuration_summary"] = _configuration_projection(
+            objects,
+            projection=projection,
+        )
+    return summary
 
 
 def capture_and_summarize(
@@ -147,11 +219,12 @@ def capture_and_summarize(
     unique_field: str = DEFAULT_UNIQUE_FIELD,
     max_bytes: int = DEFAULT_MAX_BYTES,
     timeout_seconds: int = DEFAULT_CAPTURE_TIMEOUT_SECONDS,
+    projection: str = "integrity",
 ) -> dict[str, Any]:
     """Execute one read-only Agent API list directly into a protected artifact."""
 
     normalized = tuple(command[1:] if command and command[0] == "--" else command)
-    _validate_capture_command(normalized)
+    _validate_capture_command(normalized, projection=projection)
     if timeout_seconds <= 0:
         raise ArtifactSummaryError("invalid_timeout", "timeout_seconds must be positive")
 
@@ -203,18 +276,191 @@ def capture_and_summarize(
         )
 
     try:
-        return summarize_artifact(
+        summary = summarize_artifact(
             artifact,
             collection_path=collection_path,
             unique_field=unique_field,
             max_bytes=max_bytes,
+            projection=projection,
         )
+        if projection == "ai-sast-selection":
+            summary["query_completeness"] = "list_all"
+        return summary
     except ArtifactSummaryError:
         artifact.unlink(missing_ok=True)
         raise
 
 
-def _validate_capture_command(command: Sequence[str]) -> None:
+def score_cicd_posture(
+    raw_counts: dict[str, Any],
+    *,
+    declared_override_types: Sequence[str] = (),
+) -> dict[str, Any]:
+    """Return the deterministic CI/CD posture score without an LLM arithmetic loop."""
+
+    if not isinstance(raw_counts, dict):
+        raise ArtifactSummaryError("invalid_raw_counts", "raw_counts must be a JSON object")
+    missing = [key for key in CICD_RAW_COUNT_KEYS if key not in raw_counts]
+    unknown = sorted(set(raw_counts) - set(CICD_RAW_COUNT_KEYS))
+    if missing:
+        raise ArtifactSummaryError(
+            "missing_raw_counts",
+            "raw_counts is missing required keys",
+        )
+    if unknown:
+        raise ArtifactSummaryError(
+            "unknown_raw_counts",
+            "raw_counts contains unsupported keys",
+        )
+    counts: dict[str, int] = {}
+    for key in CICD_RAW_COUNT_KEYS:
+        value = raw_counts[key]
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ArtifactSummaryError(
+                "invalid_raw_count",
+                f"raw_counts.{key} must be a non-negative integer",
+            )
+        counts[key] = value
+
+    repositories = counts["repositories_in_scope"]
+    if any(
+        counts[key] > repositories
+        for key in (
+            "repositories_with_branch_protection",
+            "repositories_with_required_reviews",
+            "update_automation_present",
+        )
+    ):
+        raise ArtifactSummaryError(
+            "invalid_repository_count",
+            "repository posture counts cannot exceed repositories_in_scope",
+        )
+    if counts["unpinned_actions"] > counts["third_party_actions"]:
+        raise ArtifactSummaryError(
+            "invalid_action_count",
+            "unpinned_actions cannot exceed third_party_actions",
+        )
+
+    overrides = tuple(dict.fromkeys(declared_override_types))
+    if any(value not in CICD_CRITICAL_OVERRIDE_TYPES for value in overrides):
+        raise ArtifactSummaryError(
+            "invalid_critical_override",
+            "critical override type is unsupported",
+        )
+    posture_findings = sum(
+        counts[key]
+        for key in (
+            "endor_cicd_findings",
+            "endor_scpm_findings",
+            "endor_gha_findings",
+            "endor_supply_chain_findings",
+        )
+    )
+    update_gap_penalty = (
+        _round_half_up(
+            20
+            * (repositories - min(counts["update_automation_present"], repositories))
+            / repositories
+        )
+        if repositories
+        else 0
+    )
+    workflows_reviewed = counts["workflows_reviewed"]
+    third_party_actions = counts["third_party_actions"]
+    if third_party_actions:
+        action_pinning = _clamp_score(
+            100
+            - _round_half_up(
+                100 * counts["unpinned_actions"] / third_party_actions
+            )
+        )
+    elif workflows_reviewed:
+        action_pinning = 100
+    else:
+        action_pinning = 60
+    dimensions = {
+        "branch_protection": (
+            _clamp_score(
+                _round_half_up(
+                    100
+                    * (
+                        counts["repositories_with_branch_protection"]
+                        + counts["repositories_with_required_reviews"]
+                    )
+                    / (2 * repositories)
+                )
+            )
+            if repositories
+            else 0
+        ),
+        "workflow_hardening": _clamp_score(
+            100
+            - counts["risky_triggers"] * 15
+            - counts["overbroad_permissions"] * 10
+            - update_gap_penalty
+        ),
+        "action_pinning": action_pinning,
+        "permissions": (
+            _clamp_score(100 - counts["overbroad_permissions"] * 20)
+            if workflows_reviewed or counts["overbroad_permissions"]
+            else 60
+        ),
+        "runner_security": (
+            _clamp_score(100 - counts["self_hosted_runners"] * 20)
+            if workflows_reviewed or counts["self_hosted_runners"]
+            else 60
+        ),
+        "endor_findings": _clamp_score(
+            100
+            - counts["endor_critical_findings"] * 25
+            - counts["endor_high_findings"] * 8
+            - posture_findings * 2
+        ),
+    }
+    overall = _round_half_up(sum(dimensions.values()) / len(dimensions))
+    critical = counts["endor_critical_findings"] > 0 or any(
+        value in CICD_CRITICAL_OVERRIDE_TYPES for value in overrides
+    )
+    verdict = _cicd_verdict(overall, critical=critical)
+    return {
+        "critical_override_required": critical,
+        "dimension_scores": dimensions,
+        "posture_verdict": verdict,
+        "schema_version": CICD_SCORE_SCHEMA_VERSION,
+        "score_validation": {
+            "dimension_weights": {key: 1 for key in CICD_DIMENSION_SCORE_KEYS},
+            "formula_version": "cicd-posture-v2",
+            "overall_score": overall,
+            "recomputed": True,
+            "verdict_band": verdict,
+        },
+        "status": "valid",
+    }
+
+
+def _round_half_up(value: float) -> int:
+    return int(math.floor(value + 0.5))
+
+
+def _clamp_score(value: int) -> int:
+    return max(0, min(100, value))
+
+
+def _cicd_verdict(overall: int, *, critical: bool) -> str:
+    if critical or overall < 40:
+        return "CRITICAL"
+    if overall < 60:
+        return "HIGH_RISK"
+    if overall < 80:
+        return "NEEDS_ATTENTION"
+    return "HEALTHY"
+
+
+def _validate_capture_command(
+    command: Sequence[str],
+    *,
+    projection: str = "integrity",
+) -> None:
     if len(command) < 6 or Path(command[0]).name != "endorctl":
         raise ArtifactSummaryError(
             "invalid_capture_command",
@@ -251,6 +497,8 @@ def _validate_capture_command(command: Sequence[str]) -> None:
             "invalid_output_format",
             "capture requires JSON output",
         )
+    if projection == "ai-sast-selection":
+        _validate_ai_sast_capture_command(command)
 
 
 def _option_value(command: Sequence[str], option: str) -> str:
@@ -262,6 +510,45 @@ def _option_value(command: Sequence[str], option: str) -> str:
         return ""
     value = command[index + 1]
     return "" if value.startswith("-") else value
+
+
+def _validate_ai_sast_capture_command(command: Sequence[str]) -> None:
+    resource = _option_value(command, "-r") or _option_value(command, "--resource")
+    if resource != "Finding":
+        raise ArtifactSummaryError(
+            "invalid_ai_sast_resource",
+            "AI SAST selection capture requires the Finding resource",
+        )
+    if "--list-all" not in command:
+        raise ArtifactSummaryError(
+            "ai_sast_complete_inventory_required",
+            "AI SAST selection capture requires one complete --list-all inventory",
+        )
+    if "--traverse" in command:
+        raise ArtifactSummaryError(
+            "ai_sast_traverse_rejected",
+            "project-scoped AI SAST selection must not traverse child namespaces",
+        )
+    field_mask = _option_value(command, "--field-mask")
+    fields = frozenset(part.strip() for part in field_mask.split(",") if part.strip())
+    if fields != AI_SAST_SELECTION_FIELD_MASK:
+        raise ArtifactSummaryError(
+            "invalid_ai_sast_field_mask",
+            "AI SAST selection capture requires the exact compact selection field mask",
+        )
+    filter_expression = _option_value(command, "--filter") or _option_value(command, "-f")
+    required_filters = (
+        "context.type==CONTEXT_TYPE_MAIN",
+        "spec.project_uuid==",
+        f'spec.method=="{AI_SAST_METHOD}"',
+    )
+    if not filter_expression or any(
+        required not in filter_expression for required in required_filters
+    ):
+        raise ArtifactSummaryError(
+            "invalid_ai_sast_filter",
+            "AI SAST selection capture requires main context, one project UUID, and the full AI SAST method enum",
+        )
 
 
 def _mapping_path(payload: Any, dotted_path: str) -> Any:
@@ -285,11 +572,245 @@ def _optional_mapping_path(payload: dict[str, Any], dotted_path: str) -> Any:
     return value
 
 
+def _ai_sast_selection_projection(objects: list[dict[str, Any]]) -> dict[str, Any]:
+    severity_counts = {level: 0 for level in AI_SAST_LEVELS}
+    candidates: list[tuple[int, str, str]] = []
+    project_uuids: set[str] = set()
+    for row in objects:
+        context = row.get("context") if isinstance(row.get("context"), dict) else {}
+        spec = row.get("spec") if isinstance(row.get("spec"), dict) else {}
+        if context.get("type") != "CONTEXT_TYPE_MAIN":
+            raise ArtifactSummaryError(
+                "invalid_ai_sast_context",
+                "AI SAST selection rows must all use main context",
+            )
+        if spec.get("method") != AI_SAST_METHOD:
+            raise ArtifactSummaryError(
+                "invalid_ai_sast_method",
+                "AI SAST selection rows must all use the full AI SAST method enum",
+            )
+        project_uuid = spec.get("project_uuid")
+        if not isinstance(project_uuid, str) or not project_uuid:
+            raise ArtifactSummaryError(
+                "missing_ai_sast_project_uuid",
+                "AI SAST selection rows require one non-empty project UUID",
+            )
+        project_uuids.add(project_uuid)
+        raw_level = spec.get("level")
+        if not isinstance(raw_level, str):
+            raise ArtifactSummaryError(
+                "invalid_ai_sast_level",
+                "AI SAST selection rows require a supported severity level",
+            )
+        level = raw_level.removeprefix("FINDING_LEVEL_").upper()
+        if level not in AI_SAST_LEVEL_RANK:
+            raise ArtifactSummaryError(
+                "invalid_ai_sast_level",
+                "AI SAST selection rows require a supported severity level",
+            )
+        finding_uuid = row["uuid"]
+        severity_counts[level] += 1
+        candidates.append((AI_SAST_LEVEL_RANK[level], finding_uuid, level))
+    if len(project_uuids) > 1:
+        raise ArtifactSummaryError(
+            "mixed_ai_sast_project_scope",
+            "AI SAST selection rows must belong to one project",
+        )
+    candidates.sort(key=lambda item: (-item[0], item[1]))
+    selected = candidates[0] if candidates else None
+    selected_level = selected[2] if selected else None
+    return {
+        "all_artifact_rows_evaluated": True,
+        "project_uuid": next(iter(project_uuids), None),
+        "selected_finding_uuid": selected[1] if selected else None,
+        "selected_level": selected_level,
+        "selection_rule": "severity_desc_uuid_asc_v1",
+        "severity_counts": severity_counts,
+        "tie_count_at_selected_level": (
+            severity_counts[selected_level] if selected_level is not None else 0
+        ),
+    }
+
+
 def _path_segments(dotted_path: str) -> tuple[str, ...]:
     segments = tuple(dotted_path.split("."))
     if not segments or any(not segment for segment in segments):
         raise ArtifactSummaryError("invalid_path", "JSON paths must use non-empty dot segments")
     return segments
+
+
+def _configuration_projection(
+    objects: list[dict[str, Any]],
+    *,
+    projection: str,
+) -> dict[str, Any]:
+    if projection in {
+        "configuration-selected-projects",
+        "configuration-fleet-projects",
+    }:
+        return _configuration_projects(objects, selected=projection.endswith("selected-projects"))
+    if projection == "configuration-scans":
+        return _configuration_scans(objects)
+    if projection == "configuration-packages":
+        return _configuration_packages(objects)
+    raise ArtifactSummaryError("invalid_projection", "unknown configuration projection")
+
+
+def _configuration_projects(
+    objects: list[dict[str, Any]],
+    *,
+    selected: bool,
+) -> dict[str, Any]:
+    projects: list[dict[str, Any]] = []
+    invalid_uuid_count = 0
+    for row in objects:
+        uuid = row.get("uuid")
+        if not isinstance(uuid, str) or not uuid or not all(
+            character.isalnum() or character in "-_" for character in uuid
+        ):
+            invalid_uuid_count += 1
+            continue
+        spec = row.get("spec") if isinstance(row.get("spec"), dict) else {}
+        git = spec.get("git") if isinstance(spec.get("git"), dict) else {}
+        meta = row.get("meta") if isinstance(row.get("meta"), dict) else {}
+        repo = git.get("full_name") or git.get("repository") or meta.get("name")
+        projects.append(
+            {
+                "project_uuid": uuid,
+                "repo_full_name": repo if isinstance(repo, str) else None,
+                "parent_uuid": meta.get("parent_uuid"),
+            }
+        )
+    projects.sort(key=lambda item: (str(item["repo_full_name"]), item["project_uuid"]))
+    result: dict[str, Any] = {
+        "project_count": len(projects),
+        "invalid_uuid_count": invalid_uuid_count,
+        "project_samples": projects[:50],
+        "project_samples_truncated": len(projects) > 50,
+    }
+    if selected:
+        if len(projects) > 100:
+            raise ArtifactSummaryError(
+                "selected_scope_too_large",
+                "selected repository projection supports at most 100 projects; use fleet mode",
+            )
+        ids = [item["project_uuid"] for item in projects]
+        if not ids:
+            raise ArtifactSummaryError(
+                "selected_scope_empty",
+                "selected repository projection did not resolve any safe project UUIDs",
+            )
+        scan_selector = "(" + " or ".join(
+            f'meta.parent_uuid=="{uuid}"' for uuid in ids
+        ) + ")"
+        package_selector = "(" + " or ".join(
+            f'spec.project_uuid=="{uuid}"' for uuid in ids
+        ) + ")"
+        result.update(
+            {
+                "projects": projects,
+                "scan_project_filter": (
+                    f"{scan_selector} and context.type==CONTEXT_TYPE_MAIN"
+                ),
+                "package_project_filter": (
+                    f"{package_selector} and context.type==CONTEXT_TYPE_MAIN"
+                ),
+            }
+        )
+    return result
+
+
+def _configuration_scans(objects: list[dict[str, Any]]) -> dict[str, Any]:
+    latest: dict[str, dict[str, Any]] = {}
+    for row in objects:
+        meta = row.get("meta") if isinstance(row.get("meta"), dict) else {}
+        project_uuid = meta.get("parent_uuid")
+        if not isinstance(project_uuid, str) or not project_uuid:
+            continue
+        timestamp = str(meta.get("create_time") or meta.get("update_time") or "")
+        prior = latest.get(project_uuid)
+        if prior is None or timestamp > prior["timestamp"]:
+            spec = row.get("spec") if isinstance(row.get("spec"), dict) else {}
+            stats = spec.get("stats") if isinstance(spec.get("stats"), dict) else {}
+            latest[project_uuid] = {
+                "project_uuid": project_uuid,
+                "scan_result_uuid": row.get("uuid"),
+                "timestamp": timestamp,
+                "status": spec.get("status"),
+                "refs": (spec.get("refs") or [])[:8],
+                "stats": {
+                    key: int(stats.get(key) or 0)
+                    for key in (
+                        "scan_failures",
+                        "call_graph_errors",
+                        "dependency_analysis_num_unresolved",
+                        "remediations_num_errors",
+                        "notifications_num_errors",
+                    )
+                },
+            }
+    cohorts: dict[str, list[str]] = {}
+    unhealthy: list[dict[str, Any]] = []
+    for row in latest.values():
+        reasons: list[str] = []
+        if row["status"] != "STATUS_SUCCESS":
+            reasons.append(str(row["status"] or "STATUS_UNKNOWN"))
+        reasons.extend(key for key, value in row["stats"].items() if value > 0)
+        if reasons:
+            unhealthy.append({**row, "failure_signatures": reasons})
+            for reason in reasons:
+                cohorts.setdefault(reason, []).append(row["project_uuid"])
+    unhealthy.sort(key=lambda item: item["project_uuid"])
+    return {
+        "projects_with_scan_results": len(latest),
+        "healthy_project_count": len(latest) - len(unhealthy),
+        "unhealthy_project_count": len(unhealthy),
+        "issue_cohorts": [
+            {
+                "signature": signature,
+                "project_count": len(projects),
+                "project_uuid_samples": sorted(projects)[:25],
+                "samples_truncated": len(projects) > 25,
+            }
+            for signature, projects in sorted(cohorts.items())
+        ],
+        "unhealthy_project_samples": unhealthy[:100],
+        "unhealthy_project_samples_truncated": len(unhealthy) > 100,
+    }
+
+
+def _configuration_packages(objects: list[dict[str, Any]]) -> dict[str, Any]:
+    cohorts: dict[str, set[str]] = {}
+    affected_projects: set[str] = set()
+    for row in objects:
+        spec = row.get("spec") if isinstance(row.get("spec"), dict) else {}
+        project_uuid = spec.get("project_uuid")
+        if not isinstance(project_uuid, str) or not project_uuid:
+            continue
+        resolution_errors = spec.get("resolution_errors")
+        signatures: list[str] = []
+        if isinstance(resolution_errors, dict):
+            signatures = sorted(
+                str(key) for key, value in resolution_errors.items() if value not in (None, {}, [], "")
+            )
+        elif isinstance(resolution_errors, list) and resolution_errors:
+            signatures = ["resolution_errors"]
+        for signature in signatures:
+            affected_projects.add(project_uuid)
+            cohorts.setdefault(signature, set()).add(project_uuid)
+    return {
+        "package_version_count": len(objects),
+        "affected_project_count": len(affected_projects),
+        "issue_cohorts": [
+            {
+                "signature": signature,
+                "project_count": len(projects),
+                "project_uuid_samples": sorted(projects)[:25],
+                "samples_truncated": len(projects) > 25,
+            }
+            for signature, projects in sorted(cohorts.items())
+        ],
+    }
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -312,12 +833,34 @@ def _parser() -> argparse.ArgumentParser:
         help=f"endorctl timeout in seconds (default: {DEFAULT_CAPTURE_TIMEOUT_SECONDS})",
     )
     capture.add_argument("command", nargs=argparse.REMAINDER)
+    score = subparsers.add_parser(
+        "score-cicd-posture",
+        help="Compute deterministic CI/CD posture scores from normalized raw counts",
+    )
+    score.add_argument(
+        "--raw-counts-json",
+        required=True,
+        help="JSON object containing the exact CI/CD posture raw count keys",
+    )
+    score.add_argument(
+        "--critical-override",
+        action="append",
+        default=[],
+        choices=CICD_CRITICAL_OVERRIDE_TYPES,
+        help="Verified critical override type; repeat only for distinct types",
+    )
     for command_parser in (summarize, capture):
         _add_summary_options(command_parser)
     return parser
 
 
 def _add_summary_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--projection",
+        choices=sorted(PROJECTIONS),
+        default="integrity",
+        help="Optional deterministic compact projection for a supported workflow",
+    )
     parser.add_argument(
         "--collection-path",
         default=DEFAULT_COLLECTION_PATH,
@@ -336,7 +879,13 @@ def _add_summary_options(parser: argparse.ArgumentParser) -> None:
     )
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = list(argv) if argv is not None else sys.argv[1:]
-    if arguments and arguments[0] not in {"capture", "summarize", "-h", "--help"}:
+    if arguments and arguments[0] not in {
+        "capture",
+        "score-cicd-posture",
+        "summarize",
+        "-h",
+        "--help",
+    }:
         arguments.insert(0, "summarize")
     args = _parser().parse_args(arguments)
     try:
@@ -348,13 +897,27 @@ def main(argv: Sequence[str] | None = None) -> int:
                 unique_field=args.unique_field,
                 max_bytes=args.max_bytes,
                 timeout_seconds=args.timeout,
+                projection=args.projection,
             )
-        else:
+        elif args.operation == "summarize":
             summary = summarize_artifact(
                 args.artifact,
                 collection_path=args.collection_path,
                 unique_field=args.unique_field,
                 max_bytes=args.max_bytes,
+                projection=args.projection,
+            )
+        else:
+            try:
+                raw_counts = json.loads(args.raw_counts_json)
+            except json.JSONDecodeError as exc:
+                raise ArtifactSummaryError(
+                    "invalid_raw_counts_json",
+                    "raw counts input is not valid JSON",
+                ) from exc
+            summary = score_cicd_posture(
+                raw_counts,
+                declared_override_types=args.critical_override,
             )
     except ArtifactSummaryError as exc:
         error = {

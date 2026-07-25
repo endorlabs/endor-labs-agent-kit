@@ -31,6 +31,7 @@ PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY = "https://github.com/endorlabs/ai-plugins
 GEMINI_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 GEMINI_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
@@ -213,6 +214,11 @@ def _gemini_hooks_config() -> dict[str, object]:
                 {
                     "matcher": "run_shell_command",
                     "hooks": [
+                        command(
+                            "enforce-agent-api.sh",
+                            "BeforeTool",
+                            "endor-agent-kit-agent-api-enforcement",
+                        ),
                         command(
                             "check-dep-install.sh",
                             "BeforeTool",

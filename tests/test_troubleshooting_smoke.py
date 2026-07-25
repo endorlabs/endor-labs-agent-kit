@@ -98,6 +98,7 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
         / "enterprise-edition"
         / "troubleshooting.md"
     ).read_text(encoding="utf-8")
+    normalized_artifact = " ".join(artifact.split())
     header = artifact.split("---", 2)[1]
 
     assert "Troubleshooting" in artifact
@@ -111,6 +112,8 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "future_action_contracts" in artifact
     assert "`evidence_queries[]` rows must contain only those fields" in artifact
     assert "Final responses must not be progress markers" in artifact
+    assert "A single Endor API invocation produces exactly one evidence ledger row" in artifact
+    assert "Local `jq` projections, field extraction, or summarization" in normalized_artifact
     assert '`troubleshooting_verdict: "using_skill"`' in artifact
     assert 'status: "succeeded"` and `result_count: 0' in artifact
     assert "return\n`evidence_queries: []` only with non-empty `data_gaps[]`" in artifact
@@ -140,11 +143,16 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "`ScanLogRequest` is a create-style API" in artifact
     assert "Use `endorctl --version`" in artifact
     assert "Do not use\n`endorctl version`" in artifact
+    assert "Do not run a version check before a successful exact API read" in normalized_artifact
+    assert "do not inspect environment or config namespace first" in artifact
     assert "Default repository-scoped Endor evidence to `context.type==CONTEXT_TYPE_MAIN`" in artifact
     assert "retry the same read-only query with `--traverse`" in artifact
     assert "PROJECT_NOT_FOUND" in artifact
     assert "Record both the original and\ntraverse query attempts" in artifact
     assert "Never merge PR/CI-run finding counts into main-context finding counts" in artifact
+    assert "spec.dismiss==false" in artifact
+    assert "Never substitute `spec.dismiss==null`" in normalized_artifact
+    assert "A zero active count does not prove that all findings are dismissed" in normalized_artifact
     assert "resolved_dependency_count" in artifact
     assert "Do not `get` `CallGraphData`" in artifact
     assert "endorctl scan --pr --pr-baseline=<baseline_branch> --pr-incremental" in artifact
@@ -165,6 +173,9 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "merge-base" in artifact
     assert "Approximate Scans And Reachability Modes" in artifact
     assert "Toolchain And Host-Check" in artifact
+    assert "could not build the target package" in normalized_artifact
+    assert "SDK or toolchain mismatch remains a conditional hypothesis" in normalized_artifact
+    assert "Do not present an SDK pin as proven" in normalized_artifact
     assert "Endorctl Version Hygiene" in artifact
     assert "SCM Installation Drift And Sync Logs" in artifact
     assert "Notifications And Exporters" in artifact
@@ -191,6 +202,13 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)
     _assert_no_private_source_references(artifact)
+    assert "Return a short human-readable summary first" not in artifact
+    assert "Return exactly one bare JSON object" in artifact
+    assert artifact.rstrip().endswith(
+        "FINAL FORMAT: correct missing fields/types, then emit `{` as the first "
+        "character and `}` as the last. No status preamble, heading, Markdown "
+        "fence, or outside prose."
+    )
 
 
 def test_troubleshooting_managed_agents_artifacts_are_read_only(tmp_path):

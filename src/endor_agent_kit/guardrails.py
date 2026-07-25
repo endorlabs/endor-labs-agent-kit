@@ -90,12 +90,13 @@ KNOWLEDGE_PACK_REQUIRED_TEXT = (
 
 PRIMARY_CLAUDE_PLUGIN_HOOKS = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
 
-CLAUDE_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PostToolUse"})
-CODEX_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PostToolUse"})
+CLAUDE_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PreToolUse", "PostToolUse"})
+CODEX_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PreToolUse", "PostToolUse"})
 CURSOR_PLUGIN_HOOK_EVENTS = frozenset({
     "beforeSubmitPrompt",
     "beforeShellExecution",

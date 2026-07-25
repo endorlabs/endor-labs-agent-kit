@@ -60,10 +60,11 @@ recipes:
     resource: Project
     purpose: Resolve selected repositories before monitored-branch fallback checks.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,spec.git" -o json
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json | jq '{projects:((.list.objects // .objects // []) | map({uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,git:(.spec.git // {})})),pagination:{next_page_token:(.list.response.next_page_token // .response.next_page_token // null),next_page_id:(.list.response.next_page_id // .response.next_page_id // null)}}'
     fields:
       - uuid
       - meta.name
+      - meta.parent_uuid
       - spec.git
     constraints:
       - Compare only selected repositories.
@@ -71,6 +72,54 @@ recipes:
     completeness: Bounded to two exact-name matches so ambiguity is detectable; retry with traversal only from a proven namespace.
     forbidden:
       - Do not claim onboarding gaps from local repository files alone.
+
+  - id: configuration-projects-complete
+    title: Complete Configuration Project Scope
+    resource: Project
+    purpose: Establish the complete Project denominator for one normalized selected set or fleet scope.
+    selection_condition: runtime.configuration_scope_inventory_required
+    result_delivery: runtime.large_result_artifact_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> <namespace_traversal> <PROJECT_SCOPE_FILTER_ARG> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    fields: [uuid, meta.name, meta.parent_uuid, spec.git]
+    constraints:
+      - Build PROJECT_SCOPE_FILTER_ARG only from normalized current-request selectors; omit it for fleet scope.
+      - Use configuration-selected-projects for at most 100 selected projects or configuration-fleet-projects for fleet scope.
+    completeness: Complete Project rows for the declared selector and namespace traversal scope.
+    forbidden:
+      - Do not fan out one Project inventory call per repository or expose raw rows.
+
+  - id: configuration-scans-complete
+    title: Complete Configuration Scan Health
+    resource: ScanResult
+    purpose: Reduce complete main-context scan history to latest project health and failure cohorts.
+    selection_condition: runtime.configuration_scope_inventory_required
+    result_delivery: runtime.large_result_artifact_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r ScanResult -n <namespace> <namespace_traversal> --filter '<SCAN_SCOPE_FILTER>' --field-mask "uuid,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.status,spec.type,spec.exit_code,spec.refs,spec.stats" --list-all -o json
+    fields: [uuid, meta.parent_uuid, meta.create_time, meta.update_time, context.type, spec.status, spec.type, spec.exit_code, spec.refs, spec.stats]
+    constraints:
+      - SCAN_SCOPE_FILTER must include main context and only current-run Project UUIDs unless fleet scope is explicit.
+      - Use the configuration-scans projection and never read retained raw rows into the model.
+    completeness: Complete main-context scan history for the declared Project scope.
+    forbidden:
+      - Do not issue one scan-history call per Project or a separate count cross-check.
+
+  - id: configuration-packages-complete
+    title: Complete Configuration Package Health
+    resource: PackageVersion
+    purpose: Reduce complete main-context package inventory to resolution and reachability error cohorts.
+    selection_condition: runtime.configuration_scope_inventory_required
+    result_delivery: runtime.large_result_artifact_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> <namespace_traversal> --filter '<PACKAGE_SCOPE_FILTER>' --field-mask "uuid,meta.name,context.type,spec.project_uuid,spec.resolution_errors" --list-all -o json
+    fields: [uuid, meta.name, context.type, spec.project_uuid, spec.resolution_errors]
+    constraints:
+      - PACKAGE_SCOPE_FILTER must include main context and only current-run Project UUIDs unless fleet scope is explicit.
+      - Use the configuration-packages projection; empty resolution_errors is healthy.
+    completeness: Complete main-context PackageVersion inventory for the declared Project scope.
+    forbidden:
+      - Do not issue one PackageVersion call per Project, expose raw rows, or repeat alternate field masks.
 
   - id: finding-by-uuid
     title: Finding Lookup By UUID
@@ -91,30 +140,50 @@ recipes:
     forbidden:
       - Do not use a Finding UUID from memory or a prior session.
 
+  - id: active-main-finding-count
+    title: Active Main-Context Finding Count
+    resource: Finding
+    purpose: Count active non-dismissed findings for one resolved project in the normal main-context UI scope.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.dismiss==false' --count -o json
+    fields:
+      - count
+    constraints:
+      - Use only after resolving the exact project UUID and namespace for the current request.
+      - Treat spec.dismiss==false as the active non-dismissed semantic used by the normal project UI.
+      - A zero active count does not prove that all findings are dismissed; query another count only when the user explicitly needs that distinction.
+    completeness: Complete active main-context count for one resolved project; it does not count dismissed, PR, or CI-run findings.
+    forbidden:
+      - Never substitute spec.dismiss==null, finding tags, or category tags for active non-dismissed semantics.
+      - Do not add --list-all, field masks, finding rows, or explanations to this count-only query.
+
   - id: ai-sast-list
     title: Main-Context AI SAST Finding List
     resource: Finding
-    purpose: List AI SAST finding availability for one resolved project and main context without fetching bulky case-file explanations.
+    purpose: Capture one complete compact AI SAST inventory for deterministic host-side severity selection without exposing finding rows to the model.
     selection_condition: runtime.complete_project_ai_sast_set_required
     result_delivery: runtime.large_result_artifact_required
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.source_code_version,spec.finding_metadata" --list-all -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' --field-mask "uuid,context.type,spec.project_uuid,spec.method,spec.level,spec.source_code_version" --list-all -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
       - spec.method
+      - spec.level
       - spec.source_code_version
-      - spec.finding_metadata
     constraints:
       - Prefer finding-by-uuid when supplied.
-      - Do not include spec.explanation in complete list queries; fetch it only for one selected Finding by UUID.
+      - Capture this command exactly once with the packaged artifact helper and `--projection ai-sast-selection`; use its selected Finding UUID and compact counts without reading retained rows.
+      - Do not include spec.finding_metadata or spec.explanation in complete list queries; fetch both only for the selected Finding by UUID.
       - Use `SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST`; do not use shorthand method values or finding-tags selectors.
       - Use `--list-all` only with the resolved project UUID, main context, method filter, and field mask.
+      - Do not issue a separate count query or model-written parser after capture; the helper evaluates every retained row and applies severity-descending, UUID-ascending selection.
       - Do not list unrelated SAST findings or broad namespace Finding inventories.
     completeness: Uses --list-all because the gate needs the complete scoped AI SAST set for one resolved main-context project.
     forbidden:
       - Do not replace the method enum with AI_SAST or a finding_tags selector.
+      - Do not add --traverse after the exact project UUID and child namespace are resolved.
 
   - id: ai-sast-count
     title: Main-Context AI SAST Finding Count
@@ -307,6 +376,29 @@ recipes:
     forbidden:
       - Do not treat this bounded list as a complete project vulnerability count.
 
+  - id: selected-findings-by-package-version
+    title: Selected Package Version Finding Evidence
+    resource: Finding
+    purpose: Fetch a bounded set of vulnerability findings for the exact package version selected by VersionUpgrade evidence.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.target_uuid=="<FROM_PACKAGE_VERSION_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.target_uuid,spec.target_dependency_package_name,spec.level,spec.finding_metadata" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+      - spec.finding_metadata
+    constraints:
+      - Use only after one VersionUpgrade candidate is selected and its exact from-package-version UUID is known.
+      - Use only when selected VersionUpgrade detail lacks finding evidence required by the requested output.
+      - Keep the result bounded and report truncation instead of adding --list-all by default.
+    completeness: Bounded selected-package evidence for one resolved project; more than 25 matching findings remains a data gap unless the user explicitly requires complete rows.
+    forbidden:
+      - Do not use this query for broad candidate discovery or project-wide finding inventory.
+      - Do not strip or transform the exact package-version UUID returned by VersionUpgrade.
+
   - id: sca-exploited-finding-availability
     title: Exploited Vulnerability Finding Availability
     resource: Finding
@@ -433,7 +525,7 @@ recipes:
     resource: Finding
     purpose: List existing Endor posture findings for CI/CD, GitHub Actions, SCPM, and supply-chain categories.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
     fields:
       - uuid
       - context.type
@@ -448,6 +540,26 @@ recipes:
     completeness: Bounded category evidence only; complete posture confidence requires explicit scope and GitHub configuration evidence.
     forbidden:
       - Do not run scans or broaden this query to unrelated Finding categories.
+
+  - id: cicd-posture-findings-by-project
+    title: Project-Scoped CI/CD And Supply Chain Posture Findings
+    resource: Finding
+    purpose: List one bounded page of existing Endor posture findings for one resolved project.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.dismiss==false and spec.finding_categories in [FINDING_CATEGORY_SCPM,FINDING_CATEGORY_CICD,FINDING_CATEGORY_GHACTIONS,FINDING_CATEGORY_SUPPLY_CHAIN]' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories" --page-size 100 -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.level
+      - spec.finding_categories
+    constraints:
+      - Resolve PROJECT_UUID from the exact spec.git.full_name Project lookup first.
+      - Stop after one bounded page and preserve continuation metadata as a data gap.
+      - Do not issue a separate count query or fetch finding bodies for output enrichment.
+    completeness: Bounded project posture evidence; continuation metadata proves when more matching rows exist.
+    forbidden:
+      - Do not use --traverse or --list-all after the project UUID is resolved.
 
   - id: github-branch-protection
     title: GitHub Branch Protection And Ruleset Evidence
@@ -490,10 +602,11 @@ recipes:
     resource: Repository
     purpose: Read Endor-ingested repository configuration (branch protections, default branch, vulnerability alerts) as an endorctl-native alternative to a separate read-only GitHub token.
     template: >-
-      endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+      endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --page-size 50 --field-mask "uuid,meta.name,meta.parent_uuid,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
     fields:
       - uuid
       - meta.name
+      - meta.parent_uuid
       - spec.default_branch
       - spec.branch_protections
       - spec.vulnerability_alerts_enabled
@@ -505,6 +618,28 @@ recipes:
     completeness: Uses explicit pages of 50; the active Evidence Plan supplies the finite page cap, and any remaining continuation token is a data_gap.
     forbidden:
       - Do not mutate repository settings; this is read-only ingested evidence.
+
+  - id: endor-repository-config-by-project
+    title: Project-Scoped Endor Repository Configuration Evidence
+    resource: Repository
+    purpose: Read one resolved project's Endor-ingested repository configuration without namespace-wide enumeration.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Repository -n <namespace> --filter 'meta.parent_uuid=="<PROJECT_UUID>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.default_branch,spec.branch_protections,spec.vulnerability_alerts_enabled,spec.org" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.default_branch
+      - spec.branch_protections
+      - spec.vulnerability_alerts_enabled
+      - spec.org
+    constraints:
+      - Resolve PROJECT_UUID from the exact Project lookup first.
+      - Treat a zero result or rejected field mask as a data gap and use one conditional read-only GitHub fallback only when it can change the score.
+      - Do not retry with namespace-wide Repository enumeration for an exact repository request.
+    completeness: Complete for the resolved project's Endor-ingested Repository row when one is returned.
+    forbidden:
+      - Do not mutate repository settings or broaden to unrelated repositories.
 
   - id: endor-repo-codeowners
     title: Endor Repository CODEOWNERS Evidence
@@ -688,18 +823,31 @@ recipes:
     title: ScanResult Lookup By UUID
     resource: ScanResult
     purpose: Fetch one selected scan result for troubleshooting evidence.
-    template: endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json
+    template: >-
+      endorctl agent api --agent-id <agent-id> get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json | jq '{uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,create_time:.meta.create_time,update_time:.meta.update_time,status:.spec.status,type:.spec.type,exit_code:.spec.exit_code,stats:{scan_failures:(.spec.stats.scan_failures // 0),call_graph_errors:(.spec.stats.call_graph_errors // 0),call_graph_available:(.spec.stats.call_graph_available // 0),dependency_analysis_num_unresolved:(.spec.stats.dependency_analysis_num_unresolved // 0),dependency_analysis_num_approx:(.spec.stats.dependency_analysis_num_approx // 0),remediations_num_errors:(.spec.stats.remediations_num_errors // 0),notifications_num_errors:(.spec.stats.notifications_num_errors // 0)},components:((.spec.components_executed // [])[0:16]),refs:(.spec.refs // []),provisioning:{exit_code:(.spec.provisioning_result.exit_code // null),error:(.spec.provisioning_result.error // null),tool_chains_source:(.spec.provisioning_result.tool_chains_source // null),detected_versions:(.spec.provisioning_result.auto_detect_result.detected_versions // {}),tool_chains:(.spec.provisioning_result.tool_chains // {})},logs:((.spec.logs // []) | map(if type=="string" then . else (.summary // .message // .details // .description // tostring) end) | .[0:3])}'
     fields:
       - uuid
       - meta.name
-      - spec.status
-      - spec.exit_code
       - meta.parent_uuid
+      - meta.create_time
+      - meta.update_time
+      - spec.status
+      - spec.type
+      - spec.exit_code
+      - spec.stats
+      - spec.components_executed
+      - spec.refs
+      - spec.provisioning_result
+      - spec.logs
     constraints:
       - Use only for a selected troubleshooting lane.
+      - Execute this exact get-plus-local-projection pipeline once; do not prefetch the full object or repeat the get for individual fields.
+      - Enable shell pipefail without merging stderr into JSON so an API failure remains observable.
+      - Record one evidence ledger row for this API invocation; local jq fields do not create additional rows.
       - Do not start or rerun scans.
-    completeness: Exact UUID lookup is complete for one scan result; it does not prove current scan health for all branches.
+    completeness: Exact UUID lookup with a bounded diagnostic projection for one scan result; it does not prove current scan health for all branches.
     forbidden:
+      - Do not issue separate ScanResult structure probes, repeated gets, or count cross-checks for the same UUID.
       - Do not recommend running scans from read-only explanation flows.
 
   - id: local-manifest-inventory

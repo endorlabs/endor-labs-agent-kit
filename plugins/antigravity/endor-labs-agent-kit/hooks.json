@@ -23,6 +23,11 @@
       {
         "hooks": [
           {
+            "command": "bash ./hooks/enforce-agent-api.sh PreToolUse",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
             "command": "bash ./hooks/check-dep-install.sh PreToolUse",
             "timeout": 10,
             "type": "command"
