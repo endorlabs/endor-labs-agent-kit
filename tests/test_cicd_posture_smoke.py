@@ -128,12 +128,21 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     assert "dimension_scores" in artifact
     assert "score_validation" in artifact
     assert "critical_overrides" in artifact
-    assert "endor-agent-kit validate-cicd-posture-output --gate posture" in artifact
+    assert "score-cicd-posture --raw-counts-json" in artifact
+    assert (
+        "endor-agent-kit validate-cicd-posture-output <payload.json> --gate posture"
+        in artifact
+    )
     assert "Never run `endorctl scan`" in artifact
     assert "workflow dispatches" in artifact
     assert "Never mutate" in artifact
     assert "Endor state" in artifact
-    assert "`--traverse` before reporting the project as missing" in artifact
+    assert "Only a zero-result response may trigger one retry" in artifact
+    assert "Never issue both forms in\n  advance" in artifact
+    assert 'spec.git.full_name=="<owner/repo>"' in artifact
+    assert 'meta.parent_uuid=="<PROJECT_UUID>"' in artifact
+    assert "do not retry through anonymous `curl`" in artifact
+    assert "Do not\n  search the workspace, home directory, plugin caches" in artifact
     assert "Do not substitute example,\n  remembered, cached, or prior-session repositories" in artifact
     assert "`OWASP/NodejsGoat`" in artifact
     assert "`hkhcoder/vprofile-repo`" in artifact
@@ -142,6 +151,10 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     assert "Never return either field as an object\nor map" in artifact
     assert "must use `filter_summary` and `field_mask_summary`" in artifact
     assert "do not emit raw\n`filter`, `field_mask`, `command`, or `output` fields" in artifact
+    assert "Return exactly one bare strict JSON object" in artifact
+    assert "The first non-whitespace character must be `{`" in artifact
+    assert "Do not replace them with a generic\n`evidence` field" in artifact
+    assert "return at most ten representative rows" in artifact
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)
 
@@ -235,7 +248,7 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
         skill_markers=(
             "Keep the workflow read-only",
             "CI/CD Posture Evidence Contract",
-            "validate-cicd-posture-output",
+            "score-cicd-posture",
             "FINDING_CATEGORY_SUPPLY_CHAIN",
         ),
     )

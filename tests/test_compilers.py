@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "75ac8ce833b0f6135e05cc9e96187bef7ea4f9a609ded035020b246ecf633869"
+ENTERPRISE_EDITION_SHA256 = "c5148c0c803ea4b36f112b747665456c8b78345c11ea9177ec0f070193dad74c"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -111,7 +111,13 @@ def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundl
     assert "Never edit files" in scoped
     assert "Do not fabricate findings" in scoped
     assert "## PR/MR Body And Comment Requirements" not in scoped
-    assert "`summary`, `project_resolution`, `evidence_queries`, `selected_remediation`" in selection
+    for field in (
+        "summary",
+        "project_resolution",
+        "evidence_queries",
+        "selected_remediation",
+    ):
+        assert f"`{field}`" in selection
     assert '"remediation_candidates": []' not in selection
     assert '"patch_plan": []' not in selection
     assert '"tickets": []' not in selection
@@ -355,6 +361,28 @@ def test_raw_compiler_emits_setup_bundle(tmp_path):
     assert "read-only Endor lookups" in (recipe.parent / "dist" / "raw" / "endorctl-setup.md").read_text()
 
 
+def test_remediation_planning_raw_prompt_has_one_unambiguous_json_output_contract(tmp_path):
+    source = repo_root() / "source" / "agents" / "remediation-planning"
+    target = tmp_path / "remediation-planning"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    compile_raw(target / "recipe.yaml")
+
+    prompt = (
+        target / "dist" / "raw" / "system-prompt-enterprise-edition.md"
+    ).read_text(encoding="utf-8")
+    assert "Return concise prose plus a JSON object" not in prompt
+    assert "Return exactly one bare JSON object" in prompt
+    assert "non-whitespace character must be `{`" in prompt
+    assert "last non-whitespace character must\nbe `}`" in prompt
+    assert "Do not add a preamble, trailing explanation, or Markdown fence" in prompt
+    assert "The normal selection path is Project lookup, one ranked VersionUpgrade summary" in prompt
+    assert "It is not a three-call ceiling" in prompt
+    assert "Every attempted\nEndor call must have exactly one `evidence_queries` row" in prompt
+    assert "failed,\nzero-result, retry, and fallback calls" in prompt
+    assert "`source: endorctl_agent_api`" in prompt
+
+
 def test_codex_compiler_emits_skill_artifact(tmp_path):
     recipe = _copy_agent(tmp_path)
     data = recipe.read_text(encoding="utf-8")
@@ -475,24 +503,28 @@ def _prompt_budget(relative_path: str) -> int:
         return 11_000
     if agent_id == "dependency-reviewer":
         # Preserve the cross-agent one-row-per-attempt evidence ledger guard.
-        return 18_550
+        return 19_050
     if agent_id == "oss-upgrade-investigator":
         # Exact compact VersionUpgrade candidate/detail masks add source-level
         # prompt bytes while avoiding much larger unbounded response bodies.
-        return 17_000
+        return 17_450
     if agent_id == "findings-browser":
         # Traversal, completeness, filter, and query-ledger rules are required
         # safety behavior; retain them with bounded agent-specific headroom.
-        return 14_250
+        return 14_750
     if agent_id == "remediation-planning":
-        # The planning evidence and structured-output contracts already sit near
-        # the generic ceiling; retain bounded room for an accurate public description.
-        return 14_000
+        # The selected-package fallback and evidence-ledger contract add useful
+        # source-level bytes while keeping the normal route to three reads.
+        return 14_950
     if agent_id == "configuration-automation":
-        # Its generated Codex wrapper carries the full deterministic setup and
-        # action-prescription safety boundary; keep a small non-semantic cushion.
-        return 26_600
-    if agent_id in {"cicd-posture", "troubleshooting"}:
+        # Adaptive single-, selected-, and fleet-scope readiness routing adds
+        # complete-inventory artifact contracts without per-repository fanout.
+        return 29_100
+    if agent_id == "troubleshooting":
+        # Diagnostic-lane selection and targeted fallback rules are retained
+        # because they prevent speculative cross-lane calls.
+        return 28_700
+    if agent_id == "cicd-posture":
         return 26_000
     if agent_id == "sca-remediation":
         # Full fallback carries resume, duplicate-PR, and worktree-isolation safety contracts.
@@ -502,7 +534,7 @@ def _prompt_budget(relative_path: str) -> int:
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":
-        return 13_350
+        return 13_750
     return 13_000
 
 

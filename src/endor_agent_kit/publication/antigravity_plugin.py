@@ -31,6 +31,7 @@ ANTIGRAVITY_SETUP_SKILL = "endor-agent-kit-setup"
 ANTIGRAVITY_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 ANTIGRAVITY_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
@@ -212,7 +213,10 @@ def _antigravity_hooks_config() -> dict[str, object]:
             "PreToolUse": [
                 {
                     "matcher": "run_command",
-                    "hooks": [command("check-dep-install.sh", "PreToolUse")],
+                    "hooks": [
+                        command("enforce-agent-api.sh", "PreToolUse"),
+                        command("check-dep-install.sh", "PreToolUse"),
+                    ],
                 }
             ],
             "PostToolUse": [

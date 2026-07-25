@@ -29,6 +29,12 @@ POLICY_OUTPUT_FIELDS = (
 
 
 ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
+    ("configuration-automation", "onboarding_verdict"): (
+        "READY_TO_ONBOARD",
+        "PARTIAL_COVERAGE",
+        "NOT_ONBOARDED",
+        "INSUFFICIENT_DATA",
+    ),
     ("dependency-reviewer", "profile"): (
         "package-decision",
         "package-risk",
@@ -146,6 +152,8 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("coverage_summary", "object"),
         StructuredOutputField("github_inventory_summary", "object"),
         StructuredOutputField("github_app_coverage", "object"),
+        StructuredOutputField("issue_cohorts", "list[object]"),
+        StructuredOutputField("inventory_artifacts", "list[object]"),
         StructuredOutputField("not_onboarded_repositories", "list[object]"),
         StructuredOutputField("onboarded_repositories_with_gaps", "list[object]"),
         StructuredOutputField("onboarded_healthy_repositories", "list[object]"),
@@ -878,7 +886,10 @@ def _evidence_queries_schema() -> dict[str, Any]:
             {
                 "name": _nullable_string(),
                 "resource": _nullable_string(),
-                "source": _nullable_string(),
+                "source": {
+                    "type": ["string", "null"],
+                    "enum": [*EVIDENCE_QUERY_SOURCE_VALUES, None],
+                },
                 "status": _nullable_string(),
                 "query_template_id": _nullable_string(),
                 "filter_summary": _nullable_string(),
@@ -1402,7 +1413,14 @@ EVIDENCE_QUERY_LEDGER_FIELDS = (
     "reason",
 )
 
-EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("resource", "status")
+EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("name", "resource", "source", "status")
+EVIDENCE_QUERY_SOURCE_VALUES = (
+    "endorctl_agent_api",
+    "endor_mcp",
+    "local_repository",
+    "user_input",
+    "public_docs",
+)
 EVIDENCE_QUERY_GAP_STATUSES = (
     "blocked",
     "error",
@@ -1442,13 +1460,20 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
             if field not in EVIDENCE_QUERY_LEDGER_FIELDS:
                 has_unsupported_fields = True
                 errors.append(f"evidence_queries[{index}].{field}: unsupported ledger field")
-        if has_unsupported_fields:
-            for field in ("name", "source"):
-                if not _text(item.get(field)):
-                    errors.append(f"evidence_queries[{index}].{field}: required")
         for field in EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS:
             if not _text(item.get(field)):
-                errors.append(f"evidence_queries[{index}].{field}: must be a non-empty string")
+                suffix = (
+                    "required"
+                    if has_unsupported_fields and field in {"name", "source"}
+                    else "must be a non-empty string"
+                )
+                errors.append(f"evidence_queries[{index}].{field}: {suffix}")
+        source = _text(item.get("source"))
+        if source and source not in EVIDENCE_QUERY_SOURCE_VALUES:
+            errors.append(
+                f"evidence_queries[{index}].source: must be one of "
+                f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)}"
+            )
         for field in EVIDENCE_QUERY_LEDGER_FIELDS:
             if field == "result_count" or field not in item or item[field] is None:
                 continue

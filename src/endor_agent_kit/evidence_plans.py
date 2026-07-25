@@ -153,6 +153,8 @@ class EvidenceStep:
     operation: str
     template: str
     fields: tuple[str, ...]
+    selection_condition: str
+    result_delivery: str
     inputs: tuple[EvidenceInputBinding, ...]
     outputs: tuple[EvidenceOutputBinding, ...]
     depends_on: tuple[str, ...]
@@ -173,6 +175,8 @@ class EvidenceStep:
             "operation": self.operation,
             "template": self.template,
             "fields": list(self.fields),
+            "selection_condition": self.selection_condition,
+            "result_delivery": self.result_delivery,
             "inputs": [binding.to_dict() for binding in self.inputs],
             "outputs": [binding.to_dict() for binding in self.outputs],
             "depends_on": list(self.depends_on),
@@ -697,6 +701,16 @@ def _step(
             query_recipe.template if query_recipe else canonical_recipe.template
         ).replace("<agent-id>", agent_id),
         fields=(query_recipe.fields if query_recipe else canonical_recipe.fields),
+        selection_condition=(
+            query_recipe.selection_condition
+            if query_recipe
+            else canonical_recipe.selection_condition
+        ),
+        result_delivery=(
+            query_recipe.result_delivery
+            if query_recipe
+            else canonical_recipe.result_delivery
+        ),
         inputs=tuple(_input_binding(item) for item in _mapping_list(raw, "inputs")),
         outputs=tuple(_output_binding(item) for item in _required_mappings(raw, "outputs")),
         depends_on=_optional_strings(raw, "depends_on"),
@@ -904,8 +918,16 @@ def _validate_endor_step(
         errors.append(f"{prefix}: must use attributed endorctl agent api transport")
     if len(tokens) < 6 or tokens[5] != step.operation:
         errors.append(f"{prefix}: operation does not match the canonical query template")
-    if "--list-all" in tokens:
-        errors.append(f"{prefix}: --list-all hides an unbounded pagination budget")
+    uses_list_all = "--list-all" in tokens
+    if uses_list_all:
+        if not step.selection_condition.startswith("runtime."):
+            errors.append(
+                f"{prefix}: --list-all requires an explicit runtime selection condition"
+            )
+        if step.result_delivery != "runtime.large_result_artifact_required":
+            errors.append(
+                f"{prefix}: --list-all requires deterministic artifact delivery"
+            )
     if plan.namespace_mode == "tenant":
         if "<namespace>" not in step.template:
             errors.append(f"{prefix}: missing explicit namespace placeholder")
@@ -929,7 +951,7 @@ def _validate_endor_step(
         flag in tokens for flag in ("--field-mask", "--count", "--group-aggregation-paths")
     ):
         errors.append(f"{prefix}: list operation lacks field-mask, count, or aggregation discipline")
-    is_row_list = step.operation == "list" and not any(
+    is_row_list = step.operation == "list" and not uses_list_all and not any(
         flag in tokens for flag in ("--count", "--group-aggregation-paths")
     )
     if is_row_list:

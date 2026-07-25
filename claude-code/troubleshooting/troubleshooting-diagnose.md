@@ -94,6 +94,11 @@ Keep live Endor commands bounded.
 - Prefer at most five lane-specific `list` queries in a normal concise report.
 - In `report_mode: full`, use more queries only when they directly test a
   ranked hypothesis.
+- When the user supplied an explicit namespace and the exact scoped API read
+  succeeds, skip config-namespace and CLI-version preflights. Do not run a
+  version check before a successful exact API read; check version only when
+  the error itself suggests client incompatibility or the API read fails in a
+  version-shaped way.
 - Project command output before reading it. Do not paste raw multi-megabyte JSON
   into the final answer.
 - Never pipe stderr into a JSON projection such as `2>&1 | jq`; it corrupts
@@ -133,7 +138,7 @@ partial query without an explicit namespace and field mask is invalid output.
 
 ## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl agent api --agent-id troubleshooting` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit user namespace is authoritative: use it directly and do not inspect environment or config namespace first. Only inspect environment or config namespace after an auth, namespace, or not-found response suggests conflict. Without an explicit namespace, surface both values with provenance and stop for user confirmation when env/config conflict. Use explicit `-n`/`--namespace` for every scoped `endorctl agent api --agent-id troubleshooting` lookup. Never dump/`cat` config or echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Knowledge Pack
 
@@ -163,14 +168,15 @@ Diagnose Endor scan, integration, identity, notification, and runtime issues wit
 ### Agent Task Profiles
 
 - Profiles: `diagnose`. Profile bounds workflow; obey stop; full only on request.
-- Before the first tool call, select the smallest matching profile as a hard boundary: gather only its minimal evidence, obey its stop conditions, and broaden only when the user explicitly asks.
+- Select the smallest profile before tools. Its evidence order is the normal route, not a universal call limit. Broaden only for an allowed named evidence gap or explicit request. Do not add unrelated or repeated cross-check reads.
 ### Evidence Query Plans
 
 - Plans: `diagnose`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
 ### Evidence Query Recipes
 
 - `project-by-git`/diagnose: `endorctl agent api --agent-id troubleshooting list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
-- `scan-result-by-uuid`/diagnose: `endorctl agent api --agent-id troubleshooting get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json`
+- `active-main-finding-count`/diagnose: `endorctl agent api --agent-id troubleshooting list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.dismiss==false' --count -o json`
+- `scan-result-by-uuid`/diagnose: `endorctl agent api --agent-id troubleshooting get -r ScanResult -n <namespace> --uuid <SCAN_RESULT_UUID> -o json | jq '{uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,create_time:.meta.create_time,update_time:.meta.update_time,status:.spec.status,type:.spec.type,exit_code:.spec.exit_code,stats:{scan_failures:(.spec.stats.scan_failures // 0),call_graph_errors:(.spec.stats.call_graph_errors // 0),call_graph_available:(.spec.stats.call_graph_available // 0),dependency_analysis_num_unresolved:(.spec.stats.dependency_analysis_num_unresolved // 0),dependency_analysis_num_approx:(.spec.stats.dependency_analysis_num_approx // 0),remediations_num_errors:(.spec.stats.remediations_num_errors // 0),notifications_num_errors:(.spec.stats.notifications_num_errors // 0)},components:((.spec.components_executed // [])[0:16]),refs:(.spec.refs // []),provisioning:{exit_code:(.spec.provisioning_result.exit_code // null),error:(.spec.provisioning_result.error // null),tool_chains_source:(.spec.provisioning_result.tool_chains_source // null),detected_versions:(.spec.provisioning_result.auto_detect_result.detected_versions // {}),tool_chains:(.spec.provisioning_result.tool_chains // {})},logs:((.spec.logs // []) | map(if type=="string" then . else (.summary // .message // .details // .description // tostring) end) | .[0:3])}'`
 - `finding-by-uuid`/diagnose: `endorctl agent api --agent-id troubleshooting get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json`
 
 ## Agent Policy Packs
@@ -214,7 +220,7 @@ Return exactly one parseable JSON object in the final answer.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields and types:
 enum: `troubleshooting_verdict`; object: `executive_summary`, `evidence_summary`, `policy_context`; list[object]: `issue_lanes`, `evidence_queries`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `future_action_contracts`, `policy_evaluations`; list[string]: `data_gaps`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

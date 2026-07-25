@@ -23,9 +23,10 @@ plans:
       host_adapter_required: true
     gate:
       expected_calls: 3
-      max_calls: 4
+      max_calls: 5
       stop_conditions:
-        - Stop after one worthwhile VersionUpgrade option is selected and its UIA/CIA detail is known or precisely blocked.
+        - Stop after one worthwhile VersionUpgrade option is selected and its UIA/CIA detail supports the requested output or is precisely blocked.
+        - The expected call count describes the normal route, not a universal call ceiling; use only documented retries or evidence-gap branches.
         - Do not enumerate broad Finding inventories, inspect source, edit files, or create change requests.
       data_gaps_required: true
     routes:
@@ -33,7 +34,7 @@ plans:
         condition: always
         exclusive_group: selection-plan
         expected_calls: 3
-        max_calls: 4
+        max_calls: 5
         required_outputs:
           - steps.project-by-git.project_uuid
           - steps.version-upgrade-summary.candidates
@@ -136,3 +137,41 @@ plans:
           - name: selected_candidate
             path: $.objects[0]
             type: object
+          - name: from_package_version_uuid
+            path: $.objects[0].spec.upgrade_info.from_pkg_version_uuid
+            type: string
+            required: false
+          - name: fixed_finding_evidence
+            path: $.objects[0].spec.upgrade_info.vuln_finding_info.fixed_findings
+            type: array
+            required: false
+      - id: selected-finding-detail
+        recipe_id: selected-finding-detail
+        canonical_recipe_id: selected-findings-by-package-version
+        operation: list
+        route_id: default
+        condition: steps.version-upgrade-detail.fixed_finding_evidence_missing
+        concurrency_group: selected-finding-evidence
+        depends_on:
+          - version-upgrade-detail
+        max_calls: 1
+        pagination:
+          page_size: 25
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+          - name: from_package_version_uuid
+            placeholder: FROM_PACKAGE_VERSION_UUID
+            source: steps.version-upgrade-detail.from_package_version_uuid
+            type: string
+        outputs:
+          - name: selected_findings
+            path: $.objects
+            type: array

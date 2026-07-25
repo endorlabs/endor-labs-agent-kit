@@ -41,6 +41,7 @@ CURSOR_PLUGIN_NAME = "endorlabs"
 CURSOR_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 CURSOR_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
@@ -260,6 +261,7 @@ def _cursor_hooks_config() -> dict[str, object]:
                 command("suggest-endor-tools.sh", "beforeSubmitPrompt"),
             ],
             "beforeShellExecution": [
+                command("enforce-agent-api.sh", "beforeShellExecution"),
                 command("check-dep-install.sh", "beforeShellExecution"),
             ],
             "afterFileEdit": [

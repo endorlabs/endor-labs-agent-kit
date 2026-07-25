@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -175,7 +176,7 @@ def test_codex_prompt_hook_routes_missing_custom_agents_to_setup(tmp_path: Path)
         env=environment,
     )
     missing_context = json.loads(missing.stdout)["hookSpecificOutput"]["additionalContext"]
-    assert "2 of 2 bundled Endor custom agents are missing" in missing_context
+    assert "2 of 2 bundled Endor custom agents are missing or stale" in missing_context
     assert "Do not execute the requested Endor workflow in the primary agent" in missing_context
     assert "endor-agent-kit-setup" in missing_context
 
@@ -195,8 +196,27 @@ def test_codex_prompt_hook_routes_missing_custom_agents_to_setup(tmp_path: Path)
     assert "custom-agent installation boundary" not in current_context
     assert "MANDATORY ROUTE" in current_context
     assert "invoke the installed Codex custom agent `endor-findings-browser-agent`" in current_context
+    installed_agent = installed / "endor-findings-browser-agent.toml"
+    installed_digest = hashlib.sha256(installed_agent.read_bytes()).hexdigest()
+    assert f"path={installed_agent};sha256={installed_digest}" in current_context
+    assert "another provider directory" in current_context
     assert "--agent-id findings-browser" in current_context
     assert "never append `-agent`" in current_context
+    assert "return that JSON object verbatim" in current_context
+    assert "Do not summarize, re-key, omit fields, wrap, or rewrite it" in current_context
+
+    installed_agent.write_text("# stale local copy\n", encoding="utf-8")
+    stale = subprocess.run(
+        ["bash", str(hook), "UserPromptSubmit"],
+        input=json.dumps({"prompt": "Browse Endor findings for this repository."}),
+        text=True,
+        capture_output=True,
+        check=True,
+        env=environment,
+    )
+    stale_context = json.loads(stale.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert "missing or stale" in stale_context
+    assert "MANDATORY ROUTE" not in stale_context
 
 
 def test_codex_prompt_hook_routes_all_workflows_to_one_installed_custom_agent(tmp_path: Path):
@@ -251,6 +271,7 @@ def test_codex_prompt_hook_routes_all_workflows_to_one_installed_custom_agent(tm
         assert f"invoke the installed Codex custom agent `{expected}`" in context
         assert context.count("MANDATORY ROUTE") == 1
         assert f"--agent-id {agent_id}" in context
+        assert "return that JSON object verbatim" in context
 
 
 def test_upgrade_route_preserves_oss_investigator_precedence_without_codex_package(tmp_path: Path):
@@ -318,4 +339,163 @@ def test_cursor_prompt_hook_prefers_packaged_agent_over_support_skill(tmp_path: 
 
     context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
     assert "Invoke the installed Cursor agent `endor-oss-upgrade-investigator-agent`" in context
+    packaged_agent = agents / "endor-oss-upgrade-investigator-agent.md"
+    packaged_digest = hashlib.sha256(packaged_agent.read_bytes()).hexdigest()
+    assert f"path={packaged_agent};sha256={packaged_digest}" in context
+    assert "another provider directory" in context
     assert "Do not substitute its matching support skill" in context
+    assert "return that JSON object verbatim" in context
+    assert "Do not add a preamble or Markdown fence" in context
+
+
+def test_cicd_prompt_hook_injects_one_verified_score_helper_contract(tmp_path: Path):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    runtime = package / "runtime"
+    agents = package / "agents"
+    hooks.mkdir(parents=True)
+    runtime.mkdir()
+    agents.mkdir()
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+    helper = runtime / "summarize_endor_artifact.py"
+    helper.write_text("# packaged helper\n", encoding="utf-8")
+    (agents / "endor-cicd-posture-agent.md").write_text(
+        "---\nname: endor-cicd-posture-agent\n---\n",
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        ["bash", str(hook), "beforeSubmitPrompt"],
+        input=json.dumps({"prompt": "Assess CI/CD posture for this repository."}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert f"artifact_summarizer_path={helper}" in context
+    assert "score-cicd-posture --raw-counts-json" in context
+    assert "exactly once after raw_counts" in context
+    assert "Do not run the helper twice" in context
+    assert "run a separate validator cross-check" in context
+
+
+def test_ai_sast_prompt_hook_injects_deterministic_selection_helper_contract(
+    tmp_path: Path,
+):
+    package = tmp_path / "endor-labs-agent-kit"
+    hooks = package / "hooks"
+    runtime = package / "runtime"
+    agents = package / "agents"
+    hooks.mkdir(parents=True)
+    runtime.mkdir()
+    agents.mkdir()
+    hook = hooks / "suggest-endor-tools.sh"
+    shutil.copy2(
+        repo_root() / "source" / "plugin-support" / "hooks" / "claude" / hook.name,
+        hook,
+    )
+    helper = runtime / "summarize_endor_artifact.py"
+    helper.write_text("# packaged helper\n", encoding="utf-8")
+    (agents / "endor-ai-sast-remediation-agent.md").write_text(
+        "---\nname: endor-ai-sast-remediation-agent\n---\n",
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        ["bash", str(hook), "beforeSubmitPrompt"],
+        input=json.dumps({"prompt": "Triage the AI SAST findings for this repository."}),
+        text=True,
+        capture_output=True,
+        check=True,
+    )
+
+    context = json.loads(completed.stdout)["hookSpecificOutput"]["additionalContext"]
+    assert f"artifact_summarizer_path={helper}" in context
+    assert "capture --projection ai-sast-selection --" in context
+    assert "selected_finding_uuid" in context
+    assert "Do not read the retained artifact" in context
+    assert "issue a separate count" in context
+
+
+def _run_agent_api_enforcement_hook(
+    *,
+    event: str,
+    command: str,
+    environment: dict[str, str] | None = None,
+) -> subprocess.CompletedProcess[str]:
+    hook = (
+        repo_root()
+        / "source"
+        / "plugin-support"
+        / "hooks"
+        / "claude"
+        / "enforce-agent-api.sh"
+    )
+    payload = {
+        "hook_event_name": event,
+        "tool_input": {"command": command},
+    }
+    return subprocess.run(
+        ["bash", str(hook), event],
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        check=True,
+        env=environment,
+    )
+
+
+def test_agent_api_enforcement_hook_blocks_legacy_transport_for_all_shell_hosts():
+    claude_environment = os.environ.copy()
+    claude_environment["CLAUDE_PLUGIN_ROOT"] = "/tmp/endor-plugin"
+    claude = _run_agent_api_enforcement_hook(
+        event="PreToolUse",
+        command="/Users/example/endorctl api list -r Finding -n example",
+        environment=claude_environment,
+    )
+    claude_output = json.loads(claude.stdout)
+    assert claude_output["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+    codex_or_antigravity = _run_agent_api_enforcement_hook(
+        event="PreToolUse",
+        command="endorctl api list -r Finding -n example",
+    )
+    assert json.loads(codex_or_antigravity.stdout)["decision"] == "deny"
+
+    cursor = _run_agent_api_enforcement_hook(
+        event="beforeShellExecution",
+        command="true; endorctl api list -r Project -n example",
+    )
+    assert json.loads(cursor.stdout)["permission"] == "deny"
+
+    gemini = _run_agent_api_enforcement_hook(
+        event="BeforeTool",
+        command="endorctl api get -r Finding -n example --uuid finding-1",
+    )
+    assert json.loads(gemini.stdout)["decision"] == "deny"
+
+    wrapped = _run_agent_api_enforcement_hook(
+        event="PreToolUse",
+        command="npx -y endorctl api list -r Finding -n example",
+    )
+    assert json.loads(wrapped.stdout)["decision"] == "deny"
+
+
+def test_agent_api_enforcement_hook_allows_attributed_and_nonexecuting_text():
+    for command in (
+        "endorctl agent api --agent-id ai-sast-remediation list -r Finding -n example",
+        "npx -y endorctl agent api --agent-id ai-sast-remediation list -r Finding -n example",
+        "rg -n 'endorctl api' .",
+        "echo 'use endorctl api only in old documentation'",
+        "endorctl --version",
+    ):
+        completed = _run_agent_api_enforcement_hook(
+            event="PreToolUse",
+            command=command,
+        )
+        assert completed.stdout == ""

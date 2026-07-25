@@ -261,7 +261,9 @@ Resolve namespace candidates in this order:
 3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only, read with a field-specific command or parser.
 4. Namespace from already-resolved Endor project metadata.
 
-If the user supplied a namespace in the current request, use that namespace explicitly with `-n <namespace>` or `--namespace <namespace>` and report any environment/config mismatch as overridden by the request. If `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
+If the user supplied a namespace in the current request, treat it as authoritative for that request, use it explicitly with `-n <namespace>` or `--namespace <namespace>`, and do not inspect environment or config namespace first. Attempt the smallest scoped API read directly. Only inspect environment or config namespace after that read returns an authentication, authorization, namespace, or not-found signal that could indicate a conflict. If such a conflict is then proven, report it as overridden by the explicit request or stop for confirmation when the request cannot safely resolve it.
+
+When no namespace was supplied by the user, if `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
 
 After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl agent api --agent-id oss-upgrade-investigator` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl agent api --agent-id oss-upgrade-investigator -n <namespace>` or report a `data_gaps` entry.
 
@@ -312,7 +314,7 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 
 ### Agent Task Profiles
 
-Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary: gather only its minimal evidence, obey its stop conditions, and do not continue into another profile or the full workflow unless the user explicitly requests the broader work.
+Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary. Execute its canonical evidence order as the normal route, not a universal call limit. Broaden only for an explicit request or a named evidence gap allowed by its query plan, record what the added read closes, and return to the profile stop condition. Do not add unrelated or repeated cross-check reads.
 
 #### `resolve-scope` - Resolve Upgrade Scope
 
@@ -661,7 +663,7 @@ Optional top-level fields when verified:
 - `endor_patch` (`string`): Endor Patch target version when VersionUpgrade reports one.
 - `score_explanation` (`string`): Platform score explanation from VersionUpgrade.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

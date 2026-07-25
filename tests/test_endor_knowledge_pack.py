@@ -65,13 +65,19 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
 
     assert pack.name == "Endor Knowledge Pack"
     assert sorted(pack.query_recipes) == [
+        "active-main-finding-count",
         "ai-sast-count",
         "ai-sast-list",
         "cicd-posture-findings",
+        "cicd-posture-findings-by-project",
+        "configuration-packages-complete",
+        "configuration-projects-complete",
+        "configuration-scans-complete",
         "current-malware-intelligence",
         "endor-repo-codeowners",
         "endor-repo-tag-protection",
         "endor-repository-config",
+        "endor-repository-config-by-project",
         "exposure-guidance-source",
         "finding-browser-by-tag",
         "finding-browser-complete-counts",
@@ -96,6 +102,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         "sca-finding-availability",
         "sca-finding-package-severity-groups",
         "scan-result-by-uuid",
+        "selected-findings-by-package-version",
         "selected-source-usage",
         "tenant-malware-findings",
         "tenant-package-inventory",
@@ -223,6 +230,9 @@ def test_complete_row_recipes_require_large_result_artifact_delivery():
 
     assert {recipe.id for recipe in complete_recipes} == {
         "ai-sast-list",
+        "configuration-packages-complete",
+        "configuration-projects-complete",
+        "configuration-scans-complete",
         "finding-browser-complete-counts",
         "tenant-package-inventory",
     }
@@ -245,6 +255,10 @@ def test_workflow_complete_row_recipes_render_large_result_delivery_gate():
     assert {
         (agent_id, recipe.id) for agent_id, recipe in complete_recipes
     } == {
+        ("ai-sast-remediation", "ai-sast-selection"),
+        ("configuration-automation", "configuration-packages-complete"),
+        ("configuration-automation", "configuration-projects-complete"),
+        ("configuration-automation", "configuration-scans-complete"),
         ("findings-browser", "finding-browser-complete-counts"),
         ("malware-responder", "tenant-package-inventory"),
     }
@@ -538,7 +552,8 @@ def test_knowledge_pack_renders_task_profile_prompt():
     prompt = render_task_profile_prompt("sca-remediation", "selection-plan")
 
     assert "Agent task profile: `selection-plan`" in prompt
-    assert "Use this compact profile instead of running the full workflow" in prompt
+    assert "That profile is the active workflow boundary" in prompt
+    assert "normal route, not a universal call limit" in prompt
     assert "Stop when:" in prompt
     assert "Minimal evidence:" in prompt
     assert "VersionUpgrade/UIA evidence" in prompt
@@ -567,6 +582,37 @@ def test_knowledge_pack_renders_task_profile_prompt():
     assert "exactly one `change_requests` entry" in compact
     assert "complete deterministic `inventory`" in compact
     assert "`status: unavailable`" in compact
+
+
+def test_troubleshooting_compact_prompt_exposes_bounded_missing_finding_and_scan_routes():
+    prompt = render_task_profile_prompt(
+        "troubleshooting",
+        "diagnose",
+        compact=True,
+    )
+
+    assert "active-main-finding-count:" in prompt
+    assert "context.type==CONTEXT_TYPE_MAIN" in prompt
+    assert "spec.dismiss==false" in prompt
+    assert "--count" in prompt
+    assert "spec.dismiss==null" not in prompt
+    assert "scan-result-by-uuid:" in prompt
+    assert "| jq" in prompt
+    assert ".[0:3]" in prompt
+
+
+def test_compact_profile_guidance_treats_expected_reads_as_a_fast_path_not_a_quota():
+    prompt = render_task_profile_prompt(
+        "remediation-planning",
+        "selection-plan",
+        compact=True,
+    )
+
+    assert "normal route, not a universal call limit" in prompt
+    assert "named evidence gap" in prompt
+    assert "explicit exhaustive request" in prompt
+    assert "proven freshness uncertainty" in prompt
+    assert "Do not add unrelated or repeated cross-check reads" in prompt
 
 
 def test_oss_upgrade_evidence_profile_requires_present_selected_upgrade_sentinel():
@@ -616,8 +662,10 @@ def test_cicd_posture_compact_profile_keeps_endor_native_recipes():
     compact = render_task_profile_prompt("cicd-posture", "posture", compact=True)
 
     assert "endor-repository-config" in compact
-    assert "endor-repo-codeowners" in compact
-    assert "endor-repo-tag-protection" in compact
+    assert "endor-repository-config-by-project" in compact
+    assert "cicd-posture-findings-by-project" in compact
+    assert "endor-repo-codeowners" not in compact
+    assert "endor-repo-tag-protection" not in compact
     assert "github-branch-protection" not in compact
 
 
@@ -634,10 +682,14 @@ def test_measured_slow_read_profiles_have_compact_output_contracts():
         "coverage_summary",
         "github_inventory_summary",
         "github_app_coverage",
+        "issue_cohorts",
+        "inventory_artifacts",
         "not_onboarded_repositories",
         "onboarded_repositories_with_gaps",
         "onboarded_healthy_repositories",
         "ambiguous_matches",
+        "recommended_actions",
+        "validation_plan",
         "evidence_queries",
         "data_gaps",
         "policy_context",

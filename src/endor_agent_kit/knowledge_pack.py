@@ -126,12 +126,14 @@ COMPACT_EVIDENCE_GATE_RULES = (
 )
 PROFILE_SELECTION_RULE = (
     "Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. "
-    "That profile is the active workflow boundary: gather only its minimal evidence, obey its stop conditions, and "
-    "do not continue into another profile or the full workflow unless the user explicitly requests the broader work."
+    "That profile is the active workflow boundary. Execute its canonical evidence order as the normal route, not a "
+    "universal call limit. Broaden only for an explicit request or a named evidence gap allowed by its query plan, "
+    "record what the added read closes, and return to the profile stop condition. Do not add unrelated or repeated "
+    "cross-check reads."
 )
 PROFILE_SELECTION_RULE_COMPACT = (
-    "Before the first tool call, select the smallest matching profile as a hard boundary: gather only its minimal "
-    "evidence, obey its stop conditions, and broaden only when the user explicitly asks."
+    "Select the smallest profile before tools. Its evidence order is the normal route, not a universal call limit. "
+    "Broaden only for an allowed named evidence gap or explicit request. Do not add unrelated or repeated cross-check reads."
 )
 COMPACT_LARGE_RESULT_DELIVERY_RULE = (
     "`runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run "
@@ -647,9 +649,7 @@ def render_task_profile_prompt(
     if compact:
         prompt = (
             f"Agent task profile `{profile.id}`: {profile.summary} "
-            "Use only that profile's minimal evidence. Treat this profile as the active workflow boundary: "
-            "stop with the selected gate or precise `data_gaps`, and do not continue into later workflow "
-            "steps unless the user explicitly asks for the full workflow."
+            f"{PROFILE_SELECTION_RULE_COMPACT} Stop with the selected gate or precise `data_gaps`."
         )
         if profile.minimal_evidence:
             prompt += f" Minimal evidence: {_compact_list(profile.minimal_evidence)}."
@@ -689,7 +689,7 @@ def render_task_profile_prompt(
     lines = [
         f"Agent task profile: `{profile.id}` ({profile.title}).",
         profile.summary,
-        "Use this compact profile instead of running the full workflow unless the user explicitly asks for the full workflow.",
+        PROFILE_SELECTION_RULE,
         "Minimal evidence:",
         *[f"- {item}" for item in profile.minimal_evidence],
         "Stop when:",

@@ -67,6 +67,8 @@ def test_shared_compiler_rendering_injects_namespace_preflight():
     assert "tenant-specific, customer-specific, production, backup" in rendered
     assert "non-default Endor config directories" in rendered
     assert "## Endor Project Resolution Preflight" not in rendered
+    assert "do not inspect environment or config namespace first" in rendered
+    assert "Only inspect environment or config namespace after" in rendered
 
 
 def test_shared_compiler_rendering_injects_project_preflight_only_for_project_recipes():
@@ -443,6 +445,8 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
     assert "FINAL FORMAT" in rendered
     assert "No status preamble, heading, Markdown fence, or outside prose" in rendered
     assert "```json" not in rendered
+    assert "one API invocation yields one row" in rendered
+    assert "local projection or summarization does not create another row" in rendered
 
 
 def test_compact_profile_output_contract_requires_only_selected_safe_fields():

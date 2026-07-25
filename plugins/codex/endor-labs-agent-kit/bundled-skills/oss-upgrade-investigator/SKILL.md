@@ -108,7 +108,7 @@ Return exactly one risk delta:
 
 ## Endor Namespace Preflight
 
-Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. Use explicit `-n`/`--namespace` for each scoped `endorctl agent api --agent-id oss-upgrade-investigator` lookup. If env/config conflict, surface both values with provenance and stop for user confirmation. Never dump/`cat` config; read only namespace key and never echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
+Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only; resolved Project metadata. `ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs. An explicit user namespace is authoritative: use it directly and do not inspect environment or config namespace first. Only inspect environment or config namespace after an auth, namespace, or not-found response suggests conflict. Without an explicit namespace, surface both values with provenance and stop for user confirmation when env/config conflict. Use explicit `-n`/`--namespace` for every scoped `endorctl agent api --agent-id oss-upgrade-investigator` lookup. Never dump/`cat` config or echo credentials. Avoid tenant-specific, customer-specific, production, backup, or other non-default Endor config paths.
 
 ## Endor Knowledge Pack
 
@@ -138,7 +138,7 @@ Explain upgrade impact from Endor VersionUpgrade/UIA evidence and refuse compati
 ### Agent Task Profiles
 
 - Profiles: `resolve-scope`, `evidence-check`, `explain`. Profile bounds workflow; obey stop; full only on request.
-- Before the first tool call, select the smallest matching profile as a hard boundary: gather only its minimal evidence, obey its stop conditions, and broaden only when the user explicitly asks.
+- Select the smallest profile before tools. Its evidence order is the normal route, not a universal call limit. Broaden only for an allowed named evidence gap or explicit request. Do not add unrelated or repeated cross-check reads.
 ### Evidence Query Plans
 
 - Plans: `resolve-scope`, `evidence-check`, `explain`. Exact/ranked evidence first; selected detail only; skipped lanes -> `data_gaps`.
@@ -206,7 +206,7 @@ Required top-level fields and types:
 enum: `upgrade_recommendation`, `risk_delta`; list[string]: `reasons`, `breaking_change_notes`, `next_checks`, `data_gaps`; string: `summary`; list[object]: `evidence_queries`, `policy_evaluations`; object: `policy_context`
 Optional fields when verified:
 list[object]: `upgrade_candidates`; object: `selected_upgrade`, `dependency_delta`; integer: `findings_fixed`, `findings_introduced`; string: `cia_status`, `endor_patch`, `score_explanation`; list[string]: `breaking_changes`, `manifest_files`, `fixed_cves`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

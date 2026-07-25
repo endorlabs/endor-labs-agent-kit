@@ -32,6 +32,10 @@ inputs:
     kind: string
     required: false
     description: Optional Endor namespace. The artifact uses the configured namespace when omitted.
+  - name: scope_mode
+    kind: enum
+    required: false
+    description: single_repo, selected_repositories, or fleet. Infer from the request before tools; fleet is required for organization, namespace-wide, all-repository, or 100-percent-success requests.
   - name: github_org
     kind: string
     required: false
@@ -101,6 +105,14 @@ outputs:
     kind: object
     required: true
     description: Endor-side GitHub App evidence for installation, selected repos, scanner enablement, sync errors, and archived repo behavior when available.
+  - name: issue_cohorts
+    kind: list[object]
+    required: true
+    description: Distinct scan, dependency-resolution, reachability, onboarding, or configuration failure signatures with affected counts, capped examples, recommended actions, and validation steps.
+  - name: inventory_artifacts
+    kind: list[object]
+    required: true
+    description: Protected complete-inventory artifact references with resource, scope, row count, SHA-256, byte size, projection, and truncation status; never raw rows.
   - name: not_onboarded_repositories
     kind: list[object]
     required: true

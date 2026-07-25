@@ -12,7 +12,7 @@ import sys
 import tempfile
 
 
-CLAUDE_HOOK_EVENTS = ("PostToolUse", "UserPromptSubmit")
+CLAUDE_HOOK_EVENTS = ("PostToolUse", "PreToolUse", "UserPromptSubmit")
 CURSOR_HOOK_EVENTS = ("afterFileEdit", "beforeShellExecution", "beforeSubmitPrompt")
 CLAUDE_MARKETPLACE_SOURCE = "./plugins/claude/endor-labs-agent-kit"
 

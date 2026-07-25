@@ -54,7 +54,7 @@ local docs, repository names, cached notes, memory, or example paths.
 ## Workflow
 
 1. Resolve project context from the current repository, repository URL, owner/repo, Endor project name, finding UUID, or optional project UUID.
-2. Gather remediation options through the selected Endor Knowledge Pack task profile's Evidence Query Plan. For selection plans, query VersionUpgrade/UIA summaries before detailed Finding expansion, then fetch Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation. For evidence checks, use narrow main-context Finding availability plus VersionUpgrade/UIA availability and stop before selection.
+2. Follow the selected task profile's Evidence Query Plan. The normal selection path is Project lookup, one ranked VersionUpgrade summary, then selected VersionUpgrade detail. It is not a three-call ceiling. Stop when detail supports the requested claims. Expand only for a profile-permitted named gap and record what the added read closes. Fetch Finding rows only for the exact selected package version when detail cannot support requested explanation, advisory mapping, or reconciliation. Evidence checks stop after narrow Finding and VersionUpgrade/UIA availability.
 3. Preview plan: Build a dry-run plan with the selected option and alternatives.
 
 Default project-scoped Endor lookups to `context.type==CONTEXT_TYPE_MAIN`
@@ -79,11 +79,15 @@ from main-context counts.
 
 ## Output
 
-Return concise prose plus a JSON object matching `recipe.yaml` outputs. Include
-`project_resolution.status`, `evidence_queries`, `remediation_options`,
-`selected_remediation`, and `data_gaps`. If only context is available, set
-`selected_remediation` to `null`, keep `remediation_options` empty, and list the
-missing Endor evidence in `data_gaps`.
+Return exactly one bare JSON object matching `recipe.yaml` outputs. The first
+non-whitespace character must be `{` and the last non-whitespace character must
+be `}`. Do not add a preamble, trailing explanation, or Markdown fence.
+
+If evidence is insufficient, set `selected_remediation` to `null`, keep
+`remediation_options` empty, and explain it in `data_gaps`. Every attempted
+Endor call must have exactly one `evidence_queries` row, including failed,
+zero-result, retry, and fallback calls. Endor CLI API reads use
+`source: endorctl_agent_api`, never an adapter or legacy transport name.
 
 ## Endor Namespace Preflight
 
@@ -96,7 +100,9 @@ Resolve namespace candidates in this order:
 3. `ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only, read with a field-specific command or parser.
 4. Namespace from already-resolved Endor project metadata.
 
-If the user supplied a namespace in the current request, use that namespace explicitly with `-n <namespace>` or `--namespace <namespace>` and report any environment/config mismatch as overridden by the request. If `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
+If the user supplied a namespace in the current request, treat it as authoritative for that request, use it explicitly with `-n <namespace>` or `--namespace <namespace>`, and do not inspect environment or config namespace first. Attempt the smallest scoped API read directly. Only inspect environment or config namespace after that read returns an authentication, authorization, namespace, or not-found signal that could indicate a conflict. If such a conflict is then proven, report it as overridden by the explicit request or stop for confirmation when the request cannot safely resolve it.
+
+When no namespace was supplied by the user, if `ENDOR_NAMESPACE` and the default config namespace both exist and differ, surface both values with provenance and stop for user confirmation before any scoped Endor or Endor MCP lookup. Do not silently trust either one.
 
 After selecting a namespace, pass it explicitly with `-n <namespace>` or `--namespace <namespace>` for every scoped `endorctl agent api --agent-id remediation-planning` lookup; do not rely on bare `endorctl` namespace resolution. If an Endor MCP call cannot be explicitly scoped to the selected namespace, use it only after proving the active process/config namespace matches the selected namespace. Otherwise use explicit `endorctl agent api --agent-id remediation-planning -n <namespace>` or report a `data_gaps` entry.
 
@@ -155,7 +161,7 @@ Preview remediation options only from verified Endor findings and VersionUpgrade
 
 ### Agent Task Profiles
 
-Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary: gather only its minimal evidence, obey its stop conditions, and do not continue into another profile or the full workflow unless the user explicitly requests the broader work.
+Before the first tool call, select the smallest task profile whose `when_to_use` conditions match the request. That profile is the active workflow boundary. Execute its canonical evidence order as the normal route, not a universal call limit. Broaden only for an explicit request or a named evidence gap allowed by its query plan, record what the added read closes, and return to the profile stop condition. Do not add unrelated or repeated cross-check reads.
 
 #### `resolve-scope` - Resolve Scope
 
@@ -177,7 +183,7 @@ Check whether verified Finding and VersionUpgrade/UIA evidence exists for planni
 
 Preview one or more verified remediation options without editing files.
 - Use when: The user asks for a remediation plan or ranked options. The host needs a read-only planning gate.
-- Minimal evidence: Resolved project, Finding evidence, VersionUpgrade/UIA evidence, and affected manifest context for each named option.
+- Minimal evidence: Resolved project, one server-ranked VersionUpgrade/UIA candidate, and detailed UIA/CIA and manifest evidence for the selected option. Selected Finding evidence only when the VersionUpgrade detail lacks a fact required by the requested output.
 - Stop when: Verified options are ranked, or missing evidence blocks selection. Do not mutate files, create branches, or open change requests.
 - Output focus: Return `remediation_options`, optional `selected_remediation`, `evidence_queries`, and `data_gaps`.
 
@@ -202,8 +208,8 @@ Verify remediation evidence availability without choosing a preferred option.
 #### `selection-plan` - Planner Selection Query Plan
 
 Preview verified remediation options by ranking VersionUpgrade/UIA before Finding detail expansion.
-- Query order: 1. Resolve namespace and project first. 2. Query VersionUpgrade/UIA summaries for ranked remediation options with risk, CIA, findings fixed, findings introduced, and manifest fields. 3. Fetch detailed VersionUpgrade/UIA evidence only for selected or shortlisted options. 4. Query Finding detail only for selected option explanation, advisory mapping, or fixed-count reconciliation.
-- Avoid: Do not enumerate broad Finding inventories as the default way to discover options. Do not select remediation from local SCA counts, README claims, or cached notes.
+- Query order: 1. Resolve Project, read one server-ranked VersionUpgrade summary, then fetch selected detail. 2. Stop when selected detail supports the requested risk, CIA, finding, and manifest claims. 3. Expand only for a named evidence gap: parent traversal, missing selected Finding evidence, comparable candidates, an explicit exhaustive request, or proven freshness uncertainty. 4. Read exact selected-package Findings only when VersionUpgrade detail cannot support requested explanation, advisory mapping, or reconciliation.
+- Avoid: Do not enumerate broad Finding inventories as the default way to discover options. Do not select remediation from local SCA counts, README claims, or cached notes. Do not add Repository, ScanResult, alternative-candidate, or repeated cross-check reads without naming the gap they close.
 - Stop after: Stop after selected_remediation is null or backed by verified remediation_options and precise data_gaps.
 - Data gaps: Record skipped Finding detail, missing UIA/CIA fields, unverified counts, and unavailable project evidence in data_gaps.
 
@@ -256,12 +262,12 @@ Preview verified remediation options by ranking VersionUpgrade/UIA before Findin
 
 #### `selected-finding-detail` (selection-plan)
 
-- Canonical: `sca-finding-availability`
+- Canonical: `selected-findings-by-package-version`
 - Resource: `Finding`
-- Purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
-- Template: `endorctl agent api --agent-id remediation-planning list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level" -o json`
-- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_dependency_package_name`, `spec.level`
-- Constraints: Use for availability or selected-candidate reconciliation only. Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+- Purpose: Fetch selected Finding evidence only when VersionUpgrade detail lacks facts required by the requested output.
+- Template: `endorctl agent api --agent-id remediation-planning list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.target_uuid=="<FROM_PACKAGE_VERSION_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.target_uuid,spec.target_dependency_package_name,spec.level,spec.finding_metadata" -o json`
+- Fields: `uuid`, `context.type`, `spec.project_uuid`, `spec.target_uuid`, `spec.target_dependency_package_name`, `spec.level`, `spec.finding_metadata`
+- Constraints: Use only after selected VersionUpgrade detail and only for a named missing fact. Preserve the exact package-version UUID from VersionUpgrade; do not broaden to all project findings. Keep the result bounded and report truncation instead of adding --list-all by default.
 
 - Preferred evidence resources: `Project`, `Finding`, `VersionUpgrade`.
 - `Project`: Resolve repository-scoped project identity and namespace provenance before any remediation option. Fields: `uuid`, `meta.name`, `spec.git`.
@@ -298,7 +304,7 @@ Required top-level fields must appear in this order:
 - `policy_context` (`object`): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

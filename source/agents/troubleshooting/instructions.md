@@ -194,6 +194,10 @@ evidence ledger row. If a lookup is partial, failed, paginated, or blocked, put
 the missing signal in top-level `data_gaps[]` and summarize the issue in the
 row's `reason`.
 
+A single Endor API invocation produces exactly one evidence ledger row. Local
+`jq` projections, field extraction, or summarization of that response do not
+create additional lookups and must not be split into additional ledger rows.
+
 Use `public_docs` entries only for stable public reference links that help the
 user complete the fix. Tenant evidence is more important than docs citations.
 
@@ -235,6 +239,21 @@ context is intentional, label the scope in the answer and preserve
 `context.type` plus `spec.source_code_version.ref` in `evidence_queries[]`.
 Never merge PR/CI-run finding counts into main-context finding counts.
 
+For a missing-findings report in the normal project UI, resolve the exact
+Project and count active main-context findings with:
+
+```bash
+endorctl agent api --agent-id <agent-id> list --resource Finding --namespace <namespace> \
+  --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>" and spec.dismiss==false' \
+  --count -o json
+```
+
+Use `spec.dismiss==false` for active non-dismissed findings. Never substitute
+`spec.dismiss==null`, finding tags, or category tags for this semantic. A zero
+active count does not prove that all findings are dismissed; run a distinct
+total or dismissed count only when the user explicitly asks for that
+distinction.
+
 Project or repository selector resolution:
 
 ```bash
@@ -264,26 +283,12 @@ that evidence as parent namespace plus traverse. Record both the original and
 traverse query attempts in `evidence_queries[]`; never say a project is missing
 until both attempts have been evaluated.
 
-Scan execution evidence:
+Scan execution evidence for a supplied UUID is one API invocation plus one
+bounded local projection. Enable shell pipefail without merging stderr into the
+JSON stream, then run this pipeline exactly once:
 
 ```bash
-endorctl agent api --agent-id <agent-id> get --resource ScanResult --namespace <namespace> --uuid <scan_result_uuid> \
-  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
-  -o json
-```
-
-```bash
-endorctl agent api --agent-id <agent-id> list --resource ScanResult --namespace <namespace> \
-  --filter 'meta.parent_uuid=="<project_uuid>"' \
-  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
-  -o json
-```
-
-After retrieving a `ScanResult`, summarize it with a bounded projection before
-reasoning over it:
-
-```bash
-jq '{
+endorctl agent api --agent-id <agent-id> get --resource ScanResult --namespace <namespace> --uuid <scan_result_uuid> -o json | jq '{
   uuid,
   name:.meta.name,
   parent_uuid:.meta.parent_uuid,
@@ -295,17 +300,37 @@ jq '{
   stats:{
     scan_failures:(.spec.stats.scan_failures // 0),
     call_graph_errors:(.spec.stats.call_graph_errors // 0),
+    call_graph_available:(.spec.stats.call_graph_available // 0),
     dependency_analysis_num_unresolved:(.spec.stats.dependency_analysis_num_unresolved // 0),
     dependency_analysis_num_approx:(.spec.stats.dependency_analysis_num_approx // 0),
     remediations_num_errors:(.spec.stats.remediations_num_errors // 0),
     notifications_num_errors:(.spec.stats.notifications_num_errors // 0)
   },
-  logs:((.spec.logs // []) | map({
-    level,
-    summary:(.summary // .message // .details // .description),
-    description_excerpt:((.description // .details // .message // "") | split("\n") | .[0:4])
-  }) | .[0:8])
+  components:((.spec.components_executed // [])[0:16]),
+  refs:(.spec.refs // []),
+  provisioning:{
+    exit_code:(.spec.provisioning_result.exit_code // null),
+    error:(.spec.provisioning_result.error // null),
+    tool_chains_source:(.spec.provisioning_result.tool_chains_source // null),
+    detected_versions:(.spec.provisioning_result.auto_detect_result.detected_versions // {}),
+    tool_chains:(.spec.provisioning_result.tool_chains // {})
+  },
+  logs:((.spec.logs // []) | map(
+    if type=="string" then .
+    else (.summary // .message // .details // .description // tostring)
+    end
+  ) | .[0:3])
 }'
+```
+
+Do not prefetch the full `ScanResult`, probe its structure, repeat the get for
+individual fields, or turn local projections into additional evidence rows.
+
+```bash
+endorctl agent api --agent-id <agent-id> list --resource ScanResult --namespace <namespace> \
+  --filter 'meta.parent_uuid=="<project_uuid>"' \
+  --field-mask "uuid,meta.name,meta.parent_uuid,meta.tags,meta.create_time,meta.update_time,spec" \
+  -o json
 ```
 
 Workflow evidence:
@@ -500,6 +525,11 @@ Keep live Endor commands bounded.
 - Prefer at most five lane-specific `list` queries in a normal concise report.
 - In `report_mode: full`, use more queries only when they directly test a
   ranked hypothesis.
+- When the user supplied an explicit namespace and the exact scoped API read
+  succeeds, skip config-namespace and CLI-version preflights. Do not run a
+  version check before a successful exact API read; check version only when
+  the error itself suggests client incompatibility or the API read fails in a
+  version-shaped way.
 - Project command output before reading it. Do not paste raw multi-megabyte JSON
   into the final answer.
 - Never pipe stderr into a JSON projection such as `2>&1 | jq`; it corrupts
@@ -893,19 +923,27 @@ configuration changes:
   a newer SDK. Recommend pinning the appropriate toolchain in the scan
   profile, or scanning on a CI image whose toolchain meets the project's
   requirements.
+- Target package build failure. When `ScanResult` directly says it could not
+  build the target package, that build failure and its downstream call-graph
+  impact are proven. An SDK or toolchain mismatch remains a conditional
+  hypothesis until compiler output, project configuration, or a representative
+  local/CI build identifies the mismatch. Do not present an SDK pin as proven
+  from provisioning defaults alone. Recommend verifying one representative
+  package build first, then pinning an SDK only if that evidence confirms the
+  mismatch.
 - macOS or sandbox quarantine. On macOS, downloaded binaries may be blocked
   by quarantine attributes. Recommend the documented quarantine removal step
   before suspecting an Endor issue.
 
 ### Endorctl Version Hygiene
 
-Many surface-level scan errors are fixed in newer `endorctl` releases.
-Confirm the version with `endorctl --version` early in any diagnosis. When the
-running version is significantly behind the latest released `endorctl`, add a
-recommended action to upgrade to the latest stable release and rerun the
-failing operation before further root-cause investigation. Frame this as a
-low-friction step, not a guess, and prefer it over speculative scan-profile
-edits.
+Many surface-level scan errors are fixed in newer `endorctl` releases. Check
+with `endorctl --version` only when the reported error is version-shaped, the
+exact scoped API read fails in a way compatible with client drift, or the user
+asks for client compatibility. A successful exact API read does not need a
+version cross-check. When a verified old client plausibly explains the error,
+recommend upgrading to the latest stable release as a low-friction validation
+step rather than as a proven root cause.
 
 ### SCM Installation Drift And Sync Logs
 
@@ -1008,7 +1046,10 @@ issue before assuming the import pipeline is broken:
 <!-- section:output-shape:start -->
 ## Output Requirements
 
-Return a short human-readable summary first, followed by one JSON object.
+Return exactly one bare JSON object. Its first non-whitespace character must be
+`{` and its last non-whitespace character must be `}`. Put the concise
+human-readable explanation inside `executive_summary`; do not add a preamble,
+Markdown fence, or trailing prose.
 
 The JSON object must include:
 

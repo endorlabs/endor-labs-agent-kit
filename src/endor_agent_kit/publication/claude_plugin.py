@@ -39,6 +39,7 @@ CLAUDE_SETUP_SKILL = "endor-agent-kit-setup"
 CLAUDE_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 CLAUDE_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
@@ -433,6 +434,12 @@ def _claude_hooks_config() -> dict[str, object]:
                 {
                     "matcher": "",
                     "hooks": [command("suggest-endor-tools.sh")],
+                }
+            ],
+            "PreToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [command("enforce-agent-api.sh")],
                 }
             ],
             "PostToolUse": [

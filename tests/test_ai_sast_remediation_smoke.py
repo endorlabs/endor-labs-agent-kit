@@ -63,8 +63,14 @@ def test_ai_sast_remediation_does_not_require_project_uuid_for_normal_use(tmp_pa
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.method=="SYSTEM_EVALUATION_METHOD_DEFINITION_AI_SAST"' in prompt
     assert 'spec.method=="AI_SAST"' not in prompt
     assert 'spec.finding_tags contains "AI_SAST"' not in prompt
-    assert "Use `--count` for an availability count without finding rows" in prompt
-    assert "reserve `--list-all` for a complete scoped finding list" in prompt
+    assert "Use `--count` only in the separate availability-only evidence-check profile" in prompt
+    assert "Never combine a complete selection inventory with another count" in prompt
+    assert "capture one complete main-context project AI SAST inventory through the packaged artifact helper" in prompt
+    assert "severity-descending then UUID-ascending selection" in prompt
+    assert "return `patches: []`" in prompt
+    assert "explicitly asks to fix, patch, edit, or prepare a change request" in prompt
+    assert "Return exactly one bare JSON object" in prompt
+    assert "Do not add a preamble, trailing explanation, Markdown fence" in prompt
     assert "inspect and report the returned `context.type` and `spec.source_code_version.ref`" in prompt
     assert "source-ref provenance for the Finding" in prompt
     assert "repository default branch" in prompt
