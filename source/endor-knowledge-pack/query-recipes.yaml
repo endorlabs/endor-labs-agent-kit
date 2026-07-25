@@ -463,6 +463,35 @@ recipes:
       - Do not use this query for broad candidate discovery or project-wide finding inventory.
       - Do not strip or transform the exact package-version UUID returned by VersionUpgrade.
 
+  - id: selected-findings-by-uuid
+    title: Batched Selected Finding Evidence
+    resource: Finding
+    purpose: Reconcile only the exact Finding UUIDs supplied by selected VersionUpgrade/UIA detail in one bounded read.
+    selection_condition: runtime.selected_finding_reconciliation_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid in [<FINDING_UUIDS>]' --page-size 100 --field-mask "uuid,context.type,spec.project_uuid,spec.target_uuid,spec.target_dependency_package_name,spec.level,spec.finding_metadata.vulnerability.meta.name,spec.finding_metadata.vulnerability.spec.aliases,spec.finding_metadata.vulnerability.spec.summary" -o json
+    fields:
+      - uuid
+      - context.type
+      - spec.project_uuid
+      - spec.target_uuid
+      - spec.target_dependency_package_name
+      - spec.level
+      - spec.finding_metadata.vulnerability.meta.name
+      - spec.finding_metadata.vulnerability.spec.aliases
+      - spec.finding_metadata.vulnerability.spec.summary
+    constraints:
+      - Build FINDING_UUIDS only from the selected VersionUpgrade detail returned in the current run.
+      - Copy every Finding UUID byte-for-byte and accept only 24 lowercase hexadecimal characters; never reconstruct an identifier manually.
+      - Use one `uuid in [...]` request; never issue one Finding request per UUID.
+      - Run only when VersionUpgrade fixed-finding evidence cannot support a requested advisory mapping or count reconciliation.
+      - This compact exact batch is one invocation. Do not rerun it merely to create an artifact; use artifact capture on the first invocation only when the runtime already requires artifact delivery.
+      - Keep the result bounded to 100 exact UUIDs and report truncation; use complete pagination only when the user explicitly requires every matching row.
+    completeness: Exact selected-candidate reconciliation for at most 100 current-run Finding UUIDs; larger sets require an explicit completeness decision.
+    forbidden:
+      - Do not use package names, broad Finding filters, schema probes, or unfiltered Finding samples before this exact batch.
+      - Do not add --list-all unless complete selected-candidate rows are explicitly required and the artifact-delivery contract is used.
+
   - id: sca-exploited-finding-availability
     title: Exploited Vulnerability Finding Availability
     resource: Finding
@@ -794,6 +823,43 @@ recipes:
     completeness: Complete for one selected VersionUpgrade UUID in one resolved project.
     forbidden:
       - Do not claim UIA/CIA evidence from summary-only records.
+
+  - id: sca-selection-evidence
+    title: Compact SCA Selection Evidence
+    resource: VersionUpgrade
+    purpose: Project one selected VersionUpgrade into the exact SCA decision evidence needed by the model while preserving fixed-finding UUIDs deterministically.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.upgrade_risk,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.score_explanation,spec.upgrade_info.deps_added,spec.upgrade_info.deps_removed,spec.upgrade_info.conflicts,spec.upgrade_info.minor_conflicts,spec.upgrade_info.cia_status,spec.upgrade_info.cia_results,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.vuln_finding_info.current_count,spec.upgrade_info.vuln_finding_info.fixed_findings,spec.upgrade_info.vuln_finding_info.severity" -o json | jq -c '.list.objects[0] as $r | $r.spec.upgrade_info as $u | {uuid:$r.uuid,name:$r.spec.name,package:$u.direct_dependency_package,from_version:$u.from_version,to_version:$u.to_version,upgrade_risk:$u.upgrade_risk,is_best:$u.is_best,worth_it:$u.worth_it,cia_status:$u.cia_status,cia_results:($u.cia_results // []),conflicts:($u.conflicts // 0),minor_conflicts:($u.minor_conflicts // 0),deps_added:($u.deps_added // 0),deps_removed:($u.deps_removed // 0),finding_instances_fixed:$u.total_findings_fixed,unique_advisories_fixed:(($u.vuln_finding_info.fixed_findings // [])|length),fixed_finding_uuids:([(($u.vuln_finding_info.severity // {})[]? | (.fixed_summary // {})[]? | .uuid)] | unique),fixed_findings:($u.vuln_finding_info.fixed_findings // []),findings_introduced:($u.total_findings_introduced // 0),manifests:($u.direct_dependency_manifest_files // []),score_explanation:$u.score_explanation}'
+    fields:
+      - uuid
+      - spec.name
+      - spec.upgrade_info.direct_dependency_package
+      - spec.upgrade_info.from_version
+      - spec.upgrade_info.to_version
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.score_explanation
+      - spec.upgrade_info.deps_added
+      - spec.upgrade_info.deps_removed
+      - spec.upgrade_info.conflicts
+      - spec.upgrade_info.minor_conflicts
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.cia_results
+      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info.vuln_finding_info.current_count
+      - spec.upgrade_info.vuln_finding_info.fixed_findings
+      - spec.upgrade_info.vuln_finding_info.severity
+    constraints:
+      - Use only after one VersionUpgrade UUID is selected.
+      - Treat the jq projection as authoritative for fixed counts, fixed-finding UUIDs, manifests, versions, risk, and CIA fields; do not reconstruct those values from prose or memory.
+      - One attributed Endor call produces this projection; jq is local projection and does not create another evidence-ledger row.
+    completeness: Complete decision evidence for one selected SCA VersionUpgrade without exposing the full upgrade_info tree.
+    forbidden:
+      - Do not replace this projection with a full spec.upgrade_info response.
+      - Do not rerun the detail query to verify or capture the same evidence.
 
   - id: version-upgrade-by-package
     title: VersionUpgrade Lookup By Package

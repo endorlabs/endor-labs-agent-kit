@@ -116,7 +116,7 @@ Resolve namespace: user request; `ENDOR_NAMESPACE`; `ENDOR_NAMESPACE` from the d
 
 ## Endor Project Resolution Preflight
 
-Before Project reads, parse the local git remote and query its provider full name first; never derive `owner/repo` from the cwd path. Then try clone URL, HTTP URL, `meta.name`, basename; record selectors. Use explicit `-n <namespace>`. Parent miss -> retry `--traverse`; use child namespace if found or keep traverse. If `project_resolution.status` is `resolved`, populate project UUID, namespace, namespace provenance, normalized repository identity, attempted selectors, and boolean traverse state; never label partial scope resolved. Branch proof: Repository, ScanResult, PackageVersion suffix, local git context. Missing proof -> unresolved/ambiguous/lookup_unavailable plus `data_gaps`; never guess.
+Parse the local git remote into its provider full name; never derive `owner/repo` from cwd. Normal read: exact `spec.git.full_name=="<owner/repo>"`, explicit namespace, page size 2, fields `uuid,meta.name,meta.parent_uuid,spec.git`; no `--list-all`. Normalize URLs locally. No schema/describe probes, speculative filters, Repository identity probes, or broad Project inventory. An explicit Endor project name permits one exact `meta.name` fallback after a zero-row full-name read. Parent zero rows -> retry that same selector with `--traverse`; otherwise omit traversal. Use local git branch/default-remote evidence as branch provenance unless the selected profile explicitly requires monitored-branch proof. Return status, UUID, namespace/provenance, normalized repo, attempted selectors, and traverse state; missing proof -> `data_gaps`, never guesses.
 
 ## Endor Knowledge Pack
 

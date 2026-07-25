@@ -77,11 +77,9 @@ task_profiles:
       - The user asks for the best next remediation, a PR plan, or a read-only remediation gate.
       - A read-only remediation gate needs a complete remediation gate JSON object.
     minimal_evidence:
-      - Resolved project, main-context Finding evidence, VersionUpgrade/UIA evidence for candidate ranking, and local manifest/source
-        usage for the selected package.
+      - Resolved project, VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance, and local manifest/source usage for the selected package.
       - Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`.
-      - A final `evidence_queries[]` row whose resource is `Finding` and whose status/result records the selected-candidate
-        lookup, or a precise top-level `data_gaps[]` entry explaining why Finding evidence was unavailable or not queried.
+      - Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry.
       - Dirty worktree state for affected manifests before proposing any branch.
     stop_when:
       - One candidate is selected, blocked, or rejected with `risk_decision.status`.
@@ -89,6 +87,7 @@ task_profiles:
     output_focus:
       - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change
         request plan, and precise `data_gaps`.
+      - Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body.
       - Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable.
       - 'For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`.'
       - Include branch provenance and `project_resolution.traverse_attempted`.
@@ -96,6 +95,15 @@ task_profiles:
         `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`.
       - Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`,
         `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`.
+      - 'The selection-plan projection is authoritative: return only summary, project_resolution, evidence_queries, selected_remediation, uia_evidence, risk_decision, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings.'
+      - 'The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys.'
+      - Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`.
+      - For an exact duplicate use `inventory.reconciliation.status: reuse_existing` or `blocked_duplicate` exactly.
+      - Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases.
+      - Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows.
+      - Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation.
+      - Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory.
+      - Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
 resources:
   - name: Project
     purpose: Resolve the repository-scoped project UUID, selected namespace, and parent namespace traversal evidence.
@@ -127,8 +135,7 @@ retrieval_steps:
   - Resolve project identity before Finding or VersionUpgrade lookups; never ask the user for a project UUID as the default
     path.
   - For selection plans, query VersionUpgrade/UIA candidate summaries before detailed Finding expansion.
-  - Query narrow main-context Finding availability for evidence checks, and fetch Finding detail only for selected-candidate
-    advisory mapping, PR body detail, or count reconciliation.
+  - Query narrow main-context Finding availability for evidence checks. For selection plans, consume VersionUpgrade fixed-finding evidence first and issue at most one exact UUID-batched Finding read only for advisory mapping, explicit PR body detail, or count reconciliation that the UIA detail cannot support.
 fallbacks:
   - If the first project lookup misses, retry the same namespace-scoped lookup with traversal before declaring a project gap.
   - If UIA/CIA evidence is unavailable, keep the candidate plan-only or require compatibility validation instead of calling
@@ -141,8 +148,7 @@ fallbacks:
     and mirror the blocker in `data_gaps`.
   - Even when mutation is not approved, include `selected_remediation.branch_name`, `risk_decision.source_usage_summary`,
     `risk_decision.validation_requirements`, and `change_requests[].proposed_branch` when a remediation candidate is selected.
-  - When `evidence_queries[]` is present, include both a `Finding` row and a `VersionUpgrade` or `UIA` row, or add a precise
-    top-level `data_gaps[]` entry for the missing evidence lane.
+  - Always ledger the VersionUpgrade/UIA reads. Add a separate `Finding` row only when the selected task actually issued the conditional Finding batch; if that required read is unavailable, add a precise top-level `data_gaps[]` entry. VersionUpgrade `vuln_finding_info` is valid selected-candidate finding provenance without another API call.
 data_gaps:
   - Record missing credentials, namespace conflicts, project lookup failures, absent main-context findings, missing VersionUpgrade
     evidence, and unavailable source files in `data_gaps`.
@@ -193,10 +199,11 @@ evidence_query_plans:
         findings introduced, CIA status, direct package, and manifest files.
       - Fetch detailed VersionUpgrade/UIA evidence only for the selected candidate.
       - Inspect only the selected package manifests and source usage needed for risk_decision.source_usage_summary.
-      - Fetch Finding detail only for selected-candidate advisory mapping, PR body detail, or a required data_gaps reconciliation.
+      - Consume `vuln_finding_info.fixed_findings` and nested fixed-summary UUIDs from that detail first. If they cannot support a requested advisory mapping, PR body detail, or count reconciliation, fetch all current-run UUIDs in one exact batched Finding query.
     avoid:
       - Do not enumerate broad Finding inventories before VersionUpgrade narrowing.
       - Do not fetch full advisory/finding lists when the current gate is only selecting or blocking one candidate.
+      - Do not try bare package-name Finding filters, one Finding call per UUID, schema/describe probes, or unfiltered samples.
       - Do not edit files, create branches, run dependency-manager mutations, or open change requests without approval.
     stop_after:
       - Stop after one candidate is selected, blocked, or rejected with risk_decision.status and validation requirements.
@@ -278,19 +285,37 @@ evidence_query_recipes:
       - Let Endor rank `is_best` candidates by score and return only the first bounded summary.
       - Do not call a candidate safe without UIA/CIA evidence or data_gaps.
   - profile_id: selection-plan
-    id: version-upgrade-detail
-    canonical_id: version-upgrade-detail
+    id: sca-selection-evidence
+    canonical_id: sca-selection-evidence
     resource: VersionUpgrade
-    purpose: Fetch detailed UIA/CIA evidence for only the selected upgrade candidate.
-    template: endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info" -o
-      json
+    purpose: Project decision-critical UIA/CIA and fixed-finding evidence for only the selected upgrade candidate.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and uuid=="<VERSION_UPGRADE_UUID>"' --page-size 1 --field-mask "uuid,spec.name,spec.upgrade_info.direct_dependency_package,spec.upgrade_info.from_version,spec.upgrade_info.to_version,spec.upgrade_info.upgrade_risk,spec.upgrade_info.is_best,spec.upgrade_info.worth_it,spec.upgrade_info.total_findings_fixed,spec.upgrade_info.total_findings_introduced,spec.upgrade_info.score_explanation,spec.upgrade_info.deps_added,spec.upgrade_info.deps_removed,spec.upgrade_info.conflicts,spec.upgrade_info.minor_conflicts,spec.upgrade_info.cia_status,spec.upgrade_info.cia_results,spec.upgrade_info.direct_dependency_manifest_files,spec.upgrade_info.vuln_finding_info.current_count,spec.upgrade_info.vuln_finding_info.fixed_findings,spec.upgrade_info.vuln_finding_info.severity" -o json | jq -c '.list.objects[0] as $r | $r.spec.upgrade_info as $u | {uuid:$r.uuid,name:$r.spec.name,package:$u.direct_dependency_package,from_version:$u.from_version,to_version:$u.to_version,upgrade_risk:$u.upgrade_risk,is_best:$u.is_best,worth_it:$u.worth_it,cia_status:$u.cia_status,cia_results:($u.cia_results // []),conflicts:($u.conflicts // 0),minor_conflicts:($u.minor_conflicts // 0),deps_added:($u.deps_added // 0),deps_removed:($u.deps_removed // 0),finding_instances_fixed:$u.total_findings_fixed,unique_advisories_fixed:(($u.vuln_finding_info.fixed_findings // [])|length),fixed_finding_uuids:([(($u.vuln_finding_info.severity // {})[]? | (.fixed_summary // {})[]? | .uuid)] | unique),fixed_findings:($u.vuln_finding_info.fixed_findings // []),findings_introduced:($u.total_findings_introduced // 0),manifests:($u.direct_dependency_manifest_files // []),score_explanation:$u.score_explanation}'
     fields:
       - uuid
       - spec.name
-      - spec.upgrade_info
+      - spec.upgrade_info.direct_dependency_package
+      - spec.upgrade_info.from_version
+      - spec.upgrade_info.to_version
+      - spec.upgrade_info.upgrade_risk
+      - spec.upgrade_info.is_best
+      - spec.upgrade_info.worth_it
+      - spec.upgrade_info.total_findings_fixed
+      - spec.upgrade_info.total_findings_introduced
+      - spec.upgrade_info.score_explanation
+      - spec.upgrade_info.deps_added
+      - spec.upgrade_info.deps_removed
+      - spec.upgrade_info.conflicts
+      - spec.upgrade_info.minor_conflicts
+      - spec.upgrade_info.cia_status
+      - spec.upgrade_info.cia_results
+      - spec.upgrade_info.direct_dependency_manifest_files
+      - spec.upgrade_info.vuln_finding_info.current_count
+      - spec.upgrade_info.vuln_finding_info.fixed_findings
+      - spec.upgrade_info.vuln_finding_info.severity
     constraints:
       - Use after candidate summary ranking.
+      - Treat the jq projection as authoritative and copy its fixed-finding UUID arrays character-for-character.
       - If detail is unavailable, keep the result blocked or plan-only and record data_gaps.
   - profile_id: selection-plan
     id: selected-source-usage
@@ -307,19 +332,27 @@ evidence_query_recipes:
       - Run only after one package is selected.
       - Do not scan unrelated source trees when the profile only needs a gate result.
   - profile_id: selection-plan
-    id: selected-finding-detail
-    canonical_id: sca-finding-availability
+    id: selected-findings-by-uuid
+    canonical_id: selected-findings-by-uuid
     resource: Finding
-    purpose: Check scoped vulnerability Finding availability without fetching full finding bodies.
+    purpose: Reconcile only the exact Finding UUIDs supplied by selected VersionUpgrade/UIA detail in one bounded read.
+    selection_condition: runtime.selected_finding_reconciliation_required
     template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>"
-      and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --field-mask "uuid,context.type,spec.project_uuid,spec.target_dependency_package_name,spec.level"
-      -o json
+      and uuid in [<FINDING_UUIDS>]' --page-size 100 --field-mask "uuid,context.type,spec.project_uuid,spec.target_uuid,spec.target_dependency_package_name,spec.level,spec.finding_metadata.vulnerability.meta.name,spec.finding_metadata.vulnerability.spec.aliases,spec.finding_metadata.vulnerability.spec.summary" -o json
     fields:
       - uuid
       - context.type
       - spec.project_uuid
+      - spec.target_uuid
       - spec.target_dependency_package_name
       - spec.level
+      - spec.finding_metadata.vulnerability.meta.name
+      - spec.finding_metadata.vulnerability.spec.aliases
+      - spec.finding_metadata.vulnerability.spec.summary
     constraints:
-      - Use for availability or selected-candidate reconciliation only.
-      - Do not add --list-all for selection-plan discovery before VersionUpgrade narrowing.
+      - Build FINDING_UUIDS only from the selected VersionUpgrade detail returned in the current run.
+      - Copy every UUID byte-for-byte and require 24 lowercase hexadecimal characters.
+      - Use one `uuid in [...]` request; never issue one Finding request per UUID.
+      - Run only when VersionUpgrade fixed-finding evidence cannot support a requested advisory mapping or count reconciliation.
+      - Do not rerun this compact exact batch merely to create an artifact; when artifact delivery is known to be required, capture the first invocation.
+      - Keep the result bounded to 100 exact UUIDs and report truncation; add `--list-all` only when complete selected-candidate rows are explicitly required and the artifact-delivery contract is used.

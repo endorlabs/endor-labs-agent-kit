@@ -148,11 +148,12 @@ def test_compiled_sca_selection_plan_narrows_summary_before_one_candidate_detail
 
     assert validate_evidence_plan(plan) == []
     assert plan.expected_calls == 3
-    assert plan.max_calls == 4
+    assert plan.max_calls == 5
     assert [step.id for step in plan.steps] == [
         "project-by-git",
         "version-upgrade-summary",
-        "version-upgrade-detail",
+        "sca-selection-evidence",
+        "selected-findings-by-uuid",
     ]
     summary = plan.steps[1]
     detail = plan.steps[2]
@@ -168,8 +169,27 @@ def test_compiled_sca_selection_plan_narrows_summary_before_one_candidate_detail
         "steps.version-upgrade-summary.best_candidate_uuid"
     )
     assert plan.routes[0].required_outputs[-1] == (
-        "steps.version-upgrade-detail.selected_candidate"
+        "steps.sca-selection-evidence.selected_candidate"
     )
+    detail_outputs = {output.name: output for output in detail.outputs}
+    assert detail_outputs["fixed_finding_evidence"].path == "$.fixed_findings"
+    assert detail_outputs["fixed_finding_uuids"].path == "$.fixed_finding_uuids"
+    assert "| jq -c" in detail.template
+    assert "fixed_finding_uuids" in detail.template
+    fallback = plan.steps[3]
+    assert fallback.condition == "runtime.selected_finding_reconciliation_required"
+    assert fallback.selection_condition == fallback.condition
+    assert fallback.depends_on == (detail.id,)
+    assert "uuid in [<FINDING_UUIDS>]" in fallback.template
+    assert "--page-size 100" in fallback.template
+    assert "--list-all" not in fallback.template
+    assert "spec.finding_metadata.vulnerability.meta.name" in fallback.fields
+    assert "spec.finding_metadata.vulnerability.spec.aliases" in fallback.fields
+    assert "spec.finding_metadata" not in fallback.fields
+    assert next(
+        binding for binding in fallback.inputs if binding.name == "finding_uuids"
+    ).source == "steps.sca-selection-evidence.fixed_finding_uuids"
+    assert "not a universal call ceiling" in " ".join(plan.stop_conditions)
 
 
 def test_compiled_remediation_planning_plan_uses_three_read_fast_path_with_scoped_fallback():

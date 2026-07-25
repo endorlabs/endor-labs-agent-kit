@@ -82,6 +82,9 @@ def test_compiled_sca_selection_plan_contract_requires_inventory_sentinel_shape(
     assert inventory["properties"]["checked_at"]["type"] == "string"
     assert inventory["properties"]["key"]["type"] == "object"
     assert inventory["properties"]["candidates"]["type"] == "array"
+    candidate = inventory["properties"]["candidates"]["items"]
+    assert candidate["properties"]["current_version"]["type"] == ["string", "null"]
+    assert candidate["properties"]["target_version"]["type"] == ["string", "null"]
     assert inventory["properties"]["reconciliation"]["type"] == "object"
 
 
