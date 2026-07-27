@@ -245,6 +245,20 @@ evidence_query_recipes:
       - Use the namespace selected by the preflight.
       - Retry with --traverse only for the same proven namespace before reporting data_gaps.
     profile_id: resolve-scope
+  - id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use the namespace selected by the preflight.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
+    profile_id: evidence-check
   - profile_id: evidence-check
     id: finding-package-severity-groups
     canonical_id: sca-finding-package-severity-groups
@@ -273,6 +287,20 @@ evidence_query_recipes:
     constraints:
       - Use only for evidence availability after resolving one project UUID and explicit namespace provenance.
       - Stop after recording the count; candidate ranking belongs to selection-plan.
+  - id: project-by-git
+    canonical_id: project-by-git
+    resource: Project
+    purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Use the namespace selected by the preflight.
+      - Retry with --traverse only for the same proven namespace before reporting data_gaps.
+    profile_id: selection-plan
   - profile_id: selection-plan
     id: version-upgrade-summary
     canonical_id: version-upgrade-summary

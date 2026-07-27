@@ -514,8 +514,10 @@ def _prompt_budget(relative_path: str) -> int:
         return 14_750
     if agent_id == "malware-responder":
         # The exact Finding-to-DependencyMetadata route prevents broad tenant
-        # inventory reads and incorrect PackageVersion target lookups.
-        return 13_500
+        # inventory reads and incorrect PackageVersion target lookups. The
+        # exposure-verdict contract adds bounded customer-facing guidance;
+        # retain modest headroom above the largest generated host artifact.
+        return 14_500
     if agent_id == "remediation-planning":
         # The selected-package fallback and evidence-ledger contract add useful
         # source-level bytes while keeping the normal route to three reads. The

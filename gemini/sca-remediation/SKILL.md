@@ -892,6 +892,15 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
 - Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
+#### `project-by-git` (evidence-check)
+
+- Canonical: `project-by-git`
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template: `endorctl agent api --agent-id sca-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
+
 #### `finding-package-severity-groups` (evidence-check)
 
 - Canonical: `sca-finding-package-severity-groups`
@@ -909,6 +918,15 @@ Select at most one UIA-backed candidate by narrowing through VersionUpgrade befo
 - Template: `endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --count -o json`
 - Fields: `count`
 - Constraints: Use only for evidence availability after resolving one project UUID and explicit namespace provenance. Stop after recording the count; candidate ranking belongs to selection-plan.
+
+#### `project-by-git` (selection-plan)
+
+- Canonical: `project-by-git`
+- Resource: `Project`
+- Purpose: Resolve the current repository to a namespace-scoped Endor project with only identity fields.
+- Template: `endorctl agent api --agent-id sca-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
+- Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`
+- Constraints: Use the namespace selected by the preflight. Retry with --traverse only for the same proven namespace before reporting data_gaps.
 
 #### `version-upgrade-summary` (selection-plan)
 

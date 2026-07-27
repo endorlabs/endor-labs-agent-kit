@@ -15,10 +15,15 @@ import shlex
 import sys
 
 
-MESSAGE = (
+LEGACY_MESSAGE = (
     "Endor Agent Kit transport enforcement: direct `endorctl api` is not attributed. "
     "Retry the same read as `endorctl agent api --agent-id <canonical-agent-id>` using "
     "the active workflow's canonical agent ID; never append `-agent`."
+)
+MISSING_AGENT_ID_MESSAGE = (
+    "Endor Agent Kit attribution enforcement: `endorctl agent api` requires a non-empty "
+    "`--agent-id <canonical-agent-id>`. Retry the same request using the active workflow's "
+    "canonical agent ID; never append `-agent`."
 )
 
 
@@ -40,7 +45,21 @@ def command_from(payload: dict[str, object]) -> str:
     )
 
 
-def invokes_legacy_agent_api(command: str) -> bool:
+def has_nonempty_agent_id(tokens: list[str]) -> bool:
+    found = False
+    for index, token in enumerate(tokens):
+        if token == "--agent-id":
+            if index + 1 >= len(tokens) or not tokens[index + 1] or tokens[index + 1].startswith("-"):
+                return False
+            found = True
+        elif token.startswith("--agent-id="):
+            if not token.partition("=")[2]:
+                return False
+            found = True
+    return found
+
+
+def agent_api_violation(command: str):
     for segment in re.split(r"(?:&&|\|\||[;|\n])", command):
         try:
             tokens = shlex.split(segment, posix=True)
@@ -59,35 +78,42 @@ def invokes_legacy_agent_api(command: str) -> bool:
             index += 1
             while index < len(tokens) and tokens[index].startswith("-"):
                 index += 1
-        if index + 1 >= len(tokens):
+        if index + 1 >= len(tokens) or Path(tokens[index]).name != "endorctl":
             continue
-        if Path(tokens[index]).name == "endorctl" and tokens[index + 1] == "api":
-            return True
-    return False
+        if tokens[index + 1] == "api":
+            return LEGACY_MESSAGE
+        if (
+            index + 2 < len(tokens)
+            and tokens[index + 1] == "agent"
+            and tokens[index + 2] == "api"
+            and not has_nonempty_agent_id(tokens[index + 3 :])
+        ):
+            return MISSING_AGENT_ID_MESSAGE
+    return None
 
 
-def deny(event: str) -> None:
+def deny(event: str, message: str) -> None:
     if event == "beforeShellExecution":
         print(json.dumps({
             "permission": "deny",
-            "user_message": MESSAGE,
-            "agent_message": MESSAGE,
+            "user_message": message,
+            "agent_message": message,
         }, separators=(",", ":")))
         return
     if event == "BeforeTool":
-        print(json.dumps({"decision": "deny", "reason": MESSAGE}, separators=(",", ":")))
+        print(json.dumps({"decision": "deny", "reason": message}, separators=(",", ":")))
         return
     if event == "PreToolUse" and os.environ.get("CLAUDE_PLUGIN_ROOT"):
         print(json.dumps({
             "hookSpecificOutput": {
                 "hookEventName": "PreToolUse",
                 "permissionDecision": "deny",
-                "permissionDecisionReason": MESSAGE,
-                "additionalContext": MESSAGE,
+                "permissionDecisionReason": message,
+                "additionalContext": message,
             }
         }, separators=(",", ":")))
         return
-    print(json.dumps({"decision": "deny", "reason": MESSAGE}, separators=(",", ":")))
+    print(json.dumps({"decision": "deny", "reason": message}, separators=(",", ":")))
 
 
 try:
@@ -103,8 +129,9 @@ try:
         or default_event
     )
     command = command_from(parsed)
-    if invokes_legacy_agent_api(command):
-        deny(event)
+    violation = agent_api_violation(command)
+    if violation:
+        deny(event, violation)
 except Exception:
     pass
 PY
