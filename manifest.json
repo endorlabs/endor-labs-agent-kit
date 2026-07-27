@@ -753,73 +753,73 @@
               "sha256": "2a576832f28f57dde1e475efd79f7001cfb8ce6bbeabc8dab779af89f908a58d"
             },
             {
-              "bytes": 2013,
+              "bytes": 2050,
               "path": "claude-code/malware-responder/endorctl-setup.md",
-              "sha256": "f0d8c8e0c107acf325659f0ad826edcc6f96522904f25e991727c85704ba43c4"
+              "sha256": "718407bff197592c0bf7eb5a37511277c00b1814b6a7f281023c12c4f130a297"
             },
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "f6ec8e7044ae09fecae9f123d93da97114310a86dfdc7112cb98c05f534fb0bd",
+              "evidence_plan_digest": "cda9bf8e29d5aacc4472859db2b8de9391b2549465d8313ffb9d1b3bd807287d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "b8ac1ef54b7e047f012eb88001a956bdb5d2918b5d57b02cc0524284c1b7ba66"
+              "sha256": "4f44e3d957b15203287f7b2a7afd8be2d74b46a0fd7838f7315a3217ade30f5b"
             },
             {
-              "bytes": 44483,
+              "bytes": 46577,
               "path": "claude-code/malware-responder/malware-responder-exposure-check.md",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "84c2044fdf50360191370d80b04c185aa7b1907fe621a964cd9c7a8d6b540be2"
+              "sha256": "f0d85992d10af7dc86399e99c8fc4d312c73890e4af41c2eed7d28b90eadee0e"
             },
             {
-              "bytes": 52828,
+              "bytes": 55086,
               "path": "claude-code/malware-responder/malware-responder.md",
-              "sha256": "59f3cd14fd55446bac032ca9113a89bac11ac3fe27b0828cf62dbb2f9522eb5d"
+              "sha256": "21fefb88b55a50f1d00c354eea618b0a4eccd2650b6dcfa37546db10f852cc47"
             },
             {
               "bytes": 33481,
               "path": "claude-code/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "63e41d9baeca00b17ee80b65ae200c37d045795e7abb1322aaa531900d94404d"
+              "sha256": "9925c3f88d654769843186a0185be860d4ab0a06bb9f3eda14ebbc32b77c3ef1"
             },
             {
               "bytes": 70238,
               "path": "claude-code/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "e4c2432780ec88ed8101e320b04c2a5fc0142482e2105c70df32f2118ac27f05",
+              "profile_contract_digest": "fb7756aef3dcfa3607c198e33dcb734eb7a6f8fcdb64f9596e454ab8f3405c85",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "639b59afd7749c12666f06160b657f1f285992dff2fc106339560336b1014f22"
+              "sha256": "5270a8303a63e5e1ad340b011aab8efa7fee34f25e40fafd7e214837c4fa6f00"
             },
             {
               "bytes": 70239,
               "path": "claude-code/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "d2a2f7ae87915ccf853056182dc8e39b914f5317257433690c3612c3020fa5f8",
+              "profile_contract_digest": "b51f717b68739a2fa89842a30877e36777803fa364f2bf44df91b272b7e08efa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "36b489c5f3fd9b319ef5b478d31be4110068099c98342ceeb351e7c0d0b5fad4"
+              "sha256": "6cd3aa5fccdc95db00a922ea3fd332fa4753378c3f6565397c289424850ad7d7"
             },
             {
               "bytes": 34235,
@@ -1896,9 +1896,9 @@
               "sha256": "fda782dffa1bb2801abd3e9fc9667dba5508be08ce8c5beb464035df2fdea010"
             },
             {
-              "bytes": 54661,
+              "bytes": 56963,
               "path": "claude-managed-agents/malware-responder/agent.yaml",
-              "sha256": "ab30869852df6e0d440aa204c516cc02acdeac911ec926dba43381563ec0a7c8"
+              "sha256": "0a189dedd5eb89731d3fce37cd801fb964b3580879862d50edf03e6e9f49d480"
             },
             {
               "bytes": 9751,
@@ -1906,9 +1906,9 @@
               "sha256": "2a576832f28f57dde1e475efd79f7001cfb8ce6bbeabc8dab779af89f908a58d"
             },
             {
-              "bytes": 2013,
+              "bytes": 2050,
               "path": "claude-managed-agents/malware-responder/endorctl-setup.md",
-              "sha256": "f0d8c8e0c107acf325659f0ad826edcc6f96522904f25e991727c85704ba43c4"
+              "sha256": "718407bff197592c0bf7eb5a37511277c00b1814b6a7f281023c12c4f130a297"
             },
             {
               "bytes": 233,
@@ -1918,50 +1918,50 @@
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "f6ec8e7044ae09fecae9f123d93da97114310a86dfdc7112cb98c05f534fb0bd",
+              "evidence_plan_digest": "cda9bf8e29d5aacc4472859db2b8de9391b2549465d8313ffb9d1b3bd807287d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "b8ac1ef54b7e047f012eb88001a956bdb5d2918b5d57b02cc0524284c1b7ba66"
+              "sha256": "4f44e3d957b15203287f7b2a7afd8be2d74b46a0fd7838f7315a3217ade30f5b"
             },
             {
               "bytes": 33481,
               "path": "claude-managed-agents/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "63e41d9baeca00b17ee80b65ae200c37d045795e7abb1322aaa531900d94404d"
+              "sha256": "9925c3f88d654769843186a0185be860d4ab0a06bb9f3eda14ebbc32b77c3ef1"
             },
             {
               "bytes": 70238,
               "path": "claude-managed-agents/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "e4c2432780ec88ed8101e320b04c2a5fc0142482e2105c70df32f2118ac27f05",
+              "profile_contract_digest": "fb7756aef3dcfa3607c198e33dcb734eb7a6f8fcdb64f9596e454ab8f3405c85",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "639b59afd7749c12666f06160b657f1f285992dff2fc106339560336b1014f22"
+              "sha256": "5270a8303a63e5e1ad340b011aab8efa7fee34f25e40fafd7e214837c4fa6f00"
             },
             {
               "bytes": 70239,
               "path": "claude-managed-agents/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "d2a2f7ae87915ccf853056182dc8e39b914f5317257433690c3612c3020fa5f8",
+              "profile_contract_digest": "b51f717b68739a2fa89842a30877e36777803fa364f2bf44df91b272b7e08efa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "36b489c5f3fd9b319ef5b478d31be4110068099c98342ceeb351e7c0d0b5fad4"
+              "sha256": "6cd3aa5fccdc95db00a922ea3fd332fa4753378c3f6565397c289424850ad7d7"
             },
             {
               "bytes": 34235,
@@ -2834,9 +2834,9 @@
               "sha256": "e166bf910d5554a514507687047b3e1bb7797a45e7049682b6069948cfc8e155"
             },
             {
-              "bytes": 53466,
+              "bytes": 55724,
               "path": "codex/malware-responder/SKILL.md",
-              "sha256": "d8b8e8d559ad8c8cd902f971799989aadddb531e2e59ea1c888d0667318c1e33"
+              "sha256": "4aec110183d02d53dd26c6d3041db61c622b74e971ee7293ee71f36d4e5bb8bf"
             },
             {
               "bytes": 9751,
@@ -2844,57 +2844,57 @@
               "sha256": "2a576832f28f57dde1e475efd79f7001cfb8ce6bbeabc8dab779af89f908a58d"
             },
             {
-              "bytes": 2013,
+              "bytes": 2050,
               "path": "codex/malware-responder/endorctl-setup.md",
-              "sha256": "f0d8c8e0c107acf325659f0ad826edcc6f96522904f25e991727c85704ba43c4"
+              "sha256": "718407bff197592c0bf7eb5a37511277c00b1814b6a7f281023c12c4f130a297"
             },
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "f6ec8e7044ae09fecae9f123d93da97114310a86dfdc7112cb98c05f534fb0bd",
+              "evidence_plan_digest": "cda9bf8e29d5aacc4472859db2b8de9391b2549465d8313ffb9d1b3bd807287d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "b8ac1ef54b7e047f012eb88001a956bdb5d2918b5d57b02cc0524284c1b7ba66"
+              "sha256": "4f44e3d957b15203287f7b2a7afd8be2d74b46a0fd7838f7315a3217ade30f5b"
             },
             {
               "bytes": 33481,
               "path": "codex/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "63e41d9baeca00b17ee80b65ae200c37d045795e7abb1322aaa531900d94404d"
+              "sha256": "9925c3f88d654769843186a0185be860d4ab0a06bb9f3eda14ebbc32b77c3ef1"
             },
             {
               "bytes": 70238,
               "path": "codex/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "e4c2432780ec88ed8101e320b04c2a5fc0142482e2105c70df32f2118ac27f05",
+              "profile_contract_digest": "fb7756aef3dcfa3607c198e33dcb734eb7a6f8fcdb64f9596e454ab8f3405c85",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "639b59afd7749c12666f06160b657f1f285992dff2fc106339560336b1014f22"
+              "sha256": "5270a8303a63e5e1ad340b011aab8efa7fee34f25e40fafd7e214837c4fa6f00"
             },
             {
               "bytes": 70239,
               "path": "codex/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "d2a2f7ae87915ccf853056182dc8e39b914f5317257433690c3612c3020fa5f8",
+              "profile_contract_digest": "b51f717b68739a2fa89842a30877e36777803fa364f2bf44df91b272b7e08efa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "36b489c5f3fd9b319ef5b478d31be4110068099c98342ceeb351e7c0d0b5fad4"
+              "sha256": "6cd3aa5fccdc95db00a922ea3fd332fa4753378c3f6565397c289424850ad7d7"
             },
             {
               "bytes": 34235,
@@ -3980,9 +3980,9 @@
               "sha256": "fcedc7964cd73fc232986f4e189afbe677c48f9bde5059a256be22d430d127ad"
             },
             {
-              "bytes": 53495,
+              "bytes": 55753,
               "path": "gemini/malware-responder/SKILL.md",
-              "sha256": "d8a4cf8dc57b91c6e4b4e12f88cd60b7236e22d5bdc2081f69f15e158538c948"
+              "sha256": "e49b1b82866254093969d632834ff26e000460e25c756196e7e15f07109c29ab"
             },
             {
               "bytes": 9751,
@@ -3990,62 +3990,62 @@
               "sha256": "2a576832f28f57dde1e475efd79f7001cfb8ce6bbeabc8dab779af89f908a58d"
             },
             {
-              "bytes": 2013,
+              "bytes": 2050,
               "path": "gemini/malware-responder/endorctl-setup.md",
-              "sha256": "f0d8c8e0c107acf325659f0ad826edcc6f96522904f25e991727c85704ba43c4"
+              "sha256": "718407bff197592c0bf7eb5a37511277c00b1814b6a7f281023c12c4f130a297"
             },
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "f6ec8e7044ae09fecae9f123d93da97114310a86dfdc7112cb98c05f534fb0bd",
+              "evidence_plan_digest": "cda9bf8e29d5aacc4472859db2b8de9391b2549465d8313ffb9d1b3bd807287d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "b8ac1ef54b7e047f012eb88001a956bdb5d2918b5d57b02cc0524284c1b7ba66"
+              "sha256": "4f44e3d957b15203287f7b2a7afd8be2d74b46a0fd7838f7315a3217ade30f5b"
             },
             {
-              "bytes": 53756,
+              "bytes": 56014,
               "path": "gemini/malware-responder/malware-responder.md",
-              "sha256": "ab2ec84182ec1cd399f81ddcd399f93dbed3adf42c35c6687d640ddae0287367"
+              "sha256": "0e3d64c3ad5892e2a19112313af899fac96d918fd88bc545148366e6812d52bc"
             },
             {
               "bytes": 33481,
               "path": "gemini/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "63e41d9baeca00b17ee80b65ae200c37d045795e7abb1322aaa531900d94404d"
+              "sha256": "9925c3f88d654769843186a0185be860d4ab0a06bb9f3eda14ebbc32b77c3ef1"
             },
             {
               "bytes": 70238,
               "path": "gemini/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "e4c2432780ec88ed8101e320b04c2a5fc0142482e2105c70df32f2118ac27f05",
+              "profile_contract_digest": "fb7756aef3dcfa3607c198e33dcb734eb7a6f8fcdb64f9596e454ab8f3405c85",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "639b59afd7749c12666f06160b657f1f285992dff2fc106339560336b1014f22"
+              "sha256": "5270a8303a63e5e1ad340b011aab8efa7fee34f25e40fafd7e214837c4fa6f00"
             },
             {
               "bytes": 70239,
               "path": "gemini/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "d2a2f7ae87915ccf853056182dc8e39b914f5317257433690c3612c3020fa5f8",
+              "profile_contract_digest": "b51f717b68739a2fa89842a30877e36777803fa364f2bf44df91b272b7e08efa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "36b489c5f3fd9b319ef5b478d31be4110068099c98342ceeb351e7c0d0b5fad4"
+              "sha256": "6cd3aa5fccdc95db00a922ea3fd332fa4753378c3f6565397c289424850ad7d7"
             },
             {
               "bytes": 34235,
@@ -5181,14 +5181,14 @@
               "sha256": "9dd2888f151f252899e481fa200d056e47dec35c7f62273a341e6a2797cf06d0"
             },
             {
-              "bytes": 15178,
+              "bytes": 15218,
               "path": "portable/malware-responder/agent.manifest.json",
-              "sha256": "bde92c0c1c5efc0996fe0d1f2726f12a69d95f6ff990041c41c141c60021e088"
+              "sha256": "90fddc48549f79d05b3600f8bebeeb76c72f539d927bd5d5b00dd4b7de829e8b"
             },
             {
-              "bytes": 53269,
+              "bytes": 55549,
               "path": "portable/malware-responder/agent.md",
-              "sha256": "44f2717ad868847a550b0715610717cccda288313dfdfdc262da035e67ea95f8"
+              "sha256": "06194231f0c633e18af03b0a33a1c1cfcd96146ac0b701dd56e4fa35bbd6eec1"
             },
             {
               "bytes": 9751,
@@ -5196,62 +5196,62 @@
               "sha256": "2a576832f28f57dde1e475efd79f7001cfb8ce6bbeabc8dab779af89f908a58d"
             },
             {
-              "bytes": 2013,
+              "bytes": 2050,
               "path": "portable/malware-responder/endorctl-setup.md",
-              "sha256": "f0d8c8e0c107acf325659f0ad826edcc6f96522904f25e991727c85704ba43c4"
+              "sha256": "718407bff197592c0bf7eb5a37511277c00b1814b6a7f281023c12c4f130a297"
             },
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "f6ec8e7044ae09fecae9f123d93da97114310a86dfdc7112cb98c05f534fb0bd",
+              "evidence_plan_digest": "cda9bf8e29d5aacc4472859db2b8de9391b2549465d8313ffb9d1b3bd807287d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "b8ac1ef54b7e047f012eb88001a956bdb5d2918b5d57b02cc0524284c1b7ba66"
+              "sha256": "4f44e3d957b15203287f7b2a7afd8be2d74b46a0fd7838f7315a3217ade30f5b"
             },
             {
-              "bytes": 6548,
+              "bytes": 6584,
               "path": "portable/malware-responder/output-contract.md",
-              "sha256": "4398887d7294c9e7c6f11e42cffa33361825ac08529b117808c0262b5e34e554"
+              "sha256": "030971256e2b174bcf9eca184c46a1b334cfb18a3751be052eb9cf4f1ed751f3"
             },
             {
               "bytes": 33481,
               "path": "portable/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "0508a9eee096aa06d2343b9a7eff62960bee1ce51b433984ce9cd8f77e92b7ee",
+              "profile_contract_digest": "085ee599a342e5a0cb0aa301edec7fe15c541456a1c461ada1c32521fcbb5bfa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "63e41d9baeca00b17ee80b65ae200c37d045795e7abb1322aaa531900d94404d"
+              "sha256": "9925c3f88d654769843186a0185be860d4ab0a06bb9f3eda14ebbc32b77c3ef1"
             },
             {
               "bytes": 70238,
               "path": "portable/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "e4c2432780ec88ed8101e320b04c2a5fc0142482e2105c70df32f2118ac27f05",
+              "profile_contract_digest": "fb7756aef3dcfa3607c198e33dcb734eb7a6f8fcdb64f9596e454ab8f3405c85",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "639b59afd7749c12666f06160b657f1f285992dff2fc106339560336b1014f22"
+              "sha256": "5270a8303a63e5e1ad340b011aab8efa7fee34f25e40fafd7e214837c4fa6f00"
             },
             {
               "bytes": 70239,
               "path": "portable/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "d2a2f7ae87915ccf853056182dc8e39b914f5317257433690c3612c3020fa5f8",
+              "profile_contract_digest": "b51f717b68739a2fa89842a30877e36777803fa364f2bf44df91b272b7e08efa",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "36b489c5f3fd9b319ef5b478d31be4110068099c98342ceeb351e7c0d0b5fad4"
+              "sha256": "6cd3aa5fccdc95db00a922ea3fd332fa4753378c3f6565397c289424850ad7d7"
             },
             {
               "bytes": 34235,
@@ -5863,9 +5863,9 @@
           "sha256": "341746fa1e735adc48ee497f7b18051a87e864aa28f27fcfbe6f04689842dfbc"
         },
         {
-          "bytes": 13052,
+          "bytes": 13389,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/malware-responder.md",
-          "sha256": "ab7f4b3860e8822a58ec0866c3aae6ae1a82f666a0db67f1463d101d1ed31128"
+          "sha256": "a081454fc0f3f6ed12ec9c317e46d225ecba03b0fc08dbc88d3d7e6ccc2fd55a"
         },
         {
           "bytes": 17262,
@@ -5963,9 +5963,9 @@
           "sha256": "761737192556b395f66ab8310aec1191ec8cd2db745b1fb93504ced3a2aa3569"
         },
         {
-          "bytes": 12801,
+          "bytes": 13138,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/malware-responder/SKILL.md",
-          "sha256": "54353ed2dbe24cc1be402acfcee3c69dc3dc21164633ba07c24be38b71230725"
+          "sha256": "d8ab1266f46ab459e7ace6095cf96c0ac8c828382692189ff4a4623224aaf2fe"
         },
         {
           "bytes": 17004,
@@ -6056,9 +6056,9 @@
           "sha256": "8e871b2be733b4992b39d2ffab2cdc5c3e45e489b7237ae3db29168c779050a8"
         },
         {
-          "bytes": 12209,
+          "bytes": 12546,
           "path": "plugins/claude/ai-plugins/agents/malware-responder.md",
-          "sha256": "75f1b817d4fbc1ce0954edfee56df16fb70e399f9668e5d008ecd0826ac7d5d6"
+          "sha256": "20c90567f9981268640cfa2ab8167341292a1bf8f549ae552bd764f355a353c7"
         },
         {
           "bytes": 16419,
@@ -6190,9 +6190,9 @@
           "sha256": "8e871b2be733b4992b39d2ffab2cdc5c3e45e489b7237ae3db29168c779050a8"
         },
         {
-          "bytes": 12209,
+          "bytes": 12546,
           "path": "plugins/claude/endor-labs-agent-kit/agents/malware-responder.md",
-          "sha256": "75f1b817d4fbc1ce0954edfee56df16fb70e399f9668e5d008ecd0826ac7d5d6"
+          "sha256": "20c90567f9981268640cfa2ab8167341292a1bf8f549ae552bd764f355a353c7"
         },
         {
           "bytes": 16419,
@@ -6404,9 +6404,9 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 12538,
+          "bytes": 12875,
           "path": "plugins/codex-directory/endor-labs-agent-kit/skills/malware-responder/SKILL.md",
-          "sha256": "e27694419cc1eb597df6e6447c303a99a5bed5521b602f984b27b04381f5e0ec"
+          "sha256": "95f998c8c450ea655cc67c5b4a9326262318b9819a8bd5a63e2fe52ce17ab733"
         },
         {
           "bytes": 316,
@@ -6562,9 +6562,9 @@
           "sha256": "ad806713836e78769945a11af6195a040835895b92623f38ea78156f6ced956a"
         },
         {
-          "bytes": 13148,
+          "bytes": 13493,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-malware-responder-agent.toml",
-          "sha256": "c36c3ee9b5a0d3fe6588d72bfcbb8d29114982d75a9423f62b20be7715a06206"
+          "sha256": "cfe0ba5b22148f4eb8e9dcf35c2664640721b1a0ab8d2155b9d16c28d05e63d0"
         },
         {
           "bytes": 17445,
@@ -6622,9 +6622,9 @@
           "sha256": "abe7d76849889ae05aa2de0bded267495b364b0e436e733f09baea593b424db0"
         },
         {
-          "bytes": 12222,
+          "bytes": 12559,
           "path": "plugins/codex/endor-labs-agent-kit/bundled-skills/malware-responder/SKILL.md",
-          "sha256": "faaa8ab9499d2e6548a15eba203207c10dbd6daa32c26129a22691e0953a65f0"
+          "sha256": "ae302b97627331c70d600c17ce792c150ae71b7ff1927997bfb5c7e2ff28f331"
         },
         {
           "bytes": 16425,
@@ -6771,9 +6771,9 @@
           "sha256": "ca3fe50806fc49088bc4cde34625844a81912a43009ca8c4df64738db8c8dd3a"
         },
         {
-          "bytes": 13006,
+          "bytes": 13343,
           "path": "agents/endor-malware-responder-agent.md",
-          "sha256": "c8beafac9affb04a6c63ddf6087f2107b730459408feda62e127430673f26796"
+          "sha256": "ceb28fb578a018182327ac5c7b8352277dd725abecc2b7092d000b4d7e090938"
         },
         {
           "bytes": 17230,
@@ -6896,9 +6896,9 @@
           "sha256": "5ce4796c90ad90add049aea1a49b60e9919181bb9108d5044564524764978717"
         },
         {
-          "bytes": 12690,
+          "bytes": 13027,
           "path": "skills/malware-responder/SKILL.md",
-          "sha256": "eba6e2dcbbdb5b1f10a38f092c61b5c1c6752a31fed5f363c7df5b885e4474c9"
+          "sha256": "20c3e2581ad3e93192b1fc44fbd056f040b11c3a85890b35f8775eb1a6cf4a27"
         },
         {
           "bytes": 9751,
@@ -7055,9 +7055,9 @@
           "sha256": "2a576832f28f57dde1e475efd79f7001cfb8ce6bbeabc8dab779af89f908a58d"
         },
         {
-          "bytes": 12197,
+          "bytes": 12534,
           "path": "cursor-sdk/agents/endor-malware-responder-agent.md",
-          "sha256": "301514d28b2315ec7ddc2a76334c3f72cd0ef495c1951a81f183011ebeac6a9d"
+          "sha256": "8b82fff67ef3676e82db5976d0e16c5085c349f865cb4a4317d0bbea4c623588"
         },
         {
           "bytes": 9936,
@@ -7183,9 +7183,9 @@
           "sha256": "d938ba0e176cd030eec4cd15d9883da3c94a17206201e8e7a8540e63b2db32ee"
         },
         {
-          "bytes": 12716,
+          "bytes": 13053,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/malware-responder.md",
-          "sha256": "e434b49a56913edebd97a3a3f4d3c1973017164cd275ed3570057644b6700994"
+          "sha256": "40145d1cacc2fa8759091857898405f7a6f0066a6b4c7c089313206877b603b5"
         },
         {
           "bytes": 16926,
@@ -7283,9 +7283,9 @@
           "sha256": "3ef942a3af1a20d25bedc3a9b816fa69c14ccfd939ecf8baae378d856d70ac25"
         },
         {
-          "bytes": 12455,
+          "bytes": 12792,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/malware-responder/SKILL.md",
-          "sha256": "a0cf6a7b7e297d68795693da21f79b64738a92b0cb70aab2eaf35771a28e15c8"
+          "sha256": "95e07793a62f19f840f329c1f420672693036ecd6ad64fac0602b798f223f5e7"
         },
         {
           "bytes": 16658,
