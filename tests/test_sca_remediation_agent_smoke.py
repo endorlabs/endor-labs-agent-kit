@@ -118,6 +118,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "VersionUpgrade/UIA evidence before calling" in prompt
     assert "A high finding count alone is not enough" in prompt
     assert "Do not require, configure, or start an Endor MCP server" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r Project" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r Project" in codex_prompt
     assert "endorctl agent api --agent-id sca-remediation list -r Finding" in prompt
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY' in prompt
     assert "uuid in [<FINDING_UUIDS>]" in prompt

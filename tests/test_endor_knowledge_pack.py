@@ -162,6 +162,7 @@ def test_knowledge_pack_loader_exposes_precedence_and_global_rules():
         recipe.id
         for recipe in pack.workflow_for("sca-remediation").evidence_query_recipes_for("selection-plan")
     ] == [
+        "project-by-git",
         "version-upgrade-summary",
         "sca-selection-evidence",
         "selected-source-usage",
@@ -427,17 +428,19 @@ def test_sca_composite_aggregation_fixture_preserves_counts_and_package_set():
     assert sum(grouped.values()) == fixture["expected"]["total_count"]
 
 
-def test_sca_evidence_check_promotes_two_bounded_reads_after_fixture_parity():
+def test_sca_evidence_check_exposes_project_resolution_and_two_bounded_reads():
     workflow = load_knowledge_pack().workflow_for("sca-remediation")
     assert workflow is not None
     recipes = workflow.evidence_query_recipes_for("evidence-check")
     plan = workflow.evidence_query_plan_for("evidence-check")
 
     assert [recipe.id for recipe in recipes] == [
+        "project-by-git",
         "finding-package-severity-groups",
         "version-upgrade-count",
     ]
     assert [recipe.canonical_id for recipe in recipes] == [
+        "project-by-git",
         "sca-finding-package-severity-groups",
         "version-upgrade-count",
     ]

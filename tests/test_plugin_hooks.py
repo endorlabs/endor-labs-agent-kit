@@ -486,12 +486,44 @@ def test_agent_api_enforcement_hook_blocks_legacy_transport_for_all_shell_hosts(
     assert json.loads(wrapped.stdout)["decision"] == "deny"
 
 
+def test_agent_api_enforcement_hook_blocks_missing_agent_id_for_all_shell_hosts():
+    claude_environment = os.environ.copy()
+    claude_environment["CLAUDE_PLUGIN_ROOT"] = "/tmp/endor-plugin"
+    claude = _run_agent_api_enforcement_hook(
+        event="PreToolUse",
+        command="/Users/example/endorctl agent api list -r Project -n example",
+        environment=claude_environment,
+    )
+    claude_output = json.loads(claude.stdout)
+    assert claude_output["hookSpecificOutput"]["permissionDecision"] == "deny"
+
+    cases = (
+        ("PreToolUse", "/Users/example/endorctl agent api list -r Project -n example"),
+        ("BeforeTool", "endorctl agent api get -r Finding -n example --uuid finding-1"),
+        ("beforeShellExecution", "true; endorctl agent api list -r Project -n example"),
+        ("PreToolUse", "npx -y endorctl agent api list -r Finding -n example"),
+        ("PreToolUse", "endorctl agent api --agent-id '' list -r Finding -n example"),
+        ("PreToolUse", "endorctl agent api --agent-id= list -r Finding -n example"),
+    )
+
+    for event, command in cases:
+        completed = _run_agent_api_enforcement_hook(event=event, command=command)
+        output = json.loads(completed.stdout)
+        if event == "beforeShellExecution":
+            assert output["permission"] == "deny"
+        else:
+            assert output["decision"] == "deny"
+
+
 def test_agent_api_enforcement_hook_allows_attributed_and_nonexecuting_text():
     for command in (
         "endorctl agent api --agent-id ai-sast-remediation list -r Finding -n example",
+        "endorctl agent api --agent-id=ai-sast-remediation list -r Finding -n example",
         "npx -y endorctl agent api --agent-id ai-sast-remediation list -r Finding -n example",
         "rg -n 'endorctl api' .",
+        "rg -n 'endorctl agent api' .",
         "echo 'use endorctl api only in old documentation'",
+        "echo 'use endorctl agent api with attribution'",
         "endorctl --version",
     ):
         completed = _run_agent_api_enforcement_hook(

@@ -171,6 +171,7 @@ Use namespace-scoped project, Finding, and VersionUpgrade evidence before recomm
 - SCA/remediation: VersionUpgrade/UIA before Finding detail; no broad Finding inventory.
 ### Evidence Query Recipes
 
+- `project-by-git`/evidence-check: `endorctl agent api --agent-id sca-remediation list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json`
 - `finding-package-severity-groups`/evidence-check: `endorctl agent api --agent-id sca-remediation list -r Finding -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY and spec.dismiss==false' --group-aggregation-paths spec.target_dependency_package_name,spec.level -o json`
 - `version-upgrade-count`/evidence-check: `endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace> --filter 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.upgrade_info.worth_it==true' --count -o json`
 

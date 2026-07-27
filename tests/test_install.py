@@ -271,9 +271,14 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     generated_agent = (
         dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents" / "endor-sca-remediation-agent.toml"
     ).read_text(encoding="utf-8")
+    generated_hook = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "hooks" / "enforce-agent-api.sh"
+    ).read_text(encoding="utf-8")
     assert f"package `endor-labs-agent-kit` v{package_version}." in generated_skill
     assert '# endor_agent_kit_package_name = "endor-labs-agent-kit"' in generated_agent
     assert f'# endor_agent_kit_package_version = "{package_version}"' in generated_agent
+    assert "endorctl agent api --agent-id sca-remediation list -r Project" in generated_agent
+    assert "MISSING_AGENT_ID_MESSAGE" in generated_hook
     codex_home = tmp_path / "codex-home"
     skills_home = tmp_path / "agents-home" / "skills"
     stale_cache_manifest = (
