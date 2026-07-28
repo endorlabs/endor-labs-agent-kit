@@ -35,6 +35,7 @@ def test_all_source_agents_include_parent_namespace_traverse_fallback():
             or "matching Endor projects" in body
             or "PROJECT_NOT_FOUND" in body
             or "reporting the project as missing" in body
+            or "reporting a miss" in body
         ), instructions
 
 

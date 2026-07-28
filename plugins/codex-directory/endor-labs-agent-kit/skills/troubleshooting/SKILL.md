@@ -10,7 +10,7 @@ description: |
 
 # Troubleshooting
 
-Generated from Endor Agent Kit recipe `troubleshooting` v0.1.0 for Endor Labs Agent Kit Codex public-directory plugin; package `endor-labs-agent-kit` v2.1.0.
+Generated from Endor Agent Kit recipe `troubleshooting` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.0.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

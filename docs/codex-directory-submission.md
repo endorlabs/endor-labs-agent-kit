@@ -1,4 +1,4 @@
-# Codex Public Directory Submission Packet
+# Universal Plugins Directory Submission Packet
 
 Use this packet for the skills-only Endor Labs Agent Kit submission. It is a
 release checklist and portal input template, not evidence that external access
@@ -13,7 +13,6 @@ or approval is complete.
   credentials, absolute user paths, and model pins
 - Build source: one exact immutable `ai-plugins` SHA after mirror merge
 - Workflow outputs: ZIP, SHA-256, validation report, and attestation
-- Maximum upload: 100 MB with one plugin root
 
 ## Proposed Listing
 
@@ -23,13 +22,14 @@ or approval is complete.
 - Category: Developer Tools
 - Long description: Use eleven source-generated Endor Labs workflows to
   investigate, triage, plan, and remediate application security and software
-  supply-chain risks from Codex.
+  supply-chain risks from ChatGPT or Codex.
 - Starter prompts:
   1. Browse and summarize my active Endor findings.
   2. Investigate an Endor vulnerability and explain its impact.
   3. Plan a safe dependency remediation using Endor evidence.
-- Release notes: Add the initial skills-only Codex distribution generated from
-  the same canonical Agent Kit recipes as the CLI/custom-agent package.
+- Release notes: Add the initial skills-only public plugin distribution
+  generated from the same canonical Agent Kit recipes as the CLI/custom-agent
+  package.
 - Regions: decide with Product and Legal immediately before submission.
 
 Verify the current production website, support, privacy, and terms URLs in the

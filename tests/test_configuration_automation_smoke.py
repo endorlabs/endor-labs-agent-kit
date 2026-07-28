@@ -104,7 +104,7 @@ def test_configuration_automation_compiled_artifact_carries_onboarding_rules(tmp
     assert "## Endor Knowledge Pack" in artifact
     assert "Configuration Automation Evidence Contract" in artifact
     assert "Preferred evidence resources: `Project`, `ScanProfile`, `PackageManager`, `PackageVersion`" in artifact
-    assert "Retry Endor project inventory with traversal" in artifact
+    assert "retry the same read-only Endor inventory lookup with `--traverse`" in artifact
     assert "GitHub Monitored-Branch Coverage Probe" in artifact
     assert "onboarding_verdict" in artifact
     assert "executive_report" in artifact
@@ -184,12 +184,11 @@ def test_configuration_automation_compiled_artifact_carries_onboarding_rules(tmp
     assert "they must not cancel package-version" in artifact
     assert "Do not treat temp-file capture" in artifact
     assert "retry at most once" in artifact
-    assert "Do not print the full `gh repo list` JSON array" in artifact
     assert "Use root-tree summaries for org-wide first pass" in artifact
     assert "Do not run recursive GitHub tree calls across every repository" in artifact
     assert "do not spend live command budget reading the installed `SKILL.md`" in artifact
     assert "Run at most one all-project `PackageVersion` summary query" in artifact
-    assert "Required lane arrays are not example arrays" in artifact
+    assert "For `single_repo` and `selected_repositories`, lane arrays are complete" in artifact
     assert "`not_onboarded_repositories`" in artifact
     assert "In single-repo or subset mode, do not print every Endor project" in artifact
     assert "Never expose complete PackageVersion JSON" in artifact

@@ -229,8 +229,8 @@ authorized. The ZIP is never committed or reconstructed manually. See
 ## Safety Notes
 
 - Do not create or publish a Gemini zip artifact.
-- Do not commit the Codex public-directory ZIP; build it only from an immutable
-  `ai-plugins` SHA through the review-gated workflow.
+- Do not commit the universal-directory skills-only ZIP; build it only from an
+  immutable `ai-plugins` SHA through the review-gated workflow.
 - Do not enable both Claude package ids in the same profile for normal use.
 - Do not enable the official `ai-plugins@claude-plugins-official` package with
   either Endor-hosted Claude id in the same profile.

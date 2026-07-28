@@ -998,7 +998,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md" in plugins_readme
     assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/maintainer-guide.md" in plugins_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert plugin_manifest["version"] == "2.1.0"
+    assert plugin_manifest["version"] == "2.2.0"
     assert plugin_manifest["skills"] == "./skills/"
     assert plugin_manifest["hooks"] == "./hooks/hooks.json"
     assert plugin_manifest["mcpServers"] == "./.mcp.json"
@@ -1026,7 +1026,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
     )
     assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert claude_plugin_manifest["version"] == "2.1.0"
+    assert claude_plugin_manifest["version"] == "2.2.0"
     assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert "agents" not in claude_plugin_manifest
     assert "skills" not in claude_plugin_manifest
@@ -1149,14 +1149,11 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     antigravity_plugin_manifest = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "plugin.json").read_text()
     )
-    assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert antigravity_plugin_manifest["description"] == "Endor Labs workflow skills and subagents for Antigravity CLI."
-    assert antigravity_plugin_manifest["version"] == gemini_plugin_manifest["version"]
-    assert antigravity_plugin_manifest["version"] == "2.1.0"
-    assert "mcpServers" not in antigravity_plugin_manifest
-    assert "settings" not in antigravity_plugin_manifest
-    assert "license" not in antigravity_plugin_manifest
-    assert "hooks" not in antigravity_plugin_manifest
+    assert antigravity_plugin_manifest == {
+        "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+        "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
+        "name": "endor-labs-agent-kit",
+    }
     codex_directory_manifest = json.loads(
         (
             dest
@@ -1244,9 +1241,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["keywords"])
     cursor_marketplace = json.loads((dest / ".cursor-plugin" / "marketplace.json").read_text())
     assert cursor_marketplace["name"] == "endorlabs"
-    assert cursor_marketplace["plugins"][0]["name"] == "endorlabs"
-    assert cursor_marketplace["plugins"][0]["source"] == "./"
-    assert cursor_marketplace["plugins"][0]["version"] == cursor_plugin_manifest["version"]
+    assert cursor_marketplace["plugins"] == [
+        {
+            "name": "endorlabs",
+            "source": "./",
+            "description": (
+                "Endor Labs Agent Kit setup and security workflow agents and skills."
+            ),
+        }
+    ]
     cursor_sdk_definitions = json.loads((dest / "cursor-sdk" / "agent_definitions.json").read_text())
     assert cursor_sdk_definitions["sdk"] == "cursor-python"
     assert cursor_sdk_definitions["default_model"] == "composer-2.5"
@@ -1372,7 +1375,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     ).read_text()
     assert "Run `endorctl scan`" in antigravity_setup
     assert "Run `endorctl host-check`" in antigravity_setup
-    assert "antigravity plugin validate" in antigravity_setup
+    assert "agy plugin validate" in antigravity_setup
     assert "Do not add plugin-wide MCP automatically" in antigravity_setup
     assert "Require `endorctl agent api --help` to succeed" in antigravity_setup
     assert "Invoke bundled subagents as `@agent-name`" in antigravity_setup
@@ -1648,7 +1651,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "included_agents": list(antigravity_agent_ids),
         "name": "endor-labs-agent-kit",
         "path": "plugins/antigravity/endor-labs-agent-kit",
-        "version": antigravity_plugin_manifest["version"],
+        "version": gemini_plugin_manifest["version"],
     }
     assert packages[("cursor", "endorlabs")] == {
         "artifacts": packages[("cursor", "endorlabs")]["artifacts"],

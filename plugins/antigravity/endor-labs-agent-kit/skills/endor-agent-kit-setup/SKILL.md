@@ -26,15 +26,15 @@ Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 Validate and install from the generated local plugin package:
 
 ```bash
-antigravity plugin validate /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
-antigravity plugin install /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
-antigravity plugin list
+agy plugin validate /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+agy plugin install /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+agy plugin list
 ```
 
 Remove the plugin only after explicit user approval:
 
 ```bash
-antigravity plugin uninstall endor-labs-agent-kit
+agy plugin uninstall endor-labs-agent-kit
 ```
 
 Antigravity CLI is the consumer migration path for Gemini CLI. Keep Gemini

@@ -20,5 +20,5 @@
   "displayName": "Endor Labs Agent Kit (Repository Root Guard)",
   "hooks": "./.claude-plugin/root-package-guard-hooks.json",
   "name": "endor-labs-agent-kit",
-  "version": "2.1.0"
+  "version": "2.2.0"
 }

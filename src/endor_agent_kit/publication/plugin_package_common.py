@@ -10,7 +10,7 @@ from endor_agent_kit.publication.model_recommendations import model_recommendati
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
-PLUGIN_VERSION_FALLBACK = "2.1.0"
+PLUGIN_VERSION_FALLBACK = "2.2.0"
 ENDOR_BRAND_GREEN = "#26D07C"
 LOGO_FILENAME = "logo.png"
 LOGO_PATH = f"assets/{LOGO_FILENAME}"
@@ -149,7 +149,7 @@ def plugin_packages_readme() -> str:
         "  Codex workflow skills, bundled custom-agent TOML files, installer script,",
         "  public marketplace metadata under `../.agents/plugins/marketplace.json`,",
         "  and local validation metadata under `codex/.agents/plugins/marketplace.json`.",
-        "- `codex-directory/endor-labs-agent-kit/`: Codex public-directory",
+        "- `codex-directory/endor-labs-agent-kit/`: Universal Plugins Directory",
         "  skills-only package with exactly 11 canonical workflow skills and",
         "  skill-local runtime helpers. It excludes setup, installers, custom",
         "  agents, hooks, MCP/apps, and model pins.",
@@ -166,7 +166,7 @@ def plugin_packages_readme() -> str:
         "  release artifact.",
         "- `antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin package with",
         "  setup skill, Antigravity workflow skills, subagents, minimal assets, and",
-        "  a root `plugin.json` validated with `antigravity plugin validate`.",
+        "  a root `plugin.json` validated with `agy plugin validate`.",
         "",
         "In the Agent Kit source repo, the Cursor package is generated at repository root as `.cursor-plugin/`,",
         f"root `agents/`, root `skills/`, root advisory `hooks/`, and `{LOGO_PATH}`",

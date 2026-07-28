@@ -132,9 +132,9 @@ The generated Gemini CLI extension package includes:
   with provenance comments and Gemini host-contract text.
 - `assets/logo.png`.
 
-Gemini packages do not declare plugin-wide MCP by default. Setup documents the
-observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
-restart after extension installation or update. Gemini CLI installs a local
+Gemini packages do not declare plugin-wide MCP by default. Setup documents that
+local installs may show a folder trust prompt and requires a restart after
+extension installation or update. Gemini CLI installs a local
 extension directory; public distribution clones the tagged GitHub repository
 and installs `plugins/gemini/endor-labs-agent-kit/` rather than installing the
 multi-host repository root. The package does not generate or publish a zip
@@ -164,7 +164,7 @@ The generated Antigravity CLI plugin package includes:
 - `assets/logo.png`.
 
 Antigravity packages do not declare plugin-wide MCP by default. The setup skill
-keeps `antigravity plugin validate`, installation, update, enable/disable, and
+keeps `agy plugin validate`, installation, update, enable/disable, and
 uninstall steps explicit and evidence-backed. Antigravity package contents are
 derived from the Gemini-compatible recipe set because Google's
 transition guidance says Gemini extensions become Antigravity plugins while
@@ -294,7 +294,7 @@ Validated locally:
   directory.
 - Gemini package structure with `gemini-extension.json` at the extension root
   and no zip artifact.
-- Antigravity plugin package validation with `antigravity plugin validate`.
+- Antigravity plugin package validation with `agy plugin validate`.
 - Cursor metadata JSON validation and root skill validation.
 - Cursor SDK `agent_definitions.json` validation and launcher `py_compile`.
 

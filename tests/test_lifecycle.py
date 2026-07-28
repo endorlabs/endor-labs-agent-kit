@@ -45,7 +45,7 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     agent = persisted["agents"][0]
     assert request == persisted
     assert persisted["kind"] == lifecycle.VALIDATION_REQUEST_KIND
-    assert persisted["source"]["package_version"] == "2.1.0"
+    assert persisted["source"]["package_version"] == "2.2.0"
     assert persisted["request"]["scope"] == "explicit"
     assert persisted["request"]["publishable"] is True
     assert agent["id"] == "sca-remediation"
@@ -55,6 +55,7 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     assert evidence_contract["output_fields"] == [
         "summary",
         "project_resolution",
+        "execution_context",
         "evidence_queries",
         "data_gaps",
         "policy_context",

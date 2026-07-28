@@ -177,6 +177,11 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     cursor_marketplace = json.loads(
         (target / ".cursor-plugin" / "marketplace.json").read_text(encoding="utf-8")
     )
+    assert set(cursor_marketplace["plugins"][0]) <= {
+        "name",
+        "source",
+        "description",
+    }
     assert cursor_marketplace["plugins"][0]["source"] == (
         "./plugins/cursor/endor-labs-agent-kit"
     )
@@ -302,6 +307,24 @@ def test_marketplace_validator_rejects_root_cursor_manifest_and_wrong_source(tmp
         "Cursor marketplace source must be ./plugins/cursor/endor-labs-agent-kit"
         in errors
     )
+
+
+def test_marketplace_validator_rejects_unsupported_cursor_entry_fields(tmp_path):
+    source = tmp_path / "agent-kit"
+    target = tmp_path / "ai-plugins"
+    source.mkdir()
+    target.mkdir()
+    _minimal_source_tree(source)
+    _write(target / "README.md", "Current generated Agent Kit package version: `0.0.1`.\n")
+    sync_distribution(source, target)
+    marketplace_path = target / ".cursor-plugin" / "marketplace.json"
+    marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
+    marketplace["plugins"][0]["version"] = "9.9.9"
+    marketplace_path.write_text(json.dumps(marketplace), encoding="utf-8")
+
+    errors = validate_marketplace_host_boundaries(target)
+
+    assert "Cursor marketplace plugin entry has unsupported fields: version" in errors
 
 
 def test_sync_distribution_dry_run_does_not_modify_target(tmp_path):

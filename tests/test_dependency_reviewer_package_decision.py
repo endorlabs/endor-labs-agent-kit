@@ -39,7 +39,8 @@ def test_dependency_reviewer_package_decision_compiled_artifacts_carry_load_bear
     assert "malware or a tenant firewall malware block" in enterprise
     assert "CISA KEV" in enterprise
     assert "`NOT_RECOMMENDED` for `package-decision` or `UNKNOWN` for a risk profile" in enterprise
-    assert "`profile`, `verdict`, `conditions`, `alternatives`" in enterprise
+    for field in ("profile", "verdict", "conditions", "alternatives"):
+        assert f"`{field}`" in enterprise
     assert "Keep tenant/project lookups out of scope unless the request needs them" in enterprise
     assert "retry that lookup\nwith `--traverse`" in enterprise
     assert "## Repository Inspection Rules" not in enterprise

@@ -3,13 +3,13 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `2.1.0`. Merging to `main` does not
+The current generated package version is `2.2.0`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
-## Unreleased
+## 2.2.0 - 2026-07-27
 
 ### Added
 
@@ -53,6 +53,11 @@ package metadata.
 
 ### Fixed
 
+- Aligned Antigravity manifests and install commands with the documented
+  `agy plugin` contract.
+- Removed unsupported metadata from Cursor marketplace plugin entries and added
+  a release gate that enforces Cursor's current `name`, `source`, and optional
+  `description` entry contract.
 - Made policy comparisons fail closed on invalid operand types, added trusted
   `invalid_facts` provenance, and introduced explicit numeric dotted-version
   operators instead of coercing version strings through generic comparisons.

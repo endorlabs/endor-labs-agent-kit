@@ -200,7 +200,7 @@ Antigravity-specific wording.
 
 The Antigravity plugin package declares root `plugin.json`, skills, subagents,
 and minimal assets. It does not declare plugin-wide MCP by default. Setup keeps
-`antigravity plugin validate`, install, enable/disable, and uninstall steps
+`agy plugin validate`, install, enable/disable, and uninstall steps
 explicit and evidence-backed. If Antigravity subagent delegation is unavailable,
 the matching skill remains the fallback and the agent must report the
 limitation.
