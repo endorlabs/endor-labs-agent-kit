@@ -12,9 +12,12 @@ from endor_agent_kit.catalog_schema import CatalogPluginPackage
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST, render_codex_skill
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
+    COMPOSER_ICON_PATH,
+    ENDOR_BRAND_GREEN,
     PLUGIN_DISPLAY_NAME,
     PLUGIN_NAME,
     package_version,
+    write_composer_icon,
     write_logo,
 )
 from endor_agent_kit.publication.runtime_support import (
@@ -135,8 +138,7 @@ def publish_codex_directory_plugin_package(
 
     logo = write_logo(package_dir / "assets")
     written.append(logo)
-    composer_icon = package_dir / "assets" / "composer-icon.png"
-    shutil.copy2(logo, composer_icon)
+    composer_icon = write_composer_icon(package_dir / "assets")
     written.append(composer_icon)
 
     manifest = package_dir / ".codex-plugin" / "plugin.json"
@@ -213,8 +215,8 @@ def _codex_directory_manifest(version: str) -> dict[str, object]:
                 "Investigate an Endor vulnerability and explain its impact.",
                 "Plan a safe dependency remediation using Endor evidence.",
             ],
-            "brandColor": "#4F46E5",
-            "composerIcon": "./assets/composer-icon.png",
+            "brandColor": ENDOR_BRAND_GREEN,
+            "composerIcon": f"./{COMPOSER_ICON_PATH}",
             "logo": "./assets/logo.png",
         },
     }

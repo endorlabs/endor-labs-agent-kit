@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
+import re
 from importlib import metadata, resources
 from pathlib import Path
 
 from endor_agent_kit.publication.model_recommendations import model_recommendation_lines
-import re
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
 PLUGIN_VERSION_FALLBACK = "2.1.0"
+ENDOR_BRAND_GREEN = "#26D07C"
 LOGO_FILENAME = "logo.png"
 LOGO_PATH = f"assets/{LOGO_FILENAME}"
 LOGO_SHA256 = "3bc1cce0aa35f12d7de7c537726305f6125692ef5f147774abd683a7b269917e"
+COMPOSER_ICON_FILENAME = "composer-icon.png"
+COMPOSER_ICON_PATH = f"assets/{COMPOSER_ICON_FILENAME}"
+COMPOSER_ICON_SHA256 = "bf4966324f33f257a2ece0adce4a15cb67bb251b45af46baea6c2768abde32a2"
 
 
 def package_version() -> str:
@@ -44,6 +48,16 @@ def logo_png() -> bytes:
     return logo.read_bytes()
 
 
+def composer_icon_png() -> bytes:
+    """Return the compact Endor Labs composer icon PNG."""
+
+    icon = resources.files("endor_agent_kit.publication").joinpath(
+        "assets",
+        COMPOSER_ICON_FILENAME,
+    )
+    return icon.read_bytes()
+
+
 def write_logo(assets_root: Path) -> Path:
     """Write the canonical plugin logo and prune the retired SVG logo."""
 
@@ -54,6 +68,18 @@ def write_logo(assets_root: Path) -> Path:
     logo = assets_root / LOGO_FILENAME
     logo.write_bytes(logo_png())
     return logo
+
+
+def write_composer_icon(assets_root: Path) -> Path:
+    """Write the compact composer icon and prune the retired SVG variant."""
+
+    assets_root.mkdir(parents=True, exist_ok=True)
+    stale_svg = assets_root / "composer-icon.svg"
+    if stale_svg.exists():
+        stale_svg.unlink()
+    icon = assets_root / COMPOSER_ICON_FILENAME
+    icon.write_bytes(composer_icon_png())
+    return icon
 
 
 def plugin_readme_start_here(

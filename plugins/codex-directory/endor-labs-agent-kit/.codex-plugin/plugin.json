@@ -6,7 +6,7 @@
   "description": "Endor Labs security workflows for Codex.",
   "homepage": "https://github.com/endorlabs/ai-plugins",
   "interface": {
-    "brandColor": "#4F46E5",
+    "brandColor": "#26D07C",
     "capabilities": [
       "Security",
       "Investigation",

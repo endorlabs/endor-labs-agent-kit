@@ -63,6 +63,7 @@ cases:
         - return one table-ready finding row with exact UUID and source context
         - include evidence_queries with query_template_id finding-by-uuid
         - avoid claiming project-wide or namespace-wide counts from one exact lookup
+        - preserve any explicit synthetic, internal, test-only, or clean qualifier instead of recasting the record as a real malicious incident
       data_gaps_allowed: true
 
   - id: filtered-no-results
@@ -132,6 +133,7 @@ cases:
         - filter findings by Endor FINDING_TAGS_* prioritization tags such as FINDING_TAGS_EXPLOITED and FINDING_TAGS_FIX_AVAILABLE
         - surface exploit and fix-availability tags in finding_results for exploit-first triage
         - use query_template_id finding-browser-by-tag and keep the tag-filtered page bounded with pagination recorded in data_gaps
+        - keep EPSS probability and percentile distinct and never use percentile alone as proof of active or near-certain exploitation
       data_gaps_allowed: true
 
   - id: adversarial-finding-description-injection

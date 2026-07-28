@@ -87,6 +87,10 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert "Do not use broad unfiltered `Finding --list-all` queries" in artifact
     assert "Bounded, page, sample, and top-N requests set `completeness_required=false`" in artifact
     assert "Never run an auxiliary `--list-all` query" in artifact
+    assert "Preserve explicit Endor qualifiers" in artifact
+    assert "Do not recast a qualified test record as a real malicious incident" in artifact
+    assert "Keep EPSS probability and percentile distinct" in artifact
+    assert "not evidence of active exploitation or near-certain exploitation" in artifact
     assert "FINDING_TAGS_REACHABLE_FUNCTION or" in artifact
     assert "Never issue a `page_size + 1`" in artifact
     assert "Ledger every attempted Endor query" in artifact
@@ -210,3 +214,12 @@ def test_findings_browser_eval_cases_cover_browse_outcomes():
     for case in evals["cases"]:
         assert case["expected"]["required_evidence"]
         assert isinstance(case["expected"]["data_gaps_allowed"], bool)
+
+    evidence_by_case = {
+        case["id"]: " ".join(case["expected"]["required_evidence"])
+        for case in evals["cases"]
+    }
+    assert "synthetic" in evidence_by_case["exact-finding-uuid-lookup"]
+    assert "EPSS probability and percentile distinct" in evidence_by_case[
+        "exploited-finding-prioritization"
+    ]

@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import struct
 import subprocess
 import sys
 from pathlib import Path
@@ -17,7 +18,13 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.cli import main
 from endor_agent_kit.publication import HostArtifactPublication, RootCatalogAggregate
-from endor_agent_kit.publication.plugin_package_common import LOGO_SHA256, logo_png
+from endor_agent_kit.publication.plugin_package_common import (
+    COMPOSER_ICON_SHA256,
+    ENDOR_BRAND_GREEN,
+    LOGO_SHA256,
+    composer_icon_png,
+    logo_png,
+)
 from endor_agent_kit.publisher import publish_recipe, publish_recipes
 
 from conftest import CATALOG_AGGREGATE_PATHS, CATALOG_ROOT_NAMES, repo_root
@@ -35,6 +42,16 @@ def _copy_agent(tmp_path: Path, agent_id: str = "dependency-reviewer") -> Path:
 
 def test_plugin_logo_is_canonical_endor_labs_asset():
     assert hashlib.sha256(logo_png()).hexdigest() == LOGO_SHA256
+
+
+def test_codex_composer_icon_is_a_distinct_compact_endor_labs_asset():
+    composer_icon = composer_icon_png()
+
+    assert hashlib.sha256(composer_icon).hexdigest() == COMPOSER_ICON_SHA256
+    assert composer_icon != logo_png()
+    assert composer_icon.startswith(b"\x89PNG\r\n\x1a\n")
+    assert struct.unpack(">II", composer_icon[16:24]) == (512, 512)
+    assert len(composer_icon) < 16_384
 
 
 def _claude_code_paths(agent_id: str, *, has_setup: bool) -> set[str]:
@@ -830,6 +847,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert (
+        "plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.png"
+        in written_paths
+    )
+    assert (
+        "plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.svg"
+        not in written_paths
+    )
     assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
@@ -979,6 +1004,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert plugin_manifest["mcpServers"] == "./.mcp.json"
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
+    assert plugin_manifest["interface"]["brandColor"] == ENDOR_BRAND_GREEN
     assert plugin_manifest["interface"]["defaultPrompt"] == [
         "Install the bundled Endor Agent Kit Codex custom agents. I approve the managed agents-only installation.",
         "Check whether the bundled Endor Agent Kit Codex custom agents are installed.",
@@ -1131,11 +1157,37 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "settings" not in antigravity_plugin_manifest
     assert "license" not in antigravity_plugin_manifest
     assert "hooks" not in antigravity_plugin_manifest
+    codex_directory_manifest = json.loads(
+        (
+            dest
+            / "plugins"
+            / "codex-directory"
+            / "endor-labs-agent-kit"
+            / ".codex-plugin"
+            / "plugin.json"
+        ).read_text()
+    )
+    assert codex_directory_manifest["interface"]["brandColor"] == ENDOR_BRAND_GREEN
+    assert (
+        codex_directory_manifest["interface"]["composerIcon"]
+        == "./assets/composer-icon.png"
+    )
+    assert not (
+        dest
+        / "plugins"
+        / "codex-directory"
+        / "endor-labs-agent-kit"
+        / "assets"
+        / "composer-icon.svg"
+    ).exists()
     cursor_plugin_manifest = json.loads((dest / ".cursor-plugin" / "plugin.json").read_text())
     assert cursor_plugin_manifest["name"] == "endorlabs"
     assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
-    assert cursor_plugin_manifest["author"]["url"] == "https://www.endorlabs.com/"
+    assert cursor_plugin_manifest["author"] == {
+        "email": "support@endor.ai",
+        "name": "Endor Labs",
+    }
     assert cursor_plugin_manifest["logo"] == "assets/logo.png"
     assert cursor_plugin_manifest["agents"] == "./agents/"
     assert cursor_plugin_manifest["skills"] == "./skills/"
