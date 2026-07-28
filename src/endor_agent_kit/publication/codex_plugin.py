@@ -13,6 +13,7 @@ from endor_agent_kit.catalog_schema import CatalogPluginPackage
 from endor_agent_kit.compilers.codex import HOST as CODEX_HOST, render_codex_skill
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
+    ENDOR_BRAND_GREEN,
     LOGO_PATH,
     PLUGIN_DISPLAY_NAME,
     PLUGIN_NAME,
@@ -543,7 +544,7 @@ def _codex_plugin_manifest(version: str) -> dict[str, object]:
                 "Check whether the bundled Endor Agent Kit Codex custom agents are installed.",
                 "Set up Endor Agent Kit for this machine.",
             ],
-            "brandColor": "#4F46E5",
+            "brandColor": ENDOR_BRAND_GREEN,
             "logo": f"./{LOGO_PATH}",
         },
     }

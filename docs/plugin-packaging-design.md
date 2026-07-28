@@ -39,7 +39,8 @@ The generated Codex plugin package includes:
   workflows.
 - `scripts/install_codex_agents.py` for provenance-gated global install, update,
   status, and uninstall of bundled Codex custom agents.
-- `assets/logo.png`.
+- `assets/logo.png`, with the official Endor green (`#26D07C`) used for the
+  manifest brand color.
 - Public repository marketplace metadata at `.agents/plugins/marketplace.json`.
 - Package-local marketplace metadata at
   `plugins/codex/.agents/plugins/marketplace.json` for local validation.
@@ -64,8 +65,12 @@ publisher replacement occurs by `(host, distribution_channel)`, so a partial
 publication cannot erase the sibling Codex package. Installation checks select
 only the repository channel.
 
-The directory package has one `.codex-plugin/plugin.json`, square logo and
-composer icon, and `skills/<canonical-id>/` containing only `SKILL.md`,
+The directory package has one `.codex-plugin/plugin.json`, the full square PNG
+logo, and a separate compact `assets/composer-icon.png` derived from the
+official Endor symbol artwork. Both Codex manifests use the official Endor
+green (`#26D07C`) for `interface.brandColor`; the directory manifest references
+the compact PNG through `interface.composerIcon`. The package's
+`skills/<canonical-id>/` directories contain only `SKILL.md`,
 `agents/openai.yaml`, and the skill-local artifact summarizer. It has no setup
 skill, custom-agent TOML, installer, hooks, MCP/apps, staging values, or model
 pin. The public skills use the customer's active Codex model. Large-result
@@ -186,6 +191,11 @@ The source-validation Cursor package includes:
 - `hooks/hooks.json` plus fail-open advisory hook scripts.
 - `.mcp.json` with the source-approved optional MCP server declaration.
 - `assets/logo.png`.
+
+The Cursor plugin manifest keeps website provenance in its top-level
+`homepage` and `repository` fields. Its `author` object contains only the
+schema-supported `name` and `email` fields; Cursor's current schema rejects an
+additional author URL.
 
 Cursor is intentionally not a Gemini wrapper. Its installable package does not
 depend on Gemini metadata; the Gemini CLI extension files live under

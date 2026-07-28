@@ -109,6 +109,11 @@ test -f cursor-sdk/agents/endor-cicd-posture-agent.md
 test -f cursor-sdk/agents/endor-malware-responder-agent.md
 test -f cursor-sdk/agents/endor-configuration-automation-agent.md
 python3 scripts/build_codex_directory_submission.py validate --root .
+test "#26D07C" = "$(jq -r .interface.brandColor plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "#26D07C" = "$(jq -r .interface.brandColor plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "./assets/composer-icon.png" = "$(jq -r .interface.composerIcon plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test -f plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.png
+test ! -e plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.svg
 test ! -e dist/endor-labs-agent-kit-codex-directory-"$VERSION".zip
 ```
 
@@ -206,6 +211,7 @@ Local release validation:
 ```bash
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+test '{"email":"support@endor.ai","name":"Endor Labs"}' = "$(jq -c .author .cursor-plugin/plugin.json)"
 python3 - <<'PY'
 import json
 from pathlib import Path
@@ -493,21 +499,24 @@ installs from the generated plugin directory.
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and public GitHub install behavior can change:
 
-Last checked for this checklist: 2026-06-16.
+Last checked for this checklist: 2026-07-27.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`
 - Claude Code plugin reference: `https://code.claude.com/docs/en/plugins-reference`
 - Codex plugins: `https://developers.openai.com/codex/plugins`
 - Codex plugin build docs: `https://developers.openai.com/codex/plugins/build`
+- Codex plugin manifest reference: `https://github.com/openai/codex/blob/main/codex-rs/skills/src/assets/samples/plugin-creator/references/plugin-json-spec.md`
 - Codex subagents: `https://developers.openai.com/codex/subagents`
-- Gemini extension authoring: `https://geminicli.com/docs/extensions/writing-extensions/`
-- Gemini extension release docs: `https://geminicli.com/docs/extensions/releasing/`
-- Gemini subagents: `https://geminicli.com/docs/core/subagents/`
-- Antigravity CLI plugins: `https://antigravity.google/docs/cli-plugins`
+- Gemini extension authoring: `https://google-gemini.github.io/gemini-cli/docs/extensions/`
+- Gemini extension release docs: `https://google-gemini.github.io/gemini-cli/docs/extensions/releasing/`
+- Gemini subagents: `https://google-gemini.github.io/gemini-cli/docs/core/subagents/`
+- Antigravity CLI plugins: `https://antigravity.google/docs/cli/plugins`
 - Gemini CLI to Antigravity migration: `https://antigravity.google/docs/gcli-migration`
 - Google transition announcement: `https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/`
-- Cursor plugin schema and package examples: `https://github.com/cursor/plugins`
+- Cursor plugin schema: `https://github.com/cursor/plugins/blob/main/schemas/plugin.schema.json`
+- Cursor package examples: `https://github.com/cursor/plugins`
+- Endor Labs brand resources: `https://www.endorlabs.com/partner-resources?filter=design`
 - Cursor Python SDK: `https://cursor.com/docs/sdk/python`
 - Endor Labs `endorctl` install and auth: `https://docs.endorlabs.com/developers-api/cli/install-and-configure`
 - Endor Labs `endorctl init`: `https://docs.endorlabs.com/developers-api/cli/commands/init`
