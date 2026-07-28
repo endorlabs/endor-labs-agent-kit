@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "c5148c0c803ea4b36f112b747665456c8b78345c11ea9177ec0f070193dad74c"
+ENTERPRISE_EDITION_SHA256 = "4ed4713c38edad243ba86d42a42a4777db324fcb2d2aba9bdc3166552084e70f"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -510,8 +510,9 @@ def _prompt_budget(relative_path: str) -> int:
         return 17_450
     if agent_id == "findings-browser":
         # Traversal, completeness, filter, and query-ledger rules are required
-        # safety behavior; retain them with bounded agent-specific headroom.
-        return 14_750
+        # safety behavior. The largest generated host projection is 15,305
+        # characters; retain it with small, agent-specific headroom.
+        return 15_500
     if agent_id == "malware-responder":
         # The exact Finding-to-DependencyMetadata route prevents broad tenant
         # inventory reads and incorrect PackageVersion target lookups. The

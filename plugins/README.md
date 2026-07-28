@@ -35,7 +35,7 @@ Current generated package slices:
   Codex workflow skills, bundled custom-agent TOML files, installer script,
   public marketplace metadata under `../.agents/plugins/marketplace.json`,
   and local validation metadata under `codex/.agents/plugins/marketplace.json`.
-- `codex-directory/endor-labs-agent-kit/`: Codex public-directory
+- `codex-directory/endor-labs-agent-kit/`: Universal Plugins Directory
   skills-only package with exactly 11 canonical workflow skills and
   skill-local runtime helpers. It excludes setup, installers, custom
   agents, hooks, MCP/apps, and model pins.
@@ -52,7 +52,7 @@ Current generated package slices:
   release artifact.
 - `antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin package with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
-  a root `plugin.json` validated with `antigravity plugin validate`.
+  a root `plugin.json` validated with `agy plugin validate`.
 
 In the Agent Kit source repo, the Cursor package is generated at repository root as `.cursor-plugin/`,
 root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`

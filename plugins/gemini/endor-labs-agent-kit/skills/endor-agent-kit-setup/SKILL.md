@@ -36,7 +36,7 @@ git clone --depth 1 --branch <tag> https://github.com/endorlabs/ai-plugins ai-pl
 gemini extensions install ./ai-plugins/plugins/gemini/endor-labs-agent-kit
 ```
 
-Observed local validation on Gemini CLI 0.44.1: local installs may still
+Local Gemini CLI installs may still
 show a folder trust prompt even when `--consent` is supplied. Inspect the
 extension package, approve only the expected Agent Kit folder,
 then restart Gemini CLI so skills and subagents become visible.

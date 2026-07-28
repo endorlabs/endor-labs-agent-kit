@@ -37,5 +37,5 @@
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",
-  "version": "2.1.0"
+  "version": "2.2.0"
 }

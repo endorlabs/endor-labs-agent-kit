@@ -14,7 +14,7 @@ Generated package roots:
 - Claude Code: `plugins/claude/endor-labs-agent-kit/`
 - Claude Code legacy compatibility: `plugins/claude/ai-plugins/`
 - Codex: `plugins/codex/endor-labs-agent-kit/`
-- Codex public directory: `plugins/codex-directory/endor-labs-agent-kit/`
+- Universal Plugins Directory: `plugins/codex-directory/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
 - Cursor source validation: `.cursor-plugin/`, root generated `agents/`, root
@@ -48,9 +48,9 @@ workflow opens or updates an `ai-plugins` sync PR from the merged Agent Kit
 commit; maintainers must intentionally update `pyproject.toml`, regenerate, and
 review `CHANGELOG.md` when a release version changes.
 
-For the current package version, use an exact tag that matches the generated
-package version, not a `v`-prefixed tag, unless the generator and package
-manifests are intentionally changed to emit a `v` prefix.
+For the generated provider packages in `ai-plugins`, use an exact tag that
+matches the package version, not a `v`-prefixed tag. The separate signed Agent
+Kit catalog release uses `agents-v<version>`.
 
 ```bash
 VERSION="$(python3 - <<'PY'
@@ -65,7 +65,7 @@ print(match.group(1))
 PY
 )"
 test "$VERSION" = "$(jq -r .version plugins/gemini/endor-labs-agent-kit/gemini-extension.json)"
-test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plugin.json)"
+test "$VERSION" = "$(jq -r '.plugin_packages[] | select(.host == "antigravity" and .name == "endor-labs-agent-kit") | .version' manifest.json)"
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
@@ -198,9 +198,9 @@ Before release, verify:
   generated mirror and proves that the root official package exposes canonical
   Sonnet agents, setup, and Claude hooks while the nested Cursor package exposes
   only its Composer agents, skills, hooks, MCP config, and assets.
-- The package version and `agents-v<version>` tag are new and unused. Never move
-  or reuse a published catalog tag; the existing `2.1.0` package version must be
-  intentionally advanced before the next release.
+- The Agent Kit catalog tag `agents-v<version>` and the `ai-plugins` provider
+  tag `<version>` are both new and unused. Never move or reuse either published
+  tag; intentionally advance the package version before every content release.
 
 Use `docs/distribution-sync.md` only for local dry runs or manual fallback.
 
@@ -215,6 +215,10 @@ test '{"email":"support@endor.ai","name":"Endor Labs"}' = "$(jq -c .author .curs
 python3 - <<'PY'
 import json
 from pathlib import Path
+
+marketplace = json.loads(Path(".cursor-plugin/marketplace.json").read_text(encoding="utf-8"))
+assert len(marketplace["plugins"]) == 1
+assert set(marketplace["plugins"][0]) <= {"name", "source", "description"}
 
 definitions = json.loads(Path("cursor-sdk/agent_definitions.json").read_text(encoding="utf-8"))
 for agent in definitions["agents"]:
@@ -249,6 +253,19 @@ python3 -m json.tool \
 python3 -m json.tool \
   "$AI_PLUGINS_REPO/plugins/cursor/endor-labs-agent-kit/mcp.json" \
   >/dev/null
+python3 - "$AI_PLUGINS_REPO" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+marketplace = json.loads(
+    (root / ".cursor-plugin/marketplace.json").read_text(encoding="utf-8")
+)
+entry = marketplace["plugins"][0]
+assert set(entry) <= {"name", "source", "description"}
+assert entry["source"] == "./plugins/cursor/endor-labs-agent-kit"
+PY
 test ! -e "$AI_PLUGINS_REPO/.cursor-plugin/plugin.json"
 test ! -e "$AI_PLUGINS_REPO/.mcp.json"
 ```
@@ -298,8 +315,8 @@ orchestration, and backend services.
 Local release validation:
 
 ```bash
-claude plugin validate plugins/claude/endor-labs-agent-kit
-claude plugin validate plugins/claude/ai-plugins
+claude plugin validate plugins/claude/endor-labs-agent-kit --strict
+claude plugin validate plugins/claude/ai-plugins --strict
 python scripts/smoke_test_provider_installations.py --root . --require-claude-cli-validation
 claude --plugin-dir plugins/claude/endor-labs-agent-kit
 ```
@@ -351,7 +368,7 @@ lands, run a fresh official install:
 
 ```bash
 python3 scripts/validate_marketplace_host_boundaries.py --root /path/to/ai-plugins
-claude plugin validate /path/to/ai-plugins
+claude plugin validate /path/to/ai-plugins --strict
 test ! -e /path/to/ai-plugins/.mcp.json
 ```
 
@@ -413,7 +430,7 @@ field. Before that approval, the plugin must expose only `endor-agent-kit-setup`
 the workflow skills under `bundled-skills/` are explicit fallbacks and must not
 compete with named custom-agent delegation.
 
-### Codex public directory
+### Universal Plugins Directory (ChatGPT and Codex)
 
 The public-directory package is separate from the repository/CLI package.
 Validate its unpacked tree in Agent Kit and the generated mirror:
@@ -443,9 +460,9 @@ gemini extensions uninstall endor-labs-agent-kit
 gemini extensions list
 ```
 
-Gemini CLI 0.44.1 may still show a folder trust prompt for local paths even with
+Gemini CLI may still show a folder trust prompt for local paths even with
 `--consent`. Inspect the package source and approve only the expected generated
-folder.
+folder rather than relying on a specific CLI version.
 
 As of 2026-06-16, Google documents that Gemini CLI access for unpaid, Google
 One, Google AI Pro, and Google AI Ultra consumer users transitions to
@@ -481,11 +498,11 @@ multi-host repository root.
 Local release validation:
 
 ```bash
-antigravity plugin validate plugins/antigravity/endor-labs-agent-kit
-antigravity plugin install /absolute/path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
-antigravity plugin list
-antigravity plugin uninstall endor-labs-agent-kit
-antigravity plugin list
+agy plugin validate plugins/antigravity/endor-labs-agent-kit
+agy plugin install /absolute/path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+agy plugin list
+agy plugin uninstall endor-labs-agent-kit
+agy plugin list
 ```
 
 Antigravity CLI currently validates a package directory with `plugin.json` at

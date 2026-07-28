@@ -1,4 +1,4 @@
-"""Codex public-directory skills-only package publication."""
+"""Universal Plugins Directory skills-only package publication."""
 
 from __future__ import annotations
 
@@ -54,7 +54,7 @@ CODEX_DIRECTORY_SUMMARIZER_GUIDANCE = (
 
 @dataclass(frozen=True)
 class CodexDirectoryPluginPublication:
-    """Result of publishing the Codex public-directory package."""
+    """Result of publishing the Universal Plugins Directory package."""
 
     package_record: CatalogPluginPackage
     written: tuple[Path, ...]
@@ -116,7 +116,7 @@ def publish_codex_directory_plugin_package(
         skill.write_text(
             render_codex_skill(
                 prepared,
-                generated_context="Endor Labs Agent Kit Codex public-directory plugin",
+                generated_context="Endor Labs Agent Kit Universal Plugins Directory plugin",
                 compact_plugin=True,
                 package_name=PLUGIN_NAME,
                 package_version=version,

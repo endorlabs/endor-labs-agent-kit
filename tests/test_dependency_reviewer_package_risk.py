@@ -35,7 +35,8 @@ def test_dependency_reviewer_package_risk_compiled_artifacts_carry_expected_rule
     assert "get_endor_vulnerability" in enterprise
     assert "Never fabricate" in enterprise
     assert "data_gaps" in enterprise
-    assert "`profile`, `risk_posture`, `findings`, `strengths`, `next_checks`" in enterprise
+    for field in ("profile", "risk_posture", "findings", "strengths", "next_checks"):
+        assert f"`{field}`" in enterprise
     assert "Keep tenant/project lookups out of scope unless the request needs them" in enterprise
     assert "retry that lookup\nwith `--traverse`" in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]

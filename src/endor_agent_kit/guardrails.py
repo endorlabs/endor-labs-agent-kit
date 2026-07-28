@@ -1619,11 +1619,19 @@ def _check_antigravity_plugin_package(
     manifest_path = antigravity_package / "plugin.json"
     manifest = _load_json_mapping(root, manifest_path, errors)
     if manifest:
+        allowed_fields = {"$schema", "name", "description"}
+        unsupported_fields = sorted(set(manifest) - allowed_fields)
+        if unsupported_fields:
+            errors.append(
+                "plugins/antigravity/endor-labs-agent-kit/plugin.json: unsupported fields: "
+                + ", ".join(unsupported_fields)
+            )
+        if manifest.get("$schema") != "https://antigravity.google/schemas/v1/plugin.json":
+            errors.append(
+                "plugins/antigravity/endor-labs-agent-kit/plugin.json: $schema must use the official Antigravity plugin schema"
+            )
         if manifest.get("name") != "endor-labs-agent-kit":
             errors.append("plugins/antigravity/endor-labs-agent-kit/plugin.json: name must be endor-labs-agent-kit")
-        for forbidden in ("mcpServers", "settings", "license", "hooks"):
-            if forbidden in manifest:
-                errors.append(f"plugins/antigravity/endor-labs-agent-kit/plugin.json: must not declare {forbidden}")
 
     setup = antigravity_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
@@ -1633,7 +1641,7 @@ def _check_antigravity_plugin_package(
         for required in (
             "Run `endorctl scan`",
             "Run `endorctl host-check`",
-            "antigravity plugin validate",
+            "agy plugin validate",
             "Do not add plugin-wide MCP automatically",
             "Antigravity subagents are host-managed",
         ):

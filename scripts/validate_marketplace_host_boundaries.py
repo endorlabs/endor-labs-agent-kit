@@ -19,6 +19,7 @@ CURSOR_PACKAGE_MANIFEST = CURSOR_PACKAGE_ROOT / ".cursor-plugin/plugin.json"
 STALE_CURSOR_ROOT_MANIFEST = Path(".cursor-plugin/plugin.json")
 STALE_CURSOR_RUNTIME_ROOT = Path("cursor/endor-labs-agent-kit")
 COMPONENT_FIELDS = ("agents", "skills", "hooks", "mcpServers")
+CURSOR_MARKETPLACE_PLUGIN_FIELDS = frozenset({"name", "source", "description"})
 FORBIDDEN_EXPOSED_TEXT = (
     "matt-staging",
     "/Users/",
@@ -147,6 +148,14 @@ def validate_marketplace_host_boundaries(root: Path) -> list[str]:
     if cursor_entry is None:
         errors.append("Cursor marketplace must contain exactly one plugin entry")
     else:
+        unsupported_fields = sorted(
+            set(cursor_entry) - CURSOR_MARKETPLACE_PLUGIN_FIELDS
+        )
+        if unsupported_fields:
+            errors.append(
+                "Cursor marketplace plugin entry has unsupported fields: "
+                + ", ".join(unsupported_fields)
+            )
         if cursor_entry.get("name") != "endorlabs":
             errors.append("Cursor marketplace plugin id must remain endorlabs")
         if cursor_entry.get("source") != expected_cursor_source:

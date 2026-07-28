@@ -527,7 +527,7 @@ def _cursor_plugin_manifest(version: str) -> dict[str, object]:
     }
 
 
-def _cursor_marketplace_manifest(version: str) -> dict[str, object]:
+def _cursor_marketplace_manifest(_version: str) -> dict[str, object]:
     return {
         "name": "endorlabs",
         "owner": {
@@ -542,21 +542,6 @@ def _cursor_marketplace_manifest(version: str) -> dict[str, object]:
                 "name": CURSOR_PLUGIN_NAME,
                 "source": "./",
                 "description": "Endor Labs Agent Kit setup and security workflow agents and skills.",
-                "version": version,
-                "author": {
-                    "name": "Endor Labs",
-                    "url": "https://www.endorlabs.com/",
-                },
-                "category": "Developer Tools",
-                "keywords": [
-                    "endor-labs",
-                    "security",
-                    "sca",
-                    "sast",
-                    "cursor",
-                    "agentic remediation",
-                    "AppSec",
-                ],
             }
         ],
     }

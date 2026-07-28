@@ -28,6 +28,7 @@ from endor_agent_kit.publication.runtime_support import write_artifact_summarize
 ANTIGRAVITY_HOST = "antigravity"
 ANTIGRAVITY_PLUGIN_PACKAGE_ROOT = Path("plugins") / ANTIGRAVITY_HOST / PLUGIN_NAME
 ANTIGRAVITY_SETUP_SKILL = "endor-agent-kit-setup"
+ANTIGRAVITY_PLUGIN_SCHEMA = "https://antigravity.google/schemas/v1/plugin.json"
 ANTIGRAVITY_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 ANTIGRAVITY_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
@@ -133,7 +134,7 @@ def publish_antigravity_plugin_package(
 
     manifest = package_dir / "plugin.json"
     manifest.write_text(
-        json.dumps(_antigravity_plugin_manifest(version), indent=2, sort_keys=True) + "\n",
+        json.dumps(_antigravity_plugin_manifest(), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     written.append(manifest)
@@ -229,32 +230,11 @@ def _antigravity_hooks_config() -> dict[str, object]:
     }
 
 
-def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
+def _antigravity_plugin_manifest() -> dict[str, object]:
     return {
+        "$schema": ANTIGRAVITY_PLUGIN_SCHEMA,
         "name": PLUGIN_NAME,
-        "version": version,
         "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
-        "short_description": "Endor Labs security workflows for Antigravity.",
-        "long_description": (
-            "Setup guidance, workflow skills, and subagents for Endor Labs SCA "
-            "remediation, AI SAST remediation, troubleshooting, and onboarding analysis."
-        ),
-        "author": {
-            "name": "Endor Labs",
-            "url": "https://www.endorlabs.com/",
-        },
-        "repository": "https://github.com/endorlabs/ai-plugins",
-        "homepage": "https://github.com/endorlabs/ai-plugins",
-        "keywords": [
-            "Endor Labs",
-            "AppSec",
-            "agentic AppSec",
-            "agentic remediation",
-            "SAST remediation",
-            "OSS Upgrade Investigator",
-            "SCA remediation",
-            "software composition analysis",
-        ],
     }
 
 
@@ -283,15 +263,15 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "Validate and install from the generated local plugin package:",
         "",
         "```bash",
-        f"antigravity plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        f"antigravity plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        "antigravity plugin list",
+        f"agy plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        f"agy plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        "agy plugin list",
         "```",
         "",
         "Remove the plugin only after explicit user approval:",
         "",
         "```bash",
-        f"antigravity plugin uninstall {PLUGIN_NAME}",
+        f"agy plugin uninstall {PLUGIN_NAME}",
         "```",
         "",
         "Antigravity CLI is the consumer migration path for Gemini CLI. Keep Gemini",
@@ -337,7 +317,7 @@ def _antigravity_plugin_readme(
     start_here = plugin_readme_start_here(
         host_id="antigravity",
         host_label="Antigravity CLI",
-        install_summary="Validate and install the generated Antigravity plugin directory with `antigravity plugin` commands.",
+        install_summary="Validate and install the generated Antigravity plugin directory with `agy plugin` commands.",
         setup_summary=f"ask Antigravity CLI to use the `{ANTIGRAVITY_SETUP_SKILL}` skill.",
     )
     return "\n".join([
@@ -364,9 +344,9 @@ def _antigravity_plugin_readme(
         "## Install From A Local Checkout",
         "",
         "```bash",
-        f"antigravity plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        f"antigravity plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        "antigravity plugin list",
+        f"agy plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        f"agy plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        "agy plugin list",
         "```",
         "",
         "Restart Antigravity CLI after installing or reinstalling the plugin if",
@@ -412,7 +392,7 @@ def _antigravity_plugin_readme(
         "",
         "## Provider Docs",
         "",
-        "- https://antigravity.google/docs/cli-plugins",
+        "- https://antigravity.google/docs/cli/plugins",
         "- https://antigravity.google/docs/hooks",
         "- https://antigravity.google/docs/gcli-migration",
         "- https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/",

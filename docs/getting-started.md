@@ -10,7 +10,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/README.md` | Plugin install with Claude Code agents and setup skill. |
 | Codex CLI/custom agents | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with one setup skill plus approval-gated managed custom-agent TOML files. |
-| Codex public directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows and the customer's active Codex model. |
+| Universal Plugins Directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows and the customer's active model in ChatGPT or Codex. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
 | Cursor | `/add-plugin endorlabs` | Public Cursor plugin with generated workflow agents, support skills, advisory hooks, and MCP metadata. |
