@@ -112,7 +112,7 @@ cases:
       findings_verdict: INSUFFICIENT_DATA
       required_evidence:
         - identify missing namespace provenance as a blocker
-        - return the required JSON shape with data_gaps instead of guessing tenant evidence
+        - return a human-readable blocker with material data gaps instead of guessing tenant evidence; when structured JSON is explicitly requested, use the required shape
         - avoid broad Finding queries without namespace
         - include evidence_queries entries for available user filters and missing Endor lookup
       data_gaps_allowed: true

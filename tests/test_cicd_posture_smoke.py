@@ -108,6 +108,7 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
         / "cicd-posture.md"
     ).read_text(encoding="utf-8")
     header = artifact.split("---", 2)[1]
+    normalized_artifact = " ".join(artifact.split())
 
     assert "CI/CD And Supply Chain Posture" in artifact
     assert "## Endor Knowledge Pack" in artifact
@@ -151,8 +152,10 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     assert "Never return either field as an object\nor map" in artifact
     assert "must use `filter_summary` and `field_mask_summary`" in artifact
     assert "do not emit raw\n`filter`, `field_mask`, `command`, or `output` fields" in artifact
-    assert "Return exactly one bare strict JSON object" in artifact
-    assert "The first non-whitespace character must be `{`" in artifact
+    assert "By default, return concise human-readable Markdown" in normalized_artifact
+    assert "If the user or calling runtime explicitly requests JSON" in normalized_artifact
+    assert "return exactly one bare strict JSON object" in normalized_artifact
+    assert "In structured JSON mode, the first non-whitespace character must be `{`" in normalized_artifact
     assert "Do not replace them with a generic\n`evidence` field" in artifact
     assert "return at most ten representative rows" in artifact
     assert "disallowedTools: Bash" not in header

@@ -175,9 +175,9 @@ corroborating Project record when default-branch labeling matters.
 
 ## Output
 
-Return exactly one bare JSON object matching `recipe.yaml` outputs, including `summary`, `project_resolution`, `evidence_queries`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, and `data_gaps`. The first non-whitespace character must be `{` and the last must be `}`. Do not add a preamble, trailing explanation, Markdown fence, or a different top-level key such as `findings`.
+By default, return concise human-readable Markdown leading with the remediation verdict, supporting evidence, material data gaps, and next steps. If the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract, return exactly one bare JSON object matching `recipe.yaml` outputs, including `summary`, `project_resolution`, `evidence_queries`, `verdicts`, `patches`, `change_requests`, `approvals`, `exception_policies`, `tickets`, and `data_gaps`. In that mode, the first non-whitespace character must be `{` and the last must be `}`. Do not add a preamble, trailing explanation, Markdown fence, or a different top-level key such as `findings`.
 
-Final JSON fields must summarize query evidence without raw shell or API command strings. Do not put literal `endorctl agent api --agent-id ai-sast-remediation`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`, `summary`, `project_resolution`, `verdicts`, `evidence_queries[].reason`, or verdict prose. Use compact summaries such as `project lookup by stored project name returned no results` or `selected Finding detail was unavailable`, while keeping the exact safe query recipe in internal tool use only.
+In structured JSON mode, fields must summarize query evidence without raw shell or API command strings. Do not put literal `endorctl agent api --agent-id ai-sast-remediation`, `git`, `gh`, `curl`, or shell pipeline text in `data_gaps`, `summary`, `project_resolution`, `verdicts`, `evidence_queries[].reason`, or verdict prose. Use compact summaries such as `project lookup by stored project name returned no results` or `selected Finding detail was unavailable`, while keeping the exact safe query recipe in internal tool use only.
 
 Every `patches[]` object for a generated remediation patch must include the mechanical fields required by the remediation validator: `finding_uuid`, `source_sha`, `patch_diff`, and `validation_plan`. Copy `source_sha` from the verified Endor finding / pinned source evidence; do not rely on the matching `verdicts[].source_sha` as an implicit substitute.
 
@@ -203,7 +203,7 @@ endor-agent-kit lint-ai-sast-exception-policy-comment policy-comment.md
 endor-agent-kit validate-ai-sast-output ai-sast-exception-output.json --gate exception
 ```
 
-When local file writes are allowed, write the normalized JSON to a temporary output path, render the PR/MR body with `render-ai-sast-pr-body`, lint it with `lint-ai-sast-pr-body`, inject the lint-clean rendered body into `change_requests[].body`, and then run `validate-ai-sast-output --gate remediation` on the final JSON before opening or updating a PR/MR. Use a host-allowed scratch path such as the current workspace or an explicitly added Agent Kit directory if the host blocks `/tmp` writes. When a local checkout at the source SHA is available, also write `patches[].patch_diff` to a temporary patch file and run `git apply --check` against that checkout; do not claim remediation readiness if the patch is structurally invalid or cannot apply. Every generated remediation patch must include concrete changed-file evidence in the final JSON: prefer `patches[].changed_file`, `patches[].file`, or `patches[].path` for the primary file and use `patches[].changed_files` only when multiple files belong to one patch object. Also copy changed files into `change_requests[].changed_files` when the PR/MR object exposes them. Do not put changed-file evidence only in prose, `summary`, `reason`, or the PR/MR body. Do not run a known-incomplete remediation payload through the validator as a normal expected-failure step, and do not claim the remediation gate passed until the body is present and the final payload validates. Do not hand-render the body when the renderer is available. If the user explicitly forbids all file writes, do not create temporary files; leave `change_requests[].body` unset or mark it as renderer-required, report the no-write gate in `data_gaps`, and do not claim that mechanical checks ran.
+When local file writes are allowed, write the normalized structured remediation payload to a temporary output path, render the PR/MR body with `render-ai-sast-pr-body`, lint it with `lint-ai-sast-pr-body`, inject the lint-clean rendered body into `change_requests[].body`, and then run `validate-ai-sast-output --gate remediation` on that payload before opening or updating a PR/MR. Use a host-allowed scratch path such as the current workspace or an explicitly added Agent Kit directory if the host blocks `/tmp` writes. When a local checkout at the source SHA is available, also write `patches[].patch_diff` to a temporary patch file and run `git apply --check` against that checkout; do not claim remediation readiness if the patch is structurally invalid or cannot apply. Every generated remediation patch must include concrete changed-file evidence in the structured payload: prefer `patches[].changed_file`, `patches[].file`, or `patches[].path` for the primary file and use `patches[].changed_files` only when multiple files belong to one patch object. Also copy changed files into `change_requests[].changed_files` when the PR/MR object exposes them. Do not put changed-file evidence only in prose, `summary`, `reason`, or the PR/MR body. Do not run a known-incomplete remediation payload through the validator as a normal expected-failure step, and do not claim the remediation gate passed until the body is present and the final payload validates. Do not hand-render the body when the renderer is available. If the user explicitly forbids all file writes, do not create temporary files; leave `change_requests[].body` unset or mark it as renderer-required, report the no-write gate in `data_gaps`, and do not claim that mechanical checks ran.
 
 The validation gate rejects missing project or namespace provenance, missing finding/source-location provenance, nonstandard branch names, missing existing PR/MR/branch lookup evidence, PR/MR titles without severity visual indicators, PR/MR bodies without the AI SAST hidden context marker, self-approval, exception policies without verified AppSec approval plus explicit user confirmation, missing policy names, missing idempotency checks, duplicate-policy write attempts, and policy-decision comments that expose raw `$uuid=...` scope syntax.
 ## Endor Namespace Preflight
@@ -464,8 +464,9 @@ Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence,
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
-Keep any prose brief and do not emit multiple competing JSON objects.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields must appear in this order:
 
 - `summary` (`string`): Triage summary including confirmed TPs, likely FPs, inconclusive findings, exploit-driven priority, remediation-guidance usage, patches ready, and PR/MR counters.
@@ -489,7 +490,7 @@ Optional top-level fields when verified:
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Final output: no raw shell, `endorctl agent api --agent-id ai-sast-remediation`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
 ```json
@@ -537,7 +538,7 @@ Final output: no raw shell, `endorctl agent api --agent-id ai-sast-remediation`,
 }
 ```
 
-FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
 
 ## Action Contracts
 

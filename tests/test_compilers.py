@@ -21,7 +21,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "4ed4713c38edad243ba86d42a42a4777db324fcb2d2aba9bdc3166552084e70f"
+ENTERPRISE_EDITION_SHA256 = "cf57c08bb3be3ac976ef487287319d10bc184c28726a965dea162bd887ccfc30"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -180,7 +180,8 @@ def test_plugin_package_prompts_stay_within_compact_budgets(
                 "Never use memory",
                 "Never dump or `cat` Endor config files",
                 "Structured Output Contract",
-                "Return exactly one parseable JSON object",
+                "Default response mode is concise human-readable Markdown",
+                "Use structured JSON mode only when the user or calling runtime explicitly requests",
             ):
                 if required not in text:
                     errors.append(f"{relative}: missing {required!r}")
@@ -361,7 +362,7 @@ def test_raw_compiler_emits_setup_bundle(tmp_path):
     assert "read-only Endor lookups" in (recipe.parent / "dist" / "raw" / "endorctl-setup.md").read_text()
 
 
-def test_remediation_planning_raw_prompt_has_one_unambiguous_json_output_contract(tmp_path):
+def test_remediation_planning_raw_prompt_defaults_to_human_with_explicit_json_mode(tmp_path):
     source = repo_root() / "source" / "agents" / "remediation-planning"
     target = tmp_path / "remediation-planning"
     shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
@@ -372,10 +373,15 @@ def test_remediation_planning_raw_prompt_has_one_unambiguous_json_output_contrac
         target / "dist" / "raw" / "system-prompt-enterprise-edition.md"
     ).read_text(encoding="utf-8")
     assert "Return concise prose plus a JSON object" not in prompt
-    assert "Return exactly one bare JSON object" in prompt
+    assert "By default, return concise human-readable Markdown" in prompt
+    assert "If the user or calling runtime explicitly" in prompt
+    assert "return exactly one bare JSON object" in prompt
+    assert "Default response mode is concise human-readable Markdown" in prompt
     assert "non-whitespace character must be `{`" in prompt
-    assert "last non-whitespace character must\nbe `}`" in prompt
-    assert "Do not add a preamble, trailing explanation, or Markdown fence" in prompt
+    assert "last non-whitespace\ncharacter must be `}`" in prompt
+    assert "Do not add a preamble" in prompt
+    assert "trailing explanation" in prompt
+    assert "Markdown fence" in prompt
     assert "The normal selection path is Project lookup, one ranked VersionUpgrade summary" in prompt
     assert "It is not a three-call ceiling" in prompt
     assert "Every attempted\nEndor call must have exactly one `evidence_queries` row" in prompt
@@ -502,36 +508,36 @@ def _prompt_budget(relative_path: str) -> int:
     if agent_id == "endor-agent-kit-setup":
         return 11_000
     if agent_id == "dependency-reviewer":
-        # Preserve the cross-agent one-row-per-attempt evidence ledger guard.
-        return 19_050
+        # Preserve the evidence ledger and dual human/structured response modes.
+        return 20_050
     if agent_id == "oss-upgrade-investigator":
         # Exact compact VersionUpgrade candidate/detail masks add source-level
         # prompt bytes while avoiding much larger unbounded response bodies.
-        return 17_450
+        return 18_450
     if agent_id == "findings-browser":
         # Traversal, completeness, filter, and query-ledger rules are required
         # safety behavior. The largest generated host projection is 15,305
         # characters; retain it with small, agent-specific headroom.
-        return 15_500
+        return 16_600
     if agent_id == "malware-responder":
         # The exact Finding-to-DependencyMetadata route prevents broad tenant
         # inventory reads and incorrect PackageVersion target lookups. The
         # exposure-verdict contract adds bounded customer-facing guidance;
         # retain modest headroom above the largest generated host artifact.
-        return 14_500
+        return 15_400
     if agent_id == "remediation-planning":
         # The selected-package fallback and evidence-ledger contract add useful
         # source-level bytes while keeping the normal route to three reads. The
         # shared exact-project preflight adds a small bounded identity contract.
-        return 15_100
+        return 16_250
     if agent_id == "configuration-automation":
         # Adaptive single-, selected-, and fleet-scope readiness routing adds
         # complete-inventory artifact contracts without per-repository fanout.
-        return 29_100
+        return 30_250
     if agent_id == "troubleshooting":
         # Diagnostic-lane selection and targeted fallback rules are retained
         # because they prevent speculative cross-lane calls.
-        return 28_700
+        return 30_000
     if agent_id == "cicd-posture":
         return 26_000
     if agent_id == "sca-remediation":
@@ -542,11 +548,11 @@ def _prompt_budget(relative_path: str) -> int:
         # capability preflight are quality-critical. This measured,
         # agent-specific ceiling leaves under 500 characters above the largest
         # generated host artifact. Scoped profiles retain separate <70% checks.
-        return 50_750
+        return 51_600
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":
-        return 13_750
+        return 14_750
     return 13_000
 
 

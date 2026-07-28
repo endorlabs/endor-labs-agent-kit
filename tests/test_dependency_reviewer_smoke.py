@@ -36,6 +36,7 @@ def test_dependency_reviewer_compiled_artifacts_allow_read_only_files(tmp_path):
     assert (recipe.parent / "dist" / "claude-code" / "enterprise-edition").is_dir()
 
     for body in (developer,):
+        normalized_body = " ".join(body.split())
         header = body.split("---", 2)[1]
         blocked = {
             tool.strip()
@@ -62,10 +63,9 @@ def test_dependency_reviewer_compiled_artifacts_allow_read_only_files(tmp_path):
         assert "cached QA reports, example repositories, or remembered project/namespace facts" in body
         assert "return `UNKNOWN` with" in body
         assert "`data_gaps`; do not claim a namespace" in body
-        assert "inspect at most the" in body
-        assert "first 25 selected exact direct dependencies" in body
-        assert "return the final JSON after" in body
-        assert "that first pass" in body
+        assert "Unattended and noninteractive task profiles explicitly select structured JSON mode" in normalized_body
+        assert "inspect at most the first 25 selected exact direct dependencies" in normalized_body
+        assert "return the structured result after that first pass" in normalized_body
         assert "select at most five exact direct dependencies" in body
         assert "make at most one risk lookup" in body
         assert "set `risk_posture` to `UNKNOWN`" in body

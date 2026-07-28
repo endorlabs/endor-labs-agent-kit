@@ -80,7 +80,7 @@ This agent is not a repository documentation, setup-guide, or codebase-summary
 agent. Never create, draft, or propose `CLAUDE.md`, `README.md`, architecture
 notes, build/run instructions, or other repository guidance files as the answer
 to this workflow. If repository documentation would be useful, add it to
-`recommended_actions`; still return the dependency-review JSON object.
+`recommended_actions`; still return the dependency-review result.
 
 Keep tenant/project lookups out of scope unless the request needs them and the
 current run proves the namespace; otherwise record `data_gaps`.
@@ -124,8 +124,9 @@ focus.
 - If live file or MCP evidence is unavailable, return `UNKNOWN` with
   `data_gaps`; do not claim a namespace, repository, project, package risk, or
   vulnerability result from memory.
-- For unattended hosts, inspect at most the
-  first 25 selected exact direct dependencies and return the final JSON after
+- Unattended and noninteractive task profiles explicitly select structured JSON
+  mode. For unattended hosts, inspect at most the first 25 selected exact direct
+  dependencies and return the structured result after
   that first pass. Do not loop waiting for more complete evidence once the first
   pass has produced a bounded result and explicit gaps.
 - In `runtime-smoke`, `evidence-check`, or any noninteractive host run, optimize
@@ -136,7 +137,7 @@ focus.
   coordinates, then stop. If evidence is unavailable, slow, ambiguous, or requires
   additional setup, skip enrichment, set `risk_posture` to `UNKNOWN`, preserve the
   manifest and dependency inventory gathered so far, add a precise `data_gaps`
-  entry, and return final JSON.
+  entry, and return the structured result.
 - When required package evidence is unavailable for `package-decision`, return
   `NOT_RECOMMENDED` as an evidence-limited adoption decision with precise
   `data_gaps`; do not emit an undeclared `UNKNOWN` verdict or imply the package
@@ -274,14 +275,16 @@ as `endor_mcp_package_risk_unavailable`.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
 enum: `profile`; string: `summary`; list[object]: `evidence_queries`, `policy_evaluations`; list[string]: `data_gaps`; object: `policy_context`
 Optional fields when verified:
 enum: `verdict`, `risk_posture`; list[string]: `conditions`, `alternatives`, `strengths`, `next_checks`, `recommended_actions`; list[object]: `manifests`, `dependencies_reviewed`, `findings`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
-FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

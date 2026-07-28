@@ -91,9 +91,14 @@ from main-context counts.
 
 ## Output
 
-Return exactly one bare JSON object matching `recipe.yaml` outputs. The first
-non-whitespace character must be `{` and the last non-whitespace character must
-be `}`. Do not add a preamble, trailing explanation, or Markdown fence.
+By default, return concise human-readable Markdown leading with the safest
+supported remediation option, supporting evidence, material data gaps, and the
+next approval or validation step. If the user or calling runtime explicitly
+requests JSON, machine-readable output, or the structured output contract,
+return exactly one bare JSON object matching `recipe.yaml` outputs. In that
+mode, the first non-whitespace character must be `{` and the last non-whitespace
+character must be `}`. Do not add a preamble, trailing explanation, or Markdown
+fence.
 
 If evidence is insufficient, set `selected_remediation` to `null`, keep
 `remediation_options` empty, and explain it in `data_gaps`. Every attempted
@@ -307,8 +312,9 @@ Do not require, configure, or start an Endor MCP server.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
-Keep any prose brief and do not emit multiple competing JSON objects.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields must appear in this order:
 
 - `summary` (`string`): Concise result summary.
@@ -325,7 +331,7 @@ Required top-level fields must appear in this order:
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Final output: no raw shell, `endorctl agent api --agent-id remediation-planning`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
 ```json
@@ -369,4 +375,4 @@ Final output: no raw shell, `endorctl agent api --agent-id remediation-planning`
 }
 ```
 
-FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

@@ -236,7 +236,7 @@ def model_requirements_lines(
         "",
         f"{subheading} Supported",
         "",
-        "- Agent Kit enforces no model allowlist; compatibility still depends on the host's required tools, context, and structured output.",
+        "- Agent Kit enforces no model allowlist; compatibility still depends on the host's required tools, context, response quality, and optional structured-output support.",
         "- Explicit customer model and reasoning selections take precedence over Agent Kit recommendations.",
         "- An untested model may produce different quality or latency, but Agent Kit does not block it.",
         "",

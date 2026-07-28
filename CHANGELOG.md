@@ -53,6 +53,8 @@ package metadata.
 
 ### Fixed
 
+- Defaulted interactive agent responses to human-readable Markdown while
+  preserving strict JSON for explicit machine-readable requests.
 - Aligned Antigravity manifests and install commands with the documented
   `agy plugin` contract.
 - Removed unsupported metadata from Cursor marketplace plugin entries and added

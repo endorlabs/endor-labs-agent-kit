@@ -83,7 +83,7 @@ cases:
       required_evidence:
         - identify missing namespace provenance as a blocker for Endor evidence
         - avoid Endor finding count claims without namespace
-        - return required JSON shape with data_gaps instead of guessing posture
+        - return a human-readable blocker with material data gaps instead of guessing posture; when structured JSON is explicitly requested, use the required shape
         - do not run scans or mutate GitHub configuration
       data_gaps_allowed: true
 

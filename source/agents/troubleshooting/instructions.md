@@ -203,7 +203,7 @@ user complete the fix. Tenant evidence is more important than docs citations.
 
 Final responses must not be progress markers. Do not use
 `troubleshooting_verdict: "using_skill"`, `"gathering_evidence"`, or any other
-intermediate status in the final JSON. If a lookup was attempted but returned no
+intermediate status in structured output. If a lookup was attempted but returned no
 matching resource, still record the attempted lookup in `evidence_queries[]` with
 `status: "succeeded"` and `result_count: 0`, set the final verdict to
 `INSUFFICIENT_DATA` or `PROJECT_NOT_FOUND` as appropriate, and add a top-level
@@ -1046,10 +1046,14 @@ issue before assuming the import pipeline is broken:
 <!-- section:output-shape:start -->
 ## Output Requirements
 
-Return exactly one bare JSON object. Its first non-whitespace character must be
-`{` and its last non-whitespace character must be `}`. Put the concise
-human-readable explanation inside `executive_summary`; do not add a preamble,
-Markdown fence, or trailing prose.
+By default, return concise human-readable Markdown leading with the likely root
+cause, supporting evidence, lowest-friction repair, validation plan, and
+material data gaps. If the user or calling runtime explicitly requests JSON,
+machine-readable output, or the structured output contract, return exactly one
+bare JSON object. In that mode, its first non-whitespace character must be `{`
+and its last non-whitespace character must be `}`. Put the concise explanation
+inside `executive_summary`; do not add a preamble, Markdown fence, or trailing
+prose.
 
 The JSON object must include:
 
@@ -1164,13 +1168,13 @@ mutation, place it only in `future_action_contracts[]` with
 `confirmation_required: true`; do not duplicate it as an unconfirmed repository
 or validation row.
 
-Before finalizing JSON, check every `future_action_contracts[]` object. Each
+Before finalizing a structured payload, check every `future_action_contracts[]` object. Each
 object must include a literal boolean `confirmation_required: true`; never omit
 the key and never use `false` for a future scan, support ticket, API write,
 repository write, or source-provider mutation. If no future approval-gated work
 is needed, return `future_action_contracts: []`.
 
-This command-free rule applies to every nested string in the final JSON,
+This command-free rule applies to every nested string in structured output,
 including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`,
 `recommended_actions[].validation`, `recommended_actions[].action`,
 `recommended_actions[].why`, `validation_plan[].step`, and

@@ -148,9 +148,13 @@ must separately prove source read, branch/commit write, and validation.
 12. Present the supported delivery targets before any external mutation: plan-only output, source change request, ticket creation, or both source change request and ticket when the runtime supports them. Do not assume ticketing support; use `create-remediation-ticket` only when the user or runtime selects that target.
 13. Ask for explicit approval before pushing a branch, opening a PR/MR, creating a ticket, or creating/updating comments. A source change request additionally requires `local_checkout` mode and `source_provider_access: "read_write"`. Immediately before push/open, refresh the deterministic change-request inventory and set `fresh_recheck: true`; fail closed if the lookup is unavailable, an exact duplicate is not being reused, or target-version divergence remains unresolved. Re-runs may update the same agent-owned branch when a change request already exists.
 14. Post or update one stable PR/MR comment when requested or when the host returns a PR/MR URL. The comment must include the selected remediation, UIA evidence, validation status, findings fixed, and remaining data gaps.
-15. Return exactly one bare JSON object. The first non-whitespace character must
-    be `{` and the last must be `}`. Do not add a preamble, trailing explanation,
-    Markdown fence, or prose outside the object.
+15. By default, return concise human-readable Markdown leading with the selected
+    remediation, supporting evidence, risk decision, validation status, material
+    data gaps, and next approval step. If the user or calling runtime explicitly
+    requests JSON, machine-readable output, or the structured output contract,
+    return exactly one bare JSON object. In that mode, the first non-whitespace
+    character must be `{` and the last must be `}`. Do not add a preamble,
+    trailing explanation, Markdown fence, or prose outside the object.
 
 Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`, `project_resolution.namespace`, `project_resolution.namespace_provenance`, `project_resolution.traverse_attempted`, `execution_context`, and one branch field: `project_resolution.default_branch`, `project_resolution.selected_branch`, `project_resolution.monitored_branch`, or `project_resolution.branch_provenance`. Use `project_resolution.status: "resolved"` only after current Endor project evidence proves the project and namespace. Use `unresolved`, `ambiguous`, or `lookup_unavailable` with the blocker in `data_gaps` when core project or namespace evidence is missing, conflicting, or host-blocked. If branch evidence is unavailable, set `project_resolution.branch_provenance` to `branch unknown: <reason>` and mirror that blocker in `data_gaps`; evidence-only ranking may continue, but mutation and PR readiness remain blocked. Stop at project resolution only when the project UUID or namespace cannot be resolved, not merely because a local checkout is absent.
 
@@ -219,8 +223,9 @@ Output section. Return only `summary`, `project_resolution`,
 `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`,
 `change_requests`, `data_gaps`, `policy_context`, and `policy_evaluations`.
 Omit `remediation_candidates`, `patch_plan`, `validation`, and `tickets`; put
-unrun checks in `risk_decision.validation_requirements` as strings. Before
-returning, verify the result is one syntactically complete JSON object with
+unrun checks in `risk_decision.validation_requirements` as strings. The
+`selection-plan` task profile explicitly selects structured JSON mode. Before
+returning it, verify the result is one syntactically complete JSON object with
 balanced object and array delimiters.
 
 The generated selection-plan profile contract is strict. Emit every canonical
@@ -449,17 +454,19 @@ Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence,
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
 string: `summary`; list[object]: `remediation_candidates`, `evidence_queries`, `uia_evidence`, `patch_plan`, `validation`, `change_requests`, `tickets`, `policy_evaluations`; object: `project_resolution`, `execution_context`, `selected_remediation`, `risk_decision`, `policy_context`; list[string]: `data_gaps`
 Optional fields when verified:
 object: `task_state`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
-FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
 
 ## Action Contracts
 

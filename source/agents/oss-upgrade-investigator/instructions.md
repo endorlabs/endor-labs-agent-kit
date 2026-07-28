@@ -170,8 +170,11 @@ The recommendation must be based only on gathered evidence.
 <!-- compact-plugin:omit-start -->
 ## Output Shape
 
-Respond with concise prose plus a JSON block. The JSON block must use this
-shape:
+By default, return concise human-readable Markdown leading with the upgrade
+recommendation, risk delta, supporting evidence, compatibility gaps, and next
+checks. If the user or calling runtime explicitly requests JSON,
+machine-readable output, or the structured output contract, return one JSON
+object using this shape:
 
 ```json
 {

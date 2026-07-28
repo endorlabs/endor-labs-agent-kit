@@ -63,9 +63,14 @@ from main-context counts.
 
 ## Output
 
-Return exactly one bare JSON object matching `recipe.yaml` outputs. The first
-non-whitespace character must be `{` and the last non-whitespace character must
-be `}`. Do not add a preamble, trailing explanation, or Markdown fence.
+By default, return concise human-readable Markdown leading with the safest
+supported remediation option, supporting evidence, material data gaps, and the
+next approval or validation step. If the user or calling runtime explicitly
+requests JSON, machine-readable output, or the structured output contract,
+return exactly one bare JSON object matching `recipe.yaml` outputs. In that
+mode, the first non-whitespace character must be `{` and the last non-whitespace
+character must be `}`. Do not add a preamble, trailing explanation, or Markdown
+fence.
 
 If evidence is insufficient, set `selected_remediation` to `null`, keep
 `remediation_options` empty, and explain it in `data_gaps`. Every attempted
