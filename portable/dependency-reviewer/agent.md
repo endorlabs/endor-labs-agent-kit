@@ -54,7 +54,7 @@ This agent is not a repository documentation, setup-guide, or codebase-summary
 agent. Never create, draft, or propose `CLAUDE.md`, `README.md`, architecture
 notes, build/run instructions, or other repository guidance files as the answer
 to this workflow. If repository documentation would be useful, add it to
-`recommended_actions`; still return the dependency-review JSON object.
+`recommended_actions`; still return the dependency-review result.
 ## Default Endor Context Scope
 
 This agent may use bounded tenant project queries only when the user requests
@@ -125,8 +125,9 @@ focus.
 - If live file or MCP evidence is unavailable, return `UNKNOWN` with
   `data_gaps`; do not claim a namespace, repository, project, package risk, or
   vulnerability result from memory.
-- For unattended hosts, inspect at most the
-  first 25 selected exact direct dependencies and return the final JSON after
+- Unattended and noninteractive task profiles explicitly select structured JSON
+  mode. For unattended hosts, inspect at most the first 25 selected exact direct
+  dependencies and return the structured result after
   that first pass. Do not loop waiting for more complete evidence once the first
   pass has produced a bounded result and explicit gaps.
 - In `runtime-smoke`, `evidence-check`, or any noninteractive host run, optimize
@@ -137,7 +138,7 @@ focus.
   coordinates, then stop. If evidence is unavailable, slow, ambiguous, or requires
   additional setup, skip enrichment, set `risk_posture` to `UNKNOWN`, preserve the
   manifest and dependency inventory gathered so far, add a precise `data_gaps`
-  entry, and return final JSON.
+  entry, and return the structured result.
 - When required package evidence is unavailable for `package-decision`, return
   `NOT_RECOMMENDED` as an evidence-limited adoption decision with precise
   `data_gaps`; do not emit an undeclared `UNKNOWN` verdict or imply the package
@@ -226,7 +227,11 @@ When a required signal is unavailable, skip that ladder item and add it to
 `data_gaps`. The posture must be based only on gathered evidence.
 ## Output Shape
 
-Return exactly one JSON object. Every profile returns `profile`, `summary`,
+By default, return concise human-readable Markdown leading with the package or
+repository verdict, supporting evidence, material data gaps, and recommended
+actions. If the user or calling runtime explicitly requests JSON,
+machine-readable output, or the structured output contract, return exactly one
+JSON object. Every structured profile returns `profile`, `summary`,
 `evidence_queries`, `data_gaps`, `policy_context`, and `policy_evaluations`, plus:
 
 - `package-decision`: `verdict`, `conditions`, and `alternatives`.
@@ -499,8 +504,9 @@ as `endor_mcp_package_risk_unavailable`.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
-Keep any prose brief and do not emit multiple competing JSON objects.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields must appear in this order:
 
 - `profile` (`enum`): package-decision, package-risk, or repository-review.
@@ -527,7 +533,7 @@ Optional top-level fields when verified:
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Final output: no raw shell, `endorctl agent api --agent-id dependency-reviewer`, `endorctl scan`, `git`, or source-provider inventory adapter command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
 ```json
@@ -569,7 +575,7 @@ Final output: no raw shell, `endorctl agent api --agent-id dependency-reviewer`,
 }
 ```
 
-FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
 
 
 ## Action Contracts

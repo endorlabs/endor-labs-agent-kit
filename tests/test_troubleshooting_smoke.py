@@ -125,7 +125,7 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "return `future_action_contracts: []`" in artifact
     assert "Never say a namespace, repository URL, `repo_full_name`, project UUID" in artifact
     assert "Those phrases are not evidence" in artifact
-    assert "This command-free rule applies to every nested string in the final JSON" in artifact
+    assert "This command-free rule applies to every nested string in structured output" in artifact
     assert "including `issue_lanes[].next_step`, `root_cause_hypotheses[].reasoning`" in artifact
     assert "recommended_actions[].validation" in artifact
     assert "tool names or partial command-shaped text" in artifact
@@ -202,12 +202,14 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)
     _assert_no_private_source_references(artifact)
-    assert "Return a short human-readable summary first" not in artifact
-    assert "Return exactly one bare JSON object" in artifact
+    assert "Default response mode is concise human-readable Markdown" in artifact
+    assert "Use structured JSON mode only when the user or calling runtime explicitly requests" in artifact
+    assert "return exactly one\nbare JSON object" in artifact
     assert artifact.rstrip().endswith(
-        "FINAL FORMAT: correct missing fields/types, then emit `{` as the first "
-        "character and `}` as the last. No status preamble, heading, Markdown "
-        "fence, or outside prose."
+        "FINAL FORMAT: human-readable Markdown by default. Only in explicitly "
+        "requested structured JSON mode, correct missing fields/types, then emit `{` "
+        "as the first character and `}` as the last. No status preamble, heading, "
+        "Markdown fence, or outside prose."
     )
 
 

@@ -187,16 +187,18 @@ Record unavailable capabilities in `data_gaps`; do not fabricate Endor evidence,
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields and types:
 string: `summary`; object: `project_resolution`, `execution_context`, `policy_context`; list[object]: `evidence_queries`, `policy_evaluations`; list[string]: `data_gaps`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
-FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
 
 ## Action Contracts
 

@@ -190,11 +190,14 @@ def cursor_packaged_agent_provenance(agent_id: str) -> tuple[str, Path, str] | N
     return None
 
 
-def structured_output_relay() -> str:
+def workflow_result_relay() -> str:
     return (
-        "When the workflow agent returns its final structured JSON object, return that "
-        "JSON object verbatim as the user-visible answer. Do not add a preamble or "
-        "Markdown fence, and do not summarize, re-key, omit fields, wrap, or rewrite it."
+        "Deliver the workflow agent's complete result as a concise human-readable answer "
+        "by default. Preserve its verdict or recommendation, supporting evidence, material "
+        "data gaps, and next steps. Do not expose internal routing or output-schema "
+        "language. If the user explicitly requested JSON, machine-readable output, or the "
+        "structured output contract, return the agent's structured JSON without alteration "
+        "instead."
     )
 
 
@@ -210,9 +213,9 @@ def route_instruction(agent_id: str, purpose: str) -> str:
                 "the support skill is documentation and reference material. Do not search "
                 "the workspace, home directory, or another provider directory for a second "
                 "workflow artifact. "
-                + structured_output_relay()
+                + workflow_result_relay()
             )
-        return f"Use `{agent_id}` {purpose}. " + structured_output_relay()
+        return f"Use `{agent_id}` {purpose}. " + workflow_result_relay()
     custom_agent = codex_custom_agent_name(agent_id)
     codex_provenance = codex_installed_agent_provenance(agent_id)
     if codex_provenance:
@@ -226,9 +229,8 @@ def route_instruction(agent_id: str, purpose: str) -> str:
             "Do not execute this workflow in the primary agent, open the "
             "setup skill, or substitute a workflow-skill fallback. The Endor API attribution "
             f"value remains `--agent-id {agent_id}`; never append `-agent` or use the host "
-            "custom-agent name as the Endor agent ID. When the custom agent returns its final "
-            "structured JSON object, return that JSON object verbatim as the user-visible "
-            "answer. Do not summarize, re-key, omit fields, wrap, or rewrite it."
+            "custom-agent name as the Endor agent ID. "
+            + workflow_result_relay()
         )
     return (
         f"The `{agent_id}` workflow requires the bundled Codex custom agent "

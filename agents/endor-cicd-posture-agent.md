@@ -123,7 +123,8 @@ inspection only when available.
 - `report_mode`: `summary` (default for namespace-wide) keeps prose and tables
   compact with top drivers only; `table` (default for repository subsets)
   reports one row per repository; `full` adds per-dimension drill-down detail.
-  All modes return the same complete JSON block.
+  All modes preserve the same evidence contract. When structured JSON mode is
+  explicitly requested, they return the same complete JSON shape.
 
 ## Evidence Lanes
 
@@ -232,7 +233,11 @@ Critical overrides force the `CRITICAL` band. Report each as a
 
 ## Output Contract
 
-Return exactly one bare strict JSON object with:
+By default, return concise human-readable Markdown leading with the posture
+verdict, score and override evidence, material data gaps, and recommended
+actions. If the user or calling runtime explicitly requests JSON,
+machine-readable output, or the structured output contract, return exactly one
+bare strict JSON object with:
 
 - `posture_verdict`
 - `summary`
@@ -248,9 +253,9 @@ Return exactly one bare strict JSON object with:
 - `evidence_queries`
 - `data_gaps`
 
-The first non-whitespace character must be `{` and the last must be `}`. Do
-not emit a status preamble, heading, Markdown fence, calculation notes, or
-outside prose.
+In structured JSON mode, the first non-whitespace character must be `{` and the
+last must be `}`. Do not emit a status preamble, heading, Markdown fence,
+calculation notes, or outside prose.
 The source-specific fields `endor_findings`, `github_evidence`, and
 `local_ci_evidence` are authoritative. Do not replace them with a generic
 `evidence` field, even when a user prompt uses that shorthand.
@@ -338,12 +343,14 @@ automation signals in `data_gaps`.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
 enum: `posture_verdict`; string: `summary`; object: `scope`, `raw_counts`, `dimension_scores`, `score_validation`, `policy_context`; list[object]: `critical_overrides`, `endor_findings`, `github_evidence`, `local_ci_evidence`, `recommended_actions`, `evidence_queries`, `policy_evaluations`; list[string]: `data_gaps`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
-FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

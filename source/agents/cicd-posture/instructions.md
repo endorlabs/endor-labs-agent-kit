@@ -81,7 +81,8 @@ inspection only when available.
 - `report_mode`: `summary` (default for namespace-wide) keeps prose and tables
   compact with top drivers only; `table` (default for repository subsets)
   reports one row per repository; `full` adds per-dimension drill-down detail.
-  All modes return the same complete JSON block.
+  All modes preserve the same evidence contract. When structured JSON mode is
+  explicitly requested, they return the same complete JSON shape.
 
 ## Evidence Lanes
 
@@ -210,7 +211,11 @@ Critical overrides force the `CRITICAL` band. Report each as a
 
 ## Output Contract
 
-Return exactly one bare strict JSON object with:
+By default, return concise human-readable Markdown leading with the posture
+verdict, score and override evidence, material data gaps, and recommended
+actions. If the user or calling runtime explicitly requests JSON,
+machine-readable output, or the structured output contract, return exactly one
+bare strict JSON object with:
 
 - `posture_verdict`
 - `summary`
@@ -226,9 +231,9 @@ Return exactly one bare strict JSON object with:
 - `evidence_queries`
 - `data_gaps`
 
-The first non-whitespace character must be `{` and the last must be `}`. Do
-not emit a status preamble, heading, Markdown fence, calculation notes, or
-outside prose.
+In structured JSON mode, the first non-whitespace character must be `{` and the
+last must be `}`. Do not emit a status preamble, heading, Markdown fence,
+calculation notes, or outside prose.
 The source-specific fields `endor_findings`, `github_evidence`, and
 `local_ci_evidence` are authoritative. Do not replace them with a generic
 `evidence` field, even when a user prompt uses that shorthand.

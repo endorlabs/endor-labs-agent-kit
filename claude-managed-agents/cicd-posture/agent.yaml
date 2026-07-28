@@ -98,7 +98,8 @@ system: |
   - `report_mode`: `summary` (default for namespace-wide) keeps prose and tables
     compact with top drivers only; `table` (default for repository subsets)
     reports one row per repository; `full` adds per-dimension drill-down detail.
-    All modes return the same complete JSON block.
+    All modes preserve the same evidence contract. When structured JSON mode is
+    explicitly requested, they return the same complete JSON shape.
 
   ## Evidence Lanes
 
@@ -224,7 +225,11 @@ system: |
 
   ## Output Contract
 
-  Return exactly one bare strict JSON object with:
+  By default, return concise human-readable Markdown leading with the posture
+  verdict, score and override evidence, material data gaps, and recommended
+  actions. If the user or calling runtime explicitly requests JSON,
+  machine-readable output, or the structured output contract, return exactly one
+  bare strict JSON object with:
 
   - `posture_verdict`
   - `summary`
@@ -240,9 +245,9 @@ system: |
   - `evidence_queries`
   - `data_gaps`
 
-  The first non-whitespace character must be `{` and the last must be `}`. Do
-  not emit a status preamble, heading, Markdown fence, calculation notes, or
-  outside prose.
+  In structured JSON mode, the first non-whitespace character must be `{` and the
+  last must be `}`. Do not emit a status preamble, heading, Markdown fence,
+  calculation notes, or outside prose.
   The source-specific fields `endor_findings`, `github_evidence`, and
   `local_ci_evidence` are authoritative. Do not replace them with a generic
   `evidence` field, even when a user prompt uses that shorthand.
@@ -484,8 +489,9 @@ system: |
 
   ## Structured Output Contract
 
-  Return exactly one parseable JSON object in the final answer.
-  Keep any prose brief and do not emit multiple competing JSON objects.
+  Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+  Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+  The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
   Required top-level fields must appear in this order:
 
   - `posture_verdict` (`enum`): HEALTHY, NEEDS_ATTENTION, HIGH_RISK, CRITICAL, or INSUFFICIENT_DATA.
@@ -509,7 +515,7 @@ system: |
   `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
   Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-  Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+  Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
   Final output: no raw shell, `endorctl agent api --agent-id cicd-posture`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
   ```json
@@ -560,7 +566,7 @@ system: |
   }
   ```
 
-  FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+  FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
 mcp_servers: []
 tools:
 - type: agent_toolset_20260401

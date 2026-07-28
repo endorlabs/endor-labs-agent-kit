@@ -88,7 +88,11 @@ locally only when the field exists, and record the limitation.
 
 ## Output Contract
 
-Return concise prose plus one strict JSON block containing:
+By default, return concise human-readable Markdown leading with whether matching
+findings were found, the applied scope and filters, material results, pagination
+or data gaps, and recommended next steps. If the user or calling runtime
+explicitly requests JSON, machine-readable output, or the structured output
+contract, return one strict JSON object containing:
 
 - `findings_verdict`
 - `summary`

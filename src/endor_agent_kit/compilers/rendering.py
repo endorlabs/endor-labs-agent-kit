@@ -64,6 +64,22 @@ Parse the local git remote for a matching checkout; otherwise normalize a user r
 """
 
 STRUCTURED_OUTPUT_HEADING = "## Structured Output Contract"
+DEFAULT_RESPONSE_GUIDANCE = (
+    "Default response mode is concise human-readable Markdown. Lead with the primary "
+    "verdict, recommendation, or status, then present the supporting evidence, material "
+    "data gaps, and recommended next steps."
+)
+EXPLICIT_STRUCTURED_RESPONSE_GUIDANCE = (
+    "Use structured JSON mode only when the user or calling runtime explicitly requests "
+    "JSON, machine-readable output, or the structured output contract. In that mode, "
+    "return exactly one parseable JSON object in the final answer."
+)
+RESPONSE_MODE_SAFETY_GUIDANCE = (
+    "The same evidence, safety, and completeness requirements apply in both modes. In "
+    "human-readable mode, render the relevant contract fields naturally and do not omit "
+    "material data gaps. Do not expose the output schema, internal routing language, or "
+    "raw JSON."
+)
 EVIDENCE_LEDGER_GUIDANCE = (
     "`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`."
 )
@@ -71,7 +87,8 @@ DATA_GAPS_REASON_GUIDANCE = (
     "`data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional."
 )
 STRUCTURED_OUTPUT_TYPE_GUIDANCE = (
-    "Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON."
+    "Structured JSON types: arrays stay arrays, counts int/null, objects null only with "
+    "`data_gaps`; in structured mode, missing inputs return JSON."
 )
 RAW_COMMAND_OUTPUT_GUIDANCE = (
     "Final output: no raw shell, `endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields."
@@ -258,7 +275,9 @@ def render_structured_output_contract(
             "",
             STRUCTURED_OUTPUT_HEADING,
             "",
-            "Return exactly one parseable JSON object in the final answer.",
+            DEFAULT_RESPONSE_GUIDANCE,
+            EXPLICIT_STRUCTURED_RESPONSE_GUIDANCE,
+            RESPONSE_MODE_SAFETY_GUIDANCE,
         ]
         if output_fields is not None:
             lines.append(
@@ -289,7 +308,7 @@ def render_structured_output_contract(
                 "`endor_patch`: target-version string, `\"none\"`, or `\"unknown\"`; never boolean/`\"true\"`/`\"false\"`.",
             )
         lines.extend([
-            "FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.",
+            "FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.",
             "",
         ])
         return "\n".join(lines)
@@ -302,8 +321,9 @@ def render_structured_output_contract(
         "",
         STRUCTURED_OUTPUT_HEADING,
         "",
-        "Return exactly one parseable JSON object in the final answer.",
-        "Keep any prose brief and do not emit multiple competing JSON objects.",
+        DEFAULT_RESPONSE_GUIDANCE,
+        EXPLICIT_STRUCTURED_RESPONSE_GUIDANCE,
+        RESPONSE_MODE_SAFETY_GUIDANCE,
     ]
     if output_fields is not None:
         lines.append(
@@ -341,7 +361,7 @@ def render_structured_output_contract(
             "`endor_patch` is a target-version string, `\"none\"`, or `\"unknown\"`; never a boolean or the strings `\"true\"`/`\"false\"`.",
         )
     lines.extend([
-        "FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.",
+        "FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.",
         "",
     ])
     return "\n".join(lines)

@@ -202,8 +202,9 @@ def test_codex_prompt_hook_routes_missing_custom_agents_to_setup(tmp_path: Path)
     assert "another provider directory" in current_context
     assert "--agent-id findings-browser" in current_context
     assert "never append `-agent`" in current_context
-    assert "return that JSON object verbatim" in current_context
-    assert "Do not summarize, re-key, omit fields, wrap, or rewrite it" in current_context
+    assert "complete result as a concise human-readable answer by default" in current_context
+    assert "If the user explicitly requested JSON, machine-readable output" in current_context
+    assert "return that JSON object verbatim" not in current_context
 
     installed_agent.write_text("# stale local copy\n", encoding="utf-8")
     stale = subprocess.run(
@@ -271,7 +272,8 @@ def test_codex_prompt_hook_routes_all_workflows_to_one_installed_custom_agent(tm
         assert f"invoke the installed Codex custom agent `{expected}`" in context
         assert context.count("MANDATORY ROUTE") == 1
         assert f"--agent-id {agent_id}" in context
-        assert "return that JSON object verbatim" in context
+        assert "complete result as a concise human-readable answer by default" in context
+        assert "return that JSON object verbatim" not in context
 
 
 def test_upgrade_route_preserves_oss_investigator_precedence_without_codex_package(tmp_path: Path):
@@ -344,8 +346,10 @@ def test_cursor_prompt_hook_prefers_packaged_agent_over_support_skill(tmp_path: 
     assert f"path={packaged_agent};sha256={packaged_digest}" in context
     assert "another provider directory" in context
     assert "Do not substitute its matching support skill" in context
-    assert "return that JSON object verbatim" in context
-    assert "Do not add a preamble or Markdown fence" in context
+    assert "complete result as a concise human-readable answer by default" in context
+    assert "Preserve its verdict or recommendation, supporting evidence" in context
+    assert "If the user explicitly requested JSON, machine-readable output" in context
+    assert "return that JSON object verbatim" not in context
 
 
 def test_cicd_prompt_hook_injects_one_verified_score_helper_contract(tmp_path: Path):

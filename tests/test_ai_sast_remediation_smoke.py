@@ -69,7 +69,9 @@ def test_ai_sast_remediation_does_not_require_project_uuid_for_normal_use(tmp_pa
     assert "severity-descending then UUID-ascending selection" in prompt
     assert "return `patches: []`" in prompt
     assert "explicitly asks to fix, patch, edit, or prepare a change request" in prompt
-    assert "Return exactly one bare JSON object" in prompt
+    assert "By default, return concise human-readable Markdown" in prompt
+    assert "If the user or calling runtime explicitly requests JSON" in prompt
+    assert "return exactly one bare JSON object" in prompt
     assert "Do not add a preamble, trailing explanation, Markdown fence" in prompt
     assert "inspect and report the returned `context.type` and `spec.source_code_version.ref`" in prompt
     assert "source-ref provenance for the Finding" in prompt

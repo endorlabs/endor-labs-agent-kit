@@ -102,7 +102,11 @@ locally only when the field exists, and record the limitation.
 
 ## Output Contract
 
-Return concise prose plus one strict JSON block containing:
+By default, return concise human-readable Markdown leading with whether matching
+findings were found, the applied scope and filters, material results, pagination
+or data gaps, and recommended next steps. If the user or calling runtime
+explicitly requests JSON, machine-readable output, or the structured output
+contract, return one strict JSON object containing:
 
 - `findings_verdict`
 - `summary`
@@ -313,8 +317,9 @@ appropriate workflow after explicit approval.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
-Keep any prose brief and do not emit multiple competing JSON objects.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields must appear in this order:
 
 - `findings_verdict` (`enum`): ACTIVE_FINDINGS_FOUND, NO_MATCHING_FINDINGS, EXACT_FINDING_FOUND, PARTIAL_RESULTS, or INSUFFICIENT_DATA.
@@ -334,7 +339,7 @@ Required top-level fields must appear in this order:
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Final output: no raw shell, `endorctl agent api --agent-id findings-browser`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
 ```json
@@ -381,4 +386,4 @@ Final output: no raw shell, `endorctl agent api --agent-id findings-browser`, `e
 }
 ```
 
-FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

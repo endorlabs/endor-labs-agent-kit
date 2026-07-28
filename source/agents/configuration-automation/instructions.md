@@ -1008,14 +1008,17 @@ Example Python toolchain prescription:
 <!-- section:output-shape:start -->
 ## Output Shape
 
-Return exactly one strict JSON object. Put the human-first verdict, counts,
-coverage-vs-health distinction, blockers, and top actions inside
-`executive_report`; do not add prose, headings, or fences outside the object.
+By default, return concise human-readable Markdown with the verdict, counts,
+coverage-vs-health distinction, blockers, and top actions. If the user or
+calling runtime explicitly requests JSON, machine-readable output, or the
+structured output contract, return exactly one strict JSON object and put that
+human-first rollup inside `executive_report`; do not add prose, headings, or
+fences outside the object in that mode.
 <!-- compact-plugin:omit-start -->
 The prose must be human-first: an executive rollup, explicit coverage-vs-health
 distinction, compact top offenders, and the highest-gain actions.
 <!-- compact-plugin:omit-end -->
-The JSON block must use this shape:
+In structured JSON mode, the object must use this shape:
 
 `coverage_summary` is mandatory for every response, including single-repository
 `runtime-smoke` and `evidence-check` runs. It must be a non-empty object with
@@ -1349,9 +1352,9 @@ Separate fully supported recommendations from sampled hypotheses:
 
 ## Step 7: Report And Stop
 
-Return concise prose plus the strict JSON shape. Start with a human-first rollup
-even when `report_mode: full`: verdict, coverage counts, coverage-vs-health
-distinction, top blockers, compact top offenders, and top 5 actions. Then keep
+Return a human-first rollup even when `report_mode: full`: verdict, coverage
+counts, coverage-vs-health distinction, top blockers, compact top offenders,
+and top 5 actions. When structured JSON mode is explicitly requested, keep
 complete drill-down arrays in the JSON. `executive_report.top_blockers` and
 `coverage_summary.top_repeated_blockers` should name the dominant repeated
 issues; include a compact top-offenders section in prose and, when useful, in

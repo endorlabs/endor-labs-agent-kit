@@ -323,6 +323,27 @@ def test_findings_browser_applied_filters_guidance_is_product_safe():
     assert "page_size=25" not in workflow
 
 
+def test_source_agent_instructions_do_not_override_human_default_response_mode():
+    forbidden_unconditional_formats = (
+        "Return exactly one bare JSON object",
+        "Return exactly one bare strict JSON object",
+        "Return exactly one strict JSON object",
+        "Return exactly one JSON object.",
+        "Return concise prose plus one strict JSON block",
+        "Respond with concise prose plus one parseable JSON object",
+        "Respond with concise prose plus a JSON block",
+        "Return concise prose plus the strict JSON shape",
+    )
+
+    for instructions_path in sorted((repo_root() / "source" / "agents").glob("*/instructions.md")):
+        instructions = instructions_path.read_text(encoding="utf-8")
+        for forbidden_format in forbidden_unconditional_formats:
+            assert forbidden_format not in instructions, (
+                f"{instructions_path.relative_to(repo_root())} overrides the shared "
+                f"human-readable default with {forbidden_format!r}"
+            )
+
+
 def test_shared_compiler_rendering_reports_missing_instruction_sections():
     with pytest.raises(ValueError, match="enterprise-edition"):
         instructions_for_edition(
@@ -408,6 +429,10 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     rendered = render_structured_output_contract(recipe)
 
     assert rendered.count(STRUCTURED_OUTPUT_HEADING) == 1
+    assert "Default response mode is concise human-readable Markdown" in rendered
+    assert "Use structured JSON mode only when the user or calling runtime explicitly requests" in rendered
+    assert "Do not expose the output schema, internal routing language, or raw JSON" in rendered
+    assert "FINAL FORMAT: human-readable Markdown by default" in rendered
     assert rendered.index("`verdict`") < rendered.index("`conditions`")
     assert rendered.index("`conditions`") < rendered.index("`summary`")
     assert "Optional top-level fields when verified" in rendered

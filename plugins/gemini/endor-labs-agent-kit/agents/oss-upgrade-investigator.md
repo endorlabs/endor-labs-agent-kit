@@ -214,15 +214,17 @@ or other human-readable selector that can resolve the project.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
 enum: `upgrade_recommendation`, `risk_delta`; list[string]: `reasons`, `breaking_change_notes`, `next_checks`, `data_gaps`; string: `summary`; list[object]: `evidence_queries`, `policy_evaluations`; object: `policy_context`
 Optional fields when verified:
 list[object]: `upgrade_candidates`; object: `selected_upgrade`, `dependency_delta`; integer: `findings_fixed`, `findings_introduced`; string: `cia_status`, `endor_patch`, `score_explanation`; list[string]: `breaking_changes`, `manifest_files`, `fixed_cves`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.
 Object fields may be `{}` or `null` only when `data_gaps` explains why.
 `endor_patch`: target-version string, `"none"`, or `"unknown"`; never boolean/`"true"`/`"false"`.
-FINAL FORMAT: emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

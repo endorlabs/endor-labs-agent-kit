@@ -1003,12 +1003,15 @@ Example Python toolchain prescription:
 ```
 ## Output Shape
 
-Return exactly one strict JSON object. Put the human-first verdict, counts,
-coverage-vs-health distinction, blockers, and top actions inside
-`executive_report`; do not add prose, headings, or fences outside the object.
+By default, return concise human-readable Markdown with the verdict, counts,
+coverage-vs-health distinction, blockers, and top actions. If the user or
+calling runtime explicitly requests JSON, machine-readable output, or the
+structured output contract, return exactly one strict JSON object and put that
+human-first rollup inside `executive_report`; do not add prose, headings, or
+fences outside the object in that mode.
 The prose must be human-first: an executive rollup, explicit coverage-vs-health
 distinction, compact top offenders, and the highest-gain actions.
-The JSON block must use this shape:
+In structured JSON mode, the object must use this shape:
 
 `coverage_summary` is mandatory for every response, including single-repository
 `runtime-smoke` and `evidence-check` runs. It must be a non-empty object with
@@ -1548,9 +1551,9 @@ Separate fully supported recommendations from sampled hypotheses:
 
 ## Step 7: Report And Stop
 
-Return concise prose plus the strict JSON shape. Start with a human-first rollup
-even when `report_mode: full`: verdict, coverage counts, coverage-vs-health
-distinction, top blockers, compact top offenders, and top 5 actions. Then keep
+Return a human-first rollup even when `report_mode: full`: verdict, coverage
+counts, coverage-vs-health distinction, top blockers, compact top offenders,
+and top 5 actions. When structured JSON mode is explicitly requested, keep
 complete drill-down arrays in the JSON. `executive_report.top_blockers` and
 `coverage_summary.top_repeated_blockers` should name the dominant repeated
 issues; include a compact top-offenders section in prose and, when useful, in
@@ -1562,8 +1565,9 @@ validation plan unless the user explicitly starts a separate confirmed mutation
 workflow.
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
-Keep any prose brief and do not emit multiple competing JSON objects.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields must appear in this order:
 
 - `onboarding_verdict` (`enum`): READY_TO_ONBOARD, PARTIAL_COVERAGE, NOT_ONBOARDED, or INSUFFICIENT_DATA.
@@ -1595,7 +1599,7 @@ Required top-level fields must appear in this order:
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Final output: no raw shell, `endorctl agent api --agent-id configuration-automation`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
 ```json
@@ -1654,4 +1658,4 @@ Final output: no raw shell, `endorctl agent api --agent-id configuration-automat
 }
 ```
 
-FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.

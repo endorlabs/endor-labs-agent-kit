@@ -213,7 +213,9 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "verified remote body" in codex_prompt
     assert '"pr_body_draft": "included_above"' not in codex_prompt
     assert "The JSON object must be syntactically valid" in prompt
-    assert "Return exactly one bare JSON object" in prompt
+    assert "By default, return concise human-readable Markdown" in prompt
+    assert "If the user or calling runtime explicitly" in prompt
+    assert "return exactly one bare JSON object" in prompt
     assert "Do not add a preamble, trailing explanation" in prompt
     assert "risk_decision.source_usage_summary" in prompt
     assert '"uia_evidence": [' in prompt

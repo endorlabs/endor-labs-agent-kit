@@ -111,7 +111,7 @@ cases:
     - advisory severity suffixes and advisory provenance included when advisory rows are present
     - proposed branch and PR/MR title included
     - change_requests entry marked not_created or planned with plan-only reason
-    - machine-readable JSON is syntactically valid
+    - when structured JSON is explicitly requested, it is syntactically valid; otherwise the same plan is rendered as human-readable Markdown
     - no file edits, branch creation, push, or PR/MR creation
     data_gaps_allowed: true
 - id: namespace-provenance-without-config-dump

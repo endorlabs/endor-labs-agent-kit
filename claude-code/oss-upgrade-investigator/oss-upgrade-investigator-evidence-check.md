@@ -170,8 +170,11 @@ When a signal is unavailable, skip that ladder item and add it to `data_gaps`.
 The recommendation must be based only on gathered evidence.
 ## Output Shape
 
-Respond with concise prose plus a JSON block. The JSON block must use this
-shape:
+By default, return concise human-readable Markdown leading with the upgrade
+recommendation, risk delta, supporting evidence, compatibility gaps, and next
+checks. If the user or calling runtime explicitly requests JSON,
+machine-readable output, or the structured output contract, return one JSON
+object using this shape:
 
 ```json
 {
@@ -548,8 +551,9 @@ or other human-readable selector that can resolve the project.
 
 ## Structured Output Contract
 
-Return exactly one parseable JSON object in the final answer.
-Keep any prose brief and do not emit multiple competing JSON objects.
+Default response mode is concise human-readable Markdown. Lead with the primary verdict, recommendation, or status, then present the supporting evidence, material data gaps, and recommended next steps.
+Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
+The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 This task-profile field projection is authoritative: return only these top-level fields and omit every other recipe field, even if broader instructions mention it.
 Required top-level fields must appear in this order:
 
@@ -573,7 +577,7 @@ Required top-level fields must appear in this order:
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 
 Use empty arrays for unavailable list evidence. Object fields may be `{}` or `null` only when no verified value exists. Record every missing evidence source or blocked lookup in `data_gaps` instead of omitting fields.
-Types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; missing inputs return JSON.
+Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Final output: no raw shell, `endorctl agent api --agent-id oss-upgrade-investigator`, `endorctl scan`, `git`, or `gh` command strings in prose, JSON, validation steps, recommendations, or future actions; summarize intent, selectors, and fields.
 
 ```json
@@ -624,4 +628,4 @@ Final output: no raw shell, `endorctl agent api --agent-id oss-upgrade-investiga
 ```
 
 `endor_patch` is a target-version string, `"none"`, or `"unknown"`; never a boolean or the strings `"true"`/`"false"`.
-FINAL FORMAT: correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
+FINAL FORMAT: human-readable Markdown by default. Only in explicitly requested structured JSON mode, correct missing fields/types, then emit `{` as the first character and `}` as the last. No status preamble, heading, Markdown fence, or outside prose.
