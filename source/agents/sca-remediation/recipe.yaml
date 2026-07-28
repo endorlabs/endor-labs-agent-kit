@@ -1,6 +1,7 @@
 recipe_schema_version: 2
 id: sca-remediation
 name: SCA Remediation
+category: Remediation
 version: 0.1.0
 description: |
   Plans and applies dependency-vulnerability fixes using Endor SCA findings,

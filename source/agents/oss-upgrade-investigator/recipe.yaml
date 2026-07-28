@@ -1,6 +1,7 @@
 recipe_schema_version: 1
 id: oss-upgrade-investigator
 name: OSS Upgrade Investigator
+category: Research & Investigate
 legacy_ids:
   - upgrade-impact-analysis
 version: 1.0.0

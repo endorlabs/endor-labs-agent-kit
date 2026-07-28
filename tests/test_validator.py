@@ -245,6 +245,49 @@ def test_accepts_both_audiences():
         assert not [error for error in _errors(data) if "audience:" in error]
 
 
+def test_rejects_missing_category():
+    data = _data()
+    data.pop("category", None)
+
+    assert any("category:" in error for error in _errors(data))
+
+
+def test_rejects_non_string_category():
+    data = _data()
+    data["category"] = ["Research", "Investigate"]
+
+    assert any("category:" in error for error in _errors(data))
+
+
+def test_rejects_category_with_surrounding_whitespace():
+    data = _data()
+    data["category"] = " Remediation"
+
+    assert any("category:" in error for error in _errors(data))
+
+
+def test_canonical_agent_categories_are_exact():
+    expected = {
+        "ai-sast-remediation": "Remediation",
+        "cicd-posture": "Compliance",
+        "configuration-automation": "Troubleshooting",
+        "dependency-reviewer": "Research & Investigate",
+        "findings-browser": "Research & Investigate",
+        "malware-responder": "Incident Response",
+        "oss-upgrade-investigator": "Research & Investigate",
+        "remediation-planning": "Remediation",
+        "sca-remediation": "Remediation",
+        "troubleshooting": "Troubleshooting",
+        "vulnerability-explainer": "Research & Investigate",
+    }
+    actual = {
+        path.parent.name: load_yaml_file(path).get("category")
+        for path in sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
+    }
+
+    assert actual == expected
+
+
 def test_rejects_missing_short_description():
     data = _data()
     data.pop("short_description", None)

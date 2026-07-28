@@ -269,6 +269,7 @@ class CatalogAgent:
     name: str = ""
     version: str = ""
     audience: str = ""
+    category: str = ""
     short_description: str = ""
     description: str = ""
     authors: tuple[str, ...] = ()
@@ -291,6 +292,7 @@ class CatalogAgent:
             name=recipe.name,
             version=recipe.version,
             audience=recipe.audience,
+            category=recipe.category,
             short_description=recipe.short_description,
             description=recipe.description,
             authors=tuple(recipe.authors),
@@ -317,6 +319,7 @@ class CatalogAgent:
                 "name",
                 "version",
                 "audience",
+                "category",
                 "short_description",
                 "description",
                 "authors",
@@ -338,6 +341,7 @@ class CatalogAgent:
             name=str(record.get("name") or ""),
             version=str(record.get("version") or ""),
             audience=str(record.get("audience") or ""),
+            category=str(record.get("category") or ""),
             short_description=str(record.get("short_description") or ""),
             description=str(record.get("description") or ""),
             authors=tuple(str(author) for author in authors),
@@ -360,6 +364,8 @@ class CatalogAgent:
             record["version"] = self.version
         if self.audience:
             record["audience"] = self.audience
+        if self.category:
+            record["category"] = self.category
         if self.short_description:
             record["short_description"] = self.short_description
         if self.description:

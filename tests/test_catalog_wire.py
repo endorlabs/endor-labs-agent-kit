@@ -35,6 +35,7 @@ def _agent(
     edition_id,
     *,
     audience="developer",
+    category="Research & Investigate",
     requires_endorctl=">=1.0.0",
     legacy_ids=(),
 ):
@@ -44,6 +45,7 @@ def _agent(
         name="Agent Name",
         version="1.0.0",
         audience=audience,
+        category=category,
         short_description="One-line pitch.",
         description="Long detail markdown.",
         authors=("Endor Labs",),
@@ -83,6 +85,7 @@ def test_endor_agent_field_shape():
         "id": "alpha-agent",
         "name": "Agent Name",
         "audience": "developer",
+        "category": "Research & Investigate",
         "short_description": "One-line pitch.",
         "description": "Long detail markdown.",
         "endorctl_min_version": "1.0.0",
@@ -214,6 +217,19 @@ def test_published_agent_without_audience_raises():
     # A published agent (has editions) missing audience must fail loud, not vanish.
     agents = [_agent("legacy-agent", "claude-code", "developer-edition", audience="")]
     with pytest.raises(ValueError, match="audience"):
+        catalog_wire_payload(agents)
+
+
+def test_published_agent_without_category_raises():
+    agents = [
+        _agent(
+            "legacy-agent",
+            "claude-code",
+            "developer-edition",
+            category="",
+        )
+    ]
+    with pytest.raises(ValueError, match="category"):
         catalog_wire_payload(agents)
 
 

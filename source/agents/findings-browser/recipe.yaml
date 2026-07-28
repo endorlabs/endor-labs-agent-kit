@@ -1,6 +1,7 @@
 recipe_schema_version: 1
 id: findings-browser
 name: Findings Browser
+category: Research & Investigate
 version: 0.1.0
 description: |
   Browses, filters, and summarizes existing Endor findings without starting

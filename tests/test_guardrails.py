@@ -393,6 +393,7 @@ name: Test Agent
 version: 0.1.0
 description: Read-only agent fixture for guardrail parity checks.
 audience: developer
+category: Research & Investigate
 short_description: "Read-only agent fixture for guardrail parity checks."
 authors: ["Endor Labs"]
 requires_endorctl: ">=1.0.0"

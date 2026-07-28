@@ -79,6 +79,7 @@ class EndorAgentRecipe:
     requires_endor_mcp: str = ""
     requires_endorctl: str = ""
     audience: str = ""
+    category: str = ""
     short_description: str = ""
     authors: tuple[str, ...] = ()
     policy_pack_support: bool = False
@@ -145,6 +146,7 @@ def recipe_from_dict(data: dict[str, Any]) -> EndorAgentRecipe:
         requires_endor_mcp=str(data.get("requires_endor_mcp", "")),
         requires_endorctl=str(data.get("requires_endorctl", "")),
         audience=str(data.get("audience", "")),
+        category=str(data.get("category", "")),
         short_description=str(data.get("short_description", "")),
         authors=tuple(str(author) for author in data.get("authors", ())),
         policy_pack_support=bool(data.get("policy_pack_support", False)),
@@ -188,6 +190,7 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
         "requires_endor_mcp": recipe.requires_endor_mcp,
         "requires_endorctl": recipe.requires_endorctl,
         "audience": recipe.audience,
+        "category": recipe.category,
         "short_description": recipe.short_description,
         "authors": list(recipe.authors),
         "policy_pack_support": recipe.policy_pack_support,

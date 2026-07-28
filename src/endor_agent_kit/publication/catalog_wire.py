@@ -115,6 +115,10 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
         raise ValueError(
             f"{representative.id}: audience must be one of {sorted(AUDIENCES)}, got {representative.audience!r}"
         )
+    if not representative.category or representative.category != representative.category.strip():
+        raise ValueError(
+            f"{representative.id}: category must be a non-empty string without surrounding whitespace"
+        )
 
     install: list[dict[str, str]] = []
     for repo_host, wire_host in _WIRE_INSTALL_HOSTS:
@@ -131,6 +135,7 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
         "id": representative.id,
         "name": representative.name,
         "audience": representative.audience,
+        "category": representative.category,
         "short_description": representative.short_description,
         "description": representative.description,
         "endorctl_min_version": _strip_operator(representative.requires_endorctl),
