@@ -1,6 +1,7 @@
 recipe_schema_version: 1
 id: troubleshooting
 name: Troubleshooting
+category: Troubleshooting
 legacy_ids:
   - endor-troubleshooter
 version: 0.1.0

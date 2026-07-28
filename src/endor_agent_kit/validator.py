@@ -235,6 +235,12 @@ def _validate_catalog_metadata(data: dict[str, Any], errors: list[str]) -> None:
     if data.get("audience") not in AUDIENCES:
         errors.append("audience: must be one of appsec, developer")
 
+    category = data.get("category")
+    if not isinstance(category, str) or not category.strip():
+        errors.append("category: must be a non-empty string")
+    elif category != category.strip():
+        errors.append("category: must not contain leading or trailing whitespace")
+
     short_description = data.get("short_description")
     if not isinstance(short_description, str) or not short_description.strip():
         errors.append("short_description: must be a non-empty string")

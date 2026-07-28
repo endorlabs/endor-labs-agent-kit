@@ -101,6 +101,7 @@ and blocks merge on failure:
 | `name` | `name` | non-empty. |
 | `version` | `version` | non-empty semver; bump this for behavior changes (never rename `id`). |
 | `audience` | `audience` | required; one of `appsec` or `developer` -- the persona surface the agent lists under. |
+| `category` | `category` | required free-form string; one value per agent, byte-identical across agents that share a UI group. |
 | `short_description` | `short_description` | required, non-empty; the catalog tile one-liner. |
 | `description` | `description` | required; the long detail-view markdown (the existing `description`). |
 | `authors` | `authors` | required, non-empty list of **display names only**; email/`@handle`/URL is rejected as PII. |

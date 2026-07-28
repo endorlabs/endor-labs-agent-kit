@@ -18,6 +18,7 @@ def _recipe() -> EndorAgentRecipe:
         recipe_schema_version=2,
         id="schema-fixture",
         name="Schema Fixture",
+        category="Research & Investigate",
         version="1.0.0",
         description="Fixture",
         safety_class="read_only",
@@ -112,6 +113,7 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
     manifest_artifact = manifest_bundle["artifacts"][0]
     assert manifest_agent["source"]["builder_recipe"] == "source/agents/schema-fixture/recipe.yaml"
     assert manifest_agent["legacy_ids"] == ["old-schema-fixture"]
+    assert manifest_agent["category"] == "Research & Investigate"
     assert manifest_bundle["requires_endorctl"] == ">=1.0"
     assert manifest_artifact["path"] == "claude-code/schema-fixture/schema-fixture.md"
     assert manifest_artifact["bytes"] == len("current")

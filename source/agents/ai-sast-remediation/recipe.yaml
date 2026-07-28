@@ -1,6 +1,7 @@
 recipe_schema_version: 2
 id: ai-sast-remediation
 name: AI SAST Remediation
+category: Remediation
 legacy_ids:
 - ai-sast-triage
 version: 0.1.0

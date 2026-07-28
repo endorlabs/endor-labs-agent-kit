@@ -1,6 +1,7 @@
 recipe_schema_version: 1
 id: cicd-posture
 name: CI/CD And Supply Chain Posture
+category: Compliance
 version: 0.1.0
 description: |
   Assesses CI/CD and software supply-chain security across an Endor namespace,

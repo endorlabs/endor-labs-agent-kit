@@ -1,6 +1,7 @@
 recipe_schema_version: 1
 id: configuration-automation
 name: Configuration Automation
+category: Troubleshooting
 legacy_ids:
   - probe-droid
 version: 0.1.0

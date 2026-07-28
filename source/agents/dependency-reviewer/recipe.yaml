@@ -1,6 +1,7 @@
 recipe_schema_version: 1
 id: dependency-reviewer
 name: Dependency Reviewer
+category: Research & Investigate
 legacy_ids:
   - dependency-decision-helper
   - package-risk-summary
