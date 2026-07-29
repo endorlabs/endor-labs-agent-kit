@@ -169,7 +169,7 @@ def test_cadence_is_omitted():
     assert "cadence" not in payload["agents"][0]
 
 
-def test_public_install_only_surfaces_claude_code():
+def test_public_install_excludes_non_wire_hosts():
     agents = [
         _agent("alpha-agent", "claude-code", "enterprise-edition"),
         _agent("alpha-agent", "claude-managed-agents", "enterprise-edition"),
@@ -309,3 +309,66 @@ def test_claude_managed_only_agent_is_not_publicly_installable():
 
     with pytest.raises(ValueError, match="no public install host"):
         catalog_wire_payload(agents)
+
+
+def _install_by_host(payload, host, agent_index=0):
+    install = payload["agents"][agent_index]["install"]
+    return next(entry["command"] for entry in install if entry["host"] == host)
+
+
+def test_agent_published_on_claude_code_and_codex_emits_both():
+    agents = [
+        _agent("alpha-agent", "claude-code", "enterprise-edition"),
+        _agent("alpha-agent", "codex", "enterprise-edition"),
+    ]
+    install = catalog_wire_payload(agents)["agents"][0]["install"]
+
+    # claude-code before codex, mirroring _WIRE_INSTALL_HOSTS order.
+    assert [entry["host"] for entry in install] == ["claude-code", "codex"]
+
+
+def test_codex_install_uses_distribution_marketplace_and_plugin_add():
+    payload = catalog_wire_payload([_agent("alpha-agent", "codex", "enterprise-edition")])
+    command = _install_by_host(payload, "codex")
+
+    assert command == (
+        "codex plugin marketplace add endorlabs/ai-plugins "
+        "--ref {{catalog_version}} --sparse .agents "
+        "--sparse plugins/codex/endor-labs-agent-kit\n"
+        "codex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+    )
+
+
+def test_codex_install_is_identical_across_agents():
+    payload = catalog_wire_payload(
+        [
+            _agent("alpha-agent", "codex", "enterprise-edition"),
+            _agent("zeta-agent", "codex", "enterprise-edition"),
+        ]
+    )
+    assert _install_by_host(payload, "codex", 0) == _install_by_host(payload, "codex", 1)
+
+
+def test_stamp_resolves_codex_ref_placeholder(tmp_path):
+    catalog = write_catalog(tmp_path, [_agent("alpha-agent", "codex", "enterprise-edition")])
+    assert "{{catalog_version}}" in json.loads(catalog.read_text(encoding="utf-8"))[
+        "agents"
+    ][0]["install"][0]["command"]
+
+    stamp_catalog_version(catalog, "agents-v1.1.0")
+
+    command = json.loads(catalog.read_text(encoding="utf-8"))["agents"][0]["install"][0][
+        "command"
+    ]
+    assert "{{catalog_version}}" not in command
+    assert "--ref agents-v1.1.0 " in command
+
+
+def test_stamp_leaves_placeholderless_commands_untouched(tmp_path):
+    catalog = write_catalog(tmp_path, [_agent("alpha-agent", "claude-code", "enterprise-edition")])
+    before = json.loads(catalog.read_text(encoding="utf-8"))["agents"][0]["install"][0]["command"]
+
+    stamp_catalog_version(catalog, "agents-v1.1.0")
+
+    after = json.loads(catalog.read_text(encoding="utf-8"))["agents"][0]["install"][0]["command"]
+    assert after == before
