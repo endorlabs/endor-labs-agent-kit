@@ -31,12 +31,26 @@ AUDIENCES = frozenset({"appsec", "developer"})
 
 # repo host -> wire host name, in catalog install order. Claude Managed Agents
 # remain generated in the Agent Kit repository but are intentionally omitted
-# from the public catalog/UI. Cursor/Codex are proto-reserved and Gemini/
-# portable are not in the proto host enum.
+# from the public catalog/UI. Gemini/portable are generated but not published to
+# the catalog. Cursor ships as a monolithic plugin and is not compiled per agent,
+# so it has no manifest host records to project here yet.
 _WIRE_INSTALL_HOSTS: tuple[tuple[str, str], ...] = (
     ("claude-code", "claude-code"),
+    ("codex", "codex"),
 )
 _ENDORCTL_OPERATOR_RE = re.compile(r"^(?:>=|>)")
+
+# Sentinel the emitter writes where the release tag belongs; stamp_catalog_version
+# resolves it once the tag is known. The tag is not available at wire-build time
+# (the release pipeline stamps it in a later step), so hosts whose install command
+# pins a release ref emit this token instead.
+_CATALOG_VERSION_PLACEHOLDER = "{{catalog_version}}"
+
+# Codex install is a marketplace-add pinned to the release tag followed by the
+# plugin add; the package installs every workflow, so the command is agent
+# independent (same as claude-code).
+_CODEX_MARKETPLACE_NAME = "endor-labs-agent-kit"
+_CODEX_SPARSE_PLUGIN_PATH = "plugins/codex/endor-labs-agent-kit"
 
 
 def catalog_wire_payload(
@@ -83,7 +97,9 @@ def stamp_catalog_version(catalog_path: str | Path, catalog_version: str) -> Pat
     """Inject ``catalog_version`` (the release tag) into an existing catalog.json.
 
     The committed catalog.json carries no ``catalog_version`` (no tag exists at
-    commit time); the release pipeline stamps it just before signing.
+    commit time); the release pipeline stamps it just before signing. The same
+    tag resolves any install command that pinned it via
+    ``_CATALOG_VERSION_PLACEHOLDER`` (e.g. codex's ``--ref``).
     """
 
     path = Path(catalog_path)
@@ -95,8 +111,21 @@ def stamp_catalog_version(catalog_path: str | Path, catalog_version: str) -> Pat
     for key, value in payload.items():
         if key not in ("schema_version", "catalog_version"):
             stamped[key] = value
+    _resolve_install_version(stamped.get("agents", []), catalog_version)
     path.write_text(json.dumps(stamped, indent=2) + "\n", encoding="utf-8")
     return path
+
+
+def _resolve_install_version(agents: list[dict[str, Any]], catalog_version: str) -> None:
+    """Replace the release-tag placeholder in every install command in place."""
+
+    for agent in agents:
+        for entry in agent.get("install", []):
+            command = entry.get("command")
+            if isinstance(command, str) and _CATALOG_VERSION_PLACEHOLDER in command:
+                entry["command"] = command.replace(
+                    _CATALOG_VERSION_PLACEHOLDER, catalog_version
+                )
 
 
 def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
@@ -128,7 +157,7 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
         install.append({"host": wire_host, "command": _install_command(repo_host)})
     if not install:
         raise ValueError(
-            f"{representative.id}: no public install host (claude-code); cannot build install[]"
+            f"{representative.id}: no public install host (claude-code/codex); cannot build install[]"
         )
 
     record = {
@@ -172,12 +201,20 @@ def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
 
 
 def _install_command(repo_host: str) -> str:
+    # Each command installs the whole package, so it is identical for every agent
+    # on that host.
     if repo_host == "claude-code":
-        # Same plugin install for every agent because the package installs all workflows.
         return (
             f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}\n"
             f"/plugin install {PLUGIN_NAME}@{CLAUDE_MARKETPLACE_NAME}\n"
             "/reload-plugins"
+        )
+    if repo_host == "codex":
+        return (
+            f"codex plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY} "
+            f"--ref {_CATALOG_VERSION_PLACEHOLDER} --sparse .agents "
+            f"--sparse {_CODEX_SPARSE_PLUGIN_PATH}\n"
+            f"codex plugin add {PLUGIN_NAME}@{_CODEX_MARKETPLACE_NAME}"
         )
     raise ValueError(f"unsupported install host {repo_host!r}")
 
