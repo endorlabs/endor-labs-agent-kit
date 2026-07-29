@@ -17,6 +17,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -39,6 +43,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ]
     },
@@ -58,6 +66,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -80,6 +92,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -104,6 +120,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ]
     },
@@ -123,6 +143,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -145,6 +169,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -167,6 +195,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -189,6 +221,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ]
     },
@@ -208,6 +244,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -230,6 +270,10 @@
         {
           "host": "claude-code",
           "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
         }
       ]
     }
