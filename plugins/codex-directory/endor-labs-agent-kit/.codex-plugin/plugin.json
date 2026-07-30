@@ -3,7 +3,7 @@
     "name": "Endor Labs",
     "url": "https://www.endorlabs.com/"
   },
-  "description": "Endor Labs security workflows for Codex.",
+  "description": "Endor Labs security workflows and setup for Codex.",
   "homepage": "https://github.com/endorlabs/ai-plugins",
   "interface": {
     "brandColor": "#26D07C",
@@ -22,7 +22,7 @@
     "developerName": "Endor Labs",
     "displayName": "Endor Labs Agent Kit",
     "logo": "./assets/logo.png",
-    "longDescription": "Use eleven source-generated Endor Labs workflows to investigate, triage, plan, and remediate application security and software supply-chain risks from Codex.",
+    "longDescription": "Use eleven source-generated Endor Labs workflows plus a setup skill to investigate, triage, plan, and remediate application security and software supply-chain risks from Codex.",
     "shortDescription": "Endor security workflows",
     "websiteURL": "https://www.endorlabs.com/"
   },

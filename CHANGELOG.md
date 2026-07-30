@@ -13,6 +13,9 @@ package metadata.
 
 ### Added
 
+- Added the Codex Plugins Directory setup skill alongside all 11 workflow
+  skills, with explicit local `endorctl` authentication and secret-handling
+  guidance and no hosted MCP, connector, app, or plugin OAuth requirement.
 - Added customer-owned Agent Policy Packs with a public JSON Schema, template
   and examples, `validate-policy-pack` and `evaluate-policy-pack` CLI commands,
   trusted fact preflight, and generated policy outputs across all source agents.
@@ -24,6 +27,9 @@ package metadata.
 
 ### Changed
 
+- Projected complete package-level Claude Code, Codex, Cursor, and Antigravity
+  installs into every public catalog agent. Each provider command installs the
+  full Agent Kit, while incomplete package records fail closed and are omitted.
 - Refreshed the public catalog descriptions for all 11 canonical agents to
   clarify scope, evidence, mutation boundaries, and approval requirements.
 - Renamed and consolidated the public catalog to 11 canonical agents. The new

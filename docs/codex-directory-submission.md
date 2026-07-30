@@ -7,9 +7,9 @@ or approval is complete.
 ## Artifact Contract
 
 - Tracked mirror: `plugins/codex-directory/endor-labs-agent-kit/`
-- Contents: exactly 11 canonical workflow skills, plugin metadata, square
-  images, and one skill-local artifact summarizer per workflow
-- Excludes: setup, installers, custom agents, hooks, MCP/apps, staging values,
+- Contents: exactly 11 canonical workflow skills, one setup skill, plugin
+  metadata, square images, and one skill-local artifact summarizer per workflow
+- Excludes: installers, custom agents, hooks, MCP/apps, staging values,
   credentials, absolute user paths, and model pins
 - Build source: one exact immutable `ai-plugins` SHA after mirror merge
 - Workflow outputs: ZIP, SHA-256, validation report, and attestation
@@ -20,9 +20,9 @@ or approval is complete.
 - Short description: Endor security workflows
 - Developer: Endor Labs
 - Category: Developer Tools
-- Long description: Use eleven source-generated Endor Labs workflows to
-  investigate, triage, plan, and remediate application security and software
-  supply-chain risks from ChatGPT or Codex.
+- Long description: Use eleven source-generated Endor Labs workflows plus setup
+  to investigate, triage, plan, and remediate application security and software
+  supply-chain risks from Codex.
 - Starter prompts:
   1. Browse and summarize my active Endor findings.
   2. Investigate an Endor vulnerability and explain its impact.
@@ -34,6 +34,25 @@ or approval is complete.
 
 Verify the current production website, support, privacy, and terms URLs in the
 portal. Do not guess or copy staging/internal URLs into the artifact or listing.
+
+## Authentication Boundary
+
+- Submission type: skills-only; the package does not declare an MCP server,
+  connector, app, OAuth flow, callback URL, or bundled credentials.
+- Plugin installation itself requires no Endor authentication through OpenAI.
+- Workflow execution requires a supported production `endorctl` on the Codex
+  host and an existing customer-authenticated Endor CLI session.
+- The setup skill checks local CLI, namespace, and sanitized authentication
+  readiness. It lets `endorctl` consume credentials internally and never asks
+  the user to paste secrets into Codex.
+- Reviewer credentials and fixtures are private submission evidence, not plugin
+  metadata or repository content.
+
+Customer installation instruction:
+
+```text
+Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory.
+```
 
 ## External Preflight
 

@@ -15,8 +15,10 @@ from conftest import GeneratedCatalog, repo_root
 from endor_agent_kit.catalog_schema import CatalogPluginPackage
 from endor_agent_kit.prepared_source_recipe import prepare_source_recipe
 from endor_agent_kit.publication.codex_directory_plugin import (
+    CODEX_DIRECTORY_ALL_SKILL_IDS,
     CODEX_DIRECTORY_CHANNEL,
     CODEX_DIRECTORY_PACKAGE_ROOT,
+    CODEX_DIRECTORY_SETUP_SKILL_ID,
     CODEX_DIRECTORY_SKILL_IDS,
     publish_codex_directory_plugin_package,
 )
@@ -48,7 +50,7 @@ def test_generated_catalog_contains_isolated_skills_only_codex_package(
     package = _package(generated_catalog.root)
 
     assert {path.name for path in (package / "skills").iterdir()} == set(
-        CODEX_DIRECTORY_SKILL_IDS
+        CODEX_DIRECTORY_ALL_SKILL_IDS
     )
     assert {path.name for path in package.iterdir()} == {
         ".codex-plugin",
@@ -78,9 +80,28 @@ def test_generated_catalog_contains_isolated_skills_only_codex_package(
         metadata = json.loads((skill / "agents" / "openai.yaml").read_text(encoding="utf-8"))
         assert metadata["policy"] == {"allow_implicit_invocation": True}
 
+    setup = package / "skills" / CODEX_DIRECTORY_SETUP_SKILL_ID
+    assert {
+        path.relative_to(setup).as_posix()
+        for path in setup.rglob("*")
+        if path.is_file()
+    } == {
+        "SKILL.md",
+        "agents/openai.yaml",
+    }
+    setup_text = (setup / "SKILL.md").read_text(encoding="utf-8")
+    assert "plugin itself has no hosted MCP server" in setup_text
+    assert "customer's local `endorctl`" in setup_text
+    assert "does not bundle a custom-agent installer" in setup_text
+    setup_metadata = json.loads(
+        (setup / "agents" / "openai.yaml").read_text(encoding="utf-8")
+    )
+    assert setup_metadata["policy"] == {"allow_implicit_invocation": True}
+
     report = validate_package(generated_catalog.root)
     assert report["status"] == "passed"
     assert report["errors"] == []
+    assert report["skill_ids"] == list(CODEX_DIRECTORY_ALL_SKILL_IDS)
 
 
 def test_partial_publication_preserves_official_directory_and_manifest_record(

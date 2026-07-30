@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $endor-agent-kit-setup to check Endor Agent Kit readiness.",
+    "display_name": "Endor Agent Kit Setup",
+    "short_description": "Check local Endor Agent Kit readiness"
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

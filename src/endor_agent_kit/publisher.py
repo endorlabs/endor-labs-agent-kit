@@ -160,7 +160,11 @@ def _write_catalog_wire(destination: Path) -> Path | None:
     if not (destination / "manifest.json").is_file():
         return None
     manifest = CatalogManifest.load(destination)
-    return write_catalog(destination, list(manifest.agents))
+    return write_catalog(
+        destination,
+        list(manifest.agents),
+        list(manifest.plugin_packages),
+    )
 
 
 def _write_root_readme(destination: Path) -> Path:

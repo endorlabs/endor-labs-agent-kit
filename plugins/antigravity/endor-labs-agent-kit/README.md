@@ -41,6 +41,17 @@ Agent Kit does not block compatible customer-selected host models.
 - Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.
 - MCP: no plugin-wide MCP server is declared by default.
 
+## Install From The Public Release
+
+```bash
+git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0
+agy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+agy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+```
+
+The `--branch 2.2.0` argument checks out the immutable `2.2.0` release tag;
+it does not require a same-named branch.
+
 ## Install From A Local Checkout
 
 ```bash

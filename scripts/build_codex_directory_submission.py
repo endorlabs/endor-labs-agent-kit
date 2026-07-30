@@ -17,7 +17,7 @@ import zipfile
 PLUGIN_NAME = "endor-labs-agent-kit"
 PACKAGE_PATH = Path("plugins") / "codex-directory" / PLUGIN_NAME
 CHANNEL = "official-directory"
-VALIDATOR_VERSION = "1"
+VALIDATOR_VERSION = "2"
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 MAX_ARCHIVE_ENTRIES = 5000
 CANONICAL_SKILL_IDS = (
@@ -33,10 +33,16 @@ CANONICAL_SKILL_IDS = (
     "troubleshooting",
     "vulnerability-explainer",
 )
+SETUP_SKILL_ID = "endor-agent-kit-setup"
+PACKAGE_SKILL_IDS = tuple(sorted((*CANONICAL_SKILL_IDS, SETUP_SKILL_ID)))
 REQUIRED_SKILL_FILES = (
     "SKILL.md",
     "agents/openai.yaml",
     "scripts/summarize_endor_artifact.py",
+)
+REQUIRED_SETUP_SKILL_FILES = (
+    "SKILL.md",
+    "agents/openai.yaml",
 )
 FORBIDDEN_COMPONENTS = (
     ".app.json",
@@ -126,12 +132,13 @@ def validate_package(root: Path) -> dict[str, object]:
     skill_ids = tuple(
         sorted(path.name for path in skills_root.iterdir() if path.is_dir())
     ) if skills_root.is_dir() else ()
-    if skill_ids != CANONICAL_SKILL_IDS:
+    if skill_ids != PACKAGE_SKILL_IDS:
         errors.append(
-            f"skills: expected {list(CANONICAL_SKILL_IDS)}, got {list(skill_ids)}"
+            f"skills: expected {list(PACKAGE_SKILL_IDS)}, got {list(skill_ids)}"
         )
     for skill_id in CANONICAL_SKILL_IDS:
         _validate_skill(package / "skills" / skill_id, skill_id, errors)
+    _validate_setup_skill(package / "skills" / SETUP_SKILL_ID, errors)
 
     package_record = None
     catalog_manifest = _load_json(
@@ -249,6 +256,62 @@ def _validate_skill(skill: Path, skill_id: str, errors: list[str]) -> None:
             errors.append(f"skills/{skill_id}/agents/openai.yaml: invalid interface metadata")
 
 
+def _validate_setup_skill(skill: Path, errors: list[str]) -> None:
+    if not skill.is_dir():
+        errors.append(f"skills/{SETUP_SKILL_ID}: missing skill directory")
+        return
+    actual = {
+        path.relative_to(skill).as_posix()
+        for path in skill.rglob("*")
+        if path.is_file() or path.is_symlink()
+    }
+    if actual != set(REQUIRED_SETUP_SKILL_FILES):
+        errors.append(
+            f"skills/{SETUP_SKILL_ID}: files must be exactly "
+            f"{list(REQUIRED_SETUP_SKILL_FILES)}; got {sorted(actual)}"
+        )
+    skill_path = skill / "SKILL.md"
+    if skill_path.is_file():
+        text = skill_path.read_text(encoding="utf-8")
+        match = re.match(r"^---\nname:\s*([^\n]+)\n", text)
+        if match is None or match.group(1).strip() != SETUP_SKILL_ID:
+            errors.append(
+                f"skills/{SETUP_SKILL_ID}/SKILL.md: frontmatter name must match directory"
+            )
+        required_text = (
+            "endorctl agent api --help",
+            "plugin itself has no hosted MCP server",
+            "Never print",
+        )
+        for value in required_text:
+            if value not in text:
+                errors.append(
+                    f"skills/{SETUP_SKILL_ID}/SKILL.md: missing setup contract {value!r}"
+                )
+
+    metadata_path = skill / "agents" / "openai.yaml"
+    metadata = _load_json(
+        metadata_path,
+        errors,
+        f"skills/{SETUP_SKILL_ID}/agents/openai.yaml",
+    )
+    if metadata is not None:
+        if set(metadata) != {"interface", "policy"}:
+            errors.append(
+                f"skills/{SETUP_SKILL_ID}/agents/openai.yaml: only interface and policy are allowed"
+            )
+        if metadata.get("policy") != {"allow_implicit_invocation": True}:
+            errors.append(
+                f"skills/{SETUP_SKILL_ID}/agents/openai.yaml: implicit invocation must be enabled"
+            )
+        interface = metadata.get("interface")
+        required = {"display_name", "short_description", "default_prompt"}
+        if not isinstance(interface, dict) or set(interface) != required:
+            errors.append(
+                f"skills/{SETUP_SKILL_ID}/agents/openai.yaml: invalid interface metadata"
+            )
+
+
 def _validate_catalog_artifacts(
     root: Path,
     package: Path,
@@ -326,7 +389,7 @@ def _report(
         "errors": sorted(errors),
         "package_path": PACKAGE_PATH.as_posix(),
         "package_version": str(plugin_manifest.get("version", "")) if plugin_manifest else "",
-        "skill_ids": list(CANONICAL_SKILL_IDS),
+        "skill_ids": list(PACKAGE_SKILL_IDS),
         "file_count": len(files),
         "uncompressed_bytes": sum(path.stat().st_size for path in files),
         "manifest_sha256": sha256_file(_catalog_manifest_path(root)) if _catalog_manifest_path(root).is_file() else "",

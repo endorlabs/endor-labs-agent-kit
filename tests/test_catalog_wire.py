@@ -4,13 +4,18 @@ import json
 
 import pytest
 
-from endor_agent_kit.catalog_schema import CatalogAgent, CatalogArtifact, CatalogBundle
+from endor_agent_kit.catalog_schema import (
+    CatalogAgent,
+    CatalogArtifact,
+    CatalogBundle,
+    CatalogPluginPackage,
+)
 from endor_agent_kit.publication.catalog_wire import (
     CATALOG_PATH,
     CATALOG_SCHEMA_VERSION,
-    catalog_wire_payload,
+    catalog_wire_payload as _catalog_wire_payload,
     stamp_catalog_version,
-    write_catalog,
+    write_catalog as _write_catalog,
 )
 
 
@@ -52,6 +57,82 @@ def _agent(
         requires_endorctl=requires_endorctl,
         legacy_ids=legacy_ids,
         editions=(_bundle(agent_id, host, edition_id, requires_endorctl=requires_endorctl),),
+    )
+
+
+def _package(
+    host,
+    agent_ids,
+    *,
+    name=None,
+    channel=None,
+    version="2.2.0",
+    include_setup=True,
+):
+    defaults = {
+        "claude-code": (
+            "endor-labs-agent-kit",
+            "repository",
+            "plugins/claude/endor-labs-agent-kit",
+        ),
+        "codex": (
+            "endor-labs-agent-kit",
+            "official-directory",
+            "plugins/codex-directory/endor-labs-agent-kit",
+        ),
+        "cursor": ("endorlabs", "repository", "."),
+        "antigravity": (
+            "endor-labs-agent-kit",
+            "repository",
+            "plugins/antigravity/endor-labs-agent-kit",
+        ),
+    }
+    default_name, default_channel, path = defaults[host]
+    setup_path = (
+        "skills/endor-agent-kit-setup/SKILL.md"
+        if path == "."
+        else f"{path}/skills/endor-agent-kit-setup/SKILL.md"
+    )
+    artifacts = (
+        (CatalogArtifact(path=setup_path, sha256="setup", bytes=1),)
+        if include_setup
+        else ()
+    )
+    return CatalogPluginPackage(
+        host=host,
+        name=name or default_name,
+        version=version,
+        path=path,
+        included_agents=tuple(sorted(agent_ids)),
+        artifacts=artifacts,
+        distribution_channel=channel or default_channel,
+    )
+
+
+def _packages_for_agents(agents):
+    published_ids = {agent.id for agent in agents if agent.editions}
+    hosts = {agent.host for agent in agents}
+    return [
+        _package(host, published_ids)
+        for host in ("claude-code", "codex")
+        if host in hosts
+    ]
+
+
+def catalog_wire_payload(agents, *, catalog_version=None):
+    return _catalog_wire_payload(
+        agents,
+        _packages_for_agents(agents),
+        catalog_version=catalog_version,
+    )
+
+
+def write_catalog(destination, agents, *, catalog_version=None):
+    return _write_catalog(
+        destination,
+        agents,
+        _packages_for_agents(agents),
+        catalog_version=catalog_version,
     )
 
 
@@ -201,10 +282,9 @@ def test_agents_sorted_by_id():
     assert [agent["id"] for agent in payload["agents"]] == ["alpha-agent", "zeta-agent"]
 
 
-def test_agent_without_install_host_is_rejected():
+def test_agent_without_install_package_is_skipped():
     agents = [_agent("alpha-agent", "gemini", "enterprise-edition")]
-    with pytest.raises(ValueError, match="install"):
-        catalog_wire_payload(agents)
+    assert catalog_wire_payload(agents)["agents"] == []
 
 
 def test_audience_must_be_known():
@@ -307,8 +387,7 @@ def test_claude_code_install_is_identical_across_agents():
 def test_claude_managed_only_agent_is_not_publicly_installable():
     agents = [_agent("alpha-agent", "claude-managed-agents", "enterprise-edition")]
 
-    with pytest.raises(ValueError, match="no public install host"):
-        catalog_wire_payload(agents)
+    assert catalog_wire_payload(agents)["agents"] == []
 
 
 def _install_by_host(payload, host, agent_index=0):
@@ -327,16 +406,17 @@ def test_agent_published_on_claude_code_and_codex_emits_both():
     assert [entry["host"] for entry in install] == ["claude-code", "codex"]
 
 
-def test_codex_install_uses_distribution_marketplace_and_plugin_add():
+def test_codex_install_uses_public_plugins_directory_prompt():
     payload = catalog_wire_payload([_agent("alpha-agent", "codex", "enterprise-edition")])
     command = _install_by_host(payload, "codex")
 
     assert command == (
-        "codex plugin marketplace add endorlabs/ai-plugins "
-        "--ref {{catalog_version}} --sparse .agents "
-        "--sparse plugins/codex/endor-labs-agent-kit\n"
-        "codex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+        "Use /plugins to find and install Endor Labs Agent Kit from the "
+        "public Codex Plugins Directory."
     )
+    assert "--ref" not in command
+    assert "--sparse" not in command
+    assert "marketplace add" not in command
 
 
 def test_codex_install_is_identical_across_agents():
@@ -349,19 +429,18 @@ def test_codex_install_is_identical_across_agents():
     assert _install_by_host(payload, "codex", 0) == _install_by_host(payload, "codex", 1)
 
 
-def test_stamp_resolves_codex_ref_placeholder(tmp_path):
+def test_stamp_leaves_codex_directory_prompt_unchanged(tmp_path):
     catalog = write_catalog(tmp_path, [_agent("alpha-agent", "codex", "enterprise-edition")])
-    assert "{{catalog_version}}" in json.loads(catalog.read_text(encoding="utf-8"))[
-        "agents"
-    ][0]["install"][0]["command"]
+    before = json.loads(catalog.read_text(encoding="utf-8"))["agents"][0]["install"][0][
+        "command"
+    ]
 
     stamp_catalog_version(catalog, "agents-v1.1.0")
 
     command = json.loads(catalog.read_text(encoding="utf-8"))["agents"][0]["install"][0][
         "command"
     ]
-    assert "{{catalog_version}}" not in command
-    assert "--ref agents-v1.1.0 " in command
+    assert command == before
 
 
 def test_stamp_leaves_placeholderless_commands_untouched(tmp_path):
@@ -372,3 +451,96 @@ def test_stamp_leaves_placeholderless_commands_untouched(tmp_path):
 
     after = json.loads(catalog.read_text(encoding="utf-8"))["agents"][0]["install"][0]["command"]
     assert after == before
+
+
+def test_complete_packages_emit_all_four_install_hosts_in_order():
+    agents = [
+        _agent("alpha-agent", "claude-code", "enterprise-edition"),
+        _agent("alpha-agent", "codex", "enterprise-edition"),
+    ]
+    packages = [
+        _package(host, {"alpha-agent"})
+        for host in ("claude-code", "codex", "cursor", "antigravity")
+    ]
+
+    install = _catalog_wire_payload(agents, packages)["agents"][0]["install"]
+
+    assert [entry["host"] for entry in install] == [
+        "claude-code",
+        "codex",
+        "cursor",
+        "antigravity",
+    ]
+    assert _install_by_host({"agents": [{"install": install}]}, "cursor") == (
+        "/add-plugin endorlabs"
+    )
+    assert _install_by_host({"agents": [{"install": install}]}, "antigravity") == (
+        "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git "
+        "endor-ai-plugins-2.2.0\n"
+        "agy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\n"
+        "agy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+    )
+
+
+def test_full_package_commands_are_identical_across_agents():
+    agents = [
+        _agent(agent_id, host, "enterprise-edition")
+        for agent_id in ("alpha-agent", "zeta-agent")
+        for host in ("claude-code", "codex")
+    ]
+    packages = [
+        _package(host, {"alpha-agent", "zeta-agent"})
+        for host in ("claude-code", "codex", "cursor", "antigravity")
+    ]
+
+    payload = _catalog_wire_payload(agents, packages)
+
+    for host in ("claude-code", "codex", "cursor", "antigravity"):
+        commands = {
+            _install_by_host(payload, host, agent_index)
+            for agent_index in range(len(payload["agents"]))
+        }
+        assert len(commands) == 1
+
+
+def test_package_without_setup_skill_is_not_catalog_eligible():
+    agents = [_agent("alpha-agent", "claude-code", "enterprise-edition")]
+    packages = [
+        _package("claude-code", {"alpha-agent"}),
+        _package("cursor", {"alpha-agent"}, include_setup=False),
+    ]
+
+    install = _catalog_wire_payload(agents, packages)["agents"][0]["install"]
+
+    assert [entry["host"] for entry in install] == ["claude-code"]
+
+
+def test_package_missing_a_published_agent_is_not_catalog_eligible():
+    agents = [
+        _agent("alpha-agent", "claude-code", "enterprise-edition"),
+        _agent("zeta-agent", "claude-code", "enterprise-edition"),
+    ]
+    packages = [
+        _package("claude-code", {"alpha-agent", "zeta-agent"}),
+        _package("cursor", {"alpha-agent"}),
+    ]
+
+    payload = _catalog_wire_payload(agents, packages)
+
+    assert all(
+        [entry["host"] for entry in agent["install"]] == ["claude-code"]
+        for agent in payload["agents"]
+    )
+
+
+def test_wrong_package_name_or_channel_is_not_catalog_eligible():
+    agents = [_agent("alpha-agent", "claude-code", "enterprise-edition")]
+    packages = [
+        _package("claude-code", {"alpha-agent"}),
+        _package("cursor", {"alpha-agent"}, name="wrong-name"),
+        _package("codex", {"alpha-agent"}, channel="repository"),
+    ]
+
+    install = _catalog_wire_payload(agents, packages)["agents"][0]["install"]
+
+    assert [entry["host"] for entry in install] == ["claude-code"]
