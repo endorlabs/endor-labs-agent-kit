@@ -57,7 +57,8 @@ and different distribution channels:
 - `repository`: `plugins/codex/endor-labs-agent-kit/` remains the CLI,
   container, runner, setup, installer, and custom-agent package.
 - `official-directory`: `plugins/codex-directory/endor-labs-agent-kit/` is a
-  skills-only public submission package with exactly 11 workflow skills.
+  skills-only public submission package with 11 workflow skills plus one setup
+  skill.
 
 `CatalogPluginPackage.distribution_channel` defaults to `repository` for old
 manifests. Package identity is `(host, name, distribution_channel)`, and
@@ -71,15 +72,26 @@ official Endor symbol artwork. Both Codex manifests use the official Endor
 green (`#26D07C`) for `interface.brandColor`; the directory manifest references
 the compact PNG through `interface.composerIcon`. The package's
 `skills/<canonical-id>/` directories contain only `SKILL.md`,
-`agents/openai.yaml`, and the skill-local artifact summarizer. It has no setup
-skill, custom-agent TOML, installer, hooks, MCP/apps, staging values, or model
-pin. The public skills use the customer's active Codex model. Large-result
-instructions resolve the helper from the active `SKILL.md` path rather than the
-working directory.
+`agents/openai.yaml`, and the skill-local artifact summarizer. The separate
+`skills/endor-agent-kit-setup/` directory contains only `SKILL.md` and
+`agents/openai.yaml`; it checks the customer's local `endorctl`, namespace, and
+authentication readiness without implementing plugin OAuth. The package has no
+custom-agent TOML, installer, hooks, MCP/apps, bundled credentials, staging
+values, or model pin. The public skills use the customer's active Codex model.
+Large-result instructions resolve the helper from the active `SKILL.md` path
+rather than the working directory.
 
 Full publication requires the exact canonical 11-recipe set. A strict subset
 skips this package and preserves its directory and manifest record; unexpected
 or duplicate Codex recipe IDs fail closed.
+
+The signed catalog projects install options from complete
+`CatalogPluginPackage` records rather than requiring one compiler record per
+provider and agent. A public package is eligible only when it includes all
+published canonical agent IDs and the setup skill artifact. This lets the
+monolithic Cursor and Antigravity packages appear alongside Claude Code and the
+Codex official-directory package without duplicate compilers. Each provider's
+full-package command is identical across all 11 agent records.
 
 ## Implemented Claude Code Plugin Shape
 

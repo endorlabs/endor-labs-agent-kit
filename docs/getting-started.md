@@ -10,7 +10,7 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/README.md` | Plugin install with Claude Code agents and setup skill. |
 | Codex CLI/custom agents | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with one setup skill plus approval-gated managed custom-agent TOML files. |
-| Universal Plugins Directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows and the customer's active model in ChatGPT or Codex. |
+| Codex Plugins Directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows, setup, and the customer's active Codex model. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
 | Cursor | `/add-plugin endorlabs` | Public Cursor plugin with generated workflow agents, support skills, advisory hooks, and MCP metadata. |
@@ -70,9 +70,24 @@ a self-contained Cursor package under
 `plugins/cursor/endor-labs-agent-kit/` and points the Cursor marketplace at it,
 so neither host auto-discovers the other host's components.
 
-For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
-or package metadata because their public install commands depend on the pushed
-tag and host-specific marketplace behavior. In this source repo, Cursor IDE
+For Codex, install the public package with this instruction:
+
+```text
+Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory.
+```
+
+Cursor public installation is `/add-plugin endorlabs`. Antigravity installs the
+complete package from the immutable `2.2.0` release tag:
+
+```bash
+git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0
+agy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+agy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+```
+
+For Gemini CLI and other maintainer installation paths, use the host package
+README because commands depend on the pushed tag and host-specific marketplace
+behavior. In this source repo, Cursor IDE
 uses `.cursor-plugin/`, root `agents/`, root `skills/`, root advisory `hooks/`,
 and `assets/logo.png`; the public mirror marketplace points to the complete
 `plugins/cursor/endor-labs-agent-kit/` package. Cursor SDK automation uses
@@ -90,8 +105,10 @@ Start a fresh Codex task after that installation so the 11 workflow agents and
 the setup agent are discovered. Workflow-skill fallbacks remain opt-in.
 
 The public-directory artifact is a separate route. It exposes the 11 workflow
-skills directly, does not install custom-agent TOML files, and does not pin a
-model. Installing it must not replace or rewrite the CLI/custom-agent package.
+skills and setup directly, does not install custom-agent TOML files, declare a
+hosted MCP server, implement plugin OAuth, or pin a model. Its workflows use the
+customer's local authenticated `endorctl` session. Installing it must not replace
+or rewrite the CLI/custom-agent package.
 For a runner or container using the CLI package, set `CODEX_HOME` explicitly to
 a persistent writable directory before running the bundled installer; do not
 rely on a developer workstation's home directory.

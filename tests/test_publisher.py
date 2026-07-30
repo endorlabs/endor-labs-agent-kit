@@ -438,10 +438,10 @@ def test_publish_recipes_finalizes_catalog_aggregates_once(tmp_path, monkeypatch
         readme_writes += 1
         return real_readme_write(destination, agents)
 
-    def write_catalog_once(destination, agents):
+    def write_catalog_once(destination, agents, plugin_packages):
         nonlocal catalog_writes
         catalog_writes += 1
-        return real_catalog_write(destination, agents)
+        return real_catalog_write(destination, agents, plugin_packages)
 
     monkeypatch.setattr(
         publisher._HOST_ARTIFACT_PUBLICATION,
@@ -1605,6 +1605,12 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert official_codex_package["path"] == "plugins/codex-directory/endor-labs-agent-kit"
     assert official_codex_package["included_agents"] == list(codex_agent_ids)
     assert official_codex_package["distribution_channel"] == "official-directory"
+    assert any(
+        artifact["path"].endswith(
+            "/skills/endor-agent-kit-setup/SKILL.md"
+        )
+        for artifact in official_codex_package["artifacts"]
+    )
     assert packages[("codex", "endor-labs-agent-kit")] == {
         "artifacts": packages[("codex", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",

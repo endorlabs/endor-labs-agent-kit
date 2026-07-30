@@ -430,7 +430,7 @@ field. Before that approval, the plugin must expose only `endor-agent-kit-setup`
 the workflow skills under `bundled-skills/` are explicit fallbacks and must not
 compete with named custom-agent delegation.
 
-### Universal Plugins Directory (ChatGPT and Codex)
+### Universal Plugins Directory (Codex Runtime)
 
 The public-directory package is separate from the repository/CLI package.
 Validate its unpacked tree in Agent Kit and the generated mirror:
@@ -438,6 +438,19 @@ Validate its unpacked tree in Agent Kit and the generated mirror:
 ```bash
 python3 scripts/build_codex_directory_submission.py validate --root .
 ```
+
+Customer installation uses the public browser rather than the repository
+marketplace commands above:
+
+```text
+Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory.
+```
+
+The skills-only package declares no MCP server, app, connector, OAuth flow, or
+bundled credentials. Its setup skill verifies the customer's local `endorctl`,
+namespace, and existing Endor authentication without exposing secrets. Do not
+claim equivalent ChatGPT-web execution because this release depends on a local
+Codex shell and `endorctl`.
 
 After the `ai-plugins` mirror PR is merged, dispatch `Build Codex directory
 submission` with the exact immutable 40-character mirror SHA. Keep
@@ -503,6 +516,14 @@ agy plugin install /absolute/path/to/endor-labs-agent-kit/plugins/antigravity/en
 agy plugin list
 agy plugin uninstall endor-labs-agent-kit
 agy plugin list
+```
+
+Public release installation after the version tag exists:
+
+```bash
+git clone --branch "$VERSION" https://github.com/endorlabs/ai-plugins.git "endor-ai-plugins-$VERSION"
+agy plugin validate "./endor-ai-plugins-$VERSION/plugins/antigravity/endor-labs-agent-kit"
+agy plugin install "./endor-ai-plugins-$VERSION/plugins/antigravity/endor-labs-agent-kit"
 ```
 
 Antigravity CLI currently validates a package directory with `plugin.json` at

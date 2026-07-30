@@ -13,12 +13,13 @@ serve-time fields apiserver owns and are intentionally absent here.
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import json
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import re
 from typing import Any
 
-from endor_agent_kit.catalog_schema import CatalogAgent
+from endor_agent_kit.catalog_schema import CatalogAgent, CatalogPluginPackage
 from endor_agent_kit.publication.claude_plugin import (
     CLAUDE_MARKETPLACE_NAME,
     PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY,
@@ -29,46 +30,49 @@ CATALOG_PATH = "catalog.json"
 CATALOG_SCHEMA_VERSION = "v2"
 AUDIENCES = frozenset({"appsec", "developer"})
 
-# repo host -> wire host name, in catalog install order. Claude Managed Agents
-# remain generated in the Agent Kit repository but are intentionally omitted
-# from the public catalog/UI. Gemini/portable are generated but not published to
-# the catalog. Cursor ships as a monolithic plugin and is not compiled per agent,
-# so it has no manifest host records to project here yet.
-_WIRE_INSTALL_HOSTS: tuple[tuple[str, str], ...] = (
-    ("claude-code", "claude-code"),
-    ("codex", "codex"),
-)
 _ENDORCTL_OPERATOR_RE = re.compile(r"^(?:>=|>)")
+_PACKAGE_VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?")
+_SETUP_SKILL_PATH = PurePosixPath("skills/endor-agent-kit-setup/SKILL.md")
 
-# Sentinel the emitter writes where the release tag belongs; stamp_catalog_version
-# resolves it once the tag is known. The tag is not available at wire-build time
-# (the release pipeline stamps it in a later step), so hosts whose install command
-# pins a release ref emit this token instead.
-_CATALOG_VERSION_PLACEHOLDER = "{{catalog_version}}"
 
-# Codex install is a marketplace-add pinned to the release tag followed by the
-# plugin add; the package installs every workflow, so the command is agent
-# independent (same as claude-code).
-_CODEX_MARKETPLACE_NAME = "endor-labs-agent-kit"
-_CODEX_SPARSE_PLUGIN_PATH = "plugins/codex/endor-labs-agent-kit"
+@dataclass(frozen=True)
+class _InstallPackageSpec:
+    package_host: str
+    wire_host: str
+    package_name: str
+    distribution_channel: str
+
+
+# Package authority -> wire host, in catalog install order. Claude Managed,
+# Gemini, portable, and Cursor SDK artifacts remain generated but are not public
+# install surfaces. Cursor and Antigravity are monolithic packages, so they do
+# not need duplicate per-agent compiler records to appear in the catalog.
+_WIRE_INSTALL_PACKAGES = (
+    _InstallPackageSpec("claude-code", "claude-code", PLUGIN_NAME, "repository"),
+    _InstallPackageSpec("codex", "codex", PLUGIN_NAME, "official-directory"),
+    _InstallPackageSpec("cursor", "cursor", "endorlabs", "repository"),
+    _InstallPackageSpec("antigravity", "antigravity", PLUGIN_NAME, "repository"),
+)
 
 
 def catalog_wire_payload(
     agents: list[CatalogAgent],
+    plugin_packages: list[CatalogPluginPackage],
     *,
     catalog_version: str | None = None,
 ) -> dict[str, Any]:
-    """Return the ``catalog.json`` payload for the given Catalog Manifest agents."""
+    """Return the catalog wire payload for finalized manifest records."""
 
     by_id: dict[str, list[CatalogAgent]] = {}
     for agent in agents:
         by_id.setdefault(agent.id, []).append(agent)
 
     _validate_legacy_id_claims(by_id)
+    install_packages = _eligible_install_packages(by_id, plugin_packages)
 
     records = []
     for _, group in sorted(by_id.items()):
-        record = _endor_agent_record(group)
+        record = _endor_agent_record(group, install_packages)
         if record is not None:
             records.append(record)
 
@@ -82,13 +86,18 @@ def catalog_wire_payload(
 def write_catalog(
     destination: str | Path,
     agents: list[CatalogAgent],
+    plugin_packages: list[CatalogPluginPackage],
     *,
     catalog_version: str | None = None,
 ) -> Path:
     """Write ``catalog.json`` into ``destination`` and return its path."""
 
     path = Path(destination) / CATALOG_PATH
-    payload = catalog_wire_payload(agents, catalog_version=catalog_version)
+    payload = catalog_wire_payload(
+        agents,
+        plugin_packages,
+        catalog_version=catalog_version,
+    )
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     return path
 
@@ -96,10 +105,9 @@ def write_catalog(
 def stamp_catalog_version(catalog_path: str | Path, catalog_version: str) -> Path:
     """Inject ``catalog_version`` (the release tag) into an existing catalog.json.
 
-    The committed catalog.json carries no ``catalog_version`` (no tag exists at
-    commit time); the release pipeline stamps it just before signing. The same
-    tag resolves any install command that pinned it via
-    ``_CATALOG_VERSION_PLACEHOLDER`` (e.g. codex's ``--ref``).
+    The committed catalog.json carries no ``catalog_version`` because no tag
+    exists at commit time. Provider install commands are production package
+    instructions and remain unchanged when the Agent Kit catalog tag is stamped.
     """
 
     path = Path(catalog_path)
@@ -111,24 +119,14 @@ def stamp_catalog_version(catalog_path: str | Path, catalog_version: str) -> Pat
     for key, value in payload.items():
         if key not in ("schema_version", "catalog_version"):
             stamped[key] = value
-    _resolve_install_version(stamped.get("agents", []), catalog_version)
     path.write_text(json.dumps(stamped, indent=2) + "\n", encoding="utf-8")
     return path
 
 
-def _resolve_install_version(agents: list[dict[str, Any]], catalog_version: str) -> None:
-    """Replace the release-tag placeholder in every install command in place."""
-
-    for agent in agents:
-        for entry in agent.get("install", []):
-            command = entry.get("command")
-            if isinstance(command, str) and _CATALOG_VERSION_PLACEHOLDER in command:
-                entry["command"] = command.replace(
-                    _CATALOG_VERSION_PLACEHOLDER, catalog_version
-                )
-
-
-def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
+def _endor_agent_record(
+    group: list[CatalogAgent],
+    install_packages: dict[str, CatalogPluginPackage],
+) -> dict[str, Any] | None:
     by_host = {agent.host: agent for agent in group}
     representative = by_host.get("claude-code") or group[0]
 
@@ -150,15 +148,18 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
         )
 
     install: list[dict[str, str]] = []
-    for repo_host, wire_host in _WIRE_INSTALL_HOSTS:
-        host_agent = by_host.get(repo_host)
-        if host_agent is None or not host_agent.editions:
+    for spec in _WIRE_INSTALL_PACKAGES:
+        package = install_packages.get(spec.package_host)
+        if package is None or representative.id not in package.included_agents:
             continue
-        install.append({"host": wire_host, "command": _install_command(repo_host)})
-    if not install:
-        raise ValueError(
-            f"{representative.id}: no public install host (claude-code/codex); cannot build install[]"
+        install.append(
+            {
+                "host": spec.wire_host,
+                "command": _install_command(spec.package_host, package),
+            }
         )
+    if not install:
+        return None
 
     record = {
         "id": representative.id,
@@ -175,6 +176,53 @@ def _endor_agent_record(group: list[CatalogAgent]) -> dict[str, Any] | None:
     if representative.legacy_ids:
         record["legacy_ids"] = sorted(representative.legacy_ids)
     return record
+
+
+def _eligible_install_packages(
+    by_id: dict[str, list[CatalogAgent]],
+    plugin_packages: list[CatalogPluginPackage],
+) -> dict[str, CatalogPluginPackage]:
+    """Select complete package records that can install the emitted catalog."""
+
+    published_agent_ids = {
+        agent_id
+        for agent_id, group in by_id.items()
+        if any(agent.editions for agent in group)
+    }
+    selected: dict[str, CatalogPluginPackage] = {}
+    for spec in _WIRE_INSTALL_PACKAGES:
+        matches = [
+            package
+            for package in plugin_packages
+            if package.host == spec.package_host
+            and package.name == spec.package_name
+            and package.distribution_channel == spec.distribution_channel
+        ]
+        if len(matches) > 1:
+            raise ValueError(
+                f"manifest.json: multiple {spec.distribution_channel} packages for "
+                f"{spec.package_host}/{spec.package_name}"
+            )
+        if not matches:
+            continue
+        package = matches[0]
+        if not _PACKAGE_VERSION_RE.fullmatch(package.version):
+            continue
+        if not published_agent_ids.issubset(package.included_agents):
+            continue
+        if not _package_contains_setup_skill(package):
+            continue
+        selected[spec.package_host] = package
+    return selected
+
+
+def _package_contains_setup_skill(package: CatalogPluginPackage) -> bool:
+    package_root = PurePosixPath(package.path)
+    if package.path in ("", "."):
+        expected = _SETUP_SKILL_PATH.as_posix()
+    else:
+        expected = (package_root / _SETUP_SKILL_PATH).as_posix()
+    return any(artifact.path == expected for artifact in package.artifacts)
 
 
 def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
@@ -200,7 +248,7 @@ def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
                 )
 
 
-def _install_command(repo_host: str) -> str:
+def _install_command(repo_host: str, package: CatalogPluginPackage) -> str:
     # Each command installs the whole package, so it is identical for every agent
     # on that host.
     if repo_host == "claude-code":
@@ -211,10 +259,19 @@ def _install_command(repo_host: str) -> str:
         )
     if repo_host == "codex":
         return (
-            f"codex plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY} "
-            f"--ref {_CATALOG_VERSION_PLACEHOLDER} --sparse .agents "
-            f"--sparse {_CODEX_SPARSE_PLUGIN_PATH}\n"
-            f"codex plugin add {PLUGIN_NAME}@{_CODEX_MARKETPLACE_NAME}"
+            "Use /plugins to find and install Endor Labs Agent Kit from the "
+            "public Codex Plugins Directory."
+        )
+    if repo_host == "cursor":
+        return "/add-plugin endorlabs"
+    if repo_host == "antigravity":
+        clone_dir = f"endor-ai-plugins-{package.version}"
+        plugin_path = f"./{clone_dir}/plugins/antigravity/{PLUGIN_NAME}"
+        return (
+            f"git clone --branch {package.version} "
+            f"https://github.com/{PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}.git {clone_dir}\n"
+            f"agy plugin validate {plugin_path}\n"
+            f"agy plugin install {plugin_path}"
         )
     raise ValueError(f"unsupported install host {repo_host!r}")
 

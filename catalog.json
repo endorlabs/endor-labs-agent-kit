@@ -20,7 +20,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -46,7 +54,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
@@ -69,7 +85,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -95,7 +119,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -123,7 +155,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
@@ -146,7 +186,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -172,7 +220,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -198,7 +254,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -224,7 +288,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
@@ -247,7 +319,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -273,7 +353,15 @@
         },
         {
           "host": "codex",
-          "command": "codex plugin marketplace add endorlabs/ai-plugins --ref {{catalog_version}} --sparse .agents --sparse plugins/codex/endor-labs-agent-kit\ncodex plugin add endor-labs-agent-kit@endor-labs-agent-kit"
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     }
