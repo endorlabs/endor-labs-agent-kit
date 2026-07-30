@@ -41,6 +41,7 @@ SYNC_FILES = (
 
 STALE_GENERATED_FILES = (
     "gemini-extension.json",
+    "manifest.json",
     "scripts/validate_claude_official_root.py",
 )
 

@@ -130,6 +130,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     _write(target / "assets" / "logo.svg", "<svg />\n")
     _write(target / "skills" / "old-generated-skill" / "SKILL.md", "stale\n")
     _write(target / "gemini-extension.json", "{}\n")
+    _write(target / "manifest.json", '{"stale": true}\n')
     _write(target / "README.md", "Current generated Agent Kit package version: `0.0.1`.\n")
 
     operations = sync_distribution(source, target)
@@ -161,6 +162,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert (target / "assets" / "logo.png").exists()
     assert not (target / "assets" / "logo.svg").exists()
     assert not (target / "gemini-extension.json").exists()
+    assert not (target / "manifest.json").exists()
     assert not (target / ".mcp.json").exists()
     assert "package version: `9.9.9`" in (target / "README.md").read_text(encoding="utf-8")
     root_manifest = (target / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8")
@@ -211,6 +213,7 @@ def test_sync_distribution_copies_generated_surfaces_and_prunes_root_skills(tmp_
     assert any("sync" in operation for operation in operations)
     assert any("package version -> 9.9.9" in operation for operation in operations)
     assert any("gemini-extension.json" in operation for operation in operations)
+    assert any("manifest.json" in operation for operation in operations)
 
 
 def test_sync_distribution_is_idempotent_and_replaces_stale_claude_overlay(tmp_path):

@@ -92,9 +92,44 @@ Run from the `ai-plugins` repo after Agent Kit regeneration is clean. Set
 ```bash
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
 
+test -z "$(git -C "$AGENT_KIT_REPO" status --porcelain)" || {
+  echo "Agent Kit must be clean before pinning mirror provenance." >&2
+  exit 1
+}
 python3 "$AGENT_KIT_REPO/scripts/sync_ai_plugins_distribution.py" \
   --source "$AGENT_KIT_REPO" \
   --target .
+
+# Refresh the source-owned manifest provenance used by mirror validators.
+mkdir -p "$AGENT_KIT_REPO/dist/provenance" provenance
+PYTHONPATH="$AGENT_KIT_REPO/src" "$AGENT_KIT_REPO/.venv/bin/python" \
+  -m endor_agent_kit.cli provenance-statement \
+  --catalog-root "$AGENT_KIT_REPO" \
+  --output "$AGENT_KIT_REPO/dist/provenance/agent-kit-catalog.intoto.json"
+(cd "$AGENT_KIT_REPO" && shasum -a 256 manifest.json > dist/provenance/manifest.sha256)
+cp "$AGENT_KIT_REPO/dist/provenance/agent-kit-catalog.intoto.json" \
+  provenance/agent-kit-catalog.intoto.json
+cp "$AGENT_KIT_REPO/dist/provenance/manifest.sha256" provenance/manifest.sha256
+cp "$AGENT_KIT_REPO/manifest.json" provenance/agent-kit-manifest.json
+AGENT_KIT_SHA="$(git -C "$AGENT_KIT_REPO" rev-parse HEAD)" python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+Path("provenance/agent-kit-source.json").write_text(
+    json.dumps(
+        {
+            "kind": "endor.agent-kit-source/v1",
+            "agent_kit_repository": "endorlabs/endor-labs-agent-kit",
+            "agent_kit_sha": os.environ["AGENT_KIT_SHA"],
+        },
+        indent=2,
+        sort_keys=True,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+PY
 ```
 
 Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
@@ -102,8 +137,10 @@ Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
 installable Gemini extension manifest; Gemini CLI uses
 `plugins/gemini/endor-labs-agent-kit/`. The sync script removes stale root
 `gemini-extension.json` files from `ai-plugins` because the multi-host repo root
-is not a Gemini extension root. The sync script copies `CHANGELOG.md`; update it
-in Agent Kit source before opening a release-oriented distribution PR.
+is not a Gemini extension root. It also removes the stale mirror-root
+`manifest.json`; mirror validators use the exact source manifest under
+`provenance/agent-kit-manifest.json`. The sync script copies `CHANGELOG.md`;
+update it in Agent Kit source before opening a release-oriented distribution PR.
 
 ## Mirror Validation
 
