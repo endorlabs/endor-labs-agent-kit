@@ -59,6 +59,9 @@ package metadata.
 
 ### Fixed
 
+- Removed stale mirror-root `manifest.json` files during `ai-plugins` sync so
+  Codex directory validation uses the exact source manifest pinned in mirror
+  provenance.
 - Defaulted interactive agent responses to human-readable Markdown while
   preserving strict JSON for explicit machine-readable requests.
 - Aligned Antigravity manifests and install commands with the documented
