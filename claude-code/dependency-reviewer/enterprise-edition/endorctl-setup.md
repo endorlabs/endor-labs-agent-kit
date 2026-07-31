@@ -3,7 +3,7 @@
 The Enterprise Edition Dependency Reviewer uses read-only Endor lookups through `endorctl agent api --agent-id dependency-reviewer`.
 Install and authenticate `endorctl` before using this artifact.
 
-Required version: `>=1.0.0`
+Required version: `>=1.7.1088`
 
 ## Namespace Guardrails
 

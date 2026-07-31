@@ -718,7 +718,7 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
         if agent["host"] == "claude-code" and agent["id"] == "dependency-reviewer"
     )
     dependency_enterprise = [edition for edition in dependency["editions"] if edition["id"] == "enterprise-edition"][0]
-    assert dependency_enterprise["requires_endorctl"] == ">=1.0.0"
+    assert dependency_enterprise["requires_endorctl"] == ">=1.7.1088"
     assert "endorctl-setup.md" in {artifact["path"].split("/")[-1] for artifact in dependency_enterprise["artifacts"]}
     vulnerability = next(
         agent
@@ -728,8 +728,8 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
     vulnerability_artifact = vulnerability["editions"][0]
     assert vulnerability_artifact["id"] == "developer-edition"
     assert vulnerability_artifact["path"] == "claude-code/vulnerability-explainer"
-    assert vulnerability_artifact["requires_endorctl"] == ">=1.0.0"
-    assert vulnerability["requires_endorctl"] == ">=1.0.0"
+    assert vulnerability_artifact["requires_endorctl"] == ">=1.7.1088"
+    assert vulnerability["requires_endorctl"] == ">=1.7.1088"
     assert {artifact["path"].split("/")[-1] for artifact in vulnerability_artifact["artifacts"]} == {
         "README.md",
         "endorctl-setup.md",

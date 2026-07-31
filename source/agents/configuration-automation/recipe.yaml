@@ -206,4 +206,4 @@ endorctl_agent_api_invocations:
 instructions_path: instructions.md
 model: sonnet
 requires_endor_mcp: ""
-requires_endorctl: ">=1.0.0"
+requires_endorctl: ">=1.7.1088"
