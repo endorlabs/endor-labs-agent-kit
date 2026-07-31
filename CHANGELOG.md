@@ -46,7 +46,8 @@ package metadata.
   Automation, Malware Response Agent to Malware Responder, and the display name
   Endor Labs Vulnerability Explainer to Vulnerability Explainer.
 - Refreshed the pinned Endor OpenAPI and client/service provenance to
-  v1.7.1085, retaining `ECOSYSTEM_VSCODE` registry coverage.
+  v1.7.1088, retaining `ECOSYSTEM_VSCODE` registry coverage and the expanded
+  Codex, Cursor, Gemini, and Antigravity install-host enum.
 - Enhanced `findings-browser` with compact complete-count queries and
   `FINDING_TAGS_*` filters for exploited, fix-available, and reachable findings.
 - Extended `malware-responder` to query tenant `FINDING_CATEGORY_MALWARE`
