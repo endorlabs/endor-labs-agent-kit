@@ -3,7 +3,7 @@
 The Findings Browser artifact uses read-only Endor lookups through `endorctl agent api --agent-id findings-browser`.
 Install and authenticate `endorctl` before using this artifact.
 
-Required version: `>=1.0.0`
+Required version: `>=1.7.1088`
 
 ## Namespace Guardrails
 

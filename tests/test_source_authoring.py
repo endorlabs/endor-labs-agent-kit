@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 import shutil
 from pathlib import Path
 
@@ -7,8 +8,14 @@ import yaml
 
 from endor_agent_kit.cli import main
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
+from endor_agent_kit.validator import ENDORCTL_CONSTRAINT_RE
 
 from conftest import repo_root
+
+# Generated agents reach the Endor API through `endorctl agent api`, a subcommand that
+# does not exist in earlier clients, so a lower declared floor advertises a version
+# under which every agent fails on its first data call.
+MIN_ENDORCTL_VERSION = (1, 7, 1088)
 
 
 def _copy_agent_source(tmp_path: Path, agent_id: str) -> Path:
@@ -37,6 +44,24 @@ def test_all_source_agents_include_parent_namespace_traverse_fallback():
             or "reporting the project as missing" in body
             or "reporting a miss" in body
         ), instructions
+
+
+def test_all_source_agents_require_endorctl_with_agent_api_support():
+    recipes = sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
+
+    assert recipes
+
+    for recipe in recipes:
+        data = yaml.safe_load(recipe.read_text(encoding="utf-8"))
+        constraint = data.get("requires_endorctl")
+
+        assert isinstance(constraint, str), recipe
+        assert ENDORCTL_CONSTRAINT_RE.match(constraint), (recipe, constraint)
+
+        match = re.match(r"^(?:>=|>)(\d+)\.(\d+)\.(\d+)", constraint)
+        floor = tuple(int(part) for part in match.groups())
+
+        assert floor >= MIN_ENDORCTL_VERSION, (recipe, constraint)
 
 
 def test_source_authoring_check_accepts_strict_new_mutating_agent(tmp_path, capsys):
