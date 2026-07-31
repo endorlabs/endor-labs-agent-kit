@@ -5,7 +5,7 @@ Use an authenticated Endor tenant for evidence gathering. A local target
 checkout and source-provider adapter credentials are separate capabilities required
 before allowing patch or change-request steps.
 
-Required endorctl version: `>=1.0.0`
+Required endorctl version: `>=1.7.1088`
 
 ## Namespace Guardrails
 
