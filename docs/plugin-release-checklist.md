@@ -146,9 +146,10 @@ For a real source-to-mirror publish, optionally provide both release evidence bu
 
 Validate the pair strictly with `scripts/validate_release_evidence.py` when the
 evidence is available; see `docs/backend-agent-telemetry-acceptance.md`. The
-automated publication workflow reports missing, stale, or invalid evidence as a
-warning and continues. A manual `dry_run=true` may regenerate and validate
-packages, but cannot publish.
+automated publication workflow reports unconfigured evidence as a warning and
+continues, but fails and blocks publication when configured evidence does not
+validate. A manual `dry_run=true` may regenerate and validate packages, but
+cannot publish.
 
 The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not

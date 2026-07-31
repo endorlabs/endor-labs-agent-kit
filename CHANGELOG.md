@@ -58,9 +58,9 @@ package metadata.
   evidence selects an upgrade candidate.
 - Routed generated Endor API commands through `endorctl agent api` with canonical
   agent identifiers so backend telemetry can attribute agent-originated calls.
-- Made exact-SHA QA and backend telemetry release evidence advisory in the
-  automated `ai-plugins` publication workflow while retaining strict manual
-  validation.
+- Made exact-SHA QA and backend telemetry release evidence optional to configure
+  in the automated `ai-plugins` publication workflow, while blocking publication
+  whenever configured evidence fails validation.
 - Added profile-aware execution bounds, compact evidence plans, and deterministic
   artifact summaries that avoid returning complete large inventories to the model.
 

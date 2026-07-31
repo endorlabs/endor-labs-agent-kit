@@ -28,9 +28,12 @@ non-secret repository variables with the corresponding JSON objects:
 - `AGENT_QA_ACCEPTANCE_JSON`
 - `ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON`
 
-When both variables are configured, the publication workflow validates them and
-reports the result. Missing, stale, mismatched-SHA, alias-incomplete, or
-correlation-incomplete evidence produces a warning and does not block
-publication. The standalone `scripts/validate_release_evidence.py` command
-remains strict and returns a nonzero status for invalid evidence. A manual
-`dry_run=true` may still regenerate and validate packages without publishing.
+Configuring the variables is optional. When neither is configured, the
+publication workflow records a warning and continues. When both are configured,
+the workflow validates them and stale, mismatched-SHA, alias-incomplete, or
+correlation-incomplete evidence fails the job and blocks publication: consumers
+accept the mirrored catalog as one signed snapshot, so a single unsatisfied
+claim invalidates the entire release. The standalone
+`scripts/validate_release_evidence.py` command returns the same nonzero status
+for invalid evidence. A manual `dry_run=true` may still regenerate and validate
+packages without publishing.

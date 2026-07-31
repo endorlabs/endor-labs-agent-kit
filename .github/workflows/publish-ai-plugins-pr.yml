@@ -98,7 +98,7 @@ jobs:
         working-directory: endor-labs-agent-kit
         run: .venv/bin/python scripts/smoke_test_provider_installations.py --root .
 
-      - name: Report optional QA and backend release evidence
+      - name: Validate optional QA and backend release evidence
         if: ${{ env.DRY_RUN != 'true' }}
         working-directory: endor-labs-agent-kit
         env:
@@ -128,23 +128,26 @@ jobs:
           validation_status=$?
           set -e
 
+          printf '%s\n' "$validation_output"
+
           if [ "$validation_status" -ne 0 ]; then
-            echo "::warning title=Optional release evidence did not validate::QA/backend release evidence is advisory; publication will continue."
+            echo "::error title=Release evidence validation failed::Configured QA and backend release evidence does not validate against this commit. Publication is blocked."
             {
-              echo "## Optional release evidence"
+              echo "## Release evidence"
               echo
-              echo "Validation did not pass. Publication continues because release evidence is advisory."
+              echo "Validation failed, so this publication is blocked. Consumers accept the"
+              echo "mirrored catalog as one signed snapshot, so a single unsatisfied claim"
+              echo "invalidates the whole release."
               echo
               echo '```text'
               printf '%s\n' "$validation_output"
               echo '```'
             } >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            exit 1
           fi
 
-          printf '%s\n' "$validation_output"
           {
-            echo "## Optional release evidence"
+            echo "## Release evidence"
             echo
             echo "QA and backend release evidence validated successfully."
           } >> "$GITHUB_STEP_SUMMARY"
@@ -364,6 +367,7 @@ jobs:
           - \`endor-agent-kit publish ... --include-plugins\`
           - \`endor-agent-kit check-guardrails --catalog-root .\`
           - \`endor-agent-kit verify-provenance --catalog-root .\`
+          - \`scripts/validate_release_evidence.py\` whenever QA and backend release evidence are configured; missing evidence is reported and publication continues, invalid evidence blocks publication
           - Claude official root and self-contained Cursor marketplace boundary validation, conventional component checks, JSON checks, Cursor SDK compile check, Gemini no-zip check, and byte-for-byte generated-surface diffs
 
           ## Provenance

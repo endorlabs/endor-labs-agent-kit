@@ -75,11 +75,24 @@ def validate_release_evidence(
 
 
 def _load(path: Path | None, env_name: str | None, label: str) -> dict[str, object]:
-    raw = os.environ.get(env_name, "") if env_name else ""
+    # The environment variable and the file are mutually exclusive sources: an
+    # unset or blank variable must never silently fall back to reading a file.
+    invalid = ValueError(f"{label} is missing or invalid")
+    if env_name is not None:
+        raw = os.environ.get(env_name, "")
+    elif path is not None:
+        try:
+            raw = path.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise invalid from exc
+    else:
+        raise invalid
+    if not raw.strip():
+        raise invalid
     try:
-        value = json.loads(raw) if raw else json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise ValueError(f"{label} is missing or invalid") from exc
+        value = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise invalid from exc
     if not isinstance(value, dict):
         raise ValueError(f"{label} must be an object")
     return value
