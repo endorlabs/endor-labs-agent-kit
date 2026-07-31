@@ -4,6 +4,7 @@
     "actions": "actions.yaml",
     "agent": "agent.md",
     "architecture": "architecture.svg",
+    "artifact_summarizer": "runtime/summarize_endor_artifact.py",
     "output_contract": "output-contract.md",
     "runtime_contract": "agent.manifest.json",
     "runtime_setup": "endorctl-setup.md"
@@ -31,8 +32,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api",
+        "endorctl-agent-api",
         "repository-adapter"
       ]
     },
@@ -58,8 +58,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api"
+        "endorctl-agent-api"
       ]
     },
     {
@@ -82,8 +81,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api"
+        "endorctl-agent-api"
       ]
     },
     {
@@ -108,8 +106,7 @@
       "portable_kind": "endor.query",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api",
+        "endorctl-agent-api",
         "repository-adapter"
       ]
     },
@@ -159,8 +156,7 @@
       "portable_kind": "repository.read",
       "safety_class": "read_only",
       "source_provider_examples": [
-        "endorctl-api",
-        "endor-api",
+        "endorctl-agent-api",
         "repository-files-adapter",
         "repository-adapter",
         "dependency-manager-adapter"
@@ -279,8 +275,8 @@
     "mutation_without_adapter": "forbidden",
     "supports_plan_only": true
   },
-  "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
-  "endorctl_api_invocations": [
+  "description": "Plans and applies dependency-vulnerability fixes using Endor SCA findings,\nVersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk\ndecisions, and local validation. It separates low-risk changes from upgrades\nrequiring deeper compatibility review and requires explicit approval before\nediting files, pushing branches, opening change requests, or creating\ntickets.\n",
+  "endorctl_agent_api_invocations": [
     "resolve_project_from_repository",
     "list_sca_findings",
     "list_version_upgrade_recommendations",
@@ -344,6 +340,12 @@
       "kind": "integer",
       "name": "finding_limit",
       "required": false
+    },
+    {
+      "description": "Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving approved evidence. Never carries secrets or approvals.",
+      "kind": "object",
+      "name": "task_state",
+      "required": false
     }
   ],
   "name": "SCA Remediation",
@@ -367,19 +369,25 @@
       "required": true
     },
     {
-      "description": "Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.",
+      "description": "Capability preflight with evidence_only or local_checkout mode, Endor authentication status, source-provider access, local-validation availability, and explicit limitations.",
+      "kind": "object",
+      "name": "execution_context",
+      "required": true
+    },
+    {
+      "description": "One append-only ledger row per actual Endor API invocation, including failed, zero-result, retry, and fallback calls, with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.",
       "kind": "list[object]",
       "name": "evidence_queries",
       "required": true
     },
     {
-      "description": "Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.",
+      "description": "Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, Endor finding-instance count, distinct advisory count, fixed Finding UUIDs, and why it was selected.",
       "kind": "object",
       "name": "selected_remediation",
       "required": true
     },
     {
-      "description": "VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.",
+      "description": "VersionUpgrade/UIA records used for ranking, including risk, CIA status, Endor finding instances fixed, distinct advisories fixed, fixed Finding UUIDs, findings introduced, score explanation, and breaking-change notes.",
       "kind": "list[object]",
       "name": "uia_evidence",
       "required": true
@@ -419,6 +427,12 @@
       "kind": "list[string]",
       "name": "data_gaps",
       "required": true
+    },
+    {
+      "description": "Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.",
+      "kind": "object",
+      "name": "task_state",
+      "required": false
     },
     {
       "description": "Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.",
@@ -521,7 +535,7 @@
     }
   ],
   "required_transports": [
-    "endorctl_api"
+    "endorctl_agent_api"
   ],
   "requires_endor_mcp": "",
   "requires_endorctl": ">=1.0.0",
@@ -532,8 +546,7 @@
       "description": "Run read-only Endor evidence lookups through an approved Endor transport.",
       "kind": "endor.query",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api",
+        "endorctl-agent-api",
         "approved-endor-mcp-adapter"
       ],
       "status": "declared"
@@ -640,11 +653,10 @@
     {
       "confirmation_required": null,
       "declared_by_recipe": false,
-      "description": "Create or reuse an Endor policy only after required approval and confirmation.",
+      "description": "Create, update, or reuse an Endor Policy only after required approval and confirmation; delete and non-Policy mutations are forbidden.",
       "kind": "endor.policy.write",
       "provider_examples": [
-        "endor-api",
-        "endorctl-api"
+        "endorctl-agent-api"
       ],
       "status": "unavailable"
     },

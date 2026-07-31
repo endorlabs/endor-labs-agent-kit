@@ -1,21 +1,21 @@
 recipe_schema_version: 1
 id: findings-browser
 name: Findings Browser
+category: Research & Investigate
 version: 0.1.0
 description: |
-  Use this agent when the user wants to browse, filter, summarize, or inspect
-  existing Endor Labs findings. Findings Browser uses read-only Endor evidence
-  to list matching findings, explain applied filters, surface pagination and
-  truncation limits, and identify data gaps without starting new scans or
-  performing remediation actions.
+  Browses, filters, and summarizes existing Endor findings without starting
+  new scans or performing remediation. It shows the applied scope and filters,
+  relevant severity and reachability context, pagination or truncation limits,
+  and any evidence gaps affecting the results.
 audience: appsec
-short_description: "Browse, filter, and summarize existing Endor Labs findings from read-only evidence."
+short_description: "Browses and filters existing Endor findings with clear scope, pagination, and evidence gaps."
 authors: ["Endor Labs"]
 safety_class: read_only
 endor_tier_minimum: enterprise
 policy_pack_support: true
 supported_transports:
-  - endorctl_api
+  - endorctl_agent_api
 host_capabilities_required:
   run_commands: true
   read_files: false
@@ -114,7 +114,7 @@ outputs:
   - name: recommended_next_steps
     kind: list[object]
     required: true
-    description: Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, probe-droid, or cicd-posture, with confirmation requirements for any mutating follow-up.
+    description: Read-only or future workflow suggestions such as vulnerability-explainer, sca-remediation, configuration-automation, or cicd-posture, with confirmation requirements for any mutating follow-up.
   - name: evidence_queries
     kind: list[object]
     required: true
@@ -147,7 +147,7 @@ host_editions:
     - enterprise-edition
 mutations: []
 required_endor_mcp_tools: []
-endorctl_api_invocations:
+endorctl_agent_api_invocations:
   - resolve_project_or_repository_selector
   - get_finding_by_uuid
   - list_findings_by_scope_and_filters

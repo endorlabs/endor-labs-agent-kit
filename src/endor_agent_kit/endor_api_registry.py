@@ -48,8 +48,8 @@ import re
 # endorctl resource kinds (the value after ``-r`` or ``--resource``) the catalog
 # may use. The five attested in query-recipes.yaml are the floor; the remainder
 # are Endor resources the agent ``instructions.md`` commands query directly,
-# mostly via the long ``--resource`` flag (endor-troubleshooter and probe-droid
-# diagnostics, package-risk-summary scoring, the legacy SCA agent). This list is
+# mostly via the long ``--resource`` flag (troubleshooting and configuration-automation
+# diagnostics, dependency-reviewer scoring, the legacy SCA agent). This list is
 # the complete set actually emitted by any agent today — derived from a kit-wide
 # grep of every ``-r``/``--resource`` token across source/ and the generated
 # bundles — so it is the single source for the whole catalog.
@@ -61,7 +61,7 @@ ENDOR_API_RESOURCES = frozenset(
         "PackageVersion",
         "VersionUpgrade",
         "ScanResult",
-        # package-risk-summary / dependency-decision-helper scoring + similarity.
+        # dependency-reviewer scoring + similarity.
         "Metric",
         "QuerySimilarPackages",
         # remediation / upgrade / dependency family.
@@ -70,7 +70,7 @@ ENDOR_API_RESOURCES = frozenset(
         "UpgradeImpactAnalysis",
         "DependencyMetadata",
         "CallGraphData",
-        # probe-droid onboarding + endor-troubleshooter diagnostic lanes
+        # configuration-automation onboarding + troubleshooting diagnostic lanes
         # (queried via ``endorctl api list --resource <kind>``).
         "ScanWorkflowResult",
         "ScanWorkflow",
@@ -101,7 +101,7 @@ ENDOR_API_RESOURCES = frozenset(
 # ``v1<Kind>`` message definitions; ``Vulnerability`` and ``Metric`` are
 # service-backed resource kinds (resource-kinds docs + live agent usage), and
 # ``UpgradeImpactAnalysis`` is a legacy kind NOT in the current spec. The fake
-# ``Integration`` placeholder was removed — endor-troubleshooter declares it as a
+# ``Integration`` placeholder was removed — troubleshooting declares it as a
 # resource but never queries it via -r/--resource and the API exposes no such
 # kind. Endor's OpenAPI defines many more message kinds (Malware, FindingLog,
 # PackageLicense, LinterResult, ...), but a definition does not prove an
@@ -268,7 +268,7 @@ ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {
     ),
 }
 
-# Only police resources inside actual endorctl api invocations so GitHub REST,
+# Only police resources inside actual Endor CLI API invocations so GitHub REST,
 # Endor MCP, and local-shell recipes are never false-flagged. Match BOTH flag
 # forms: the short ``-r Finding`` (used in query-recipes.yaml) and the long
 # ``--resource Finding`` / ``--resource=Finding`` (used heavily in agent
@@ -276,7 +276,7 @@ ENDOR_ENUM_VALUES: dict[str, frozenset[str]] = {
 # the ``-r`` inside the long ``--resource`` flag -- the only ``--r...`` flag
 # endorctl uses here (its namespace recursion flag is ``--traverse``, not
 # ``--recursive``).
-_ENDORCTL_API_MARKER = "endorctl api"
+_ENDORCTL_API_MARKERS = ("endorctl agent api", "endorctl api")
 _RESOURCE_RE = re.compile(r"(?:--resource|(?<![\w-])-r)[=\s]+([A-Z][A-Za-z0-9]*)")
 _ENUM_RES = {
     family: re.compile(rf"\b{family}_[A-Z0-9]+(?:_[A-Z0-9]+)*\b")
@@ -305,7 +305,7 @@ def endor_api_template_errors(prefix: str, template: str) -> list[str]:
     template = re.sub(r"<[^>]*>", " ", template)
     errors: list[str] = []
 
-    if _ENDORCTL_API_MARKER in template.lower():
+    if any(marker in template.lower() for marker in _ENDORCTL_API_MARKERS):
         seen_resources: set[str] = set()
         for resource in _RESOURCE_RE.findall(template):
             if resource in ENDOR_API_RESOURCES or resource in seen_resources:

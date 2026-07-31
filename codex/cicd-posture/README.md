@@ -1,12 +1,12 @@
 # CI/CD And Supply Chain Posture Codex Skill
 
-Use this agent when the user wants a read-only CI/CD and supply chain
-posture assessment for an Endor namespace, GitHub organization, repository
-set, or current repository. The agent combines existing Endor SCPM, CI/CD,
-GitHub Actions, and supply-chain findings with read-only GitHub configuration
-evidence and optional local CI file inspection, then returns deterministic
-scores, critical overrides, evidence queries, and data gaps without mutating
-Endor, GitHub, or repository state.
+Assesses CI/CD and software supply-chain security across an Endor namespace,
+GitHub organization, selected repositories, or the current repository. It
+combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain
+findings with read-only repository configuration evidence and optional local
+CI inspection to produce deterministic scores, critical overrides,
+prioritized improvements, and explicit data gaps. It does not modify Endor,
+GitHub, or repository state.
 
 ## Start Here
 
@@ -17,6 +17,18 @@ This is the Codex generated skill for `cicd-posture`.
 | Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the cicd-posture skill to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/cicd-posture/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gpt-5.6-luna`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `medium`.
+- Generated behavior: custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort.
+- Override behavior: explicit Codex model and reasoning settings win.
+- Provider guidance: <https://developers.openai.com/codex/subagents>.
 
 ## Install
 

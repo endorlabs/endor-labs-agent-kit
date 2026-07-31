@@ -22,6 +22,18 @@
         "matcher": "Edit|MultiEdit|Write"
       }
     ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/enforce-agent-api.sh\"",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

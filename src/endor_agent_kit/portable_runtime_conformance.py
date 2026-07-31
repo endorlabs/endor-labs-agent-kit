@@ -187,7 +187,7 @@ RUNTIME_ACTION_DEFINITIONS: tuple[RuntimeActionDefinition, ...] = (
     RuntimeActionDefinition(
         kind="endor.query",
         description="Run read-only Endor evidence lookups through an approved Endor transport.",
-        provider_examples=("endor-api", "endorctl-api", "approved-endor-mcp-adapter"),
+        provider_examples=("endorctl-agent-api", "approved-endor-mcp-adapter"),
     ),
     RuntimeActionDefinition(
         kind="repository.read",
@@ -246,10 +246,10 @@ RUNTIME_ACTION_DEFINITIONS: tuple[RuntimeActionDefinition, ...] = (
     RuntimeActionDefinition(
         kind="endor.policy.write",
         description=(
-            "Create or reuse an Endor policy only after required approval and "
-            "confirmation."
+            "Create, update, or reuse an Endor Policy only after required approval "
+            "and confirmation; delete and non-Policy mutations are forbidden."
         ),
-        provider_examples=("endor-api", "endorctl-api"),
+        provider_examples=("endorctl-agent-api",),
     ),
     RuntimeActionDefinition(
         kind="ticket.create",

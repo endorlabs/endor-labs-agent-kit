@@ -43,6 +43,22 @@ def test_shared_compiler_rendering_extracts_instruction_sections():
     )
 
 
+def test_shared_compiler_binds_agent_api_identity_from_recipe_id():
+    instructions = INSTRUCTIONS.replace(
+        "Shared rules.",
+        "Run `endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace>`.",
+    )
+
+    rendered = instructions_for_edition(
+        instructions,
+        "enterprise-edition",
+        recipe_id="transport-fixture",
+    )
+
+    assert "endorctl agent api --agent-id transport-fixture list" in rendered
+    assert "--agent-id <agent-id>" not in rendered
+
+
 def test_shared_compiler_rendering_injects_namespace_preflight():
     rendered = instructions_for_edition(INSTRUCTIONS, "enterprise-edition")
 
@@ -51,6 +67,8 @@ def test_shared_compiler_rendering_injects_namespace_preflight():
     assert "tenant-specific, customer-specific, production, backup" in rendered
     assert "non-default Endor config directories" in rendered
     assert "## Endor Project Resolution Preflight" not in rendered
+    assert "do not inspect environment or config namespace first" in rendered
+    assert "Only inspect environment or config namespace after" in rendered
 
 
 def test_shared_compiler_rendering_injects_project_preflight_only_for_project_recipes():
@@ -75,8 +93,14 @@ def test_shared_compiler_rendering_injects_project_preflight_only_for_project_re
     )
 
     assert "## Endor Project Resolution Preflight" in project_rendered
+    assert "parse the local git remote" in project_rendered
+    assert "never derive `owner/repo` from the cwd path" in project_rendered
+    assert 'spec.git.full_name=="<owner/repo>"' in project_rendered
+    assert "Do not add `--list-all`" in project_rendered
+    assert "schema/describe commands" in project_rendered
+    assert "unfiltered/broad Project inventory" in project_rendered
     assert "retry the same selector with `--traverse`" in project_rendered
-    assert "Repository.spec.default_branch" in project_rendered
+    assert "use current git branch/default-remote evidence" in project_rendered
     assert "## Endor Project Resolution Preflight" not in package_rendered
 
 
@@ -107,6 +131,12 @@ def test_shared_compiler_rendering_compact_project_preflight_is_conditional():
     )
 
     assert "## Endor Project Resolution Preflight" in rendered
+    assert "Parse the local git remote" in rendered
+    assert "never derive `owner/repo` from cwd" in rendered
+    assert 'spec.git.full_name=="<owner/repo>"' in rendered
+    assert "no `--list-all`" in rendered
+    assert "No schema/describe probes" in rendered
+    assert "broad Project inventory" in rendered
     assert "--traverse" in rendered
 
 
@@ -127,10 +157,10 @@ def test_shared_compiler_rendering_injects_knowledge_pack_after_namespace_prefli
     assert "Evidence Query Plans" in rendered
     assert "`selection-plan` - Selection Plan Query Plan" in rendered
     assert "Evidence Query Recipes" in rendered
-    assert "endorctl api list -r VersionUpgrade -n <namespace>" in rendered
+    assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace>" in rendered
 
 
-def test_shared_compiler_rendering_injects_structured_contract_before_workflow_steps():
+def test_shared_compiler_rendering_places_structured_contract_after_workflow_steps():
     rendered = instructions_for_edition(
         INSTRUCTIONS,
         "enterprise-edition",
@@ -146,7 +176,39 @@ def test_shared_compiler_rendering_injects_structured_contract_before_workflow_s
     assert rendered.index("## Endor Namespace Preflight") < rendered.index(PACK_SECTION_HEADING)
     assert rendered.index("## Endor Project Resolution Preflight") < rendered.index(PACK_SECTION_HEADING)
     assert rendered.index(PACK_SECTION_HEADING) < rendered.index(STRUCTURED_OUTPUT_HEADING)
-    assert rendered.index(STRUCTURED_OUTPUT_HEADING) < rendered.index("Enterprise rules.")
+    assert rendered.index("Enterprise rules.") < rendered.index(STRUCTURED_OUTPUT_HEADING)
+
+
+def test_projected_structured_contract_explicitly_forbids_extra_recipe_fields():
+    rendered = render_structured_output_contract(
+        _recipe_with_outputs(
+            RecipeField("verdict", "string", required=True),
+            RecipeField("recommended_next_steps", "list[object]", required=True),
+            RecipeField("evidence_queries", "list[object]", required=True),
+            RecipeField("data_gaps", "list[string]", required=True),
+        ),
+        output_fields=("verdict", "evidence_queries", "data_gaps"),
+    )
+
+    assert "This task-profile field projection is authoritative" in rendered
+    assert "omit every other recipe field" in rendered
+    assert "`recommended_next_steps`" not in rendered
+
+
+def test_shared_compiler_rendering_injects_task_state_resume_contract_when_declared():
+    rendered = instructions_for_edition(
+        INSTRUCTIONS,
+        "enterprise-edition",
+        structured_output_recipe=_recipe_with_outputs(
+            RecipeField("summary", "string", required=True),
+            RecipeField("task_state", "object", required=False),
+        ),
+    )
+
+    assert "## Task State Resume Contract" in rendered
+    assert "prompt-supplied `task_state`" in rendered
+    assert "Never carry credentials, secrets, or approvals" in rendered
+    assert rendered.index("## Task State Resume Contract") < rendered.index(STRUCTURED_OUTPUT_HEADING)
 
 
 def test_shared_compiler_rendering_compact_plugin_profile_omits_marked_blocks():
@@ -178,6 +240,33 @@ Enterprise rules.
     assert "Shared tail." in compact
 
 
+def test_shared_compiler_rendering_selects_one_profile_without_cross_edition_leakage():
+    instructions = """\
+<!-- shared:start -->
+<!-- section:scope-resolution:start -->Shared invariant.<!-- section:scope-resolution:end -->
+<!-- profile:evidence-check:start -->Evidence lane.<!-- profile:evidence-check:end -->
+<!-- profile:selection-plan:start -->Selection lane.<!-- profile:selection-plan:end -->
+<!-- shared:end -->
+<!-- developer-edition:start -->Developer only.<!-- developer-edition:end -->
+<!-- enterprise-edition:start -->Enterprise only.<!-- enterprise-edition:end -->
+"""
+
+    rendered = instructions_for_edition(
+        instructions,
+        "enterprise-edition",
+        recipe_id="sca-remediation",
+        profile_id="evidence-check",
+    )
+
+    assert "Shared invariant." in rendered
+    assert "Evidence lane." in rendered
+    assert "Selection lane." not in rendered
+    assert "Enterprise only." in rendered
+    assert "Developer only." not in rendered
+    assert "Profiles: `evidence-check`" in rendered
+    assert "`selection-plan` - Selection Plan" not in rendered
+
+
 def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     compact = instructions_for_edition(
         INSTRUCTIONS,
@@ -196,7 +285,7 @@ def test_shared_compiler_rendering_compact_profile_includes_task_profiles():
     assert "VersionUpgrade/UIA before Finding detail; no broad Finding inventory" in compact
     assert "Evidence Query Recipes" in compact
     assert "version-upgrade-summary" in compact
-    assert "endorctl api list -r VersionUpgrade -n <namespace>" in compact
+    assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade -n <namespace>" in compact
     assert "#### `selection-plan` - Selection Plan" not in compact
 
 
@@ -206,7 +295,7 @@ def test_shared_compiler_rendering_compact_profile_keeps_namespace_guardrail_lit
     assert "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs" in compact
     assert "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only" in compact
     assert "surface both values with provenance and stop for user confirmation" in compact
-    assert "`endorctl api` lookup" in compact
+    assert "`endorctl agent api --agent-id <agent-id>` lookup" in compact
     assert "tenant-specific, customer-specific, production, backup" in compact
     assert "non-default Endor config" in compact
 
@@ -232,6 +321,27 @@ def test_findings_browser_applied_filters_guidance_is_product_safe():
     assert "In runtime QA" not in instructions
     assert "severity_levels=CRITICAL,HIGH" not in workflow
     assert "page_size=25" not in workflow
+
+
+def test_source_agent_instructions_do_not_override_human_default_response_mode():
+    forbidden_unconditional_formats = (
+        "Return exactly one bare JSON object",
+        "Return exactly one bare strict JSON object",
+        "Return exactly one strict JSON object",
+        "Return exactly one JSON object.",
+        "Return concise prose plus one strict JSON block",
+        "Respond with concise prose plus one parseable JSON object",
+        "Respond with concise prose plus a JSON block",
+        "Return concise prose plus the strict JSON shape",
+    )
+
+    for instructions_path in sorted((repo_root() / "source" / "agents").glob("*/instructions.md")):
+        instructions = instructions_path.read_text(encoding="utf-8")
+        for forbidden_format in forbidden_unconditional_formats:
+            assert forbidden_format not in instructions, (
+                f"{instructions_path.relative_to(repo_root())} overrides the shared "
+                f"human-readable default with {forbidden_format!r}"
+            )
 
 
 def test_shared_compiler_rendering_reports_missing_instruction_sections():
@@ -319,6 +429,10 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     rendered = render_structured_output_contract(recipe)
 
     assert rendered.count(STRUCTURED_OUTPUT_HEADING) == 1
+    assert "Default response mode is concise human-readable Markdown" in rendered
+    assert "Use structured JSON mode only when the user or calling runtime explicitly requests" in rendered
+    assert "Do not expose the output schema, internal routing language, or raw JSON" in rendered
+    assert "FINAL FORMAT: human-readable Markdown by default" in rendered
     assert rendered.index("`verdict`") < rendered.index("`conditions`")
     assert rendered.index("`conditions`") < rendered.index("`summary`")
     assert "Optional top-level fields when verified" in rendered
@@ -326,9 +440,16 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"conditions": []' in rendered
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
+    assert "current claims need >=1 row" in rendered
+    assert "/filter_summary/field_mask_summary/result_count/reason" in rendered
+    assert "/filter/field_mask/result_count/reason" not in rendered
+    assert "source=endorctl_agent_api for Endor CLI API reads" in rendered
+    assert "source=adapter" not in rendered
     assert "no raw commands" in rendered
-    assert "put gaps in top-level `data_gaps`" in rendered
-    assert "no raw shell, `endorctl api`, `endorctl scan`, `git`, or `gh` command strings" in rendered
+    assert "one row per attempted lookup" in rendered
+    assert "zero-result, failed, and retry attempts" in rendered
+    assert "gaps -> `data_gaps`" in rendered
+    assert "no raw shell, `endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `git`, or `gh` command strings" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
 
 
@@ -343,16 +464,56 @@ def test_shared_compiler_rendering_renders_compact_structured_output_contract():
 
     rendered = render_structured_output_contract(recipe, compact=True)
 
-    assert "Required top-level fields, in order" in rendered
-    assert "`verdict`, `conditions`, `evidence_queries`, `data_gaps`" in rendered
+    assert "Required top-level fields and types" in rendered
+    assert "enum: `verdict`" in rendered
+    assert "list[string]: `conditions`, `data_gaps`" in rendered
+    assert "list[object]: `evidence_queries`" in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
-    assert "`findings_fixed`:integer" in rendered
+    assert "integer: `findings_fixed`" in rendered
     assert "missing inputs return JSON" in rendered
     assert "no raw commands" in rendered
-    assert "put gaps in top-level `data_gaps`" in rendered
+    assert "gaps -> `data_gaps`" in rendered
     assert "prefix task/profile skips with `out_of_scope:`" in rendered
     assert "missing sought evidence with `unavailable:`" in rendered
+    assert "FINAL FORMAT" in rendered
+    assert "No status preamble, heading, Markdown fence, or outside prose" in rendered
     assert "```json" not in rendered
+    assert "one API invocation yields one row" in rendered
+    assert "local projection or summarization does not create another row" in rendered
+
+
+def test_compact_profile_output_contract_requires_only_selected_safe_fields():
+    recipe = _recipe_with_outputs(
+        RecipeField("verdict", "enum", required=True),
+        RecipeField("large_inventory", "list[object]", required=True),
+        RecipeField("evidence_queries", "list[object]", required=True),
+        RecipeField("data_gaps", "list[string]", required=True),
+    )
+
+    rendered = render_structured_output_contract(
+        recipe,
+        compact=True,
+        output_fields=("verdict", "evidence_queries", "data_gaps"),
+    )
+
+    assert "enum: `verdict`" in rendered
+    assert "list[object]: `evidence_queries`" in rendered
+    assert "list[string]: `data_gaps`" in rendered
+    assert "large_inventory" not in rendered
+
+    with pytest.raises(ValueError, match="must retain 'data_gaps'"):
+        render_structured_output_contract(
+            recipe,
+            compact=True,
+            output_fields=("verdict", "evidence_queries"),
+        )
+
+    with pytest.raises(ValueError, match="unknown fields: invented"):
+        render_structured_output_contract(
+            recipe,
+            compact=True,
+            output_fields=("verdict", "evidence_queries", "data_gaps", "invented"),
+        )
 
 
 def test_shared_compiler_rendering_indents_frontmatter_blocks():

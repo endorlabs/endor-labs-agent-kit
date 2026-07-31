@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $malware-responder for this Endor Labs workflow.",
+    "display_name": "Malware Responder",
+    "short_description": "Correlates current malware intelligence with Endor inventory to assess tenant exposure."
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

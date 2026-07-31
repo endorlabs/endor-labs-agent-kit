@@ -30,6 +30,12 @@
       {
         "hooks": [
           {
+            "command": "bash ./hooks/enforce-agent-api.sh BeforeTool",
+            "name": "endor-agent-kit-agent-api-enforcement",
+            "timeout": 10,
+            "type": "command"
+          },
+          {
             "command": "bash ./hooks/check-dep-install.sh BeforeTool",
             "name": "endor-agent-kit-dependency-install-advisory",
             "timeout": 10,

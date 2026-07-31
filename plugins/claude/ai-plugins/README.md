@@ -5,8 +5,11 @@
 Version: `1.2.0`
 
 This generated Claude Code plugin package includes Endor Labs setup
-support and Claude Code agents generated from source recipes in the
+support and the 11 canonical Claude Code workflow agents generated from source recipes in the
 Endor Labs Agent Kit repository.
+Task-profile projections remain available in `claude-code/<agent>/` for
+advanced manual invocation; they are intentionally not separate public
+marketplace agents.
 
 ## Start Here
 
@@ -19,6 +22,18 @@ Endor Labs Agent Kit repository.
 Content releases require a package version bump. If a host still shows old prompt content after reinstalling the same version, remove or reinstall the plugin, clear the host cache when supported, and start a fresh host session.
 
 This package is host-specific for Claude Code. Use the root README when choosing between hosts.
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `sonnet`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host default`.
+- Generated behavior: agent frontmatter defaults to sonnet.
+- Override behavior: Claude environment or per-invocation subagent override wins.
+- Provider guidance: <https://code.claude.com/docs/en/sub-agents>.
 
 ## Install And Upgrade Notice
 
@@ -40,7 +55,7 @@ This package is host-specific for Claude Code. Use the root README when choosing
 ## Install From The Public Repository
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install ai-plugins@endorlabs
 ```
 
@@ -52,6 +67,16 @@ From the Agent Kit repository root:
 /plugin marketplace add ./
 /plugin install ai-plugins@endorlabs
 ```
+
+For one-off development, point Claude Code at this host-specific package:
+
+```bash
+claude --plugin-dir plugins/claude/ai-plugins
+```
+
+Do not run `claude --plugin-dir .`. The repository root contains Cursor
+agents, workflow skills, MCP metadata, and Cursor hook events that are not
+a Claude Code plugin package.
 
 Start a new Claude Code session or run `/reload-plugins` after installing
 or reinstalling the plugin.
@@ -77,19 +102,17 @@ package managers.
 
 | Job | Claude Code agent | Safety |
 | --- | --- | --- |
-| Triage AI SAST findings | `ai-sast-triage` | mutating, approval-gated |
-| Assess CI/CD and supply chain posture | `cicd-posture` | read-only |
-| Decide whether a dependency is safe to use | `dependency-decision-helper` | read-only |
-| Diagnose Endor setup and scan issues | `endor-troubleshooter` | read-only |
-| Browse existing Endor findings | `findings-browser` | read-only |
-| Malware Response | `malware-response` | read-only |
-| Summarize package-version risk | `package-risk-summary` | read-only |
-| Assess GitHub onboarding gaps | `probe-droid` | read-only |
-| Plan remediation across findings | `remediation-planner` | read-only |
-| Review repository dependency manifests | `repository-dependency-reviewer` | read-only |
-| Find safe SCA remediation paths | `sca-remediation` | mutating, approval-gated |
-| Analyze upgrade impact | `upgrade-impact-analysis` | read-only |
-| Explain vulnerability risk and remediation | `vulnerability-explainer` | read-only |
+| AI SAST Remediation | `ai-sast-remediation` | mutating, approval-gated |
+| CI/CD And Supply Chain Posture | `cicd-posture` | read-only |
+| Configuration Automation | `configuration-automation` | read-only |
+| Dependency Reviewer | `dependency-reviewer` | read-only |
+| Findings Browser | `findings-browser` | read-only |
+| Malware Responder | `malware-responder` | read-only |
+| OSS Upgrade Investigator | `oss-upgrade-investigator` | read-only |
+| Remediation Planning | `remediation-planning` | read-only |
+| SCA Remediation | `sca-remediation` | mutating, approval-gated |
+| Troubleshooting | `troubleshooting` | read-only |
+| Vulnerability Explainer | `vulnerability-explainer` | read-only |
 
 Mutating workflows keep file edits, branch pushes, PR/MR creation,
 comments, approval verification, and Endor policy writes behind separate

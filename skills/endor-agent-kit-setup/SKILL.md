@@ -12,18 +12,16 @@ Generated for the Endor Labs Agent Kit Cursor package.
 
 ## Bundled Cursor Workflows
 
-- `Triage AI SAST findings` -> skill `ai-sast-triage`
-- `Assess CI/CD and supply chain posture` -> skill `cicd-posture`
-- `Dependency Decision Helper` -> skill `dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`
+- `AI SAST Remediation` -> skill `ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> skill `cicd-posture`
+- `Configuration Automation` -> skill `configuration-automation`
+- `Dependency Reviewer` -> skill `dependency-reviewer`
 - `Findings Browser` -> skill `findings-browser`
-- `Malware Response` -> skill `malware-response`
-- `Package Risk Summary` -> skill `package-risk-summary`
-- `Assess GitHub onboarding gaps` -> skill `probe-droid`
-- `Remediation Planner` -> skill `remediation-planner`
-- `Repository Dependency Reviewer` -> skill `repository-dependency-reviewer`
-- `Find safe SCA remediation paths` -> skill `sca-remediation`
-- `Upgrade Impact Analysis` -> skill `upgrade-impact-analysis`
+- `Malware Responder` -> skill `malware-responder`
+- `OSS Upgrade Investigator` -> skill `oss-upgrade-investigator`
+- `Remediation Planning` -> skill `remediation-planning`
+- `SCA Remediation` -> skill `sca-remediation`
+- `Troubleshooting` -> skill `troubleshooting`
 - `Vulnerability Explainer` -> skill `vulnerability-explainer`
 
 ## Cursor Package Install Notes
@@ -146,9 +144,11 @@ summarize the available tenant choices and ask the user before retrying.
 
 ## Endor MCP
 
-Prefer documented Endor API or `endorctl api` lookups for workflows that support
-them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
-the user explicitly asks for it.
+Require `endorctl agent api --help` to succeed for workflows that use Endor CLI
+API calls. Each selected workflow must pass its canonical recipe id through
+`--agent-id`; never fall back to the unattributed legacy API command. Configure
+Endor MCP only when a selected MCP-capable workflow needs it or the user
+explicitly asks for it.
 
 The distribution may include ready-to-use Endor MCP config snippets such as
 root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
@@ -170,8 +170,9 @@ When MCP setup is requested:
 
 Do not claim Endor MCP tools are available to a workflow until the host exposes
 them in the current session. If MCP tools are unavailable, continue with
-CLI-first workflows when they support `endorctl api`; otherwise record the
-missing MCP capability in `data_gaps`.
+CLI-first workflows when they support `endorctl agent api --agent-id
+<canonical-recipe-id>`; otherwise record the missing MCP capability in
+`data_gaps`.
 
 ## GitHub CLI
 
@@ -194,7 +195,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Cursor-Specific Rules

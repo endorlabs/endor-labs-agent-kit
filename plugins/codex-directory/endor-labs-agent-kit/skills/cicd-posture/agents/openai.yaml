@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $cicd-posture for this Endor Labs workflow.",
+    "display_name": "CI/CD And Supply Chain Posture",
+    "short_description": "Scores CI/CD and supply-chain posture from read-only Endor and repository evidence."
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

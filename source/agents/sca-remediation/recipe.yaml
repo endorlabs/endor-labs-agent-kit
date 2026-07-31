@@ -1,16 +1,23 @@
 recipe_schema_version: 2
 id: sca-remediation
 name: SCA Remediation
+category: Remediation
 version: 0.1.0
-description: Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
+description: |
+  Plans and applies dependency-vulnerability fixes using Endor SCA findings,
+  VersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk
+  decisions, and local validation. It separates low-risk changes from upgrades
+  requiring deeper compatibility review and requires explicit approval before
+  editing files, pushing branches, opening change requests, or creating
+  tickets.
 audience: developer
-short_description: "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation."
+short_description: "Plans and applies approval-gated SCA fixes with upgrade-risk evidence and local validation."
 authors: ["Endor Labs"]
 safety_class: mutating
 endor_tier_minimum: enterprise
 policy_pack_support: true
 supported_transports:
-- endorctl_api
+- endorctl_agent_api
 host_capabilities_required:
   run_commands: true
   read_files: true
@@ -53,6 +60,10 @@ inputs:
   kind: integer
   required: false
   description: Maximum SCA findings to evaluate before ranking package-level remediations.
+- name: task_state
+  kind: object
+  required: false
+  description: Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving approved evidence. Never carries secrets or approvals.
 outputs:
 - name: summary
   kind: string
@@ -66,18 +77,22 @@ outputs:
   kind: object
   required: true
   description: Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
+- name: execution_context
+  kind: object
+  required: true
+  description: Capability preflight with evidence_only or local_checkout mode, Endor authentication status, source-provider access, local-validation availability, and explicit limitations.
 - name: evidence_queries
   kind: list[object]
   required: true
-  description: Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
+  description: One append-only ledger row per actual Endor API invocation, including failed, zero-result, retry, and fallback calls, with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
 - name: selected_remediation
   kind: object
   required: true
-  description: Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.
+  description: Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, Endor finding-instance count, distinct advisory count, fixed Finding UUIDs, and why it was selected.
 - name: uia_evidence
   kind: list[object]
   required: true
-  description: VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.
+  description: VersionUpgrade/UIA records used for ranking, including risk, CIA status, Endor finding instances fixed, distinct advisories fixed, fixed Finding UUIDs, findings introduced, score explanation, and breaking-change notes.
 - name: risk_decision
   kind: object
   required: true
@@ -102,6 +117,10 @@ outputs:
   kind: list[string]
   required: true
   description: Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.
+- name: task_state
+  kind: object
+  required: false
+  description: Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 - name: policy_context
   kind: object
   required: true
@@ -126,7 +145,7 @@ mutations:
 - write_files
 - open_pr
 required_endor_mcp_tools: []
-endorctl_api_invocations:
+endorctl_agent_api_invocations:
 - resolve_project_from_repository
 - list_sca_findings
 - list_version_upgrade_recommendations

@@ -1,0 +1,314 @@
+agent_id: configuration-automation
+title: Configuration Automation Evidence Contract
+summary: Diagnose the onboarding, scan, dependency-resolution, and reachability configuration gaps that prevent every
+  in-scope repository from producing successful Endor monitored-branch scans.
+task_profiles:
+  - id: resolve-scope
+    title: Resolve Inventory Scope
+    summary: Establish namespace, GitHub organization or repository scope, and inventory source only.
+    when_to_use:
+      - The user asks what inventory can be checked or supplies a repository list.
+      - GitHub or Endor scope is ambiguous.
+    minimal_evidence:
+      - Namespace provenance and either user-provided inventory, GitHub organization, or repository identity.
+    stop_when:
+      - Inventory scope is explicit or blocked with data_gaps.
+      - Do not query scan profiles or package-version details in this profile.
+    output_focus:
+      - Return report_scope, evidence_queries, sampling mode, and data_gaps.
+  - id: evidence-check
+    title: Coverage Evidence Check
+    compact: true
+    included_sections:
+      - evidence-model
+      - default-context-scope
+      - strict-endor-matching
+      - live-command-budget
+      - branch-scan-scope
+      - classification
+      - output-shape
+    output_fields:
+      - onboarding_verdict
+      - executive_report
+      - report_scope
+      - coverage_summary
+      - github_inventory_summary
+      - github_app_coverage
+      - issue_cohorts
+      - inventory_artifacts
+      - not_onboarded_repositories
+      - onboarded_repositories_with_gaps
+      - onboarded_healthy_repositories
+      - ambiguous_matches
+      - recommended_actions
+      - validation_plan
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
+    summary: Select single_repo, selected_repositories, or fleet scope before tools, then classify every in-scope repository
+      as healthy, unhealthy, missing, ambiguous, excluded, or precisely unknown. Batch complete inventory by resource and
+      group unhealthy repositories by failure signature before targeted detail. github_app_coverage must be a non-empty
+      object, never null. Every repository lane row, including ambiguous_matches, must include repository or repo_full_name
+      and default_branch; use UNKNOWN plus data_gaps when branch proof is unavailable, not github_repository alone. Onboarded
+      rows must include project_uuid and endor_monitored_branch; if monitored branch proof is unavailable, put the row in
+      onboarded_repositories_with_gaps, not onboarded_healthy_repositories. Keep coverage counts separate from health quality
+      counts, and surface compact top offenders before JSON drill-down. Treat Project.spec.monitored_branch as optional;
+      use normalized ScanResult.spec.refs fallback or UNKNOWN plus data_gaps for branch proof. Successful current scans are
+      authoritative evidence that optional setup metadata is not itself a blocker.
+    when_to_use:
+      - The user asks what configuration or errors prevent successful Endor scans for one repository, a selected set, or a fleet.
+      - A read-only host check needs onboarding evidence without full org analysis.
+    minimal_evidence:
+      - Namespace provenance, explicit scope_mode, repository denominator, Project matches, latest main-context ScanResult
+        health, and package-resolution error cohorts with traversal only when child namespaces are in scope.
+    stop_when:
+      - Every in-scope repository is classified healthy, actionable, missing, excluded, or precisely unknown.
+      - Do not inspect ScanProfile, PackageManager, Installation, or repository files unless a named failure cohort requires it.
+    output_focus:
+      - Return coverage_summary, grouped issue_cohorts, compact repository classifications, recommended_actions,
+        validation_plan, inventory_artifacts, evidence_queries, and data_gaps.
+  - id: prescribe-actions
+    title: Prescribe Human Actions
+    summary: Produce safe human-action recommendations for selected onboarding gaps.
+    when_to_use:
+      - The user asks how to fix onboarding, monitored branch, scan profile, or package-manager gaps.
+      - Evidence-check has identified selected repositories with gaps.
+    minimal_evidence:
+      - Repository classification, Endor Project match if any, and minimal scan profile/package-manager evidence for selected
+        repositories.
+    stop_when:
+      - Each selected gap has a human action or an explicit data_gaps blocker.
+      - Do not create scans, edit scan profiles, change GitHub App selection, or write repository files.
+    output_focus:
+      - Return recommended_actions, confirmed_org_wide_actions when verified, validation_plan, and data_gaps.
+resources:
+  - name: Project
+    purpose: Map repositories to Endor projects and preserve parent namespace traversal evidence.
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+  - name: ScanProfile
+    purpose: Identify monitored-branch and scan profile coverage for onboarded repositories.
+    fields:
+      - uuid
+      - meta.name
+      - spec
+  - name: PackageManager
+    purpose: Detect package-manager integration and dependency-resolution blockers.
+    fields:
+      - uuid
+      - meta.name
+      - spec
+  - name: PackageVersion
+    purpose: Summarize package-version health and resolution errors without exposing full objects.
+    fields:
+      - uuid
+      - meta.name
+      - spec.resolution_errors
+  - name: ScanResult
+    purpose: Prove monitored-branch refs, latest scan health, scan failures, dependency-analysis failures, and call-graph errors.
+    fields:
+      - uuid
+      - meta.parent_uuid
+      - meta.create_time
+      - spec.status
+      - spec.refs
+      - spec.stats
+retrieval_steps:
+  - Inspect supplied GitHub inventory JSON or context snapshots before live GitHub or Endor calls.
+  - Resolve namespace and project inventory with projected fields, then map repository URLs or full names to Endor projects.
+  - Use one complete, artifact-backed Project, ScanResult, and PackageVersion inventory for selected-set or fleet scope,
+    then group failure signatures before drilling into representative repositories.
+fallbacks:
+  - Retry an exact Project lookup with traversal only when parent-namespace scope was proven; selected-set and fleet routes
+    carry the explicit namespace traversal choice into all three inventory calls.
+  - If GitHub App installation or GitHub API evidence is unavailable, continue with provided inventory and mark the gap.
+  - >-
+    Treat `Project.spec.monitored_branch` as optional; use valid Project branch fields when returned,
+    then normalized `ScanResult.spec.refs`, then `UNKNOWN` plus data_gaps.
+data_gaps:
+  - Record missing credentials, namespace conflicts, GitHub inventory failures, project mapping gaps, selected-project uncertainty,
+    and package-version query gaps in `data_gaps`.
+  - Preserve `namespace_provenance`, inventory source, sampling mode, and selected repository evidence.
+  - Put repositories with inferred or missing monitored-branch, project UUID, or GitHub App evidence in `onboarded_repositories_with_gaps`,
+    not `onboarded_healthy_repositories`; healthy rows require direct normalized branch and project evidence.
+  - Treat null, `UNKNOWN`, unavailable, unqueryable, inferred, or data-gap-only monitored branch evidence as a gap only when
+    normalized current ScanResult refs cannot prove the branch. Do not downgrade a successful current scan because optional
+    Project, Installation, ScanProfile, PackageManager, or local `.endorctl` metadata was not queried.
+  - >-
+    Treat `resolution_errors: {}` as no meaningful package resolution error; count only keyed objects
+    such as `resolved`, `unresolved`, or `call_graph`, or non-empty arrays.
+  - Record field-mask drift, default API page limits, and stderr-only version notices as evidence gaps when they affect confidence.
+evidence_query_plans:
+  - profile_id: resolve-scope
+    title: Onboarding Scope Query Plan
+    objective: Resolve the GitHub inventory and Endor namespace/project scope before comparing coverage.
+    query_order:
+      - Read user-provided org/repo selectors and current repository remote when available.
+      - Resolve namespace provenance and Endor Project selectors.
+      - Query only repository/project identity and monitored-branch metadata needed for scope.
+    avoid:
+      - Do not scan repositories, clone missing repos, or mutate GitHub or Endor settings.
+    stop_after:
+      - Stop after GitHub and Endor scope are resolved or blocked.
+    data_gaps:
+      - Record missing GitHub org access, missing namespace, unresolved project selectors, and unavailable monitored-branch
+        evidence in data_gaps.
+  - profile_id: evidence-check
+    title: Adaptive Scan Readiness Query Plan
+    objective: Explain what prevents 100 percent successful monitored-branch scans across one repository, a selected set, or a fleet.
+    query_order:
+      - >-
+        Select scope_mode before tools: single_repo for one repository, selected_repositories for 2 to 100 explicit repositories,
+        and fleet for organization, namespace-wide, all-repository, or 100-percent-success requests.
+      - Establish the complete in-scope Project denominator, then collect complete main-context ScanResult and PackageVersion
+        evidence through one artifact-backed call per resource.
+      - Use deterministic configuration projections, classify latest scan health, and group shared failure signatures before
+        any representative ScanProfile, PackageManager, Installation, or repository-file detail.
+    avoid:
+      - Do not enumerate unrelated organizations or child namespaces outside the explicit scope.
+      - Do not multiply a full diagnostic workflow by repository count or treat missing optional metadata as a failure.
+      - Do not run scans or update repo settings.
+    stop_after:
+      - Stop when every in-scope repository is healthy, actionable, missing, excluded, or precisely unknown and each issue cohort
+        has one evidence-backed human action plus validation step.
+    data_gaps:
+      - Record incomplete denominators, artifact truncation, missing GitHub permissions, unresolved Project matches, unknown
+        branches, and failure cohorts whose minimal configuration evidence remains unavailable in data_gaps.
+  - profile_id: prescribe-actions
+    title: Onboarding Action Query Plan
+    objective: Prescribe read-only onboarding fixes from verified coverage gaps.
+    query_order:
+      - Start from completed coverage evidence for selected repositories.
+      - Fetch only missing setup-file or branch metadata needed to explain each gap.
+      - Group actions by repository, branch, Endor project, and owner handoff.
+    avoid:
+      - Do not create GitHub branches, edit files, install apps, or mutate Endor project settings.
+    stop_after:
+      - Stop after recommended actions are tied to verified coverage evidence or data_gaps.
+    data_gaps:
+      - Record unverified owner, unknown branch protection, missing setup-file evidence, and unavailable project metadata
+        in data_gaps.
+evidence_query_recipes:
+  - profile_id: resolve-scope
+    id: local-git-state
+    canonical_id: local-git-state
+    resource: local-git
+    purpose: Capture local repository provenance without reading secrets.
+    template: pwd; git status --short --branch; git rev-parse HEAD; git config --get remote.origin.url
+    fields:
+      - cwd
+      - branch
+      - commit
+      - remote.origin.url
+      - dirty_files
+    constraints:
+      - Use as local context only; it does not prove Endor project, namespace, or finding counts.
+  - profile_id: resolve-scope
+    id: project-branch-coverage
+    canonical_id: project-branch-coverage
+    resource: Project
+    purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json | jq '{projects:((.list.objects // .objects // []) | map({uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,git:(.spec.git // {})})),pagination:{next_page_token:(.list.response.next_page_token // .response.next_page_token // null),next_page_id:(.list.response.next_page_id // .response.next_page_id // null)}}'
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Compare only selected repositories.
+      - Do not run scans or mutate GitHub or Endor settings.
+  - profile_id: evidence-check
+    id: project-branch-coverage
+    canonical_id: project-branch-coverage
+    resource: Project
+    purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json | jq '{projects:((.list.objects // .objects // []) | map({uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,git:(.spec.git // {})})),pagination:{next_page_token:(.list.response.next_page_token // .response.next_page_token // null),next_page_id:(.list.response.next_page_id // .response.next_page_id // null)}}'
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Compare only selected repositories.
+      - Do not run scans or mutate GitHub or Endor settings.
+  - profile_id: evidence-check
+    id: repo-setup-file-inventory
+    canonical_id: local-manifest-inventory
+    resource: local-files
+    purpose: Inventory dependency manifests before scoped Endor expansion.
+    template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
+      -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+    fields:
+      - manifest_path
+      - ecosystem_hint
+    constraints:
+      - Use local files as context only until Endor evidence backs project-scoped risk.
+  - profile_id: evidence-check
+    id: configuration-projects-complete
+    canonical_id: configuration-projects-complete
+    resource: Project
+    purpose: Establish the complete Project denominator for a selected set or fleet.
+    selection_condition: runtime.configuration_scope_inventory_required
+    result_delivery: runtime.large_result_artifact_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> <namespace_traversal> <PROJECT_SCOPE_FILTER_ARG> --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    fields: [uuid, meta.name, meta.parent_uuid, spec.git]
+    constraints:
+      - Use normalized selectors, the matching configuration project projection, and explicit traversal only when children are in scope.
+  - profile_id: evidence-check
+    id: configuration-scans-complete
+    canonical_id: configuration-scans-complete
+    resource: ScanResult
+    purpose: Reduce complete main-context scan history to latest Project health and failure cohorts.
+    selection_condition: runtime.configuration_scope_inventory_required
+    result_delivery: runtime.large_result_artifact_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r ScanResult -n <namespace> <namespace_traversal> --filter '<SCAN_SCOPE_FILTER>' --field-mask "uuid,meta.parent_uuid,meta.create_time,meta.update_time,context.type,spec.status,spec.type,spec.exit_code,spec.refs,spec.stats" --list-all -o json
+    fields: [uuid, meta.parent_uuid, meta.create_time, meta.update_time, context.type, spec.status, spec.type, spec.exit_code, spec.refs, spec.stats]
+    constraints:
+      - Use current-run Project scope plus main context and the configuration-scans projection.
+  - profile_id: evidence-check
+    id: configuration-packages-complete
+    canonical_id: configuration-packages-complete
+    resource: PackageVersion
+    purpose: Reduce complete main-context package inventory to resolution and reachability cohorts.
+    selection_condition: runtime.configuration_scope_inventory_required
+    result_delivery: runtime.large_result_artifact_required
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r PackageVersion -n <namespace> <namespace_traversal> --filter '<PACKAGE_SCOPE_FILTER>' --field-mask "uuid,meta.name,context.type,spec.project_uuid,spec.resolution_errors" --list-all -o json
+    fields: [uuid, meta.name, context.type, spec.project_uuid, spec.resolution_errors]
+    constraints:
+      - Use current-run Project scope plus main context and the configuration-packages projection; empty resolution_errors is healthy.
+  - profile_id: prescribe-actions
+    id: project-branch-coverage
+    canonical_id: project-branch-coverage
+    resource: Project
+    purpose: Read Endor project git metadata for selected repositories before monitored-branch fallback checks.
+    template: >-
+      endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json | jq '{projects:((.list.objects // .objects // []) | map({uuid,name:.meta.name,parent_uuid:.meta.parent_uuid,git:(.spec.git // {})})),pagination:{next_page_token:(.list.response.next_page_token // .response.next_page_token // null),next_page_id:(.list.response.next_page_id // .response.next_page_id // null)}}'
+    fields:
+      - uuid
+      - meta.name
+      - meta.parent_uuid
+      - spec.git
+    constraints:
+      - Compare only selected repositories.
+      - Do not run scans or mutate GitHub or Endor settings.
+  - profile_id: prescribe-actions
+    id: missing-setup-file-check
+    canonical_id: local-manifest-inventory
+    resource: local-files
+    purpose: Inventory dependency manifests before scoped Endor expansion.
+    template: find . -maxdepth 4 -type f \( -name 'pom.xml' -o -name 'build.gradle' -o -name 'package.json' -o -name 'go.mod'
+      -o -name 'requirements*.txt' -o -name 'pyproject.toml' \) -print
+    fields:
+      - manifest_path
+      - ecosystem_hint
+    constraints:
+      - Use local files as context only until Endor evidence backs project-scoped risk.

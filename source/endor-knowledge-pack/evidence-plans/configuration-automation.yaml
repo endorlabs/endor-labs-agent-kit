@@ -1,0 +1,225 @@
+schema_version: 1
+agent_id: configuration-automation
+plans:
+  - profile_id: evidence-check
+    safety_class: read_only
+    scope:
+      namespace_required: true
+      namespace_provenance_required: true
+    freshness:
+      max_age_seconds: 300
+    cache_identity:
+      - agent_id
+      - profile_id
+      - namespace
+      - scope_mode
+      - repository_selectors
+      - namespace_traversal
+      - source_digest
+    inventory:
+      default_mode: bounded
+      exhaustive_supported: true
+      exhaustive_max_pages: 1
+    attribution:
+      required: true
+      agent_id: <agent-id>
+    execution:
+      mode: prompt_fallback
+      prompt_recipes_exposed: true
+      host_adapter_required: true
+    gate:
+      expected_calls: 3
+      max_calls: 4
+      stop_conditions:
+        - Select single_repo, selected_repositories, or fleet scope before any live query.
+        - Stop when every in-scope repository is healthy, actionable, missing, excluded, or precisely unknown.
+        - Batch by resource and failure cohort; do not multiply the complete diagnostic workflow by repository count.
+      data_gaps_required: true
+    routes:
+      - id: single-repo
+        condition: runtime.scope_mode_equals_single_repo
+        exclusive_group: scan-readiness-scope
+        expected_calls: 3
+        max_calls: 4
+        required_outputs:
+          - steps.project-branch-coverage.projects
+          - steps.project-scan-health.scan_health
+          - steps.project-package-health.package_health
+      - id: selected-repositories
+        condition: runtime.scope_mode_equals_selected_repositories
+        exclusive_group: scan-readiness-scope
+        expected_calls: 3
+        max_calls: 3
+        required_outputs:
+          - steps.selected-projects.projects
+          - steps.selected-scan-health.scan_health
+          - steps.selected-package-health.package_health
+      - id: fleet
+        condition: runtime.scope_mode_equals_fleet
+        exclusive_group: scan-readiness-scope
+        expected_calls: 3
+        max_calls: 3
+        required_outputs:
+          - steps.fleet-projects.project_inventory
+          - steps.fleet-scan-health.scan_health
+          - steps.fleet-package-health.package_health
+    steps:
+      - id: repo-setup-file-inventory
+        recipe_id: repo-setup-file-inventory
+        canonical_recipe_id: local-manifest-inventory
+        operation: local_read
+        route_id: single-repo
+        condition: always
+        concurrency_group: single-repo-scope
+        depends_on: []
+        max_calls: 0
+        inputs: []
+        outputs:
+          - name: manifests
+            path: $.manifest_paths
+            type: array
+      - id: project-branch-coverage
+        recipe_id: project-branch-coverage
+        canonical_recipe_id: project-branch-coverage
+        operation: list
+        route_id: single-repo
+        condition: always
+        concurrency_group: single-repo-scope
+        depends_on: []
+        max_calls: 2
+        pagination:
+          page_size: 2
+          max_pages: 1
+        retry:
+          eligible: true
+          max_attempts: 2
+          when: parent_namespace_empty_result
+          append_args: [--traverse]
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: repo_full_name, placeholder: owner/repo, source: runtime.repo_full_name, type: string}
+        outputs:
+          - {name: projects, path: $.projects, type: array}
+          - {name: project_uuid, path: "$.projects[0].uuid", type: string}
+      - id: project-scan-health
+        recipe_id: configuration-scans-complete
+        canonical_recipe_id: configuration-scans-complete
+        operation: list
+        route_id: single-repo
+        condition: always
+        concurrency_group: single-repo-health
+        depends_on: [project-branch-coverage]
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: scan_scope_filter, placeholder: SCAN_SCOPE_FILTER, source: runtime.scan_scope_filter, type: string}
+        outputs:
+          - {name: scan_health, path: $.configuration_summary, type: object}
+      - id: project-package-health
+        recipe_id: configuration-packages-complete
+        canonical_recipe_id: configuration-packages-complete
+        operation: list
+        route_id: single-repo
+        condition: always
+        concurrency_group: single-repo-health
+        depends_on: [project-branch-coverage]
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: package_scope_filter, placeholder: PACKAGE_SCOPE_FILTER, source: runtime.package_scope_filter, type: string}
+        outputs:
+          - {name: package_health, path: $.configuration_summary, type: object}
+      - id: selected-projects
+        recipe_id: configuration-projects-complete
+        canonical_recipe_id: configuration-projects-complete
+        operation: list
+        route_id: selected-repositories
+        condition: always
+        concurrency_group: selected-scope
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: project_scope_filter, placeholder: PROJECT_SCOPE_FILTER_ARG, source: runtime.project_scope_filter_arg, type: string}
+        outputs:
+          - {name: projects, path: $.configuration_summary.projects, type: array}
+          - {name: scan_project_filter, path: $.configuration_summary.scan_project_filter, type: string}
+          - {name: package_project_filter, path: $.configuration_summary.package_project_filter, type: string}
+      - id: selected-scan-health
+        recipe_id: configuration-scans-complete
+        canonical_recipe_id: configuration-scans-complete
+        operation: list
+        route_id: selected-repositories
+        condition: always
+        concurrency_group: selected-health
+        depends_on: [selected-projects]
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: project_filter, placeholder: SCAN_SCOPE_FILTER, source: steps.selected-projects.scan_project_filter, type: string}
+        outputs:
+          - {name: scan_health, path: $.configuration_summary, type: object}
+      - id: selected-package-health
+        recipe_id: configuration-packages-complete
+        canonical_recipe_id: configuration-packages-complete
+        operation: list
+        route_id: selected-repositories
+        condition: always
+        concurrency_group: selected-health
+        depends_on: [selected-projects]
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: project_filter, placeholder: PACKAGE_SCOPE_FILTER, source: steps.selected-projects.package_project_filter, type: string}
+        outputs:
+          - {name: package_health, path: $.configuration_summary, type: object}
+      - id: fleet-projects
+        recipe_id: configuration-projects-complete
+        canonical_recipe_id: configuration-projects-complete
+        operation: list
+        route_id: fleet
+        condition: always
+        concurrency_group: fleet-inventory
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: project_scope_filter, placeholder: PROJECT_SCOPE_FILTER_ARG, source: runtime.project_scope_filter_arg, type: string, required: false}
+        outputs:
+          - {name: project_inventory, path: $.configuration_summary, type: object}
+      - id: fleet-scan-health
+        recipe_id: configuration-scans-complete
+        canonical_recipe_id: configuration-scans-complete
+        operation: list
+        route_id: fleet
+        condition: always
+        concurrency_group: fleet-inventory
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: scan_scope_filter, placeholder: SCAN_SCOPE_FILTER, source: runtime.scan_scope_filter, type: string}
+        outputs:
+          - {name: scan_health, path: $.configuration_summary, type: object}
+      - id: fleet-package-health
+        recipe_id: configuration-packages-complete
+        canonical_recipe_id: configuration-packages-complete
+        operation: list
+        route_id: fleet
+        condition: always
+        concurrency_group: fleet-inventory
+        depends_on: []
+        max_calls: 1
+        inputs:
+          - {name: namespace, placeholder: namespace, source: runtime.namespace, type: string}
+          - {name: namespace_traversal, placeholder: namespace_traversal, source: runtime.namespace_traversal_arg, type: string, required: false}
+          - {name: package_scope_filter, placeholder: PACKAGE_SCOPE_FILTER, source: runtime.package_scope_filter, type: string}
+        outputs:
+          - {name: package_health, path: $.configuration_summary, type: object}

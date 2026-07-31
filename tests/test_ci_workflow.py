@@ -57,3 +57,48 @@ def test_refresh_endor_context_workflow_reports_manual_freshness():
     assert "gh pr create" not in workflow
     assert "git push" not in workflow
     assert "endor-context-refresh" not in workflow
+
+
+def test_ai_plugins_publication_validates_codex_directory_and_pins_source_provenance():
+    workflow = (
+        repo_root() / ".github" / "workflows" / "publish-ai-plugins-pr.yml"
+    ).read_text()
+
+    assert "provenance/agent-kit-manifest.json" in workflow
+    assert "provenance/agent-kit-source.json" in workflow
+    assert "build_codex_directory_submission.py validate --root ." in workflow
+
+
+def test_ai_plugins_publication_reports_release_evidence_without_gating() -> None:
+    workflow = (
+        repo_root() / ".github" / "workflows" / "publish-ai-plugins-pr.yml"
+    ).read_text()
+    evidence_step = workflow.split(
+        "- name: Report optional QA and backend release evidence", 1
+    )[1].split("- name: Regenerate catalog", 1)[0]
+
+    assert "Report optional QA and backend release evidence" in workflow
+    assert "Require QA and backend release evidence" not in workflow
+    assert "Optional release evidence unavailable" in evidence_step
+    assert "Optional release evidence did not validate" in evidence_step
+    assert "Publication will continue" in evidence_step
+    assert "scripts/validate_release_evidence.py" in evidence_step
+    assert evidence_step.count("exit 0") == 2
+    assert "exit 1" not in evidence_step
+    assert "continue-on-error" not in evidence_step
+
+
+def test_codex_directory_submission_workflow_requires_immutable_mirror_sha():
+    workflow = (
+        repo_root()
+        / "source"
+        / "distribution"
+        / "ai-plugins-workflows"
+        / "build-codex-directory-submission.yml"
+    ).read_text()
+
+    assert "ai_plugins_sha" in workflow
+    assert "^[0-9a-f]{40}$" in workflow
+    assert "git rev-parse HEAD" in workflow
+    assert "build_codex_directory_submission.py build" in workflow
+    assert "publish_release_assets" in workflow

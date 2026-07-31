@@ -1,6 +1,11 @@
 # SCA Remediation
 
-Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
+Plans and applies dependency-vulnerability fixes using Endor SCA findings,
+VersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk
+decisions, and local validation. It separates low-risk changes from upgrades
+requiring deeper compatibility review and requires explicit approval before
+editing files, pushing branches, opening change requests, or creating
+tickets.
 
 ## Start Here
 
@@ -12,6 +17,18 @@ This is the Claude Code generated agent for `sca-remediation`.
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `sonnet`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host default`.
+- Generated behavior: agent frontmatter defaults to sonnet.
+- Override behavior: Claude environment or per-invocation subagent override wins.
+- Provider guidance: <https://code.claude.com/docs/en/sub-agents>.
+
 ## Install
 
 Copy `sca-remediation.md` into your target repository's `.claude/agents/` directory,
@@ -20,7 +37,7 @@ then restart Claude Code if needed.
 ## Requirements
 
 - Claude Code with the generated subagent file installed.
-- Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.
+- Endor tenant access through authenticated `endorctl agent api --agent-id sca-remediation`.
 - A local workspace checkout for any repository the agent will patch.
 - Git and source-provider credentials that can push a branch and open the requested pull request or merge request.
 
@@ -49,7 +66,7 @@ glab auth status      # GitLab repositories
 ```
 
 Claude Code does not need an Endor MCP server for this agent. If `endorctl`,
-direct Endor API credentials, local dependency-manager tooling, or
+agent-attributed Endor API authentication, local dependency-manager tooling, or
 source-provider credentials are not authenticated, the agent should report
 the missing setup in `data_gaps`.
 
@@ -137,11 +154,12 @@ Claude configuration.
 
 ![SCA Remediation architecture](architecture.svg)
 
-This mutating Claude Code agent resolves repository context, queries Endor SCA findings, requires VersionUpgrade/UIA evidence before recommending a best first fix, keeps non-breaking low-risk UIA PR candidates separate from the P0/exploited queue and risky solver, resolves risky or CIA-indeterminate upgrades into a deterministic risk_decision, prepares local dependency changes, runs ecosystem-appropriate validation when possible, and opens a PR/MR only after explicit approval. It does not use or require an Endor MCP server.
+This SCA remediation agent resolves repository context from a matching local checkout or a user-supplied repository selector, queries Endor SCA findings, requires VersionUpgrade/UIA evidence before recommending a best first fix, keeps non-breaking low-risk UIA PR candidates separate from the P0/exploited queue and risky solver, resolves risky or CIA-indeterminate upgrades into a deterministic risk_decision, prepares local dependency changes and validation when a checkout exists, and opens a PR/MR only after explicit approval plus source-provider write access. Without a checkout it returns an evidence-only plan and records the missing source, validation, and delivery capabilities instead of fabricating them. It does not use or require an Endor MCP server.
 
 ## Notes
 
 - This agent preserves the SCA remediation workflow capabilities as a mutating agent.
 - The agent may query Endor SCA findings and VersionUpgrade/UIA evidence, list separate non-breaking low-risk PR-ready candidates, inspect local manifests, produce a deterministic risk_decision, prepare dependency changes, run validation, open a change request, and post a remediation comment when approved.
+- A missing target checkout degrades to an evidence-only plan; it does not block authenticated Endor reads or permit fabricated source, validation, branch, or PR/MR claims.
 - Confirm the selected package, UIA evidence, risk_decision, target files, generated diff, validation status, branch, and PR/MR body before allowing mutations.
 - `actions.yaml` lists the semantic side effects and any external adapter requirements.

@@ -5,8 +5,7 @@ actions:
   safety_class: read_only
   confirmation_required: false
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   - repository-adapter
   required_runtime_capabilities:
   - run_commands
@@ -22,19 +21,18 @@ actions:
   - namespace
   - namespace_provenance
   availability: available
-  notes: Resolve from the current repository and human-readable selectors first. Resolve
-    namespace provenance from the current request, ENDOR_NAMESPACE, the default ~/.endorctl/config.yaml
-    namespace key, or resolved project metadata before using -n. Do not use namespaces
-    from prior sessions or ask for a project UUID unless selectors are missing or
-    ambiguous.
+  notes: Resolve from matching runtime repository adapter or a user-supplied repo
+    URL, owner/repo, or project name; a checkout is not required for Endor reads.
+    Prove namespace from current input, ENDOR_NAMESPACE, the default config namespace
+    key, or current Project metadata. Let endorctl consume auth internally; never
+    read credentials into model context or reuse prior-session scope.
 - id: query-sca-findings
   kind: endor.query
   portable_kind: endor.query
   safety_class: read_only
   confirmation_required: false
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   required_runtime_capabilities:
   - run_commands
   inputs:
@@ -61,8 +59,7 @@ actions:
   safety_class: read_only
   confirmation_required: false
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   required_runtime_capabilities:
   - run_commands
   inputs:
@@ -85,8 +82,7 @@ actions:
   safety_class: read_only
   confirmation_required: false
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   - repository-adapter
   required_runtime_capabilities:
   - run_commands
@@ -104,10 +100,9 @@ actions:
   - p0_duplicates_hidden
   - data_gaps
   availability: available
-  notes: List non-breaking low-risk UIA-backed PR candidates separately from the P0/exploited
-    queue and risky solver. Hide P0 or exploited duplicates from the main low-risk
-    list, report them separately, and require repo metadata plus manifest paths before
-    marking candidates ready to open.
+  notes: Keep low-risk UIA candidates separate from P0/exploited and risky lanes.
+    Without a checkout, continue evidence_only, mark candidates not ready, and record
+    source_checkout_unavailable; verified local source is required for ready_to_open.
 - id: read-local-manifests
   kind: scm.source_read
   portable_kind: repository.read
@@ -129,16 +124,15 @@ actions:
   - dependency_declaration
   - source_context
   availability: available
-  notes: Read only the target manifests, lockfiles, and UIA/CIA-indicated source files
-    needed to plan the remediation.
+  notes: 'local_checkout only: read the minimum target manifests, lockfiles, and UIA/CIA-indicated
+    source. In evidence_only, skip and record source_checkout_unavailable.'
 - id: resolve-upgrade-risk
   kind: scm.source_read
   portable_kind: repository.read
   safety_class: read_only
   confirmation_required: false
   providers:
-  - endorctl-api
-  - endor-api
+  - endorctl-agent-api
   - repository-files-adapter
   - repository-adapter
   - dependency-manager-adapter
@@ -158,10 +152,10 @@ actions:
   - required_companion_edits
   - validation_requirements
   availability: available
-  notes: For medium/high/unknown risk, indeterminate CIA, introduced findings, conflicts,
-    major/minor compatibility-sensitive bumps, or material dependency-footprint changes,
-    produce a deterministic approve/block/reject verdict from Endor evidence plus
-    runtime-provided source usage. Do not hand-wave with release-note suggestions.
+  notes: Resolve elevated/indeterminate risk from Endor plus local source. In evidence_only,
+    clean UIA may be approved_with_validation_required; elevated/indeterminate risk
+    is blocked_needs_compatibility_analysis. approved_low_risk requires local source
+    and successful validation.
 - id: prepare-remediation-diff
   kind: scm.change_request
   portable_kind: repository.patch.prepare
@@ -186,9 +180,8 @@ actions:
   - branch_name
   - validation_status
   availability: available
-  notes: Show the selected UIA evidence, target files, and intended diff first. Apply
-    local manifest or companion edits only after explicit approval; this action does
-    not push or open a PR/MR.
+  notes: 'local_checkout only: show UIA evidence, verified files, and intended diff,
+    then edit only after approval. Never run in evidence_only or push/open a PR here.'
 - id: open-change-request
   kind: scm.change_request
   portable_kind: source.change_request.create
@@ -218,8 +211,9 @@ actions:
   - status
   - failure_reason
   availability: available
-  notes: Open or update a PR/MR only after local validation has passed or the validation
-    blocker is explicitly documented and the user approves opening anyway.
+  notes: Requires local_checkout, a verified patched branch, provider write, and passed
+    validation or an approved documented blocker. Provider write alone cannot replace
+    local patch preparation.
 - id: post-remediation-comment
   kind: scm.comment
   portable_kind: source.comment.create

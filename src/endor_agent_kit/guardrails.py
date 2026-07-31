@@ -8,6 +8,7 @@ from typing import Any
 
 import yaml
 
+from endor_agent_kit.agent_api import agent_api_command_errors
 from endor_agent_kit.portable_runtime_conformance import (
     UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
     assert_portable_text,
@@ -60,7 +61,7 @@ NAMESPACE_PREFLIGHT_REQUIRED_TEXT = (
     "`ENDOR_NAMESPACE` and `ENDOR_API_CREDENTIALS_*` are supported inputs",
     "`ENDOR_NAMESPACE` from the default `~/.endorctl/config.yaml` only",
     "surface both values with provenance and stop for user confirmation",
-    "`endorctl api` lookup",
+    "`endorctl agent api --agent-id",
     "tenant-specific",
     "customer-specific",
     "production, backup",
@@ -89,12 +90,13 @@ KNOWLEDGE_PACK_REQUIRED_TEXT = (
 
 PRIMARY_CLAUDE_PLUGIN_HOOKS = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
 
-CLAUDE_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PostToolUse"})
-CODEX_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PostToolUse"})
+CLAUDE_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PreToolUse", "PostToolUse"})
+CODEX_PLUGIN_HOOK_EVENTS = frozenset({"UserPromptSubmit", "PreToolUse", "PostToolUse"})
 CURSOR_PLUGIN_HOOK_EVENTS = frozenset({
     "beforeSubmitPrompt",
     "beforeShellExecution",
@@ -136,9 +138,43 @@ def check_catalog_guardrails(catalog_root: str | Path = ".") -> list[str]:
     _check_root_mcp_support(root, errors)
     _check_plugins(root, errors)
     _check_portable(root, errors)
+    _check_generated_agent_api_contracts(root, errors)
     _check_credentials(root, errors)
     _check_provenance(root, errors)
     return errors
+
+
+def _check_generated_agent_api_contracts(root: Path, errors: list[str]) -> None:
+    """Bind every generated Endor API command to its canonical recipe identity."""
+
+    agent_ids = _source_agent_ids(root) | {"endor-agent-kit-setup"}
+    generated_roots = (
+        "agents",
+        "claude-code",
+        "claude-managed-agents",
+        "codex",
+        "cursor-sdk",
+        "gemini",
+        "plugins",
+        "portable",
+        "skills",
+    )
+    text_suffixes = {".json", ".md", ".toml", ".yaml", ".yml"}
+    for generated_root in generated_roots:
+        base = root / generated_root
+        if not base.exists():
+            continue
+        for path in sorted(item for item in base.rglob("*") if item.is_file()):
+            if path.suffix.lower() not in text_suffixes:
+                continue
+            relative = _rel(root, path)
+            matching_ids = [agent_id for agent_id in agent_ids if agent_id in relative]
+            if not matching_ids:
+                continue
+            agent_id = max(matching_ids, key=len)
+            content = path.read_text(encoding="utf-8")
+            for error in agent_api_command_errors(content, agent_id=agent_id):
+                errors.append(f"{relative}: {error}")
 
 
 def _check_credentials(root: Path, errors: list[str]) -> None:
@@ -213,7 +249,7 @@ def _check_root_mcp_support(root: Path, errors: list[str]) -> None:
             "Do not install the repository root as a",
             "Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/`",
             "Do not load the root Cursor skills as Gemini",
-            "Prefer documented Endor API or `endorctl api` lookups",
+            "Prefer `endorctl agent api --agent-id <canonical-recipe-id>` lookups",
             "Use Endor MCP only when a selected MCP-capable",
             "use the `endor-agent-kit-setup` skill",
             "configure Endor MCP without explicit user approval",
@@ -293,6 +329,23 @@ def _check_source_recipes(root: Path, errors: list[str]) -> None:
         except Exception as exc:
             errors.append(f"{_rel(root, recipe_file)}: failed to read YAML: {exc}")
             continue
+        recipe_id = recipe.get("id")
+        transports = recipe.get("supported_transports", [])
+        if "endorctl_agent_api" not in transports:
+            errors.append(
+                f"{_rel(root, recipe_file)}: every agent must support endorctl_agent_api"
+            )
+        instructions_path = recipe_file.parent / str(
+            recipe.get("instructions_path", "instructions.md")
+        )
+        if isinstance(recipe_id, str) and instructions_path.is_file():
+            instructions = instructions_path.read_text(encoding="utf-8")
+            for error in agent_api_command_errors(
+                instructions,
+                agent_id=recipe_id,
+                allow_template_identity=True,
+            ):
+                errors.append(f"{_rel(root, instructions_path)}: {error}")
         if recipe.get("safety_class") != "mutating":
             if recipe.get("mutations") not in (None, []):
                 errors.append(f"{_rel(root, recipe_file)}: read-only recipe declares mutations")
@@ -311,7 +364,7 @@ def _check_source_recipes(root: Path, errors: list[str]) -> None:
                     f"{_rel(root, recipe_file)}: mutating action "
                     f"{action.get('id', '<unknown>')!r} must require confirmation"
                 )
-        if recipe.get("id") in {"sca-remediation", "ai-sast-triage"}:
+        if recipe.get("id") in {"sca-remediation", "ai-sast-remediation"}:
             if not any(action.get("kind") == "ticket.create" for action in mutating_actions):
                 errors.append(f"{_rel(root, recipe_file)}: remediation recipe must declare ticket.create")
 
@@ -346,26 +399,33 @@ def _check_claude_code(root: Path, errors: list[str]) -> None:
     if not host_root.is_dir():
         return
     for agent_dir in sorted(item for item in host_root.iterdir() if item.is_dir()):
-        prompt = agent_dir / f"{agent_dir.name}.md"
-        if not prompt.is_file():
-            errors.append(f"{_rel(root, prompt)}: missing Claude Code prompt")
+        direct_prompt = agent_dir / f"{agent_dir.name}.md"
+        bundle_dirs = [agent_dir] if direct_prompt.is_file() else [
+            item
+            for item in sorted(agent_dir.iterdir())
+            if item.is_dir() and (item / f"{agent_dir.name}.md").is_file()
+        ]
+        if not bundle_dirs:
+            errors.append(f"{_rel(root, direct_prompt)}: missing Claude Code prompt")
             continue
-        content = prompt.read_text(encoding="utf-8")
-        disallowed = _claude_code_disallowed_tools(content)
-        if disallowed is None:
-            errors.append(f"{_rel(root, prompt)}: missing disallowedTools frontmatter")
-        else:
-            expected_denied = _claude_code_expected_denied(_recipe_posture(root, agent_dir.name))
-            if not expected_denied <= disallowed:
-                missing = sorted(expected_denied - disallowed)
-                errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
-        if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in content:
-            errors.append(f"{_rel(root, prompt)}: missing untrusted-content boundary")
-        _check_namespace_preflight(root, prompt, content, errors)
-        _check_knowledge_pack_section(root, prompt, content, errors)
-        setup = agent_dir / "endorctl-setup.md"
-        if setup.is_file():
-            _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
+        for bundle_dir in bundle_dirs:
+            prompt = bundle_dir / f"{agent_dir.name}.md"
+            content = prompt.read_text(encoding="utf-8")
+            disallowed = _claude_code_disallowed_tools(content)
+            if disallowed is None:
+                errors.append(f"{_rel(root, prompt)}: missing disallowedTools frontmatter")
+            else:
+                expected_denied = _claude_code_expected_denied(_recipe_posture(root, agent_dir.name))
+                if not expected_denied <= disallowed:
+                    missing = sorted(expected_denied - disallowed)
+                    errors.append(f"{_rel(root, prompt)}: disallowedTools missing {missing}")
+            if UNTRUSTED_CONTENT_BOUNDARY_PREFIX not in content:
+                errors.append(f"{_rel(root, prompt)}: missing untrusted-content boundary")
+            _check_namespace_preflight(root, prompt, content, errors)
+            _check_knowledge_pack_section(root, prompt, content, errors)
+            setup = bundle_dir / "endorctl-setup.md"
+            if setup.is_file():
+                _check_namespace_setup_guidance(root, setup, setup.read_text(encoding="utf-8"), errors)
 
 
 def _claude_code_expected_denied(posture: SourceRecipeSafetyPosture | None) -> set[str]:
@@ -502,6 +562,10 @@ def _check_gemini(root: Path, errors: list[str]) -> None:
             if required not in agent_text:
                 errors.append(f"{_rel(root, agent)}: missing required guardrail text {required!r}")
         frontmatter = _frontmatter_mapping(root, agent, agent_text, errors)
+        if frontmatter.get("model") != "gemini-3.5-flash":
+            errors.append(
+                f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.5-flash"
+            )
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini subagent must not declare {forbidden}")
@@ -540,6 +604,7 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
                 expected_version=expected_package_version,
                 errors=errors,
             )
+        _check_claude_root_package_guard(root, expected_package_version, errors)
         if not legacy_claude_package.is_dir():
             errors.append("plugins/claude/ai-plugins: missing legacy Claude plugin package")
         else:
@@ -660,11 +725,11 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
         _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
     expected_skills = (
-        "ai-sast-triage",
+        "ai-sast-remediation",
         "cicd-posture",
-        "endor-troubleshooter",
+        "troubleshooting",
         "findings-browser",
-        "probe-droid",
+        "configuration-automation",
         "sca-remediation",
     )
     for skill_id in expected_skills:
@@ -685,14 +750,14 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
             errors.append(f"{_rel(root, architecture)}: missing Cursor architecture diagram")
 
     expected_agents = {
-        "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "ai-sast-remediation": "endor-ai-sast-remediation-agent",
         "cicd-posture": "endor-cicd-posture-agent",
-        "endor-troubleshooter": "endor-troubleshooter-agent",
+        "troubleshooting": "endor-troubleshooting-agent",
         "findings-browser": "endor-findings-browser-agent",
-        "probe-droid": "endor-probe-droid-agent",
+        "configuration-automation": "endor-configuration-automation-agent",
         "sca-remediation": "endor-sca-remediation-agent",
     }
-    mutating_agents = {"ai-sast-triage", "sca-remediation"}
+    mutating_agents = {"ai-sast-remediation", "sca-remediation"}
     for skill_id, agent_name in expected_agents.items():
         agent = root / "agents" / f"{agent_name}.md"
         if not agent.is_file():
@@ -702,7 +767,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
         frontmatter = text.split("---", 2)[1] if text.startswith("---") else ""
         for required in (
             f"name: {agent_name}",
-            "model: inherit",
+            "model: composer-2.5[fast=false]",
             "## Cursor Host Contract",
             "data_gaps",
             "host=cursor",
@@ -726,6 +791,7 @@ def _check_cursor_plugin_package(root: Path, errors: list[str]) -> None:
         setup_agent_text = setup_agent.read_text(encoding="utf-8")
         for required in (
             "Endor Agent Kit Setup Agent For Cursor",
+            "model: composer-2.5[fast=false]",
             "agents/",
             "skills/",
             "separate from the Gemini CLI extension",
@@ -775,12 +841,15 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     else:
         runner_text = runner.read_text(encoding="utf-8")
         for required in (
-            "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions",
+            "from cursor_sdk import (",
             "CURSOR_API_KEY",
             "Agent.create",
             "agent_definitions.json",
             "CloudAgentOptions",
             "LocalAgentOptions",
+            "ModelParameterValue",
+            "ModelSelection",
+            'ModelParameterValue(id="fast", value="false")',
         ):
             if required not in runner_text:
                 errors.append(f"cursor-sdk/run_cursor_agent.py: missing required SDK runner text {required!r}")
@@ -788,16 +857,18 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
     definitions = _load_json_mapping(root, sdk_root / "agent_definitions.json", errors)
     expected_agents = {
         "endor-agent-kit-setup": "endor-agent-kit-setup-agent",
-        "ai-sast-triage": "endor-ai-sast-triage-agent",
+        "ai-sast-remediation": "endor-ai-sast-remediation-agent",
         "cicd-posture": "endor-cicd-posture-agent",
-        "endor-troubleshooter": "endor-troubleshooter-agent",
+        "troubleshooting": "endor-troubleshooting-agent",
         "findings-browser": "endor-findings-browser-agent",
-        "probe-droid": "endor-probe-droid-agent",
+        "configuration-automation": "endor-configuration-automation-agent",
         "sca-remediation": "endor-sca-remediation-agent",
     }
     if definitions:
         if definitions.get("sdk") != "cursor-python":
             errors.append("cursor-sdk/agent_definitions.json: sdk must be cursor-python")
+        if definitions.get("default_model") != "composer-2.5":
+            errors.append("cursor-sdk/agent_definitions.json: default_model must be composer-2.5")
         agents = _list(definitions.get("agents"))
         by_id = {
             str(_dict(agent).get("id")): _dict(agent)
@@ -814,17 +885,17 @@ def _check_cursor_sdk_package(root: Path, errors: list[str]) -> None:
             if not isinstance(prompt_file, str) or not (sdk_root / prompt_file).is_file():
                 errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} prompt_file is missing")
             readonly = definition.get("readonly")
-            expected_readonly = agent_id not in {"ai-sast-triage", "sca-remediation"}
+            expected_readonly = agent_id not in {"ai-sast-remediation", "sca-remediation"}
             if readonly is not expected_readonly:
                 errors.append(f"cursor-sdk/agent_definitions.json: {agent_id} readonly must be {expected_readonly}")
 
     expected_prompt_files = {
         "endor-agent-kit-setup-agent": "Endor Agent Kit Setup Agent For Cursor SDK",
-        "endor-ai-sast-triage-agent": "## Cursor SDK Host Contract",
+        "endor-ai-sast-remediation-agent": "## Cursor SDK Host Contract",
         "endor-findings-browser-agent": "## Cursor SDK Host Contract",
         "endor-cicd-posture-agent": "## Cursor SDK Host Contract",
-        "endor-troubleshooter-agent": "## Cursor SDK Host Contract",
-        "endor-probe-droid-agent": "## Cursor SDK Host Contract",
+        "endor-troubleshooting-agent": "## Cursor SDK Host Contract",
+        "endor-configuration-automation-agent": "## Cursor SDK Host Contract",
         "endor-sca-remediation-agent": "## Cursor SDK Host Contract",
     }
     for agent_name, required_heading in expected_prompt_files.items():
@@ -928,6 +999,14 @@ def _check_codex_plugin_package(
     )
 
     setup = codex_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    exposed_skills = sorted(
+        path.parent.name for path in (codex_package / "skills").glob("*/SKILL.md")
+    )
+    if exposed_skills != ["endor-agent-kit-setup"]:
+        errors.append(
+            "plugins/codex/endor-labs-agent-kit/skills: plugin must expose only "
+            "the endor-agent-kit-setup skill before custom-agent installation"
+        )
     if not setup.is_file():
         errors.append(f"{_rel(root, setup)}: missing Codex setup skill")
     else:
@@ -959,9 +1038,13 @@ def _check_codex_plugin_package(
                 if required not in installer_text:
                     errors.append(f"{_rel(root, installer)}: missing required installer text {required!r}")
 
-    for skill in sorted((codex_package / "skills").glob("*/SKILL.md")):
-        if skill.parent.name == "endor-agent-kit-setup":
-            continue
+    bundled_skills = codex_package / "bundled-skills"
+    if not bundled_skills.is_dir():
+        errors.append(
+            "plugins/codex/endor-labs-agent-kit/bundled-skills: missing optional "
+            "workflow-skill fallback bundle"
+        )
+    for skill in sorted(bundled_skills.glob("*/SKILL.md")):
         text = skill.read_text(encoding="utf-8")
         _check_namespace_preflight(root, skill, text, errors)
         _check_knowledge_pack_section(root, skill, text, errors)
@@ -971,6 +1054,8 @@ def _check_codex_plugin_package(
         if agent.stem == "endor-agent-kit-setup-agent":
             for required in (
                 "# endor_agent_kit_managed = true",
+                'model = "gpt-5.6-luna"',
+                'model_reasoning_effort = "medium"',
                 "developer_instructions = ",
                 "Codex Host Contract",
                 "Do not run",
@@ -981,6 +1066,8 @@ def _check_codex_plugin_package(
             continue
         for required in (
             "# endor_agent_kit_managed = true",
+            'model = "gpt-5.6-luna"',
+            "model_reasoning_effort = ",
             "developer_instructions = ",
             "Codex Host Contract",
         ):
@@ -997,6 +1084,78 @@ def _check_codex_plugin_package(
     for path in codex_package.rglob("*"):
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
+
+
+def _check_claude_root_package_guard(
+    root: Path,
+    expected_version: str,
+    errors: list[str],
+) -> None:
+    manifest_path = root / ".claude-plugin" / "plugin.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append(".claude-plugin/plugin.json: root guard name must be endor-labs-agent-kit")
+        if manifest.get("version") != expected_version:
+            errors.append(
+                f".claude-plugin/plugin.json: root guard version must be {expected_version}"
+            )
+        if _dict(manifest.get("author")).get("name") != "Endor Labs":
+            errors.append(
+                ".claude-plugin/plugin.json: root guard author must be Endor Labs"
+            )
+        agent_paths = manifest.get("agents")
+        expected_agents = {
+            f"./{_rel(root, path)}"
+            for path in (
+                root / "plugins" / "claude" / "endor-labs-agent-kit" / "agents"
+            ).glob("*.md")
+        }
+        if not isinstance(agent_paths, list) or set(agent_paths) != expected_agents:
+            errors.append(
+                ".claude-plugin/plugin.json: root guard must enumerate every agent in "
+                "the Claude-specific package"
+            )
+        if manifest.get("hooks") != "./.claude-plugin/root-package-guard-hooks.json":
+            errors.append(
+                ".claude-plugin/plugin.json: root guard must use its dedicated hooks file"
+            )
+        if "skills" in manifest:
+            errors.append(".claude-plugin/plugin.json: root guard must not expose another skill path")
+
+    hooks_path = root / ".claude-plugin" / "root-package-guard-hooks.json"
+    hooks = _load_json_mapping(root, hooks_path, errors)
+    hook_events = _dict(hooks.get("hooks")) if hooks else {}
+    if set(hook_events) != {"SessionStart", "UserPromptSubmit"}:
+        errors.append(
+            ".claude-plugin/root-package-guard-hooks.json: root guard events must be "
+            "SessionStart and UserPromptSubmit"
+        )
+    serialized_hooks = json.dumps(hooks)
+    if "reject-repository-root.sh" not in serialized_hooks:
+        errors.append(
+            ".claude-plugin/root-package-guard-hooks.json: missing repository-root guard command"
+        )
+
+    script = root / ".claude-plugin" / "reject-repository-root.sh"
+    if not script.is_file():
+        errors.append(".claude-plugin/reject-repository-root.sh: missing root guard script")
+        return
+    text = script.read_text(encoding="utf-8")
+    for required in (
+        "endor_agent_kit_managed=true",
+        "repository root is the Cursor package",
+        "plugins/claude/endor-labs-agent-kit",
+        "exit 2",
+    ):
+        if required not in text:
+            errors.append(
+                f".claude-plugin/reject-repository-root.sh: missing required text {required!r}"
+            )
+    if "composer-2.5" in text:
+        errors.append(".claude-plugin/reject-repository-root.sh: must not route Claude to Composer")
+    if not (script.stat().st_mode & 0o111):
+        errors.append(".claude-plugin/reject-repository-root.sh: root guard must be executable")
 
 
 def _check_claude_plugin_package(
@@ -1058,7 +1217,17 @@ def _check_claude_plugin_package(
                     errors.append(f"{_rel(root, setup)}: missing Claude compatibility text {required!r}")
         _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
-    for agent in sorted((claude_package / "agents").glob("*.md")):
+    agent_paths = sorted((claude_package / "agents").glob("*.md"))
+    expected_agent_ids = _source_agent_ids(root)
+    actual_agent_ids = {agent.stem for agent in agent_paths}
+    if expected_agent_ids and actual_agent_ids != expected_agent_ids:
+        errors.append(
+            f"{_rel(root, claude_package / 'agents')}: public Claude package must "
+            f"contain only canonical agents; expected {sorted(expected_agent_ids)}, "
+            f"found {sorted(actual_agent_ids)}"
+        )
+
+    for agent in agent_paths:
         text = agent.read_text(encoding="utf-8")
         for required in (
             "endor_agent_kit_managed=true",
@@ -1185,12 +1354,17 @@ def _check_advisory_plugin_hooks(
     errors: list[str],
     host_label: str,
     command_uses_quoted_script: bool = False,
+    hook_namespace: str | None = None,
 ) -> None:
     hooks = _load_json_mapping(root, hooks_json_path, errors)
     if not hooks:
         return
 
-    hook_events = _dict(hooks.get("hooks"))
+    if hook_namespace is not None and set(hooks) != {hook_namespace}:
+        errors.append(
+            f"{_rel(root, hooks_json_path)}: {host_label} hooks must be nested under {hook_namespace!r}"
+        )
+    hook_events = _dict(hooks.get(hook_namespace or "hooks"))
     if set(hook_events) != expected_events:
         errors.append(
             f"{_rel(root, hooks_json_path)}: {host_label} hook events must be {sorted(expected_events)}"
@@ -1323,7 +1497,7 @@ def _check_claude_marketplace(
         "SAST remediation",
         "agentic AppSec",
         "AppSec",
-        "Upgrade Impact Analysis",
+        "OSS Upgrade Investigator",
     }
     for plugin_name, expected_source in expected_sources.items():
         entry = next(
@@ -1409,6 +1583,8 @@ def _check_gemini_plugin_package(
         frontmatter = _frontmatter_mapping(root, agent, text, errors)
         if frontmatter.get("kind") != "local":
             errors.append(f"{_rel(root, agent)}: Gemini subagent kind must be local")
+        if frontmatter.get("model") != "gemini-3.5-flash":
+            errors.append(f"{_rel(root, agent)}: Gemini subagent model must be gemini-3.5-flash")
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Gemini plugin subagent must not declare {forbidden}")
@@ -1443,11 +1619,19 @@ def _check_antigravity_plugin_package(
     manifest_path = antigravity_package / "plugin.json"
     manifest = _load_json_mapping(root, manifest_path, errors)
     if manifest:
+        allowed_fields = {"$schema", "name", "description"}
+        unsupported_fields = sorted(set(manifest) - allowed_fields)
+        if unsupported_fields:
+            errors.append(
+                "plugins/antigravity/endor-labs-agent-kit/plugin.json: unsupported fields: "
+                + ", ".join(unsupported_fields)
+            )
+        if manifest.get("$schema") != "https://antigravity.google/schemas/v1/plugin.json":
+            errors.append(
+                "plugins/antigravity/endor-labs-agent-kit/plugin.json: $schema must use the official Antigravity plugin schema"
+            )
         if manifest.get("name") != "endor-labs-agent-kit":
             errors.append("plugins/antigravity/endor-labs-agent-kit/plugin.json: name must be endor-labs-agent-kit")
-        for forbidden in ("mcpServers", "settings", "license", "hooks"):
-            if forbidden in manifest:
-                errors.append(f"plugins/antigravity/endor-labs-agent-kit/plugin.json: must not declare {forbidden}")
 
     setup = antigravity_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
@@ -1457,7 +1641,7 @@ def _check_antigravity_plugin_package(
         for required in (
             "Run `endorctl scan`",
             "Run `endorctl host-check`",
-            "antigravity plugin validate",
+            "agy plugin validate",
             "Do not add plugin-wide MCP automatically",
             "Antigravity subagents are host-managed",
         ):
@@ -1487,6 +1671,10 @@ def _check_antigravity_plugin_package(
         frontmatter = _frontmatter_mapping(root, agent, text, errors)
         if frontmatter.get("kind") != "local":
             errors.append(f"{_rel(root, agent)}: Antigravity subagent kind must be local")
+        if frontmatter.get("model") != "inherit":
+            errors.append(
+                f"{_rel(root, agent)}: Antigravity plugin cannot pin a per-agent model; host-pinned agents must retain model: inherit"
+            )
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
                 errors.append(f"{_rel(root, agent)}: Antigravity plugin subagent must not declare {forbidden}")
@@ -1506,6 +1694,7 @@ def _check_antigravity_plugin_package(
         command_prefix='bash ./hooks/',
         errors=errors,
         host_label="Antigravity",
+        hook_namespace="endor-labs-agent-kit",
     )
 
 

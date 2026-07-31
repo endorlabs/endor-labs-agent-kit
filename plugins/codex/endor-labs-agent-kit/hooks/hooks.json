@@ -22,6 +22,18 @@
         "matcher": "apply_patch|Edit|Write"
       }
     ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "bash \"${PLUGIN_ROOT}/hooks/enforce-agent-api.sh\" PreToolUse",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [

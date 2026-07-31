@@ -4,6 +4,7 @@ import hashlib
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.cli import main
@@ -14,19 +15,18 @@ from endor_agent_kit.compilers import (
     compile_gemini,
     compile_raw,
 )
-from endor_agent_kit.publisher import publish_recipes
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
 from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 
-from conftest import repo_root
+from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "2a9bbb276a20ef4760195a6167ae767a1f3fa207877c8961656646694af13b60"
+ENTERPRISE_EDITION_SHA256 = "cf57c08bb3be3ac976ef487287319d10bc184c28726a965dea162bd887ccfc30"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
-    src = repo_root() / "source" / "agents" / "dependency-decision-helper"
-    dst = tmp_path / "dependency-decision-helper"
+    src = repo_root() / "source" / "agents" / "dependency-reviewer"
+    dst = tmp_path / "dependency-reviewer"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"
 
@@ -58,32 +58,114 @@ def test_claude_code_compiler_emits_selected_customer_artifact(tmp_path):
     outputs = compile_claude_code(recipe)
 
     assert [path.name for path in outputs] == [
-        "dependency-decision-helper.md",
+        name
+        for _edition in ("developer-edition", "enterprise-edition")
+        for name in (
+            "dependency-reviewer.md",
+            "dependency-reviewer-package-decision.md",
+            "dependency-reviewer-package-risk.md",
+            "dependency-reviewer-repository-review.md",
+        )
     ]
     enterprise = (
-        recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-decision-helper.md"
+        recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-reviewer.md"
     ).read_text()
 
     enterprise_header = enterprise.split("---", 2)[1]
     assert "\ntools:" not in enterprise_header
-    assert not (recipe.parent / "dist" / "claude-code" / "developer-edition").exists()
+    assert (recipe.parent / "dist" / "claude-code" / "developer-edition").is_dir()
     assert "mcpServers:" in enterprise_header
     assert "endor-cli-tools:" in enterprise_header
     assert "alwaysLoad: true" in enterprise_header
     assert "disallowedTools: Bash" not in enterprise_header
     assert "model: sonnet" in enterprise_header
-    assert "endorctl api list" in enterprise
+    assert "endorctl agent api --agent-id dependency-reviewer list" in enterprise
     assert "data_gaps" in enterprise
     assert "## Endor Knowledge Pack" in enterprise
     assert "## Structured Output Contract" in enterprise
+    assert enterprise.rfind("## Structured Output Contract") > enterprise.rfind("## Endor Knowledge Pack")
+    assert "Before the first tool call, select the smallest task profile" in enterprise
     assert "Context first" in enterprise
 
 
-def test_plugin_package_prompts_stay_within_compact_budgets(tmp_path):
-    recipes = sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
-    dest = tmp_path / "catalog"
+def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundle(tmp_path):
+    source = repo_root() / "source" / "agents" / "sca-remediation"
+    target = tmp_path / "sca-remediation"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
 
-    publish_recipes(recipes, dest, prune=True, include_plugins=True)
+    outputs = compile_claude_code(target / "recipe.yaml", edition="enterprise-edition")
+
+    assert [path.name for path in outputs] == [
+        "sca-remediation.md",
+        "sca-remediation-resolve-scope.md",
+        "sca-remediation-evidence-check.md",
+        "sca-remediation-selection-plan.md",
+    ]
+    scoped = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-evidence-check.md").read_text()
+    selection = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-selection-plan.md").read_text()
+    base = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation.md").read_text()
+    assert "name: sca-remediation-evidence-check" in scoped
+    assert "Profiles: `evidence-check`" in scoped
+    assert "`selection-plan` - Selection Plan" not in scoped
+    assert len(scoped) < len(base) * 0.7
+    assert "Never edit files" in scoped
+    assert "Do not fabricate findings" in scoped
+    assert "## PR/MR Body And Comment Requirements" not in scoped
+    for field in (
+        "summary",
+        "project_resolution",
+        "evidence_queries",
+        "selected_remediation",
+    ):
+        assert f"`{field}`" in selection
+    assert '"remediation_candidates": []' not in selection
+    assert '"patch_plan": []' not in selection
+    assert '"tickets": []' not in selection
+    assert "## Task State Resume Contract" not in selection
+
+
+def test_claude_code_compiler_emits_noncompact_projected_profile_contract(tmp_path):
+    source = repo_root() / "source" / "agents" / "findings-browser"
+    target = tmp_path / "findings-browser"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    outputs = compile_claude_code(target / "recipe.yaml", edition="enterprise-edition")
+
+    assert [path.name for path in outputs] == [
+        "findings-browser.md",
+        "findings-browser-browse.md",
+    ]
+    out_dir = target / "dist" / "claude-code" / "enterprise-edition"
+    base = (out_dir / "findings-browser.md").read_text()
+    browse = (out_dir / "findings-browser-browse.md").read_text()
+    assert "name: findings-browser-browse" in browse
+    assert "This task-profile field projection is authoritative" in browse
+    assert "omit every other recipe field" in browse
+    assert "`recommended_next_steps` (`list[object]`)" in base
+    assert "`recommended_next_steps` (`list[object]`)" not in browse
+
+
+def test_ai_sast_profile_variant_reduces_input_without_losing_safety_invariants(tmp_path):
+    source = repo_root() / "source" / "agents" / "ai-sast-remediation"
+    target = tmp_path / "ai-sast-remediation"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    compile_claude_code(target / "recipe.yaml", edition="enterprise-edition")
+
+    out_dir = target / "dist" / "claude-code" / "enterprise-edition"
+    base = (out_dir / "ai-sast-remediation.md").read_text()
+    scoped = (out_dir / "ai-sast-remediation-evidence-check.md").read_text()
+    assert len(scoped) < len(base) * 0.7
+    assert "Do not execute exploit steps against live systems" in scoped
+    assert "Never let the developer requesting an exception self-approve it" in scoped
+    assert "Create the Endor exception policy only after verified AppSec approval" not in scoped
+
+
+@pytest.mark.publication
+def test_plugin_package_prompts_stay_within_compact_budgets(
+    generated_catalog: GeneratedCatalog,
+):
+    dest = generated_catalog.root
 
     errors: list[str] = []
     for path in _plugin_prompt_files(dest):
@@ -98,7 +180,8 @@ def test_plugin_package_prompts_stay_within_compact_budgets(tmp_path):
                 "Never use memory",
                 "Never dump or `cat` Endor config files",
                 "Structured Output Contract",
-                "Return exactly one parseable JSON object",
+                "Default response mode is concise human-readable Markdown",
+                "Use structured JSON mode only when the user or calling runtime explicitly requests",
             ):
                 if required not in text:
                     errors.append(f"{relative}: missing {required!r}")
@@ -126,8 +209,8 @@ def test_claude_code_compiler_edition_filter(tmp_path):
 
     outputs = compile_claude_code(recipe, edition="developer-edition")
 
-    assert len(outputs) == 1
-    assert outputs[0].parent.name == "developer-edition"
+    assert len(outputs) == 4
+    assert {output.parent.name for output in outputs} == {"developer-edition"}
     assert not (recipe.parent / "dist" / "claude-code" / "enterprise-edition").exists()
 
 
@@ -169,8 +252,8 @@ def test_claude_managed_agents_compiler_emits_selected_customer_artifact(tmp_pat
             "permission_policy": {"type": "always_ask"},
         }
     ]
-    assert "endorctl api list" in enterprise["system"]
-    assert enterprise_environment["name"] == "endor-dependency-decision-helper"
+    assert "endorctl agent api --agent-id dependency-reviewer list" in enterprise["system"]
+    assert enterprise_environment["name"] == "endor-dependency-reviewer"
     assert enterprise_environment["config"]["packages"] == {"npm": ["endorctl"]}
 
 
@@ -179,8 +262,8 @@ def test_claude_code_compiler_accepts_legacy_variant_aliases(tmp_path):
 
     outputs = compile_claude_code(recipe, variant="standard")
 
-    assert len(outputs) == 1
-    assert outputs[0].parent.name == "developer-edition"
+    assert len(outputs) == 4
+    assert {output.parent.name for output in outputs} == {"developer-edition"}
     assert not (recipe.parent / "dist" / "claude-code" / "standard").exists()
 
 
@@ -209,8 +292,8 @@ def test_cli_compiles_named_edition_and_legacy_variant_alias(tmp_path, capsys):
 
     assert developer_status == 0
     assert enterprise_status == 0
-    assert "developer-edition/dependency-decision-helper.md" in developer_output
-    assert "enterprise-edition/dependency-decision-helper.md" in enterprise_output
+    assert "developer-edition/dependency-reviewer.md" in developer_output
+    assert "enterprise-edition/dependency-reviewer.md" in enterprise_output
 
 
 def test_cli_compiles_claude_managed_agents_target(tmp_path, capsys):
@@ -237,14 +320,14 @@ def test_claude_code_compiler_removes_legacy_output_dirs(tmp_path):
     legacy_extended = recipe.parent / "dist" / "claude-code" / "extended"
     legacy_standard.mkdir(parents=True)
     legacy_extended.mkdir(parents=True)
-    (legacy_standard / "dependency-decision-helper.md").write_text("stale", encoding="utf-8")
-    (legacy_extended / "dependency-decision-helper.md").write_text("stale", encoding="utf-8")
+    (legacy_standard / "dependency-reviewer.md").write_text("stale", encoding="utf-8")
+    (legacy_extended / "dependency-reviewer.md").write_text("stale", encoding="utf-8")
 
     compile_claude_code(recipe)
 
     assert not legacy_standard.exists()
     assert not legacy_extended.exists()
-    assert not (recipe.parent / "dist" / "claude-code" / "developer-edition").exists()
+    assert (recipe.parent / "dist" / "claude-code" / "developer-edition").is_dir()
     assert (recipe.parent / "dist" / "claude-code" / "enterprise-edition").is_dir()
 
 
@@ -253,37 +336,14 @@ def test_claude_code_enterprise_edition_pins_read_only_endorctl_command_shapes(t
     compile_claude_code(recipe, edition="enterprise-edition")
 
     enterprise = (
-        recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-decision-helper.md"
+        recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-reviewer.md"
     ).read_text()
 
-    bash_blocks = _fenced_blocks(enterprise, "bash")
-    assert bash_blocks == [
-        """endorctl api list \\
-  --resource PackageVersion \\
-  --namespace oss \\
-  --filter 'meta.name=="<prefix>://<package_name>@<version>"' \\
-  --field-mask "uuid,meta.name"
-""",
-        """endorctl api list \\
-  --resource Metric \\
-  --namespace oss \\
-  --filter 'meta.name=="package_version_scorecard" and meta.parent_uuid=="<package_version_uuid>"' \\
-  --field-mask "spec.metric_values.scorecard.score_card.category_scores"
-""",
-        """endorctl api list \\
-  --resource Metric \\
-  --namespace oss \\
-  --filter 'meta.name=="pkg_version_info_for_license" and meta.parent_uuid=="<package_version_uuid>"' \\
-  --field-mask "spec.metric_values.licenseInfoType.license_info.all_licenses"
-""",
-        """endorctl api create \\
-  --resource QuerySimilarPackages \\
-  --namespace oss \\
-  --data '{"meta":{"name":"similar-packages-query-<package_name>"},"spec":{"name":"<package_name>","edit_distance":2,"repo":"<ECOSYSTEM_ENUM>","exact_match":false}}'
-""",
-    ]
-    assert "The only allowed `endorctl api create` form" in enterprise
-    assert "do not generalize this exception to other resources" in enterprise
+    assert _fenced_blocks(enterprise, "bash") == []
+    assert "endorctl agent api --agent-id dependency-reviewer list -r PackageVersion" in enterprise
+    assert "--field-mask \"uuid,meta.name,spec.ecosystem,spec.package_name,spec.release_timestamp\"" in enterprise
+    assert "Shell execution is limited to the documented read-only" in enterprise
+    assert "QuerySimilarPackages" not in enterprise
 
 
 def test_raw_compiler_emits_setup_bundle(tmp_path):
@@ -293,12 +353,40 @@ def test_raw_compiler_emits_setup_bundle(tmp_path):
 
     names = {path.name for path in outputs}
     assert names == {
+        "system-prompt-developer-edition.md",
         "system-prompt-enterprise-edition.md",
         "mcp-config.json",
         "endorctl-setup.md",
     }
     assert "endor-cli-tools" in (recipe.parent / "dist" / "raw" / "mcp-config.json").read_text()
     assert "read-only Endor lookups" in (recipe.parent / "dist" / "raw" / "endorctl-setup.md").read_text()
+
+
+def test_remediation_planning_raw_prompt_defaults_to_human_with_explicit_json_mode(tmp_path):
+    source = repo_root() / "source" / "agents" / "remediation-planning"
+    target = tmp_path / "remediation-planning"
+    shutil.copytree(source, target, ignore=shutil.ignore_patterns("dist"))
+
+    compile_raw(target / "recipe.yaml")
+
+    prompt = (
+        target / "dist" / "raw" / "system-prompt-enterprise-edition.md"
+    ).read_text(encoding="utf-8")
+    assert "Return concise prose plus a JSON object" not in prompt
+    assert "By default, return concise human-readable Markdown" in prompt
+    assert "If the user or calling runtime explicitly" in prompt
+    assert "return exactly one bare JSON object" in prompt
+    assert "Default response mode is concise human-readable Markdown" in prompt
+    assert "non-whitespace character must be `{`" in prompt
+    assert "last non-whitespace\ncharacter must be `}`" in prompt
+    assert "Do not add a preamble" in prompt
+    assert "trailing explanation" in prompt
+    assert "Markdown fence" in prompt
+    assert "The normal selection path is Project lookup, one ranked VersionUpgrade summary" in prompt
+    assert "It is not a three-call ceiling" in prompt
+    assert "Every attempted\nEndor call must have exactly one `evidence_queries` row" in prompt
+    assert "failed,\nzero-result, retry, and fallback calls" in prompt
+    assert "`source: endorctl_agent_api`" in prompt
 
 
 def test_codex_compiler_emits_skill_artifact(tmp_path):
@@ -310,13 +398,13 @@ def test_codex_compiler_emits_skill_artifact(tmp_path):
     outputs = compile_codex(recipe)
 
     assert [path.name for path in outputs] == ["SKILL.md"]
-    skill = (recipe.parent / "dist" / "codex" / "dependency-decision-helper" / "SKILL.md").read_text()
-    assert "name: dependency-decision-helper" in skill
-    assert "Generated from Endor Agent Kit recipe `dependency-decision-helper`" in skill
+    skill = (recipe.parent / "dist" / "codex" / "dependency-reviewer" / "SKILL.md").read_text()
+    assert "name: dependency-reviewer" in skill
+    assert "Generated from Endor Agent Kit recipe `dependency-reviewer`" in skill
     assert "## Codex Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
     assert "## Structured Output Contract" in skill
-    assert "endorctl api list" in skill
+    assert "endorctl agent api --agent-id dependency-reviewer list" in skill
 
 
 def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
@@ -331,22 +419,22 @@ def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
 
     outputs = compile_gemini(recipe)
 
-    assert [path.name for path in outputs] == ["SKILL.md", "dependency-decision-helper.md"]
-    skill = (recipe.parent / "dist" / "gemini" / "dependency-decision-helper" / "SKILL.md").read_text()
+    assert [path.name for path in outputs] == ["SKILL.md", "dependency-reviewer.md"]
+    skill = (recipe.parent / "dist" / "gemini" / "dependency-reviewer" / "SKILL.md").read_text()
     agent = (
-        recipe.parent / "dist" / "gemini" / "dependency-decision-helper" / "dependency-decision-helper.md"
+        recipe.parent / "dist" / "gemini" / "dependency-reviewer" / "dependency-reviewer.md"
     ).read_text()
     agent_frontmatter = yaml.safe_load(agent.split("---", 2)[1])
 
-    assert "name: dependency-decision-helper" in skill
-    assert "Generated from Endor Agent Kit recipe `dependency-decision-helper`" in skill
+    assert "name: dependency-reviewer" in skill
+    assert "Generated from Endor Agent Kit recipe `dependency-reviewer`" in skill
     assert "## Gemini CLI Host Contract" in skill
     assert "Shell commands, when used, must stay read-only" in skill
     assert "## Structured Output Contract" in skill
-    assert "endorctl api list" in skill
+    assert "endorctl agent api --agent-id dependency-reviewer list" in skill
     assert "data_gaps" in skill
     assert agent_frontmatter["kind"] == "local"
-    assert agent_frontmatter["model"] == "inherit"
+    assert agent_frontmatter["model"] == "gemini-3.5-flash"
     assert agent_frontmatter["max_turns"] == 30
     assert "mcpServers" not in agent_frontmatter
     assert "endor_agent_kit_managed=true" in agent
@@ -366,14 +454,14 @@ def test_raw_compiler_removes_legacy_prompt_names(tmp_path):
 
     assert not legacy_standard.exists()
     assert not legacy_extended.exists()
-    assert not (raw_dir / "system-prompt-developer-edition.md").exists()
+    assert (raw_dir / "system-prompt-developer-edition.md").is_file()
     assert (raw_dir / "system-prompt-enterprise-edition.md").is_file()
 
 
 def test_claude_code_compiler_golden_hashes(tmp_path):
     recipe = _copy_agent(tmp_path)
     compile_claude_code(recipe)
-    enterprise = recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-decision-helper.md"
+    enterprise = recipe.parent / "dist" / "claude-code" / "enterprise-edition" / "dependency-reviewer.md"
 
     assert _sha256(enterprise) == ENTERPRISE_EDITION_SHA256
 
@@ -395,6 +483,7 @@ def _plugin_prompt_files(root: Path) -> list[Path]:
         "plugins/claude/endor-labs-agent-kit/agents/*.md",
         "plugins/claude/ai-plugins/agents/*.md",
         "plugins/codex/endor-labs-agent-kit/skills/*/SKILL.md",
+        "plugins/codex/endor-labs-agent-kit/bundled-skills/*/SKILL.md",
         "plugins/codex/endor-labs-agent-kit/agents/*.toml",
         "plugins/gemini/endor-labs-agent-kit/skills/*/SKILL.md",
         "plugins/gemini/endor-labs-agent-kit/agents/*.md",
@@ -412,16 +501,58 @@ def _plugin_prompt_files(root: Path) -> list[Path]:
 
 def _prompt_budget(relative_path: str) -> int:
     agent_id = _agent_id_from_prompt_path(relative_path)
+    if agent_id == "create-endor-labs-agent":
+        # Authoring support is not a runtime workflow agent. Its schema and
+        # provider-generation guidance are intentionally self-contained.
+        return 15_000
     if agent_id == "endor-agent-kit-setup":
         return 11_000
-    if agent_id in {"repository-dependency-reviewer", "upgrade-impact-analysis"}:
-        return 15_000
-    if agent_id in {"dependency-decision-helper", "package-risk-summary"}:
-        return 14_000
-    if agent_id in {"cicd-posture", "endor-troubleshooter", "probe-droid"}:
+    if agent_id == "dependency-reviewer":
+        # Preserve the evidence ledger and dual human/structured response modes.
+        return 20_050
+    if agent_id == "oss-upgrade-investigator":
+        # Exact compact VersionUpgrade candidate/detail masks add source-level
+        # prompt bytes while avoiding much larger unbounded response bodies.
+        return 18_450
+    if agent_id == "findings-browser":
+        # Traversal, completeness, filter, and query-ledger rules are required
+        # safety behavior. The largest generated host projection is 15,305
+        # characters; retain it with small, agent-specific headroom.
+        return 16_600
+    if agent_id == "malware-responder":
+        # The exact Finding-to-DependencyMetadata route prevents broad tenant
+        # inventory reads and incorrect PackageVersion target lookups. The
+        # exposure-verdict contract adds bounded customer-facing guidance;
+        # retain modest headroom above the largest generated host artifact.
+        return 15_400
+    if agent_id == "remediation-planning":
+        # The selected-package fallback and evidence-ledger contract add useful
+        # source-level bytes while keeping the normal route to three reads. The
+        # shared exact-project preflight adds a small bounded identity contract.
+        return 16_250
+    if agent_id == "configuration-automation":
+        # Adaptive single-, selected-, and fleet-scope readiness routing adds
+        # complete-inventory artifact contracts without per-repository fanout.
+        return 30_250
+    if agent_id == "troubleshooting":
+        # Diagnostic-lane selection and targeted fallback rules are retained
+        # because they prevent speculative cross-lane calls.
+        return 30_000
+    if agent_id == "cicd-posture":
         return 26_000
-    if agent_id in {"sca-remediation", "ai-sast-triage"}:
+    if agent_id == "sca-remediation":
+        # Full fallback carries resume, duplicate-PR, worktree-isolation, exact
+        # evidence-ledger/count, validation-backed risk-decision, and strict
+        # selection-plan nested-key contracts. The compact selection-evidence
+        # projection, manifest-overlap reconciliation, and source/delivery
+        # capability preflight are quality-critical. This measured,
+        # agent-specific ceiling leaves under 500 characters above the largest
+        # generated host artifact. Scoped profiles retain separate <70% checks.
+        return 51_600
+    if agent_id == "ai-sast-remediation":
         return 36_000
+    if agent_id == "vulnerability-explainer":
+        return 14_750
     return 13_000
 
 
@@ -432,10 +563,29 @@ def _agent_id_from_prompt_path(relative_path: str) -> str:
     stem = path.stem
     if stem in {"endor-agent-kit-setup-agent", "endor-agent-kit-setup"}:
         return "endor-agent-kit-setup"
-    if stem in {"endor-troubleshooter-agent", "endor-troubleshooter"}:
-        return "endor-troubleshooter"
+    if stem in {"troubleshooting-agent", "troubleshooting"}:
+        return "troubleshooting"
     if stem.startswith("endor-"):
         stem = stem[len("endor-"):]
     if stem.endswith("-agent"):
         stem = stem[: -len("-agent")]
+    known_agent_ids = {
+        "ai-sast-remediation",
+        "cicd-posture",
+        "dependency-reviewer",
+        "endor-agent-kit-setup",
+        "troubleshooting",
+        "findings-browser",
+        "malware-responder",
+        "dependency-reviewer",
+        "configuration-automation",
+        "remediation-planning",
+        "dependency-reviewer",
+        "sca-remediation",
+        "oss-upgrade-investigator",
+        "vulnerability-explainer",
+    }
+    for agent_id in sorted(known_agent_ids, key=len, reverse=True):
+        if stem == agent_id or stem.startswith(f"{agent_id}-"):
+            return agent_id
     return stem

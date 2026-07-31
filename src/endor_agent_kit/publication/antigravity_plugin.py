@@ -23,16 +23,33 @@ from endor_agent_kit.publication.plugin_package_common import (
     write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 ANTIGRAVITY_HOST = "antigravity"
 ANTIGRAVITY_PLUGIN_PACKAGE_ROOT = Path("plugins") / ANTIGRAVITY_HOST / PLUGIN_NAME
 ANTIGRAVITY_SETUP_SKILL = "endor-agent-kit-setup"
+ANTIGRAVITY_PLUGIN_SCHEMA = "https://antigravity.google/schemas/v1/plugin.json"
 ANTIGRAVITY_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 ANTIGRAVITY_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
+ANTIGRAVITY_ARTIFACT_HELPER = (
+    '"$HOME/.gemini/config/plugins/endor-labs-agent-kit/'
+    'runtime/summarize_endor_artifact.py"'
+)
+ANTIGRAVITY_TOOL_MAP: dict[str, tuple[str, ...]] = {
+    "read_file": ("view_file",),
+    "grep_search": ("grep_search",),
+    "run_shell_command": ("run_command",),
+    "write_file": (
+        "write_to_file",
+        "replace_file_content",
+        "multi_replace_file_content",
+    ),
+}
 
 
 @dataclass(frozen=True)
@@ -93,6 +110,9 @@ def publish_antigravity_plugin_package(
                     prepared,
                     generated_context="Endor Labs Agent Kit Antigravity CLI plugin subagent",
                     compact_plugin=True,
+                    # Antigravity plugins cannot declare a per-agent model.
+                    # The recommended model is pinned in Antigravity host settings.
+                    model="inherit",
                 )
             ),
             encoding="utf-8",
@@ -108,11 +128,13 @@ def publish_antigravity_plugin_package(
     logo = write_logo(package_dir / "assets")
     written.append(logo)
 
+    written.append(write_artifact_summarizer(package_dir))
+
     written.extend(_write_antigravity_plugin_hooks(package_dir))
 
     manifest = package_dir / "plugin.json"
     manifest.write_text(
-        json.dumps(_antigravity_plugin_manifest(version), indent=2, sort_keys=True) + "\n",
+        json.dumps(_antigravity_plugin_manifest(), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     written.append(manifest)
@@ -185,16 +207,17 @@ def _antigravity_hooks_config() -> dict[str, object]:
         }
 
     return {
-        "hooks": {
+        PLUGIN_NAME: {
             "PreInvocation": [
-                {
-                    "hooks": [command("suggest-endor-tools.sh", "PreInvocation")],
-                }
+                command("suggest-endor-tools.sh", "PreInvocation")
             ],
             "PreToolUse": [
                 {
                     "matcher": "run_command",
-                    "hooks": [command("check-dep-install.sh", "PreToolUse")],
+                    "hooks": [
+                        command("enforce-agent-api.sh", "PreToolUse"),
+                        command("check-dep-install.sh", "PreToolUse"),
+                    ],
                 }
             ],
             "PostToolUse": [
@@ -207,39 +230,18 @@ def _antigravity_hooks_config() -> dict[str, object]:
     }
 
 
-def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
+def _antigravity_plugin_manifest() -> dict[str, object]:
     return {
+        "$schema": ANTIGRAVITY_PLUGIN_SCHEMA,
         "name": PLUGIN_NAME,
-        "version": version,
         "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
-        "short_description": "Endor Labs security workflows for Antigravity.",
-        "long_description": (
-            "Setup guidance, workflow skills, and subagents for Endor Labs SCA "
-            "remediation, AI SAST triage, troubleshooting, and onboarding analysis."
-        ),
-        "author": {
-            "name": "Endor Labs",
-            "url": "https://www.endorlabs.com/",
-        },
-        "repository": "https://github.com/endorlabs/ai-plugins",
-        "homepage": "https://github.com/endorlabs/ai-plugins",
-        "keywords": [
-            "Endor Labs",
-            "AppSec",
-            "agentic AppSec",
-            "agentic remediation",
-            "SAST remediation",
-            "Upgrade Impact Analysis",
-            "SCA remediation",
-            "software composition analysis",
-        ],
     }
 
 
 def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -261,15 +263,15 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "Validate and install from the generated local plugin package:",
         "",
         "```bash",
-        f"antigravity plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        f"antigravity plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        "antigravity plugin list",
+        f"agy plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        f"agy plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        "agy plugin list",
         "```",
         "",
         "Remove the plugin only after explicit user approval:",
         "",
         "```bash",
-        f"antigravity plugin uninstall {PLUGIN_NAME}",
+        f"agy plugin uninstall {PLUGIN_NAME}",
         "```",
         "",
         "Antigravity CLI is the consumer migration path for Gemini CLI. Keep Gemini",
@@ -309,12 +311,13 @@ def _antigravity_plugin_readme(
     version: str,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
+        host_id="antigravity",
         host_label="Antigravity CLI",
-        install_summary="Validate and install the generated Antigravity plugin directory with `antigravity plugin` commands.",
+        install_summary="Validate and install the generated Antigravity plugin directory with `agy plugin` commands.",
         setup_summary=f"ask Antigravity CLI to use the `{ANTIGRAVITY_SETUP_SKILL}` skill.",
     )
     return "\n".join([
@@ -335,15 +338,26 @@ def _antigravity_plugin_readme(
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Subagents: `agents/<agent>.md`.",
         "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
-        "- Model/runtime: generated skills and subagents inherit Antigravity CLI defaults; the plugin does not set a plugin-wide default model.",
+        "- Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.",
         "- MCP: no plugin-wide MCP server is declared by default.",
+        "",
+        "## Install From The Public Release",
+        "",
+        "```bash",
+        f"git clone --branch {version} https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-{version}",
+        f"agy plugin validate ./endor-ai-plugins-{version}/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        f"agy plugin install ./endor-ai-plugins-{version}/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        "```",
+        "",
+        f"The `--branch {version}` argument checks out the immutable `{version}` release tag;",
+        "it does not require a same-named branch.",
         "",
         "## Install From A Local Checkout",
         "",
         "```bash",
-        f"antigravity plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        f"antigravity plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
-        "antigravity plugin list",
+        f"agy plugin validate /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        f"agy plugin install /path/to/endor-labs-agent-kit/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
+        "agy plugin list",
         "```",
         "",
         "Restart Antigravity CLI after installing or reinstalling the plugin if",
@@ -389,7 +403,7 @@ def _antigravity_plugin_readme(
         "",
         "## Provider Docs",
         "",
-        "- https://antigravity.google/docs/cli-plugins",
+        "- https://antigravity.google/docs/cli/plugins",
         "- https://antigravity.google/docs/hooks",
         "- https://antigravity.google/docs/gcli-migration",
         "- https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/",
@@ -416,6 +430,10 @@ def antigravity_text(text: str) -> str:
         .replace("Gemini-specific", "Antigravity-specific")
         .replace("host=gemini", "host=antigravity")
         .replace("Gemini CLI", "Antigravity CLI")
+        .replace(
+            "python3 runtime/summarize_endor_artifact.py",
+            f"python3 {ANTIGRAVITY_ARTIFACT_HELPER}",
+        )
     )
     host_contract = "Antigravity CLI Host Contract\n"
     if host_contract in adapted and "Invoke workflow subagents as `@agent-name`" not in adapted:
@@ -428,19 +446,34 @@ def antigravity_text(text: str) -> str:
             + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n",
             1,
         )
-    return adapted
+    return _adapt_antigravity_frontmatter_tools(adapted)
 
 
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-triage": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "endor-troubleshooter": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "probe-droid": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
+def _adapt_antigravity_frontmatter_tools(text: str) -> str:
+    """Translate Gemini agent tools to Antigravity's callable tool names."""
+
+    lines = text.splitlines()
+    delimiters = [index for index, line in enumerate(lines) if line == "---"]
+    if len(delimiters) < 2:
+        return text
+    frontmatter_start, frontmatter_end = delimiters[:2]
+    output: list[str] = []
+    in_tools = False
+    for index, line in enumerate(lines):
+        if frontmatter_start < index < frontmatter_end and line == "tools:":
+            in_tools = True
+            output.append(line)
+            continue
+        if in_tools and frontmatter_start < index < frontmatter_end:
+            if line.startswith("  - "):
+                tool = line.removeprefix("  - ").strip()
+                mapped = ANTIGRAVITY_TOOL_MAP.get(tool, (tool,))
+                output.extend(f"  - {name}" for name in mapped)
+                continue
+            in_tools = False
+        output.append(line)
+    suffix = "\n" if text.endswith("\n") else ""
+    return "\n".join(output) + suffix
 
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:

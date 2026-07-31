@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "endor-cli-tools": {
+      "args": [
+        "ai-tools",
+        "mcp-server"
+      ],
+      "command": "endorctl"
+    }
+  }
+}

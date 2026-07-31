@@ -3,6 +3,7 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from endor_agent_kit.publisher import publish_recipe
@@ -31,7 +32,7 @@ def test_sca_remediation_agent_is_mcp_free_and_action_contract_backed(tmp_path):
     assert validate_recipe_file(recipe) == []
     assert data["recipe_schema_version"] == 2
     assert data["safety_class"] == "mutating"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["action_contracts_path"] == "actions.yaml"
@@ -61,6 +62,7 @@ def test_sca_remediation_agent_is_mcp_free_and_action_contract_backed(tmp_path):
             assert action["confirmation_required"] is True
 
 
+@pytest.mark.publication
 def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -98,6 +100,13 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Traverse fallback when the first project lookup has no match" in prompt
     assert "Do not print or dump an entire Endor config file" in prompt
     assert "extract only the namespace key" in prompt
+    assert "## Source And Delivery Capability Preflight" in prompt
+    assert "An explicit namespace selects tenant scope; it does not authenticate the request" in prompt
+    assert "Let `endorctl` consume its default configuration or supported credential environment internally" in prompt
+    assert "`execution_context.mode: \"evidence_only\"`" in prompt
+    assert "A missing local checkout does not block authenticated Endor evidence gathering" in prompt
+    assert "source_checkout_unavailable" in prompt
+    assert "Do not use source-provider write access as a substitute for a local checkout" in prompt
     assert "namespace_provenance" in prompt
     assert "Every output gate must include `project_resolution.status`, `project_resolution.project_uuid`" in prompt
     assert "project_resolution.traverse_attempted" in prompt
@@ -109,13 +118,24 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "VersionUpgrade/UIA evidence before calling" in prompt
     assert "A high finding count alone is not enough" in prompt
     assert "Do not require, configure, or start an Endor MCP server" in prompt
-    assert "endorctl api list -r Finding" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r Project" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r Project" in codex_prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r Finding" in prompt
     assert 'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<PROJECT_UUID>" and spec.finding_categories contains FINDING_CATEGORY_VULNERABILITY' in prompt
-    assert "uuid,context,meta.name,meta.description,meta.parent_uuid" in prompt
-    assert "spec.source_code_version" in prompt
+    assert "uuid in [<FINDING_UUIDS>]" in prompt
+    assert "uuid,context.type,spec.project_uuid,spec.target_uuid" in prompt
     assert "spec.target_uuid" in prompt
-    assert "spec.dependency_file_paths" in prompt
-    assert "endorctl api list -r VersionUpgrade" in prompt
+    assert "spec.finding_metadata.vulnerability.meta.name" in prompt
+    assert "spec.finding_metadata.vulnerability.spec.aliases" in prompt
+    assert "do not query Finding for corroboration" in prompt
+    assert "If the selected profile includes" in prompt
+    assert "top-level `validation`, keep it as an array" in prompt
+    assert "24 lowercase hexadecimal characters" in prompt
+    assert "selection-plan profile projection overrides" in prompt
+    assert "Omit `remediation_candidates`, `patch_plan`, `validation`, and `tickets`" in prompt
+    assert "balanced object and array delimiters" in prompt
+    assert "boolean `exact_duplicate`" in prompt
+    assert "endorctl agent api --agent-id sca-remediation list -r VersionUpgrade" in prompt
     assert "Do not make current upstream/latest-version claims unless you verified them during the current run" in prompt
     assert "prepare-remediation-diff" in prompt
     assert "post-remediation-comment" in prompt
@@ -143,9 +163,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
     assert "Validation Command Selection" in prompt
-    assert "immediately clean validation-generated artifacts" in prompt
-    assert "do not get stuck on dirty" in prompt
-    assert "`target/`" in prompt
+    assert "Never clean validation artifacts in the user's worktree" in prompt
+    assert "the user worktree must remain byte-for-byte unchanged" in prompt
+    assert "immediately clean validation-generated artifacts" not in prompt
+    assert "stash, reset" in prompt
+    assert "Remove only\nthe owned disposable resources" in prompt
     assert "Do not assume a Java/Maven repository" in prompt
     assert "package manager, and manifest or lockfile" in prompt
     assert "package.json" in prompt
@@ -164,6 +186,17 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "copy the final branch into every" in prompt
     assert "selected_remediation.branch_name" in prompt
     assert "change_requests[].branch" in prompt
+    assert "The generated selection-plan profile contract is strict" in prompt
+    assert "return only summary, project_resolution, execution_context, evidence_queries" in prompt
+    assert "Do not reconstruct" in prompt
+    assert "character-for-character" in prompt
+    assert "Do not emit `project_name`" in prompt
+    assert "Do not emit `current_version`, `target_version`" in prompt
+    assert "Use `base_branch`, `title`, and `url`" in prompt
+    assert "Use `pack_version`, never `version`" in prompt
+    assert "Keep source-provider inventory compact" in prompt
+    assert "For at most five matching candidates" in prompt
+    assert "Do not fetch full" in prompt
     assert "complete AURI-style PR/MR body draft" in prompt
     assert "Do not stop at a PR title or patch plan only" in prompt
     assert "Stable marker: `<!-- endor-agent-kit:sca-remediation-agent -->`" in prompt
@@ -180,17 +213,28 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "verified remote body" in codex_prompt
     assert '"pr_body_draft": "included_above"' not in codex_prompt
     assert "The JSON object must be syntactically valid" in prompt
-    assert "A prose-only summary is" in prompt
-    assert "exactly one syntactically valid top-level JSON object" in prompt
+    assert "By default, return concise human-readable Markdown" in prompt
+    assert "If the user or calling runtime explicitly" in prompt
+    assert "return exactly one bare JSON object" in prompt
+    assert "Do not add a preamble, trailing explanation" in prompt
     assert "risk_decision.source_usage_summary" in prompt
     assert '"uia_evidence": [' in prompt
     assert "`uia_evidence` as an array" in prompt
-    assert "Every SCA output that includes `evidence_queries[]` must include at least one" in prompt
-    assert "Finding evidence was unavailable or not queried" in prompt
-    assert "required after VersionUpgrade/UIA narrowing" in prompt
-    assert "selected-candidate" in prompt
+    assert "normal selection path is one exact Project lookup" in prompt
+    assert "expected route, not a universal call ceiling" in prompt
+    assert "fetch the current-run Finding UUIDs in one `uuid in [...]` batch" in prompt
+    assert "Every attempted Endor API invocation has exactly one `evidence_queries`" in prompt
+    assert "The normal route has" in prompt
+    assert "do not query Finding for corroboration" in prompt
+    assert "finding_instances_fixed" in prompt
+    assert "unique_advisories_fixed" in prompt
     assert "Do not leave" in prompt
     assert "`change_requests: []`" in prompt
+    assert "`inventory.status`: exactly `none_found`, `exact_duplicate`, `different_target`, or `unavailable`" in prompt
+    assert "non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`" in prompt
+    assert "Do not flatten the key or reconciliation" in prompt
+    assert "use `checked_at`, never `check_time`" in prompt
+    assert "A zero-result required batch creates a precise Finding `data_gaps` row" in prompt
     assert "workflow labels such as `selected`" in prompt
     assert "Security Remediation: <N> Endor finding instances fixed by dependency upgrade" in prompt
     assert "Do not replace this title shape with a package-only title" in prompt
@@ -243,6 +287,8 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "folded advisory/finding list" in agent_readme
     assert "Advisories This Upgrade Fixes" in agent_readme
     assert "deterministic `risk_decision`" in agent_readme
+    assert "Without a checkout it returns an evidence-only plan" in agent_readme
+    assert "A missing target checkout degrades to an evidence-only plan" in agent_readme
     assert "selection/plan gate is not complete" in agent_readme
     assert "remediation/sca/<package>-<target-version>" in agent_readme
     assert "UIA evidence, risk_decision, target files" in agent_readme
@@ -274,4 +320,7 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "missing-project-or-auth",
         "approved-pr-with-comment",
         "pr-plan-includes-full-body",
+        "no-local-checkout-degrades-to-evidence-only",
+        "explicit-namespace-does-not-expose-auth-config",
+        "checkout-without-provider-write-stops-before-pr",
     }.issubset(ids)

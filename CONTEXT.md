@@ -32,6 +32,10 @@ _Avoid_: output folder, generated files
 The internal structured result returned by a Host Adapter after publishing one Host Artifact Bundle. It carries written paths, manifest bundle metadata, and any catalog facts the Root Catalog README needs; the Publication Interface flattens Bundle Records to `list[Path]` for current callers.
 _Avoid_: tuple, path list, manifest blob
 
+**Publication Batch Record**:
+The internal structured result returned by Host Artifact Publication after compiling and publishing one or more Prepared Source Recipes. It carries ordered Bundle Records plus the finalized Catalog Manifest Schema Records that catalog finalization consumes once after all Host Adapters and plugin package publishers finish.
+_Avoid_: batch tuple, pending manifest blob
+
 **Catalog Manifest**:
 The repository-level `manifest.json` that records published agents, hosts, bundle metadata, artifact paths, sizes, checksums, and source recipe pointers. The Host Artifact Publication coordinator writes the Catalog Manifest from Bundle Records.
 _Avoid_: host manifest, adapter manifest
@@ -94,7 +98,7 @@ The process that turns a Source Recipe into Host Artifact Bundles plus catalog m
 _Avoid_: copy step, dist sync
 
 **Workflow Gate**:
-A named checkpoint in a generated agent workflow, such as AI SAST triage, AI SAST remediation, AI SAST exception policy, SCA Selection / Plan, SCA apply, SCA validation, or SCA PR/MR publication. Each Workflow Gate owns the structured output requirements and rendered artifact checks needed before that workflow can advance.
+A named checkpoint in a generated agent workflow, such as AI SAST initial assessment, AI SAST remediation, AI SAST exception policy, SCA Selection / Plan, SCA apply, SCA validation, or SCA PR/MR publication. Each Workflow Gate owns the structured output requirements and rendered artifact checks needed before that workflow can advance.
 _Avoid_: phase string, mode flag
 
 **Workflow Output Contract**:

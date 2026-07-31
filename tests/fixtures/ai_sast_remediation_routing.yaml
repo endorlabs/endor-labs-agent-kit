@@ -1,0 +1,49 @@
+cases:
+  known_uuid:
+    input:
+      namespace: tenant-a
+      finding_uuid: finding-12345678
+    expected_route:
+      initial_recipe: finding-by-uuid
+      conditional_recipe: project-by-uuid
+      conditional_when: Finding evidence does not establish repository identity.
+      forbidden_recipes:
+        - project-by-git
+        - ai-sast-count
+      maximum_endor_operations: 2
+    expected_output:
+      summary: Known AI SAST Finding scope resolved without a project search or inventory list.
+      project_resolution:
+        project_uuid: project-123
+        namespace: tenant-a
+        namespace_provenance: user_supplied
+        repo_full_name: example/app
+        repo_identity_provenance: project_by_uuid
+      verdicts:
+        - finding_uuid: finding-12345678
+          classification: INCONCLUSIVE
+          source_location: src/web/redirect_handler.ext:42
+          file_path: src/web/redirect_handler.ext
+          source_ref: refs/heads/feature/security-fix
+          source_ref_provenance: finding_source_ref_not_default_branch_proof
+      evidence_queries:
+        - recipe: finding-by-uuid
+          status: succeeded
+        - recipe: project-by-uuid
+          status: conditionally_succeeded
+      data_gaps: []
+  without_uuid:
+    input:
+      namespace: tenant-a
+      repo_full_name: example/app
+    expected_route:
+      recipes:
+        - project-by-git
+        - ai-sast-count
+      forbidden_recipes:
+        - finding-by-uuid
+        - ai-sast-list
+      maximum_endor_operations: 2
+      returns:
+        - project identity
+        - main-context AI SAST count

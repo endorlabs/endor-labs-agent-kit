@@ -2,16 +2,22 @@
 
 from __future__ import annotations
 
+import re
 from importlib import metadata, resources
 from pathlib import Path
-import re
+
+from endor_agent_kit.publication.model_recommendations import model_recommendation_lines
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
-PLUGIN_VERSION_FALLBACK = "2.1.0"
+PLUGIN_VERSION_FALLBACK = "2.2.0"
+ENDOR_BRAND_GREEN = "#26D07C"
 LOGO_FILENAME = "logo.png"
 LOGO_PATH = f"assets/{LOGO_FILENAME}"
 LOGO_SHA256 = "3bc1cce0aa35f12d7de7c537726305f6125692ef5f147774abd683a7b269917e"
+COMPOSER_ICON_FILENAME = "composer-icon.png"
+COMPOSER_ICON_PATH = f"assets/{COMPOSER_ICON_FILENAME}"
+COMPOSER_ICON_SHA256 = "bf4966324f33f257a2ece0adce4a15cb67bb251b45af46baea6c2768abde32a2"
 
 
 def package_version() -> str:
@@ -42,6 +48,16 @@ def logo_png() -> bytes:
     return logo.read_bytes()
 
 
+def composer_icon_png() -> bytes:
+    """Return the compact Endor Labs composer icon PNG."""
+
+    icon = resources.files("endor_agent_kit.publication").joinpath(
+        "assets",
+        COMPOSER_ICON_FILENAME,
+    )
+    return icon.read_bytes()
+
+
 def write_logo(assets_root: Path) -> Path:
     """Write the canonical plugin logo and prune the retired SVG logo."""
 
@@ -54,8 +70,21 @@ def write_logo(assets_root: Path) -> Path:
     return logo
 
 
+def write_composer_icon(assets_root: Path) -> Path:
+    """Write the compact composer icon and prune the retired SVG variant."""
+
+    assets_root.mkdir(parents=True, exist_ok=True)
+    stale_svg = assets_root / "composer-icon.svg"
+    if stale_svg.exists():
+        stale_svg.unlink()
+    icon = assets_root / COMPOSER_ICON_FILENAME
+    icon.write_bytes(composer_icon_png())
+    return icon
+
+
 def plugin_readme_start_here(
     *,
+    host_id: str,
     host_label: str,
     install_summary: str,
     setup_summary: str,
@@ -75,6 +104,7 @@ def plugin_readme_start_here(
         "",
         f"This package is host-specific for {host_label}. Use the root README when choosing between hosts.",
         "",
+        *model_recommendation_lines(host_id),
     ]
 
 
@@ -97,6 +127,15 @@ def plugin_packages_readme() -> str:
         "For release publication, use `docs/plugin-release-checklist.md` from the",
         "repository root.",
         "",
+        "The generated `ai-plugins` mirror adds a root Claude compatibility manifest",
+        "during synchronization for the stable official",
+        "`ai-plugins@claude-plugins-official` id. That mirror-only overlay copies the",
+        "canonical Claude agents, setup-only skills, and Claude hooks into their",
+        "conventional root directories. Cursor's full agents, skills, hooks, `mcp.json`,",
+        "and assets move into a self-contained mirror-only package at",
+        "`plugins/cursor/endor-labs-agent-kit/`. This is not the Agent Kit source",
+        "repository's root guard.",
+        "",
         "Use the Agent Kit source repo for the full two-audience documentation",
         "map: <https://github.com/endorlabs/endor-labs-agent-kit/blob/main/README.md>,",
         "<https://github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md>,",
@@ -110,6 +149,10 @@ def plugin_packages_readme() -> str:
         "  Codex workflow skills, bundled custom-agent TOML files, installer script,",
         "  public marketplace metadata under `../.agents/plugins/marketplace.json`,",
         "  and local validation metadata under `codex/.agents/plugins/marketplace.json`.",
+        "- `codex-directory/endor-labs-agent-kit/`: Universal Plugins Directory",
+        "  skills-only package with 11 canonical workflow skills, one setup skill,",
+        "  and skill-local runtime helpers. It excludes installers, custom",
+        "  agents, hooks, MCP/apps, and model pins.",
         "- `claude/endor-labs-agent-kit/`: Claude Code plugin package with setup skill,",
         "  Claude Code workflow agents, fail-open advisory hooks, minimal assets, and",
         "  marketplace metadata under `.claude-plugin/marketplace.json` and",
@@ -123,19 +166,25 @@ def plugin_packages_readme() -> str:
         "  release artifact.",
         "- `antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin package with",
         "  setup skill, Antigravity workflow skills, subagents, minimal assets, and",
-        "  a root `plugin.json` validated with `antigravity plugin validate`.",
+        "  a root `plugin.json` validated with `agy plugin validate`.",
         "",
-        "The Cursor package is generated at repository root as `.cursor-plugin/`,",
-        f"root `agents/`, root `skills/`, root advisory `hooks/`, and `{LOGO_PATH}` because the public",
-        "Cursor package source is `./`. It is intentionally separate from Gemini",
+        "In the Agent Kit source repo, the Cursor package is generated at repository root as `.cursor-plugin/`,",
+        f"root `agents/`, root `skills/`, root advisory `hooks/`, and `{LOGO_PATH}`",
+        "for source validation. Mirror sync copies that payload into",
+        "`plugins/cursor/endor-labs-agent-kit/`, rewrites the root Cursor marketplace",
+        "entry to that source, and removes the mirror-root Cursor plugin manifest so the",
+        "official Claude root can use conventional auto-discovery. Cursor is",
+        "intentionally separate from Gemini",
         "CLI extension files under `gemini/endor-labs-agent-kit/`. The repository",
-        "root may include `.mcp.json` and non-installable `GEMINI.md` support",
-        "context, but must not include a root `gemini-extension.json`.",
+        "root may include non-installable `GEMINI.md` support context, but must not",
+        "include a root `gemini-extension.json`. Only the Agent Kit source root",
+        "retains `.mcp.json`; mirror sync writes its contents as the template-compatible",
+        "Cursor package file `plugins/cursor/endor-labs-agent-kit/mcp.json`.",
         "",
         "The Cursor SDK automation package is generated under `cursor-sdk/` with",
         "Python SDK prompt definitions, a runnable `run_cursor_agent.py` launcher,",
         "and `agent_definitions.json`. Use it for CI, orchestration, and backend",
-        "automation; use the root Cursor plugin for customer-facing Cursor IDE UX.",
+        "automation; use the nested Cursor plugin for customer-facing Cursor IDE UX.",
         "",
         "Gemini installs from the generated extension directory for local validation.",
         "For public distribution, clone the tagged GitHub repository and install",

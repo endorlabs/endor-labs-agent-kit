@@ -1,12 +1,12 @@
 # CI/CD And Supply Chain Posture Portable Agent Bundle
 
-Use this agent when the user wants a read-only CI/CD and supply chain
-posture assessment for an Endor namespace, GitHub organization, repository
-set, or current repository. The agent combines existing Endor SCPM, CI/CD,
-GitHub Actions, and supply-chain findings with read-only GitHub configuration
-evidence and optional local CI file inspection, then returns deterministic
-scores, critical overrides, evidence queries, and data gaps without mutating
-Endor, GitHub, or repository state.
+Assesses CI/CD and software supply-chain security across an Endor namespace,
+GitHub organization, selected repositories, or the current repository. It
+combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain
+findings with read-only repository configuration evidence and optional local
+CI inspection to produce deterministic scores, critical overrides,
+prioritized improvements, and explicit data gaps. It does not modify Endor,
+GitHub, or repository state.
 
 ## Start Here
 
@@ -18,6 +18,17 @@ This is the portable runtime generated agent bundle for `cicd-posture`.
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/cicd-posture/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `runtime-selected compatible agentic model`.
+- Selection mode: `runtime_selected`.
+- Recommended reasoning/effort: `runtime managed`.
+- Generated behavior: portable bundles do not select a provider model.
+- Override behavior: runtime operator owns model selection.
+
 ## Use This When
 
 Use this bundle when your organization already has an agent runtime, source-provider workflow, ticketing workflow, approval system, credential controls, and audit pipeline. The bundle supplies the generated agent and runtime contract; your platform supplies adapters.
@@ -27,6 +38,7 @@ Use this bundle when your organization already has an agent runtime, source-prov
 - `agent.md`: generated runtime-neutral agent instructions.
 - `agent.manifest.json`: machine-readable runtime contract.
 - `output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.
+- `runtime/summarize_endor_artifact.py`: deterministic large-result integrity summary helper.
 - `endorctl-setup.md`: Endor runtime setup notes.
 - `architecture.svg`: human-readable workflow diagram.
 - `policy-packs/` in the catalog root: optional templates and examples for trusted runtime policy configuration.
@@ -55,7 +67,7 @@ These examples are illustrative, not requirements.
 
 | Portable action | Example runtime adapters |
 | --- | --- |
-| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |
+| `endor.query` | `endorctl agent api --agent-id <canonical-recipe-id>`, approved Endor MCP adapter |
 | `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |
 | `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |
 | `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |

@@ -22,10 +22,8 @@ from endor_agent_kit.publication.cursor_plugin import (
     _cursor_agent_name,
     _cursor_text,
     _setup_source,
-    _workflow_label,
 )
 from endor_agent_kit.publication.plugin_package_common import (
-    PLUGIN_DISPLAY_NAME,
     package_version,
 )
 from endor_agent_kit.publication.records import (
@@ -33,6 +31,8 @@ from endor_agent_kit.publication.records import (
     prepared_architecture_source,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
+from endor_agent_kit.publication.model_recommendations import model_recommendation_lines
 
 CURSOR_SDK_HOST = "cursor-sdk"
 CURSOR_SDK_PACKAGE_NAME = "endor-labs-agent-kit-cursor-sdk"
@@ -77,6 +77,7 @@ def publish_cursor_sdk_package(
         shutil.rmtree(package_root)
     agents_root = destination / CURSOR_SDK_AGENT_DIR
     agents_root.mkdir(parents=True)
+    written.append(write_artifact_summarizer(package_root))
 
     definitions = []
     for prepared in sorted_recipes:
@@ -227,7 +228,7 @@ def _cursor_sdk_host_contract(prepared: PreparedSourceRecipe) -> str:
 def _render_setup_prompt(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> SDK agent `{_cursor_agent_name(prepared.recipe.id)}`"
+        f"- `{prepared.recipe.name}` -> SDK agent `{_cursor_agent_name(prepared.recipe.id)}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -317,6 +318,7 @@ def _render_readme(prepared_recipes: list[PreparedSourceRecipe], version: str) -
         "Use it for automation, CI, backend services, orchestration, and scripted local or cloud runs.",
         "Use the root Cursor plugin package when the customer wants interactive Cursor IDE agents.",
         "",
+        *model_recommendation_lines("cursor-sdk"),
         "## Quick Start",
         "",
         "```bash",
@@ -336,7 +338,7 @@ def _render_readme(prepared_recipes: list[PreparedSourceRecipe], version: str) -
         "## Run A Local Agent",
         "",
         "```bash",
-        "python run_cursor_agent.py endor-probe-droid-agent \\",
+        "python run_cursor_agent.py endor-configuration-automation-agent \\",
         "  --workspace /path/to/repo \\",
         "  \"Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only.\"",
         "```",
@@ -473,7 +475,14 @@ def _runner_script() -> str:
 
         def _run_agent(args: argparse.Namespace, definition: dict[str, Any], prompt: str) -> int:
             try:
-                from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions
+                from cursor_sdk import (
+                    Agent,
+                    CloudAgentOptions,
+                    CloudRepository,
+                    LocalAgentOptions,
+                    ModelParameterValue,
+                    ModelSelection,
+                )
             except ImportError as exc:
                 raise SystemExit(
                     "cursor-sdk is not installed. From cursor-sdk, run: "
@@ -481,8 +490,14 @@ def _runner_script() -> str:
                     "python3 -m pip install -r cursor-sdk/requirements.txt"
                 ) from exc
 
+            selected_model: Any = args.model
+            if args.model == "composer-2.5":
+                selected_model = ModelSelection(
+                    id="composer-2.5",
+                    params=(ModelParameterValue(id="fast", value="false"),),
+                )
             create_kwargs: dict[str, Any] = {
-                "model": args.model,
+                "model": selected_model,
                 "name": str(definition["agent_name"]),
             }
             if args.api_key:
@@ -525,10 +540,10 @@ def _runner_script() -> str:
 
 def _recommended_prompt(agent_id: str) -> str:
     prompts = {
-        "ai-sast-triage": "Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.",
+        "ai-sast-remediation": "Triage AI SAST findings for this repository. Do not edit files, open a PR/MR, create a ticket, or write an Endor policy until I approve the specific gate.",
         "cicd-posture": "Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workflow read-only and validate the deterministic score.",
-        "endor-troubleshooter": "Diagnose this Endor issue from redacted error text and read-only local evidence. Keep the workflow read-only.",
-        "probe-droid": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
+        "troubleshooting": "Diagnose this Endor issue from redacted error text and read-only local evidence. Keep the workflow read-only.",
+        "configuration-automation": "Explain what evidence you need to assess GitHub onboarding gaps for this repository. Keep the workflow read-only.",
         "sca-remediation": "Inspect this repository and prepare a remediation plan only. Do not edit files, create branches, push, open a PR/MR, create a ticket, or write Endor policy.",
     }
     return prompts.get(agent_id, f"Use the {agent_id} workflow for this repository.")

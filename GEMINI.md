@@ -10,7 +10,7 @@ Gemini discovers the generated Gemini skills from that extension's
 workflows.
 
 Use Endor Labs Agent Kit workflows only within their generated safety
-contracts. Prefer documented Endor API or `endorctl api` lookups when a
+contracts. Prefer `endorctl agent api --agent-id <canonical-recipe-id>` lookups when a
 workflow supports them. Use Endor MCP only when a selected MCP-capable
 workflow needs it or the user explicitly asks for it.
 
@@ -20,18 +20,16 @@ before live Endor work.
 
 User jobs mapped to root skills:
 
-- Triage AI SAST findings: use skill `ai-sast-triage`.
-- Assess CI/CD and supply chain posture: use skill `cicd-posture`.
-- Dependency Decision Helper: use skill `dependency-decision-helper`.
-- Diagnose Endor setup and scan issues: use skill `endor-troubleshooter`.
-- Browse existing Endor findings: use skill `findings-browser`.
-- Malware Response: use skill `malware-response`.
-- Package Risk Summary: use skill `package-risk-summary`.
-- Assess GitHub onboarding gaps: use skill `probe-droid`.
-- Remediation Planner: use skill `remediation-planner`.
-- Repository Dependency Reviewer: use skill `repository-dependency-reviewer`.
-- Find safe SCA remediation paths: use skill `sca-remediation`.
-- Upgrade Impact Analysis: use skill `upgrade-impact-analysis`.
+- AI SAST Remediation: use skill `ai-sast-remediation`.
+- CI/CD And Supply Chain Posture: use skill `cicd-posture`.
+- Configuration Automation: use skill `configuration-automation`.
+- Dependency Reviewer: use skill `dependency-reviewer`.
+- Findings Browser: use skill `findings-browser`.
+- Malware Responder: use skill `malware-responder`.
+- OSS Upgrade Investigator: use skill `oss-upgrade-investigator`.
+- Remediation Planning: use skill `remediation-planning`.
+- SCA Remediation: use skill `sca-remediation`.
+- Troubleshooting: use skill `troubleshooting`.
 - Vulnerability Explainer: use skill `vulnerability-explainer`.
 
 Setup must not run scans, run `endorctl host-check`, edit shell profiles,

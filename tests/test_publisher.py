@@ -3,9 +3,12 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import struct
 import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 try:
     import tomllib
@@ -15,13 +18,22 @@ except ModuleNotFoundError:  # pragma: no cover - Python 3.10 compatibility
 from endor_agent_kit.catalog_schema import CatalogAgent
 from endor_agent_kit.cli import main
 from endor_agent_kit.publication import HostArtifactPublication, RootCatalogAggregate
-from endor_agent_kit.publication.plugin_package_common import LOGO_SHA256, logo_png
+from endor_agent_kit.publication.plugin_package_common import (
+    COMPOSER_ICON_SHA256,
+    ENDOR_BRAND_GREEN,
+    LOGO_SHA256,
+    composer_icon_png,
+    logo_png,
+)
 from endor_agent_kit.publisher import publish_recipe, publish_recipes
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, CATALOG_ROOT_NAMES, repo_root
 
 
-def _copy_agent(tmp_path: Path, agent_id: str = "dependency-decision-helper") -> Path:
+pytestmark = pytest.mark.publication
+
+
+def _copy_agent(tmp_path: Path, agent_id: str = "dependency-reviewer") -> Path:
     src = repo_root() / "source" / "agents" / agent_id
     dst = tmp_path / agent_id
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
@@ -30,6 +42,16 @@ def _copy_agent(tmp_path: Path, agent_id: str = "dependency-decision-helper") ->
 
 def test_plugin_logo_is_canonical_endor_labs_asset():
     assert hashlib.sha256(logo_png()).hexdigest() == LOGO_SHA256
+
+
+def test_codex_composer_icon_is_a_distinct_compact_endor_labs_asset():
+    composer_icon = composer_icon_png()
+
+    assert hashlib.sha256(composer_icon).hexdigest() == COMPOSER_ICON_SHA256
+    assert composer_icon != logo_png()
+    assert composer_icon.startswith(b"\x89PNG\r\n\x1a\n")
+    assert struct.unpack(">II", composer_icon[16:24]) == (512, 512)
+    assert len(composer_icon) < 16_384
 
 
 def _claude_code_paths(agent_id: str, *, has_setup: bool) -> set[str]:
@@ -106,39 +128,212 @@ def test_publish_recipe_writes_customer_facing_claude_code_layout(tmp_path):
     written = publish_recipe(recipe, dest)
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
-    assert written_paths == (
-        _claude_code_paths("dependency-decision-helper", has_setup=True)
-        | _managed_agent_paths("dependency-decision-helper", has_setup=True)
-        | _codex_paths("dependency-decision-helper", has_setup=True)
-        | _gemini_paths("dependency-decision-helper", has_setup=True)
-        | _portable_paths("dependency-decision-helper", has_setup=True)
-        | {"manifest.json", "README.md", "catalog.json"}
-    )
-    assert not (dest / "claude-code" / "dependency-decision-helper" / "standard").exists()
-    assert not (dest / "claude-code" / "dependency-decision-helper" / "extended").exists()
+    expected_claude = {
+        f"claude-code/dependency-reviewer/{edition}/{name}"
+        for edition in ("developer-edition", "enterprise-edition")
+        for name in (
+            "README.md",
+            "architecture.svg",
+            "endorctl-setup.md",
+            "dependency-reviewer.md",
+            "dependency-reviewer-package-decision.md",
+            "dependency-reviewer-package-risk.md",
+            "dependency-reviewer-repository-review.md",
+        )
+    }
+    assert (
+        expected_claude
+        | _managed_agent_paths("dependency-reviewer", has_setup=True)
+        | _codex_paths("dependency-reviewer", has_setup=True)
+        | _gemini_paths("dependency-reviewer", has_setup=True, has_architecture=True)
+        | _portable_paths("dependency-reviewer", has_setup=True, has_architecture=True)
+        | CATALOG_AGGREGATE_PATHS
+    ) <= written_paths
+    runtime_helper = "runtime/summarize_endor_artifact.py"
+    assert {
+        f"claude-code/dependency-reviewer/developer-edition/{runtime_helper}",
+        f"claude-code/dependency-reviewer/enterprise-edition/{runtime_helper}",
+        f"claude-managed-agents/dependency-reviewer/{runtime_helper}",
+        f"codex/dependency-reviewer/{runtime_helper}",
+        f"gemini/dependency-reviewer/{runtime_helper}",
+        f"portable/dependency-reviewer/{runtime_helper}",
+    } <= written_paths
+    assert not (dest / "claude-code" / "dependency-reviewer" / "standard").exists()
+    assert not (dest / "claude-code" / "dependency-reviewer" / "extended").exists()
     assert not list(dest.rglob("recipe.yaml"))
     assert not list(dest.rglob("cases.yaml"))
     assert not list(dest.rglob("system-prompt-*.md"))
 
-    artifact = (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").read_text()
-    assert "This artifact" in artifact
+    artifact = (
+        dest
+        / "claude-code"
+        / "dependency-reviewer"
+        / "enterprise-edition"
+        / "dependency-reviewer.md"
+    ).read_text()
+    assert "Dependency Reviewer" in artifact
     assert "mcpServers:" in artifact
     assert "disallowedTools: Bash" not in artifact.split("---", 2)[1]
-    assert "Developer Edition" not in artifact
-    assert "Enterprise Edition" not in artifact
-    assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
-    assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
-    assert "endorctl api list" in artifact
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
+    assert (dest / "claude-code" / "dependency-reviewer" / "developer-edition").is_dir()
+    assert (dest / "claude-code" / "dependency-reviewer" / "enterprise-edition").is_dir()
+    assert "endorctl agent api --agent-id dependency-reviewer list" in artifact
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
+
+
+def test_publish_recipe_catalogues_named_claude_code_profile_variants(tmp_path):
+    recipe = _copy_agent(tmp_path, "sca-remediation")
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    agent_dir = dest / "claude-code" / "sca-remediation"
+    expected_profiles = {"resolve-scope", "evidence-check", "selection-plan"}
+    assert {
+        path.stem.removeprefix("sca-remediation-")
+        for path in agent_dir.glob("sca-remediation-*.md")
+    } == expected_profiles
+
+    manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+    claude_agent = next(
+        agent
+        for agent in manifest["agents"]
+        if agent["id"] == "sca-remediation" and agent["host"] == "claude-code"
+    )
+    profile_artifacts = {
+        artifact["profile_id"]: Path(artifact["path"]).name
+        for artifact in claude_agent["editions"][0]["artifacts"]
+        if "profile_id" in artifact
+    }
+    assert profile_artifacts == {
+        profile_id: f"sca-remediation-{profile_id}.md"
+        for profile_id in expected_profiles
+    }
+    for artifact in claude_agent["editions"][0]["artifacts"]:
+        if "profile_id" not in artifact:
+            continue
+        assert len(artifact["profile_contract_digest"]) == 64
+        assert artifact["profile_gate_validator"]["version"] == "1"
+
+
+def test_publish_recipe_emits_identical_inert_evidence_plans_for_every_host(tmp_path):
+    recipe = _copy_agent(tmp_path, "sca-remediation")
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    plan_paths = sorted(dest.glob("*/sca-remediation/evidence-plans/evidence-check.json"))
+    assert {path.parts[-4] for path in plan_paths} == {
         "claude-code",
-        "claude-managed-agents",
         "codex",
         "gemini",
-        "manifest.json",
         "portable",
     }
+    assert len({path.read_bytes() for path in plan_paths}) == 1
+    payload = json.loads(plan_paths[0].read_text(encoding="utf-8"))
+    assert payload["execution"] == {
+        "host_adapter_required": True,
+        "mode": "prompt_fallback",
+        "prompt_recipes_exposed": True,
+    }
+
+    manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+    plan_artifacts = [
+        artifact
+        for agent in manifest["agents"]
+        if agent["id"] == "sca-remediation"
+        for edition in agent["editions"]
+        for artifact in edition["artifacts"]
+        if artifact["path"].endswith("/evidence-plans/evidence-check.json")
+    ]
+    assert len(plan_artifacts) == 4
+    assert {artifact["evidence_execution_mode"] for artifact in plan_artifacts} == {
+        "prompt_fallback"
+    }
+    assert {artifact["evidence_plan_executable"] for artifact in plan_artifacts} == {False}
+    assert {
+        artifact["evidence_plan_digest"] for artifact in plan_artifacts
+    } == {payload["provenance"]["plan_digest"]}
+
+
+def test_publish_recipe_emits_verifiable_profile_contracts_for_every_host(tmp_path):
+    recipe = _copy_agent(tmp_path, "sca-remediation")
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    contract_paths = sorted(
+        dest.glob("*/sca-remediation/profile-contracts/evidence-check.json")
+    )
+    assert {path.parts[-4] for path in contract_paths} == {
+        "claude-code",
+        "codex",
+        "gemini",
+        "portable",
+    }
+    assert len({path.read_bytes() for path in contract_paths}) == 1
+    payload = json.loads(contract_paths[0].read_text(encoding="utf-8"))
+    assert payload["agent_id"] == "sca-remediation"
+    assert payload["profile_id"] == "evidence-check"
+
+    plan = json.loads(
+        next(
+            dest.glob(
+                "*/sca-remediation/evidence-plans/evidence-check.json"
+            )
+        ).read_text(encoding="utf-8")
+    )
+    assert (
+        payload["contract_digest"]
+        == plan["provenance"]["profile_contract_digest"]
+    )
+
+    manifest = json.loads((dest / "manifest.json").read_text(encoding="utf-8"))
+    contract_artifacts = [
+        artifact
+        for agent in manifest["agents"]
+        if agent["id"] == "sca-remediation"
+        for edition in agent["editions"]
+        for artifact in edition["artifacts"]
+        if artifact["path"].endswith(
+            "/profile-contracts/evidence-check.json"
+        )
+    ]
+    assert len(contract_artifacts) == 4
+    assert {
+        artifact["profile_contract_digest"]
+        for artifact in contract_artifacts
+    } == {payload["contract_digest"]}
+
+
+def test_claude_plugin_packages_publish_only_canonical_agents_and_retain_manual_profiles(
+    tmp_path: Path,
+):
+    recipe = _copy_agent(tmp_path, "sca-remediation")
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipes([recipe], dest, include_plugins=True)
+
+    manual_agents = dest / "claude-code" / "sca-remediation"
+    expected_profiles = {
+        f"sca-remediation-{profile_id}.md"
+        for profile_id in ("resolve-scope", "evidence-check", "selection-plan")
+    }
+    assert expected_profiles <= {
+        path.name for path in manual_agents.glob("sca-remediation-*.md")
+    }
+
+    for package_name in ("endor-labs-agent-kit", "ai-plugins"):
+        agents_dir = dest / "plugins" / "claude" / package_name / "agents"
+        assert {path.name for path in agents_dir.glob("*.md")} == {
+            "sca-remediation.md"
+        }
+        canonical = (agents_dir / "sca-remediation.md").read_text(encoding="utf-8")
+        assert "name: sca-remediation" in canonical
+        assert "profile_id=base" in canonical
+        assert (
+            "Profiles: `resolve-scope`, `evidence-check`, `selection-plan`"
+            in canonical
+        )
 
 
 def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_path, monkeypatch):
@@ -146,12 +341,15 @@ def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_
     import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
     import endor_agent_kit.compilers.portable as portable_compiler
     import endor_agent_kit.compilers.raw as raw_compiler
+    import endor_agent_kit.publication.coordinator as publication_coordinator
     import endor_agent_kit.publisher as publisher
 
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
     prepare_calls: list[Path] = []
+    raw_compile_calls: list[Path] = []
     real_prepare = publisher.prepare_source_recipe
+    real_compile_raw = publication_coordinator.compile_raw_prepared
 
     def prepare_once(recipe_path: str | Path):
         prepare_calls.append(Path(recipe_path))
@@ -160,15 +358,21 @@ def test_publish_recipe_prepares_source_recipe_once_before_host_publication(tmp_
     def fail_if_compiler_reprepares(*_args, **_kwargs):
         raise AssertionError("publication should pass prepared recipes to compilers")
 
+    def compile_raw_once(prepared):
+        raw_compile_calls.append(prepared.path)
+        return real_compile_raw(prepared)
+
     monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
     monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(portable_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(publication_coordinator, "compile_raw_prepared", compile_raw_once)
 
     publish_recipe(recipe, dest)
 
     assert prepare_calls == [recipe]
+    assert raw_compile_calls == [recipe]
 
 
 def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch):
@@ -176,13 +380,16 @@ def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch)
     import endor_agent_kit.compilers.claude_managed_agents as managed_agents_compiler
     import endor_agent_kit.compilers.portable as portable_compiler
     import endor_agent_kit.compilers.raw as raw_compiler
+    import endor_agent_kit.publication.coordinator as publication_coordinator
     import endor_agent_kit.publisher as publisher
 
-    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-decision-helper")
+    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-reviewer")
     vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
     dest = tmp_path / "endor-labs-agent-kit"
     prepare_calls: list[Path] = []
+    raw_compile_calls: list[Path] = []
     real_prepare = publisher.prepare_source_recipe
+    real_compile_raw = publication_coordinator.compile_raw_prepared
 
     def prepare_once(recipe_path: str | Path):
         prepare_calls.append(Path(recipe_path))
@@ -191,132 +398,176 @@ def test_publish_recipes_prepares_each_source_recipe_once(tmp_path, monkeypatch)
     def fail_if_compiler_reprepares(*_args, **_kwargs):
         raise AssertionError("publication should pass prepared recipes to compilers")
 
+    def compile_raw_once(prepared):
+        raw_compile_calls.append(prepared.path)
+        return real_compile_raw(prepared)
+
     monkeypatch.setattr(publisher, "prepare_source_recipe", prepare_once)
     monkeypatch.setattr(claude_code_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(managed_agents_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(portable_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
     monkeypatch.setattr(raw_compiler, "prepare_source_recipe", fail_if_compiler_reprepares)
+    monkeypatch.setattr(publication_coordinator, "compile_raw_prepared", compile_raw_once)
 
     publish_recipes([dependency_recipe, vulnerability_recipe], dest, prune=True)
 
     assert prepare_calls == [dependency_recipe, vulnerability_recipe]
+    assert raw_compile_calls == [dependency_recipe, vulnerability_recipe]
 
 
-def test_publish_recipe_omits_endorctl_setup_for_mcp_only_agent(tmp_path):
+def test_publish_recipes_finalizes_catalog_aggregates_once(tmp_path, monkeypatch):
+    import endor_agent_kit.publisher as publisher
+
+    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-reviewer")
+    vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
+    dest = tmp_path / "endor-labs-agent-kit"
+    manifest_writes = 0
+    readme_writes = 0
+    catalog_writes = 0
+    real_manifest_write = publisher._HOST_ARTIFACT_PUBLICATION._write_manifest_payload
+    real_readme_write = publisher._ROOT_CATALOG_AGGREGATE.write_readme
+    real_catalog_write = publisher.write_catalog
+
+    def write_manifest_once(destination, agents, plugin_packages):
+        nonlocal manifest_writes
+        manifest_writes += 1
+        return real_manifest_write(destination, agents, plugin_packages)
+
+    def write_readme_once(destination, agents):
+        nonlocal readme_writes
+        readme_writes += 1
+        return real_readme_write(destination, agents)
+
+    def write_catalog_once(destination, agents, plugin_packages):
+        nonlocal catalog_writes
+        catalog_writes += 1
+        return real_catalog_write(destination, agents, plugin_packages)
+
+    monkeypatch.setattr(
+        publisher._HOST_ARTIFACT_PUBLICATION,
+        "_write_manifest_payload",
+        write_manifest_once,
+    )
+    monkeypatch.setattr(
+        publisher._ROOT_CATALOG_AGGREGATE,
+        "write_readme",
+        write_readme_once,
+    )
+    monkeypatch.setattr(publisher, "write_catalog", write_catalog_once)
+
+    publish_recipes(
+        [dependency_recipe, vulnerability_recipe],
+        dest,
+        prune=True,
+    )
+
+    assert manifest_writes == 1
+    assert readme_writes == 1
+    assert catalog_writes == 1
+
+
+def test_publish_recipe_adds_endorctl_setup_for_vulnerability_explainer(tmp_path):
     recipe = _copy_agent(tmp_path, "vulnerability-explainer")
     dest = tmp_path / "endor-labs-agent-kit"
 
     written = publish_recipe(recipe, dest)
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
+    contract_and_plan_paths = {
+        f"{host}/vulnerability-explainer/profile-contracts/{profile_id}.json"
+        for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
+        for profile_id in ("explain", "evidence-check")
+    }
+    runtime_paths = {
+        f"{host}/vulnerability-explainer/runtime/summarize_endor_artifact.py"
+        for host in ("claude-code", "claude-managed-agents", "codex", "gemini", "portable")
+    }
     assert written_paths == {
         "claude-code/vulnerability-explainer/README.md",
+        "claude-code/vulnerability-explainer/endorctl-setup.md",
+        "claude-code/vulnerability-explainer/vulnerability-explainer-explain.md",
         "claude-code/vulnerability-explainer/vulnerability-explainer.md",
         "claude-managed-agents/vulnerability-explainer/README.md",
         "claude-managed-agents/vulnerability-explainer/agent.yaml",
+        "claude-managed-agents/vulnerability-explainer/endorctl-setup.md",
         "claude-managed-agents/vulnerability-explainer/environment.yaml",
         "claude-managed-agents/vulnerability-explainer/session-template.yaml",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    } | _codex_paths("vulnerability-explainer", has_setup=False) | _gemini_paths(
+    } | CATALOG_AGGREGATE_PATHS | _codex_paths(
+        "vulnerability-explainer", has_setup=True
+    ) | _gemini_paths(
         "vulnerability-explainer",
-        has_setup=False,
-    ) | _portable_paths("vulnerability-explainer", has_setup=False)
+        has_setup=True,
+    ) | _portable_paths("vulnerability-explainer", has_setup=True) | contract_and_plan_paths | runtime_paths
     artifact = (dest / "claude-code" / "vulnerability-explainer" / "vulnerability-explainer.md").read_text()
     readme = (dest / "claude-code" / "vulnerability-explainer" / "README.md").read_text()
-    assert "disallowedTools: Bash" in artifact
-    assert "MCP-only" in artifact
-    assert "endorctl-setup.md" not in readme
+    assert "disallowedTools: Bash" not in artifact
+    assert "endorctl agent api --agent-id vulnerability-explainer" in artifact
+    assert "endorctl-setup.md" in readme
     assert "explain CVE-2021-44228" in readme
-    assert not (
+    assert (
         dest
         / "claude-managed-agents"
         / "vulnerability-explainer"
         / "endorctl-setup.md"
     ).exists()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_writes_package_risk_summary_distribution(tmp_path):
-    recipe = _copy_agent(tmp_path, "package-risk-summary")
+    recipe = _copy_agent(tmp_path, "dependency-reviewer")
     dest = tmp_path / "endor-labs-agent-kit"
 
     publish_recipe(recipe, dest)
 
-    enterprise = (dest / "claude-code" / "package-risk-summary" / "package-risk-summary.md").read_text()
-    enterprise_readme = (dest / "claude-code" / "package-risk-summary" / "README.md").read_text()
-    assert "Endor Labs Package Risk Summary" in enterprise
+    enterprise_dir = dest / "claude-code" / "dependency-reviewer" / "enterprise-edition"
+    enterprise = (enterprise_dir / "dependency-reviewer-package-risk.md").read_text()
+    enterprise_readme = (enterprise_dir / "README.md").read_text()
+    assert "Dependency Reviewer" in enterprise
     assert "mcpServers:" in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
-    assert "endorctl api list" in enterprise
-    assert "QuerySimilarPackages" in enterprise
-    assert "summarize npm lodash version 4.17.20" in enterprise_readme
-    assert (dest / "claude-code" / "package-risk-summary" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert "endorctl agent api --agent-id dependency-reviewer list" in enterprise
+    assert "QuerySimilarPackages" not in enterprise
+    assert "exact package version" in enterprise_readme
+    for profile in ("package-decision", "package-risk", "repository-review"):
+        assert (enterprise_dir / f"dependency-reviewer-{profile}.md").is_file()
+    assert (enterprise_dir / "endorctl-setup.md").is_file()
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
-def test_publish_recipe_writes_upgrade_impact_analysis_distribution(tmp_path):
-    recipe = _copy_agent(tmp_path, "upgrade-impact-analysis")
+def test_publish_recipe_writes_oss_upgrade_investigator_distribution(tmp_path):
+    recipe = _copy_agent(tmp_path, "oss-upgrade-investigator")
     dest = tmp_path / "endor-labs-agent-kit"
 
     publish_recipe(recipe, dest)
 
-    enterprise = (dest / "claude-code" / "upgrade-impact-analysis" / "upgrade-impact-analysis.md").read_text()
+    enterprise = (dest / "claude-code" / "oss-upgrade-investigator" / "oss-upgrade-investigator.md").read_text()
     managed_enterprise = (
         dest
         / "claude-managed-agents"
-        / "upgrade-impact-analysis"
+        / "oss-upgrade-investigator"
         / "agent.yaml"
     ).read_text()
-    enterprise_readme = (dest / "claude-code" / "upgrade-impact-analysis" / "README.md").read_text()
-    assert "Endor Labs Upgrade Impact Analysis" in enterprise
+    enterprise_readme = (dest / "claude-code" / "oss-upgrade-investigator" / "README.md").read_text()
+    assert "OSS Upgrade Investigator" in enterprise
     assert "current_version" in enterprise
     assert "target_version" in enterprise
     assert "mcpServers:" not in enterprise
     assert "disallowedTools: Bash" not in enterprise.split("---", 2)[1]
-    assert "endorctl api list" in enterprise
+    assert "endorctl agent api --agent-id oss-upgrade-investigator list" in enterprise
     assert "--resource VersionUpgrade" in enterprise
     assert "spec.upgrade_info.is_best==true" in enterprise
     assert "finding_fixing_upgrades" in enterprise
     assert "cia_results" in enterprise
     assert "show the safest upgrade path for repository <owner>/<repo> package lodash" in enterprise_readme
     assert "<project_uuid>" not in enterprise_readme
-    assert "![Endor Labs Upgrade Impact Analysis architecture](architecture.svg)" in enterprise_readme
+    assert "![OSS Upgrade Investigator architecture](architecture.svg)" in enterprise_readme
     assert "This Managed Agents artifact" in managed_enterprise
     assert "mcp_toolset" not in managed_enterprise
-    assert (dest / "claude-code" / "upgrade-impact-analysis" / "architecture.svg").is_file()
-    assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "architecture.svg").is_file()
-    assert (dest / "claude-code" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
-    assert (dest / "claude-managed-agents" / "upgrade-impact-analysis" / "endorctl-setup.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert (dest / "claude-code" / "oss-upgrade-investigator" / "architecture.svg").is_file()
+    assert (dest / "claude-managed-agents" / "oss-upgrade-investigator" / "architecture.svg").is_file()
+    assert (dest / "claude-code" / "oss-upgrade-investigator" / "endorctl-setup.md").is_file()
+    assert (dest / "claude-managed-agents" / "oss-upgrade-investigator" / "endorctl-setup.md").is_file()
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
@@ -329,15 +580,18 @@ def test_publish_recipe_writes_manifest_with_matching_checksums(tmp_path):
     assert manifest["schema_version"] == 1
     assert manifest["generated_by"] == "endor-agent-kit"
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
-        ("claude-code", "dependency-decision-helper"),
-        ("claude-managed-agents", "dependency-decision-helper"),
-        ("codex", "dependency-decision-helper"),
-        ("gemini", "dependency-decision-helper"),
-        ("portable", "dependency-decision-helper"),
+        ("claude-code", "dependency-reviewer"),
+        ("claude-managed-agents", "dependency-reviewer"),
+        ("codex", "dependency-reviewer"),
+        ("gemini", "dependency-reviewer"),
+        ("portable", "dependency-reviewer"),
     ]
     agent = manifest["agents"][0]
-    assert [edition["id"] for edition in agent["editions"]] == ["enterprise-edition"]
-    assert agent["editions"][0]["path"] == "claude-code/dependency-decision-helper"
+    assert [edition["id"] for edition in agent["editions"]] == [
+        "developer-edition",
+        "enterprise-edition",
+    ]
+    assert agent["editions"][0]["path"] == "claude-code/dependency-reviewer/developer-edition"
 
     for agent in manifest["agents"]:
         for edition in agent["editions"]:
@@ -385,17 +639,17 @@ def test_publish_recipe_is_idempotent_and_preserves_other_manifest_agents(tmp_pa
     assert first_snapshot == second_snapshot
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
-        ("claude-code", "dependency-decision-helper"),
+        ("claude-code", "dependency-reviewer"),
         ("claude-code", "other-agent"),
-        ("claude-managed-agents", "dependency-decision-helper"),
-        ("codex", "dependency-decision-helper"),
-        ("gemini", "dependency-decision-helper"),
-        ("portable", "dependency-decision-helper"),
+        ("claude-managed-agents", "dependency-reviewer"),
+        ("codex", "dependency-reviewer"),
+        ("gemini", "dependency-reviewer"),
+        ("portable", "dependency-reviewer"),
     ]
 
 
 def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
-    recipe = _copy_agent(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent(tmp_path, "dependency-reviewer")
     dest = tmp_path / "endor-labs-agent-kit"
     for host in ("claude-code", "claude-managed-agents"):
         stale_dir = dest / host / "dependency-upgrade-advisor" / "developer-edition"
@@ -421,58 +675,51 @@ def test_cli_publish_prune_removes_stale_catalog_agents(tmp_path, capsys):
     assert not (dest / "claude-managed-agents" / "dependency-upgrade-advisor").exists()
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
-        ("claude-code", "dependency-decision-helper"),
-        ("claude-managed-agents", "dependency-decision-helper"),
-        ("codex", "dependency-decision-helper"),
-        ("gemini", "dependency-decision-helper"),
-        ("portable", "dependency-decision-helper"),
+        ("claude-code", "dependency-reviewer"),
+        ("claude-managed-agents", "dependency-reviewer"),
+        ("codex", "dependency-reviewer"),
+        ("gemini", "dependency-reviewer"),
+        ("portable", "dependency-reviewer"),
     ]
     assert "dependency-upgrade-advisor" not in (dest / "README.md").read_text()
 
 
 def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
-    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-decision-helper")
-    upgrade_recipe = _copy_agent(tmp_path / "upgrade", "upgrade-impact-analysis")
-    package_recipe = _copy_agent(tmp_path / "package", "package-risk-summary")
+    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-reviewer")
+    upgrade_recipe = _copy_agent(tmp_path / "upgrade", "oss-upgrade-investigator")
     vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
     dest = tmp_path / "endor-labs-agent-kit"
 
     publish_recipe(dependency_recipe, dest)
     publish_recipe(upgrade_recipe, dest)
-    publish_recipe(package_recipe, dest)
     publish_recipe(vulnerability_recipe, dest)
 
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
-        ("claude-code", "dependency-decision-helper"),
-        ("claude-code", "package-risk-summary"),
-        ("claude-code", "upgrade-impact-analysis"),
+        ("claude-code", "dependency-reviewer"),
+        ("claude-code", "oss-upgrade-investigator"),
         ("claude-code", "vulnerability-explainer"),
-        ("claude-managed-agents", "dependency-decision-helper"),
-        ("claude-managed-agents", "package-risk-summary"),
-        ("claude-managed-agents", "upgrade-impact-analysis"),
+        ("claude-managed-agents", "dependency-reviewer"),
+        ("claude-managed-agents", "oss-upgrade-investigator"),
         ("claude-managed-agents", "vulnerability-explainer"),
-        ("codex", "dependency-decision-helper"),
-        ("codex", "package-risk-summary"),
-        ("codex", "upgrade-impact-analysis"),
+        ("codex", "dependency-reviewer"),
+        ("codex", "oss-upgrade-investigator"),
         ("codex", "vulnerability-explainer"),
-        ("gemini", "dependency-decision-helper"),
-        ("gemini", "package-risk-summary"),
-        ("gemini", "upgrade-impact-analysis"),
+        ("gemini", "dependency-reviewer"),
+        ("gemini", "oss-upgrade-investigator"),
         ("gemini", "vulnerability-explainer"),
-        ("portable", "dependency-decision-helper"),
-        ("portable", "package-risk-summary"),
-        ("portable", "upgrade-impact-analysis"),
+        ("portable", "dependency-reviewer"),
+        ("portable", "oss-upgrade-investigator"),
         ("portable", "vulnerability-explainer"),
     ]
-    package = next(
+    dependency = next(
         agent
         for agent in manifest["agents"]
-        if agent["host"] == "claude-code" and agent["id"] == "package-risk-summary"
+        if agent["host"] == "claude-code" and agent["id"] == "dependency-reviewer"
     )
-    package_enterprise = [edition for edition in package["editions"] if edition["id"] == "enterprise-edition"][0]
-    assert package_enterprise["requires_endorctl"] == ">=1.0.0"
-    assert "endorctl-setup.md" in {artifact["path"].split("/")[-1] for artifact in package_enterprise["artifacts"]}
+    dependency_enterprise = [edition for edition in dependency["editions"] if edition["id"] == "enterprise-edition"][0]
+    assert dependency_enterprise["requires_endorctl"] == ">=1.0.0"
+    assert "endorctl-setup.md" in {artifact["path"].split("/")[-1] for artifact in dependency_enterprise["artifacts"]}
     vulnerability = next(
         agent
         for agent in manifest["agents"]
@@ -481,49 +728,40 @@ def test_publish_recipe_manifest_tracks_multiple_agents(tmp_path):
     vulnerability_artifact = vulnerability["editions"][0]
     assert vulnerability_artifact["id"] == "developer-edition"
     assert vulnerability_artifact["path"] == "claude-code/vulnerability-explainer"
-    # The edition (host-artifact) requires_endorctl stays empty for an MCP-only agent;
-    # the agent-level requires_endorctl (catalog endorctl_min_version) is tracked separately.
-    assert vulnerability_artifact["requires_endorctl"] == ""
+    assert vulnerability_artifact["requires_endorctl"] == ">=1.0.0"
     assert vulnerability["requires_endorctl"] == ">=1.0.0"
     assert {artifact["path"].split("/")[-1] for artifact in vulnerability_artifact["artifacts"]} == {
         "README.md",
+        "endorctl-setup.md",
+        "evidence-check.json",
+        "explain.json",
+        "summarize_endor_artifact.py",
+        "vulnerability-explainer-explain.md",
         "vulnerability-explainer.md",
     }
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_publish_recipe_removes_stale_agent_output_before_writing(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
-    stale = dest / "claude-code" / "dependency-decision-helper" / "standard" / "old.md"
+    stale = dest / "claude-code" / "dependency-reviewer" / "standard" / "old.md"
     stale.parent.mkdir(parents=True)
     stale.write_text("stale", encoding="utf-8")
 
     publish_recipe(recipe, dest)
 
     assert not stale.exists()
-    assert not (dest / "claude-code" / "dependency-decision-helper" / "developer-edition").exists()
-    assert not (dest / "claude-code" / "dependency-decision-helper" / "enterprise-edition").exists()
-    assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert (dest / "claude-code" / "dependency-reviewer" / "developer-edition").is_dir()
+    assert (dest / "claude-code" / "dependency-reviewer" / "enterprise-edition").is_dir()
+    assert (
+        dest
+        / "claude-code"
+        / "dependency-reviewer"
+        / "enterprise-edition"
+        / "dependency-reviewer.md"
+    ).is_file()
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
 def test_cli_publish_writes_distribution(tmp_path, capsys):
@@ -536,62 +774,48 @@ def test_cli_publish_writes_distribution(tmp_path, capsys):
     assert status == 0
     assert "manifest.json" in output
     assert (dest / "manifest.json").is_file()
-    assert (dest / "claude-code" / "dependency-decision-helper" / "dependency-decision-helper.md").is_file()
-    assert (dest / "portable" / "dependency-decision-helper" / "agent.md").is_file()
-    assert {path.name for path in dest.iterdir()} == {
-        "README.md",
-        "catalog.json",
-        "claude-code",
-        "claude-managed-agents",
-        "codex",
-        "gemini",
-        "manifest.json",
-        "portable",
-    }
+    assert (
+        dest
+        / "claude-code"
+        / "dependency-reviewer"
+        / "enterprise-edition"
+        / "dependency-reviewer.md"
+    ).is_file()
+    assert (dest / "portable" / "dependency-reviewer" / "agent.md").is_file()
+    assert {path.name for path in dest.iterdir()} == CATALOG_ROOT_NAMES
 
 
+@pytest.mark.release
 def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_path):
-    claude_agent_ids = (
-        "ai-sast-triage",
+    canonical_agent_ids = (
+        "ai-sast-remediation",
         "cicd-posture",
-        "dependency-decision-helper",
-        "endor-troubleshooter",
+        "configuration-automation",
+        "dependency-reviewer",
         "findings-browser",
-        "package-risk-summary",
-        "probe-droid",
-        "remediation-planner",
-        "repository-dependency-reviewer",
+        "malware-responder",
+        "oss-upgrade-investigator",
+        "remediation-planning",
         "sca-remediation",
-        "upgrade-impact-analysis",
+        "troubleshooting",
         "vulnerability-explainer",
     )
-    codex_agent_ids = (
-        "ai-sast-triage",
-        "cicd-posture",
-        "dependency-decision-helper",
-        "endor-troubleshooter",
-        "findings-browser",
-        "package-risk-summary",
-        "probe-droid",
-        "remediation-planner",
-        "repository-dependency-reviewer",
-        "sca-remediation",
-        "upgrade-impact-analysis",
-        "vulnerability-explainer",
-    )
+    claude_agent_ids = canonical_agent_ids
+    codex_agent_ids = canonical_agent_ids
     gemini_agent_ids = codex_agent_ids
     antigravity_agent_ids = gemini_agent_ids
     cursor_agent_ids = codex_agent_ids
     cursor_sdk_agent_ids = cursor_agent_ids
     cursor_architecture_agent_ids = {
-        "ai-sast-triage",
+        "ai-sast-remediation",
         "cicd-posture",
-        "endor-troubleshooter",
+        "troubleshooting",
         "findings-browser",
-        "probe-droid",
-        "remediation-planner",
+        "malware-responder",
+        "configuration-automation",
+        "remediation-planning",
         "sca-remediation",
-        "upgrade-impact-analysis",
+        "oss-upgrade-investigator",
     }
     recipes = [
         _copy_agent(tmp_path / agent_id, agent_id)
@@ -601,6 +825,12 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     existing_creator_skill = dest / "skills" / "create-endor-labs-agent" / "SKILL.md"
     existing_creator_skill.parent.mkdir(parents=True)
     existing_creator_skill.write_text("# existing creator skill\n")
+    stale_skill = dest / "skills" / "retired-agent" / "SKILL.md"
+    stale_skill.parent.mkdir(parents=True)
+    stale_skill.write_text("<!-- endor_agent_kit_managed=true agent_id=retired-agent host=cursor -->\n")
+    stale_agent = dest / "agents" / "endor-retired-agent.md"
+    stale_agent.parent.mkdir(parents=True)
+    stale_agent.write_text("<!-- endor_agent_kit_managed=true agent_id=retired-agent host=cursor -->\n")
     stale_root_gemini_manifest = dest / "gemini-extension.json"
     stale_root_gemini_manifest.write_text("{}\n", encoding="utf-8")
 
@@ -608,35 +838,55 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
 
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert "plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/.mcp.json" in written_paths
     assert ".agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/.agents/plugins/marketplace.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/bundled-skills/sca-remediation/SKILL.md" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/agents/endor-agent-kit-setup-agent.toml" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert (
+        "plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.png"
+        in written_paths
+    )
+    assert (
+        "plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.svg"
+        not in written_paths
+    )
     assert "plugins/codex/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/codex/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/codex/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json" in written_paths
     assert ".claude-plugin/marketplace.json" in written_paths
+    assert ".claude-plugin/plugin.json" in written_paths
+    assert ".claude-plugin/root-package-guard-hooks.json" in written_paths
+    assert ".claude-plugin/reject-repository-root.sh" in written_paths
     assert "plugins/claude/.claude-plugin/marketplace.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/claude/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/claude/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/claude/ai-plugins/.claude-plugin/plugin.json" in written_paths
     assert "plugins/claude/ai-plugins/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/claude/ai-plugins/assets/logo.png" in written_paths
+    assert "plugins/claude/ai-plugins/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/claude/ai-plugins/hooks/hooks.json" not in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/gemini-extension.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/GEMINI.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/hooks.json" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/gemini/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert "plugins/gemini/endor-labs-agent-kit.zip" not in written_paths
@@ -644,14 +894,18 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "plugins/antigravity/endor-labs-agent-kit/plugin.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/skills/endor-agent-kit-setup/SKILL.md" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/assets/logo.png" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks.json" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/suggest-endor-tools.sh" in written_paths
+    assert "plugins/antigravity/endor-labs-agent-kit/hooks/enforce-agent-api.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-dep-install.sh" in written_paths
     assert "plugins/antigravity/endor-labs-agent-kit/hooks/check-manifest-edit.sh" in written_paths
     assert ".cursor-plugin/plugin.json" in written_paths
     assert ".cursor-plugin/marketplace.json" in written_paths
+    assert "runtime/summarize_endor_artifact.py" in written_paths
     assert "hooks/hooks.json" in written_paths
     assert "hooks/suggest-endor-tools.sh" in written_paths
+    assert "hooks/enforce-agent-api.sh" in written_paths
     assert "hooks/check-dep-install.sh" in written_paths
     assert "hooks/check-manifest-edit.sh" in written_paths
     assert "skills/endor-agent-kit-setup/SKILL.md" in written_paths
@@ -659,6 +913,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/README.md" in written_paths
     assert "cursor-sdk/requirements.txt" in written_paths
     assert "cursor-sdk/run_cursor_agent.py" in written_paths
+    assert "cursor-sdk/runtime/summarize_endor_artifact.py" in written_paths
     assert "cursor-sdk/agent_definitions.json" in written_paths
     assert "cursor-sdk/agents/endor-agent-kit-setup-agent.md" in written_paths
     assert "assets/logo.png" in written_paths
@@ -667,13 +922,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "gemini-extension.json" not in written_paths
     assert not (dest / "gemini-extension.json").exists()
     assert existing_creator_skill.read_text() == "# existing creator skill\n"
+    assert not stale_skill.exists()
+    assert not stale_agent.exists()
     assert not list(dest.rglob("logo.svg"))
     canonical_logo = logo_png()
     for logo_path in dest.rglob("logo.png"):
         assert logo_path.read_bytes() == canonical_logo
 
     for agent_id in codex_agent_ids:
-        assert f"plugins/codex/endor-labs-agent-kit/skills/{agent_id}/SKILL.md" in written_paths
+        assert f"plugins/codex/endor-labs-agent-kit/bundled-skills/{agent_id}/SKILL.md" in written_paths
         agent_name = (
             f"{agent_id}-agent"
             if agent_id.startswith("endor-")
@@ -741,34 +998,64 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md" in plugins_readme
     assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/maintainer-guide.md" in plugins_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert plugin_manifest["version"] == "2.1.0"
+    assert plugin_manifest["version"] == "2.2.0"
     assert plugin_manifest["skills"] == "./skills/"
     assert plugin_manifest["hooks"] == "./hooks/hooks.json"
+    assert plugin_manifest["mcpServers"] == "./.mcp.json"
     assert "agents" not in plugin_manifest
     assert plugin_manifest["interface"]["displayName"] == "Endor Labs Agent Kit"
+    assert plugin_manifest["interface"]["brandColor"] == ENDOR_BRAND_GREEN
     assert plugin_manifest["interface"]["defaultPrompt"] == [
+        "Install the bundled Endor Agent Kit Codex custom agents. I approve the managed agents-only installation.",
+        "Check whether the bundled Endor Agent Kit Codex custom agents are installed.",
         "Set up Endor Agent Kit for this machine.",
-        "Triage AI SAST findings for this repository.",
-        "Find the safest SCA remediation path.",
     ]
     assert "license" not in plugin_manifest
+    codex_mcp_manifest = json.loads(
+        (dest / "plugins" / "codex" / "endor-labs-agent-kit" / ".mcp.json").read_text()
+    )
+    assert codex_mcp_manifest == {
+        "mcpServers": {
+            "endor-cli-tools": {
+                "command": "endorctl",
+                "args": ["ai-tools", "mcp-server"],
+            }
+        }
+    }
     claude_plugin_manifest = json.loads(
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
     )
     assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert claude_plugin_manifest["version"] == "2.1.0"
+    assert claude_plugin_manifest["version"] == "2.2.0"
     assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert "agents" not in claude_plugin_manifest
     assert "skills" not in claude_plugin_manifest
     assert "license" not in claude_plugin_manifest
     assert "mcpServers" not in claude_plugin_manifest
     assert "hooks" not in claude_plugin_manifest
+    claude_root_guard = json.loads(
+        (dest / ".claude-plugin" / "plugin.json").read_text()
+    )
+    expected_root_guard_agents = {
+        f"./{path.relative_to(dest).as_posix()}"
+        for path in (
+            dest / "plugins" / "claude" / "endor-labs-agent-kit" / "agents"
+        ).glob("*.md")
+    }
+    assert set(claude_root_guard["agents"]) == expected_root_guard_agents
+    assert claude_root_guard["hooks"] == "./.claude-plugin/root-package-guard-hooks.json"
+    claude_root_guard_hooks = json.loads(
+        (dest / ".claude-plugin" / "root-package-guard-hooks.json").read_text()
+    )
+    assert set(claude_root_guard_hooks["hooks"]) == {"SessionStart", "UserPromptSubmit"}
+    assert "composer-2.5" not in json.dumps(claude_root_guard)
     claude_hooks = json.loads(
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
     )
-    assert set(claude_hooks["hooks"]) == {"UserPromptSubmit", "PostToolUse"}
+    assert set(claude_hooks["hooks"]) == {"UserPromptSubmit", "PreToolUse", "PostToolUse"}
     hook_scripts = {
         "suggest-endor-tools.sh",
+        "enforce-agent-api.sh",
         "check-dep-install.sh",
         "check-manifest-edit.sh",
     }
@@ -787,7 +1074,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     codex_hooks = json.loads(
         (dest / "plugins" / "codex" / "endor-labs-agent-kit" / "hooks" / "hooks.json").read_text()
     )
-    assert set(codex_hooks["hooks"]) == {"UserPromptSubmit", "PostToolUse"}
+    assert set(codex_hooks["hooks"]) == {"UserPromptSubmit", "PreToolUse", "PostToolUse"}
     assert "${PLUGIN_ROOT}/hooks/suggest-endor-tools.sh" in json.dumps(codex_hooks)
     cursor_hooks = json.loads((dest / "hooks" / "hooks.json").read_text())
     assert set(cursor_hooks["hooks"]) == {
@@ -804,14 +1091,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     antigravity_hooks = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "hooks.json").read_text()
     )
-    assert set(antigravity_hooks["hooks"]) == {"PreInvocation", "PreToolUse", "PostToolUse"}
+    assert set(antigravity_hooks) == {"endor-labs-agent-kit"}
+    assert set(antigravity_hooks["endor-labs-agent-kit"]) == {
+        "PreInvocation",
+        "PreToolUse",
+        "PostToolUse",
+    }
     assert "run_command" in json.dumps(antigravity_hooks)
     claude_discovery_terms = {
         "agentic remediation",
         "SAST remediation",
         "agentic AppSec",
         "AppSec",
-        "Upgrade Impact Analysis",
+        "OSS Upgrade Investigator",
     }
     assert claude_discovery_terms <= set(claude_plugin_manifest["keywords"])
     legacy_claude_plugin_manifest = json.loads(
@@ -852,24 +1144,47 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Do not install the repository root as a" in root_gemini_context
     assert "Install Gemini CLI from `plugins/gemini/endor-labs-agent-kit/`" in root_gemini_context
     assert "Do not load the root Cursor skills as Gemini" in root_gemini_context
-    assert "Prefer documented Endor API or `endorctl api` lookups" in root_gemini_context
+    assert "Prefer `endorctl agent api --agent-id <canonical-recipe-id>` lookups" in root_gemini_context
     assert "configure Endor MCP without explicit user approval" in root_gemini_context
     antigravity_plugin_manifest = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "plugin.json").read_text()
     )
-    assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert antigravity_plugin_manifest["description"] == "Endor Labs workflow skills and subagents for Antigravity CLI."
-    assert antigravity_plugin_manifest["version"] == gemini_plugin_manifest["version"]
-    assert antigravity_plugin_manifest["version"] == "2.1.0"
-    assert "mcpServers" not in antigravity_plugin_manifest
-    assert "settings" not in antigravity_plugin_manifest
-    assert "license" not in antigravity_plugin_manifest
-    assert "hooks" not in antigravity_plugin_manifest
+    assert antigravity_plugin_manifest == {
+        "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+        "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
+        "name": "endor-labs-agent-kit",
+    }
+    codex_directory_manifest = json.loads(
+        (
+            dest
+            / "plugins"
+            / "codex-directory"
+            / "endor-labs-agent-kit"
+            / ".codex-plugin"
+            / "plugin.json"
+        ).read_text()
+    )
+    assert codex_directory_manifest["interface"]["brandColor"] == ENDOR_BRAND_GREEN
+    assert (
+        codex_directory_manifest["interface"]["composerIcon"]
+        == "./assets/composer-icon.png"
+    )
+    assert not (
+        dest
+        / "plugins"
+        / "codex-directory"
+        / "endor-labs-agent-kit"
+        / "assets"
+        / "composer-icon.svg"
+    ).exists()
     cursor_plugin_manifest = json.loads((dest / ".cursor-plugin" / "plugin.json").read_text())
     assert cursor_plugin_manifest["name"] == "endorlabs"
     assert cursor_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert cursor_plugin_manifest["version"] == gemini_plugin_manifest["version"]
-    assert cursor_plugin_manifest["author"]["url"] == "https://www.endorlabs.com/"
+    assert cursor_plugin_manifest["author"] == {
+        "email": "support@endor.ai",
+        "name": "Endor Labs",
+    }
     assert cursor_plugin_manifest["logo"] == "assets/logo.png"
     assert cursor_plugin_manifest["agents"] == "./agents/"
     assert cursor_plugin_manifest["skills"] == "./skills/"
@@ -926,9 +1241,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert claude_discovery_terms <= set(local_claude_marketplace_plugins["ai-plugins"]["keywords"])
     cursor_marketplace = json.loads((dest / ".cursor-plugin" / "marketplace.json").read_text())
     assert cursor_marketplace["name"] == "endorlabs"
-    assert cursor_marketplace["plugins"][0]["name"] == "endorlabs"
-    assert cursor_marketplace["plugins"][0]["source"] == "./"
-    assert cursor_marketplace["plugins"][0]["version"] == cursor_plugin_manifest["version"]
+    assert cursor_marketplace["plugins"] == [
+        {
+            "name": "endorlabs",
+            "source": "./",
+            "description": (
+                "Endor Labs Agent Kit setup and security workflow agents and skills."
+            ),
+        }
+    ]
     cursor_sdk_definitions = json.loads((dest / "cursor-sdk" / "agent_definitions.json").read_text())
     assert cursor_sdk_definitions["sdk"] == "cursor-python"
     assert cursor_sdk_definitions["default_model"] == "composer-2.5"
@@ -939,12 +1260,12 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert set(cursor_sdk_agents) == set(cursor_sdk_agent_ids) | {"endor-agent-kit-setup"}
     assert cursor_sdk_agents["endor-agent-kit-setup"]["agent_name"] == "endor-agent-kit-setup-agent"
     assert cursor_sdk_agents["endor-agent-kit-setup"]["readonly"] is True
-    assert cursor_sdk_agents["ai-sast-triage"]["readonly"] is False
+    assert cursor_sdk_agents["ai-sast-remediation"]["readonly"] is False
     assert cursor_sdk_agents["cicd-posture"]["readonly"] is True
     assert cursor_sdk_agents["cicd-posture"]["prompt_file"] == "agents/endor-cicd-posture-agent.md"
     assert cursor_sdk_agents["sca-remediation"]["readonly"] is False
-    assert cursor_sdk_agents["probe-droid"]["readonly"] is True
-    assert cursor_sdk_agents["probe-droid"]["prompt_file"] == "agents/endor-probe-droid-agent.md"
+    assert cursor_sdk_agents["configuration-automation"]["readonly"] is True
+    assert cursor_sdk_agents["configuration-automation"]["prompt_file"] == "agents/endor-configuration-automation-agent.md"
     assert cursor_sdk_agents["findings-browser"]["readonly"] is True
     assert cursor_sdk_agents["findings-browser"]["prompt_file"] == "agents/endor-findings-browser-agent.md"
 
@@ -974,6 +1295,16 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     ).read_text()
     assert "Codex Host Contract" in codex_setup_agent
     assert "endor-agent-kit-setup" in codex_setup_agent
+    codex_configuration_agent = (
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "agents"
+        / "endor-configuration-automation-agent.toml"
+    ).read_text()
+    assert "Only after a prerequisite is proven missing" in codex_configuration_agent
+    assert "Do not load setup guidance during a routine workflow" in codex_configuration_agent
     claude_setup = (
         dest
         / "plugins"
@@ -1029,7 +1360,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "gemini extensions install ./ai-plugins/plugins/gemini/endor-labs-agent-kit" in gemini_setup
     assert "zip archives" in gemini_setup
     assert "Do not add plugin-wide MCP automatically" in gemini_setup
-    assert "Prefer documented Endor API or `endorctl api` lookups" in gemini_setup
+    assert "Require `endorctl agent api --help` to succeed" in gemini_setup
     assert "npx -y endorctl ai-tools mcp-server" in gemini_setup
     assert "validate in a fresh host session" in gemini_setup
     assert "Gemini subagents are preview functionality" in gemini_setup
@@ -1044,9 +1375,9 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     ).read_text()
     assert "Run `endorctl scan`" in antigravity_setup
     assert "Run `endorctl host-check`" in antigravity_setup
-    assert "antigravity plugin validate" in antigravity_setup
+    assert "agy plugin validate" in antigravity_setup
     assert "Do not add plugin-wide MCP automatically" in antigravity_setup
-    assert "Prefer documented Endor API or `endorctl api` lookups" in antigravity_setup
+    assert "Require `endorctl agent api --help` to succeed" in antigravity_setup
     assert "Invoke bundled subagents as `@agent-name`" in antigravity_setup
     assert "evidence_queries" in antigravity_setup
     assert "Antigravity subagents are host-managed" in antigravity_setup
@@ -1061,6 +1392,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Invoke workflow subagents as `@agent-name`" in antigravity_agent
     assert "Do not narrate tool-planning chatter" in antigravity_agent
     assert "non-empty `data_gaps`" in antigravity_agent
+    assert "\n  - view_file\n" in antigravity_agent
+    assert "\n  - read_file\n" not in antigravity_agent
+    assert "\n  - run_command\n" in antigravity_agent
+    assert "\n  - run_shell_command\n" not in antigravity_agent
+    assert "\n  - write_to_file\n" in antigravity_agent
+    assert "\n  - replace_file_content\n" in antigravity_agent
+    assert "\n  - multi_replace_file_content\n" in antigravity_agent
+    assert "\n  - write_file\n" not in antigravity_agent
     cursor_setup = (
         dest / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     ).read_text()
@@ -1069,8 +1408,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Run `endorctl host-check`" in cursor_setup
     assert "separate from the Gemini CLI extension" in cursor_setup
     assert "Do not add plugin-wide MCP automatically" in cursor_setup
-    assert "Prefer documented Endor API or `endorctl api` lookups" in cursor_setup
-    cursor_skill = (dest / "skills" / "probe-droid" / "SKILL.md").read_text()
+    assert "Require `endorctl agent api --help` to succeed" in cursor_setup
+    cursor_skill = (dest / "skills" / "configuration-automation" / "SKILL.md").read_text()
     assert "Cursor Host Contract" in cursor_skill
     assert (
         "These instructions apply only when this skill is used through the Cursor host integration."
@@ -1083,19 +1422,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     cursor_cicd_skill = (dest / "skills" / "cicd-posture" / "SKILL.md").read_text()
     assert "Cursor Host Contract" in cursor_cicd_skill
     assert "CI/CD Posture Evidence Contract" in cursor_cicd_skill
-    cursor_agent = (dest / "agents" / "endor-probe-droid-agent.md").read_text()
+    cursor_agent = (dest / "agents" / "endor-configuration-automation-agent.md").read_text()
     assert "endor_agent_kit_managed=true" in cursor_agent
-    assert "name: endor-probe-droid-agent" in cursor_agent.split("---", 2)[1]
-    assert "model: inherit" in cursor_agent.split("---", 2)[1]
+    assert "name: endor-configuration-automation-agent" in cursor_agent.split("---", 2)[1]
+    assert "model: composer-2.5[fast=false]" in cursor_agent.split("---", 2)[1]
     assert "readonly: true" in cursor_agent.split("---", 2)[1]
     assert "Cursor Host Contract" in cursor_agent
-    assert "matching support skill `skills/probe-droid/`" in cursor_agent
+    assert "matching support skill `skills/configuration-automation/`" in cursor_agent
     assert "Gemini CLI Host Contract" not in cursor_agent
     cursor_cicd_agent = (dest / "agents" / "endor-cicd-posture-agent.md").read_text()
     assert "readonly: true" in cursor_cicd_agent.split("---", 2)[1]
     assert "matching support skill `skills/cicd-posture/`" in cursor_cicd_agent
     assert "score_validation" in cursor_cicd_agent
-    cursor_sast_agent = (dest / "agents" / "endor-ai-sast-triage-agent.md").read_text()
+    cursor_sast_agent = (dest / "agents" / "endor-ai-sast-remediation-agent.md").read_text()
     assert "readonly: false" in cursor_sast_agent.split("---", 2)[1]
     cursor_mutating_agent = (dest / "agents" / "endor-sca-remediation-agent.md").read_text()
     assert "readonly: false" in cursor_mutating_agent.split("---", 2)[1]
@@ -1107,7 +1446,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     cursor_sdk_readme = (dest / "cursor-sdk" / "README.md").read_text()
     assert "uv pip install -r requirements.txt" in cursor_sdk_readme
     assert "python3 -m pip install -r requirements.txt" in cursor_sdk_readme
-    assert "python run_cursor_agent.py endor-probe-droid-agent" in cursor_sdk_readme
+    assert "python run_cursor_agent.py endor-configuration-automation-agent" in cursor_sdk_readme
     assert "endor-cicd-posture-agent" in cursor_sdk_readme
     assert "python run_cursor_agent.py endor-sca-remediation-agent" in cursor_sdk_readme
     assert "python3 -m pip install -r cursor-sdk/requirements.txt" not in cursor_sdk_readme
@@ -1116,7 +1455,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "Filter > Source > SDK" in cursor_sdk_readme
     assert "must not run `endorctl scan` or `endorctl host-check`" in cursor_sdk_readme
     cursor_sdk_runner = (dest / "cursor-sdk" / "run_cursor_agent.py").read_text()
-    assert "from cursor_sdk import Agent, CloudAgentOptions, CloudRepository, LocalAgentOptions" in cursor_sdk_runner
+    assert "from cursor_sdk import (" in cursor_sdk_runner
+    assert "ModelParameterValue" in cursor_sdk_runner
+    assert "ModelSelection" in cursor_sdk_runner
+    assert 'ModelParameterValue(id="fast", value="false")' in cursor_sdk_runner
     assert "agent_definitions.json" in cursor_sdk_runner
     assert "CURSOR_API_KEY" in cursor_sdk_runner
     assert "import sys" not in cursor_sdk_runner
@@ -1127,7 +1469,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "From cursor-sdk, run: " in cursor_sdk_runner
     assert "python3 -m pip install -r requirements.txt" in cursor_sdk_runner
     assert "python3 -m pip install -r cursor-sdk/requirements.txt" in cursor_sdk_runner
-    cursor_sdk_prompt = (dest / "cursor-sdk" / "agents" / "endor-probe-droid-agent.md").read_text()
+    cursor_sdk_prompt = (dest / "cursor-sdk" / "agents" / "endor-configuration-automation-agent.md").read_text()
     assert "Cursor SDK Host Contract" in cursor_sdk_prompt
     assert "host=cursor-sdk" in cursor_sdk_prompt
     assert "Gemini CLI Host Contract" not in cursor_sdk_prompt
@@ -1146,10 +1488,10 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         / "codex"
         / "endor-labs-agent-kit"
         / "agents"
-        / "endor-probe-droid-agent.toml"
+        / "endor-configuration-automation-agent.toml"
     ).read_text()
     assert "# endor_agent_kit_managed = true" in toml
-    assert 'name = "endor-probe-droid-agent"' in toml
+    assert 'name = "endor-configuration-automation-agent"' in toml
     assert 'sandbox_mode = "read-only"' in toml
     assert "Codex Host Contract" in toml
     assert "developer_instructions = " in toml
@@ -1174,11 +1516,14 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         / "claude"
         / "endor-labs-agent-kit"
         / "agents"
-        / "package-risk-summary.md"
+        / "dependency-reviewer.md"
     ).read_text()
     assert "mcpServers:" not in claude_mcp_agent.split("---", 2)[1]
     assert "Claude Code Plugin Setup Note" in claude_mcp_agent
     assert "does not declare plugin-wide MCP" in claude_mcp_agent
+    assert claude_mcp_agent.rfind("Claude Code Plugin Setup Note") < claude_mcp_agent.rfind(
+        "## Structured Output Contract"
+    )
     claude_mcp_only_agent = (
         dest
         / "plugins"
@@ -1188,14 +1533,24 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         / "vulnerability-explainer.md"
     ).read_text()
     assert "mcpServers:" not in claude_mcp_only_agent.split("---", 2)[1]
-    assert "disallowedTools: Bash" in claude_mcp_only_agent.split("---", 2)[1]
+    assert "Bash" not in {
+        tool.strip()
+        for tool in next(
+            line
+            for line in claude_mcp_only_agent.split("---", 2)[1].splitlines()
+            if line.startswith("disallowedTools:")
+        )
+        .removeprefix("disallowedTools:")
+        .split(",")
+    }
+    assert "endorctl agent api --agent-id vulnerability-explainer" in claude_mcp_only_agent
     gemini_agent = (
         dest
         / "plugins"
         / "gemini"
         / "endor-labs-agent-kit"
         / "agents"
-        / "probe-droid.md"
+        / "configuration-automation.md"
     ).read_text()
     assert "endor_agent_kit_managed=true" in gemini_agent
     assert "Gemini CLI Host Contract" in gemini_agent
@@ -1208,7 +1563,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         / "antigravity"
         / "endor-labs-agent-kit"
         / "agents"
-        / "probe-droid.md"
+        / "configuration-automation.md"
     ).read_text()
     assert "endor_agent_kit_managed=true" in antigravity_agent
     assert "Antigravity CLI Host Contract" in antigravity_agent
@@ -1217,19 +1572,45 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "mcpServers:" not in antigravity_agent.split("---", 2)[1]
 
     manifest = json.loads((dest / "manifest.json").read_text())
-    packages = {
-        (package["host"], package["name"]): package
+    packages_by_channel = {
+        (
+            package["host"],
+            package["name"],
+            package.get("distribution_channel", "repository"),
+        ): package
         for package in manifest["plugin_packages"]
     }
-    assert set(packages) == {
-        ("antigravity", "endor-labs-agent-kit"),
-            ("claude-code", "ai-plugins"),
-            ("claude-code", "endor-labs-agent-kit"),
-            ("codex", "endor-labs-agent-kit"),
-            ("cursor", "endorlabs"),
-            ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk"),
-            ("gemini", "endor-labs-agent-kit"),
+    assert set(packages_by_channel) == {
+        ("antigravity", "endor-labs-agent-kit", "repository"),
+        ("claude-code", "ai-plugins", "repository"),
+        ("claude-code", "endor-labs-agent-kit", "repository"),
+        ("codex", "endor-labs-agent-kit", "official-directory"),
+        ("codex", "endor-labs-agent-kit", "repository"),
+        ("cursor", "endorlabs", "repository"),
+        ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk", "repository"),
+        ("gemini", "endor-labs-agent-kit", "repository"),
+    }
+    packages = {
+        (host, name): {
+            key: value
+            for key, value in package.items()
+            if key != "distribution_channel"
         }
+        for (host, name, channel), package in packages_by_channel.items()
+        if channel == "repository"
+    }
+    official_codex_package = packages_by_channel[
+        ("codex", "endor-labs-agent-kit", "official-directory")
+    ]
+    assert official_codex_package["path"] == "plugins/codex-directory/endor-labs-agent-kit"
+    assert official_codex_package["included_agents"] == list(codex_agent_ids)
+    assert official_codex_package["distribution_channel"] == "official-directory"
+    assert any(
+        artifact["path"].endswith(
+            "/skills/endor-agent-kit-setup/SKILL.md"
+        )
+        for artifact in official_codex_package["artifacts"]
+    )
     assert packages[("codex", "endor-labs-agent-kit")] == {
         "artifacts": packages[("codex", "endor-labs-agent-kit")]["artifacts"],
         "display_name": "Endor Labs Agent Kit",
@@ -1276,7 +1657,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "included_agents": list(antigravity_agent_ids),
         "name": "endor-labs-agent-kit",
         "path": "plugins/antigravity/endor-labs-agent-kit",
-        "version": antigravity_plugin_manifest["version"],
+        "version": gemini_plugin_manifest["version"],
     }
     assert packages[("cursor", "endorlabs")] == {
         "artifacts": packages[("cursor", "endorlabs")]["artifacts"],
@@ -1349,13 +1730,13 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert ".cursor-plugin/plugin.json" in cursor_artifact_paths
     assert ".cursor-plugin/marketplace.json" in cursor_artifact_paths
     assert "hooks/hooks.json" in cursor_artifact_paths
-    assert "agents/endor-probe-droid-agent.md" in cursor_artifact_paths
+    assert "agents/endor-configuration-automation-agent.md" in cursor_artifact_paths
     assert "agents/endor-findings-browser-agent.md" in cursor_artifact_paths
     assert "agents/endor-cicd-posture-agent.md" in cursor_artifact_paths
     assert "agents/endor-sca-remediation-agent.md" in cursor_artifact_paths
     assert "agents/endor-agent-kit-setup-agent.md" in cursor_artifact_paths
-    assert "skills/probe-droid/SKILL.md" in cursor_artifact_paths
-    assert "skills/probe-droid/architecture.svg" in cursor_artifact_paths
+    assert "skills/configuration-automation/SKILL.md" in cursor_artifact_paths
+    assert "skills/configuration-automation/architecture.svg" in cursor_artifact_paths
     assert "skills/findings-browser/SKILL.md" in cursor_artifact_paths
     assert "skills/findings-browser/architecture.svg" in cursor_artifact_paths
     assert "skills/cicd-posture/SKILL.md" in cursor_artifact_paths
@@ -1369,7 +1750,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "cursor-sdk/README.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/run_cursor_agent.py" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agent_definitions.json" in cursor_sdk_artifact_paths
-    assert "cursor-sdk/agents/endor-probe-droid-agent.md" in cursor_sdk_artifact_paths
+    assert "cursor-sdk/agents/endor-configuration-automation-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-findings-browser-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-cicd-posture-agent.md" in cursor_sdk_artifact_paths
     assert "cursor-sdk/agents/endor-sca-remediation-agent.md" in cursor_sdk_artifact_paths
@@ -1379,7 +1760,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
 
 def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     recipes = [
-        _copy_agent(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent(tmp_path / "troubleshooter", "troubleshooting"),
         _copy_agent(tmp_path / "sca", "sca-remediation"),
     ]
     dest = tmp_path / "endor-labs-agent-kit"
@@ -1403,7 +1784,7 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
         text=True,
     )
     assert "endor-sca-remediation-agent.toml: missing" in status.stdout
-    assert "endor-troubleshooter-agent.toml: missing" in status.stdout
+    assert "endor-troubleshooting-agent.toml: missing" in status.stdout
     assert "skill:sca-remediation: missing" in status.stdout
     assert "skill:endor-agent-kit-setup: missing" in status.stdout
 
@@ -1424,7 +1805,7 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
     )
     assert "installed" in install.stdout
     assert (codex_home / "agents" / "endor-sca-remediation-agent.toml").is_file()
-    assert (codex_home / "agents" / "endor-troubleshooter-agent.toml").is_file()
+    assert (codex_home / "agents" / "endor-troubleshooting-agent.toml").is_file()
     assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
     assert (skills_home / "sca-remediation" / "SKILL.md").is_file()
     assert (skills_home / "endor-agent-kit-setup" / "SKILL.md").is_file()
@@ -1444,7 +1825,7 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
         text=True,
     )
     assert "endor-sca-remediation-agent.toml: current" in current.stdout
-    assert "endor-troubleshooter-agent.toml: current" in current.stdout
+    assert "endor-troubleshooting-agent.toml: current" in current.stdout
     assert "skill:sca-remediation: current" in current.stdout
     assert "skill:endor-agent-kit-setup: current" in current.stdout
 
@@ -1472,10 +1853,8 @@ def test_generated_codex_agent_installer_runs_against_temp_codex_home(tmp_path):
 
 
 def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
-    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-decision-helper")
-    upgrade_recipe = _copy_agent(tmp_path / "upgrade", "upgrade-impact-analysis")
-    package_recipe = _copy_agent(tmp_path / "package", "package-risk-summary")
-    repository_recipe = _copy_agent(tmp_path / "repository", "repository-dependency-reviewer")
+    dependency_recipe = _copy_agent(tmp_path / "dependency", "dependency-reviewer")
+    upgrade_recipe = _copy_agent(tmp_path / "upgrade", "oss-upgrade-investigator")
     vulnerability_recipe = _copy_agent(tmp_path / "vulnerability", "vulnerability-explainer")
     dest = tmp_path / "endor-labs-agent-kit"
 
@@ -1483,8 +1862,6 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
         "publish",
         str(dependency_recipe),
         str(upgrade_recipe),
-        str(package_recipe),
-        str(repository_recipe),
         str(vulnerability_recipe),
         "--dest",
         str(dest),
@@ -1492,38 +1869,27 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     output = capsys.readouterr().out
 
     assert status == 0
-    assert "dependency-decision-helper.md" in output
-    assert "upgrade-impact-analysis.md" in output
-    assert "package-risk-summary.md" in output
-    assert "repository-dependency-reviewer.md" in output
+    assert "dependency-reviewer.md" in output
+    assert "oss-upgrade-investigator.md" in output
     assert "vulnerability-explainer.md" in output
-    assert "claude-managed-agents/upgrade-impact-analysis/agent.yaml" in output
-    assert "claude-managed-agents/package-risk-summary/agent.yaml" in output
+    assert "claude-managed-agents/oss-upgrade-investigator/agent.yaml" in output
+    assert "claude-managed-agents/dependency-reviewer/agent.yaml" in output
     manifest = json.loads((dest / "manifest.json").read_text())
     assert [(agent["host"], agent["id"]) for agent in manifest["agents"]] == [
-        ("claude-code", "dependency-decision-helper"),
-        ("claude-code", "package-risk-summary"),
-        ("claude-code", "repository-dependency-reviewer"),
-        ("claude-code", "upgrade-impact-analysis"),
+        ("claude-code", "dependency-reviewer"),
+        ("claude-code", "oss-upgrade-investigator"),
         ("claude-code", "vulnerability-explainer"),
-        ("claude-managed-agents", "dependency-decision-helper"),
-        ("claude-managed-agents", "package-risk-summary"),
-        ("claude-managed-agents", "upgrade-impact-analysis"),
+        ("claude-managed-agents", "dependency-reviewer"),
+        ("claude-managed-agents", "oss-upgrade-investigator"),
         ("claude-managed-agents", "vulnerability-explainer"),
-        ("codex", "dependency-decision-helper"),
-        ("codex", "package-risk-summary"),
-        ("codex", "repository-dependency-reviewer"),
-        ("codex", "upgrade-impact-analysis"),
+        ("codex", "dependency-reviewer"),
+        ("codex", "oss-upgrade-investigator"),
         ("codex", "vulnerability-explainer"),
-        ("gemini", "dependency-decision-helper"),
-        ("gemini", "package-risk-summary"),
-        ("gemini", "repository-dependency-reviewer"),
-        ("gemini", "upgrade-impact-analysis"),
+        ("gemini", "dependency-reviewer"),
+        ("gemini", "oss-upgrade-investigator"),
         ("gemini", "vulnerability-explainer"),
-        ("portable", "dependency-decision-helper"),
-        ("portable", "package-risk-summary"),
-        ("portable", "repository-dependency-reviewer"),
-        ("portable", "upgrade-impact-analysis"),
+        ("portable", "dependency-reviewer"),
+        ("portable", "oss-upgrade-investigator"),
         ("portable", "vulnerability-explainer"),
     ]
     root_readme = (dest / "README.md").read_text()
@@ -1541,25 +1907,25 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     assert "Preserve the generated agent prompt exactly" in root_readme
     assert "host_capabilities_required.read_files: true" in root_readme
     assert "Claude Code artifacts allow only `Read`, `Glob`, `Grep`, and `LS`" in root_readme
-    assert "Review local dependency manifests with read-only file inspection and Endor evidence" in root_readme
-    assert "@agent-repository-dependency-reviewer review this repository's dependency manifests" in root_readme
+    assert "Review an exact package decision, package risk, or repository dependencies through one bounded profile" in root_readme
+    assert "@agent-dependency-reviewer review this repository's dependency manifests" in root_readme
     assert "endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune" in root_readme
     assert "endor-agent-kit validate-sca-output sca-output.json --gate selection-plan" in root_readme
     assert "endor-agent-kit render-sca-pr-body sca-output.json > pr-body.md" in root_readme
     assert "endor-agent-kit lint-sca-pr-body pr-body.md" in root_readme
     assert "endor-agent-kit check-install --agent sca-remediation --repo /path/to/repo" in root_readme
-    assert "endor-agent-kit check-install --host claude-managed-agents --agent probe-droid" in root_readme
+    assert "endor-agent-kit check-install --host claude-managed-agents --agent configuration-automation" in root_readme
     assert "endor-agent-kit check-install --host codex --agent sca-remediation --skills-home ~/.agents/skills" in root_readme
     assert "$HOME/.agents/skills/<agent>" in root_readme
     assert "$CODEX_HOME/skills" not in root_readme
-    assert "Endor Labs Upgrade Impact Analysis" in root_readme
-    assert "Endor Labs Package Risk Summary" in root_readme
-    assert "claude-code/upgrade-impact-analysis/" in root_readme
-    assert "claude-managed-agents/upgrade-impact-analysis/" in root_readme
-    assert "claude-code/package-risk-summary/" in root_readme
-    assert "claude-managed-agents/package-risk-summary/" in root_readme
-    assert "claude-code/repository-dependency-reviewer/" in root_readme
-    assert "portable/repository-dependency-reviewer/" in root_readme
+    assert "OSS Upgrade Investigator" in root_readme
+    assert "Dependency Reviewer" in root_readme
+    assert "claude-code/oss-upgrade-investigator/" in root_readme
+    assert "claude-managed-agents/oss-upgrade-investigator/" in root_readme
+    assert "claude-code/dependency-reviewer/" in root_readme
+    assert "claude-managed-agents/dependency-reviewer/" in root_readme
+    assert "claude-code/dependency-reviewer/" in root_readme
+    assert "portable/dependency-reviewer/" in root_readme
 
 
 def _snapshot(root: Path) -> dict[str, bytes]:

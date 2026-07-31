@@ -7,7 +7,7 @@ policies:
     title: WebSphere Application Server traditional cannot exceed Java 8
     effect: deny
     applies_to:
-      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      agents: ["sca-remediation", "oss-upgrade-investigator"]
       ecosystems: ["maven"]
     when:
       all:

@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 
 from endor_agent_kit.compilers.gemini import HOST, compile_gemini_prepared
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
@@ -32,7 +31,6 @@ class GeminiHostAdapter:
     ) -> BundleRecord:
         """Publish one Gemini CLI Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_gemini_prepared(prepared)
 
         recipe_file = prepared.path
@@ -107,10 +105,10 @@ def gemini_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) -
     if posture.is_mutating:
         requirements = [
             "Gemini CLI with filesystem and terminal access to the target repository.",
-            "Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.",
+            f"Endor tenant access through authenticated `endorctl agent api --agent-id {recipe.id}`.",
             "Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.",
         ]
-        if recipe.id == "ai-sast-triage":
+        if recipe.id == "ai-sast-remediation":
             requirements.extend([
                 "A configured AppSec approver list before standalone exception-policy creation.",
                 "Endor policy-write access only after verified AppSec approval and explicit user confirmation.",
@@ -134,6 +132,7 @@ def gemini_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) -
         notes.append("- This read-only workflow must report unavailable signals in `data_gaps`.")
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="Gemini CLI",
         artifact_label="skill and subagent bundle",
         install_summary="Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI.",
@@ -183,14 +182,14 @@ def gemini_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False) -
 def gemini_example_prompt(recipe: EndorAgentRecipe) -> str:
     """Return the Gemini CLI example prompt for one recipe."""
 
-    if recipe.id == "ai-sast-triage":
-        return "Use @ai-sast-triage to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
+    if recipe.id == "ai-sast-remediation":
+        return "Use @ai-sast-remediation to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate."
     if recipe.id == "cicd-posture":
         return "Use @cicd-posture to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score."
-    if recipe.id == "probe-droid":
-        return "Use @probe-droid to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
-    if recipe.id == "endor-troubleshooter":
-        return "Use @endor-troubleshooter to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only."
+    if recipe.id == "configuration-automation":
+        return "Use @configuration-automation to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
+    if recipe.id == "troubleshooting":
+        return "Use @troubleshooting to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if recipe.id == "sca-remediation":
         return "Use @sca-remediation to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve."
     return f"Use @{recipe.id} to help with this Endor Labs workflow."
@@ -233,12 +232,12 @@ def gemini_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
-    if recipe.id == "probe-droid":
+    if recipe.id == "configuration-automation":
         return [
             "## Example Workflow",
             "",
             "```text",
-            "Use @probe-droid to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only, do not run scans, do not clone repositories, and separate not-onboarded repositories from already-onboarded repositories with dependency resolution or reachability gaps.",
+            "Use @configuration-automation to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only, do not run scans, do not clone repositories, and separate not-onboarded repositories from already-onboarded repositories with dependency resolution or reachability gaps.",
             "```",
             "",
         ]
@@ -255,22 +254,22 @@ def gemini_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
             "```",
             "",
         ]
-    if recipe.id == "endor-troubleshooter":
+    if recipe.id == "troubleshooting":
         return [
             "## Example Workflow",
             "",
             "```text",
-            "Use @endor-troubleshooter to diagnose this Endor scan failure. Namespace: <namespace>. Project: <project>. Error: <redacted error text>. Keep the workflow read-only and tell me the lowest-friction fix.",
+            "Use @troubleshooting to diagnose this Endor scan failure. Namespace: <namespace>. Project: <project>. Error: <redacted error text>. Keep the workflow read-only and tell me the lowest-friction fix.",
             "```",
             "",
         ]
-    if recipe.id != "ai-sast-triage":
+    if recipe.id != "ai-sast-remediation":
         return []
     return [
         "## Example Workflow",
         "",
         "```text",
-        "Use @ai-sast-triage to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy. Show confirmed true positives, likely false positives, inconclusive findings, exploit-driven priority, remediation-guidance usage, and data gaps.",
+        "Use @ai-sast-remediation to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy. Show confirmed true positives, likely false positives, inconclusive findings, exploit-driven priority, remediation-guidance usage, and data gaps.",
         "```",
         "",
     ]
@@ -278,4 +277,4 @@ def gemini_example_workflow_section(recipe: EndorAgentRecipe) -> list[str]:
 
 def _needs_endorctl_setup(recipe: EndorAgentRecipe) -> bool:
     posture = source_recipe_safety_posture(recipe)
-    return bool(recipe.requires_endorctl and posture.uses_endorctl_api)
+    return bool(recipe.requires_endorctl and posture.uses_endor_api_transport)

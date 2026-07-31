@@ -1,4 +1,4 @@
-# Code owners for the signed Endor agent catalog (AI-349).
+# Code owners for the signed Endor agent catalog.
 #
 # These paths are the trust root: they decide what ships in the catalog and
 # whether catalog signing can be subverted. Every PR touching them requires an

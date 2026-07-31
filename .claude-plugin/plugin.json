@@ -1,0 +1,24 @@
+{
+  "agents": [
+    "./plugins/claude/endor-labs-agent-kit/agents/ai-sast-remediation.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/cicd-posture.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/configuration-automation.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/dependency-reviewer.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/findings-browser.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/malware-responder.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/oss-upgrade-investigator.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/remediation-planning.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/sca-remediation.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/troubleshooting.md",
+    "./plugins/claude/endor-labs-agent-kit/agents/vulnerability-explainer.md"
+  ],
+  "author": {
+    "name": "Endor Labs",
+    "url": "https://www.endorlabs.com/"
+  },
+  "description": "Prevents Claude Code from loading Cursor artifacts when the Agent Kit repository root is passed as a plugin directory.",
+  "displayName": "Endor Labs Agent Kit (Repository Root Guard)",
+  "hooks": "./.claude-plugin/root-package-guard-hooks.json",
+  "name": "endor-labs-agent-kit",
+  "version": "2.2.0"
+}

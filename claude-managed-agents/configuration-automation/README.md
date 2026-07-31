@@ -1,0 +1,67 @@
+# Configuration Automation
+
+Compares GitHub repository inventory with Endor projects, GitHub App
+coverage, monitored branches, scan profiles, package-manager integrations,
+dependency resolution, and reachability evidence. It identifies onboarding
+and configuration gaps and provides targeted setup instructions without
+changing GitHub, Endor, or source repositories.
+
+## Start Here
+
+This is the Claude Managed Agents generated agent for `configuration-automation`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Update generated YAML placeholders, then create the managed agent and environment. Then use the example prompt below: Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/configuration-automation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `sonnet`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host default`.
+- Generated behavior: recipe sonnet alias compiles to claude-sonnet-4-6.
+- Override behavior: managed host configuration remains authoritative.
+- Provider guidance: <https://code.claude.com/docs/en/sub-agents>.
+
+## Install
+
+Update placeholders in `agent.yaml`, `environment.yaml`, and
+`session-template.yaml`, then create the agent and environment in
+Claude Managed Agents.
+
+```bash
+ant beta:agents create < agent.yaml
+ant beta:environments create < environment.yaml
+```
+
+Use `session-template.yaml` as the starting point for session creation after
+you have the created agent ID, environment ID, and any required vault IDs.
+
+## Requirements
+
+- Anthropic Console or `ant` CLI access to Claude Managed Agents.
+- An environment that can install and authenticate endorctl for the read-only API lookups documented in endorctl-setup.md.
+- Read-only GitHub.com credentials available to the managed session, or exported GitHub inventory JSON supplied in the prompt.
+
+## Example User Message
+
+```text
+Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only.
+```
+
+## Architecture
+
+![Configuration Automation architecture](architecture.svg)
+
+This read-only agent compares GitHub.com repository inventory with Endor project, GitHub App, monitored-branch scan, package, scan profile, toolchain, and package-manager evidence. It returns onboarding lanes, reason codes, evidence queries, and setup prescriptions, but does not run scans, create profiles, edit repositories, change GitHub settings, or mutate Endor state.
+
+## Notes
+
+- This agent compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.
+- It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.
+- The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.

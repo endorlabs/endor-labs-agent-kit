@@ -1,10 +1,9 @@
 # Findings Browser Codex Skill
 
-Use this agent when the user wants to browse, filter, summarize, or inspect
-existing Endor Labs findings. Findings Browser uses read-only Endor evidence
-to list matching findings, explain applied filters, surface pagination and
-truncation limits, and identify data gaps without starting new scans or
-performing remediation actions.
+Browses, filters, and summarizes existing Endor findings without starting
+new scans or performing remediation. It shows the applied scope and filters,
+relevant severity and reachability context, pagination or truncation limits,
+and any evidence gaps affecting the results.
 
 ## Start Here
 
@@ -15,6 +14,18 @@ This is the Codex generated skill for `findings-browser`.
 | Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the findings-browser skill to list active critical and high Endor findings for namespace <namespace>. Keep the workflow read-only and do not run a scan. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/findings-browser/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gpt-5.6-luna`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `medium`.
+- Generated behavior: custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort.
+- Override behavior: explicit Codex model and reasoning settings win.
+- Provider guidance: <https://developers.openai.com/codex/subagents>.
 
 ## Install
 

@@ -1,10 +1,9 @@
 # Findings Browser Portable Agent Bundle
 
-Use this agent when the user wants to browse, filter, summarize, or inspect
-existing Endor Labs findings. Findings Browser uses read-only Endor evidence
-to list matching findings, explain applied filters, surface pagination and
-truncation limits, and identify data gaps without starting new scans or
-performing remediation actions.
+Browses, filters, and summarizes existing Endor findings without starting
+new scans or performing remediation. It shows the applied scope and filters,
+relevant severity and reachability context, pagination or truncation limits,
+and any evidence gaps affecting the results.
 
 ## Start Here
 
@@ -16,6 +15,17 @@ This is the portable runtime generated agent bundle for `findings-browser`.
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/findings-browser/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
 
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `runtime-selected compatible agentic model`.
+- Selection mode: `runtime_selected`.
+- Recommended reasoning/effort: `runtime managed`.
+- Generated behavior: portable bundles do not select a provider model.
+- Override behavior: runtime operator owns model selection.
+
 ## Use This When
 
 Use this bundle when your organization already has an agent runtime, source-provider workflow, ticketing workflow, approval system, credential controls, and audit pipeline. The bundle supplies the generated agent and runtime contract; your platform supplies adapters.
@@ -25,6 +35,7 @@ Use this bundle when your organization already has an agent runtime, source-prov
 - `agent.md`: generated runtime-neutral agent instructions.
 - `agent.manifest.json`: machine-readable runtime contract.
 - `output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.
+- `runtime/summarize_endor_artifact.py`: deterministic large-result integrity summary helper.
 - `endorctl-setup.md`: Endor runtime setup notes.
 - `architecture.svg`: human-readable workflow diagram.
 - `policy-packs/` in the catalog root: optional templates and examples for trusted runtime policy configuration.
@@ -53,7 +64,7 @@ These examples are illustrative, not requirements.
 
 | Portable action | Example runtime adapters |
 | --- | --- |
-| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |
+| `endor.query` | `endorctl agent api --agent-id <canonical-recipe-id>`, approved Endor MCP adapter |
 | `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |
 | `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |
 | `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |

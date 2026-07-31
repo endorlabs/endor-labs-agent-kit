@@ -3,9 +3,10 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, repo_root
 from endor_agent_kit.cli import main
 from endor_agent_kit.compilers import compile_claude_code, compile_claude_managed_agents, compile_raw
 from endor_agent_kit.publisher import publish_recipe
@@ -16,6 +17,7 @@ from host_artifact_bundle_contract import (
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
+    compiled_evidence_artifact_paths,
 )
 
 
@@ -43,7 +45,7 @@ def test_cicd_posture_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_path,
     assert data["id"] == "cicd-posture"
     assert data["safety_class"] == "read_only"
     assert data["endor_tier_minimum"] == "enterprise"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
@@ -106,6 +108,7 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
         / "cicd-posture.md"
     ).read_text(encoding="utf-8")
     header = artifact.split("---", 2)[1]
+    normalized_artifact = " ".join(artifact.split())
 
     assert "CI/CD And Supply Chain Posture" in artifact
     assert "## Endor Knowledge Pack" in artifact
@@ -126,12 +129,21 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     assert "dimension_scores" in artifact
     assert "score_validation" in artifact
     assert "critical_overrides" in artifact
-    assert "endor-agent-kit validate-cicd-posture-output --gate posture" in artifact
+    assert "score-cicd-posture --raw-counts-json" in artifact
+    assert (
+        "endor-agent-kit validate-cicd-posture-output <payload.json> --gate posture"
+        in artifact
+    )
     assert "Never run `endorctl scan`" in artifact
     assert "workflow dispatches" in artifact
     assert "Never mutate" in artifact
     assert "Endor state" in artifact
-    assert "`--traverse` before reporting the project as missing" in artifact
+    assert "Only a zero-result response may trigger one retry" in artifact
+    assert "Never issue both forms in\n  advance" in artifact
+    assert 'spec.git.full_name=="<owner/repo>"' in artifact
+    assert 'meta.parent_uuid=="<PROJECT_UUID>"' in artifact
+    assert "do not retry through anonymous `curl`" in artifact
+    assert "Do not\n  search the workspace, home directory, plugin caches" in artifact
     assert "Do not substitute example,\n  remembered, cached, or prior-session repositories" in artifact
     assert "`OWASP/NodejsGoat`" in artifact
     assert "`hkhcoder/vprofile-repo`" in artifact
@@ -140,6 +152,12 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     assert "Never return either field as an object\nor map" in artifact
     assert "must use `filter_summary` and `field_mask_summary`" in artifact
     assert "do not emit raw\n`filter`, `field_mask`, `command`, or `output` fields" in artifact
+    assert "By default, return concise human-readable Markdown" in normalized_artifact
+    assert "If the user or calling runtime explicitly requests JSON" in normalized_artifact
+    assert "return exactly one bare strict JSON object" in normalized_artifact
+    assert "In structured JSON mode, the first non-whitespace character must be `{`" in normalized_artifact
+    assert "Do not replace them with a generic\n`evidence` field" in artifact
+    assert "return at most ten representative rows" in artifact
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)
 
@@ -173,6 +191,7 @@ def test_cicd_posture_managed_agents_artifacts_carry_github_boundary(tmp_path):
     assert "score_validation" in managed["system"]
 
 
+@pytest.mark.publication
 def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -182,6 +201,7 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
         "claude-code/cicd-posture/cicd-posture.md",
+        "claude-code/cicd-posture/cicd-posture-posture.md",
         "claude-code/cicd-posture/README.md",
         "claude-code/cicd-posture/architecture.svg",
         "claude-code/cicd-posture/endorctl-setup.md",
@@ -206,17 +226,21 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
         "portable/cicd-posture/output-contract.md",
         "portable/cicd-posture/architecture.svg",
         "portable/cicd-posture/endorctl-setup.md",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    }
+    } | CATALOG_AGGREGATE_PATHS | compiled_evidence_artifact_paths(
+        "cicd-posture",
+        evidence_plan_ids=("posture",),
+        profile_contract_ids=("resolve-scope", "posture"),
+    )
 
     agent_dir = dest / "claude-code" / "cicd-posture"
     managed_dir = dest / "claude-managed-agents" / "cicd-posture"
     codex_dir = dest / "codex" / "cicd-posture"
     gemini_dir = dest / "gemini" / "cicd-posture"
     portable_dir = dest / "portable" / "cicd-posture"
-    assert_host_bundle_files(agent_dir, {"cicd-posture.md", "README.md", "architecture.svg", "endorctl-setup.md"})
+    assert_host_bundle_files(
+        agent_dir,
+        {"cicd-posture.md", "cicd-posture-posture.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
     assert_host_bundle_files(
         managed_dir,
         {"agent.yaml", "environment.yaml", "session-template.yaml", "README.md", "architecture.svg", "endorctl-setup.md"},
@@ -227,7 +251,7 @@ def test_cicd_posture_publish_writes_all_host_surfaces(tmp_path):
         skill_markers=(
             "Keep the workflow read-only",
             "CI/CD Posture Evidence Contract",
-            "validate-cicd-posture-output",
+            "score-cicd-posture",
             "FINDING_CATEGORY_SUPPLY_CHAIN",
         ),
     )

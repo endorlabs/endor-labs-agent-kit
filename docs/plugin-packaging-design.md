@@ -11,6 +11,7 @@ Claude Code, Codex, and Gemini support still publish generated artifacts under
 package slices now wrap host-compatible public workflows under:
 
 - `plugins/codex/endor-labs-agent-kit/`
+- `plugins/codex-directory/endor-labs-agent-kit/` for official Codex directory submission
 - `plugins/claude/endor-labs-agent-kit/`
 - `plugins/claude/ai-plugins/` for legacy Claude Code compatibility
 - `plugins/gemini/endor-labs-agent-kit/`
@@ -38,21 +39,67 @@ The generated Codex plugin package includes:
   workflows.
 - `scripts/install_codex_agents.py` for provenance-gated global install, update,
   status, and uninstall of bundled Codex custom agents.
-- `assets/logo.png`.
+- `assets/logo.png`, with the official Endor green (`#26D07C`) used for the
+  manifest brand color.
 - Public repository marketplace metadata at `.agents/plugins/marketplace.json`.
 - Package-local marketplace metadata at
   `plugins/codex/.agents/plugins/marketplace.json` for local validation.
 
 Do not add MCP servers to the plugin manifest by default. `sca-remediation` and
-`ai-sast-triage` are `endorctl_api` workflows, and their safety contract depends
+`ai-sast-remediation` are `endorctl_agent_api` workflows, and their safety contract depends
 on local terminal/source-provider state plus explicit approval gates.
+
+## Codex Distribution Channels
+
+Codex has two generated packages with the same canonical workflow identities
+and different distribution channels:
+
+- `repository`: `plugins/codex/endor-labs-agent-kit/` remains the CLI,
+  container, runner, setup, installer, and custom-agent package.
+- `official-directory`: `plugins/codex-directory/endor-labs-agent-kit/` is a
+  skills-only public submission package with 11 workflow skills plus one setup
+  skill.
+
+`CatalogPluginPackage.distribution_channel` defaults to `repository` for old
+manifests. Package identity is `(host, name, distribution_channel)`, and
+publisher replacement occurs by `(host, distribution_channel)`, so a partial
+publication cannot erase the sibling Codex package. Installation checks select
+only the repository channel.
+
+The directory package has one `.codex-plugin/plugin.json`, the full square PNG
+logo, and a separate compact `assets/composer-icon.png` derived from the
+official Endor symbol artwork. Both Codex manifests use the official Endor
+green (`#26D07C`) for `interface.brandColor`; the directory manifest references
+the compact PNG through `interface.composerIcon`. The package's
+`skills/<canonical-id>/` directories contain only `SKILL.md`,
+`agents/openai.yaml`, and the skill-local artifact summarizer. The separate
+`skills/endor-agent-kit-setup/` directory contains only `SKILL.md` and
+`agents/openai.yaml`; it checks the customer's local `endorctl`, namespace, and
+authentication readiness without implementing plugin OAuth. The package has no
+custom-agent TOML, installer, hooks, MCP/apps, bundled credentials, staging
+values, or model pin. The public skills use the customer's active Codex model.
+Large-result instructions resolve the helper from the active `SKILL.md` path
+rather than the working directory.
+
+Full publication requires the exact canonical 11-recipe set. A strict subset
+skips this package and preserves its directory and manifest record; unexpected
+or duplicate Codex recipe IDs fail closed.
+
+The signed catalog projects install options from complete
+`CatalogPluginPackage` records rather than requiring one compiler record per
+provider and agent. A public package is eligible only when it includes all
+published canonical agent IDs and the setup skill artifact. This lets the
+monolithic Cursor and Antigravity packages appear alongside Claude Code and the
+Codex official-directory package without duplicate compilers. Each provider's
+full-package command is identical across all 11 agent records.
 
 ## Implemented Claude Code Plugin Shape
 
 The generated Claude Code plugin packages include:
 
 - `.claude-plugin/plugin.json` for plugin metadata.
-- `agents/<agent>.md` files generated from the existing Claude Code artifacts.
+- Exactly 11 canonical `agents/<agent>.md` workflow files generated from the
+  existing Claude Code artifacts.
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
 - `hooks/hooks.json` plus fail-open advisory hook scripts in the primary
@@ -70,6 +117,12 @@ existing Claude Code users pinned to that id can continue to install and update
 without a breaking rename. Both packages expose the same setup skill and agents;
 normal users should not enable both ids in the same Claude profile. The legacy
 package intentionally does not include hooks.
+
+Claude task-profile projections are an execution optimization, not additional
+customer-facing workflows. They remain generated under `claude-code/<agent>/`
+for advanced manual invocation, but neither public Claude package copies them
+into `agents/`. The canonical marketplace agent selects and enforces the same
+bounded profile contracts internally.
 
 Claude Code plugin-shipped agents do not support `mcpServers`,
 `permissionMode`, or `hooks` in agent frontmatter. The generated package strips
@@ -91,9 +144,9 @@ The generated Gemini CLI extension package includes:
   with provenance comments and Gemini host-contract text.
 - `assets/logo.png`.
 
-Gemini packages do not declare plugin-wide MCP by default. Setup documents the
-observed Gemini CLI 0.44.1 local-install folder trust prompt and requires a
-restart after extension installation or update. Gemini CLI installs a local
+Gemini packages do not declare plugin-wide MCP by default. Setup documents that
+local installs may show a folder trust prompt and requires a restart after
+extension installation or update. Gemini CLI installs a local
 extension directory; public distribution clones the tagged GitHub repository
 and installs `plugins/gemini/endor-labs-agent-kit/` rather than installing the
 multi-host repository root. The package does not generate or publish a zip
@@ -123,7 +176,7 @@ The generated Antigravity CLI plugin package includes:
 - `assets/logo.png`.
 
 Antigravity packages do not declare plugin-wide MCP by default. The setup skill
-keeps `antigravity plugin validate`, installation, update, enable/disable, and
+keeps `agy plugin validate`, installation, update, enable/disable, and
 uninstall steps explicit and evidence-backed. Antigravity package contents are
 derived from the Gemini-compatible recipe set because Google's
 transition guidance says Gemini extensions become Antigravity plugins while
@@ -131,7 +184,7 @@ retaining skills and subagents.
 
 ## Implemented Cursor Package Shape
 
-The generated Cursor package includes:
+The source-validation Cursor package includes:
 
 - `.cursor-plugin/plugin.json` for Cursor package metadata.
 - `.cursor-plugin/marketplace.json` for public marketplace metadata.
@@ -148,12 +201,28 @@ The generated Cursor package includes:
 - `skills/endor-agent-kit-setup/SKILL.md` rendered from
   `source/plugin-support/setup/setup.md`.
 - `hooks/hooks.json` plus fail-open advisory hook scripts.
+- `.mcp.json` with the source-approved optional MCP server declaration.
 - `assets/logo.png`.
+
+The Cursor plugin manifest keeps website provenance in its top-level
+`homepage` and `repository` fields. Its `author` object contains only the
+schema-supported `name` and `email` fields; Cursor's current schema rejects an
+additional author URL.
 
 Cursor is intentionally not a Gemini wrapper. Its installable package does not
 depend on Gemini metadata; the Gemini CLI extension files live under
 `plugins/gemini/endor-labs-agent-kit/`. The repository root `GEMINI.md` is
 support context only, not an installable Gemini extension manifest.
+
+The Agent Kit source checkout keeps those Cursor components at root for source
+guardrails. During `ai-plugins` synchronization, the full Cursor payload is
+copied to `plugins/cursor/endor-labs-agent-kit/`. Its conventional package
+layout contains `.cursor-plugin/plugin.json`, `agents/`, `skills/`, `hooks/`,
+`mcp.json`, and `assets/`. Root `.cursor-plugin/marketplace.json` keeps the
+stable `endorlabs` id and points to that nested package; the mirror removes the
+root Cursor plugin manifest. This mirror-only boundary lets the official Claude
+package safely reserve conventional root `agents/`, `skills/`, and `hooks/`
+without changing Cursor's payload.
 
 ## Implemented Cursor SDK Automation Shape
 
@@ -172,13 +241,13 @@ The generated Cursor SDK automation package includes:
 
 Cursor SDK automation is a separate lane from Cursor plugin delivery. Use it
 for CI, orchestration, backend services, scripted local runs, or Cursor cloud
-agents. Use the root Cursor plugin agents under `agents/` for
-customer-facing Cursor IDE UX. The SDK package is still generated from Agent
+agents. Use the self-contained Cursor plugin package for customer-facing Cursor
+IDE UX. The SDK package is still generated from Agent
 Kit source recipes and mirrored into `ai-plugins` as a distribution artifact.
 
 ## Blast Radius
 
-Adding first-class plugin publishing would touch:
+First-class plugin publishing touches:
 
 - `src/endor_agent_kit/publisher.py` and `src/endor_agent_kit/publication/`
   for generated plugin directories, manifest records, pruning, README rows, and
@@ -198,12 +267,14 @@ The Antigravity package also follows the source-first publication model. It
 installs from `plugins/antigravity/endor-labs-agent-kit` with `plugin.json` at
 the package root; no release archive is generated for either target.
 
-The Cursor package follows the same source-first publication model, but it is
-root-shaped because Cursor package metadata uses `.cursor-plugin/`, a root
-`agents/` directory, a root `skills/` directory, root advisory `hooks/`, and
-`assets/logo.png`. Generation updates managed workflow agents, managed workflow
-skill directories, and advisory hooks, while preserving unrelated root skills
-such as `skills/create-endor-labs-agent/`.
+The Cursor package follows the same source-first publication model. The Agent
+Kit checkout remains root-shaped for generation and source tests; mirror sync
+materializes the official self-contained package at
+`plugins/cursor/endor-labs-agent-kit/`. Generation updates managed workflow
+agents, managed workflow skill directories, and advisory hooks, while
+preserving unrelated source-root skills such as
+`skills/create-endor-labs-agent/` and excluding them from the public Cursor
+package.
 
 The Cursor SDK package follows the same source-first publication model under
 `cursor-sdk/`. It does not install anything into the Cursor IDE; it launches
@@ -235,7 +306,7 @@ Validated locally:
   directory.
 - Gemini package structure with `gemini-extension.json` at the extension root
   and no zip artifact.
-- Antigravity plugin package validation with `antigravity plugin validate`.
+- Antigravity plugin package validation with `agy plugin validate`.
 - Cursor metadata JSON validation and root skill validation.
 - Cursor SDK `agent_definitions.json` validation and launcher `py_compile`.
 
@@ -260,11 +331,11 @@ The first prototype package used this local marketplace shape:
 
 - `marketplace.json`
 - `plugins/endor-agent-kit-security-agents/.codex-plugin/plugin.json`
-- `plugins/endor-agent-kit-security-agents/skills/ai-sast-triage/`
+- `plugins/endor-agent-kit-security-agents/skills/ai-sast-remediation/`
 - `plugins/endor-agent-kit-security-agents/skills/sca-remediation/`
 
 The package copied the generated Codex skill directories byte-for-byte from
-`codex/ai-sast-triage/` and `codex/sca-remediation/`, including each
+`codex/ai-sast-remediation/` and `codex/sca-remediation/`, including each
 `SKILL.md`, `README.md`, `actions.yaml`, `architecture.svg`, and
 `endorctl-setup.md`.
 

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
 import hashlib
+
+import pytest
 
 from endor_agent_kit.catalog_schema import (
     CatalogAgent,
@@ -15,6 +18,7 @@ def _recipe() -> EndorAgentRecipe:
         recipe_schema_version=2,
         id="schema-fixture",
         name="Schema Fixture",
+        category="Research & Investigate",
         version="1.0.0",
         description="Fixture",
         safety_class="read_only",
@@ -24,6 +28,7 @@ def _recipe() -> EndorAgentRecipe:
         outputs=(),
         evals="evals/cases.yaml",
         compatible_hosts=("claude-code",),
+        legacy_ids=("old-schema-fixture",),
         endorctl_api_invocations=("lookup_package_version_uuid",),
         instructions_path="instructions.md",
         model="sonnet",
@@ -51,6 +56,7 @@ def test_catalog_schema_round_trips_manifest_agent_records_with_unknown_fields()
                         "path": "claude-code/schema-fixture/schema-fixture.md",
                         "sha256": "abc123",
                         "bytes": 42,
+                        "profile_id": "evidence-check",
                         "future_artifact_field": "preserved",
                     }
                 ],
@@ -64,6 +70,7 @@ def test_catalog_schema_round_trips_manifest_agent_records_with_unknown_fields()
     agent = CatalogAgent.from_manifest_record(record)
 
     assert agent.editions[0].artifact_named("schema-fixture.md").sha256 == "abc123"
+    assert agent.editions[0].artifact_named("schema-fixture.md").profile_id == "evidence-check"
     assert agent.to_manifest_record() == record
 
 
@@ -95,6 +102,7 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
         "Enterprise Edition",
         bundle_dir,
         requires_endorctl=">=1.0",
+        artifact_profiles={artifact.relative_to(destination).as_posix(): "evidence-check"},
     )
     agent = CatalogAgent.from_recipe(recipe, "claude-code", (bundle,))
 
@@ -104,7 +112,43 @@ def test_catalog_schema_builds_manifest_payload_from_published_bundle(tmp_path):
     manifest_bundle = manifest_agent["editions"][0]
     manifest_artifact = manifest_bundle["artifacts"][0]
     assert manifest_agent["source"]["builder_recipe"] == "source/agents/schema-fixture/recipe.yaml"
+    assert manifest_agent["legacy_ids"] == ["old-schema-fixture"]
+    assert manifest_agent["category"] == "Research & Investigate"
     assert manifest_bundle["requires_endorctl"] == ">=1.0"
     assert manifest_artifact["path"] == "claude-code/schema-fixture/schema-fixture.md"
     assert manifest_artifact["bytes"] == len("current")
     assert manifest_artifact["sha256"] == hashlib.sha256(b"current").hexdigest()
+    assert manifest_artifact["profile_id"] == "evidence-check"
+    assert "profile_contract_digest" not in manifest_artifact
+    assert "profile_gate_validator" not in manifest_artifact
+
+
+def test_catalog_schema_fails_closed_when_source_backed_profile_contract_is_invalid(
+    tmp_path,
+    monkeypatch,
+):
+    recipe = replace(_recipe(), id="sca-remediation")
+    destination = tmp_path / "catalog"
+    bundle_dir = destination / "claude-code" / recipe.id
+    bundle_dir.mkdir(parents=True)
+    artifact = bundle_dir / f"{recipe.id}.md"
+    artifact.write_text("current", encoding="utf-8")
+
+    def fail_contract_compilation(_agent_id, _profile_id):
+        raise ValueError("invalid canonical profile contract")
+
+    monkeypatch.setattr(
+        "endor_agent_kit.catalog_schema.compile_profile_contract",
+        fail_contract_compilation,
+    )
+
+    with pytest.raises(ValueError, match="invalid canonical profile contract"):
+        CatalogBundle.from_published_bundle(
+            destination,
+            recipe,
+            "claude-code",
+            "enterprise-edition",
+            "Enterprise Edition",
+            bundle_dir,
+            artifact_profiles={artifact.relative_to(destination).as_posix(): "evidence-check"},
+        )

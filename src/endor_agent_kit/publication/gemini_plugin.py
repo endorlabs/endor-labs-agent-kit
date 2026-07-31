@@ -23,6 +23,7 @@ from endor_agent_kit.publication.plugin_package_common import (
     write_logo,
 )
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 GEMINI_PLUGIN_PACKAGE_ROOT = Path("plugins") / "gemini" / PLUGIN_NAME
 GEMINI_SETUP_SKILL = "endor-agent-kit-setup"
@@ -30,6 +31,7 @@ PUBLIC_GEMINI_DISTRIBUTION_REPOSITORY = "https://github.com/endorlabs/ai-plugins
 GEMINI_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 GEMINI_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
@@ -114,6 +116,8 @@ def publish_gemini_plugin_package(
 
     logo = write_logo(package_dir / "assets")
     written.append(logo)
+
+    written.append(write_artifact_summarizer(package_dir))
 
     written.extend(_write_gemini_extension_hooks(package_dir))
 
@@ -211,6 +215,11 @@ def _gemini_hooks_config() -> dict[str, object]:
                     "matcher": "run_shell_command",
                     "hooks": [
                         command(
+                            "enforce-agent-api.sh",
+                            "BeforeTool",
+                            "endor-agent-kit-agent-api-enforcement",
+                        ),
+                        command(
                             "check-dep-install.sh",
                             "BeforeTool",
                             "endor-agent-kit-dependency-install-advisory",
@@ -246,7 +255,7 @@ def _gemini_extension_manifest(version: str) -> dict[str, object]:
 def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> skill `{prepared.recipe.id}`, subagent `@{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -277,7 +286,7 @@ def _render_setup_skill(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         *_public_gemini_install_lines("<tag>"),
         "```",
         "",
-        "Observed local validation on Gemini CLI 0.44.1: local installs may still",
+        "Local Gemini CLI installs may still",
         "show a folder trust prompt even when `--consent` is supplied. Inspect the",
         "extension package, approve only the expected Agent Kit folder,",
         "then restart Gemini CLI so skills and subagents become visible.",
@@ -318,7 +327,7 @@ def _setup_source(prepared_recipes: list[PreparedSourceRecipe]) -> str:
 
 def _gemini_context(prepared_recipes: list[PreparedSourceRecipe]) -> str:
     rows = [
-        f"- {_workflow_label(prepared.recipe.id)}: use skill `{prepared.recipe.id}` or subagent `@{prepared.recipe.id}`."
+        f"- {prepared.recipe.name}: use skill `{prepared.recipe.id}` or subagent `@{prepared.recipe.id}`."
         for prepared in prepared_recipes
     ]
     return "\n".join([
@@ -344,10 +353,11 @@ def _gemini_plugin_readme(
     version: str,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | `@{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     start_here = plugin_readme_start_here(
+        host_id="gemini",
         host_label="Gemini CLI",
         install_summary="Install the generated extension directory locally or the tagged public GitHub repository.",
         setup_summary=f"ask Gemini CLI to use the `{GEMINI_SETUP_SKILL}` skill.",
@@ -371,7 +381,7 @@ def _gemini_plugin_readme(
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Preview subagents: `agents/<agent>.md`.",
         "- Hooks: `hooks/hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
-        "- Model/runtime: generated skills and subagents inherit Gemini CLI defaults; the extension does not set a plugin-wide default model.",
+        "- Model/runtime: generated subagents pin `gemini-3.5-flash`; skills used directly in the main session still use the customer's selected host model.",
         "- MCP: no extension-wide MCP server is declared by default.",
         "",
         "## Install From A Local Checkout",
@@ -386,7 +396,7 @@ def _gemini_plugin_readme(
         *_public_gemini_install_lines("<tag>"),
         "```",
         "",
-        "Gemini CLI 0.44.1 local validation showed a folder trust prompt for local",
+        "Gemini CLI may show a folder trust prompt for local",
         "paths even with `--consent`. Inspect the package and approve only the",
         "expected Endor Agent Kit extension source.",
         "",
@@ -442,18 +452,6 @@ def _gemini_plugin_readme(
         "- https://geminicli.com/docs/core/subagents/",
         "",
     ])
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-triage": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "endor-troubleshooter": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "probe-droid": "Assess GitHub onboarding gaps",
-        "sca-remediation": "Find safe SCA remediation paths",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
-
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:
     return "mutating, approval-gated" if source_recipe_safety_posture(prepared.recipe).is_mutating else "read-only"

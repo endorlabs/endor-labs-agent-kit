@@ -9,10 +9,15 @@ on:
       - "assets/**"
       - "pyproject.toml"
       - "scripts/sync_ai_plugins_distribution.py"
+      - "scripts/validate_marketplace_host_boundaries.py"
+      - "scripts/build_codex_directory_submission.py"
       - "source/agents/**"
+      - "source/distribution/**"
+      - "source/endor-knowledge-pack/**"
       - "source/plugin-support/**"
       - "src/endor_agent_kit/**"
       - "tests/**"
+      - "CHANGELOG.md"
   workflow_dispatch:
     inputs:
       ai_plugins_repository:
@@ -85,6 +90,65 @@ jobs:
         working-directory: endor-labs-agent-kit
         run: .venv/bin/python -m pytest -q
 
+      - name: Check Agent Kit repository hygiene
+        working-directory: endor-labs-agent-kit
+        run: .venv/bin/python scripts/check_repository_hygiene.py
+
+      - name: Smoke test disposable provider installations
+        working-directory: endor-labs-agent-kit
+        run: .venv/bin/python scripts/smoke_test_provider_installations.py --root .
+
+      - name: Report optional QA and backend release evidence
+        if: ${{ env.DRY_RUN != 'true' }}
+        working-directory: endor-labs-agent-kit
+        env:
+          AGENT_QA_ACCEPTANCE_JSON: ${{ vars.AGENT_QA_ACCEPTANCE_JSON }}
+          ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON: ${{ vars.ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON }}
+        run: |
+          missing=()
+          [ -n "${AGENT_QA_ACCEPTANCE_JSON:-}" ] || missing+=("AGENT_QA_ACCEPTANCE_JSON")
+          [ -n "${ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON:-}" ] || missing+=("ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON")
+
+          if [ "${#missing[@]}" -ne 0 ]; then
+            message="Optional release evidence is not configured: ${missing[*]}. Publication will continue."
+            echo "::warning title=Optional release evidence unavailable::${message}"
+            {
+              echo "## Optional release evidence"
+              echo
+              echo "$message"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          set +e
+          validation_output="$(.venv/bin/python scripts/validate_release_evidence.py \
+            --source-commit "$GITHUB_SHA" \
+            --qa-acceptance-env AGENT_QA_ACCEPTANCE_JSON \
+            --backend-acceptance-env ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON 2>&1)"
+          validation_status=$?
+          set -e
+
+          if [ "$validation_status" -ne 0 ]; then
+            echo "::warning title=Optional release evidence did not validate::QA/backend release evidence is advisory; publication will continue."
+            {
+              echo "## Optional release evidence"
+              echo
+              echo "Validation did not pass. Publication continues because release evidence is advisory."
+              echo
+              echo '```text'
+              printf '%s\n' "$validation_output"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          printf '%s\n' "$validation_output"
+          {
+            echo "## Optional release evidence"
+            echo
+            echo "QA and backend release evidence validated successfully."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Regenerate catalog
         working-directory: endor-labs-agent-kit
         run: |
@@ -107,8 +171,10 @@ jobs:
             claude-managed-agents \
             codex \
             cursor-sdk \
+            docs/model-recommendations.md \
             gemini \
             hooks \
+            model-recommendations.json \
             plugins \
             portable \
             skills
@@ -126,7 +192,9 @@ jobs:
         run: |
           . .venv/bin/activate
           mkdir -p dist/provenance
-          endor-agent-kit provenance-statement --catalog-root . > dist/provenance/agent-kit-catalog.intoto.json
+          endor-agent-kit provenance-statement \
+            --catalog-root . \
+            --output dist/provenance/agent-kit-catalog.intoto.json
           sha256sum manifest.json > dist/provenance/manifest.sha256
           python scripts/build_provenance_bundle.py \
             --root . \
@@ -181,6 +249,26 @@ jobs:
             ai-plugins/provenance/agent-kit-catalog.intoto.json
           cp endor-labs-agent-kit/dist/provenance/manifest.sha256 \
             ai-plugins/provenance/manifest.sha256
+          cp endor-labs-agent-kit/manifest.json \
+            ai-plugins/provenance/agent-kit-manifest.json
+          python3 - <<PY
+          import json
+          import pathlib
+
+          pathlib.Path("ai-plugins/provenance/agent-kit-source.json").write_text(
+              json.dumps(
+                  {
+                      "kind": "endor.agent-kit-source/v1",
+                      "agent_kit_repository": "${GITHUB_REPOSITORY}",
+                      "agent_kit_sha": "${GITHUB_SHA}",
+                  },
+                  indent=2,
+                  sort_keys=True,
+              )
+              + "\n",
+              encoding="utf-8",
+          )
+          PY
           cat > ai-plugins/provenance/README.md <<'EOF'
           # Agent Kit Catalog Provenance
 
@@ -190,6 +278,9 @@ jobs:
             statement emitted by `endor-agent-kit provenance-statement`.
           - `manifest.sha256` records the checksum of the Agent Kit `manifest.json`
             that anchors all generated artifact checksums.
+          - `agent-kit-manifest.json` is the source manifest used to validate
+            generated package records and per-file digests from this mirror.
+          - `agent-kit-source.json` pins the exact Agent Kit source commit.
 
           Do not edit these files by hand. Update Agent Kit source, regenerate,
           and let the publish workflow open a new distribution PR.
@@ -199,15 +290,25 @@ jobs:
         working-directory: ai-plugins
         run: |
           set -e
+          python3 scripts/check_repository_hygiene.py
+          python3 scripts/validate_mirror_provenance.py
+          python3 scripts/validate_marketplace_host_boundaries.py
+          python3 scripts/build_codex_directory_submission.py validate --root .
           for skill in skills/*; do
             ../endor-labs-agent-kit/.venv/bin/python scripts/quick_validate.py "$skill"
           done
+          for skill in plugins/cursor/endor-labs-agent-kit/skills/*; do
+            ../endor-labs-agent-kit/.venv/bin/python scripts/quick_validate.py "$skill"
+          done
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+          python3 -m json.tool .claude-plugin/plugin.json >/dev/null
           python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
           python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
-          python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+          python3 -m json.tool plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json >/dev/null
           python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
+          python3 -m json.tool plugins/cursor/endor-labs-agent-kit/mcp.json >/dev/null
+          python3 -m json.tool plugins/cursor/endor-labs-agent-kit/hooks/hooks.json >/dev/null
           python3 -m json.tool plugins/claude/endor-labs-agent-kit/hooks/hooks.json >/dev/null
           python3 -m json.tool plugins/codex/endor-labs-agent-kit/hooks/hooks.json >/dev/null
           python3 -m json.tool plugins/gemini/endor-labs-agent-kit/hooks/hooks.json >/dev/null
@@ -222,34 +323,29 @@ jobs:
 
           py_compile.compile("cursor-sdk/run_cursor_agent.py", cfile="/tmp/run_cursor_agent.pyc", doraise=True)
           PY
-          python3 - <<'PY'
-          import json
-          import pathlib
-          import sys
-
-          manifest = json.loads(pathlib.Path(".cursor-plugin/plugin.json").read_text(encoding="utf-8"))
-          missing = sorted(
-              value
-              for value in manifest.values()
-              if isinstance(value, str) and value.startswith("./") and not pathlib.Path(value).exists()
-          )
-          if missing:
-              print(f"dangling .cursor-plugin/plugin.json references: {missing}")
-              sys.exit(1)
-          PY
           test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
           test ! -e plugins/gemini/endor-labs-agent-kit.zip
-          diff -qr ../endor-labs-agent-kit/plugins ./plugins
-          diff -qr ../endor-labs-agent-kit/.cursor-plugin ./.cursor-plugin
-          diff -qr ../endor-labs-agent-kit/agents ./agents
+          test ! -e .mcp.json
+          test ! -e .cursor-plugin/plugin.json
+          test ! -e cursor/endor-labs-agent-kit
+          for provider in antigravity claude codex codex-directory gemini; do
+            diff -qr "../endor-labs-agent-kit/plugins/$provider" "./plugins/$provider"
+          done
+          diff -q ../endor-labs-agent-kit/plugins/README.md ./plugins/README.md
+          diff -qr ../endor-labs-agent-kit/agents ./plugins/cursor/endor-labs-agent-kit/agents
           diff -qr ../endor-labs-agent-kit/cursor-sdk ./cursor-sdk
-          diff -qr ../endor-labs-agent-kit/hooks ./hooks
+          diff -qr ../endor-labs-agent-kit/plugins/claude/endor-labs-agent-kit/agents ./agents
+          diff -qr ../endor-labs-agent-kit/plugins/claude/endor-labs-agent-kit/hooks ./hooks
+          diff -qr ../endor-labs-agent-kit/plugins/claude/endor-labs-agent-kit/skills ./skills
+          diff -qr ../endor-labs-agent-kit/hooks ./plugins/cursor/endor-labs-agent-kit/hooks
+          diff -q ../endor-labs-agent-kit/.mcp.json ./plugins/cursor/endor-labs-agent-kit/mcp.json
+          diff -qr ../endor-labs-agent-kit/assets ./plugins/cursor/endor-labs-agent-kit/assets
           for source_skill in ../endor-labs-agent-kit/skills/*/; do
             skill_name="$(basename "$source_skill")"
             if [ "$skill_name" = "create-endor-labs-agent" ]; then
               continue
             fi
-            diff -qr "../endor-labs-agent-kit/skills/$skill_name" "skills/$skill_name"
+            diff -qr "../endor-labs-agent-kit/skills/$skill_name" "plugins/cursor/endor-labs-agent-kit/skills/$skill_name"
           done
           diff -q ../endor-labs-agent-kit/assets/logo.png assets/logo.png
           git diff --check
@@ -268,7 +364,7 @@ jobs:
           - \`endor-agent-kit publish ... --include-plugins\`
           - \`endor-agent-kit check-guardrails --catalog-root .\`
           - \`endor-agent-kit verify-provenance --catalog-root .\`
-          - ai-plugins root skill validation, JSON checks, Cursor SDK compile check, Gemini no-zip check, and byte-for-byte generated-surface diffs
+          - Claude official root and self-contained Cursor marketplace boundary validation, conventional component checks, JSON checks, Cursor SDK compile check, Gemini no-zip check, and byte-for-byte generated-surface diffs
 
           ## Provenance
 

@@ -301,13 +301,13 @@ def _check_transport_authoring(
                 recipe_path,
             )
         )
-    if "endorctl_api" not in transports or "mcp" in transports:
+    if "endorctl_agent_api" not in transports or "mcp" in transports:
         return
     if str(data.get("requires_endor_mcp") or ""):
         errors.append(
             SourceAuthoringIssue(
                 "transport.mcp_free_requires_mcp",
-                "MCP-free endorctl_api agents must leave requires_endor_mcp empty",
+                "MCP-free endorctl_agent_api agents must leave requires_endor_mcp empty",
                 recipe_path,
             )
         )
@@ -319,7 +319,7 @@ def _check_transport_authoring(
         errors.append(
             SourceAuthoringIssue(
                 "transport.mcp_free_instruction",
-                "MCP-free endorctl_api agents must explicitly say not to require "
+                "MCP-free endorctl_agent_api agents must explicitly say not to require "
                 "an Endor MCP server",
                 instructions_path,
             )
