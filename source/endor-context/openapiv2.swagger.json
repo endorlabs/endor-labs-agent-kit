@@ -82523,9 +82523,13 @@
           "type": "string",
           "enum": [
             "claude-code",
-            "claude-managed"
+            "claude-managed",
+            "codex",
+            "cursor",
+            "gemini",
+            "antigravity"
           ],
-          "description": "Target host: \"claude-code\" or \"claude-managed\"."
+          "description": "Supported agent install hosts."
         },
         "command": {
           "type": "string",
