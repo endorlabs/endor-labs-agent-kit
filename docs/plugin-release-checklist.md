@@ -537,7 +537,7 @@ installs from the generated plugin directory.
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and public GitHub install behavior can change:
 
-Last checked for this checklist: 2026-07-27.
+Last checked for this checklist: 2026-07-30.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`

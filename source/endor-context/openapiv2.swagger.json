@@ -118,6 +118,12 @@
       "name": "CodeOwnersService"
     },
     {
+      "name": "ContainerBaseImageUpdateImpactQueryService"
+    },
+    {
+      "name": "ContainerBaseImageUpdateImpactRecordsQueryService"
+    },
+    {
       "name": "ContributorService"
     },
     {
@@ -259,9 +265,6 @@
       "name": "MalwareDetectionAnalysisTaskService"
     },
     {
-      "name": "MalwareDetectionAnalysisTaskWorkflowService"
-    },
-    {
       "name": "MalwareDetectionArtifactDownloadStatusService"
     },
     {
@@ -278,6 +281,9 @@
     },
     {
       "name": "MalwareDetectionWorkflowService"
+    },
+    {
+      "name": "MalwareExposureService"
     },
     {
       "name": "MCPServerLogService"
@@ -3187,6 +3193,48 @@
           "MalwareDetectionWorkflowService"
         ],
         "x-internal": true
+      }
+    },
+    "/v1/namespaces/{object.tenant_meta.namespace}/malware-exposure": {
+      "patch": {
+        "summary": "UpdateMalwareExposure",
+        "description": "Updates the MalwareExposure object specified by the UUID.",
+        "operationId": "MalwareExposureService_UpdateMalwareExposure",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MalwareExposure"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "object.tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MalwareExposureServiceUpdateMalwareExposureBody"
+            }
+          }
+        ],
+        "tags": [
+          "MalwareExposureService"
+        ]
       }
     },
     "/v1/namespaces/{object.tenant_meta.namespace}/metrics": {
@@ -29206,48 +29254,6 @@
         "x-internal": true
       }
     },
-    "/v1/namespaces/{tenant_meta.namespace}/malware-detection-analysis-tasks/claim": {
-      "post": {
-        "summary": "ClaimNextMalwareDetectionAnalysisTask atomically claims the next pending task.",
-        "operationId": "MalwareDetectionAnalysisTaskWorkflowService_ClaimNextMalwareDetectionAnalysisTask",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1MalwareDetectionAnalysisTask"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/googlerpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "tenant_meta.namespace",
-            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "x-endor-name": "Namespace"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/MalwareDetectionAnalysisTaskWorkflowServiceClaimNextMalwareDetectionAnalysisTaskBody"
-            }
-          }
-        ],
-        "tags": [
-          "MalwareDetectionAnalysisTaskWorkflowService"
-        ],
-        "x-internal": true
-      }
-    },
     "/v1/namespaces/{tenant_meta.namespace}/malware-detection-analysis-tasks/{uuid}": {
       "get": {
         "summary": "GetMalwareDetectionAnalysisTask fetches an analysis task by UUID.",
@@ -31592,6 +31598,380 @@
           "MalwareDetectionWorkflowService"
         ],
         "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/malware-exposure": {
+      "get": {
+        "summary": "ListMalwareExposure",
+        "description": "Lists all MalwareExposure objects in a namespace.",
+        "operationId": "MalwareExposureService_ListMalwareExposure",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListMalwareExposureResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "list_parameters.filter",
+            "description": "String of conditions to filter resources by.\nFilters may include any attribute along with the following operators:\n\"==\", \"!=\", \"\u003e\", \"\u003e=\", \"\u003c\", \"\u003c=\", \"Contains\", \"In\", \"Matches\", and\n\"Exists\". The logical operators \"And\" and \"Or\" are also supported.\nExpressions may be combined and grouped with parentheses.\n\nExamples:\n\"spec.value == 5\",\n\"spec.value in [\"a\", \"b\", \"c\"]\",\n\"(meta.name == \"xyz\" and \"spec.value in [\"a\",\"b\"]) or (spec.value ==\n\"c\")\".",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_token",
+            "description": "Set the page token to start from.\nUse page tokens to page through list results or list specific pages.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.page_size",
+            "description": "Set the page size to limit the number of results returned.\nDefault: 100. Max: 500.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.action",
+            "description": "Action to be executed with a request. Not supported for all endpoints.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.traverse",
+            "description": "Get data from any child namespaces as well.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.sort.path",
+            "description": "Field to sort objects by, for example, meta.name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.sort.order",
+            "description": "Sort order. Default: ASC.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_ENTRY_ORDER_UNSPECIFIED",
+              "SORT_ENTRY_ORDER_ASC",
+              "SORT_ENTRY_ORDER_DESC"
+            ],
+            "default": "SORT_ENTRY_ORDER_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.count",
+            "description": "Return the number of objects matching the given list parameters.\nIf count is set to true, the response is a CountResponse.\nCan be used together with filter and traverse.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.aggregation_paths",
+            "description": "Group the objects based on this field.\nIf there are multiple fields then the objects are grouped\nbased on the uniqueness of all fields.\nSupports composite paths.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.show_aggregation_uuids",
+            "description": "Return the UUID of each object in each group as specified by\naggregation_paths.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.unique_count_paths",
+            "description": "List of fields for which we want the unique count.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.unique_value_paths",
+            "description": "List of fields for which we want the unique values.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.ci_run_uuid",
+            "description": "Only return objects from PR scans that match this context id.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_id",
+            "description": "Page ID to retrieve.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_paths",
+            "description": "Group the objects based on this time field,\nfor example, meta.create_time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.show_aggregation_uuids",
+            "description": "Return the UUIDs of the objects in each group.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group_by_time.interval",
+            "description": "Interval unit by which the objects should be grouped.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "GROUP_BY_TIME_INTERVAL_UNSPECIFIED",
+              "GROUP_BY_TIME_INTERVAL_YEAR",
+              "GROUP_BY_TIME_INTERVAL_QUARTER",
+              "GROUP_BY_TIME_INTERVAL_MONTH",
+              "GROUP_BY_TIME_INTERVAL_WEEK",
+              "GROUP_BY_TIME_INTERVAL_DAY",
+              "GROUP_BY_TIME_INTERVAL_HOUR",
+              "GROUP_BY_TIME_INTERVAL_MINUTE",
+              "GROUP_BY_TIME_INTERVAL_SECOND"
+            ],
+            "default": "GROUP_BY_TIME_INTERVAL_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.group_by_time.group_size",
+            "description": "Size of the time interval to group the objects by,\nfor example, to group objects by 2-week intervals, set interval\nto GROUP_BY_TIME_INTERVAL_WEEK and group_size to 2.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.group_by_time.start_time",
+            "description": "Beginning of the time period to group objects.\nDefaults to the beginning of time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.end_time",
+            "description": "End of the time period to group objects.\nDefaults to the current time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.mode",
+            "description": "The mode determines how the matching objects are counted\nin the produced time-series. Values allowed are:\ncount (default) : is the number of items matching in every interval.\nsum: is the total number of items matching since the beginning of the\naggregation time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_value_field",
+            "description": "The aggregation_field is a field on the matched objects that we want to\nperform some operation in each interval (example : min, max, avg)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_operator",
+            "description": "The aggreation_operator is the operator that we should use for the\naggregation. Allowed values are: min, max, sum, avg",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.disable_pagination",
+            "description": "If true, the results will not be paginated and\nonly the first page will be returned. The order\nof the results is not guaranteed.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "MalwareExposureService"
+        ]
+      },
+      "post": {
+        "summary": "CreateMalwareExposure",
+        "description": "Creates a MalwareExposure object.",
+        "operationId": "MalwareExposureService_CreateMalwareExposure",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MalwareExposure"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MalwareExposureServiceCreateMalwareExposureBody"
+            }
+          }
+        ],
+        "tags": [
+          "MalwareExposureService"
+        ]
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/malware-exposure/{uuid}": {
+      "get": {
+        "summary": "GetMalwareExposure",
+        "description": "Fetches the MalwareExposure object identified by the UUID.",
+        "operationId": "MalwareExposureService_GetMalwareExposure",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MalwareExposure"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the requested resource.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "get_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "MalwareExposureService"
+        ]
+      },
+      "delete": {
+        "summary": "DeleteMalwareExposure",
+        "description": "Deletes the MalwareExposure object specified by the UUID.",
+        "operationId": "MalwareExposureService_DeleteMalwareExposure",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the resource to be deleted.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "delete_parameters.action",
+            "description": "Action to be executed with delete request.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "delete_parameters.force",
+            "description": "Force will force the deletion of the resource if any\nchecks fail.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "MalwareExposureService"
+        ]
       }
     },
     "/v1/namespaces/{tenant_meta.namespace}/malware/{uuid}": {
@@ -45747,6 +46127,92 @@
         "x-internal": true
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/container-base-image-update-impact-records": {
+      "post": {
+        "summary": "CreateContainerBaseImageUpdateImpactRecordsQuery",
+        "description": "Computes (does not persist) one page of the fixed or introduced findings for\na single base image update option and a single severity or reachability\nbucket.",
+        "operationId": "ContainerBaseImageUpdateImpactRecordsQueryService_CreateContainerBaseImageUpdateImpactRecordsQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactRecordsQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ContainerBaseImageUpdateImpactRecordsQueryServiceCreateContainerBaseImageUpdateImpactRecordsQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "ContainerBaseImageUpdateImpactRecordsQueryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/container-base-image-update-impacts": {
+      "post": {
+        "summary": "CreateContainerBaseImageUpdateImpactQuery",
+        "description": "Computes (does not persist) the vulnerability finding impact of each\navailable base image update option for a scanned container image.",
+        "operationId": "ContainerBaseImageUpdateImpactQueryService_CreateContainerBaseImageUpdateImpactQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/ContainerBaseImageUpdateImpactQueryServiceCreateContainerBaseImageUpdateImpactQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "ContainerBaseImageUpdateImpactQueryService"
+        ],
+        "x-internal": true
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/queries/dashboard-summaries": {
       "post": {
         "summary": "CreateDashboardSummaryQuery.",
@@ -54491,8 +54957,7 @@
         ],
         "tags": [
           "ScanCreditUsageService"
-        ],
-        "x-internal": true
+        ]
       },
       "post": {
         "summary": "CreateScanCreditUsage",
@@ -54581,8 +55046,7 @@
         ],
         "tags": [
           "ScanCreditUsageService"
-        ],
-        "x-internal": true
+        ]
       }
     },
     "/v1/namespaces/{tenant_meta.namespace}/scan-log-requests": {
@@ -64783,6 +65247,25 @@
         "severity_scoring": {
           "type": "string",
           "description": "Severity scoring breakdown (the \"## Severity Scoring\" section)."
+        },
+        "last_scan": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the scheduled AI SAST refresh last revalidated this finding. Unset\nfor findings created before refresh tracking; drives refresh staleness."
+        },
+        "context": {
+          "$ref": "#/definitions/v1AISASTContext",
+          "description": "Hashed code regions this finding depends on, captured at scan time so a\nscheduled refresh can detect when the surrounding code changed."
+        },
+        "refresh_attempts": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Consecutive inconclusive scheduled-refresh attempts (agent error or\nUNKNOWN verdict); at the retry cap the refresh re-baselines last_scan\ninstead of retrying forever. Reset on a definitive verdict."
+        },
+        "fixed_strikes": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Strictly consecutive scheduled-refresh FIXED verdicts. Deletion requires\ntwo: the first only stamps this counter and keeps the finding due. Reset\nby any non-FIXED outcome (STILL_PRESENT, UNKNOWN, agent error)."
         }
       }
     },
@@ -65424,10 +65907,12 @@
         "AGENT_HOOK_POLICY_MATCH_TYPE_FILE_ACCESS",
         "AGENT_HOOK_POLICY_MATCH_TYPE_SKILL",
         "AGENT_HOOK_POLICY_MATCH_TYPE_MCP_SERVER",
-        "AGENT_HOOK_POLICY_MATCH_TYPE_SESSION"
+        "AGENT_HOOK_POLICY_MATCH_TYPE_SESSION",
+        "AGENT_HOOK_POLICY_MATCH_TYPE_MALWARE",
+        "AGENT_HOOK_POLICY_MATCH_TYPE_SECRETS"
       ],
       "default": "AGENT_HOOK_POLICY_MATCH_TYPE_UNSPECIFIED",
-      "description": "The type of policy match."
+      "description": "The type of policy match.\n\n - AGENT_HOOK_POLICY_MATCH_TYPE_MALWARE: A package flagged as malware by the malware check.\n - AGENT_HOOK_POLICY_MATCH_TYPE_SECRETS: A secret detected in file content by the secrets check."
     },
     "AgentSessionCountQueryServiceCreateAgentSessionCountQueryBody": {
       "type": "object",
@@ -66764,8 +67249,13 @@
         },
         "pinned": {
           "type": "boolean",
-          "description": "Whether the dependency version is fixed to a single version or not.",
+          "description": "Set to true of the dependency is fixed to a specific version by a\nmanifest file (intent).\n\nFor example, in package.json, \"lodash\": \"4.17.21\" is pinned while\n\"lodash\": \"^4.0.0\" is not (it's a range, \"any 4.x\").",
           "x-endor-name": "Pinned Version"
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Set to true if the dependency is fixed to a specific version by a\nlock file at install time (outcome).\n\nIf a dependency is locked, but not pinned, it could drift if the\nlock file is regenerated (for example, by 'npm update').",
+          "x-endor-name": "Locked Version"
         },
         "abstract": {
           "type": "boolean",
@@ -67583,6 +68073,94 @@
       ],
       "default": "OPERATOR_UNSPECIFIED"
     },
+    "ContainerBaseImageUpdateImpactQueryServiceCreateContainerBaseImageUpdateImpactQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the query.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "The query is scoped to a tenant.",
+          "title": "The query is scoped to a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactQuerySpec",
+          "description": "Query specification."
+        }
+      },
+      "description": "ContainerBaseImageUpdateImpactQuery computes, on demand, how the vulnerability\nfindings of a scanned container image's base image would change if the base\nwere moved to each of its available update options (refreshed, next, latest).\nIt is a computed query in the style of DashboardSummaryQuery: the response is\nderived live from existing Finding and PackageVersion records and is never\npersisted, so it cannot go stale as findings are recomputed.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "ContainerBaseImageUpdateImpactRecordsQueryReachabilityBucket": {
+      "type": "string",
+      "enum": [
+        "REACHABILITY_BUCKET_UNSPECIFIED",
+        "REACHABILITY_BUCKET_REACHABLE",
+        "REACHABILITY_BUCKET_POTENTIALLY_REACHABLE",
+        "REACHABILITY_BUCKET_UNREACHABLE"
+      ],
+      "default": "REACHABILITY_BUCKET_UNSPECIFIED",
+      "description": "A reachability bucket to page (the reachability view).\n\n - REACHABILITY_BUCKET_UNSPECIFIED: The reachability bucket was not set.\n - REACHABILITY_BUCKET_REACHABLE: Findings on dependencies reachable in the app image.\n - REACHABILITY_BUCKET_POTENTIALLY_REACHABLE: Findings on dependencies that may be reachable in the app image.\n - REACHABILITY_BUCKET_UNREACHABLE: Findings on dependencies not reachable in the app image."
+    },
+    "ContainerBaseImageUpdateImpactRecordsQueryRecordKind": {
+      "type": "string",
+      "enum": [
+        "RECORD_KIND_UNSPECIFIED",
+        "RECORD_KIND_FIXED",
+        "RECORD_KIND_INTRODUCED"
+      ],
+      "default": "RECORD_KIND_UNSPECIFIED",
+      "description": "Which side of the diff to page: fixed and introduced are separate lists.\n\n - RECORD_KIND_UNSPECIFIED: The kind was not set.\n - RECORD_KIND_FIXED: Findings present on the current base but gone on the candidate (fixed).\n - RECORD_KIND_INTRODUCED: Findings absent on the current base but present on the candidate."
+    },
+    "ContainerBaseImageUpdateImpactRecordsQueryServiceCreateContainerBaseImageUpdateImpactRecordsQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the query.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "The query is scoped to a tenant.",
+          "title": "The query is scoped to a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactRecordsQuerySpec",
+          "description": "Query specification."
+        }
+      },
+      "description": "ContainerBaseImageUpdateImpactRecordsQuery pages through the full fixed or\nintroduced finding list for a single update option and a single bucket (one\nseverity or one reachability bucket), using the standard ListParameters\npagination contract. It backs each per-bucket \"View more\" in the impact UI.\nThe impact query above returns only the top-N inline records per bucket; this\nquery is the drill-down for the complete per-bucket, per-kind set.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "ContainerBaseImageUpdateImpactRecordsQueryUpdateOptionKind": {
+      "type": "string",
+      "enum": [
+        "UPDATE_OPTION_KIND_UNSPECIFIED",
+        "UPDATE_OPTION_KIND_REFRESHED",
+        "UPDATE_OPTION_KIND_NEXT",
+        "UPDATE_OPTION_KIND_LATEST"
+      ],
+      "default": "UPDATE_OPTION_KIND_UNSPECIFIED",
+      "description": "Which update option's diff to page through.\n\n - UPDATE_OPTION_KIND_UNSPECIFIED: The update option was not set.\n - UPDATE_OPTION_KIND_REFRESHED: The refreshed base (update_options.refreshed).\n - UPDATE_OPTION_KIND_NEXT: The next base (update_options.next_version).\n - UPDATE_OPTION_KIND_LATEST: The latest base (update_options.latest_version)."
+    },
     "ContainerProfileDetailsApplicationType": {
       "type": "string",
       "enum": [
@@ -68036,6 +68614,22 @@
         "spec"
       ]
     },
+    "DashboardConfigShiftLeftEstimateConfig": {
+      "type": "object",
+      "properties": {
+        "pre_merge_fix_minutes": {
+          "type": "number",
+          "format": "double",
+          "description": "Estimated minutes to fix an issue caught pre-merge."
+        },
+        "post_merge_fix_minutes": {
+          "type": "number",
+          "format": "double",
+          "description": "Estimated minutes to fix an issue caught post-merge."
+        }
+      },
+      "description": "Configuration for calculating shift-left estimated savings."
+    },
     "DashboardConfigVulnPrioritizationConfig": {
       "type": "object",
       "properties": {
@@ -68195,7 +68789,7 @@
         },
         "pinned": {
           "type": "boolean",
-          "description": "True if the dependency is pinned.",
+          "description": "Set to true of the dependency is fixed to a specific version by a\nmanifest file (intent).\n\nFor example, in package.json, \"lodash\": \"4.17.21\" is pinned while\n\"lodash\": \"^4.0.0\" is not (it's a range, \"any 4.x\").",
           "x-endor-name": "Dependency Version is Pinned"
         },
         "reachable": {
@@ -68334,6 +68928,11 @@
             "$ref": "#/definitions/v1LicenseDependencyMetadata"
           },
           "description": "Discovered license information for the dependency."
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Set to true if the dependency is fixed to a specific version by a\nlock file at install time (outcome).\n\nIf a dependency is locked, but not pinned, it could drift if the\nlock file is regenerated (for example, by 'npm update').",
+          "x-endor-name": "Dependency Version is Locked"
         }
       },
       "description": "Information about the dependency.",
@@ -71242,26 +71841,6 @@
       ],
       "x-internal": true
     },
-    "MalwareDetectionAnalysisTaskWorkflowServiceClaimNextMalwareDetectionAnalysisTaskBody": {
-      "type": "object",
-      "properties": {
-        "tenant_meta": {
-          "type": "object",
-          "description": "Tenant metadata for namespace.",
-          "title": "Tenant metadata for namespace."
-        },
-        "worker_id": {
-          "type": "string",
-          "description": "Worker ID claiming the task."
-        }
-      },
-      "description": "Request to claim the next pending analysis task.",
-      "required": [
-        "tenant_meta",
-        "worker_id"
-      ],
-      "x-internal": true
-    },
     "MalwareDetectionArtifactDownloadStatusServiceCreateMalwareDetectionArtifactDownloadStatusBody": {
       "type": "object",
       "properties": {
@@ -71671,6 +72250,73 @@
         "spec"
       ],
       "x-internal": true
+    },
+    "MalwareExposureServiceCreateMalwareExposureBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "UUID of the MalwareExposure object.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant data.",
+          "title": "Tenant data."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1MalwareExposureSpec",
+          "description": "Object specific data."
+        }
+      },
+      "description": "Namespace exposure for a given Malware package.\nThe presence of this object indicates that at least one project in the\nNamespace is, or was, potentially affected by the referenced Malware.\nIf all affected projects are in child namespaces, then there are no\nMalwareExposure objects in the parent namespace. Use traverse to\ninclude MalwareExposure objects from child namespaces.\nThe meta.name field contains the fully qualified package name of the\nMalware package. For example, \"npm://package-name\".",
+      "required": [
+        "meta",
+        "spec"
+      ]
+    },
+    "MalwareExposureServiceUpdateMalwareExposureBody": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1UpdateRequest",
+          "description": "Update request."
+        },
+        "object": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string",
+              "description": "UUID of the MalwareExposure object.",
+              "readOnly": true
+            },
+            "tenant_meta": {
+              "type": "object",
+              "description": "Tenant data.",
+              "title": "Tenant data."
+            },
+            "meta": {
+              "$ref": "#/definitions/v1Meta",
+              "description": "Metadata required for all objects."
+            },
+            "spec": {
+              "$ref": "#/definitions/v1MalwareExposureSpec",
+              "description": "Object specific data."
+            }
+          },
+          "description": "MalwareExposure object to update.",
+          "title": "MalwareExposure object to update."
+        }
+      },
+      "description": "Request to update a MalwareExposure object.",
+      "required": [
+        "meta",
+        "spec"
+      ]
     },
     "MalwareRangeMalwareRangeType": {
       "type": "string",
@@ -78568,6 +79214,63 @@
         "data_hash"
       ]
     },
+    "ResponseReachabilityCounts": {
+      "type": "object",
+      "properties": {
+        "reachable": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Findings on dependencies reachable in the app image.",
+          "readOnly": true
+        },
+        "potentially_reachable": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Findings on dependencies that may be reachable in the app image.",
+          "readOnly": true
+        },
+        "unreachable": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Findings on dependencies not reachable in the app image.",
+          "readOnly": true
+        }
+      },
+      "description": "Finding counts bucketed by reachability. Each bucket is a severity\nbreakdown. Reachability is projected from the app image scan (see §3).\nThe overall total lives on the sibling SeverityCounts field, so there is\nno total bucket here."
+    },
+    "ResponseSeverityCounts": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of findings across all severities.",
+          "readOnly": true
+        },
+        "critical": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of critical severity findings.",
+          "readOnly": true
+        },
+        "high": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of high severity findings.",
+          "readOnly": true
+        },
+        "medium": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of medium severity findings.",
+          "readOnly": true
+        },
+        "low": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of low severity findings.",
+          "readOnly": true
+        }
+      },
+      "description": "Aggregate finding counts broken out by severity. Named distinctly from\nDashboardSummaryQuery.Spec.Response.FindingCounts to avoid a generated\nclient type-name collision (that message keeps the shorter alias)."
+    },
     "ResponseTopProjects": {
       "type": "object",
       "properties": {
@@ -78617,6 +79320,92 @@
           "readOnly": true
         }
       }
+    },
+    "ResponseUpdateOption": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/ResponseUpdateOptionStatus",
+          "description": "Whether the impact for this update option could be computed.",
+          "readOnly": true
+        },
+        "name": {
+          "type": "string",
+          "description": "The candidate base image tag this option points to.",
+          "readOnly": true
+        },
+        "package_version_uuid": {
+          "type": "string",
+          "description": "The candidate base image PackageVersion UUID.",
+          "readOnly": true
+        },
+        "digest": {
+          "type": "string",
+          "description": "The candidate base image manifest digest.",
+          "readOnly": true
+        },
+        "all_reachability_counts": {
+          "$ref": "#/definitions/ResponseReachabilityCounts",
+          "description": "Reachability breakdown of ALL candidate-base findings (every finding\ntype). Populated only when Response.reachability_available is true.",
+          "readOnly": true
+        },
+        "vuln_reachability_counts": {
+          "$ref": "#/definitions/ResponseReachabilityCounts",
+          "description": "Reachability breakdown of candidate-base VULNERABILITY findings only.\nPopulated only when Response.reachability_available is true.",
+          "readOnly": true
+        },
+        "all_counts": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Severity counts of ALL candidate-base findings (every finding type).",
+          "readOnly": true
+        },
+        "vuln_counts": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Severity counts of candidate-base VULNERABILITY findings only.",
+          "readOnly": true
+        },
+        "all_reachability_changes": {
+          "$ref": "#/definitions/ResponseReachabilityCounts",
+          "description": "all_reachability_counts minus Response.all_reachability_counts.\nNegative values indicate fewer findings after the update (an\nimprovement). Populated only when Response.reachability_available is\ntrue and this option is STATUS_READY.",
+          "readOnly": true
+        },
+        "vuln_reachability_changes": {
+          "$ref": "#/definitions/ResponseReachabilityCounts",
+          "description": "vuln_reachability_counts minus Response.vuln_reachability_counts.\nPopulated only when Response.reachability_available is true and this\noption is STATUS_READY.",
+          "readOnly": true
+        },
+        "all_changes": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "all_counts minus Response.all_counts. Negative values indicate fewer\nfindings after the update. Unset when the candidate has not been\nscanned yet (this option is STATUS_PENDING).",
+          "readOnly": true
+        },
+        "vuln_changes": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "vuln_counts minus Response.vuln_counts. Unset when the candidate has\nnot been scanned yet (this option is STATUS_PENDING).",
+          "readOnly": true
+        },
+        "severity_records": {
+          "$ref": "#/definitions/UpdateOptionSeverityRecords",
+          "description": "Top changed findings (of request.record_scope) grouped by severity (the\nseverity view). Each bucket holds separate fixed and introduced lists,\neach ranked within the bucket and capped at\nrequest.max_top_records_per_bucket (default 10), plus per-list totals.\nThose totals reconcile with vuln_counts/vuln_changes when record_scope\nis VULNERABILITY and with all_counts/all_changes when it is ALL. The\nfull per-bucket list is served by\nContainerBaseImageUpdateImpactRecordsQueryService.",
+          "readOnly": true
+        },
+        "reachability_records": {
+          "$ref": "#/definitions/UpdateOptionReachabilityRecords",
+          "description": "Top changed findings (of request.record_scope) grouped by reachability\n(the reachability view). Same per-bucket fixed/introduced split,\ncapping, and totals as severity_records. Populated only when\nResponse.reachability_available is true.",
+          "readOnly": true
+        }
+      },
+      "description": "Impact of one base image update option."
+    },
+    "ResponseUpdateOptionStatus": {
+      "type": "string",
+      "enum": [
+        "STATUS_UNSPECIFIED",
+        "STATUS_READY",
+        "STATUS_PENDING"
+      ],
+      "default": "STATUS_UNSPECIFIED",
+      "description": "Availability of the impact for this update option.\n\n - STATUS_UNSPECIFIED: The status was not set.\n - STATUS_READY: The candidate base was resolved and its impact was computed.\n - STATUS_PENDING: The update option exists but its candidate PackageVersion has not\nbeen scanned yet, so its counts and records are not yet available."
     },
     "RootCveCVSSMetric": {
       "type": "object",
@@ -79340,8 +80129,7 @@
         "tenant_meta",
         "meta",
         "spec"
-      ],
-      "x-internal": true
+      ]
     },
     "ScanLogRequestServiceCreateScanLogRequestBody": {
       "type": "object",
@@ -80733,7 +81521,8 @@
         "AGENT_UNSPECIFIED",
         "AGENT_CURSOR",
         "AGENT_CLAUDE",
-        "AGENT_CODEX"
+        "AGENT_CODEX",
+        "AGENT_COPILOT"
       ],
       "default": "AGENT_UNSPECIFIED"
     },
@@ -81820,10 +82609,11 @@
         "JOB_TYPE_MCP_SCORING",
         "JOB_TYPE_SBOM_EXPORT",
         "JOB_TYPE_OBJECT_CLEANER",
-        "JOB_TYPE_VEX_EXPORT"
+        "JOB_TYPE_VEX_EXPORT",
+        "JOB_TYPE_AGENT_HOOK_EVENT_EXPORT"
       ],
       "default": "JOB_TYPE_UNSPECIFIED",
-      "description": "JobType is used to match the job to its handler.\nA new job type should be added when a new handler is added.\n\n - JOB_TYPE_SAMPLE: Sample job type.\n - JOB_TYPE_ANALYTICS_REPORT: Analytics report job type.\n - JOB_TYPE_LICENSE_REPORT: License report job type.\n - JOB_TYPE_FINDINGS_REPORT: Findings report job type.\n - JOB_TYPE_DEPENDENCIES_REPORT: Dependencies report job type.\n - JOB_TYPE_SKILL_SCORING: Skill scoring job type.\n - JOB_TYPE_CONTRIBUTOR_EXTRACTION: Contributor extraction job type. The handler iterates all projects\nunder the org/workspace/group identified by the job request and\nextracts contributor information per project.\n - JOB_TYPE_MCP_SCORING: MCP server scoring job type. Runs the riskevaluator pipeline\nagainst an MCP server inventory record and writes the evaluation\nto McpMeta.\n - JOB_TYPE_SBOM_EXPORT: SBOM export job type. Generates a CycloneDx or SPDX SBOM for a\nproject or set of package versions.\n - JOB_TYPE_OBJECT_CLEANER: Object cleaner job type.\n - JOB_TYPE_VEX_EXPORT: VEX export job type. Generates a CycloneDx VEX (Vulnerability\nExploitability eXchange) document for a project or set of package\nversions."
+      "description": "JobType is used to match the job to its handler.\nA new job type should be added when a new handler is added.\n\n - JOB_TYPE_SAMPLE: Sample job type.\n - JOB_TYPE_ANALYTICS_REPORT: Analytics report job type.\n - JOB_TYPE_LICENSE_REPORT: License report job type.\n - JOB_TYPE_FINDINGS_REPORT: Findings report job type.\n - JOB_TYPE_DEPENDENCIES_REPORT: Dependencies report job type.\n - JOB_TYPE_SKILL_SCORING: Skill scoring job type.\n - JOB_TYPE_CONTRIBUTOR_EXTRACTION: Contributor extraction job type. The handler iterates all projects\nunder the org/workspace/group identified by the job request and\nextracts contributor information per project.\n - JOB_TYPE_MCP_SCORING: MCP server scoring job type. Runs the riskevaluator pipeline\nagainst an MCP server inventory record and writes the evaluation\nto McpMeta.\n - JOB_TYPE_SBOM_EXPORT: SBOM export job type. Generates a CycloneDx or SPDX SBOM for a\nproject or set of package versions.\n - JOB_TYPE_OBJECT_CLEANER: Object cleaner job type.\n - JOB_TYPE_VEX_EXPORT: VEX export job type. Generates a CycloneDx VEX (Vulnerability\nExploitability eXchange) document for a project or set of package\nversions.\n - JOB_TYPE_AGENT_HOOK_EVENT_EXPORT: Agent hook event export job type. Streams AgentHookEvent telemetry\nmatching a time-bounded filter to a CSV file in object storage."
     },
     "SpecKEVRecord": {
       "type": "object",
@@ -84043,6 +84833,89 @@
         "spec"
       ]
     },
+    "UpdateOptionFindingRecordSet": {
+      "type": "object",
+      "properties": {
+        "fixed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1BaseImageFindingRecord"
+          },
+          "description": "Top findings fixed by the update (present on the current base, gone\non the candidate), capped at max_top_records_per_bucket. Rendered\nstruck through in the UI.",
+          "readOnly": true
+        },
+        "introduced": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1BaseImageFindingRecord"
+          },
+          "description": "Top findings introduced by the update (absent on the current base,\npresent on the candidate), capped at max_top_records_per_bucket.",
+          "readOnly": true
+        },
+        "fixed_num_results": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of fixed findings in this bucket (may exceed len(fixed)\nwhen capped); drives \"View more\" and the count shown by the UI.",
+          "readOnly": true
+        },
+        "introduced_num_results": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of introduced findings in this bucket (may exceed\nlen(introduced) when capped).",
+          "readOnly": true
+        }
+      },
+      "description": "One bucket's top changed findings (of the requested record_scope), with\nfixed and introduced kept as separate lists plus their full totals."
+    },
+    "UpdateOptionReachabilityRecords": {
+      "type": "object",
+      "properties": {
+        "reachable": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed findings on dependencies reachable in the app image.",
+          "readOnly": true
+        },
+        "potentially_reachable": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed findings on dependencies that may be reachable.",
+          "readOnly": true
+        },
+        "unreachable": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed findings on dependencies not reachable in the app image.",
+          "readOnly": true
+        }
+      },
+      "description": "Top changed findings for one update option, grouped by reachability."
+    },
+    "UpdateOptionSeverityRecords": {
+      "type": "object",
+      "properties": {
+        "critical": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed critical-severity findings.",
+          "readOnly": true
+        },
+        "high": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed high-severity findings.",
+          "readOnly": true
+        },
+        "medium": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed medium-severity findings.",
+          "readOnly": true
+        },
+        "low": {
+          "$ref": "#/definitions/UpdateOptionFindingRecordSet",
+          "description": "Changed low-severity findings.",
+          "readOnly": true
+        }
+      },
+      "description": "Top changed findings for one update option, grouped by severity."
+    },
     "UpgradeSummaryVulns": {
       "type": "object",
       "properties": {
@@ -86071,6 +86944,62 @@
         "title"
       ]
     },
+    "v1AISASTContext": {
+      "type": "object",
+      "properties": {
+        "segment": {
+          "$ref": "#/definitions/v1AISASTContextRegion",
+          "description": "The scanned segment that contains the finding's sink. Not always a whole\nfunction: a segment may also be a config-file region, a template block, a\nmodule preamble, or an entire non-code file. When it is a function, its\nlocation.function_name carries the fully qualified function name."
+        },
+        "dataflow": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AISASTContextRegion"
+          },
+          "description": "The finding's dataflow step regions, in order."
+        },
+        "callers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AISASTContextRegion"
+          },
+          "description": "Regions of functions that call into the scanned segment."
+        },
+        "callees": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AISASTContextRegion"
+          },
+          "description": "Regions of functions the scanned segment calls."
+        },
+        "fp_summary_hash": {
+          "type": "string",
+          "description": "SHA-256 hex of the project's false-positive context summary at scan time.\nA change here can flip the agent's verdict, so it participates in\nrefresh change detection alongside the code regions."
+        },
+        "hash": {
+          "type": "string",
+          "description": "Denormalized SHA-256 hex rollup over all component hashes (segment,\ndataflow, callers, callees, fp_summary_hash). Stored so findings can be\ngrouped or queried by context fingerprint."
+        }
+      },
+      "description": "The code context an AI SAST finding depends on, hashed at scan time, so a\nscheduled refresh can detect modified context by re-hashing these regions."
+    },
+    "v1AISASTContextRegion": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "$ref": "#/definitions/v1SourceLocation",
+          "description": "Where the hashed region lives. relative_path, start_line and end_line\ndelimit the hashed source. Regions are not always whole functions (e.g. a\ndataflow step); when the region is or sits inside a function,\nfunction_name carries its fully qualified name."
+        },
+        "content_hash": {
+          "type": "string",
+          "description": "SHA-256 hex hash of the region's source at scan time."
+        }
+      },
+      "description": "A source region whose content is hashed so a scheduled AI SAST refresh can\ndetect whether that region changed since the finding was last scanned."
+    },
     "v1AISASTScanCache": {
       "type": "object",
       "properties": {
@@ -86734,6 +87663,14 @@
         "session": {
           "$ref": "#/definitions/v1SessionActivity",
           "description": "Match sessions by posture predicates over SessionHook fields and\nthe captured AgentConfigSnapshot."
+        },
+        "malware_check": {
+          "$ref": "#/definitions/v1MalwareCheckActivity",
+          "description": "Check the packages in an install command against Endor's malware feed."
+        },
+        "secrets_check": {
+          "$ref": "#/definitions/v1SecretsCheckActivity",
+          "description": "Scan file content (write/edit proposed content, or a read) for secrets."
         }
       },
       "description": "Activity describes what kind of hook activity the policy applies to."
@@ -87000,6 +87937,14 @@
         "session": {
           "$ref": "#/definitions/v1SessionMatch",
           "description": "Session match (posture predicates over SessionHook + AgentConfigSnapshot)."
+        },
+        "malware": {
+          "$ref": "#/definitions/v1MalwareMatch",
+          "description": "Malware match (a package flagged by the malware check on an install)."
+        },
+        "secrets": {
+          "$ref": "#/definitions/v1SecretsMatch",
+          "description": "Secrets match (a secret detected in file content by the secrets check)."
         },
         "policy_matched": {
           "$ref": "#/definitions/v1AgentHookPolicy",
@@ -88863,6 +89808,61 @@
       },
       "description": "AzurePayload carries SCM-specific webhook data for an Azure DevOps-originated\nscan. Mirrors GitHubPayload so downstream components (e.g., AI SAST baseline\nlookup) can recover the originating PR number on merge-to-main webhook events\nwhere pull_request_id is intentionally blank."
     },
+    "v1BaseImageFindingRecord": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The finding UUID.",
+          "readOnly": true
+        },
+        "level": {
+          "$ref": "#/definitions/SpecFindingLevel",
+          "description": "Severity level of the finding.",
+          "readOnly": true
+        },
+        "finding_categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1FindingCategory"
+          },
+          "description": "Finding categories (e.g. FINDING_CATEGORY_VULNERABILITY).",
+          "readOnly": true
+        },
+        "target_dependency_package": {
+          "type": "string",
+          "description": "Fully qualified dependency package in \"ecosystem://package@version\" form.\nPopulated from the finding's spec.target_dependency_package_name when set,\notherwise from dependency_package_version_metadata.meta.name. Never the\nbare target_dependency_name.",
+          "readOnly": true
+        },
+        "vulnerability_id": {
+          "type": "string",
+          "description": "Preferred single vulnerability identifier for VULNERABILITY findings: the\nCVE ID when the advisory has one, otherwise the primary advisory ID (e.g. a\nGHSA). Empty for non-vulnerability findings. For the complete set of IDs use\nvulnerability_ids.",
+          "readOnly": true
+        },
+        "vulnerability_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "All identifiers for the advisory behind a VULNERABILITY finding: the primary\nadvisory ID (vulnerability.meta.name) first, followed by every alias\n(vulnerability.spec.aliases, e.g. CVE / GHSA cross-references), de-duplicated\nand order-preserving. Empty for non-vulnerability findings.",
+          "readOnly": true
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable finding text, copied from the finding's spec.summary\n(e.g. \"\u003cpkg\u003e has a \u003ctype\u003e vulnerability identified by \u003cid\u003e: \u003csummary\u003e. ...\").",
+          "readOnly": true
+        },
+        "finding_tags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1FindingTags"
+          },
+          "description": "Projected reachability of the finding's dependency in the app image.\nPopulated only when Response.reachability_available is true.",
+          "readOnly": true
+        }
+      },
+      "description": "BaseImageFindingRecord is a compact projection of one changed finding in the\nbase-image update impact record lists (the per-bucket fixed/introduced lists\nand the records drill-down page). Feature-local by design: it is intentionally\nNOT the shared FindingSummaryInfo, so the version-upgrade surface that consumes\nthat message is left untouched."
+    },
     "v1BatchDependencyMetadata": {
       "type": "object",
       "properties": {
@@ -90141,8 +91141,7 @@
       },
       "description": "Represents a configuration for the Conan package manager.",
       "required": [
-        "priority",
-        "url"
+        "priority"
       ]
     },
     "v1ConanSpecBasicAuth": {
@@ -90289,9 +91288,244 @@
         "update_options": {
           "$ref": "#/definitions/v1ContainerImageUpdateOptions",
           "description": "Base image update candidates for this app image."
+        },
+        "package_version_uuid": {
+          "type": "string",
+          "description": "The UUID of the base image's own PackageVersion, if it has been scanned.\nPopulated by the scanner from the in-memory base image lookup at scan\ntime; consumers that need this after the fact and find it unset may fall\nback to a digest-based PackageVersion lookup."
         }
       },
       "description": "The base image of a container Image."
+    },
+    "v1ContainerBaseImageUpdateImpactQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the query.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "The query is scoped to a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactQuerySpec",
+          "description": "Query specification."
+        }
+      },
+      "description": "ContainerBaseImageUpdateImpactQuery computes, on demand, how the vulnerability\nfindings of a scanned container image's base image would change if the base\nwere moved to each of its available update options (refreshed, next, latest).\nIt is a computed query in the style of DashboardSummaryQuery: the response is\nderived live from existing Finding and PackageVersion records and is never\npersisted, so it cannot go stale as findings are recomputed.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "v1ContainerBaseImageUpdateImpactQuerySpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactQuerySpecRequest",
+          "description": "The impact query request."
+        },
+        "response": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactQuerySpecResponse",
+          "description": "The impact query response."
+        }
+      },
+      "description": "Spec carries the request and the computed response."
+    },
+    "v1ContainerBaseImageUpdateImpactQuerySpecRequest": {
+      "type": "object",
+      "properties": {
+        "package_version_uuid": {
+          "type": "string",
+          "description": "The scanned application image PackageVersion whose\ncontainer_metadata.base_image.update_options define the candidates to\nassess. Its own findings supply the reachability that is projected onto\nthe base image findings, since candidate base scans do not measure\nreachability themselves."
+        },
+        "max_top_records_per_bucket": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Maximum number of top changed findings per list, in both the\nseverity_records and reachability_records groupings. Applied to each\nbucket's fixed and introduced lists separately (e.g. up to this many\nfixed and this many introduced criticals). Unset defaults to 10; set to 0\nto omit the inline lists (counts only, cheaper). Capped at 100; for a full\nper-bucket list use ContainerBaseImageUpdateImpactRecordsQueryService. A\nsingle-digit value is typical (cf. the dashboard's top-N of 8)."
+        },
+        "record_scope": {
+          "$ref": "#/definitions/v1FindingRecordScope",
+          "description": "Which finding types to include in the record-level fixed/introduced\nlists. Unset defaults to ALL (every finding type). Only affects the\nrecord lists (and the per-bucket *_num_results totals); the count fields\nare always computed for both all and vulnerability findings."
+        }
+      },
+      "description": "Inputs that select the app image and shape the computation.",
+      "required": [
+        "package_version_uuid"
+      ]
+    },
+    "v1ContainerBaseImageUpdateImpactQuerySpecResponse": {
+      "type": "object",
+      "properties": {
+        "base_image_name": {
+          "type": "string",
+          "description": "The current base image reference (tag), copied from the app image's\ncontainer_metadata.base_image.name.",
+          "readOnly": true
+        },
+        "base_image_digest": {
+          "type": "string",
+          "description": "The current base image manifest digest, copied from the app image's\ncontainer_metadata.base_image.digest.",
+          "readOnly": true
+        },
+        "reachability_available": {
+          "type": "boolean",
+          "description": "True when OS reachability analysis was enabled and succeeded on the app\nimage scan. When true, the *_reachability_counts fields (here and on each\nupdate option) are populated; when false they are left unset and only the\n*_counts severity breakdowns are returned.",
+          "readOnly": true
+        },
+        "all_reachability_counts": {
+          "$ref": "#/definitions/ResponseReachabilityCounts",
+          "description": "Reachability breakdown of ALL current-base findings (every finding type).\nPopulated only when reachability_available is true.",
+          "readOnly": true
+        },
+        "vuln_reachability_counts": {
+          "$ref": "#/definitions/ResponseReachabilityCounts",
+          "description": "Reachability breakdown of current-base VULNERABILITY findings only.\nPopulated only when reachability_available is true.",
+          "readOnly": true
+        },
+        "all_counts": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Severity counts of ALL current-base findings (every finding type). Always\npopulated: the baseline is derived from the app image's own base-layer\nfindings (see §7.1), so it is available whenever update options exist.",
+          "readOnly": true
+        },
+        "vuln_counts": {
+          "$ref": "#/definitions/ResponseSeverityCounts",
+          "description": "Severity counts of current-base VULNERABILITY findings only. Always\npopulated: the baseline is derived from the app image's own base-layer\nfindings (see §7.1), so it is available whenever update options exist.",
+          "readOnly": true
+        },
+        "refreshed_option": {
+          "$ref": "#/definitions/ResponseUpdateOption",
+          "description": "Impact of adopting the refreshed base (same tag, newer digest). Unset\nwhen the app image has no refreshed update option.",
+          "readOnly": true
+        },
+        "next_option": {
+          "$ref": "#/definitions/ResponseUpdateOption",
+          "description": "Impact of adopting the next base (the immediately newer tag by\nsemver/timestamp ordering). Unset when the app image has no next update\noption.",
+          "readOnly": true
+        },
+        "latest_option": {
+          "$ref": "#/definitions/ResponseUpdateOption",
+          "description": "Impact of adopting the latest base (newest available tag). Unset when\nthe app image has no latest update option.",
+          "readOnly": true
+        }
+      },
+      "description": "Computed results: shared current-base counts plus one entry per update\noption available on the app image."
+    },
+    "v1ContainerBaseImageUpdateImpactRecordsQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the query.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "The query is scoped to a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactRecordsQuerySpec",
+          "description": "Query specification."
+        }
+      },
+      "description": "ContainerBaseImageUpdateImpactRecordsQuery pages through the full fixed or\nintroduced finding list for a single update option and a single bucket (one\nseverity or one reachability bucket), using the standard ListParameters\npagination contract. It backs each per-bucket \"View more\" in the impact UI.\nThe impact query above returns only the top-N inline records per bucket; this\nquery is the drill-down for the complete per-bucket, per-kind set.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "v1ContainerBaseImageUpdateImpactRecordsQuerySeverity": {
+      "type": "string",
+      "enum": [
+        "SEVERITY_UNSPECIFIED",
+        "SEVERITY_CRITICAL",
+        "SEVERITY_HIGH",
+        "SEVERITY_MEDIUM",
+        "SEVERITY_LOW"
+      ],
+      "default": "SEVERITY_UNSPECIFIED",
+      "description": "A severity bucket to page (the severity view).\n\n - SEVERITY_UNSPECIFIED: The severity was not set.\n - SEVERITY_CRITICAL: Critical-severity findings.\n - SEVERITY_HIGH: High-severity findings.\n - SEVERITY_MEDIUM: Medium-severity findings.\n - SEVERITY_LOW: Low-severity findings."
+    },
+    "v1ContainerBaseImageUpdateImpactRecordsQuerySpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactRecordsQuerySpecRequest",
+          "description": "The records query request."
+        },
+        "response": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactRecordsQuerySpecResponse",
+          "description": "The records query response."
+        }
+      },
+      "description": "Spec carries the request and the computed page of records."
+    },
+    "v1ContainerBaseImageUpdateImpactRecordsQuerySpecRequest": {
+      "type": "object",
+      "properties": {
+        "package_version_uuid": {
+          "type": "string",
+          "description": "The scanned application image PackageVersion (same as the impact query)."
+        },
+        "update_option_kind": {
+          "$ref": "#/definitions/ContainerBaseImageUpdateImpactRecordsQueryUpdateOptionKind",
+          "description": "Which update option's diff to page through."
+        },
+        "severity": {
+          "$ref": "#/definitions/v1ContainerBaseImageUpdateImpactRecordsQuerySeverity",
+          "description": "Page a severity bucket (the severity view)."
+        },
+        "reachability": {
+          "$ref": "#/definitions/ContainerBaseImageUpdateImpactRecordsQueryReachabilityBucket",
+          "description": "Page a reachability bucket (the reachability view). Requires the app\nscan to have reachability available."
+        },
+        "record_kind": {
+          "$ref": "#/definitions/ContainerBaseImageUpdateImpactRecordsQueryRecordKind",
+          "description": "Which list to page: fixed or introduced (they are separate lists)."
+        },
+        "list_parameters": {
+          "$ref": "#/definitions/v1ListParameters",
+          "description": "Standard pagination parameters. page_token is a numeric offset into the\nfixed, total ordering (primary rank per the selected view, then a\ndeterministic tiebreaker of finding identity, dependency package name,\nfinding uuid); the handler computes the full ordered list and returns the\nslice [page_token, page_token+page_size). page_size defaults to 100, max\n500. filter/sort/group are ignored. next_page_token is page_token +\nlen(returned), unset on the last page."
+        },
+        "record_scope": {
+          "$ref": "#/definitions/v1FindingRecordScope",
+          "description": "Which finding types to page. Must match the record_scope used for the\ninline lists so the drill-down continues the same set. Unset defaults to\nALL."
+        }
+      },
+      "description": "Inputs that select the bucket and the page.",
+      "required": [
+        "package_version_uuid",
+        "update_option_kind",
+        "record_kind"
+      ]
+    },
+    "v1ContainerBaseImageUpdateImpactRecordsQuerySpecResponse": {
+      "type": "object",
+      "properties": {
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1BaseImageFindingRecord"
+          },
+          "description": "The findings for this page (all of the requested record_kind), with\nreachability projected from the app image (see §3).",
+          "readOnly": true
+        },
+        "page": {
+          "$ref": "#/definitions/v1ListResponse",
+          "description": "Pagination tokens for retrieving the next page.",
+          "readOnly": true
+        }
+      },
+      "description": "A single page of records."
     },
     "v1ContainerCompositionMetadata": {
       "type": "object",
@@ -91441,6 +92675,9 @@
         },
         "security_review_estimate": {
           "$ref": "#/definitions/DashboardConfigReviewTimeConfig"
+        },
+        "shift_left_estimate": {
+          "$ref": "#/definitions/DashboardConfigShiftLeftEstimateConfig"
         }
       }
     },
@@ -92326,6 +93563,10 @@
             "$ref": "#/definitions/SpecInstall"
           },
           "description": "Per-host install recipes."
+        },
+        "category": {
+          "type": "string",
+          "description": "Grouping label from the agent manifest, e.g. \"Remediation\" or \"Research \u0026 Investigate\"."
         }
       },
       "description": "Spec holds the agent's catalog details.",
@@ -93858,6 +95099,16 @@
         }
       },
       "description": "Details about the policy that created the finding."
+    },
+    "v1FindingRecordScope": {
+      "type": "string",
+      "enum": [
+        "FINDING_RECORD_SCOPE_UNSPECIFIED",
+        "FINDING_RECORD_SCOPE_ALL",
+        "FINDING_RECORD_SCOPE_VULNERABILITY"
+      ],
+      "default": "FINDING_RECORD_SCOPE_UNSPECIFIED",
+      "description": "Which finding types populate the record-level fixed/introduced lists. Shared\nby the impact query and the records drill-down query. The severity/reachability\nCOUNT fields are always computed both ways (all_counts and vuln_counts); this\nselects only which findings appear in the record lists and, correspondingly,\nwhich totals those record views reconcile against.\n\n - FINDING_RECORD_SCOPE_UNSPECIFIED: Unset; treated as FINDING_RECORD_SCOPE_ALL.\n - FINDING_RECORD_SCOPE_ALL: All finding types. Record views reconcile with all_counts / all_changes.\n - FINDING_RECORD_SCOPE_VULNERABILITY: Vulnerability findings only. Record views reconcile with vuln_counts /\nvuln_changes."
     },
     "v1FindingRemediation": {
       "type": "string",
@@ -99078,6 +100329,42 @@
       },
       "description": "List of malware detection workflows."
     },
+    "v1ListMalwareExposureResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/v1ListMalwareExposureResponseList",
+          "description": "List response containing a list of MalwareExposure objects."
+        },
+        "count_response": {
+          "$ref": "#/definitions/v1CountResponse",
+          "description": "Count response."
+        },
+        "group_response": {
+          "$ref": "#/definitions/v1GroupResponse",
+          "description": "Group response."
+        }
+      },
+      "description": "Response to the request to list MalwareExposure objects."
+    },
+    "v1ListMalwareExposureResponseList": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1MalwareExposure"
+          },
+          "description": "List of MalwareExposure objects."
+        },
+        "response": {
+          "$ref": "#/definitions/v1ListResponse",
+          "description": "Response metadata."
+        }
+      },
+      "description": "List response containing a list of MalwareExposure objects."
+    },
     "v1ListMalwareResponse": {
       "type": "object",
       "properties": {
@@ -100972,8 +102259,7 @@
           "description": "Group response."
         }
       },
-      "description": "Response returned for requests to list ScanCreditUsage records.",
-      "x-internal": true
+      "description": "Response returned for requests to list ScanCreditUsage records."
     },
     "v1ListScanCreditUsagesResponseList": {
       "type": "object",
@@ -101922,6 +103208,19 @@
       "default": "MALWARE_ASSESSMENT_SOURCE_UNSPECIFIED",
       "description": "MalwareAssessmentSource identifies the data source for an assessment."
     },
+    "v1MalwareCheckActivity": {
+      "type": "object",
+      "properties": {
+        "ecosystems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ecosystems to check (e.g. \"npm\", \"pypi\", \"cargo\"). Empty means all ecosystems."
+        }
+      },
+      "description": "MalwareCheckActivity runs Endor's malware lookup against the packages in a\npackage-install command (a cmd_line event). It carries no regex matchers:\nmatching the activity means running the check, and the block/allow verdict\ncomes from the malware feed (MALWARE-status, non-contested records), not from\nthe policy config."
+    },
     "v1MalwareDetectionAccountSignal": {
       "type": "object",
       "description": "MalwareDetectionAccountSignal fetches publisher account information from the registry."
@@ -101969,10 +103268,6 @@
           "type": "string",
           "description": "Package version."
         },
-        "workflow_name": {
-          "type": "string",
-          "description": "Name of the workflow to run."
-        },
         "status": {
           "$ref": "#/definitions/v1TaskStatus",
           "description": "Current status."
@@ -102012,13 +103307,16 @@
         "live_scan": {
           "type": "boolean",
           "description": "Whether this task is a live scan."
+        },
+        "workflow_uuid": {
+          "type": "string",
+          "description": "UUID of the workflow definition to run for this task."
         }
       },
       "required": [
         "ecosystem",
         "package_name",
-        "version",
-        "workflow_name"
+        "version"
       ]
     },
     "v1MalwareDetectionArtifactDownloadStatus": {
@@ -102948,6 +104246,51 @@
       },
       "description": "MalwareDetectionYaraSignal scans package files with YARA rules to identify malware patterns."
     },
+    "v1MalwareExposure": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "UUID of the MalwareExposure object.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Tenant data."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1MalwareExposureSpec",
+          "description": "Object specific data."
+        }
+      },
+      "description": "Namespace exposure for a given Malware package.\nThe presence of this object indicates that at least one project in the\nNamespace is, or was, potentially affected by the referenced Malware.\nIf all affected projects are in child namespaces, then there are no\nMalwareExposure objects in the parent namespace. Use traverse to\ninclude MalwareExposure objects from child namespaces.\nThe meta.name field contains the fully qualified package name of the\nMalware package. For example, \"npm://package-name\".",
+      "required": [
+        "meta",
+        "spec"
+      ]
+    },
+    "v1MalwareExposureSpec": {
+      "type": "object",
+      "properties": {
+        "malware_uuid": {
+          "type": "string",
+          "description": "UUID of the Malware object."
+        },
+        "ecosystem": {
+          "$ref": "#/definitions/v1Ecosystem",
+          "description": "Ecosystem of the Malware object."
+        }
+      },
+      "description": "Object specific data for MalwareExposure.",
+      "required": [
+        "malware_uuid",
+        "ecosystem"
+      ]
+    },
     "v1MalwareIOCAttribute": {
       "type": "object",
       "properties": {
@@ -102965,6 +104308,43 @@
         "type",
         "value"
       ]
+    },
+    "v1MalwareMatch": {
+      "type": "object",
+      "properties": {
+        "package_name": {
+          "type": "string",
+          "description": "Package name (e.g. \"reftest-helper-for-ae1x\")."
+        },
+        "version": {
+          "type": "string",
+          "description": "Version from the install command, when it was pinned; empty for an unpinned install."
+        },
+        "ecosystem": {
+          "type": "string",
+          "description": "Ecosystem the package belongs to (e.g. \"npm\", \"pypi\")."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable explanation of what fired."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Short title from the malware feed (e.g. \"Malicious code in \u003cpkg\u003e (npm)\")."
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Why the package is flagged — indicators reported by the malware feed."
+        },
+        "source": {
+          "type": "string",
+          "description": "Feed that flagged it, as the MalwareSource enum name (e.g. \"MALWARE_SOURCE_AMF\")."
+        }
+      },
+      "description": "MalwareMatch describes a package flagged by the malware check. The verdict\ncomes from a MALWARE-status, non-contested record in Endor's malware feed."
     },
     "v1MalwareSignalGroup": {
       "type": "object",
@@ -109153,6 +110533,10 @@
           "type": "string",
           "format": "date-time",
           "description": "The last known time when the repository version was updated."
+        },
+        "allow_ref_as_pr_scan_base": {
+          "type": "boolean",
+          "description": "Allows this monitored branch to be used as the base for automated PR scans when PR scans are enabled for the project."
         }
       }
     },
@@ -110381,8 +111765,7 @@
         "tenant_meta",
         "meta",
         "spec"
-      ],
-      "x-internal": true
+      ]
     },
     "v1ScanCreditUsageSpec": {
       "type": "object",
@@ -111906,6 +113289,79 @@
         }
       },
       "title": "Secret summary"
+    },
+    "v1SecretsCheckActivity": {
+      "type": "object",
+      "properties": {
+        "include_file_patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Only scan files whose path matches one of these regexes. Empty means all\nfiles the event covers."
+        },
+        "exclude_file_patterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Skip files whose path matches one of these regexes (e.g. test fixtures,\n\"*.example\" files, vendored dirs). Applied after include_file_patterns."
+        },
+        "include_rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Rule IDs whose findings this policy acts on, compared exactly and\ncase-sensitively against the rule id on each finding\n(SecretRule.spec.rule_id, e.g. \"aws-access-token\"). Empty means every rule in\nthe tenant's effective ruleset."
+        },
+        "exclude_rule_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Rule IDs whose findings this policy ignores. Matched as for\ninclude_rule_ids, and applied after it, so an id in both is ignored."
+        },
+        "file_operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1FileAccessActivityFileOperation"
+          },
+          "description": "File operations to scan. Empty means write and edit; scanning a read means\nreading the file from disk, so reads are opt-in."
+        }
+      },
+      "description": "SecretsCheckActivity runs Endor's secret detection over file content (the\nproposed content of a write/edit, or a file read scanned from disk). Matching\nthe activity means running the scan; the verdict comes from the findings, not\nfrom the policy config."
+    },
+    "v1SecretsMatch": {
+      "type": "object",
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "description": "Detection rule that fired (e.g. \"aws-access-token\", \"github-pat\")."
+        },
+        "line": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Line number in the scanned content where the secret was found."
+        },
+        "message": {
+          "type": "string",
+          "description": "Human-readable explanation of what fired."
+        },
+        "rule_description": {
+          "type": "string",
+          "description": "Friendly rule name (e.g. \"AWS Access Key\")."
+        },
+        "column": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Column in the scanned content where the secret starts."
+        },
+        "fingerprint": {
+          "type": "string",
+          "description": "Unique finding fingerprint, for dedup and cross-round false-positive suppression."
+        }
+      },
+      "description": "SecretsMatch describes a secret detected by the secrets check. It carries only\nthe rule and location, never the secret value, so a finding can be surfaced\nwithout leaking the credential."
     },
     "v1SecurityReviewFindingData": {
       "type": "object",
