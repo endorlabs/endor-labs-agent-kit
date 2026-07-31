@@ -9,7 +9,7 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
-## 2.2.0 - 2026-07-27
+## 2.2.0 - 2026-07-30
 
 ### Added
 
@@ -30,6 +30,9 @@ package metadata.
 - Projected complete package-level Claude Code, Codex, Cursor, and Antigravity
   installs into every public catalog agent. Each provider command installs the
   full Agent Kit, while incomplete package records fail closed and are omitted.
+- Added byte-identical catalog categories for the 11 canonical agents across
+  Remediation, Research & Investigate, Compliance, Troubleshooting, and
+  Incident Response so the Endor UI can group agents consistently.
 - Refreshed the public catalog descriptions for all 11 canonical agents to
   clarify scope, evidence, mutation boundaries, and approval requirements.
 - Renamed and consolidated the public catalog to 11 canonical agents. The new
@@ -43,7 +46,7 @@ package metadata.
   Automation, Malware Response Agent to Malware Responder, and the display name
   Endor Labs Vulnerability Explainer to Vulnerability Explainer.
 - Refreshed the pinned Endor OpenAPI and client/service provenance to
-  v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
+  v1.7.1085, retaining `ECOSYSTEM_VSCODE` registry coverage.
 - Enhanced `findings-browser` with compact complete-count queries and
   `FINDING_TAGS_*` filters for exploited, fix-available, and reachable findings.
 - Extended `malware-responder` to query tenant `FINDING_CATEGORY_MALWARE`
