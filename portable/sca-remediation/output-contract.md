@@ -5,8 +5,8 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 ## Safety And Transports
 
 - safety_class: `mutating`
-- required_transports: `endorctl_api`
-- endorctl_api_invocations: `resolve_project_from_repository`, `list_sca_findings`, `list_version_upgrade_recommendations`, `get_version_upgrade_details`, `get_finding_fixing_upgrades`, `inspect_dependency_metadata`
+- required_transports: `endorctl_agent_api`
+- endorctl_agent_api_invocations: `resolve_project_from_repository`, `list_sca_findings`, `list_version_upgrade_recommendations`, `get_version_upgrade_details`, `get_finding_fixing_upgrades`, `inspect_dependency_metadata`
 - required_endor_mcp_tools: `none`
 
 ## Inputs
@@ -20,21 +20,24 @@ This contract summarizes the structured inputs, outputs, runtime adapters, and o
 - `severity_filter` (list[string], optional): Optional Endor severity filter such as CRITICAL or HIGH. Natural-language P0 requests should map to critical/high reachable and fixable SCA findings.
 - `package_name` (string, optional): Optional package name to narrow remediation ranking after project resolution.
 - `finding_limit` (integer, optional): Maximum SCA findings to evaluate before ranking package-level remediations.
+- `task_state` (object, optional): Optional versioned, data-only workflow state supplied by a trusted runtime to resume the same workflow instance without re-deriving approved evidence. Never carries secrets or approvals.
 
 ## Outputs
 
 - `summary` (string, required): Human-readable remediation summary including ranked packages, selected fix, UIA evidence, validation status, PR/MR status, and data gaps.
 - `remediation_candidates` (list[object], required): Ranked package-level remediation candidates with findings fixed, reachability, exploitability, directness, affected manifests, and reason for rank.
 - `project_resolution` (object, required): Resolved Endor project and namespace evidence, including project_uuid, namespace, namespace_provenance, repo_full_name, and attempted selectors.
-- `evidence_queries` (list[object], required): Universal evidence ledger entries with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
-- `selected_remediation` (object, required): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, and why it was selected.
-- `uia_evidence` (list[object], required): VersionUpgrade/UIA records used for ranking, including risk, CIA status, findings fixed, findings introduced, score explanation, and breaking-change notes.
+- `execution_context` (object, required): Capability preflight with evidence_only or local_checkout mode, Endor authentication status, source-provider access, local-validation availability, and explicit limitations.
+- `evidence_queries` (list[object], required): One append-only ledger row per actual Endor API invocation, including failed, zero-result, retry, and fallback calls, with name, resource, source, status, query_template_id, filter_summary, field_mask_summary, result_count, and reason.
+- `selected_remediation` (object, required): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, Endor finding-instance count, distinct advisory count, fixed Finding UUIDs, and why it was selected.
+- `uia_evidence` (list[object], required): VersionUpgrade/UIA records used for ranking, including risk, CIA status, Endor finding instances fixed, distinct advisories fixed, fixed Finding UUIDs, findings introduced, score explanation, and breaking-change notes.
 - `risk_decision` (object, required): Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.
 - `patch_plan` (list[object], required): Files to edit, dependency-manager commands considered, companion source edits, branch/title/body draft, and explicit approval status.
 - `validation` (list[object], required): Local validation commands considered or run, status, output summary, and blockers.
 - `change_requests` (list[object], required): PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.
 - `tickets` (list[object], required): Ticket IDs, URLs, status, and failure reasons for requested ticket creation.
 - `data_gaps` (list[string], required): Missing Endor, UIA, source, dependency-manager, validation, or source-provider signals.
+- `task_state` (object, optional): Updated versioned, data-only workflow state for a trusted runtime to persist outside the target worktree; use null when no resumable state is available.
 - `policy_context` (object, required): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (list[object], required): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 

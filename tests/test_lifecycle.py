@@ -45,16 +45,38 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     agent = persisted["agents"][0]
     assert request == persisted
     assert persisted["kind"] == lifecycle.VALIDATION_REQUEST_KIND
-    assert persisted["source"]["package_version"] == "2.1.0"
+    assert persisted["source"]["package_version"] == "2.2.0"
     assert persisted["request"]["scope"] == "explicit"
     assert persisted["request"]["publishable"] is True
     assert agent["id"] == "sca-remediation"
     assert agent["recipe"] == "source/agents/sca-remediation/recipe.yaml"
     assert agent["structured_output_contract"]["id"] == "sca-remediation"
+    evidence_contract = agent["profile_contracts"]["evidence-check"]
+    assert evidence_contract["output_fields"] == [
+        "summary",
+        "project_resolution",
+        "execution_context",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    ]
+    assert evidence_contract["gate_validator"] == {
+        "id": "sca-remediation.read-only-profile",
+        "version": "1",
+    }
+    assert len(evidence_contract["contract_digest"]) == 64
+    evidence_plan = agent["evidence_plans"]["evidence-check"]
+    assert evidence_plan["execution"]["mode"] == "prompt_fallback"
+    assert evidence_plan["execution"]["prompt_recipes_exposed"] is True
+    assert evidence_plan["gate"]["expected_calls"] == 3
+    assert evidence_plan["gate"]["max_calls"] == 4
+    assert len(evidence_plan["provenance"]["plan_digest"]) == 64
     assert "selection-plan" in agent["task_profiles"]
     assert agent["default_task_profile"] == "selection-plan"
     assert agent["provider_targets"] == ["antigravity", "claude", "codex", "cursor", "gemini"]
     assert "plugin:antigravity" in agent["generated_targets"]
+    assert agent["coverage"]["evidence_plans"] == "present"
     assert str(repo_root()) not in output.read_text(encoding="utf-8")
 
 

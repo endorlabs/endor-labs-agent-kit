@@ -3,38 +3,79 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `2.1.0`. Merging to `main` does not
+The current generated package version is `2.2.0`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
-## Unreleased
+## 2.2.0 - 2026-07-30
 
 ### Added
 
+- Added the Codex Plugins Directory setup skill alongside all 11 workflow
+  skills, with explicit local `endorctl` authentication and secret-handling
+  guidance and no hosted MCP, connector, app, or plugin OAuth requirement.
 - Added customer-owned Agent Policy Packs with a public JSON Schema, template
   and examples, `validate-policy-pack` and `evaluate-policy-pack` CLI commands,
   trusted fact preflight, and generated policy outputs across all source agents.
 - Added an OpenAPI-derived Endor API resource and enum registry with a generator
   for validating source instructions, knowledge-pack query fields, and rendered
   `--field-mask` values.
+- Added host-specific recommended model defaults with explicit customer override
+  precedence across Claude, Codex, Gemini, Antigravity, Cursor, and portable hosts.
 
 ### Changed
 
+- Projected complete package-level Claude Code, Codex, Cursor, and Antigravity
+  installs into every public catalog agent. Each provider command installs the
+  full Agent Kit, while incomplete package records fail closed and are omitted.
+- Added byte-identical catalog categories for the 11 canonical agents across
+  Remediation, Research & Investigate, Compliance, Troubleshooting, and
+  Incident Response so the Endor UI can group agents consistently.
+- Refreshed the public catalog descriptions for all 11 canonical agents to
+  clarify scope, evidence, mutation boundaries, and approval requirements.
+- Renamed and consolidated the public catalog to 11 canonical agents. The new
+  catalog wire schema v2 carries `legacy_ids` for backend-compatible alias
+  resolution, and Dependency Reviewer now selects one bounded
+  `package-decision`, `package-risk`, or `repository-review` profile instead of
+  chaining three overlapping agents.
+- Renamed AI SAST Triage to AI SAST Remediation, Remediation Planner to
+  Remediation Planning, Upgrade Impact Analysis to OSS Upgrade Investigator,
+  Endor Troubleshooter to Troubleshooting, Probe Droid to Configuration
+  Automation, Malware Response Agent to Malware Responder, and the display name
+  Endor Labs Vulnerability Explainer to Vulnerability Explainer.
 - Refreshed the pinned Endor OpenAPI and client/service provenance to
-  v1.7.1069, including `ECOSYSTEM_VSCODE` registry coverage.
+  v1.7.1088, retaining `ECOSYSTEM_VSCODE` registry coverage and the expanded
+  Codex, Cursor, Gemini, and Antigravity install-host enum.
 - Enhanced `findings-browser` with compact complete-count queries and
   `FINDING_TAGS_*` filters for exploited, fix-available, and reachable findings.
-- Extended `malware-response` to query tenant `FINDING_CATEGORY_MALWARE`
+- Extended `malware-responder` to query tenant `FINDING_CATEGORY_MALWARE`
   evidence and distinguish Endor classifications from external intelligence.
 - Extended `cicd-posture` to prefer Endor-ingested repository, CODEOWNERS, and
   tag-protection evidence before falling back to the read-only GitHub API.
 - Prioritized exploited findings in `sca-remediation` before VersionUpgrade/UIA
   evidence selects an upgrade candidate.
+- Routed generated Endor API commands through `endorctl agent api` with canonical
+  agent identifiers so backend telemetry can attribute agent-originated calls.
+- Made exact-SHA QA and backend telemetry release evidence advisory in the
+  automated `ai-plugins` publication workflow while retaining strict manual
+  validation.
+- Added profile-aware execution bounds, compact evidence plans, and deterministic
+  artifact summaries that avoid returning complete large inventories to the model.
 
 ### Fixed
 
+- Removed stale mirror-root `manifest.json` files during `ai-plugins` sync so
+  Codex directory validation uses the exact source manifest pinned in mirror
+  provenance.
+- Defaulted interactive agent responses to human-readable Markdown while
+  preserving strict JSON for explicit machine-readable requests.
+- Aligned Antigravity manifests and install commands with the documented
+  `agy plugin` contract.
+- Removed unsupported metadata from Cursor marketplace plugin entries and added
+  a release gate that enforces Cursor's current `name`, `source`, and optional
+  `description` entry contract.
 - Made policy comparisons fail closed on invalid operand types, added trusted
   `invalid_facts` provenance, and introduced explicit numeric dotted-version
   operators instead of coercing version strings through generic comparisons.
@@ -62,7 +103,11 @@ package metadata.
   `project_resolution`, keeping package-level and workspace-independent agents
   out of project-resolution guidance.
 - Clarified generated data-gap taxonomy and findings-browser filter guidance so
-  unavailable evidence and QA-only defaults stay machine-readable.
+  unavailable evidence and bounded-run defaults stay machine-readable.
+- Hardened plugin hooks and disposable provider installations so all supported
+  hosts load the canonical generated agents without competing workflow skills.
+- Made SCA remediation inventory output deterministic across package, manifest,
+  finding, and proposed change-request fields.
 
 ## 2.1.0 - 2026-06-16
 

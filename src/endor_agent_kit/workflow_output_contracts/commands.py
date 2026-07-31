@@ -211,13 +211,13 @@ WORKFLOW_COMMANDS: tuple[WorkflowCommand, ...] = (
     ),
     WorkflowCommand(
         name="validate-ai-sast-output",
-        help="Validate structured ai-sast-triage output for a workflow gate",
+        help="Validate structured ai-sast-remediation output for a workflow gate",
         operation="validate",
         payload_loader=load_ai_sast_json_payload,
         validator=validate_ai_sast_gate_payload,
         gate_choices=("triage", "remediation", "pr", "exception"),
         default_gate="triage",
-        agent_id="ai-sast-triage",
+        agent_id="ai-sast-remediation",
         mutating_gates=("remediation", "pr", "exception"),
     ),
     WorkflowCommand(

@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import shutil
 
+import pytest
 import yaml
 
-from conftest import repo_root
+from conftest import CATALOG_AGGREGATE_PATHS, repo_root
 from endor_agent_kit.compilers import compile_claude_code
 from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.source_authoring import check_source_recipe_authoring
@@ -14,6 +15,7 @@ from host_artifact_bundle_contract import (
     assert_host_bundle_files,
     assert_mcp_free_generated_artifact,
     assert_no_nested_edition_dirs,
+    compiled_evidence_artifact_paths,
 )
 
 
@@ -33,7 +35,7 @@ def test_findings_browser_recipe_is_read_only_mcp_free_and_new_agent_ready(tmp_p
     assert report.ok
     assert data["id"] == "findings-browser"
     assert data["safety_class"] == "read_only"
-    assert data["supported_transports"] == ["endorctl_api"]
+    assert data["supported_transports"] == ["endorctl_agent_api"]
     assert data["required_endor_mcp_tools"] == []
     assert data["requires_endor_mcp"] == ""
     assert data["mutations"] == []
@@ -74,6 +76,7 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     header = artifact.split("---", 2)[1]
 
     assert "Findings Browser" in artifact
+    assert "Browses, filters, and summarizes existing Endor findings" in artifact
     assert "## Endor Knowledge Pack" in artifact
     assert "Findings Browser Evidence Contract" in artifact
     assert "finding-browser-filtered" in artifact
@@ -82,15 +85,32 @@ def test_findings_browser_compiled_artifact_carries_browse_contract(tmp_path):
     assert "finding_results" in artifact
     assert "pagination" in artifact
     assert "Do not use broad unfiltered `Finding --list-all` queries" in artifact
+    assert "Bounded, page, sample, and top-N requests set `completeness_required=false`" in artifact
+    assert "Never run an auxiliary `--list-all` query" in artifact
+    assert "Preserve explicit Endor qualifiers" in artifact
+    assert "Do not recast a qualified test record as a real malicious incident" in artifact
+    assert "Keep EPSS probability and percentile distinct" in artifact
+    assert "not evidence of active exploitation or near-certain exploitation" in artifact
+    assert "FINDING_TAGS_REACHABLE_FUNCTION or" in artifact
+    assert "Never issue a `page_size + 1`" in artifact
+    assert "Ledger every attempted Endor query" in artifact
+    assert "context.type==CONTEXT_TYPE_MAIN" in artifact
+    assert "PR, CI, or all-context evidence" in artifact
+    assert "Selection condition: `runtime.completeness_required`" in artifact
+    assert "For complete rows, use the recipe's exact minimal field mask" in artifact
+    assert "Validate count, shape, and hash once, then stop" in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "Endor MCP server" in artifact
     assert "Never run `endorctl scan`" in artifact
     assert "`--traverse` before reporting the" in artifact
+    assert "Invoke the installed `endorctl` binary directly" in artifact
+    assert "Never use `npx`, `npm exec`, `pnpm dlx`, or `yarn dlx`" in artifact
     assert "hook" not in header
     assert "disallowedTools: Bash" not in header
     assert_mcp_free_generated_artifact(artifact)
 
 
+@pytest.mark.publication
 def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
     recipe = _copy_agent(tmp_path)
     dest = tmp_path / "endor-labs-agent-kit"
@@ -100,6 +120,7 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
     written_paths = {path.relative_to(dest).as_posix() for path in written}
     assert written_paths == {
         "claude-code/findings-browser/findings-browser.md",
+        "claude-code/findings-browser/findings-browser-browse.md",
         "claude-code/findings-browser/README.md",
         "claude-code/findings-browser/architecture.svg",
         "claude-code/findings-browser/endorctl-setup.md",
@@ -124,10 +145,11 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
         "portable/findings-browser/output-contract.md",
         "portable/findings-browser/architecture.svg",
         "portable/findings-browser/endorctl-setup.md",
-        "manifest.json",
-        "README.md",
-        "catalog.json",
-    }
+    } | CATALOG_AGGREGATE_PATHS | compiled_evidence_artifact_paths(
+        "findings-browser",
+        evidence_plan_ids=("browse",),
+        profile_contract_ids=("resolve-scope", "browse", "exact-finding"),
+    )
 
     claude_dir = dest / "claude-code" / "findings-browser"
     managed_dir = dest / "claude-managed-agents" / "findings-browser"
@@ -135,7 +157,10 @@ def test_findings_browser_publish_writes_all_host_surfaces(tmp_path):
     gemini_dir = dest / "gemini" / "findings-browser"
     portable_dir = dest / "portable" / "findings-browser"
 
-    assert_host_bundle_files(claude_dir, {"findings-browser.md", "README.md", "architecture.svg", "endorctl-setup.md"})
+    assert_host_bundle_files(
+        claude_dir,
+        {"findings-browser.md", "findings-browser-browse.md", "README.md", "architecture.svg", "endorctl-setup.md"},
+    )
     assert_host_bundle_files(managed_dir, {"agent.yaml", "environment.yaml", "session-template.yaml", "README.md", "architecture.svg", "endorctl-setup.md"})
     assert_codex_skill_bundle(
         codex_dir,
@@ -168,6 +193,8 @@ def test_findings_browser_eval_cases_cover_browse_outcomes():
 
     case_ids = {case["id"] for case in evals["cases"]}
     assert case_ids == {
+        "bounded-exact-namespace-findings",
+        "complete-namespace-finding-counts",
         "critical-reachable-project-findings",
         "exact-finding-uuid-lookup",
         "exploited-finding-prioritization",
@@ -187,3 +214,12 @@ def test_findings_browser_eval_cases_cover_browse_outcomes():
     for case in evals["cases"]:
         assert case["expected"]["required_evidence"]
         assert isinstance(case["expected"]["data_gaps_allowed"], bool)
+
+    evidence_by_case = {
+        case["id"]: " ".join(case["expected"]["required_evidence"])
+        for case in evals["cases"]
+    }
+    assert "synthetic" in evidence_by_case["exact-finding-uuid-lookup"]
+    assert "EPSS probability and percentile distinct" in evidence_by_case[
+        "exploited-finding-prioritization"
+    ]

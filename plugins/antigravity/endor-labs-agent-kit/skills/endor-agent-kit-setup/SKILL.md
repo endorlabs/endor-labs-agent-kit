@@ -9,18 +9,16 @@ Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 
 ## Bundled Antigravity CLI Workflows
 
-- `Triage AI SAST findings` -> skill `ai-sast-triage`, subagent `@ai-sast-triage`
-- `Assess CI/CD and supply chain posture` -> skill `cicd-posture`, subagent `@cicd-posture`
-- `Dependency Decision Helper` -> skill `dependency-decision-helper`, subagent `@dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> skill `endor-troubleshooter`, subagent `@endor-troubleshooter`
-- `Browse existing Endor findings` -> skill `findings-browser`, subagent `@findings-browser`
-- `Malware Response` -> skill `malware-response`, subagent `@malware-response`
-- `Package Risk Summary` -> skill `package-risk-summary`, subagent `@package-risk-summary`
-- `Assess GitHub onboarding gaps` -> skill `probe-droid`, subagent `@probe-droid`
-- `Remediation Planner` -> skill `remediation-planner`, subagent `@remediation-planner`
-- `Repository Dependency Reviewer` -> skill `repository-dependency-reviewer`, subagent `@repository-dependency-reviewer`
-- `Find safe SCA remediation paths` -> skill `sca-remediation`, subagent `@sca-remediation`
-- `Upgrade Impact Analysis` -> skill `upgrade-impact-analysis`, subagent `@upgrade-impact-analysis`
+- `AI SAST Remediation` -> skill `ai-sast-remediation`, subagent `@ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> skill `cicd-posture`, subagent `@cicd-posture`
+- `Configuration Automation` -> skill `configuration-automation`, subagent `@configuration-automation`
+- `Dependency Reviewer` -> skill `dependency-reviewer`, subagent `@dependency-reviewer`
+- `Findings Browser` -> skill `findings-browser`, subagent `@findings-browser`
+- `Malware Responder` -> skill `malware-responder`, subagent `@malware-responder`
+- `OSS Upgrade Investigator` -> skill `oss-upgrade-investigator`, subagent `@oss-upgrade-investigator`
+- `Remediation Planning` -> skill `remediation-planning`, subagent `@remediation-planning`
+- `SCA Remediation` -> skill `sca-remediation`, subagent `@sca-remediation`
+- `Troubleshooting` -> skill `troubleshooting`, subagent `@troubleshooting`
 - `Vulnerability Explainer` -> skill `vulnerability-explainer`, subagent `@vulnerability-explainer`
 
 ## Antigravity CLI Plugin Commands
@@ -28,15 +26,15 @@ Generated for the Endor Labs Agent Kit Antigravity CLI plugin.
 Validate and install from the generated local plugin package:
 
 ```bash
-antigravity plugin validate /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
-antigravity plugin install /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
-antigravity plugin list
+agy plugin validate /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+agy plugin install /path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+agy plugin list
 ```
 
 Remove the plugin only after explicit user approval:
 
 ```bash
-antigravity plugin uninstall endor-labs-agent-kit
+agy plugin uninstall endor-labs-agent-kit
 ```
 
 Antigravity CLI is the consumer migration path for Gemini CLI. Keep Gemini
@@ -157,9 +155,11 @@ summarize the available tenant choices and ask the user before retrying.
 
 ## Endor MCP
 
-Prefer documented Endor API or `endorctl api` lookups for workflows that support
-them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
-the user explicitly asks for it.
+Require `endorctl agent api --help` to succeed for workflows that use Endor CLI
+API calls. Each selected workflow must pass its canonical recipe id through
+`--agent-id`; never fall back to the unattributed legacy API command. Configure
+Endor MCP only when a selected MCP-capable workflow needs it or the user
+explicitly asks for it.
 
 The distribution may include ready-to-use Endor MCP config snippets such as
 root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
@@ -181,8 +181,9 @@ When MCP setup is requested:
 
 Do not claim Endor MCP tools are available to a workflow until the host exposes
 them in the current session. If MCP tools are unavailable, continue with
-CLI-first workflows when they support `endorctl api`; otherwise record the
-missing MCP capability in `data_gaps`.
+CLI-first workflows when they support `endorctl agent api --agent-id
+<canonical-recipe-id>`; otherwise record the missing MCP capability in
+`data_gaps`.
 
 ## GitHub CLI
 
@@ -205,7 +206,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Antigravity-Specific Rules

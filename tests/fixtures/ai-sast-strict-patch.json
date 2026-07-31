@@ -1,0 +1,32 @@
+{
+  "finding_uuid": "finding-12345678",
+  "source_sha": "abc123",
+  "patch_diff": "--- a/src/example.py\n+++ b/src/example.py\n@@ -1,1 +1,1 @@\n-value = unsafe()\n+value = validate()\n",
+  "patch_reason": "Validate the value before use.",
+  "patch_summary": null,
+  "reason": null,
+  "remediation_guidance_used": "Applied the verified validation pattern.",
+  "remediation_guidance_rejected": null,
+  "exploit_reproduction_used": "Converted the reproduction into a safe regression case.",
+  "exploit_context": null,
+  "file_path": "src/example.py",
+  "branch_name": "remediation/ai-sast/example-finding-12345678",
+  "branch": null,
+  "proposed_branch": null,
+  "patch_confidence": 88,
+  "confidence": null,
+  "changed_files": [
+    "src/example.py"
+  ],
+  "modified_files": null,
+  "files": null,
+  "sibling_files_referenced": [],
+  "validation_plan": [
+    {
+      "command": "repository-derived targeted test",
+      "status": "planned",
+      "purpose": "Exercise the remediated path."
+    }
+  ],
+  "change_impact": null
+}

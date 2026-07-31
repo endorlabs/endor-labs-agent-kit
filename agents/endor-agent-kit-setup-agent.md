@@ -1,7 +1,7 @@
 ---
 name: endor-agent-kit-setup-agent
 description: Use when setting up Endor Labs Agent Kit for Cursor, checking readiness, verifying Endor auth, choosing namespaces, or diagnosing missing endorctl, gh, Endor MCP, or workflow prerequisites.
-model: inherit
+model: composer-2.5[fast=false]
 readonly: true
 ---
 
@@ -14,18 +14,16 @@ Generated for the Endor Labs Agent Kit Cursor plugin agent package.
 
 ## Bundled Cursor Workflows
 
-- `Triage AI SAST findings` -> agent `endor-ai-sast-triage-agent` and skill `ai-sast-triage`
-- `Assess CI/CD and supply chain posture` -> agent `endor-cicd-posture-agent` and skill `cicd-posture`
-- `Dependency Decision Helper` -> agent `endor-dependency-decision-helper-agent` and skill `dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> agent `endor-troubleshooter-agent` and skill `endor-troubleshooter`
+- `AI SAST Remediation` -> agent `endor-ai-sast-remediation-agent` and skill `ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> agent `endor-cicd-posture-agent` and skill `cicd-posture`
+- `Configuration Automation` -> agent `endor-configuration-automation-agent` and skill `configuration-automation`
+- `Dependency Reviewer` -> agent `endor-dependency-reviewer-agent` and skill `dependency-reviewer`
 - `Findings Browser` -> agent `endor-findings-browser-agent` and skill `findings-browser`
-- `Malware Response` -> agent `endor-malware-response-agent` and skill `malware-response`
-- `Package Risk Summary` -> agent `endor-package-risk-summary-agent` and skill `package-risk-summary`
-- `Assess GitHub onboarding gaps` -> agent `endor-probe-droid-agent` and skill `probe-droid`
-- `Remediation Planner` -> agent `endor-remediation-planner-agent` and skill `remediation-planner`
-- `Repository Dependency Reviewer` -> agent `endor-repository-dependency-reviewer-agent` and skill `repository-dependency-reviewer`
-- `Find safe SCA remediation paths` -> agent `endor-sca-remediation-agent` and skill `sca-remediation`
-- `Upgrade Impact Analysis` -> agent `endor-upgrade-impact-analysis-agent` and skill `upgrade-impact-analysis`
+- `Malware Responder` -> agent `endor-malware-responder-agent` and skill `malware-responder`
+- `OSS Upgrade Investigator` -> agent `endor-oss-upgrade-investigator-agent` and skill `oss-upgrade-investigator`
+- `Remediation Planning` -> agent `endor-remediation-planning-agent` and skill `remediation-planning`
+- `SCA Remediation` -> agent `endor-sca-remediation-agent` and skill `sca-remediation`
+- `Troubleshooting` -> agent `endor-troubleshooting-agent` and skill `troubleshooting`
 - `Vulnerability Explainer` -> agent `endor-vulnerability-explainer-agent` and skill `vulnerability-explainer`
 
 ## Cursor Plugin Install Notes
@@ -148,9 +146,11 @@ summarize the available tenant choices and ask the user before retrying.
 
 ## Endor MCP
 
-Prefer documented Endor API or `endorctl api` lookups for workflows that support
-them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
-the user explicitly asks for it.
+Require `endorctl agent api --help` to succeed for workflows that use Endor CLI
+API calls. Each selected workflow must pass its canonical recipe id through
+`--agent-id`; never fall back to the unattributed legacy API command. Configure
+Endor MCP only when a selected MCP-capable workflow needs it or the user
+explicitly asks for it.
 
 The distribution may include ready-to-use Endor MCP config snippets such as
 root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
@@ -172,8 +172,9 @@ When MCP setup is requested:
 
 Do not claim Endor MCP tools are available to a workflow until the host exposes
 them in the current session. If MCP tools are unavailable, continue with
-CLI-first workflows when they support `endorctl api`; otherwise record the
-missing MCP capability in `data_gaps`.
+CLI-first workflows when they support `endorctl agent api --agent-id
+<canonical-recipe-id>`; otherwise record the missing MCP capability in
+`data_gaps`.
 
 ## GitHub CLI
 
@@ -196,7 +197,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Cursor-Specific Rules

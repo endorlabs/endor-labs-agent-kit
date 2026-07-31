@@ -1,0 +1,177 @@
+schema_version: 1
+agent_id: remediation-planning
+plans:
+  - profile_id: selection-plan
+    safety_class: read_only
+    scope:
+      namespace_required: true
+      namespace_provenance_required: true
+    freshness:
+      max_age_seconds: 300
+    cache_identity:
+      - agent_id
+      - profile_id
+      - namespace
+      - repo_full_name
+      - source_digest
+    attribution:
+      required: true
+      agent_id: <agent-id>
+    execution:
+      mode: prompt_fallback
+      prompt_recipes_exposed: true
+      host_adapter_required: true
+    gate:
+      expected_calls: 3
+      max_calls: 5
+      stop_conditions:
+        - Stop after one worthwhile VersionUpgrade option is selected and its UIA/CIA detail supports the requested output or is precisely blocked.
+        - The expected call count describes the normal route, not a universal call ceiling; use only documented retries or evidence-gap branches.
+        - Do not enumerate broad Finding inventories, inspect source, edit files, or create change requests.
+      data_gaps_required: true
+    routes:
+      - id: default
+        condition: always
+        exclusive_group: selection-plan
+        expected_calls: 3
+        max_calls: 5
+        required_outputs:
+          - steps.project-by-git.project_uuid
+          - steps.version-upgrade-summary.candidates
+          - steps.version-upgrade-summary.best_candidate_uuid
+          - steps.version-upgrade-detail.selected_candidate
+    steps:
+      - id: project-by-git
+        recipe_id: project-by-git
+        canonical_recipe_id: project-by-git
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: scope
+        depends_on: []
+        max_calls: 2
+        pagination:
+          page_size: 2
+          max_pages: 1
+        retry:
+          eligible: true
+          max_attempts: 2
+          when: parent_namespace_empty_result
+          append_args:
+            - --traverse
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: repo_full_name
+            placeholder: owner/repo
+            source: runtime.repo_full_name
+            type: string
+        outputs:
+          - name: project_uuid
+            path: $.objects[0].uuid
+            type: string
+          - name: project_name
+            path: $.objects[0].meta.name
+            type: string
+          - name: git
+            path: $.objects[0].spec.git
+            type: object
+      - id: version-upgrade-summary
+        recipe_id: version-upgrade-summary
+        canonical_recipe_id: version-upgrade-summary
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: candidate-summary
+        depends_on:
+          - project-by-git
+        max_calls: 1
+        pagination:
+          page_size: 1
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+        outputs:
+          - name: candidates
+            path: $.objects
+            type: array
+          - name: best_candidate_uuid
+            path: $.objects[?(@.spec.upgrade_info.is_best==true)][0].uuid
+            type: string
+      - id: version-upgrade-detail
+        recipe_id: version-upgrade-detail
+        canonical_recipe_id: version-upgrade-detail
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: candidate-detail
+        depends_on:
+          - version-upgrade-summary
+        max_calls: 1
+        pagination:
+          page_size: 1
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+          - name: candidate_uuid
+            placeholder: VERSION_UPGRADE_UUID
+            source: steps.version-upgrade-summary.best_candidate_uuid
+            type: string
+        outputs:
+          - name: selected_candidate
+            path: $.objects[0]
+            type: object
+          - name: from_package_version_uuid
+            path: $.objects[0].spec.upgrade_info.from_pkg_version_uuid
+            type: string
+            required: false
+          - name: fixed_finding_evidence
+            path: $.objects[0].spec.upgrade_info.vuln_finding_info.fixed_findings
+            type: array
+            required: false
+      - id: selected-finding-detail
+        recipe_id: selected-finding-detail
+        canonical_recipe_id: selected-findings-by-package-version
+        operation: list
+        route_id: default
+        condition: steps.version-upgrade-detail.fixed_finding_evidence_missing
+        concurrency_group: selected-finding-evidence
+        depends_on:
+          - version-upgrade-detail
+        max_calls: 1
+        pagination:
+          page_size: 25
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+          - name: from_package_version_uuid
+            placeholder: FROM_PACKAGE_VERSION_UUID
+            source: steps.version-upgrade-detail.from_package_version_uuid
+            type: string
+        outputs:
+          - name: selected_findings
+            path: $.objects
+            type: array

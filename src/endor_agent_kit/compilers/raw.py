@@ -42,7 +42,7 @@ If the process environment and default config namespaces both exist and differ,
 surface both values with provenance and stop before scoped Endor lookups or
 Endor MCP calls. Ask the user which namespace to use for this workflow.
 
-After a namespace is selected, every scoped `endorctl api` lookup must pass it
+After a namespace is selected, every scoped `endorctl agent api --agent-id <agent-id>` lookup must pass it
 explicitly with `-n <namespace>` or `--namespace <namespace>`. Do not rely on
 bare `endorctl` namespace resolution.
 """
@@ -108,7 +108,10 @@ def _mcp_config(recipe: EndorAgentRecipe) -> str:
                 "mcpServers": {},
                 "required_tools": [],
                 "requires_endor_mcp": "",
-                "note": "This recipe does not require Endor MCP. Use the documented Endor API or endorctl paths instead.",
+                "note": (
+                    "This recipe does not require Endor MCP. Use only the documented "
+                    f"endorctl agent api --agent-id {recipe.id} path instead."
+                ),
             },
             indent=2,
             sort_keys=True,
@@ -128,8 +131,12 @@ def _mcp_config(recipe: EndorAgentRecipe) -> str:
 
 
 def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
-    invocations = "\n".join(f"- `{name}`" for name in recipe.endorctl_api_invocations) or "- none"
+    invocations = "\n".join(f"- `{name}`" for name in recipe.endorctl_agent_api_invocations) or "- none"
     posture = source_recipe_safety_posture(recipe)
+    agent_command = f"endorctl agent api --agent-id {recipe.id}"
+    namespace_guidance = ENDOR_NAMESPACE_SETUP_GUIDANCE.replace(
+        "<agent-id>", recipe.id
+    ).rstrip()
     if posture.is_mutating:
         agent_label = recipe.name if recipe.name.lower().endswith("agent") else f"{recipe.name} agent"
         subject = (
@@ -141,12 +148,17 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "# Runtime Setup",
             "",
             f"{subject} preserves a mutating workflow.",
-            "Use an authenticated Endor tenant plus local source-provider credentials",
+            "Use an authenticated Endor tenant for evidence gathering. A local target",
+            "checkout and source-provider credentials are separate capabilities required",
             "before allowing patch or change-request steps.",
             "",
             f"Required endorctl version: `{recipe.requires_endorctl or 'latest recommended'}`",
             "",
-            ENDOR_NAMESPACE_SETUP_GUIDANCE.rstrip(),
+            namespace_guidance,
+            "",
+            "Capability preflight: `endorctl agent api --help` must succeed.",
+            "Fail closed with a setup data gap if the command is unavailable; never",
+            "fall back to the unattributed legacy API command.",
             "",
             "The recipe documents these Endor lookup groups:",
             "",
@@ -159,12 +171,13 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
             "those mutations.",
             "",
         ]
-        if recipe.id == "ai-sast-triage":
+        if recipe.id == "ai-sast-remediation":
             lines.extend([
                 "For standalone exception policies, the agent must verify a GitHub/GitLab",
                 "approval artifact from a configured AppSec approver, render the Endor",
-                "policy spec, and get explicit confirmation before calling Endor API or",
-                "`endorctl api` to create the policy.",
+                "policy spec, and get explicit confirmation before using",
+                f"`{agent_command}` to create or update a Policy. Policy delete and",
+                "mutations of every other Endor resource are forbidden.",
             ])
         elif recipe.id == "sca-remediation":
             lines.extend([
@@ -173,14 +186,14 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
                 "before local file edits and before branch push or PR/MR creation.",
             ])
         return "\n".join(lines)
-    if not posture.uses_endorctl_api:
+    if not posture.uses_endor_api_transport:
         return "\n".join([
             "# endorctl Setup",
             "",
-            f"The {recipe.name} artifacts do not require read-only `endorctl api` lookups.",
+            f"The {recipe.name} artifacts do not require read-only `{agent_command}` lookups.",
             "Use the generated Claude Code subagent with Endor MCP access.",
             "",
-            ENDOR_NAMESPACE_SETUP_GUIDANCE.rstrip(),
+            namespace_guidance,
             "",
             "If a future edition adds tenant-aware Endor lookups, this file will document",
             "the exact read-only commands that are allowed.",
@@ -193,25 +206,22 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
     lines = [
         "# endorctl Setup",
         "",
-        f"{subject} uses read-only Endor lookups through `endorctl api`.",
+        f"{subject} uses read-only Endor lookups through `{agent_command}`.",
         "Install and authenticate `endorctl` before using this artifact.",
         "",
         f"Required version: `{recipe.requires_endorctl or 'latest recommended'}`",
         "",
-        ENDOR_NAMESPACE_SETUP_GUIDANCE.rstrip(),
+        namespace_guidance,
+        "",
+        "Capability preflight: `endorctl agent api --help` must succeed.",
+        "Fail closed with a setup data gap if the command is unavailable; never",
+        "fall back to the unattributed legacy API command.",
         "",
         "The recipe documents these read-only API invocation groups:",
         "",
         invocations,
         "",
     ]
-    if "query_similar_packages" in recipe.endorctl_api_invocations:
-        lines.extend([
-            "The only allowed `endorctl api create` call is the documented",
-            "QuerySimilarPackages query-service lookup; every other v0 command must",
-            "be a read-only list/get/query operation.",
-            "",
-        ])
     lines.extend([
         "If `endorctl` is missing,",
         "unauthenticated, or lacks access to a resource, the agent must record the",
@@ -219,10 +229,10 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         "gathered.",
     ])
     if _uses_github_evidence(recipe):
-        if recipe.id == "probe-droid":
+        if recipe.id == "configuration-automation":
             lines.extend([
                 "",
-                "Probe Droid also needs read-only GitHub.com inventory access when",
+                "Configuration Automation also needs read-only GitHub.com inventory access when",
                 "the user asks it to compare GitHub repositories with Endor projects.",
                 "GitHub commands must list repositories or fetch specific manifest,",
                 "CI, or Endor setup files only; they must not clone repositories or",
@@ -237,10 +247,10 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
                 "CI, or Endor setup files only; they must not clone repositories or",
                 "mutate GitHub settings.",
             ])
-    elif recipe.id == "endor-troubleshooter":
+    elif recipe.id == "troubleshooting":
         lines.extend([
             "",
-            "Endor Troubleshooter uses only read-only Endor lookups and redacted",
+            "Troubleshooting uses only read-only Endor lookups and redacted",
             "user-provided issue text. It must not run scans, create scan log",
             "requests, change credentials, edit scan profiles, update integrations,",
             "post comments, open PRs/MRs, or mutate Endor state. Any such step",

@@ -27,6 +27,12 @@ def _valid_netty_payload() -> dict:
             "upgrade_risk": "low",
             "cia_status": "indeterminate",
             "findings_fixed": 25,
+            "finding_instances_fixed": 25,
+            "unique_advisories_fixed": 2,
+            "fixed_finding_uuids": [
+                "6a60c9445beb5fb713450060",
+                "6a60c944ecffc5da2e6ab9ff",
+            ],
             "findings_introduced": 0,
             "conflicts": 0,
             "uia_uuid": "version-upgrade-fixture-001",
@@ -80,6 +86,12 @@ def _valid_netty_payload() -> dict:
                 "upgrade_risk": "low",
                 "cia_status": "indeterminate",
                 "findings_fixed": 25,
+                "finding_instances_fixed": 25,
+                "unique_advisories_fixed": 2,
+                "fixed_finding_uuids": [
+                    "6a60c9445beb5fb713450060",
+                    "6a60c944ecffc5da2e6ab9ff",
+                ],
                 "findings_introduced": 0,
             }
         ],
@@ -102,6 +114,31 @@ def _valid_netty_payload() -> dict:
                 "base_branch": "main",
                 "branch": "not_created",
                 "proposed_branch": "remediation/sca/netty-all-4.2.13.Final",
+                "inventory": {
+                    "status": "none_found",
+                    "lookup_method": "source provider branch and change-request inventory",
+                    "checked_at": "2026-07-20T12:00:00Z",
+                    "fresh_recheck": False,
+                    "key": {
+                        "repository": "example/webapp",
+                        "base_branch": "main",
+                        "ecosystem": "maven",
+                        "normalized_package": "io.netty-netty-all",
+                        "manifest": "services/api-gateway/pom.xml",
+                        "current_version": "4.1.42.Final",
+                        "target_version": "4.2.13.Final",
+                        "finding_set": [],
+                    },
+                    "candidates": [],
+                    "reconciliation": {
+                        "status": "not_needed",
+                        "reason": "No existing candidate found.",
+                        "selected_target_version": "4.2.13.Final",
+                        "uia_evidence_checked_at": "2026-07-20T12:00:00Z",
+                        "upstream_evidence_checked_at": "2026-07-20T12:00:00Z",
+                        "operator_choice_required": False,
+                    },
+                },
             }
         ],
         "policy_context": {
@@ -147,6 +184,167 @@ def test_sca_gate_validator_requires_namespace_provenance():
     errors = validate_sca_gate_payload(payload)
 
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
+
+
+def test_sca_selection_gate_accepts_profile_projected_plan_without_apply_fields():
+    payload = _valid_netty_payload()
+    payload.pop("patch_plan")
+    payload.pop("validation")
+
+    assert validate_sca_gate_payload(payload, gate="selection-plan") == []
+
+
+def test_sca_duplicate_inventory_allows_plan_but_fails_closed_before_pr_when_unavailable():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "unavailable"
+    inventory["reconciliation"]["status"] = "lookup_unavailable"
+
+    assert not any(
+        "fails closed before push/open" in error
+        for error in validate_sca_gate_payload(payload, gate="selection-plan")
+    )
+
+    payload["pr_body"] = render_sca_pr_body(payload)
+    errors = validate_sca_gate_payload(payload, gate="pr")
+    assert "change_requests[0].inventory: unavailable inventory fails closed before push/open" in errors
+
+
+def test_sca_duplicate_inventory_reuses_exact_duplicate_and_blocks_new_creation():
+    payload = _valid_netty_payload()
+    request = payload["change_requests"][0]
+    inventory = request["inventory"]
+    inventory["status"] = "exact_duplicate"
+    inventory["candidates"] = [
+        {
+            "author": "dependabot[bot]",
+            "author_type": "bot",
+            "branch": "remediation/sca/netty-all-4.2.13.Final",
+            "state": "open",
+            "files": ["services/api-gateway/pom.xml"],
+            "url": "https://example.invalid/pr/42",
+            "current_version": "4.1.42.Final",
+            "target_version": "4.2.13.Final",
+            "exact_duplicate": True,
+        }
+    ]
+    inventory["reconciliation"]["status"] = "reuse_existing"
+    request["status"] = "created"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+    assert "change_requests[0].inventory: exact duplicate must be reused or block creation" in errors
+
+
+def test_sca_duplicate_inventory_allows_unknown_versions_only_on_non_exact_overlap():
+    payload = _valid_netty_payload()
+    request = payload["change_requests"][0]
+    inventory = request["inventory"]
+    inventory["status"] = "exact_duplicate"
+    inventory["candidates"] = [
+        {
+            "author": "dependabot[bot]",
+            "author_type": "bot",
+            "branch": "remediation/sca/netty-all-4.2.13.Final",
+            "state": "open",
+            "files": ["services/api-gateway/pom.xml"],
+            "url": "https://example.invalid/pr/42",
+            "current_version": "4.1.42.Final",
+            "target_version": "4.2.13.Final",
+            "exact_duplicate": True,
+        },
+        {
+            "author": "renovate[bot]",
+            "author_type": "bot",
+            "branch": "renovate/other-manifest-change",
+            "state": "open",
+            "files": ["services/api-gateway/pom.xml"],
+            "url": "https://example.invalid/pr/43",
+            "current_version": None,
+            "target_version": None,
+            "exact_duplicate": False,
+        },
+    ]
+    inventory["reconciliation"]["status"] = "reuse_existing"
+    request["status"] = "not_created"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert not any("candidates[1]" in error for error in errors)
+
+    inventory["candidates"][0]["current_version"] = None
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+    assert (
+        "change_requests[0].inventory.candidates[0].current_version: required for exact duplicate"
+        in errors
+    )
+
+
+def test_sca_inventory_rejects_candidate_without_selected_manifest_overlap():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "exact_duplicate"
+    inventory["candidates"] = [
+        {
+            "author": "dependabot[bot]",
+            "author_type": "bot",
+            "branch": "remediation/sca/netty-all-4.2.13.Final",
+            "state": "open",
+            "files": ["services/api-gateway/pom.xml"],
+            "url": "https://example.invalid/pr/42",
+            "current_version": "4.1.42.Final",
+            "target_version": "4.2.13.Final",
+            "exact_duplicate": True,
+        },
+        {
+            "author": "security-team",
+            "author_type": "human",
+            "branch": "fix/unrelated-sast",
+            "state": "open",
+            "files": ["src/main/java/example/Controller.java"],
+            "url": "https://example.invalid/pr/99",
+            "current_version": None,
+            "target_version": None,
+            "exact_duplicate": False,
+        },
+    ]
+    inventory["reconciliation"]["status"] = "reuse_existing"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "change_requests[0].inventory.candidates[1].files: must overlap a selected remediation manifest"
+        in errors
+    )
+
+
+def test_sca_different_target_requires_fresh_reconciliation_or_operator_choice():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "different_target"
+    inventory["candidates"] = [
+        {
+            "author": "dependabot[bot]",
+            "author_type": "bot",
+            "branch": "dependabot/cryptography-49",
+            "state": "open",
+            "files": ["requirements.txt"],
+            "url": "https://example.invalid/pr/49",
+            "current_version": "47.0.0",
+            "target_version": "49.0.0",
+            "exact_duplicate": False,
+        }
+    ]
+    inventory["reconciliation"] = {
+        "status": "operator_choice_required",
+        "reason": "Agent selected 47.0.0 while the bot proposed 49.0.0.",
+        "selected_target_version": "4.2.13.Final",
+        "uia_evidence_checked_at": None,
+        "upstream_evidence_checked_at": None,
+        "operator_choice_required": True,
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+    assert "change_requests[0].inventory.reconciliation: unresolved target divergence requires operator choice" in errors
 
 
 def test_sca_gate_validator_rejects_approved_remediation_blocked_by_policy():
@@ -244,8 +442,95 @@ def test_sca_gate_validator_rejects_non_array_uia_evidence():
     assert "uia_evidence: must be an array" in errors
 
 
+def test_sca_gate_validator_rejects_non_array_validation():
+    payload = _valid_netty_payload()
+    payload["validation"] = {"status": "not_run"}
+
+    errors = validate_sca_gate_payload(payload)
+
+    assert "validation: must be an array" in errors
+
+
 def test_sca_gate_validator_accepts_deterministic_netty_gate_one_output():
     assert validate_sca_gate_payload(_valid_netty_payload()) == []
+
+
+def test_sca_selection_gate_requires_distinct_instance_and_advisory_counts():
+    payload = _valid_netty_payload()
+    payload["selected_remediation"].pop("unique_advisories_fixed")
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "selected_remediation.unique_advisories_fixed: required non-negative integer"
+        in errors
+    )
+
+
+def test_sca_selection_gate_rejects_count_or_uuid_drift_from_uia_evidence():
+    payload = _valid_netty_payload()
+    payload["uia_evidence"][0]["finding_instances_fixed"] = 26
+    payload["uia_evidence"][0]["fixed_finding_uuids"] = ["different-finding"]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert "uia_evidence[0].finding_instances_fixed: must match selected remediation" in errors
+    assert "uia_evidence[0].fixed_finding_uuids: must match selected remediation" in errors
+
+
+def test_sca_selection_gate_rejects_malformed_or_duplicate_fixed_uuid():
+    payload = _valid_netty_payload()
+    payload["selected_remediation"]["fixed_finding_uuids"][0] = "not-an-endor-uuid"
+    payload["uia_evidence"][0]["fixed_finding_uuids"][0] = "not-an-endor-uuid"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any("24 lowercase hexadecimal" in error for error in errors)
+
+    payload = _valid_netty_payload()
+    repeated = payload["selected_remediation"]["fixed_finding_uuids"][0]
+    payload["selected_remediation"]["fixed_finding_uuids"] = [repeated, repeated]
+    payload["uia_evidence"][0]["fixed_finding_uuids"] = [repeated, repeated]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert "selected_remediation.fixed_finding_uuids: UUIDs must be unique" in errors
+
+
+def test_sca_low_risk_approval_requires_successful_targeted_validation():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any("approved_low_risk requires successful targeted validation" in error for error in errors)
+
+    payload["validation"][0]["status"] = "passed"
+    assert validate_sca_gate_payload(payload, gate="selection-plan") == []
+
+
+def test_sca_inventory_status_matches_candidate_classification():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "different_target"
+    inventory["candidates"] = [
+        {
+            "author": "renovate[bot]",
+            "author_type": "bot",
+            "branch": "renovate/netty-all-4.2.13.Final",
+            "state": "open",
+            "files": ["services/api-gateway/pom.xml"],
+            "url": "https://example.invalid/pr/51",
+            "current_version": "4.1.42.Final",
+            "target_version": "4.2.13.Final",
+            "exact_duplicate": True,
+        }
+    ]
+    inventory["reconciliation"]["status"] = "resolved"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert "change_requests[0].inventory.status: exact matching candidate must use exact_duplicate" in errors
 
 
 def test_sca_gate_validator_accepts_unresolved_project_without_candidate():
@@ -264,7 +549,7 @@ def test_sca_gate_validator_accepts_unresolved_project_without_candidate():
             {
                 "name": "project-lookup-traverse-fallback",
                 "resource": "Project",
-                "source": "endorctl_api",
+                "source": "endorctl_agent_api",
                 "status": "succeeded",
                 "query_template_id": "project-by-repository",
                 "filter_summary": "namespace=auri with child namespace traversal",
@@ -308,10 +593,12 @@ def test_sca_gate_validator_ignores_runtime_base_branch_metadata():
 def test_sca_gate_validator_accepts_pr_e2e_change_request_branch_evidence():
     payload = _valid_netty_payload()
     payload["patch_plan"] = [{"file": "services/api-gateway/pom.xml"}]
+    inventory = payload["change_requests"][0]["inventory"]
     payload["change_requests"][0] = {
         "status": "reused",
         "base_branch": "main",
         "branch": "remediation/sca/netty-all-4.2.13.Final",
+        "inventory": inventory,
     }
 
     assert validate_sca_gate_payload(payload) == []

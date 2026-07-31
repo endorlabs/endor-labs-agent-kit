@@ -41,6 +41,7 @@ from endor_agent_kit.policy_pack import (
     validate_policy_pack_data,
     validate_policy_pack_file,
 )
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.portable_runtime_conformance import adapter_response_conformance_errors
 from endor_agent_kit.provenance import build_provenance_statement, verify_catalog_provenance
 from endor_agent_kit.publisher import publish_recipes
@@ -193,6 +194,10 @@ def main(argv: list[str] | None = None) -> int:
         required=True,
         choices=known_structured_agent_ids(),
     )
+    structured_output_schema_parser.add_argument(
+        "--task-profile",
+        help="Project the logical schema to one source-defined task profile",
+    )
 
     verify_provenance_parser = subparsers.add_parser(
         "verify-provenance",
@@ -259,6 +264,11 @@ def main(argv: list[str] | None = None) -> int:
         help="Print the SLSA-style in-toto provenance statement for the catalog",
     )
     provenance_statement_parser.add_argument("--catalog-root", default=Path("."), type=Path)
+    provenance_statement_parser.add_argument(
+        "--output",
+        type=Path,
+        help="Write the deterministic statement to a file instead of stdout.",
+    )
 
     add_workflow_command_parsers(subparsers)
 
@@ -464,7 +474,16 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "structured-output-schema":
-        print(json.dumps(json_schema_for_agent(args.agent), indent=2, sort_keys=True))
+        output_fields = None
+        if args.task_profile:
+            try:
+                contract = compile_profile_contract(args.agent, args.task_profile)
+            except ValueError as exc:
+                print(f"ERROR: {exc}")
+                return 1
+            print(json.dumps(contract.provider_neutral_schema, indent=2))
+            return 0
+        print(json.dumps(json_schema_for_agent(args.agent, output_fields), indent=2))
         return 0
 
     if args.command == "verify-provenance":
@@ -533,7 +552,13 @@ def main(argv: list[str] | None = None) -> int:
         except (OSError, ValueError) as exc:
             print(f"ERROR: {exc}")
             return 1
-        print(json.dumps(statement, indent=2, sort_keys=True))
+        encoded = json.dumps(statement, indent=2, sort_keys=True) + "\n"
+        if args.output:
+            args.output.parent.mkdir(parents=True, exist_ok=True)
+            args.output.write_text(encoded, encoding="utf-8")
+            print(f"OK: {args.output}")
+        else:
+            print(encoded, end="")
         return 0
 
     workflow_result = run_workflow_command(args)
@@ -636,7 +661,8 @@ def _doctor_new_agent(recipe_path: Path) -> int:
     print(
         "git diff --exit-code -- README.md manifest.json .agents/plugins .claude-plugin "
         ".cursor-plugin agents assets claude-code claude-managed-agents codex cursor-sdk "
-        "gemini plugins portable skills"
+        "docs/model-recommendations.md gemini hooks model-recommendations.json plugins "
+        "portable skills"
     )
 
     if report.errors:

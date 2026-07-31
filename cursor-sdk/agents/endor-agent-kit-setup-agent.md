@@ -7,18 +7,16 @@ Generated for Cursor Python SDK automation.
 
 ## Bundled Cursor SDK Workflows
 
-- `Triage AI SAST findings` -> SDK agent `endor-ai-sast-triage-agent`
-- `Assess CI/CD and supply chain posture` -> SDK agent `endor-cicd-posture-agent`
-- `Dependency Decision Helper` -> SDK agent `endor-dependency-decision-helper-agent`
-- `Diagnose Endor setup and scan issues` -> SDK agent `endor-troubleshooter-agent`
+- `AI SAST Remediation` -> SDK agent `endor-ai-sast-remediation-agent`
+- `CI/CD And Supply Chain Posture` -> SDK agent `endor-cicd-posture-agent`
+- `Configuration Automation` -> SDK agent `endor-configuration-automation-agent`
+- `Dependency Reviewer` -> SDK agent `endor-dependency-reviewer-agent`
 - `Findings Browser` -> SDK agent `endor-findings-browser-agent`
-- `Malware Response` -> SDK agent `endor-malware-response-agent`
-- `Package Risk Summary` -> SDK agent `endor-package-risk-summary-agent`
-- `Assess GitHub onboarding gaps` -> SDK agent `endor-probe-droid-agent`
-- `Remediation Planner` -> SDK agent `endor-remediation-planner-agent`
-- `Repository Dependency Reviewer` -> SDK agent `endor-repository-dependency-reviewer-agent`
-- `Find safe SCA remediation paths` -> SDK agent `endor-sca-remediation-agent`
-- `Upgrade Impact Analysis` -> SDK agent `endor-upgrade-impact-analysis-agent`
+- `Malware Responder` -> SDK agent `endor-malware-responder-agent`
+- `OSS Upgrade Investigator` -> SDK agent `endor-oss-upgrade-investigator-agent`
+- `Remediation Planning` -> SDK agent `endor-remediation-planning-agent`
+- `SCA Remediation` -> SDK agent `endor-sca-remediation-agent`
+- `Troubleshooting` -> SDK agent `endor-troubleshooting-agent`
 - `Vulnerability Explainer` -> SDK agent `endor-vulnerability-explainer-agent`
 
 ## Cursor SDK Host Contract
@@ -143,9 +141,11 @@ summarize the available tenant choices and ask the user before retrying.
 
 ## Endor MCP
 
-Prefer documented Endor API or `endorctl api` lookups for workflows that support
-them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
-the user explicitly asks for it.
+Require `endorctl agent api --help` to succeed for workflows that use Endor CLI
+API calls. Each selected workflow must pass its canonical recipe id through
+`--agent-id`; never fall back to the unattributed legacy API command. Configure
+Endor MCP only when a selected MCP-capable workflow needs it or the user
+explicitly asks for it.
 
 The distribution may include ready-to-use Endor MCP config snippets such as
 root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
@@ -167,8 +167,9 @@ When MCP setup is requested:
 
 Do not claim Endor MCP tools are available to a workflow until the host exposes
 them in the current session. If MCP tools are unavailable, continue with
-CLI-first workflows when they support `endorctl api`; otherwise record the
-missing MCP capability in `data_gaps`.
+CLI-first workflows when they support `endorctl agent api --agent-id
+<canonical-recipe-id>`; otherwise record the missing MCP capability in
+`data_gaps`.
 
 ## GitHub CLI
 
@@ -191,7 +192,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Cursor SDK-Specific Rules

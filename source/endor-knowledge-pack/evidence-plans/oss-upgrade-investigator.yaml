@@ -1,0 +1,153 @@
+schema_version: 1
+agent_id: oss-upgrade-investigator
+plans:
+  - profile_id: evidence-check
+    safety_class: read_only
+    scope:
+      namespace_required: true
+      namespace_provenance_required: true
+    freshness:
+      max_age_seconds: 300
+    cache_identity:
+      - agent_id
+      - profile_id
+      - namespace
+      - repo_full_name
+      - package_name
+      - current_version
+      - target_version
+      - source_digest
+    attribution:
+      required: true
+      agent_id: <agent-id>
+    execution:
+      mode: prompt_fallback
+      prompt_recipes_exposed: true
+      host_adapter_required: true
+    gate:
+      expected_calls: 3
+      max_calls: 4
+      stop_conditions:
+        - Stop after one exact compact VersionUpgrade candidate and its selected detail are known or precisely blocked.
+        - Preserve an ecosystem-qualified runtime package name byte-for-byte for the first exact candidate lookup; only a zero-result response may enable one alternate-identifier retry.
+        - Do not fetch broad Finding inventories, inspect unrelated source, edit manifests, or create change requests.
+      data_gaps_required: true
+    routes:
+      - id: default
+        condition: always
+        exclusive_group: evidence-check
+        expected_calls: 3
+        max_calls: 4
+        required_outputs:
+          - steps.project-by-git.project_uuid
+          - steps.version-upgrade-by-package-exact.candidate_uuid
+          - steps.version-upgrade-detail-compact.selected_candidate
+    steps:
+      - id: project-by-git
+        recipe_id: project-by-git
+        canonical_recipe_id: project-by-git
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: scope
+        depends_on: []
+        max_calls: 2
+        pagination:
+          page_size: 2
+          max_pages: 1
+        retry:
+          eligible: true
+          max_attempts: 2
+          when: parent_namespace_empty_result
+          append_args:
+            - --traverse
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: repo_full_name
+            placeholder: owner/repo
+            source: runtime.repo_full_name
+            type: string
+        outputs:
+          - name: project_uuid
+            path: $.objects[0].uuid
+            type: string
+          - name: project_name
+            path: $.objects[0].meta.name
+            type: string
+          - name: git
+            path: $.objects[0].spec.git
+            type: object
+      - id: version-upgrade-by-package-exact
+        recipe_id: version-upgrade-by-package-exact
+        canonical_recipe_id: version-upgrade-by-package-exact
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: candidates
+        depends_on:
+          - project-by-git
+        max_calls: 1
+        pagination:
+          page_size: 1
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+          - name: package_name
+            placeholder: PACKAGE_NAME
+            source: runtime.package_name
+            type: string
+          - name: current_version
+            placeholder: CURRENT_VERSION
+            source: runtime.current_version
+            type: string
+          - name: target_version
+            placeholder: TARGET_VERSION
+            source: runtime.target_version
+            type: string
+        outputs:
+          - name: candidate_uuid
+            path: $.objects[0].uuid
+            type: string
+          - name: candidate_summary
+            path: $.objects[0]
+            type: object
+      - id: version-upgrade-detail-compact
+        recipe_id: version-upgrade-detail-compact
+        canonical_recipe_id: version-upgrade-detail-compact
+        operation: list
+        route_id: default
+        condition: always
+        concurrency_group: detail
+        depends_on:
+          - version-upgrade-by-package-exact
+        max_calls: 1
+        pagination:
+          page_size: 1
+          max_pages: 1
+        inputs:
+          - name: namespace
+            placeholder: namespace
+            source: runtime.namespace
+            type: string
+          - name: project_uuid
+            placeholder: PROJECT_UUID
+            source: steps.project-by-git.project_uuid
+            type: string
+          - name: candidate_uuid
+            placeholder: VERSION_UPGRADE_UUID
+            source: steps.version-upgrade-by-package-exact.candidate_uuid
+            type: string
+        outputs:
+          - name: selected_candidate
+            path: $.objects[0]
+            type: object

@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 from conftest import repo_root
 from endor_agent_kit.catalog_manifest import CatalogManifest
 from endor_agent_kit.cli import main
@@ -112,6 +114,53 @@ def test_check_install_detects_stale_repo_level_agent_from_manifest(tmp_path):
     ) == []
 
 
+def test_check_claude_code_install_requires_catalogued_profile_variants(tmp_path):
+    catalog = tmp_path / "catalog"
+    _write_catalog_manifest(
+        catalog,
+        extra_artifacts=[
+            {
+                "path": "claude-code/sca-remediation/sca-remediation-evidence-check.md",
+                "sha256": _sha256_text("profile-current"),
+                "bytes": len("profile-current"),
+                "profile_id": "evidence-check",
+            },
+            {
+                "path": "claude-code/sca-remediation/README.md",
+                "sha256": _sha256_text("readme"),
+                "bytes": len("readme"),
+            },
+        ],
+    )
+    installed_agent = tmp_path / "repo" / ".claude" / "agents"
+    installed_agent.mkdir(parents=True)
+    (installed_agent / "sca-remediation.md").write_text("current", encoding="utf-8")
+
+    missing = check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    )
+    assert any("sca-remediation-evidence-check.md" in error for error in missing)
+    assert not any("README.md" in error for error in missing)
+
+    profile = installed_agent / "sca-remediation-evidence-check.md"
+    profile.write_text("profile-old", encoding="utf-8")
+    stale = check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    )
+    assert any("sca-remediation-evidence-check.md" in error and "is stale" in error for error in stale)
+
+    profile.write_text("profile-current", encoding="utf-8")
+    assert check_claude_code_install(
+        "sca-remediation",
+        tmp_path / "repo",
+        catalog_root=catalog,
+    ) == []
+
+
 def test_catalog_manifest_lookup_returns_full_bundle_record(tmp_path):
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(
@@ -195,10 +244,10 @@ def test_check_codex_install_compares_manifest_bundle_artifacts(tmp_path):
         catalog_root=catalog,
     ) == []
 
-
+@pytest.mark.publication
 def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     recipes = [
-        _copy_agent_source(tmp_path / "troubleshooter", "endor-troubleshooter"),
+        _copy_agent_source(tmp_path / "troubleshooter", "troubleshooting"),
         _copy_agent_source(tmp_path / "sca", "sca-remediation"),
     ]
     dest = tmp_path / "endor-labs-agent-kit"
@@ -211,14 +260,25 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     )
     package_version = plugin_manifest["version"]
     generated_skill = (
-        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "skills" / "sca-remediation" / "SKILL.md"
+        dest
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "bundled-skills"
+        / "sca-remediation"
+        / "SKILL.md"
     ).read_text(encoding="utf-8")
     generated_agent = (
         dest / "plugins" / "codex" / "endor-labs-agent-kit" / "agents" / "endor-sca-remediation-agent.toml"
     ).read_text(encoding="utf-8")
+    generated_hook = (
+        dest / "plugins" / "codex" / "endor-labs-agent-kit" / "hooks" / "enforce-agent-api.sh"
+    ).read_text(encoding="utf-8")
     assert f"package `endor-labs-agent-kit` v{package_version}." in generated_skill
     assert '# endor_agent_kit_package_name = "endor-labs-agent-kit"' in generated_agent
     assert f'# endor_agent_kit_package_version = "{package_version}"' in generated_agent
+    assert "endorctl agent api --agent-id sca-remediation list -r Project" in generated_agent
+    assert "MISSING_AGENT_ID_MESSAGE" in generated_hook
     codex_home = tmp_path / "codex-home"
     skills_home = tmp_path / "agents-home" / "skills"
     stale_cache_manifest = (
@@ -279,6 +339,11 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert "agent:endor-agent-kit-setup-agent.toml: missing" in status.stdout
     assert "skill:sca-remediation: missing" in status.stdout
     assert "skill:endor-agent-kit-setup: missing" in status.stdout
+    assert "package-provenance: package=endor-labs-agent-kit" in status.stdout
+    assert "custom-agent-provenance:" in status.stdout
+    assert "workflow-skill-fallbacks: none" in status.stdout
+    assert "routing-readiness: not-ready custom-agent-status" in status.stdout
+    assert "fresh-task-boundary:" in status.stdout
     assert (
         "plugin-cache:plugins/cache/endor-agent-kit-local/endor-agent-kit-security-agents/0.1.0: "
         "stale-legacy-cache package=endor-agent-kit-security-agents version=0.1.0"
@@ -362,6 +427,24 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert (codex_home / "agents" / "endor-agent-kit-setup-agent.toml").is_file()
     assert not (skills_home / "sca-remediation" / "SKILL.md").exists()
 
+    agents_status = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--agents-only",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "routing-readiness: ready agents-only" in agents_status.stdout
+    assert "workflow-skill-fallbacks: none" in agents_status.stdout
+
     subprocess.run(
         [
             sys.executable,
@@ -382,6 +465,24 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     setup_skill = skills_home / "endor-agent-kit-setup" / "SKILL.md"
     assert skill.is_file()
     assert setup_skill.is_file()
+
+    fallback_status = subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--status",
+            "--agents-only",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert "workflow-skill-fallbacks: sca-remediation:current,troubleshooting:current" in fallback_status.stdout
+    assert "routing-readiness: warning competing-workflow-skills" in fallback_status.stdout
 
     skill.write_text(skill.read_text(encoding="utf-8") + "\nmanaged local edit\n", encoding="utf-8")
     refresh = subprocess.run(
@@ -427,29 +528,83 @@ def test_generated_codex_installer_manages_agents_and_skills(tmp_path):
     assert setup_skill.read_text(encoding="utf-8") == "# unmanaged user setup skill\n"
 
 
+@pytest.mark.publication
+def test_check_codex_install_accepts_generated_plugin_skill_install(tmp_path):
+    recipe = _copy_agent_source(tmp_path / "sca", "sca-remediation")
+    catalog = tmp_path / "endor-labs-agent-kit"
+    publish_recipes([recipe], catalog, include_plugins=True)
+    script = (
+        catalog
+        / "plugins"
+        / "codex"
+        / "endor-labs-agent-kit"
+        / "scripts"
+        / "install_codex_agents.py"
+    )
+    codex_home = tmp_path / "codex-home"
+    skills_home = tmp_path / "agents-home" / "skills"
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(script),
+            "--install",
+            "--skills-only",
+            "--yes",
+            "--codex-home",
+            str(codex_home),
+            "--skills-home",
+            str(skills_home),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+
+    assert check_codex_install(
+        "sca-remediation",
+        skills_home,
+        catalog_root=catalog,
+    ) == []
+
+    installed_skill = skills_home / "sca-remediation" / "SKILL.md"
+    installed_skill.write_text(
+        installed_skill.read_text(encoding="utf-8") + "\nlocal edit\n",
+        encoding="utf-8",
+    )
+    assert any(
+        "SKILL.md" in error and "is stale" in error
+        for error in check_codex_install(
+            "sca-remediation",
+            skills_home,
+            catalog_root=catalog,
+        )
+    )
+
+
 def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(tmp_path):
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(
         catalog,
-        agent_id="probe-droid",
+        agent_id="configuration-automation",
         host="claude-managed-agents",
-        bundle_path="managed-export/probe-droid",
+        bundle_path="managed-export/configuration-automation",
         primary_artifact_name="agent.yaml",
-        primary_artifact_path="managed-export/probe-droid/agent.yaml",
+        primary_artifact_path="managed-export/configuration-automation/agent.yaml",
         primary_content="agent",
         extra_artifacts=[
             {
-                "path": "managed-export/probe-droid/environment.yaml",
+                "path": "managed-export/configuration-automation/environment.yaml",
                 "sha256": _sha256_text("environment"),
                 "bytes": len("environment"),
             },
             {
-                "path": "managed-export/probe-droid/session-template.yaml",
+                "path": "managed-export/configuration-automation/session-template.yaml",
                 "sha256": _sha256_text("session"),
                 "bytes": len("session"),
             },
             {
-                "path": "managed-export/probe-droid/README.md",
+                "path": "managed-export/configuration-automation/README.md",
                 "sha256": _sha256_text("readme"),
                 "bytes": len("readme"),
             },
@@ -461,7 +616,7 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
     (managed_agent_dir / "agent.yaml").write_text("agent", encoding="utf-8")
 
     missing_errors = check_claude_managed_agents_install(
-        "probe-droid",
+        "configuration-automation",
         managed_agent_dir,
         catalog_root=catalog,
     )
@@ -474,7 +629,7 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
     (managed_agent_dir / "README.md").write_text("readme", encoding="utf-8")
 
     stale_errors = check_claude_managed_agents_install(
-        "probe-droid",
+        "configuration-automation",
         managed_agent_dir,
         catalog_root=catalog,
     )
@@ -482,7 +637,7 @@ def test_check_claude_managed_agents_install_compares_manifest_bundle_artifacts(
 
     (managed_agent_dir / "environment.yaml").write_text("environment", encoding="utf-8")
     assert check_claude_managed_agents_install(
-        "probe-droid",
+        "configuration-automation",
         managed_agent_dir,
         catalog_root=catalog,
     ) == []
@@ -562,21 +717,21 @@ def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_pa
     catalog = tmp_path / "catalog"
     _write_catalog_manifest(
         catalog,
-        agent_id="probe-droid",
+        agent_id="configuration-automation",
         host="claude-managed-agents",
-        bundle_path="claude-managed-agents/probe-droid",
+        bundle_path="claude-managed-agents/configuration-automation",
         primary_artifact_name="agent.yaml",
-        primary_artifact_path="claude-managed-agents/probe-droid/agent.yaml",
+        primary_artifact_path="claude-managed-agents/configuration-automation/agent.yaml",
         primary_content="agent",
         extra_artifacts=[
             {
-                "path": "claude-managed-agents/probe-droid/environment.yaml",
+                "path": "claude-managed-agents/configuration-automation/environment.yaml",
                 "sha256": _sha256_text("environment"),
                 "bytes": len("environment"),
             }
         ],
     )
-    managed_agent_dir = catalog / "claude-managed-agents" / "probe-droid"
+    managed_agent_dir = catalog / "claude-managed-agents" / "configuration-automation"
     managed_agent_dir.mkdir(parents=True)
     (managed_agent_dir / "agent.yaml").write_text("agent", encoding="utf-8")
     (managed_agent_dir / "environment.yaml").write_text("environment", encoding="utf-8")
@@ -586,7 +741,7 @@ def test_cli_check_install_supports_managed_agents_default_catalog_bundle(tmp_pa
         "--host",
         "claude-managed-agents",
         "--agent",
-        "probe-droid",
+        "configuration-automation",
         "--catalog-root",
         str(catalog),
     ]) == 0

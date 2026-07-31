@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import re
 from typing import Any
 
 
@@ -27,8 +28,36 @@ POLICY_OUTPUT_FIELDS = (
 )
 
 
+ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
+    ("configuration-automation", "onboarding_verdict"): (
+        "READY_TO_ONBOARD",
+        "PARTIAL_COVERAGE",
+        "NOT_ONBOARDED",
+        "INSUFFICIENT_DATA",
+    ),
+    ("dependency-reviewer", "profile"): (
+        "package-decision",
+        "package-risk",
+        "repository-review",
+    ),
+    ("dependency-reviewer", "verdict"): (
+        "SAFE",
+        "SAFE_WITH_CONDITIONS",
+        "NOT_RECOMMENDED",
+        "BLOCKED",
+    ),
+    ("dependency-reviewer", "risk_posture"): (
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL",
+        "UNKNOWN",
+    ),
+}
+
+
 _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] = {
-    "ai-sast-triage": (
+    "ai-sast-remediation": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("project_resolution", "object"),
         StructuredOutputField("evidence_queries", "list[object]"),
@@ -39,6 +68,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("exception_policies", "list[object]"),
         StructuredOutputField("tickets", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
+        StructuredOutputField("task_state", "object", required=False),
     ),
     "cicd-posture": (
         StructuredOutputField("posture_verdict", "enum"),
@@ -55,15 +85,23 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "dependency-decision-helper": (
-        StructuredOutputField("verdict", "enum"),
-        StructuredOutputField("conditions", "list[string]"),
-        StructuredOutputField("alternatives", "list[string]"),
+    "dependency-reviewer": (
+        StructuredOutputField("profile", "enum"),
+        StructuredOutputField("verdict", "enum", required=False),
+        StructuredOutputField("conditions", "list[string]", required=False),
+        StructuredOutputField("alternatives", "list[string]", required=False),
+        StructuredOutputField("risk_posture", "enum", required=False),
+        StructuredOutputField("manifests", "list[object]", required=False),
+        StructuredOutputField("dependencies_reviewed", "list[object]", required=False),
+        StructuredOutputField("findings", "list[object]", required=False),
+        StructuredOutputField("strengths", "list[string]", required=False),
+        StructuredOutputField("next_checks", "list[string]", required=False),
+        StructuredOutputField("recommended_actions", "list[string]", required=False),
         StructuredOutputField("summary", "string"),
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "endor-troubleshooter": (
+    "troubleshooting": (
         StructuredOutputField("troubleshooting_verdict", "enum"),
         StructuredOutputField("executive_summary", "object"),
         StructuredOutputField("intake_classification", "object"),
@@ -90,7 +128,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "malware-response": (
+    "malware-responder": (
         StructuredOutputField("incident_verdict", "enum"),
         StructuredOutputField("summary", "string"),
         StructuredOutputField("incident_intake", "object"),
@@ -107,22 +145,15 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "package-risk-summary": (
-        StructuredOutputField("risk_posture", "enum"),
-        StructuredOutputField("findings", "list[string]"),
-        StructuredOutputField("strengths", "list[string]"),
-        StructuredOutputField("next_checks", "list[string]"),
-        StructuredOutputField("summary", "string"),
-        StructuredOutputField("evidence_queries", "list[object]"),
-        StructuredOutputField("data_gaps", "list[string]"),
-    ),
-    "probe-droid": (
+    "configuration-automation": (
         StructuredOutputField("onboarding_verdict", "enum"),
         StructuredOutputField("executive_report", "object"),
         StructuredOutputField("report_scope", "object"),
         StructuredOutputField("coverage_summary", "object"),
         StructuredOutputField("github_inventory_summary", "object"),
         StructuredOutputField("github_app_coverage", "object"),
+        StructuredOutputField("issue_cohorts", "list[object]"),
+        StructuredOutputField("inventory_artifacts", "list[object]"),
         StructuredOutputField("not_onboarded_repositories", "list[object]"),
         StructuredOutputField("onboarded_repositories_with_gaps", "list[object]"),
         StructuredOutputField("onboarded_healthy_repositories", "list[object]"),
@@ -137,7 +168,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("data_gaps", "list[string]"),
         StructuredOutputField("future_scope", "list[string]"),
     ),
-    "remediation-planner": (
+    "remediation-planning": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("project_resolution", "object"),
         StructuredOutputField("evidence_queries", "list[object]"),
@@ -145,20 +176,11 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("selected_remediation", "object"),
         StructuredOutputField("data_gaps", "list[string]"),
     ),
-    "repository-dependency-reviewer": (
-        StructuredOutputField("risk_posture", "enum"),
-        StructuredOutputField("manifests", "list[object]"),
-        StructuredOutputField("dependencies_reviewed", "list[object]"),
-        StructuredOutputField("findings", "list[object]"),
-        StructuredOutputField("recommended_actions", "list[string]"),
-        StructuredOutputField("summary", "string"),
-        StructuredOutputField("evidence_queries", "list[object]"),
-        StructuredOutputField("data_gaps", "list[string]"),
-    ),
     "sca-remediation": (
         StructuredOutputField("summary", "string"),
         StructuredOutputField("remediation_candidates", "list[object]"),
         StructuredOutputField("project_resolution", "object"),
+        StructuredOutputField("execution_context", "object"),
         StructuredOutputField("evidence_queries", "list[object]"),
         StructuredOutputField("selected_remediation", "object"),
         StructuredOutputField("uia_evidence", "list[object]"),
@@ -168,8 +190,9 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("change_requests", "list[object]"),
         StructuredOutputField("tickets", "list[object]"),
         StructuredOutputField("data_gaps", "list[string]"),
+        StructuredOutputField("task_state", "object", required=False),
     ),
-    "upgrade-impact-analysis": (
+    "oss-upgrade-investigator": (
         StructuredOutputField("upgrade_recommendation", "enum"),
         StructuredOutputField("risk_delta", "enum"),
         StructuredOutputField("reasons", "list[string]"),
@@ -213,20 +236,32 @@ def known_structured_agent_ids() -> tuple[str, ...]:
     return tuple(sorted(STRUCTURED_OUTPUT_CONTRACTS))
 
 
-def required_fields_for(agent_id: str) -> tuple[str, ...]:
+def required_fields_for(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
     """Return required top-level output fields for an agent."""
 
-    return tuple(field.name for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()) if field.required)
+    return tuple(field.name for field in _contract_for_output_fields(agent_id, output_fields) if field.required)
 
 
-def json_schema_for_agent(agent_id: str) -> dict[str, Any]:
+def json_schema_for_agent(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None = None,
+    *,
+    profile_id: str | None = None,
+) -> dict[str, Any]:
     """Return a JSON Schema for the agent's final structured output."""
 
-    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
+    contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
         raise ValueError(f"unknown structured output contract: {agent_id}")
     properties = {
-        field.name: _json_schema_for_field(field)
+        field.name: _json_schema_for_field(
+            field,
+            agent_id=agent_id,
+            profile_id=profile_id,
+        )
         for field in contract
     }
     return {
@@ -234,17 +269,48 @@ def json_schema_for_agent(agent_id: str) -> dict[str, Any]:
         "title": f"Endor Agent Kit {agent_id} final output",
         "type": "object",
         "additionalProperties": False,
-        "required": list(properties),
+        "required": [field.name for field in contract if field.required],
         "properties": properties,
     }
 
 
-def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -> list[str]:
+def strict_transport_schema_for_agent(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None = None,
+    *,
+    profile_id: str | None = None,
+) -> dict[str, Any]:
+    """Return a strict-host schema with every logical property present.
+
+    Optional logical fields remain nullable, and
+    :func:`normalize_structured_output_payload` converts present-null values
+    back to omission before logical validation.
+    """
+
+    schema = json_schema_for_agent(
+        agent_id,
+        output_fields,
+        profile_id=profile_id,
+    )
+    schema["required"] = list(schema["properties"])
+    return schema
+
+
+def validate_structured_output_payload(
+    agent_id: str,
+    payload: dict[str, Any],
+    output_fields: tuple[str, ...] | None = None,
+) -> list[str]:
     """Validate top-level field presence and basic JSON value shapes."""
 
-    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id)
+    contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
         return []
+    payload = normalize_structured_output_payload(
+        agent_id,
+        payload,
+        preserve_null_fields=output_fields or (),
+    )
     errors: list[str] = []
     for field in contract:
         if field.name not in payload:
@@ -252,15 +318,101 @@ def validate_structured_output_payload(agent_id: str, payload: dict[str, Any]) -
                 errors.append(f"{field.name}: required")
             continue
         errors.extend(_kind_errors(field, payload[field.name]))
+        enum_values = ENUM_FIELD_VALUES.get((agent_id, field.name))
+        if (
+            enum_values is not None
+            and isinstance(payload[field.name], str)
+            and payload[field.name] not in enum_values
+        ):
+            errors.append(
+                f"{field.name}: must be one of {', '.join(enum_values)}"
+            )
     errors.extend(_evidence_query_ledger_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
 
 
-def _json_schema_for_field(field: StructuredOutputField) -> dict[str, Any]:
+def _contract_for_output_fields(
+    agent_id: str,
+    output_fields: tuple[str, ...] | None,
+) -> tuple[StructuredOutputField, ...]:
+    contract = STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ())
+    if output_fields is None:
+        return contract
+    fields_by_name = {field.name: field for field in contract}
+    unknown = tuple(name for name in output_fields if name not in fields_by_name)
+    if unknown:
+        raise ValueError(f"profile output contract references unknown fields: {', '.join(unknown)}")
+    return tuple(
+        StructuredOutputField(name, fields_by_name[name].kind, required=True)
+        for name in output_fields
+    )
+
+
+def normalize_structured_output_payload(
+    agent_id: str,
+    payload: dict[str, Any],
+    *,
+    preserve_null_fields: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Normalize strict present-null optional keys to legacy omitted-key form."""
+
+    normalized = dict(payload)
+    preserved = set(preserve_null_fields)
+    for field in STRUCTURED_OUTPUT_CONTRACTS.get(agent_id, ()):
+        if (
+            not field.required
+            and field.name not in preserved
+            and normalized.get(field.name) is None
+        ):
+            normalized.pop(field.name, None)
+    if agent_id == "ai-sast-remediation" and isinstance(normalized.get("patches"), list):
+        normalized["patches"] = [
+            _normalize_ai_sast_patch(item) if isinstance(item, dict) else item
+            for item in normalized["patches"]
+        ]
+    return normalized
+
+
+def _normalize_ai_sast_patch(patch: dict[str, Any]) -> dict[str, Any]:
+    normalized = dict(patch)
+    aliases = {
+        "branch_name": ("branch", "proposed_branch"),
+        "changed_files": ("modified_files", "files"),
+        "patch_confidence": ("confidence",),
+        "patch_reason": ("patch_summary", "reason"),
+        "exploit_reproduction_used": ("exploit_context",),
+    }
+    for canonical, candidates in aliases.items():
+        if normalized.get(canonical) is not None:
+            continue
+        for alias in candidates:
+            if normalized.get(alias) is not None:
+                normalized[canonical] = normalized[alias]
+                break
+    return normalized
+
+
+def _json_schema_for_field(
+    field: StructuredOutputField,
+    *,
+    agent_id: str,
+    profile_id: str | None,
+) -> dict[str, Any]:
     nullable = not field.required or field.kind == "object"
+    profile_override = PROFILE_FIELD_SCHEMA_OVERRIDES.get(
+        (agent_id, profile_id, field.name)
+    )
+    if profile_override is not None:
+        return _with_nullable(profile_override(), nullable=nullable)
     if field.name in FIELD_SCHEMA_OVERRIDES:
         return _with_nullable(FIELD_SCHEMA_OVERRIDES[field.name](), nullable=nullable)
+    enum_values = ENUM_FIELD_VALUES.get((agent_id, field.name))
+    if enum_values is not None:
+        return _with_nullable(
+            {"type": "string", "enum": list(enum_values)},
+            nullable=nullable,
+        )
     return _json_schema_for_kind(field.kind, nullable=nullable)
 
 
@@ -298,6 +450,9 @@ def _with_nullable(schema: dict[str, Any], *, nullable: bool) -> dict[str, Any]:
     schema_type = result.get("type")
     if isinstance(schema_type, str):
         result["type"] = [schema_type, "null"]
+    enum_values = result.get("enum")
+    if isinstance(enum_values, list) and None not in enum_values:
+        result["enum"] = [*enum_values, None]
     return result
 
 
@@ -320,6 +475,14 @@ def _nullable_integer() -> dict[str, Any]:
 
 def _nullable_boolean() -> dict[str, Any]:
     return {"type": ["boolean", "null"]}
+
+
+def _nullable_enum(values: tuple[str, ...]) -> dict[str, Any]:
+    return {"type": ["string", "null"], "enum": [*values, None]}
+
+
+def _required_string() -> dict[str, Any]:
+    return {"type": "string", "minLength": 1}
 
 
 def _nullable_object() -> dict[str, Any]:
@@ -478,6 +641,23 @@ def _project_resolution_schema() -> dict[str, Any]:
     )
 
 
+def _execution_context_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "mode": _nullable_enum(("evidence_only", "local_checkout")),
+            "endor_auth": _nullable_enum(("available", "unavailable", "unknown")),
+            "local_checkout": _nullable_boolean(),
+            "source_provider_access": _nullable_enum(
+                ("read_write", "read_only", "unavailable", "unknown")
+            ),
+            "local_validation": _nullable_enum(
+                ("available", "unavailable", "not_attempted", "unknown")
+            ),
+            "limitations": _nullable_string_array(),
+        }
+    )
+
+
 def _report_scope_schema() -> dict[str, Any]:
     return _strict_object_schema(
         {
@@ -506,6 +686,85 @@ def _report_scope_schema() -> dict[str, Any]:
             "sampling_basis": _nullable_string(),
             "coverage_limitations": _nullable_string_array(),
             "v1_exclusions": _nullable_string_array(),
+        }
+    )
+
+
+def _findings_browse_applied_filters_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "namespace": _nullable_string(),
+            "namespace_provenance": _nullable_string(),
+            "namespace_traversal": _nullable_string(),
+            "scope": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "repository": _nullable_string(),
+            "finding_categories": _nullable_string_array(),
+            "severity_levels": _nullable_string_array(),
+            "status_filter": _nullable_string(),
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "dependency_scope": _nullable_string(),
+            "reachability_filter": _nullable_string(),
+            "cve_or_ghsa": _nullable_string(),
+            "tag_filter": _nullable_string(),
+            "page_size": _nullable_integer(),
+            "completeness_required": _nullable_boolean(),
+        }
+    )
+
+
+def _findings_browse_severity_summary_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "count": _nullable_integer(),
+            "critical": _nullable_integer(),
+            "high": _nullable_integer(),
+            "medium": _nullable_integer(),
+            "low": _nullable_integer(),
+            "info": _nullable_integer(),
+            "status": _nullable_string(),
+            "summary": _nullable_string(),
+        }
+    )
+
+
+def _findings_browse_results_schema() -> dict[str, Any]:
+    row = _strict_object_schema(
+        {
+            "uuid": _nullable_string(),
+            "finding_uuid": _nullable_string(),
+            "name": _nullable_string(),
+            "title": _nullable_string(),
+            "level": _nullable_string(),
+            "severity": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "categories": _nullable_string_array(),
+            "finding_categories": _nullable_string_array(),
+            "finding_tags": _nullable_string_array(),
+            "target_dependency_package_name": _nullable_string(),
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "aliases": _nullable_string_array(),
+            "summary": _nullable_string(),
+        }
+    )
+    return {"type": "array", "items": row}
+
+
+def _findings_browse_pagination_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "page_size": _nullable_integer(),
+            "result_count": _nullable_integer(),
+            "returned_count": _nullable_integer(),
+            "has_next_page": _nullable_boolean(),
+            "next_page_token": _nullable_string(),
+            "next_page_id": _nullable_string(),
+            "status": _nullable_string(),
+            "summary": _nullable_string(),
+            "complete": _nullable_boolean(),
         }
     )
 
@@ -623,6 +882,9 @@ def _selected_remediation_schema() -> dict[str, Any]:
             "cia_status": _nullable_string(),
             "cia": _nullable_string(),
             "findings_fixed": _nullable_integer(),
+            "finding_instances_fixed": _nullable_integer(),
+            "unique_advisories_fixed": _nullable_integer(),
+            "fixed_finding_uuids": _nullable_string_array(),
             "findings_introduced": _nullable_integer(),
             "manifests": _nullable_string_array(),
             "affected_manifests": _nullable_string_array(),
@@ -649,7 +911,10 @@ def _evidence_queries_schema() -> dict[str, Any]:
             {
                 "name": _nullable_string(),
                 "resource": _nullable_string(),
-                "source": _nullable_string(),
+                "source": {
+                    "type": ["string", "null"],
+                    "enum": [*EVIDENCE_QUERY_SOURCE_VALUES, None],
+                },
                 "status": _nullable_string(),
                 "query_template_id": _nullable_string(),
                 "filter_summary": _nullable_string(),
@@ -675,12 +940,52 @@ def _uia_evidence_schema() -> dict[str, Any]:
                 "cia_status": _nullable_string(),
                 "findings_fixed": _nullable_integer(),
                 "total_findings_fixed": _nullable_integer(),
+                "finding_instances_fixed": _nullable_integer(),
+                "unique_advisories_fixed": _nullable_integer(),
+                "fixed_finding_uuids": _nullable_string_array(),
                 "findings_introduced": _nullable_integer(),
                 "total_findings_introduced": _nullable_integer(),
                 "fixed_findings": _nullable_string_array(),
                 "sample_fixed_findings": _nullable_string_array(),
                 "score_explanation": _nullable_string(),
                 "breaking_changes": _nullable_string_array(),
+            }
+        ),
+    }
+
+
+def _ai_sast_evidence_verdicts_schema() -> dict[str, Any]:
+    evidence_item = _strict_object_schema(
+        {
+            "label": _nullable_string(),
+            "location": _nullable_string(),
+            "url": _nullable_string(),
+            "snippet": _nullable_string(),
+            "note": _nullable_string(),
+        }
+    )
+    return {
+        "type": "array",
+        "items": _strict_object_schema(
+            {
+                "finding_uuid": _nullable_string(),
+                "finding_name": _nullable_string(),
+                "classification": _nullable_string(),
+                "severity": _nullable_string(),
+                "cwe": _nullable_string(),
+                "source_location": _nullable_string(),
+                "file_path": _nullable_string(),
+                "source_sha": _nullable_string(),
+                "source_ref": _nullable_string(),
+                "source_ref_provenance": _nullable_string(),
+                "sast_rule_id": _nullable_string(),
+                "data_flow_summary": _nullable_string(),
+                "scorecard_summary": _nullable_string(),
+                "exploit_reproduction_summary": _nullable_string(),
+                "remediation_guidance_summary": _nullable_string(),
+                "priority_rationale": _nullable_string(),
+                "result_count": _nullable_integer(),
+                "evidence": {"type": ["array", "null"], "items": evidence_item},
             }
         ),
     }
@@ -738,6 +1043,74 @@ def _validation_schema() -> dict[str, Any]:
     }
 
 
+def _patch_validation_plan_schema() -> dict[str, Any]:
+    return {
+        "type": ["array", "null"],
+        "items": _strict_object_schema(
+            {
+                "command": _nullable_string(),
+                "status": _nullable_string(),
+                "purpose": _nullable_string(),
+            }
+        ),
+    }
+
+
+def _change_impact_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "patch_digest": {
+                "type": ["string", "null"],
+                "pattern": "^[0-9a-f]{64}$",
+            },
+            "status": {
+                "type": ["string", "null"],
+                "enum": ["verified", "blocked", "unavailable", "not_applicable", None],
+            },
+            "searched_call_sites": _nullable_string_array(),
+            "factories": _nullable_string_array(),
+            "tests": _nullable_string_array(),
+            "framework_providers": _nullable_string_array(),
+            "config_keys": _nullable_string_array(),
+            "validation_evidence": _nullable_string_array(),
+        }
+    )
+
+
+def _patches_schema() -> dict[str, Any]:
+    nullable_strings = (
+        "finding_uuid",
+        "source_sha",
+        "patch_diff",
+        "patch_reason",
+        "patch_summary",
+        "reason",
+        "remediation_guidance_used",
+        "remediation_guidance_rejected",
+        "exploit_reproduction_used",
+        "exploit_context",
+        "file_path",
+        "branch_name",
+        "branch",
+        "proposed_branch",
+    )
+    nullable_arrays = (
+        "changed_files",
+        "modified_files",
+        "files",
+        "sibling_files_referenced",
+    )
+    properties = {name: _nullable_string() for name in nullable_strings}
+    properties.update({name: _nullable_integer() for name in ("patch_confidence", "confidence")})
+    properties.update({name: _nullable_string_array() for name in nullable_arrays})
+    properties["validation_plan"] = _patch_validation_plan_schema()
+    properties["change_impact"] = _with_nullable(_change_impact_schema(), nullable=True)
+    return {
+        "type": "array",
+        "items": _strict_object_schema(properties),
+    }
+
+
 def _change_requests_schema() -> dict[str, Any]:
     return {
         "type": "array",
@@ -750,8 +1123,135 @@ def _change_requests_schema() -> dict[str, Any]:
                 "body": _nullable_string(),
                 "url": _nullable_string(),
                 "reason": _nullable_string(),
+                "inventory": _with_nullable(_change_request_inventory_schema(), nullable=True),
             }
         ),
+    }
+
+
+def _change_request_inventory_schema() -> dict[str, Any]:
+    candidate = _strict_object_schema(
+        {
+            "author": _nullable_string(),
+            "author_type": _nullable_string(),
+            "branch": _nullable_string(),
+            "state": _nullable_string(),
+            "files": _nullable_string_array(),
+            "url": _nullable_string(),
+            "current_version": _nullable_string(),
+            "target_version": _nullable_string(),
+            "exact_duplicate": _nullable_boolean(),
+        }
+    )
+    key = _strict_object_schema(
+        {
+            "repository": _nullable_string(),
+            "base_branch": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "normalized_package": _nullable_string(),
+            "manifest": _nullable_string(),
+            "current_version": _nullable_string(),
+            "target_version": _nullable_string(),
+            "finding_set": _nullable_string_array(),
+        }
+    )
+    reconciliation = _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "reason": _nullable_string(),
+            "selected_target_version": _nullable_string(),
+            "uia_evidence_checked_at": _nullable_string(),
+            "upstream_evidence_checked_at": _nullable_string(),
+            "operator_choice_required": _nullable_boolean(),
+        }
+    )
+    return _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "lookup_method": _nullable_string(),
+            "checked_at": _nullable_string(),
+            "fresh_recheck": _nullable_boolean(),
+            "key": _with_nullable(key, nullable=True),
+            "candidates": {"type": ["array", "null"], "items": candidate},
+            "reconciliation": _with_nullable(reconciliation, nullable=True),
+        }
+    )
+
+
+def _selection_plan_change_requests_schema() -> dict[str, Any]:
+    """Require one semantically complete inventory at the SCA selection gate."""
+
+    candidate = _strict_object_schema(
+        {
+            "author": _required_string(),
+            "author_type": _required_string(),
+            "branch": _required_string(),
+            "state": _required_string(),
+            "files": {"type": "array", "items": {"type": "string"}},
+            "url": _required_string(),
+            "current_version": _nullable_string(),
+            "target_version": _nullable_string(),
+            "exact_duplicate": {"type": "boolean"},
+        }
+    )
+    key = _strict_object_schema(
+        {
+            "repository": _required_string(),
+            "base_branch": _required_string(),
+            "ecosystem": _required_string(),
+            "normalized_package": _required_string(),
+            "manifest": _required_string(),
+            "current_version": _required_string(),
+            "target_version": _required_string(),
+            "finding_set": {"type": "array", "items": {"type": "string"}},
+        }
+    )
+    reconciliation = _strict_object_schema(
+        {
+            "status": _required_string(),
+            "reason": _nullable_string(),
+            "selected_target_version": _nullable_string(),
+            "uia_evidence_checked_at": _nullable_string(),
+            "upstream_evidence_checked_at": _nullable_string(),
+            "operator_choice_required": _nullable_boolean(),
+        }
+    )
+    inventory = _strict_object_schema(
+        {
+            "status": {
+                "type": "string",
+                "enum": [
+                    "none_found",
+                    "exact_duplicate",
+                    "different_target",
+                    "unavailable",
+                ],
+            },
+            "lookup_method": _required_string(),
+            "checked_at": _required_string(),
+            "fresh_recheck": {"type": "boolean"},
+            "key": key,
+            "candidates": {"type": "array", "items": candidate},
+            "reconciliation": reconciliation,
+        }
+    )
+    request = _strict_object_schema(
+        {
+            "status": _nullable_string(),
+            "base_branch": _nullable_string(),
+            "proposed_branch": _nullable_string(),
+            "title": _nullable_string(),
+            "body": _nullable_string(),
+            "url": _nullable_string(),
+            "reason": _nullable_string(),
+            "inventory": inventory,
+        }
+    )
+    return {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 1,
+        "items": request,
     }
 
 
@@ -799,6 +1299,68 @@ def _policy_evaluations_schema() -> dict[str, Any]:
     }
 
 
+def _task_state_schema() -> dict[str, Any]:
+    return _strict_object_schema(
+        {
+            "schema_version": {"type": "string", "const": "1"},
+            "run_id": _nullable_string(),
+            "workflow_instance_id": _nullable_string(),
+            "workflow_intent_digest": _nullable_string(),
+            "phase": _nullable_string(),
+            "source_profile": _nullable_string(),
+            "target_profile": _nullable_string(),
+            "source_phase": _nullable_string(),
+            "target_phase": _nullable_string(),
+            "parent_state_digest": _nullable_string(),
+            "repository": _nullable_string(),
+            "namespace": _nullable_string(),
+            "head_fingerprint": _nullable_string(),
+            "diff_fingerprint": _nullable_string(),
+            "status": _nullable_string(),
+            "evidence": _nullable_object(),
+            "plan": _nullable_object(),
+            "validation": _nullable_object_array(),
+            "change_request_inventory": _nullable_object_array(),
+            "external_action_ids": _nullable_string_array(),
+            "data_gaps": _nullable_string_array(),
+        }
+    )
+
+
+PROFILE_FIELD_SCHEMA_OVERRIDES = {
+    (
+        "ai-sast-remediation",
+        "evidence-check",
+        "verdicts",
+    ): _ai_sast_evidence_verdicts_schema,
+    (
+        "sca-remediation",
+        "selection-plan",
+        "change_requests",
+    ): _selection_plan_change_requests_schema,
+    (
+        "findings-browser",
+        "browse",
+        "applied_filters",
+    ): _findings_browse_applied_filters_schema,
+    (
+        "findings-browser",
+        "browse",
+        "severity_summary",
+    ): _findings_browse_severity_summary_schema,
+    (
+        "findings-browser",
+        "browse",
+        "finding_results",
+    ): _findings_browse_results_schema,
+    (
+        "findings-browser",
+        "browse",
+        "pagination",
+    ): _findings_browse_pagination_schema,
+}
+
+
 FIELD_SCHEMA_OVERRIDES = {
     "executive_report": _executive_report_schema,
     "executive_summary": _executive_summary_schema,
@@ -808,6 +1370,7 @@ FIELD_SCHEMA_OVERRIDES = {
     "github_app_coverage": _github_app_coverage_schema,
     "support_escalation_packet": _support_escalation_packet_schema,
     "project_resolution": _project_resolution_schema,
+    "execution_context": _execution_context_schema,
     "report_scope": _report_scope_schema,
     "selected_remediation": _selected_remediation_schema,
     "selected_upgrade": _selected_remediation_schema,
@@ -819,12 +1382,14 @@ FIELD_SCHEMA_OVERRIDES = {
     "remediation_options": _remediation_candidates_schema,
     "upgrade_candidates": _remediation_candidates_schema,
     "patch_plan": _patch_plan_schema,
+    "patches": _patches_schema,
     "validation": _validation_schema,
     "validation_plan": _validation_schema,
     "change_requests": _change_requests_schema,
     "tickets": _tickets_schema,
     "policy_context": _policy_context_schema,
     "policy_evaluations": _policy_evaluations_schema,
+    "task_state": _task_state_schema,
 }
 
 
@@ -877,7 +1442,14 @@ EVIDENCE_QUERY_LEDGER_FIELDS = (
     "reason",
 )
 
-EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("resource", "status")
+EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS = ("name", "resource", "source", "status")
+EVIDENCE_QUERY_SOURCE_VALUES = (
+    "endorctl_agent_api",
+    "endor_mcp",
+    "local_repository",
+    "user_input",
+    "public_docs",
+)
 EVIDENCE_QUERY_GAP_STATUSES = (
     "blocked",
     "error",
@@ -885,6 +1457,20 @@ EVIDENCE_QUERY_GAP_STATUSES = (
     "lookup_unavailable",
     "no_results",
     "unavailable",
+)
+LARGE_RESULT_ARTIFACT_QUERY_IDS = frozenset(
+    {
+        "ai-sast-list",
+        "finding-browser-complete-counts",
+        "tenant-package-inventory",
+    }
+)
+EVIDENCE_QUERY_SUCCESS_STATUSES = frozenset(
+    {"completed", "confirmed", "ok", "success", "succeeded"}
+)
+ARTIFACT_METADATA_RE = re.compile(
+    r"artifact_ref=[^;\s]+;sha256=[0-9a-f]{64};"
+    r"format=[A-Za-z0-9._+-]+;bytes=[1-9][0-9]*"
 )
 
 
@@ -903,13 +1489,20 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
             if field not in EVIDENCE_QUERY_LEDGER_FIELDS:
                 has_unsupported_fields = True
                 errors.append(f"evidence_queries[{index}].{field}: unsupported ledger field")
-        if has_unsupported_fields:
-            for field in ("name", "source"):
-                if not _text(item.get(field)):
-                    errors.append(f"evidence_queries[{index}].{field}: required")
         for field in EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS:
             if not _text(item.get(field)):
-                errors.append(f"evidence_queries[{index}].{field}: must be a non-empty string")
+                suffix = (
+                    "required"
+                    if has_unsupported_fields and field in {"name", "source"}
+                    else "must be a non-empty string"
+                )
+                errors.append(f"evidence_queries[{index}].{field}: {suffix}")
+        source = _text(item.get("source"))
+        if source and source not in EVIDENCE_QUERY_SOURCE_VALUES:
+            errors.append(
+                f"evidence_queries[{index}].source: must be one of "
+                f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)}"
+            )
         for field in EVIDENCE_QUERY_LEDGER_FIELDS:
             if field == "result_count" or field not in item or item[field] is None:
                 continue
@@ -922,6 +1515,23 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
         if any(marker in status for marker in EVIDENCE_QUERY_GAP_STATUSES):
             if not _text(item.get("reason")) and not data_gaps:
                 errors.append(f"evidence_queries[{index}].reason: required for unavailable or failed evidence")
+        query_template_id = _text(item.get("query_template_id"))
+        filter_summary = _text(item.get("filter_summary")).lower()
+        list_all_delivery = "list-all" in filter_summary and not re.search(
+            r"list-all\s*(?:==|=|:)\s*false\b", filter_summary
+        )
+        if (
+            status in EVIDENCE_QUERY_SUCCESS_STATUSES
+            and (
+                query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
+                or list_all_delivery
+            )
+            and not ARTIFACT_METADATA_RE.search(_text(item.get("reason")))
+        ):
+            errors.append(
+                f"evidence_queries[{index}].reason: successful large-result route "
+                "requires artifact_ref, sha256, format, and bytes metadata"
+            )
     return errors
 
 

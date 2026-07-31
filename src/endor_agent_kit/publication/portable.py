@@ -12,7 +12,6 @@ from endor_agent_kit.compilers.portable import (
     portable_text,
     render_portable_actions_yaml,
 )
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.portable_runtime_conformance import PORTABLE_UNTRUSTED_CONTENT_RULE
 from endor_agent_kit.recipe import EndorAgentRecipe
@@ -39,7 +38,6 @@ class PortableHostAdapter:
     ) -> BundleRecord:
         """Publish one portable Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_portable_prepared(prepared)
 
         recipe_file = prepared.path
@@ -113,6 +111,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
         "`agent.md`: generated runtime-neutral agent instructions.",
         "`agent.manifest.json`: machine-readable runtime contract.",
         "`output-contract.md`: inputs, outputs, adapter contract summary, and workflow gates.",
+        "`runtime/summarize_endor_artifact.py`: deterministic large-result integrity summary helper.",
     ]
     if recipe.action_contracts_path:
         setup_files.append("`actions.yaml`: portable action contracts for adapter implementers.")
@@ -128,6 +127,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
     architecture = _portable_architecture_readme_section(recipe) if has_architecture else []
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="portable runtime",
         artifact_label="agent bundle",
         install_summary="Load `agent.md` and `agent.manifest.json` into your runtime and wire only the adapters your policy allows.",
@@ -173,7 +173,7 @@ def portable_readme(recipe: EndorAgentRecipe, *, has_architecture: bool = False)
             "",
             "| Portable action | Example runtime adapters |",
             "| --- | --- |",
-            "| `endor.query` | Endor API proxy, `endorctl api`, approved Endor MCP adapter |",
+            "| `endor.query` | `endorctl agent api --agent-id <canonical-recipe-id>`, approved Endor MCP adapter |",
             "| `source.change_request.create` | GitHub pull request, GitLab merge request, Bitbucket pull request, internal change workflow |",
             "| `ticket.create` | Jira issue, ServiceNow task, Linear issue, internal ticketing |",
             "| `approval.verify` | AppSec approval service, source-provider approval API, internal risk-acceptance workflow |",

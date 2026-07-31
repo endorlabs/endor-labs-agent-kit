@@ -59,6 +59,13 @@ _RESOURCE_RE = re.compile(r"(?:--resource|(?<![\w-])-r)[=\s]+([A-Z][A-Za-z0-9]*)
 _FIELD_MASK_RE = re.compile(
     r"--field-mask(?:=|\s+)(?:(?P<quote>[\"'])(?P<quoted>.+?)(?P=quote)|(?P<bare>\S+))"
 )
+_COUNT_RESPONSE_FIELDS = frozenset({"count"})
+_GROUP_RESPONSE_FIELDS = frozenset(
+    {
+        "group_response.groups",
+        "aggregation_count.count",
+    }
+)
 
 
 # --------------------------------------------------------------------------- #
@@ -268,15 +275,33 @@ def _collect_field_references(
         if re.search(r"(?:^|\.)resources\[\d+\]$", prefix):
             resource = value.get("name")
         field_values = value.get("fields")
+        response_envelope_fields = _query_response_envelope_fields(value.get("template"))
         if isinstance(resource, str) and isinstance(field_values, list):
             for index, field in enumerate(field_values):
-                if isinstance(field, str) and field.strip():
+                if (
+                    isinstance(field, str)
+                    and field.strip()
+                    and field.strip() not in response_envelope_fields
+                ):
                     fields.append((f"{prefix}.fields[{index}]", resource, field.strip()))
         for key, child in value.items():
             _collect_field_references(child, f"{prefix}.{key}", fields)
     elif isinstance(value, list):
         for index, child in enumerate(value):
             _collect_field_references(child, f"{prefix}[{index}]", fields)
+
+
+def _query_response_envelope_fields(template: Any) -> frozenset[str]:
+    """Return non-resource response fields introduced by a list query mode."""
+
+    if not isinstance(template, str):
+        return frozenset()
+    fields: set[str] = set()
+    if re.search(r"(?:^|\s)--count(?:\s|$)", template):
+        fields.update(_COUNT_RESPONSE_FIELDS)
+    if "--group-aggregation-paths" in template:
+        fields.update(_GROUP_RESPONSE_FIELDS)
+    return frozenset(fields)
 
 
 def field_mask_drift(

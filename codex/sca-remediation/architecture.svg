@@ -55,7 +55,7 @@
 
   <g transform="translate(40, 34)">
     <text x="0" y="26" font-size="25" font-weight="700" fill="#e5f6f7">SCA Remediation</text>
-    <text x="0" y="53" font-size="13" fill="#9fb4be">Natural-language SCA intake to UIA-backed P0 fixes, low-risk PR lanes, and deterministic risk decisions</text>
+    <text x="0" y="53" font-size="13" fill="#9fb4be">UIA-backed SCA plans with deterministic risk decisions that degrade safely when delivery is unavailable</text>
     <text x="0" y="75" font-size="11" fill="#7c93a0">MCP-free Codex skill. Mutations require explicit user approval and host evidence.</text>
   </g>
 
@@ -75,8 +75,8 @@
       <rect x="18" y="0" width="142" height="2" fill="url(#hairlineGreen)"/>
       <text x="18" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.4">RESOLVE</text>
       <text x="18" y="61" font-size="17" font-weight="700" fill="#e5f6f7">Project</text>
-      <text x="18" y="88" font-size="12" fill="#9fb4be">git remote first</text>
-      <text x="18" y="109" font-size="12" fill="#9fb4be">UUID fallback only</text>
+      <text x="18" y="88" font-size="12" fill="#9fb4be">checkout or selector</text>
+      <text x="18" y="109" font-size="12" fill="#9fb4be">capability preflight</text>
     </g>
     <line x1="446" y1="70" x2="494" y2="70" stroke="#00f078" stroke-width="1.4" marker-end="url(#arrowGreen)"/>
 
@@ -105,8 +105,8 @@
       <rect x="18" y="0" width="142" height="2" fill="url(#hairline)"/>
       <text x="18" y="34" font-size="11" font-weight="700" fill="#3fe1f3" letter-spacing="1.4">PR/MR</text>
       <text x="18" y="61" font-size="17" font-weight="700" fill="#e5f6f7">Approved Fix</text>
-      <text x="18" y="88" font-size="12" fill="#9fb4be">validated diff</text>
-      <text x="18" y="109" font-size="12" fill="#9fb4be">stable comment</text>
+      <text x="18" y="88" font-size="12" fill="#9fb4be">checkout + provider</text>
+      <text x="18" y="109" font-size="12" fill="#9fb4be">or evidence-only plan</text>
     </g>
   </g>
 
@@ -127,7 +127,7 @@
       <text x="24" y="34" font-size="11" font-weight="700" fill="#00f078" letter-spacing="1.5">RISK SOLVER</text>
       <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Deterministic Verdict</text>
       <text x="24" y="94" font-size="12" fill="#9fb4be">- indeterminate CIA triggers solver</text>
-      <text x="24" y="118" font-size="12" fill="#9fb4be">- inspect source usage and conflicts</text>
+      <text x="24" y="118" font-size="12" fill="#9fb4be">- source usage or explicit checkout gap</text>
       <text x="24" y="142" font-size="12" fill="#9fb4be">- approve, validate, block, or reject</text>
     </g>
 
@@ -136,7 +136,7 @@
       <rect x="24" y="0" width="302" height="2" fill="url(#hairlinePurple)"/>
       <text x="24" y="34" font-size="11" font-weight="700" fill="#9f69f7" letter-spacing="1.5">MUTATION GATE</text>
       <text x="24" y="64" font-size="18" font-weight="700" fill="#e5f6f7">Approval And Validation</text>
-      <text x="24" y="94" font-size="12" fill="#9fb4be">- show patch plan before editing files</text>
+      <text x="24" y="94" font-size="12" fill="#9fb4be">- require verified checkout before editing</text>
       <text x="24" y="118" font-size="12" fill="#9fb4be">- run ecosystem validation or record blocker</text>
       <text x="24" y="142" font-size="12" fill="#9fb4be">- ask again before branch push or PR/MR</text>
     </g>
@@ -146,6 +146,6 @@
     <rect width="1140" height="78" rx="12" fill="#071012" stroke="#17323a"/>
     <rect x="30" y="0" width="1080" height="2" fill="url(#hairlineGreen)"/>
     <text x="30" y="34" font-size="12" font-weight="700" fill="#00f078" letter-spacing="1.5">PUBLISHED CONTRACT</text>
-    <text x="30" y="58" font-size="13" fill="#cfe4e8">The public artifact is MCP-free and ecosystem-aware. It requires scoped UIA evidence, lane separation, risk_decision, validation, and explicit approval before PR/MR mutation.</text>
+    <text x="30" y="58" font-size="13" fill="#cfe4e8">The MCP-free artifact separates Endor auth, checkout, validation, provider write access, and risk_decision; missing delivery capabilities return an evidence-only plan.</text>
   </g>
 </svg>

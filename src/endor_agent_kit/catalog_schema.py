@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 import hashlib
 from pathlib import Path
-from typing import Any
+from typing import Any, Mapping
 
+from endor_agent_kit.evidence_plans import compile_evidence_plans
+from endor_agent_kit.knowledge_pack import default_knowledge_pack_root
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import EndorAgentRecipe
 
 MANIFEST_PATH = "manifest.json"
@@ -20,6 +23,7 @@ class CatalogArtifact:
     path: str
     sha256: str
     bytes: int | None = None
+    profile_id: str | None = None
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
     @classmethod
@@ -28,16 +32,24 @@ class CatalogArtifact:
 
         if not isinstance(record, dict):
             raise ValueError("manifest.json: expected artifact records to be objects")
-        extra_fields = _extra_fields(record, {"path", "sha256", "bytes"})
+        extra_fields = _extra_fields(record, {"path", "sha256", "bytes", "profile_id"})
         return cls(
             path=str(record.get("path") or ""),
             sha256=str(record.get("sha256") or ""),
             bytes=_optional_int(record.get("bytes"), "artifact bytes"),
+            profile_id=_optional_str(record.get("profile_id"), "artifact profile_id"),
             extra_fields=extra_fields,
         )
 
     @classmethod
-    def from_published_file(cls, destination: Path, path: Path) -> "CatalogArtifact":
+    def from_published_file(
+        cls,
+        destination: Path,
+        path: Path,
+        *,
+        profile_id: str | None = None,
+        extra_fields: Mapping[str, Any] | None = None,
+    ) -> "CatalogArtifact":
         """Return manifest metadata for one published artifact file."""
 
         data = path.read_bytes()
@@ -45,6 +57,8 @@ class CatalogArtifact:
             path=path.relative_to(destination).as_posix(),
             sha256=hashlib.sha256(data).hexdigest(),
             bytes=len(data),
+            profile_id=profile_id,
+            extra_fields=dict(extra_fields or {}),
         )
 
     @property
@@ -59,6 +73,8 @@ class CatalogArtifact:
         record["sha256"] = self.sha256
         if self.bytes is not None:
             record["bytes"] = self.bytes
+        if self.profile_id is not None:
+            record["profile_id"] = self.profile_id
         return record
 
 
@@ -120,10 +136,34 @@ class CatalogBundle:
         bundle_dir: Path,
         *,
         requires_endorctl: str = "",
+        artifact_profiles: Mapping[str, str] | None = None,
     ) -> "CatalogBundle":
         """Return manifest metadata for one published artifact bundle."""
 
         files = sorted(path for path in bundle_dir.rglob("*") if path.is_file())
+        profiles = artifact_profiles or {}
+        profile_metadata: dict[str, dict[str, Any]] = {}
+        evidence_plan_metadata: dict[str, dict[str, Any]] = {}
+        source_recipe = (
+            default_knowledge_pack_root().parent / "agents" / recipe.id / "recipe.yaml"
+        )
+        if source_recipe.is_file():
+            for profile_id in sorted(set(profiles.values())):
+                contract = compile_profile_contract(recipe.id, profile_id)
+                profile_metadata[profile_id] = {
+                    "profile_contract_digest": contract.contract_digest,
+                    "profile_gate_validator": {
+                        "id": contract.gate_validator_id,
+                        "version": contract.gate_validator_version,
+                    },
+                }
+            for plan in compile_evidence_plans(recipe.id):
+                evidence_plan_metadata[plan.profile_id] = {
+                    "evidence_plan_schema_version": plan.schema_version,
+                    "evidence_plan_digest": plan.plan_digest,
+                    "evidence_execution_mode": plan.execution_mode,
+                    "evidence_plan_executable": plan.execution_mode == "host_adapter",
+                }
         return cls(
             agent_id=recipe.id,
             agent_name=recipe.name,
@@ -132,7 +172,22 @@ class CatalogBundle:
             bundle_id=bundle_id,
             bundle_name=bundle_name,
             path=bundle_dir.relative_to(destination).as_posix(),
-            artifacts=tuple(CatalogArtifact.from_published_file(destination, path) for path in files),
+            artifacts=tuple(
+                CatalogArtifact.from_published_file(
+                    destination,
+                    path,
+                    profile_id=(profile_id := profiles.get(path.relative_to(destination).as_posix())),
+                    extra_fields={
+                        **profile_metadata.get(profile_id, {}),
+                        **(
+                            evidence_plan_metadata.get(profile_id, {})
+                            if path.parent.name == "evidence-plans"
+                            else {}
+                        ),
+                    },
+                )
+                for path in files
+            ),
             requires_endorctl=requires_endorctl,
             include_requires_endorctl=True,
         )
@@ -214,10 +269,12 @@ class CatalogAgent:
     name: str = ""
     version: str = ""
     audience: str = ""
+    category: str = ""
     short_description: str = ""
     description: str = ""
     authors: tuple[str, ...] = ()
     requires_endorctl: str = ""
+    legacy_ids: tuple[str, ...] = ()
     source: CatalogSource | None = None
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
 
@@ -235,10 +292,12 @@ class CatalogAgent:
             name=recipe.name,
             version=recipe.version,
             audience=recipe.audience,
+            category=recipe.category,
             short_description=recipe.short_description,
             description=recipe.description,
             authors=tuple(recipe.authors),
             requires_endorctl=recipe.requires_endorctl,
+            legacy_ids=tuple(recipe.legacy_ids),
             host=host,
             source=CatalogSource.from_recipe(recipe),
             editions=bundles,
@@ -260,10 +319,12 @@ class CatalogAgent:
                 "name",
                 "version",
                 "audience",
+                "category",
                 "short_description",
                 "description",
                 "authors",
                 "requires_endorctl",
+                "legacy_ids",
                 "host",
                 "source",
                 "editions",
@@ -272,15 +333,20 @@ class CatalogAgent:
         authors = record.get("authors", [])
         if not isinstance(authors, list):
             raise ValueError("manifest.json: expected agent authors to be a list")
+        legacy_ids = record.get("legacy_ids", [])
+        if not isinstance(legacy_ids, list):
+            raise ValueError("manifest.json: expected agent legacy_ids to be a list")
         return cls(
             id=str(record.get("id") or ""),
             name=str(record.get("name") or ""),
             version=str(record.get("version") or ""),
             audience=str(record.get("audience") or ""),
+            category=str(record.get("category") or ""),
             short_description=str(record.get("short_description") or ""),
             description=str(record.get("description") or ""),
             authors=tuple(str(author) for author in authors),
             requires_endorctl=str(record.get("requires_endorctl") or ""),
+            legacy_ids=tuple(str(legacy_id) for legacy_id in legacy_ids),
             host=str(record.get("host") or ""),
             source=CatalogSource.from_manifest_record(record.get("source")),
             editions=tuple(CatalogBundle.from_manifest_records(record, edition) for edition in editions),
@@ -298,6 +364,8 @@ class CatalogAgent:
             record["version"] = self.version
         if self.audience:
             record["audience"] = self.audience
+        if self.category:
+            record["category"] = self.category
         if self.short_description:
             record["short_description"] = self.short_description
         if self.description:
@@ -306,6 +374,8 @@ class CatalogAgent:
             record["authors"] = list(self.authors)
         if self.requires_endorctl:
             record["requires_endorctl"] = self.requires_endorctl
+        if self.legacy_ids:
+            record["legacy_ids"] = list(self.legacy_ids)
         record["host"] = self.host
         if self.source is not None:
             record["source"] = self.source.to_manifest_record()
@@ -338,6 +408,7 @@ class CatalogPluginPackage:
     path: str
     included_agents: tuple[str, ...]
     artifacts: tuple[CatalogArtifact, ...]
+    distribution_channel: str = "repository"
     display_name: str = ""
     marketplace_path: str = ""
     extra_fields: dict[str, Any] = field(default_factory=dict, repr=False, compare=False)
@@ -363,6 +434,7 @@ class CatalogPluginPackage:
                 "version",
                 "path",
                 "marketplace_path",
+                "distribution_channel",
                 "included_agents",
                 "artifacts",
             },
@@ -374,6 +446,7 @@ class CatalogPluginPackage:
             version=str(record.get("version") or ""),
             path=str(record.get("path") or ""),
             marketplace_path=str(record.get("marketplace_path") or ""),
+            distribution_channel=str(record.get("distribution_channel") or "repository"),
             included_agents=tuple(str(item) for item in included_agents),
             artifacts=tuple(CatalogArtifact.from_manifest_record(artifact) for artifact in artifacts),
             extra_fields=extra_fields,
@@ -390,6 +463,7 @@ class CatalogPluginPackage:
         version: str,
         package_dir: Path,
         included_agents: tuple[str, ...],
+        distribution_channel: str = "repository",
         marketplace_path: str = "",
         extra_artifacts: tuple[Path, ...] = (),
     ) -> "CatalogPluginPackage":
@@ -404,6 +478,7 @@ class CatalogPluginPackage:
             version=version,
             path=package_dir.relative_to(destination).as_posix(),
             marketplace_path=marketplace_path,
+            distribution_channel=distribution_channel,
             included_agents=tuple(sorted(included_agents)),
             artifacts=tuple(CatalogArtifact.from_published_file(destination, path) for path in files),
         )
@@ -418,6 +493,7 @@ class CatalogPluginPackage:
             record["display_name"] = self.display_name
         record["version"] = self.version
         record["path"] = self.path
+        record["distribution_channel"] = self.distribution_channel
         if self.marketplace_path:
             record["marketplace_path"] = self.marketplace_path
         record["included_agents"] = list(self.included_agents)
@@ -467,10 +543,10 @@ def catalog_agent_sort_key(agent: CatalogAgent) -> tuple[str, str]:
     return (agent.host, agent.id)
 
 
-def catalog_plugin_package_sort_key(package: CatalogPluginPackage) -> tuple[str, str]:
+def catalog_plugin_package_sort_key(package: CatalogPluginPackage) -> tuple[str, str, str]:
     """Return the stable Catalog Manifest sort key for one plugin package."""
 
-    return (package.host, package.name)
+    return (package.host, package.name, package.distribution_channel)
 
 
 def _extra_fields(record: dict[str, Any], known: set[str]) -> dict[str, Any]:
@@ -483,3 +559,11 @@ def _optional_int(value: Any, field_name: str) -> int | None:
     if isinstance(value, int):
         return value
     raise ValueError(f"manifest.json: expected {field_name} to be an integer")
+
+
+def _optional_str(value: Any, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    raise ValueError(f"manifest.json: expected {field_name} to be a string")

@@ -12,6 +12,7 @@
 - `docs/maintainer-guide.md`: source recipe, generated docs, and publication template workflow.
 - `docs/distribution-sync.md`: source-to-`ai-plugins` mirror process.
 - `docs/plugin-release-checklist.md`: release validation matrix.
+- `docs/codex-directory-submission.md`: Codex skills-only portal packet and immutable artifact gates.
 - `docs/guardrails.md`: safety and runtime-control documentation.
 - `docs/portable-runtime-conformance.md`: portable adapter and approval-gate contract.
 
@@ -34,6 +35,7 @@
 - `gemini/`
 - `portable/`
 - `plugins/`
+  - `plugins/codex-directory/endor-labs-agent-kit/`: unpacked skills-only Codex public-directory package.
 - `.cursor-plugin/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`

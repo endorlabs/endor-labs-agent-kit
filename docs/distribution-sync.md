@@ -10,15 +10,16 @@ fallback or for local dry-run validation.
 | Repo | Owns |
 | --- | --- |
 | `endor-labs-agent-kit` | Source recipes, compiler/publisher code, guardrails, tests, provenance, generated catalog, and source documentation. |
-| `ai-plugins` | Public host metadata, Cursor package metadata, root Cursor agents, support skills, advisory hooks, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
+| `ai-plugins` | Public host metadata, the unpacked Codex directory package, the official Claude root package, a self-contained Cursor marketplace package, Cursor SDK automation package, release-facing README, and checked-in distribution artifacts. |
 
-Normal package sync should make `ai-plugins/plugins/` byte-for-byte identical to
-`endor-labs-agent-kit/plugins/`. Cursor package sync should make
-`ai-plugins/.cursor-plugin/`, generated root workflow `agents/`, generated root
-workflow `skills/`, generated root advisory `hooks/`, and `assets/logo.png`
-match this repo. Cursor SDK sync should make `ai-plugins/cursor-sdk/` match
-this repo. The root `CHANGELOG.md` is also synced so release notes travel with
-generated distribution PRs.
+Normal package sync copies source-owned host packages first. The mirror-only
+provider boundary then reserves conventional root `agents/`, `skills/`, and
+`hooks/` for Claude, while generating the complete Cursor package under
+`plugins/cursor/endor-labs-agent-kit/`. Root
+`.cursor-plugin/marketplace.json` keeps the stable `endorlabs` id and points to
+that nested source; the mirror has no root `.cursor-plugin/plugin.json` and no
+root `.mcp.json`. The root `CHANGELOG.md` is also synced so release notes travel
+with generated distribution PRs.
 
 ## Automated Publication
 
@@ -37,6 +38,21 @@ AI_PLUGINS_SYNC_TOKEN
 The token must be a fine-grained PAT or GitHub App installation token with
 `contents:write` and `pull-requests:write` on `endorlabs/ai-plugins`.
 
+Automated publication can optionally consume two non-secret, sanitized JSON
+repository variables:
+
+```text
+AGENT_QA_ACCEPTANCE_JSON=<passing benchmark-acceptance.json>
+ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON=<passing backend telemetry acceptance bundle>
+```
+
+When supplied, the first should bind its treatment arm to the exact publishing
+source SHA. The second should prove catalog schema v2, all canonical and legacy
+identities, attributed `endorctl agent api`, and Audit Log correlation. See
+`docs/backend-agent-telemetry-acceptance.md`. Missing, invalid, or stale evidence
+produces a workflow warning but does not block publication. Manual
+`dry_run=true` validation never publishes, regardless of evidence availability.
+
 Optional Endor Labs signing variables:
 
 ```text
@@ -45,8 +61,9 @@ ENDOR_NAMESPACE=<endor namespace>
 ENDOR_ARTIFACT_NAME_PREFIX=github.com/endorlabs/ai-plugins/agent-kit-catalog-provenance
 ```
 
-The workflow writes `provenance/agent-kit-catalog.intoto.json` and
-`provenance/manifest.sha256` into the generated `ai-plugins` PR. When signing is
+The workflow writes `provenance/agent-kit-catalog.intoto.json`,
+`provenance/manifest.sha256`, `provenance/agent-kit-manifest.json`, and
+`provenance/agent-kit-source.json` into the generated `ai-plugins` PR. When signing is
 enabled, it signs the provenance bundle with the Endor Labs GitHub Action
 signing flow and immediately verifies the signature with
 `endorlabs/github-action/verify`. Signing and verification are skipped for
@@ -54,11 +71,17 @@ signing flow and immediately verifies the signature with
 
 ## Source Repo Regeneration
 
+For an agent identity migration, confirm the target backend accepts catalog
+wire schema v2 and resolves every `legacy_ids` entry before distributing the
+new catalog. See `docs/agent-identity-migration.md`. Do not use generated
+duplicate agents as an alias mechanism.
+
 Run from the Agent Kit source repo:
 
 ```bash
 endor-agent-kit publish source/agents/*/recipe.yaml --dest . --prune --include-plugins
 python -m pytest -q
+python scripts/smoke_test_provider_installations.py --root .
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 git diff --check
@@ -75,9 +98,44 @@ Run from the `ai-plugins` repo after Agent Kit regeneration is clean. Set
 ```bash
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
 
+test -z "$(git -C "$AGENT_KIT_REPO" status --porcelain)" || {
+  echo "Agent Kit must be clean before pinning mirror provenance." >&2
+  exit 1
+}
 python3 "$AGENT_KIT_REPO/scripts/sync_ai_plugins_distribution.py" \
   --source "$AGENT_KIT_REPO" \
   --target .
+
+# Refresh the source-owned manifest provenance used by mirror validators.
+mkdir -p "$AGENT_KIT_REPO/dist/provenance" provenance
+PYTHONPATH="$AGENT_KIT_REPO/src" "$AGENT_KIT_REPO/.venv/bin/python" \
+  -m endor_agent_kit.cli provenance-statement \
+  --catalog-root "$AGENT_KIT_REPO" \
+  --output "$AGENT_KIT_REPO/dist/provenance/agent-kit-catalog.intoto.json"
+(cd "$AGENT_KIT_REPO" && shasum -a 256 manifest.json > dist/provenance/manifest.sha256)
+cp "$AGENT_KIT_REPO/dist/provenance/agent-kit-catalog.intoto.json" \
+  provenance/agent-kit-catalog.intoto.json
+cp "$AGENT_KIT_REPO/dist/provenance/manifest.sha256" provenance/manifest.sha256
+cp "$AGENT_KIT_REPO/manifest.json" provenance/agent-kit-manifest.json
+AGENT_KIT_SHA="$(git -C "$AGENT_KIT_REPO" rev-parse HEAD)" python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+Path("provenance/agent-kit-source.json").write_text(
+    json.dumps(
+        {
+            "kind": "endor.agent-kit-source/v1",
+            "agent_kit_repository": "endorlabs/endor-labs-agent-kit",
+            "agent_kit_sha": os.environ["AGENT_KIT_SHA"],
+        },
+        indent=2,
+        sort_keys=True,
+    )
+    + "\n",
+    encoding="utf-8",
+)
+PY
 ```
 
 Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
@@ -85,8 +143,10 @@ Do not copy the Agent Kit root `skills/create-endor-labs-agent/` helper into
 installable Gemini extension manifest; Gemini CLI uses
 `plugins/gemini/endor-labs-agent-kit/`. The sync script removes stale root
 `gemini-extension.json` files from `ai-plugins` because the multi-host repo root
-is not a Gemini extension root. The sync script copies `CHANGELOG.md`; update it
-in Agent Kit source before opening a release-oriented distribution PR.
+is not a Gemini extension root. It also removes the stale mirror-root
+`manifest.json`; mirror validators use the exact source manifest under
+`provenance/agent-kit-manifest.json`. The sync script copies `CHANGELOG.md`;
+update it in Agent Kit source before opening a release-oriented distribution PR.
 
 ## Mirror Validation
 
@@ -95,19 +155,28 @@ Run from `ai-plugins`:
 ```bash
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
 
-for skill in skills/*; do python3 scripts/quick_validate.py "$skill"; done
+for skill in skills/* plugins/cursor/endor-labs-agent-kit/skills/*; do
+  python3 scripts/quick_validate.py "$skill"
+done
+python3 scripts/validate_mirror_provenance.py
+python3 scripts/validate_marketplace_host_boundaries.py
+python3 scripts/build_codex_directory_submission.py validate --root .
 python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
 python3 -m json.tool .agents/plugins/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
-python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+python3 -m json.tool plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json >/dev/null
 python3 -m json.tool cursor-sdk/agent_definitions.json >/dev/null
 python3 -m json.tool hooks/hooks.json >/dev/null
+python3 -m json.tool plugins/cursor/endor-labs-agent-kit/mcp.json >/dev/null
+python3 -m json.tool plugins/cursor/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/claude/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/codex/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/gemini/endor-labs-agent-kit/hooks/hooks.json >/dev/null
 python3 -m json.tool plugins/antigravity/endor-labs-agent-kit/hooks.json >/dev/null
 test ! -e plugins/claude/ai-plugins/hooks
-for hook_script in hooks/*.sh plugins/*/*/hooks/*.sh; do bash -n "$hook_script"; done
+for hook_script in hooks/*.sh plugins/*/*/hooks/*.sh; do
+  bash -n "$hook_script"
+done
 python3 - <<'PY'
 import py_compile
 
@@ -116,15 +185,25 @@ PY
 test ! -e gemini-extension.json
 test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
-diff -qr "$AGENT_KIT_REPO/plugins" ./plugins
-diff -qr "$AGENT_KIT_REPO/.cursor-plugin" ./.cursor-plugin
-diff -qr "$AGENT_KIT_REPO/agents" ./agents
+test ! -e .cursor-plugin/plugin.json
+test ! -e cursor/endor-labs-agent-kit
+for provider in antigravity claude codex codex-directory gemini; do
+  diff -qr "$AGENT_KIT_REPO/plugins/$provider" "./plugins/$provider"
+done
+diff -q "$AGENT_KIT_REPO/plugins/README.md" ./plugins/README.md
+diff -qr "$AGENT_KIT_REPO/agents" ./plugins/cursor/endor-labs-agent-kit/agents
 diff -qr "$AGENT_KIT_REPO/cursor-sdk" ./cursor-sdk
-diff -qr "$AGENT_KIT_REPO/hooks" ./hooks
+diff -qr "$AGENT_KIT_REPO/plugins/claude/endor-labs-agent-kit/agents" ./agents
+diff -qr "$AGENT_KIT_REPO/plugins/claude/endor-labs-agent-kit/hooks" ./hooks
+diff -qr "$AGENT_KIT_REPO/plugins/claude/endor-labs-agent-kit/skills" ./skills
+diff -qr "$AGENT_KIT_REPO/hooks" ./plugins/cursor/endor-labs-agent-kit/hooks
+diff -q "$AGENT_KIT_REPO/.mcp.json" ./plugins/cursor/endor-labs-agent-kit/mcp.json
+diff -qr "$AGENT_KIT_REPO/assets" ./plugins/cursor/endor-labs-agent-kit/assets
+test ! -e .mcp.json
 for skill in "$AGENT_KIT_REPO"/skills/*; do
   name=${skill##*/}
   [ "$name" = "create-endor-labs-agent" ] && continue
-  diff -qr "$skill" "./skills/$name"
+  diff -qr "$skill" "./plugins/cursor/endor-labs-agent-kit/skills/$name"
 done
 diff -q "$AGENT_KIT_REPO/assets/logo.png" assets/logo.png
 diff -q "$AGENT_KIT_REPO/CHANGELOG.md" CHANGELOG.md
@@ -135,18 +214,79 @@ Provider CLI validation is release-gated by availability of the relevant host
 CLIs and public refs. Use `docs/plugin-release-checklist.md` for the full
 release matrix.
 
+## Claude And Cursor Marketplace Boundary
+
+The official Anthropic entry retains the stable technical id
+`ai-plugins@claude-plugins-official` and points at the generated mirror root.
+`scripts/sync_ai_plugins_distribution.py` therefore generates a mirror-only
+provider boundary after the normal package sync:
+
+- `.claude-plugin/plugin.json`, which displays **Endor Labs Agent Kit** and
+  relies on Claude's conventional component discovery;
+- root `agents/`, `skills/`, and `hooks/`, which are byte-identical to the
+  canonical Claude package and therefore expose Sonnet agents, setup, and
+  Claude hook events;
+- `plugins/cursor/endor-labs-agent-kit/`, a self-contained Cursor package with
+  its own `.cursor-plugin/plugin.json`, Composer agents, skills, hooks,
+  `mcp.json`, and assets;
+- `.cursor-plugin/marketplace.json`, which keeps the stable `endorlabs` id and
+  points to that nested package.
+
+The mirror root intentionally has no `.mcp.json` or root Cursor plugin manifest.
+Cursor receives the source-approved MCP config as conventional `mcp.json`
+inside its package. Claude receives no Cursor agent, skill, hook, or MCP path;
+Cursor receives no root Claude component path.
+
+The overlay deliberately omits `version` so the upstream git SHA remains the
+resolved plugin version. It must not be copied back over the Agent Kit source
+repository's root guard. Validate it in the mirror with:
+
+```bash
+python3 scripts/validate_marketplace_host_boundaries.py
+```
+
+After a mirror release, Anthropic's scheduled SHA-bump automation can advance
+the existing official entry through its validation and safety checks. Do not
+submit a second official entry or request a slug rename for routine releases.
+
+## Codex Directory Archive
+
+Option A keeps only the unpacked directory under
+`plugins/codex-directory/endor-labs-agent-kit/` in Git. After the mirror PR is
+merged, manually dispatch `Build Codex directory submission` in `ai-plugins`
+with the exact 40-character mirror commit SHA. The workflow checks out that
+immutable commit, reads the pinned Agent Kit source SHA, validates every file
+against `provenance/agent-kit-manifest.json`, and builds:
+
+- `endor-labs-agent-kit-codex-directory-<version>.zip`
+- the ZIP SHA-256 file
+- a validation report
+- a non-self-referential attestation containing both repository SHAs and all
+  relevant package/archive digests
+
+Leave `publish_release_assets=false` for validation. Set it to true with an
+existing release tag only when release-asset publication is separately
+authorized. The ZIP is never committed or reconstructed manually. See
+`docs/codex-directory-submission.md` for the portal packet and external gates.
+
 ## Safety Notes
 
 - Do not create or publish a Gemini zip artifact.
+- Do not commit the universal-directory skills-only ZIP; build it only from an
+  immutable `ai-plugins` SHA through the review-gated workflow.
 - Do not enable both Claude package ids in the same profile for normal use.
+- Do not enable the official `ai-plugins@claude-plugins-official` package with
+  either Endor-hosted Claude id in the same profile.
 - Do not couple Cursor package sync to Gemini CLI extension files.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
-- The root `.mcp.json` file may declare the source-approved `endor-cli-tools`
-  MCP server so users can opt into Endor MCP setup. Do not generate a root
+- The Agent Kit source root `.mcp.json` may declare the source-approved
+  `endor-cli-tools` MCP server. In `ai-plugins`, mirror sync writes that config
+  as `plugins/cursor/endor-labs-agent-kit/mcp.json` so the official Claude root
+  does not auto-load it. Do not generate a root
   `gemini-extension.json`; Gemini discovers bundled skills from the installed
   extension root's `skills/` directory, and the repository root's `skills/`
-  directory is the Cursor package surface. Generated host package manifests
+  directory is the Claude setup surface in the mirror. Generated host package manifests
   under `plugins/*/endor-labs-agent-kit/` must still stay MCP-free unless that
   host package explicitly validates MCP. Setup guidance remains CLI-first and
   must not start, register, or rely on MCP without explicit user approval.
-- Do not run live `endorctl api` smoke tests without explicit user approval and namespace provenance.
+- Do not run live `endorctl agent api --agent-id <canonical-recipe-id>` smoke tests without explicit user approval and namespace provenance.

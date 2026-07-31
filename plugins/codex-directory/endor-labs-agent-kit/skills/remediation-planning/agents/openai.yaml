@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $remediation-planning for this Endor Labs workflow.",
+    "display_name": "Remediation Planning",
+    "short_description": "Compares read-only remediation options and recommends the safest evidence-backed next step."
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from endor_agent_kit import ai_sast_triage, sca_remediation
+from endor_agent_kit import ai_sast_remediation, sca_remediation
 from endor_agent_kit.workflow_output_contracts import ai_sast, sca
 from endor_agent_kit.workflow_output_contracts.commands import WORKFLOW_COMMANDS
 
@@ -14,8 +14,8 @@ def test_ai_sast_contracts_are_exposed_through_gate_modules():
 
 
 def test_ai_sast_compatibility_shell_and_cli_use_gate_contract_interface():
-    assert ai_sast_triage.validate_ai_sast_gate_payload is ai_sast.validate_ai_sast_gate_payload
-    assert ai_sast_triage.render_ai_sast_pr_body is ai_sast.render_ai_sast_pr_body
+    assert ai_sast_remediation.validate_ai_sast_gate_payload is ai_sast.validate_ai_sast_gate_payload
+    assert ai_sast_remediation.render_ai_sast_pr_body is ai_sast.render_ai_sast_pr_body
 
 
 def test_ai_sast_exception_gate_owns_exception_specific_requirements():

@@ -66,17 +66,20 @@ class EndorAgentRecipe:
     outputs: tuple[RecipeField, ...]
     evals: str
     compatible_hosts: tuple[str, ...]
+    legacy_ids: tuple[str, ...] = ()
     host_editions: dict[str, tuple[str, ...]] = field(default_factory=dict)
     action_contracts_path: str = ""
     mutations: tuple[str, ...] = ()
     required_endor_mcp_tools: tuple[str, ...] = ()
     endorctl_api_invocations: tuple[str, ...] = ()
+    endorctl_agent_api_invocations: tuple[str, ...] = ()
     endor_tier_minimum: str = "free"
     instructions_path: str = "instructions.md"
     model: str = ""
     requires_endor_mcp: str = ""
     requires_endorctl: str = ""
     audience: str = ""
+    category: str = ""
     short_description: str = ""
     authors: tuple[str, ...] = ()
     policy_pack_support: bool = False
@@ -128,17 +131,22 @@ def recipe_from_dict(data: dict[str, Any]) -> EndorAgentRecipe:
         outputs=_fields_from_list(data.get("outputs", ())),
         evals=str(data.get("evals", "")),
         compatible_hosts=tuple(str(v) for v in data.get("compatible_hosts", ())),
+        legacy_ids=tuple(str(v) for v in data.get("legacy_ids", ())),
         host_editions=_host_editions_from_mapping(data.get("host_editions", {})),
         action_contracts_path=str(data.get("action_contracts_path", "")),
         mutations=tuple(str(v) for v in data.get("mutations", ())),
         required_endor_mcp_tools=tuple(str(v) for v in data.get("required_endor_mcp_tools", ())),
         endorctl_api_invocations=tuple(str(v) for v in data.get("endorctl_api_invocations", ())),
+        endorctl_agent_api_invocations=tuple(
+            str(v) for v in data.get("endorctl_agent_api_invocations", ())
+        ),
         endor_tier_minimum=str(data.get("endor_tier_minimum", "free")),
         instructions_path=str(data.get("instructions_path", "instructions.md")),
         model=str(data.get("model", "")),
         requires_endor_mcp=str(data.get("requires_endor_mcp", "")),
         requires_endorctl=str(data.get("requires_endorctl", "")),
         audience=str(data.get("audience", "")),
+        category=str(data.get("category", "")),
         short_description=str(data.get("short_description", "")),
         authors=tuple(str(author) for author in data.get("authors", ())),
         policy_pack_support=bool(data.get("policy_pack_support", False)),
@@ -166,6 +174,7 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
         "outputs": [_field_to_dict(field) for field in recipe.outputs],
         "evals": recipe.evals,
         "compatible_hosts": list(recipe.compatible_hosts),
+        "legacy_ids": list(recipe.legacy_ids),
         "host_editions": {
             host: list(editions)
             for host, editions in recipe.host_editions.items()
@@ -174,12 +183,14 @@ def recipe_to_dict(recipe: EndorAgentRecipe) -> dict[str, Any]:
         "mutations": list(recipe.mutations),
         "required_endor_mcp_tools": list(recipe.required_endor_mcp_tools),
         "endorctl_api_invocations": list(recipe.endorctl_api_invocations),
+        "endorctl_agent_api_invocations": list(recipe.endorctl_agent_api_invocations),
         "endor_tier_minimum": recipe.endor_tier_minimum,
         "instructions_path": recipe.instructions_path,
         "model": recipe.model,
         "requires_endor_mcp": recipe.requires_endor_mcp,
         "requires_endorctl": recipe.requires_endorctl,
         "audience": recipe.audience,
+        "category": recipe.category,
         "short_description": recipe.short_description,
         "authors": list(recipe.authors),
         "policy_pack_support": recipe.policy_pack_support,

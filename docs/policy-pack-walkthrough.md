@@ -103,7 +103,7 @@ policies:
     title: Java 8 applications cannot accept remediations requiring Java 9 or newer
     effect: deny
     applies_to:
-      agents: ["sca-remediation", "upgrade-impact-analysis"]
+      agents: ["sca-remediation", "oss-upgrade-investigator"]
       ecosystems: ["maven"]
     when:
       fact: current.runtime.java.major

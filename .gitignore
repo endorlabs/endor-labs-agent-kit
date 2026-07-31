@@ -3,9 +3,15 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.DS_Store
+.coverage
+coverage.xml
+htmlcov/
+*.log
+*.tmp
 .venv/
 .codex-artifacts/
-.claude
+.claude/settings.local.json
 dist/
 build/
 *.egg-info/
@@ -13,5 +19,4 @@ agents/*/dist/
 source/agents/*/dist/
 source/agents/*/provenance.json
 source/agents/*/pluck-report.md
-!plugins/gemini/endor-labs-agent-kit.zip
 HANDOFF.md

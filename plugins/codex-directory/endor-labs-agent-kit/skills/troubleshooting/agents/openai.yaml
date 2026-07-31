@@ -1,0 +1,10 @@
+{
+  "interface": {
+    "default_prompt": "Use $troubleshooting for this Endor Labs workflow.",
+    "display_name": "Troubleshooting",
+    "short_description": "Diagnoses Endor setup and workflow problems using focused read-only evidence."
+  },
+  "policy": {
+    "allow_implicit_invocation": true
+  }
+}

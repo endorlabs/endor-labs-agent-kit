@@ -64,7 +64,7 @@ def _payload() -> dict:
             {
                 "name": "cicd-posture-findings",
                 "resource": "Finding",
-                "source": "endorctl_api",
+                "source": "endorctl_agent_api",
                 "status": "succeeded",
                 "query_template_id": "cicd-posture-findings",
                 "filter_summary": "FINDING_CATEGORY_CICD",

@@ -14,7 +14,7 @@ import sys
 from datetime import datetime, timezone
 
 CURRENT_PLUGIN_NAME = "endor-labs-agent-kit"
-CURRENT_PLUGIN_VERSION = "2.1.0"
+CURRENT_PLUGIN_VERSION = "2.2.0"
 ENDOR_PLUGIN_CACHE_NAMES = {
     CURRENT_PLUGIN_NAME,
     "endor-agent-kit-security-agents",
@@ -47,6 +47,18 @@ def tree_digest(path: Path) -> str:
     return digest.hexdigest()
 
 
+def file_set_digest(paths: list[Path]) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(paths, key=lambda item: item.name):
+        if not path.is_file():
+            continue
+        digest.update(path.name.encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def codex_home(value: str | None) -> Path:
     if value:
         return Path(value).expanduser()
@@ -64,10 +76,14 @@ def bundled_agents(plugin_root: Path) -> list[Path]:
 
 
 def bundled_skills(plugin_root: Path) -> list[Path]:
-    skills_root = plugin_root / "skills"
-    if not skills_root.is_dir():
-        return []
-    return sorted(path for path in skills_root.iterdir() if (path / "SKILL.md").is_file())
+    roots = [plugin_root / "skills", plugin_root / "bundled-skills"]
+    return sorted(
+        path
+        for skills_root in roots
+        if skills_root.is_dir()
+        for path in skills_root.iterdir()
+        if (path / "SKILL.md").is_file()
+    )
 
 
 def is_managed_agent(path: Path) -> bool:
@@ -171,6 +187,64 @@ def bundled_items(plugin_root: Path, home: Path, skills_home: Path, *, agents_on
     return items
 
 
+def report_installation_provenance(plugin_root: Path, home: Path, skills_home: Path) -> None:
+    agent_sources = bundled_agents(plugin_root)
+    installed_agent_paths = [home / "agents" / source.name for source in agent_sources]
+    agent_statuses = [
+        item_status("agent", source, target)
+        for source, target in zip(agent_sources, installed_agent_paths)
+    ]
+    counts = {
+        status: agent_statuses.count(status)
+        for status in sorted(set(agent_statuses))
+    }
+    counts_text = ",".join(f"{key}={value}" for key, value in counts.items()) or "none"
+    print(
+        "package-provenance: "
+        f"package={CURRENT_PLUGIN_NAME} version={CURRENT_PLUGIN_VERSION} "
+        f"bundled_agents={len(agent_sources)} bundle_sha256={file_set_digest(agent_sources)}"
+    )
+    print(
+        "custom-agent-provenance: "
+        f"{counts_text} installed_sha256={file_set_digest(installed_agent_paths)}"
+    )
+
+    fallback_root = plugin_root / "bundled-skills"
+    fallback_sources = sorted(
+        path
+        for path in fallback_root.iterdir()
+        if path.is_dir() and (path / "SKILL.md").is_file()
+    ) if fallback_root.is_dir() else []
+    fallback_records = []
+    for source in fallback_sources:
+        target = skills_home / source.name
+        status = item_status("skill", source, target)
+        if status != "missing":
+            fallback_records.append((source.name, status))
+    if fallback_records:
+        rendered = ",".join(f"{name}:{status}" for name, status in fallback_records)
+        print(f"workflow-skill-fallbacks: {rendered}")
+        print(
+            "  warning: optional Endor workflow-skill fallbacks can compete with "
+            "managed custom-agent routing. Keep agents-only as the default; remove "
+            "managed fallbacks only through the approval-gated uninstall path."
+        )
+    else:
+        print("workflow-skill-fallbacks: none")
+
+    agent_ready = bool(agent_statuses) and all(status == "current" for status in agent_statuses)
+    if agent_ready and not fallback_records:
+        print("routing-readiness: ready agents-only")
+    elif agent_ready:
+        print("routing-readiness: warning competing-workflow-skills")
+    else:
+        print("routing-readiness: not-ready custom-agent-status")
+    print(
+        "fresh-task-boundary: start a fresh Codex task after any agent install, "
+        "update, plugin reinstall, cache repair, or fallback-skill change"
+    )
+
+
 def read_json(path: Path) -> dict:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
@@ -232,7 +306,12 @@ def plugin_cache_status(plugin_root: Path, cache_root: Path, manifest: dict) -> 
         )
 
     mismatches = []
-    for relative in ("skills", "agents", ".codex-plugin/plugin.json"):
+    for relative in (
+        "skills",
+        "bundled-skills",
+        "agents",
+        ".codex-plugin/plugin.json",
+    ):
         source = plugin_root / relative
         cached = cache_root / relative
         if not tree_or_file_matches(source, cached):
@@ -465,7 +544,8 @@ def run(args: argparse.Namespace) -> int:
                 print(f"  installed {target}")
             else:
                 print(f"  would install/update {target}; rerun with --yes after approval")
-    if args.status and not args.agents_only and not args.skills_only:
+    if args.status:
+        report_installation_provenance(plugin_root, home, skills_home)
         report_plugin_cache_status(plugin_root, home)
         report_plugin_config_status(home)
     return exit_code

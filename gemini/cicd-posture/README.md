@@ -1,12 +1,12 @@
 # CI/CD And Supply Chain Posture Gemini CLI Bundle
 
-Use this agent when the user wants a read-only CI/CD and supply chain
-posture assessment for an Endor namespace, GitHub organization, repository
-set, or current repository. The agent combines existing Endor SCPM, CI/CD,
-GitHub Actions, and supply-chain findings with read-only GitHub configuration
-evidence and optional local CI file inspection, then returns deterministic
-scores, critical overrides, evidence queries, and data gaps without mutating
-Endor, GitHub, or repository state.
+Assesses CI/CD and software supply-chain security across an Endor namespace,
+GitHub organization, selected repositories, or the current repository. It
+combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain
+findings with read-only repository configuration evidence and optional local
+CI inspection to produce deterministic scores, critical overrides,
+prioritized improvements, and explicit data gaps. It does not modify Endor,
+GitHub, or repository state.
 
 ## Start Here
 
@@ -17,6 +17,18 @@ This is the Gemini CLI generated skill and subagent bundle for `cicd-posture`.
 | Human operator | Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI. Then use the example prompt below: Use @cicd-posture to assess CI/CD and supply chain posture for namespace <namespace>. Keep it read-only and validate the deterministic score. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/cicd-posture/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gemini-3.5-flash`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host managed`.
+- Generated behavior: subagent frontmatter pins model: gemini-3.5-flash.
+- Override behavior: explicit subagent definition or host subagent configuration wins.
+- Provider guidance: <https://geminicli.com/docs/core/subagents/>.
 
 ## Install Through The Generated Extension
 

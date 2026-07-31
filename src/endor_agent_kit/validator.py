@@ -19,7 +19,9 @@ PUBLIC_MCP_TOOLS = frozenset(
     }
 )
 
-SUPPORTED_TRANSPORTS = frozenset({"mcp", "endorctl_api", "direct_api"})
+SUPPORTED_TRANSPORTS = frozenset(
+    {"mcp", "endorctl_api", "endorctl_agent_api", "direct_api"}
+)
 SUPPORTED_HOSTS = frozenset({
     "claude-code",
     "claude-managed-agents",
@@ -108,6 +110,17 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
     if not isinstance(recipe_id, str) or not SLUG_RE.match(recipe_id):
         errors.append("id: must match ^[a-z][a-z0-9-]{2,63}$")
 
+    legacy_ids = _list_of_strings(data.get("legacy_ids", []), "legacy_ids", errors)
+    seen_legacy_ids: set[str] = set()
+    for legacy_id in legacy_ids:
+        if not SLUG_RE.match(legacy_id):
+            errors.append(f"legacy_ids: {legacy_id!r} must match ^[a-z][a-z0-9-]{{2,63}}$")
+        if legacy_id == recipe_id:
+            errors.append("legacy_ids: must not contain the canonical id")
+        if legacy_id in seen_legacy_ids:
+            errors.append(f"legacy_ids: duplicate legacy id {legacy_id!r}")
+        seen_legacy_ids.add(legacy_id)
+
     safety = data.get("safety_class")
     if safety not in SAFETY_CLASSES:
         errors.append("safety_class: must be one of read_only, dry_run, mutating")
@@ -149,8 +162,13 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
         if bool(capabilities.get("open_pr", False)) and not bool(capabilities.get("run_commands", False)):
             errors.append("host_capabilities_required.run_commands: required when opening pull requests")
 
-    if "endorctl_api" in transports and not bool(capabilities.get("run_commands", False)):
-        errors.append("host_capabilities_required.run_commands: must be true when supported_transports includes endorctl_api")
+    if {"endorctl_api", "endorctl_agent_api"}.intersection(transports) and not bool(
+        capabilities.get("run_commands", False)
+    ):
+        errors.append(
+            "host_capabilities_required.run_commands: must be true when supported_transports "
+            "includes endorctl_api or endorctl_agent_api"
+        )
 
     mcp_tools = _list_of_strings(data.get("required_endor_mcp_tools", []), "required_endor_mcp_tools", errors)
     if "mcp" in transports and not mcp_tools:
@@ -160,6 +178,16 @@ def validate_recipe_data(data: dict[str, Any], *, recipe_path: Path | None = Non
             errors.append(f"required_endor_mcp_tools: unknown public Endor MCP tool {tool!r}")
 
     _list_of_strings(data.get("endorctl_api_invocations", []), "endorctl_api_invocations", errors)
+    agent_api_invocations = _list_of_strings(
+        data.get("endorctl_agent_api_invocations", []),
+        "endorctl_agent_api_invocations",
+        errors,
+    )
+    if "endorctl_agent_api" in transports and not agent_api_invocations:
+        errors.append(
+            "endorctl_agent_api_invocations: required when supported_transports includes "
+            "endorctl_agent_api"
+        )
 
     if "policy_pack_support" in data and not isinstance(data.get("policy_pack_support"), bool):
         errors.append("policy_pack_support: must be boolean")
@@ -206,6 +234,12 @@ def _validate_catalog_metadata(data: dict[str, Any], errors: list[str]) -> None:
 
     if data.get("audience") not in AUDIENCES:
         errors.append("audience: must be one of appsec, developer")
+
+    category = data.get("category")
+    if not isinstance(category, str) or not category.strip():
+        errors.append("category: must be a non-empty string")
+    elif category != category.strip():
+        errors.append("category: must not contain leading or trailing whitespace")
 
     short_description = data.get("short_description")
     if not isinstance(short_description, str) or not short_description.strip():

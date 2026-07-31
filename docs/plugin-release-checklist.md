@@ -14,10 +14,13 @@ Generated package roots:
 - Claude Code: `plugins/claude/endor-labs-agent-kit/`
 - Claude Code legacy compatibility: `plugins/claude/ai-plugins/`
 - Codex: `plugins/codex/endor-labs-agent-kit/`
+- Universal Plugins Directory: `plugins/codex-directory/endor-labs-agent-kit/`
 - Gemini CLI: `plugins/gemini/endor-labs-agent-kit/`
 - Antigravity CLI: `plugins/antigravity/endor-labs-agent-kit/`
-- Cursor: `.cursor-plugin/`, root generated `agents/`, root generated
-  `skills/`, root advisory `hooks/`, and `assets/logo.png`
+- Cursor source validation: `.cursor-plugin/`, root generated `agents/`, root
+  generated `skills/`, root advisory `hooks/`, `.mcp.json`, and
+  `assets/logo.png`
+- Cursor public mirror: `plugins/cursor/endor-labs-agent-kit/`
 - Cursor SDK: `cursor-sdk/`
 
 Generated marketplace and release files:
@@ -26,10 +29,12 @@ Generated marketplace and release files:
 - Claude local marketplace: `plugins/claude/.claude-plugin/marketplace.json`
 - Codex public marketplace: `.agents/plugins/marketplace.json`
 - Codex local marketplace: `plugins/codex/.agents/plugins/marketplace.json`
+- Codex directory manifest: `plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json`
 - Gemini manifest: `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`
 - Antigravity manifest: `plugins/antigravity/endor-labs-agent-kit/plugin.json`
-- Cursor marketplace and manifest: `.cursor-plugin/marketplace.json`,
-  `.cursor-plugin/plugin.json`
+- Cursor marketplace: `.cursor-plugin/marketplace.json`
+- Cursor source manifest: `.cursor-plugin/plugin.json`; generated mirror
+  manifest: `plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json`
 - Cursor SDK definitions: `cursor-sdk/agent_definitions.json`
 
 ## Version Gate
@@ -43,9 +48,9 @@ workflow opens or updates an `ai-plugins` sync PR from the merged Agent Kit
 commit; maintainers must intentionally update `pyproject.toml`, regenerate, and
 review `CHANGELOG.md` when a release version changes.
 
-For the current package version, use an exact tag that matches the generated
-package version, not a `v`-prefixed tag, unless the generator and package
-manifests are intentionally changed to emit a `v` prefix.
+For the generated provider packages in `ai-plugins`, use an exact tag that
+matches the package version, not a `v`-prefixed tag. The separate signed Agent
+Kit catalog release uses `agents-v<version>`.
 
 ```bash
 VERSION="$(python3 - <<'PY'
@@ -60,9 +65,10 @@ print(match.group(1))
 PY
 )"
 test "$VERSION" = "$(jq -r .version plugins/gemini/endor-labs-agent-kit/gemini-extension.json)"
-test "$VERSION" = "$(jq -r .version plugins/antigravity/endor-labs-agent-kit/plugin.json)"
+test "$VERSION" = "$(jq -r '.plugin_packages[] | select(.host == "antigravity" and .name == "endor-labs-agent-kit") | .version' manifest.json)"
 test "$VERSION" = "$(jq -r .version plugins/claude/endor-labs-agent-kit/.claude-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "$VERSION" = "$(jq -r .version plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version .cursor-plugin/plugin.json)"
 test "$VERSION" = "$(jq -r .version cursor-sdk/agent_definitions.json)"
 test "1.2.0" = "$(jq -r .version plugins/claude/ai-plugins/.claude-plugin/plugin.json)"
@@ -88,33 +94,61 @@ test ! -e plugins/gemini/endor-labs-agent-kit.zip
 test -f .cursor-plugin/plugin.json
 test -f agents/endor-agent-kit-setup-agent.md
 test -f agents/endor-cicd-posture-agent.md
-test -f agents/endor-malware-response-agent.md
+test -f agents/endor-malware-responder-agent.md
 test -f agents/endor-findings-browser-agent.md
-test -f agents/endor-probe-droid-agent.md
+test -f agents/endor-configuration-automation-agent.md
 test -f skills/endor-agent-kit-setup/SKILL.md
-test -f skills/ai-sast-triage/architecture.svg
+test -f skills/ai-sast-remediation/architecture.svg
 test -f skills/findings-browser/architecture.svg
-test -f skills/malware-response/architecture.svg
+test -f skills/malware-responder/architecture.svg
 test -f cursor-sdk/README.md
 test -f cursor-sdk/run_cursor_agent.py
 test -f cursor-sdk/agent_definitions.json
 test -f cursor-sdk/agents/endor-findings-browser-agent.md
 test -f cursor-sdk/agents/endor-cicd-posture-agent.md
-test -f cursor-sdk/agents/endor-malware-response-agent.md
-test -f cursor-sdk/agents/endor-probe-droid-agent.md
+test -f cursor-sdk/agents/endor-malware-responder-agent.md
+test -f cursor-sdk/agents/endor-configuration-automation-agent.md
+python3 scripts/build_codex_directory_submission.py validate --root .
+test "#26D07C" = "$(jq -r .interface.brandColor plugins/codex/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "#26D07C" = "$(jq -r .interface.brandColor plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test "./assets/composer-icon.png" = "$(jq -r .interface.composerIcon plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json)"
+test -f plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.png
+test ! -e plugins/codex-directory/endor-labs-agent-kit/assets/composer-icon.svg
+test ! -e dist/endor-labs-agent-kit-codex-directory-"$VERSION".zip
 ```
 
 ## Repository Gates
+
+For releases containing an agent rename or consolidation:
+
+- confirm the Endor backend accepts catalog wire schema v2 and `legacy_ids`
+- confirm all nine legacy identifiers resolve to their canonical agents
+- confirm only the 11 canonical agents are visible
+- verify host installs and telemetry use canonical identifiers
+- follow the rollout and rollback contract in `docs/agent-identity-migration.md`
 
 Run these from the repository root:
 
 ```bash
 pytest
+python scripts/check_repository_hygiene.py
+python scripts/smoke_test_provider_installations.py --root .
 endor-agent-kit check-guardrails --catalog-root .
 endor-agent-kit verify-provenance --catalog-root .
 endor-agent-kit verify-endor-context --upstream
 git status --short --ignored plugins/gemini plugins/antigravity
 ```
+
+For a real source-to-mirror publish, optionally provide both release evidence bundles:
+
+- private QA `benchmark-acceptance.json` with a passing frozen timing and semantic-quality gate whose treatment commit is the exact 40-character publishing source SHA;
+- backend telemetry acceptance conforming to `schemas/backend-agent-telemetry-acceptance.schema.json`, including all canonical IDs, all legacy aliases, attributed `endorctl agent api` transport, and passing Audit Log correlation.
+
+Validate the pair strictly with `scripts/validate_release_evidence.py` when the
+evidence is available; see `docs/backend-agent-telemetry-acceptance.md`. The
+automated publication workflow reports missing, stale, or invalid evidence as a
+warning and continues. A manual `dry_run=true` may regenerate and validate
+packages, but cannot publish.
 
 The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not
@@ -157,11 +191,20 @@ Before release, verify:
   `ENDOR_ARTIFACT_NAME_PREFIX`.
 - Signing and signature verification are skipped for manual dry runs and both
   run for non-dry-run publication workflows when signing is enabled.
-- The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`
-  and `provenance/manifest.sha256`.
+- The generated `ai-plugins` PR includes `provenance/agent-kit-catalog.intoto.json`,
+  `provenance/manifest.sha256`, `provenance/agent-kit-manifest.json`, and
+  `provenance/agent-kit-source.json`.
 - The generated `ai-plugins` PR includes the current `CHANGELOG.md`.
 - The PR body links to the source Agent Kit commit and lists validation,
   manifest digest, and provenance bundle digest.
+- `python scripts/validate_mirror_provenance.py` passes in the generated mirror.
+- `python scripts/validate_marketplace_host_boundaries.py` passes in the
+  generated mirror and proves that the root official package exposes canonical
+  Sonnet agents, setup, and Claude hooks while the nested Cursor package exposes
+  only its Composer agents, skills, hooks, MCP config, and assets.
+- The Agent Kit catalog tag `agents-v<version>` and the `ai-plugins` provider
+  tag `<version>` are both new and unused. Never move or reuse either published
+  tag; intentionally advance the package version before every content release.
 
 Use `docs/distribution-sync.md` only for local dry runs or manual fallback.
 
@@ -172,9 +215,14 @@ Local release validation:
 ```bash
 python3 -m json.tool .cursor-plugin/marketplace.json >/dev/null
 python3 -m json.tool .cursor-plugin/plugin.json >/dev/null
+test '{"email":"support@endor.ai","name":"Endor Labs"}' = "$(jq -c .author .cursor-plugin/plugin.json)"
 python3 - <<'PY'
 import json
 from pathlib import Path
+
+marketplace = json.loads(Path(".cursor-plugin/marketplace.json").read_text(encoding="utf-8"))
+assert len(marketplace["plugins"]) == 1
+assert set(marketplace["plugins"][0]) <= {"name", "source", "description"}
 
 definitions = json.loads(Path("cursor-sdk/agent_definitions.json").read_text(encoding="utf-8"))
 for agent in definitions["agents"]:
@@ -183,18 +231,52 @@ for agent in definitions["agents"]:
     assert Path("agents", f"{agent_name}.md").is_file(), agent_name
     assert Path("skills", skill_id, "SKILL.md").is_file(), skill_id
 PY
-test -f skills/ai-sast-triage/architecture.svg
+test -f skills/ai-sast-remediation/architecture.svg
 test -f skills/findings-browser/architecture.svg
-test -f skills/malware-response/architecture.svg
+test -f skills/malware-responder/architecture.svg
 test -f skills/sca-remediation/actions.yaml
 ```
 
 Cursor package files are generated at repository root because the public
-package source is `./`. Keep Cursor validation separate from Gemini validation:
-Cursor uses `.cursor-plugin/`, root `agents/`, root `skills/`, root advisory
-`hooks/`, and `assets/logo.png`; Gemini uses
+mirror is derived from that source payload. Keep Cursor validation separate
+from Gemini validation: Cursor source generation uses `.cursor-plugin/`, root
+`agents/`, root `skills/`, root advisory `hooks/`, `.mcp.json`, and
+`assets/logo.png`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/GEMINI.md` and
 `plugins/gemini/endor-labs-agent-kit/gemini-extension.json`.
+
+Generated mirror validation:
+
+```bash
+AI_PLUGINS_REPO="/path/to/ai-plugins"
+python3 "$AI_PLUGINS_REPO/scripts/validate_marketplace_host_boundaries.py" \
+  --root "$AI_PLUGINS_REPO"
+python3 -m json.tool \
+  "$AI_PLUGINS_REPO/plugins/cursor/endor-labs-agent-kit/.cursor-plugin/plugin.json" \
+  >/dev/null
+python3 -m json.tool \
+  "$AI_PLUGINS_REPO/plugins/cursor/endor-labs-agent-kit/mcp.json" \
+  >/dev/null
+python3 - "$AI_PLUGINS_REPO" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+root = Path(sys.argv[1])
+marketplace = json.loads(
+    (root / ".cursor-plugin/marketplace.json").read_text(encoding="utf-8")
+)
+entry = marketplace["plugins"][0]
+assert set(entry) <= {"name", "source", "description"}
+assert entry["source"] == "./plugins/cursor/endor-labs-agent-kit"
+PY
+test ! -e "$AI_PLUGINS_REPO/.cursor-plugin/plugin.json"
+test ! -e "$AI_PLUGINS_REPO/.mcp.json"
+```
+
+The mirror marketplace must retain plugin id `endorlabs` and source
+`./plugins/cursor/endor-labs-agent-kit`, so existing `/add-plugin endorlabs`
+installs upgrade in place.
 
 ## Cursor SDK
 
@@ -237,10 +319,21 @@ orchestration, and backend services.
 Local release validation:
 
 ```bash
-claude plugin validate plugins/claude/endor-labs-agent-kit
-claude plugin validate plugins/claude/ai-plugins
+claude plugin validate plugins/claude/endor-labs-agent-kit --strict
+claude plugin validate plugins/claude/ai-plugins --strict
+python scripts/smoke_test_provider_installations.py --root . --require-claude-cli-validation
 claude --plugin-dir plugins/claude/endor-labs-agent-kit
 ```
+
+The disposable smoke script validates the supported Claude package and a
+guard-only temporary copy of the repository-root manifest. Directly running
+`claude plugin validate .` validates the root marketplace, not that guard
+manifest.
+
+The repository-root Claude manifest is a guard, not a supported workflow
+package. Confirm its `SessionStart` warning and `UserPromptSubmit` block direct
+users to `plugins/claude/endor-labs-agent-kit`; it must never expose a
+Composer-backed Cursor agent.
 
 Inside Claude Code, validate the package-local marketplace from the repository
 root:
@@ -273,6 +366,31 @@ Public repository validation after tag push:
 /agents
 ```
 
+The generated mirror root is also the source for the stable official technical
+id. Validate the mirror-only overlay and, after Anthropic's automated SHA bump
+lands, run a fresh official install:
+
+```bash
+python3 scripts/validate_marketplace_host_boundaries.py --root /path/to/ai-plugins
+claude plugin validate /path/to/ai-plugins --strict
+test ! -e /path/to/ai-plugins/.mcp.json
+```
+
+```text
+/plugin install ai-plugins@claude-plugins-official
+/reload-plugins
+/agents
+```
+
+Confirm that the live official catalog pins the exact released mirror SHA,
+Claude displays **Endor Labs Agent Kit**, every exposed agent uses Sonnet, the
+root exposes only the setup skill, the Claude advisory hooks register, no
+plugin MCP server auto-loads, and no Composer-backed root Cursor agent loads.
+Also confirm `.cursor-plugin/marketplace.json` resolves `endorlabs` to the
+self-contained `plugins/cursor/endor-labs-agent-kit/` package. The official technical id
+remains `ai-plugins`; routine releases rely on Anthropic's SHA-bump automation
+rather than a rename request.
+
 Direct public-repo installation does not require submitting to a website. Submit
 to the Claude community marketplace only if Endor Labs wants discovery through
 Anthropic's reviewed community catalog.
@@ -294,9 +412,10 @@ real Codex home or user skills directory:
 ```bash
 TMP_CODEX_HOME="$(mktemp -d)"
 TMP_CODEX_SKILLS_HOME="$(mktemp -d)"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --yes --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
-python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --agents-only --codex-home "$TMP_CODEX_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --agents-only --yes --codex-home "$TMP_CODEX_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --status --agents-only --codex-home "$TMP_CODEX_HOME"
+python3 plugins/codex/endor-labs-agent-kit/scripts/install_codex_agents.py --install --skills-only --yes --codex-home "$TMP_CODEX_HOME" --skills-home "$TMP_CODEX_SKILLS_HOME"
 rm -rf "$TMP_CODEX_HOME" "$TMP_CODEX_SKILLS_HOME"
 ```
 
@@ -311,7 +430,41 @@ codex plugin remove endor-labs-agent-kit@endor-labs-agent-kit
 
 Codex custom agents are installed by the setup skill from the plugin package.
 The Codex plugin manifest intentionally does not declare an unsupported `agents`
-field.
+field. Before that approval, the plugin must expose only `endor-agent-kit-setup`;
+the workflow skills under `bundled-skills/` are explicit fallbacks and must not
+compete with named custom-agent delegation.
+
+### Universal Plugins Directory (Codex Runtime)
+
+The public-directory package is separate from the repository/CLI package.
+Validate its unpacked tree in Agent Kit and the generated mirror:
+
+```bash
+python3 scripts/build_codex_directory_submission.py validate --root .
+```
+
+Customer installation uses the public browser rather than the repository
+marketplace commands above:
+
+```text
+Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory.
+```
+
+The skills-only package declares no MCP server, app, connector, OAuth flow, or
+bundled credentials. Its setup skill verifies the customer's local `endorctl`,
+namespace, and existing Endor authentication without exposing secrets. Do not
+claim equivalent ChatGPT-web execution because this release depends on a local
+Codex shell and `endorctl`.
+
+After the `ai-plugins` mirror PR is merged, dispatch `Build Codex directory
+submission` with the exact immutable 40-character mirror SHA. Keep
+`publish_release_assets=false` for the first proof run. Verify that the workflow
+artifact contains one plugin-root ZIP, checksum, validation report, and
+attestation; the attestation must name both the Agent Kit and `ai-plugins` SHAs.
+Only then, under separate release authorization, attach those same files to an
+existing release or upload the ZIP to the OpenAI portal. Never commit the ZIP.
+Complete the external publisher, permission, URL, reviewer-fixture, and test-case
+gates in `docs/codex-directory-submission.md` immediately before submission.
 
 ## Gemini CLI
 
@@ -324,9 +477,9 @@ gemini extensions uninstall endor-labs-agent-kit
 gemini extensions list
 ```
 
-Gemini CLI 0.44.1 may still show a folder trust prompt for local paths even with
+Gemini CLI may still show a folder trust prompt for local paths even with
 `--consent`. Inspect the package source and approve only the expected generated
-folder.
+folder rather than relying on a specific CLI version.
 
 As of 2026-06-16, Google documents that Gemini CLI access for unpaid, Google
 One, Google AI Pro, and Google AI Ultra consumer users transitions to
@@ -362,11 +515,19 @@ multi-host repository root.
 Local release validation:
 
 ```bash
-antigravity plugin validate plugins/antigravity/endor-labs-agent-kit
-antigravity plugin install /absolute/path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
-antigravity plugin list
-antigravity plugin uninstall endor-labs-agent-kit
-antigravity plugin list
+agy plugin validate plugins/antigravity/endor-labs-agent-kit
+agy plugin install /absolute/path/to/endor-labs-agent-kit/plugins/antigravity/endor-labs-agent-kit
+agy plugin list
+agy plugin uninstall endor-labs-agent-kit
+agy plugin list
+```
+
+Public release installation after the version tag exists:
+
+```bash
+git clone --branch "$VERSION" https://github.com/endorlabs/ai-plugins.git "endor-ai-plugins-$VERSION"
+agy plugin validate "./endor-ai-plugins-$VERSION/plugins/antigravity/endor-labs-agent-kit"
+agy plugin install "./endor-ai-plugins-$VERSION/plugins/antigravity/endor-labs-agent-kit"
 ```
 
 Antigravity CLI currently validates a package directory with `plugin.json` at
@@ -380,21 +541,24 @@ installs from the generated plugin directory.
 Before each release, manually re-check these provider docs because marketplace,
 manifest, and public GitHub install behavior can change:
 
-Last checked for this checklist: 2026-06-16.
+Last checked for this checklist: 2026-07-30.
 
 - Claude Code plugins: `https://code.claude.com/docs/en/plugins`
 - Claude Code marketplaces: `https://code.claude.com/docs/en/plugin-marketplaces`
 - Claude Code plugin reference: `https://code.claude.com/docs/en/plugins-reference`
 - Codex plugins: `https://developers.openai.com/codex/plugins`
 - Codex plugin build docs: `https://developers.openai.com/codex/plugins/build`
+- Codex plugin manifest reference: `https://github.com/openai/codex/blob/main/codex-rs/skills/src/assets/samples/plugin-creator/references/plugin-json-spec.md`
 - Codex subagents: `https://developers.openai.com/codex/subagents`
-- Gemini extension authoring: `https://geminicli.com/docs/extensions/writing-extensions/`
-- Gemini extension release docs: `https://geminicli.com/docs/extensions/releasing/`
-- Gemini subagents: `https://geminicli.com/docs/core/subagents/`
-- Antigravity CLI plugins: `https://antigravity.google/docs/cli-plugins`
+- Gemini extension authoring: `https://google-gemini.github.io/gemini-cli/docs/extensions/`
+- Gemini extension release docs: `https://google-gemini.github.io/gemini-cli/docs/extensions/releasing/`
+- Gemini subagents: `https://google-gemini.github.io/gemini-cli/docs/core/subagents/`
+- Antigravity CLI plugins: `https://antigravity.google/docs/cli/plugins`
 - Gemini CLI to Antigravity migration: `https://antigravity.google/docs/gcli-migration`
 - Google transition announcement: `https://developers.googleblog.com/an-important-update-transitioning-gemini-cli-to-antigravity-cli/`
-- Cursor plugin schema and package examples: `https://github.com/cursor/plugins`
+- Cursor plugin schema: `https://github.com/cursor/plugins/blob/main/schemas/plugin.schema.json`
+- Cursor package examples: `https://github.com/cursor/plugins`
+- Endor Labs brand resources: `https://www.endorlabs.com/partner-resources?filter=design`
 - Cursor Python SDK: `https://cursor.com/docs/sdk/python`
 - Endor Labs `endorctl` install and auth: `https://docs.endorlabs.com/developers-api/cli/install-and-configure`
 - Endor Labs `endorctl init`: `https://docs.endorlabs.com/developers-api/cli/commands/init`

@@ -35,6 +35,7 @@ def test_all_source_agents_include_parent_namespace_traverse_fallback():
             or "matching Endor projects" in body
             or "PROJECT_NOT_FOUND" in body
             or "reporting the project as missing" in body
+            or "reporting a miss" in body
         ), instructions
 
 
@@ -68,7 +69,7 @@ def test_doctor_new_agent_reports_pre_pr_readiness(tmp_path, capsys):
 
 
 def test_doctor_new_agent_returns_failure_for_incomplete_new_agent(tmp_path, capsys):
-    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent_source(tmp_path, "vulnerability-explainer")
 
     status = main(["doctor-new-agent", str(recipe)])
     output = capsys.readouterr().out
@@ -81,7 +82,7 @@ def test_doctor_new_agent_returns_failure_for_incomplete_new_agent(tmp_path, cap
 
 
 def test_source_authoring_check_requires_new_agent_architecture(tmp_path):
-    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent_source(tmp_path, "vulnerability-explainer")
 
     report = check_source_recipe_authoring(recipe, new_agent=True)
 
@@ -89,7 +90,11 @@ def test_source_authoring_check_requires_new_agent_architecture(tmp_path):
 
 
 def test_source_authoring_check_requires_new_agent_eval_coverage(tmp_path):
-    recipe = _copy_agent_source(tmp_path, "remediation-planner")
+    recipe = _copy_agent_source(tmp_path, "remediation-planning")
+    cases_path = recipe.parent / "evals" / "cases.yaml"
+    data = yaml.safe_load(cases_path.read_text(encoding="utf-8"))
+    data["cases"] = data["cases"][:2]
+    cases_path.write_text(yaml.safe_dump(data, sort_keys=False), encoding="utf-8")
 
     report = check_source_recipe_authoring(recipe, new_agent=True)
 
@@ -97,7 +102,7 @@ def test_source_authoring_check_requires_new_agent_eval_coverage(tmp_path):
 
 
 def test_source_authoring_check_uses_shared_instruction_section_parser(tmp_path):
-    recipe = _copy_agent_source(tmp_path, "dependency-decision-helper")
+    recipe = _copy_agent_source(tmp_path, "vulnerability-explainer")
     instructions = recipe.parent / "instructions.md"
     instructions.write_text(
         instructions.read_text(encoding="utf-8").replace(

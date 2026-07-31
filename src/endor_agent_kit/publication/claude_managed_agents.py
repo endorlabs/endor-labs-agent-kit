@@ -8,7 +8,6 @@ from pathlib import Path
 from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.compilers.rendering import EDITIONS
 from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude_managed_agents_prepared
-from endor_agent_kit.compilers.raw import compile_raw_prepared
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import (
@@ -37,7 +36,6 @@ class ClaudeManagedAgentsHostAdapter:
     ) -> BundleRecord:
         """Publish one Claude Managed Agents Host Artifact Bundle."""
 
-        compile_raw_prepared(prepared)
         compile_claude_managed_agents_prepared(prepared)
 
         recipe_file = prepared.path
@@ -86,7 +84,7 @@ class ClaudeManagedAgentsHostAdapter:
                 shutil.copyfile(actions, published_actions)
                 written.append(published_actions)
 
-            if edition == "enterprise-edition" and posture.uses_endorctl_api:
+            if posture.uses_endor_api_transport:
                 setup = edition_dir / "endorctl-setup.md"
                 shutil.copyfile(recipe_file.parent / "dist" / "raw" / "endorctl-setup.md", setup)
                 written.append(setup)
@@ -100,7 +98,7 @@ class ClaudeManagedAgentsHostAdapter:
                     edition_name(edition),
                     edition_dir,
                     requires_endorctl=recipe.requires_endorctl
-                    if edition == "enterprise-edition" and posture.uses_endorctl_api
+                    if posture.uses_endor_api_transport
                     else "",
                 )
             )
@@ -124,7 +122,7 @@ def managed_agents_edition_readme(
     title = f"{recipe.name} {name}" if show_edition_name else recipe.name
     artifact_label = "edition" if show_edition_name else "agent"
     posture = source_recipe_safety_posture(recipe)
-    if edition == "developer-edition" or not posture.uses_endorctl_api:
+    if not posture.uses_endor_api_transport:
         requirements = [
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
             "A remote Endor MCP server URL configured in agent.yaml.",
@@ -148,9 +146,9 @@ def managed_agents_edition_readme(
             ]
         notes = [
             (
-                f"This {artifact_label} uses MCP first, then read-only endorctl api lookups for richer signals."
+                f"This {artifact_label} uses MCP first, then read-only `endorctl agent api --agent-id {recipe.id}` lookups for richer signals."
                 if posture.uses_mcp
-                else f"This {artifact_label} uses read-only endorctl api lookups and does not require Endor MCP."
+                else f"This {artifact_label} uses read-only `endorctl agent api --agent-id {recipe.id}` lookups and does not require Endor MCP."
             ),
             "The generated `agent.yaml` enables only the Managed Agents Bash tool from the pre-built toolset, with confirmation required.",
             "Bash use remains limited by prompt to the documented Endor lookup commands.",
@@ -171,7 +169,7 @@ def managed_agents_edition_readme(
                     "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
                     "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
                 ]
-        elif recipe.id == "endor-troubleshooter":
+        elif recipe.id == "troubleshooting":
             notes = [
                 f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
                 "It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.",
@@ -181,6 +179,7 @@ def managed_agents_edition_readme(
     architecture = architecture_readme_section(recipe) if has_architecture else []
     start_here = agent_readme_start_here(
         recipe,
+        host_id=HOST,
         host_label="Claude Managed Agents",
         artifact_label=artifact_label,
         install_summary="Update generated YAML placeholders, then create the managed agent and environment.",
@@ -239,23 +238,23 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
     """Return the Claude Managed Agents example prompt for one recipe."""
 
     input_names = {field.name for field in recipe.inputs}
-    if recipe.id == "ai-sast-triage":
+    if recipe.id == "ai-sast-remediation":
         return "Triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
-    if recipe.id == "remediation-planner":
+    if recipe.id == "remediation-planning":
         return "Preview remediation options for repository <owner>/<repo>."
     if "vulnerability_id" in input_names:
         return "Explain CVE-2021-44228."
-    if recipe.id == "upgrade-impact-analysis":
+    if recipe.id == "oss-upgrade-investigator":
         if edition == "developer-edition":
             return "Assess upgrading npm lodash from 4.17.20 to 4.17.21."
         return "Show the safest upgrade path for repository <owner>/<repo> package lodash, including CIA, findings fixed, manifest files, and breaking changes."
-    if recipe.id == "package-risk-summary":
-        return "Summarize npm lodash version 4.17.20."
-    if recipe.id == "probe-droid":
+    if recipe.id == "dependency-reviewer":
+        return "Summarize the risk of npm lodash version 4.17.20 with the package-risk profile."
+    if recipe.id == "configuration-automation":
         return "Probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only."
     if recipe.id == "cicd-posture":
         return "Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workflow read-only."
-    if recipe.id == "endor-troubleshooter":
+    if recipe.id == "troubleshooting":
         return "Diagnose this Endor scan failure from redacted error text and read-only tenant evidence. Keep the workflow read-only."
     if {"ecosystem", "package_name", "version"}.issubset(input_names):
         return "Assess npm lodash version 4.17.20."

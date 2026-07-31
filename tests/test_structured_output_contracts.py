@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+import re
 
 from conftest import repo_root
 from endor_agent_kit.cli import main
@@ -8,7 +10,9 @@ from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.structured_output_contracts import (
     STRUCTURED_OUTPUT_CONTRACTS,
     json_schema_for_agent,
+    normalize_structured_output_payload,
     required_fields_for,
+    strict_transport_schema_for_agent,
     validate_structured_output_payload,
 )
 
@@ -31,15 +35,59 @@ def test_structured_output_contracts_match_recipe_outputs():
 
 
 def test_required_fields_for_preserves_recipe_order():
-    assert required_fields_for("dependency-decision-helper") == (
-        "verdict",
-        "conditions",
-        "alternatives",
+    assert required_fields_for("dependency-reviewer") == (
+        "profile",
         "summary",
         "evidence_queries",
         "data_gaps",
         "policy_context",
         "policy_evaluations",
+    )
+
+
+def test_profile_output_contract_reduces_required_fields_without_weakening_evidence_gaps():
+    fields = (
+        "onboarding_verdict",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    schema = json_schema_for_agent("configuration-automation", fields)
+    payload = {
+        "onboarding_verdict": "INSUFFICIENT_DATA",
+        "evidence_queries": [],
+        "data_gaps": ["unavailable: project evidence not returned"],
+        "policy_context": {},
+        "policy_evaluations": [],
+    }
+
+    assert required_fields_for("configuration-automation", fields) == fields
+    assert tuple(schema["required"]) == fields
+    assert tuple(schema["properties"]) == fields
+    assert validate_structured_output_payload("configuration-automation", payload, fields) == []
+
+
+def test_configuration_automation_verdict_is_schema_pinned():
+    fields = ("onboarding_verdict", "evidence_queries", "data_gaps")
+    schema = json_schema_for_agent("configuration-automation", fields)
+
+    assert schema["properties"]["onboarding_verdict"]["enum"] == [
+        "READY_TO_ONBOARD",
+        "PARTIAL_COVERAGE",
+        "NOT_ONBOARDED",
+        "INSUFFICIENT_DATA",
+    ]
+    payload = {
+        "onboarding_verdict": "ONBOARDED_WITH_GAPS",
+        "evidence_queries": [],
+        "data_gaps": [],
+    }
+    assert any(
+        "onboarding_verdict" in error
+        for error in validate_structured_output_payload(
+            "configuration-automation", payload, fields
+        )
     )
 
 
@@ -50,10 +98,12 @@ def test_all_structured_contracts_require_evidence_queries():
 
 def test_json_schema_for_agent_preserves_required_fields_and_shapes():
     schema = json_schema_for_agent("sca-remediation")
+    strict_schema = strict_transport_schema_for_agent("sca-remediation")
 
     assert schema["type"] == "object"
     assert schema["additionalProperties"] is False
     assert schema["required"] == list(required_fields_for("sca-remediation"))
+    assert strict_schema["required"] == list(strict_schema["properties"])
     assert schema["properties"]["evidence_queries"]["type"] == "array"
     assert schema["properties"]["policy_context"]["type"] == ["object", "null"]
     assert schema["properties"]["policy_evaluations"]["type"] == "array"
@@ -70,16 +120,155 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
         "result_count",
         "reason",
     ]
+    assert evidence_query["properties"]["source"]["enum"] == [
+        "endorctl_agent_api",
+        "endor_mcp",
+        "local_repository",
+        "user_input",
+        "public_docs",
+        None,
+    ]
     assert schema["properties"]["project_resolution"]["type"] == ["object", "null"]
+    execution_context = schema["properties"]["execution_context"]
+    assert execution_context["type"] == ["object", "null"]
+    assert execution_context["additionalProperties"] is False
+    assert execution_context["properties"]["mode"]["enum"] == [
+        "evidence_only",
+        "local_checkout",
+        None,
+    ]
+    assert execution_context["properties"]["source_provider_access"]["enum"] == [
+        "read_write",
+        "read_only",
+        "unavailable",
+        "unknown",
+        None,
+    ]
+    assert execution_context["properties"]["endor_auth"]["enum"] == [
+        "available",
+        "unavailable",
+        "unknown",
+        None,
+    ]
 
 
-def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
+def test_task_state_is_strict_nullable_and_legacy_omittable() -> None:
+    for agent_id in ("sca-remediation", "ai-sast-remediation"):
+        logical_schema = json_schema_for_agent(agent_id)
+        schema = strict_transport_schema_for_agent(agent_id)
+        task_state = schema["properties"]["task_state"]
+
+        assert "task_state" not in logical_schema["required"]
+        assert "task_state" in logical_schema["properties"]
+        assert schema["required"] == list(schema["properties"])
+        assert task_state["type"] == ["object", "null"]
+        assert task_state["additionalProperties"] is False
+        assert set(task_state["required"]) == set(task_state["properties"])
+        assert task_state["properties"]["schema_version"]["const"] == "1"
+
+        legacy_payload = {
+            field: _placeholder_value(kind)
+            for field, kind in _field_kinds(agent_id).items()
+        }
+        legacy_payload["evidence_queries"] = []
+        legacy_payload["data_gaps"] = ["Runtime task state was not supplied."]
+
+        assert validate_structured_output_payload(agent_id, legacy_payload) == []
+        strict_payload = {**legacy_payload, "task_state": None}
+        assert "task_state" not in normalize_structured_output_payload(agent_id, strict_payload)
+        assert validate_structured_output_payload(agent_id, strict_payload) == []
+
+
+def test_ai_sast_patch_schema_is_complete_strict_and_embeds_change_impact() -> None:
+    schema = json_schema_for_agent("ai-sast-remediation")
+    assert "change_impact" not in schema["properties"]
+    patch = schema["properties"]["patches"]["items"]
+    expected = {
+        "finding_uuid",
+        "source_sha",
+        "patch_diff",
+        "patch_reason",
+        "patch_summary",
+        "reason",
+        "remediation_guidance_used",
+        "remediation_guidance_rejected",
+        "exploit_reproduction_used",
+        "exploit_context",
+        "file_path",
+        "branch_name",
+        "branch",
+        "proposed_branch",
+        "patch_confidence",
+        "confidence",
+        "changed_files",
+        "modified_files",
+        "files",
+        "sibling_files_referenced",
+        "validation_plan",
+        "change_impact",
+    }
+
+    assert patch["additionalProperties"] is False
+    assert set(patch["required"]) == expected == set(patch["properties"])
+    assert patch["properties"]["patch_confidence"]["type"] == ["integer", "null"]
+    assert patch["properties"]["validation_plan"]["items"]["required"] == [
+        "command",
+        "status",
+        "purpose",
+    ]
+    impact = patch["properties"]["change_impact"]
+    assert impact["type"] == ["object", "null"]
+    assert impact["additionalProperties"] is False
+    assert set(impact["required"]) == set(impact["properties"])
+    assert impact["properties"]["patch_digest"]["pattern"] == "^[0-9a-f]{64}$"
+    assert impact["properties"]["status"]["enum"] == [
+        "verified",
+        "blocked",
+        "unavailable",
+        "not_applicable",
+        None,
+    ]
+
+
+def test_ai_sast_legacy_patch_aliases_normalize_without_dropping_aliases() -> None:
+    payload = {
+        "patches": [
+            {
+                "branch": "remediation/ai-sast/example",
+                "files": ["src/example.py"],
+                "confidence": 84,
+                "patch_summary": "Validate the input.",
+                "exploit_context": "Unsafe input reaches the sink.",
+            }
+        ]
+    }
+
+    normalized = normalize_structured_output_payload("ai-sast-remediation", payload)
+    patch = normalized["patches"][0]
+
+    assert patch["branch_name"] == patch["branch"]
+    assert patch["changed_files"] == patch["files"]
+    assert patch["patch_confidence"] == patch["confidence"]
+    assert patch["patch_reason"] == patch["patch_summary"]
+    assert patch["exploit_reproduction_used"] == patch["exploit_context"]
+
+
+def test_materialized_ai_sast_patch_fixture_passes_strict_item_schema() -> None:
+    fixture = json.loads(
+        (repo_root() / "tests" / "fixtures" / "ai-sast-strict-patch.json").read_text(encoding="utf-8")
+    )
+    schema = json_schema_for_agent("ai-sast-remediation")["properties"]["patches"]["items"]
+
+    _assert_value_matches_schema(fixture, schema)
+
+
+def test_json_schema_for_configuration_automation_and_troubleshooter_nested_outputs():
     cicd_schema = json_schema_for_agent("cicd-posture")
     assert cicd_schema["properties"]["posture_verdict"]["type"] == "string"
     assert "raw_counts" in cicd_schema["properties"]
     assert "score_validation" in cicd_schema["properties"]
 
-    probe_schema = json_schema_for_agent("probe-droid")
+    probe_schema = json_schema_for_agent("configuration-automation")
     report_scope = probe_schema["properties"]["report_scope"]
     executive_report = probe_schema["properties"]["executive_report"]
 
@@ -93,7 +282,7 @@ def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
     assert "github_default_branch" in healthy_row["properties"]
     assert "endor_monitored_branch" in healthy_row["properties"]
 
-    troubleshooter_schema = json_schema_for_agent("endor-troubleshooter")
+    troubleshooter_schema = json_schema_for_agent("troubleshooting")
     executive_summary = troubleshooter_schema["properties"]["executive_summary"]
     intake_classification = troubleshooter_schema["properties"]["intake_classification"]
     support_packet = troubleshooter_schema["properties"]["support_escalation_packet"]
@@ -106,7 +295,7 @@ def test_json_schema_for_probe_droid_and_troubleshooter_nested_outputs():
 
 def test_json_schema_for_all_agents_is_codex_strict_object_compatible():
     for agent_id in STRUCTURED_OUTPUT_CONTRACTS:
-        schema = json_schema_for_agent(agent_id)
+        schema = strict_transport_schema_for_agent(agent_id)
         _assert_strict_objects(schema)
 
 
@@ -117,6 +306,33 @@ def test_json_schema_cli_prints_agent_schema(capsys):
     assert status == 0
     assert '"title": "Endor Agent Kit sca-remediation final output"' in output
     assert '"evidence_queries"' in output
+
+
+def test_json_schema_cli_prints_profile_projected_logical_schema(capsys):
+    status = main(
+        [
+            "structured-output-schema",
+            "--agent",
+            "sca-remediation",
+            "--task-profile",
+            "evidence-check",
+        ]
+    )
+    schema = json.loads(capsys.readouterr().out)
+
+    expected = (
+        "summary",
+        "project_resolution",
+        "execution_context",
+        "evidence_queries",
+        "data_gaps",
+        "policy_context",
+        "policy_evaluations",
+    )
+    assert status == 0
+    assert tuple(schema["properties"]) == expected
+    assert tuple(schema["required"]) == expected
+    assert "task_state" not in schema["properties"]
 
 
 def test_policy_evaluation_schema_includes_invalid_fact_provenance():
@@ -144,8 +360,9 @@ def test_structured_output_contract_rejects_missing_required_fields():
 
 def test_structured_output_contract_rejects_wrong_value_shapes():
     errors = validate_structured_output_payload(
-        "package-risk-summary",
+        "dependency-reviewer",
         {
+            "profile": "package-risk",
             "risk_posture": "elevated",
             "findings": "none",
             "strengths": [],
@@ -159,9 +376,60 @@ def test_structured_output_contract_rejects_wrong_value_shapes():
     assert "data_gaps: must be an array" in errors
 
 
+def test_dependency_reviewer_schema_and_validator_enforce_declared_enums():
+    logical = json_schema_for_agent(
+        "dependency-reviewer",
+        profile_id="package-decision",
+    )
+    strict = strict_transport_schema_for_agent(
+        "dependency-reviewer",
+        profile_id="package-decision",
+    )
+
+    assert logical["properties"]["profile"]["enum"] == [
+        "package-decision",
+        "package-risk",
+        "repository-review",
+    ]
+    assert logical["properties"]["verdict"]["enum"] == [
+        "SAFE",
+        "SAFE_WITH_CONDITIONS",
+        "NOT_RECOMMENDED",
+        "BLOCKED",
+        None,
+    ]
+    assert strict["properties"]["risk_posture"]["enum"] == [
+        "LOW",
+        "MODERATE",
+        "HIGH",
+        "CRITICAL",
+        "UNKNOWN",
+        None,
+    ]
+
+    payload = {
+        "profile": "package-decision",
+        "verdict": "avoid",
+        "conditions": [],
+        "alternatives": [],
+        "summary": "The package is not recommended.",
+        "evidence_queries": [],
+        "data_gaps": ["No exact package evidence was returned."],
+        "policy_context": {},
+        "policy_evaluations": [],
+    }
+    assert (
+        "verdict: must be one of SAFE, SAFE_WITH_CONDITIONS, NOT_RECOMMENDED, BLOCKED"
+        in validate_structured_output_payload("dependency-reviewer", payload)
+    )
+
+    payload["verdict"] = "NOT_RECOMMENDED"
+    assert validate_structured_output_payload("dependency-reviewer", payload) == []
+
+
 def test_structured_output_contract_allows_null_object_when_gap_is_recorded():
     errors = validate_structured_output_payload(
-        "remediation-planner",
+        "remediation-planning",
         {
             "summary": "No selected remediation without evidence.",
             "project_resolution": {"status": "unresolved"},
@@ -179,10 +447,10 @@ def test_structured_output_contract_allows_null_object_when_gap_is_recorded():
 
 def test_structured_output_contract_requires_data_gap_when_evidence_queries_empty():
     errors = validate_structured_output_payload(
-        "probe-droid",
+        "configuration-automation",
         {
             field: _placeholder_value(kind)
-            for field, kind in _field_kinds("probe-droid").items()
+            for field, kind in _field_kinds("configuration-automation").items()
         },
     )
 
@@ -208,6 +476,95 @@ def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
     assert "evidence_queries[0].query: unsupported ledger field" in errors
     assert "evidence_queries[0].name: required" in errors
     assert "evidence_queries[0].source: required" in errors
+
+
+def test_structured_output_contract_requires_canonical_evidence_source():
+    row = {
+        "name": "selected VersionUpgrade detail",
+        "resource": "VersionUpgrade",
+        "source": "endorctl_api",
+        "status": "succeeded",
+        "query_template_id": "version-upgrade-detail",
+        "filter_summary": "resolved project and selected candidate UUID",
+        "field_mask_summary": "uuid,spec.name,spec.upgrade_info",
+        "result_count": 1,
+        "reason": "Selected candidate detail returned.",
+    }
+
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        {"evidence_queries": [row], "data_gaps": []},
+        ("evidence_queries", "data_gaps"),
+    )
+
+    assert errors == [
+        "evidence_queries[0].source: must be one of endorctl_agent_api, "
+        "endor_mcp, local_repository, user_input, public_docs"
+    ]
+
+    row["source"] = "endorctl_agent_api"
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        {"evidence_queries": [row], "data_gaps": []},
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_large_result_evidence_requires_authoritative_artifact_metadata():
+    errors = validate_structured_output_payload(
+        "findings-browser",
+        {
+            "evidence_queries": [
+                {
+                    "name": "complete findings",
+                    "resource": "Finding",
+                    "source": "endorctl_agent_api",
+                    "status": "succeeded",
+                    "query_template_id": "finding-browser-complete-counts",
+                    "filter_summary": "project-scoped complete findings",
+                    "field_mask_summary": "uuid,spec.level",
+                    "result_count": 177,
+                    "reason": "Complete matching count returned 177.",
+                }
+            ],
+            "data_gaps": [],
+        },
+        ("evidence_queries", "data_gaps"),
+    )
+
+    assert errors == [
+        "evidence_queries[0].reason: successful large-result route requires "
+        "artifact_ref, sha256, format, and bytes metadata"
+    ]
+
+
+def test_large_result_evidence_accepts_authoritative_artifact_metadata():
+    errors = validate_structured_output_payload(
+        "malware-responder",
+        {
+            "evidence_queries": [
+                {
+                    "name": "complete package inventory",
+                    "resource": "PackageVersion",
+                    "source": "endorctl_agent_api",
+                    "status": "success",
+                    "query_template_id": "tenant-package-inventory",
+                    "filter_summary": "named package inventory",
+                    "field_mask_summary": "uuid,meta.name",
+                    "result_count": 12,
+                    "reason": (
+                        "Complete named-package inventory; "
+                        "artifact_ref=/tmp/endor-agent-artifacts/result.json;"
+                        f"sha256={'a' * 64};format=json;bytes=2048"
+                    ),
+                }
+            ],
+            "data_gaps": [],
+        },
+        ("evidence_queries", "data_gaps"),
+    )
+
+    assert errors == []
 
 
 def _field_kinds(agent_id: str) -> dict[str, str]:
@@ -239,3 +596,34 @@ def _assert_strict_objects(schema):
     for child in schema.get("properties", {}).values():
         if isinstance(child, dict):
             _assert_strict_objects(child)
+
+
+def _assert_value_matches_schema(value, schema):
+    raw_types = schema.get("type")
+    types = raw_types if isinstance(raw_types, list) else [raw_types]
+    if value is None:
+        assert "null" in types
+        return
+    if "object" in types:
+        assert isinstance(value, dict)
+        assert set(value) == set(schema["required"])
+        if schema.get("additionalProperties") is False:
+            assert set(value) <= set(schema["properties"])
+        for key, child in schema["properties"].items():
+            _assert_value_matches_schema(value[key], child)
+    elif "array" in types:
+        assert isinstance(value, list)
+        for item in value:
+            _assert_value_matches_schema(item, schema["items"])
+    elif "string" in types:
+        assert isinstance(value, str)
+    elif "integer" in types:
+        assert isinstance(value, int) and not isinstance(value, bool)
+    elif "boolean" in types:
+        assert isinstance(value, bool)
+    if "const" in schema:
+        assert value == schema["const"]
+    if "enum" in schema:
+        assert value in schema["enum"]
+    if isinstance(value, str) and "pattern" in schema:
+        assert re.fullmatch(schema["pattern"], value)

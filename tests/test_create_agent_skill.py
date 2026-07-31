@@ -21,7 +21,7 @@ def test_create_endor_labs_agent_skill_is_available_and_actionable():
     assert "gemini" in content
     assert "cursor-sdk" in content
     assert "Generic agent blueprint" in content
-    assert "default to MCP-free `endorctl_api`" in content
+    assert "default to MCP-free `endorctl_agent_api`" in content
     assert "Do not introduce a runtime dependency on `endorlabs-sdk`" in content
     assert "must not depend on proprietary source" in content
     assert "endor-agent-kit validate source/agents/<agent-id>/recipe.yaml" in content

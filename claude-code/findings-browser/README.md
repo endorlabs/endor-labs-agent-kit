@@ -1,10 +1,9 @@
 # Findings Browser
 
-Use this agent when the user wants to browse, filter, summarize, or inspect
-existing Endor Labs findings. Findings Browser uses read-only Endor evidence
-to list matching findings, explain applied filters, surface pagination and
-truncation limits, and identify data gaps without starting new scans or
-performing remediation actions.
+Browses, filters, and summarizes existing Endor findings without starting
+new scans or performing remediation. It shows the applied scope and filters,
+relevant severity and reachability context, pagination or truncation limits,
+and any evidence gaps affecting the results.
 
 ## Start Here
 
@@ -15,6 +14,18 @@ This is the Claude Code generated agent for `findings-browser`.
 | Human operator | Copy the generated subagent into `.claude/agents/` and restart Claude Code if needed. Then use the example prompt below: @agent-findings-browser help |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/findings-browser/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `sonnet`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host default`.
+- Generated behavior: agent frontmatter defaults to sonnet.
+- Override behavior: Claude environment or per-invocation subagent override wins.
+- Provider guidance: <https://code.claude.com/docs/en/sub-agents>.
 
 ## Install
 
@@ -40,5 +51,5 @@ This diagram shows the generated agent contract, host responsibilities, and exte
 
 ## Notes
 
-- This agent uses read-only endorctl api lookups and does not require Endor MCP.
+- This agent uses read-only `endorctl agent api --agent-id findings-browser` lookups and does not require Endor MCP.
 - Bash use is limited by prompt to the documented Endor lookup commands.

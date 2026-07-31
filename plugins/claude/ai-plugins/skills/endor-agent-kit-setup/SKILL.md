@@ -17,26 +17,24 @@ Generated for the Endor Labs AI Plugins (Legacy) Claude Code plugin.
 
 ## Bundled Claude Code Agents
 
-- `Triage AI SAST findings` -> Claude Code agent `ai-sast-triage`
-- `Assess CI/CD and supply chain posture` -> Claude Code agent `cicd-posture`
-- `Decide whether a dependency is safe to use` -> Claude Code agent `dependency-decision-helper`
-- `Diagnose Endor setup and scan issues` -> Claude Code agent `endor-troubleshooter`
-- `Browse existing Endor findings` -> Claude Code agent `findings-browser`
-- `Malware Response` -> Claude Code agent `malware-response`
-- `Summarize package-version risk` -> Claude Code agent `package-risk-summary`
-- `Assess GitHub onboarding gaps` -> Claude Code agent `probe-droid`
-- `Plan remediation across findings` -> Claude Code agent `remediation-planner`
-- `Review repository dependency manifests` -> Claude Code agent `repository-dependency-reviewer`
-- `Find safe SCA remediation paths` -> Claude Code agent `sca-remediation`
-- `Analyze upgrade impact` -> Claude Code agent `upgrade-impact-analysis`
-- `Explain vulnerability risk and remediation` -> Claude Code agent `vulnerability-explainer`
+- `AI SAST Remediation` -> Claude Code agent `ai-sast-remediation`
+- `CI/CD And Supply Chain Posture` -> Claude Code agent `cicd-posture`
+- `Configuration Automation` -> Claude Code agent `configuration-automation`
+- `Dependency Reviewer` -> Claude Code agent `dependency-reviewer`
+- `Findings Browser` -> Claude Code agent `findings-browser`
+- `Malware Responder` -> Claude Code agent `malware-responder`
+- `OSS Upgrade Investigator` -> Claude Code agent `oss-upgrade-investigator`
+- `Remediation Planning` -> Claude Code agent `remediation-planning`
+- `SCA Remediation` -> Claude Code agent `sca-remediation`
+- `Troubleshooting` -> Claude Code agent `troubleshooting`
+- `Vulnerability Explainer` -> Claude Code agent `vulnerability-explainer`
 
 ## Claude Code Plugin Install Commands
 
 From the public ai-plugins distribution repository:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install ai-plugins@endorlabs
 ```
 
@@ -168,9 +166,11 @@ summarize the available tenant choices and ask the user before retrying.
 
 ## Endor MCP
 
-Prefer documented Endor API or `endorctl api` lookups for workflows that support
-them. Configure Endor MCP only when a selected MCP-capable workflow needs it or
-the user explicitly asks for it.
+Require `endorctl agent api --help` to succeed for workflows that use Endor CLI
+API calls. Each selected workflow must pass its canonical recipe id through
+`--agent-id`; never fall back to the unattributed legacy API command. Configure
+Endor MCP only when a selected MCP-capable workflow needs it or the user
+explicitly asks for it.
 
 The distribution may include ready-to-use Endor MCP config snippets such as
 root `.mcp.json` or Gemini `mcpServers` metadata. Treat those files as setup
@@ -192,8 +192,9 @@ When MCP setup is requested:
 
 Do not claim Endor MCP tools are available to a workflow until the host exposes
 them in the current session. If MCP tools are unavailable, continue with
-CLI-first workflows when they support `endorctl api`; otherwise record the
-missing MCP capability in `data_gaps`.
+CLI-first workflows when they support `endorctl agent api --agent-id
+<canonical-recipe-id>`; otherwise record the missing MCP capability in
+`data_gaps`.
 
 ## GitHub CLI
 
@@ -216,7 +217,7 @@ install it through their team-standard toolchain.
 
 Setup never performs remediation, creates branches, opens PRs/MRs, posts
 comments, writes Endor policies, or runs scans. Mutating workflows such as SCA
-Remediation and AI SAST Triage keep those actions behind their generated agent
+Remediation and AI SAST Remediation keep those actions behind their generated agent
 approval gates.
 
 ## Claude-Specific Rules

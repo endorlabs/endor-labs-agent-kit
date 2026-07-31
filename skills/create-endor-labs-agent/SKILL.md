@@ -92,7 +92,7 @@ Choose the smallest safe host set:
 Choose capabilities conservatively:
 
 - `read_files: true` only when the agent must inspect local files
-- `run_commands: true` only when the recipe supports `endorctl_api`
+- `run_commands: true` only when the recipe supports `endorctl_agent_api`
 - `write_files: false` unless the agent is explicitly mutating
 - `open_pr: false` unless the agent is explicitly mutating
 - `mutations: []` for read-only and dry-run agents
@@ -102,20 +102,25 @@ Choose capabilities conservatively:
 
 Use `supported_transports` this way:
 
-- prefer `endorctl_api` for customer-tenant Endor evidence
+- prefer `endorctl_agent_api` for customer-tenant Endor evidence
 - use `mcp` only when the requested public host artifact explicitly needs public
   Endor MCP tools
 - do not add undocumented transports
 
-For new customer-facing agents, default to MCP-free `endorctl_api` when tenant
+For new customer-facing agents, default to MCP-free `endorctl_agent_api` when tenant
 data is needed. If a blueprint mentions MCP, treat it as source material and
 remove the MCP dependency unless the agent specifically requires a public MCP
-tool that cannot be expressed through documented Endor API or `endorctl api`
-commands.
+tool that cannot be expressed through a validated
+`endorctl agent api --agent-id <agent-id>` command.
+
+Use the canonical source recipe id as `<agent-id>` in every generated command.
+All agents are read-only against Endor by default. The only permitted Endor
+mutations are AI SAST `Policy` create and `Policy` update after its approval and
+confirmation gates; never generate Policy delete or another resource mutation.
 
 Do not introduce a runtime dependency on `endorlabs-sdk` or other private SDK
 code while authoring public Agent Kit agents unless the maintainer explicitly
-approves that dependency. Use source recipes, documented `endorctl_api`
+approves that dependency. Use source recipes, documented `endorctl_agent_api`
 invocation shapes, Knowledge Pack query recipes, and generated prompt contracts
 as the default public surface.
 
@@ -152,7 +157,7 @@ The recipe must declare:
 - concrete `outputs`
 - `compatible_hosts`
 - `required_endor_mcp_tools`
-- `endorctl_api_invocations`
+- `endorctl_agent_api_invocations`
 - `instructions_path: instructions.md`
 - `evals: evals/cases.yaml`
 - `model: sonnet`
@@ -237,10 +242,11 @@ Edition sections must say exactly which tools are allowed.
 
 For Claude Code file-reading agents, state that only `Read`, `Glob`, `Grep`, and
 `LS` are allowed. Do not allow Bash unless the recipe uses documented read-only
-`endorctl api` lookups.
+`endorctl agent api --agent-id <agent-id>` lookups.
 
-For Enterprise Edition agents with `endorctl_api`, include exact command shapes
-and say not to generalize them to mutation commands.
+For agents with `endorctl_agent_api`, include exact command shapes, require the
+`endorctl agent api --help` capability preflight, and fail closed instead of
+falling back to the unattributed legacy API command.
 
 For MCP-free agents, explicitly say that the agent must not require, configure,
 or start an Endor MCP server. Generated artifacts should not mention

@@ -1,0 +1,92 @@
+# AI SAST Remediation Codex Skill
+
+Triages Endor AI SAST findings using exploit-reproduction evidence,
+data-flow context, and remediation guidance to distinguish actionable
+vulnerabilities from noise. It can prepare targeted code fixes and, after
+explicit approval, edit files and open change requests. For exception
+workflows, it can create or update scoped Endor exception policies only
+after verified AppSec approval and explicit user confirmation.
+
+## Start Here
+
+This is the Codex generated skill for `ai-sast-remediation`.
+
+| Reader | First move |
+| --- | --- |
+| Human operator | Copy this generated skill directory into `$HOME/.agents/skills/` and start a new Codex session. Then use the example prompt below: Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate. |
+| Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
+| Maintainer | Change `source/agents/ai-sast-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gpt-5.6-luna`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `high`.
+- Generated behavior: custom-agent TOML pins gpt-5.6-luna and tier-specific reasoning effort.
+- Override behavior: explicit Codex model and reasoning settings win.
+- Provider guidance: <https://developers.openai.com/codex/subagents>.
+
+## Install
+
+Copy this generated skill directory into your Codex skills directory:
+
+```bash
+mkdir -p "$HOME/.agents/skills"
+cp -R /path/to/endor-labs-agent-kit/codex/ai-sast-remediation \
+  "$HOME/.agents/skills/ai-sast-remediation"
+```
+
+Start a new Codex session after installing or replacing the skill.
+
+## Requirements
+
+- Codex with filesystem and terminal access to the target repository.
+- Endor tenant access through authenticated `endorctl agent api --agent-id ai-sast-remediation`.
+- Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.
+- A configured AppSec approver list before standalone exception-policy creation.
+- Endor policy-write access only after verified AppSec approval and explicit user confirmation.
+
+## Example
+
+```text
+Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate.
+```
+
+## Example Workflow
+
+```text
+Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy. Show confirmed true positives, likely false positives, inconclusive findings, exploit-driven priority, remediation-guidance usage, and data gaps.
+```
+
+```text
+Use the ai-sast-remediation skill to remediate finding <finding_uuid> for this repository. Use Endor Exploit Reproduction and Remediation Guidance as context, but verify the fix against the source. Show me the patch, branch name, PR/MR title, and PR/MR body before pushing. After I approve, open exactly one PR/MR.
+```
+
+Use the exception workflow only when a finding should be excepted instead
+of remediated in code.
+
+```text
+Use the ai-sast-remediation skill to verify AppSec approval on PR/MR <pr_or_mr_url> for finding <finding_uuid>. Allowed AppSec approvers: @alice, @bob. If approval is valid and not self-approval, check for an existing active Endor exception policy for this finding/project/reason, then render the Endor exception policy spec for my confirmation. After I confirm, create or reuse the scoped policy and comment on the PR/MR with the policy name, policy UUID, Endor project, approver, expiration, and evidence URL.
+```
+
+## QA Smoke Test
+
+Use a fresh Codex session after installing the skill. Run a planning-only
+prompt first and verify the response references the Codex skill, preserves
+approval gates, and does not claim file edits, PR/MR creation, comments, or
+Endor policy writes.
+
+## Architecture
+
+![AI SAST Remediation architecture](architecture.svg)
+
+In Agent Kit, PR/MR creation is host-mediated. Codex runs in the target checkout, gathers Endor evidence including exploit reproduction and remediation guidance when present, applies the confirmed diff locally, creates and pushes a branch, then opens the change request with configured source-provider credentials. If the host cannot perform one of those steps, the agent must stop and report the missing capability in `data_gaps`.
+
+## Notes
+
+- `SKILL.md` is generated from the source recipe and should not be hand-edited in installed copies.
+- `actions.yaml` records semantic side-effect contracts when the recipe declares mutating actions.
+- Keep host-specific approval gates intact: local edits, branch pushes, PR/MR creation, PR/MR comments, and Endor policy writes are separate decisions.

@@ -116,6 +116,34 @@ def test_rejects_bad_slug():
     assert any("id:" in error for error in _errors(data))
 
 
+def test_accepts_valid_legacy_ids():
+    data = _data()
+    data["id"] = "dependency-reviewer"
+    data["legacy_ids"] = [
+        "dependency-decision-helper",
+        "package-risk-summary",
+        "repository-dependency-reviewer",
+    ]
+
+    assert _errors(data) == []
+
+
+def test_rejects_invalid_duplicate_or_self_legacy_ids():
+    data = _data()
+    data["legacy_ids"] = [
+        data["id"],
+        "Invalid Alias",
+        "package-risk-summary",
+        "package-risk-summary",
+    ]
+
+    errors = _errors(data)
+
+    assert any("must not contain the canonical id" in error for error in errors)
+    assert any("must match" in error for error in errors)
+    assert any("duplicate" in error for error in errors)
+
+
 def test_accepts_mutating_recipe_with_matching_host_capabilities():
     data = _data()
     data["safety_class"] = "mutating"
@@ -171,6 +199,24 @@ def test_endorctl_transport_requires_run_commands():
     assert any("run_commands" in error for error in _errors(data))
 
 
+def test_accepts_agent_attributed_endor_api_transport():
+    data = _data()
+    data["supported_transports"] = ["mcp", "endorctl_agent_api"]
+    data["endorctl_api_invocations"] = []
+    data["endorctl_agent_api_invocations"] = ["lookup_package_version_uuid"]
+
+    assert _errors(data) == []
+
+
+def test_agent_attributed_endor_api_transport_requires_invocations():
+    data = _data()
+    data["supported_transports"] = ["mcp", "endorctl_agent_api"]
+    data["endorctl_api_invocations"] = []
+    data["endorctl_agent_api_invocations"] = []
+
+    assert any("endorctl_agent_api_invocations" in error for error in _errors(data))
+
+
 def test_rejects_missing_instructions_file():
     data = _data()
     data["instructions_path"] = "missing.md"
@@ -197,6 +243,49 @@ def test_accepts_both_audiences():
     for audience in ("appsec", "developer"):
         data["audience"] = audience
         assert not [error for error in _errors(data) if "audience:" in error]
+
+
+def test_rejects_missing_category():
+    data = _data()
+    data.pop("category", None)
+
+    assert any("category:" in error for error in _errors(data))
+
+
+def test_rejects_non_string_category():
+    data = _data()
+    data["category"] = ["Research", "Investigate"]
+
+    assert any("category:" in error for error in _errors(data))
+
+
+def test_rejects_category_with_surrounding_whitespace():
+    data = _data()
+    data["category"] = " Remediation"
+
+    assert any("category:" in error for error in _errors(data))
+
+
+def test_canonical_agent_categories_are_exact():
+    expected = {
+        "ai-sast-remediation": "Remediation",
+        "cicd-posture": "Compliance",
+        "configuration-automation": "Troubleshooting",
+        "dependency-reviewer": "Research & Investigate",
+        "findings-browser": "Research & Investigate",
+        "malware-responder": "Incident Response",
+        "oss-upgrade-investigator": "Research & Investigate",
+        "remediation-planning": "Remediation",
+        "sca-remediation": "Remediation",
+        "troubleshooting": "Troubleshooting",
+        "vulnerability-explainer": "Research & Investigate",
+    }
+    actual = {
+        path.parent.name: load_yaml_file(path).get("category")
+        for path in sorted((repo_root() / "source" / "agents").glob("*/recipe.yaml"))
+    }
+
+    assert actual == expected
 
 
 def test_rejects_missing_short_description():
@@ -285,6 +374,6 @@ def test_accepts_requires_endorctl_constraints():
 
 def _copy_recipe_fixture(tmp_path):
     src = recipe_path().parent
-    dst = tmp_path / "dependency-decision-helper"
+    dst = tmp_path / "dependency-reviewer"
     shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
     return dst / "recipe.yaml"

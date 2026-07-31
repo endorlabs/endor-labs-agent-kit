@@ -1,0 +1,92 @@
+schema_version: 1
+required_group_paths:
+  - spec.target_dependency_package_name
+  - spec.level
+findings:
+  - uuid: finding-log4j-critical-1
+    context:
+      type: CONTEXT_TYPE_MAIN
+    spec:
+      project_uuid: project-fixture-001
+      finding_categories:
+        - FINDING_CATEGORY_VULNERABILITY
+      dismiss: false
+      target_dependency_package_name: mvn://org.apache.logging.log4j/log4j-core@2.14.1
+      level: FINDING_LEVEL_CRITICAL
+  - uuid: finding-log4j-critical-2
+    context:
+      type: CONTEXT_TYPE_MAIN
+    spec:
+      project_uuid: project-fixture-001
+      finding_categories:
+        - FINDING_CATEGORY_VULNERABILITY
+      dismiss: false
+      target_dependency_package_name: mvn://org.apache.logging.log4j/log4j-core@2.14.1
+      level: FINDING_LEVEL_CRITICAL
+  - uuid: finding-log4j-high-1
+    context:
+      type: CONTEXT_TYPE_MAIN
+    spec:
+      project_uuid: project-fixture-001
+      finding_categories:
+        - FINDING_CATEGORY_VULNERABILITY
+      dismiss: false
+      target_dependency_package_name: mvn://org.apache.logging.log4j/log4j-core@2.14.1
+      level: FINDING_LEVEL_HIGH
+  - uuid: finding-jackson-high-1
+    context:
+      type: CONTEXT_TYPE_MAIN
+    spec:
+      project_uuid: project-fixture-001
+      finding_categories:
+        - FINDING_CATEGORY_VULNERABILITY
+      dismiss: false
+      target_dependency_package_name: mvn://com.fasterxml.jackson.core/jackson-databind@2.13.4
+      level: FINDING_LEVEL_HIGH
+  - uuid: finding-jackson-medium-1
+    context:
+      type: CONTEXT_TYPE_MAIN
+    spec:
+      project_uuid: project-fixture-001
+      finding_categories:
+        - FINDING_CATEGORY_VULNERABILITY
+      dismiss: false
+      target_dependency_package_name: mvn://com.fasterxml.jackson.core/jackson-databind@2.13.4
+      level: FINDING_LEVEL_MEDIUM
+  - uuid: finding-lodash-low-1
+    context:
+      type: CONTEXT_TYPE_MAIN
+    spec:
+      project_uuid: project-fixture-001
+      finding_categories:
+        - FINDING_CATEGORY_VULNERABILITY
+      dismiss: false
+      target_dependency_package_name: npm://lodash@4.17.20
+      level: FINDING_LEVEL_LOW
+expected:
+  total_count: 6
+  packages:
+    - mvn://com.fasterxml.jackson.core/jackson-databind@2.13.4
+    - mvn://org.apache.logging.log4j/log4j-core@2.14.1
+    - npm://lodash@4.17.20
+  severity_counts:
+    FINDING_LEVEL_CRITICAL: 2
+    FINDING_LEVEL_HIGH: 2
+    FINDING_LEVEL_MEDIUM: 1
+    FINDING_LEVEL_LOW: 1
+  groups:
+    - package: mvn://org.apache.logging.log4j/log4j-core@2.14.1
+      severity: FINDING_LEVEL_CRITICAL
+      count: 2
+    - package: mvn://org.apache.logging.log4j/log4j-core@2.14.1
+      severity: FINDING_LEVEL_HIGH
+      count: 1
+    - package: mvn://com.fasterxml.jackson.core/jackson-databind@2.13.4
+      severity: FINDING_LEVEL_HIGH
+      count: 1
+    - package: mvn://com.fasterxml.jackson.core/jackson-databind@2.13.4
+      severity: FINDING_LEVEL_MEDIUM
+      count: 1
+    - package: npm://lodash@4.17.20
+      severity: FINDING_LEVEL_LOW
+      count: 1

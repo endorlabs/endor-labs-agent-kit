@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
+from typing import Mapping
 
-from endor_agent_kit.catalog_schema import CatalogBundle
+from endor_agent_kit.catalog_schema import CatalogAgent, CatalogBundle
+from endor_agent_kit.evidence_plans import compile_evidence_plans
+from endor_agent_kit.knowledge_pack import load_knowledge_pack
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import EndorAgentRecipe
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 
 @dataclass(frozen=True)
@@ -27,6 +32,82 @@ class PublicationRecord:
     catalog_manifest: Path
 
 
+@dataclass(frozen=True)
+class PublicationBatchRecord:
+    """Internal result of publishing prepared recipes before catalog finalization."""
+
+    bundles: tuple[BundleRecord, ...]
+    agents: tuple[CatalogAgent, ...]
+
+
+def with_evidence_plan_artifacts(
+    bundle: BundleRecord,
+    destination: Path,
+    prepared: PreparedSourceRecipe,
+) -> BundleRecord:
+    """Add shared evidence contracts and runtime support to every Host bundle."""
+
+    plans = compile_evidence_plans(prepared.recipe.id)
+    workflow = load_knowledge_pack().workflow_for(prepared.recipe.id)
+    contracts = (
+        tuple(
+            compile_profile_contract(prepared.recipe.id, profile.id)
+            for profile in workflow.task_profiles
+        )
+        if workflow is not None
+        else ()
+    )
+    written = list(bundle.written)
+    records: list[CatalogBundle] = []
+    for record in bundle.manifest_records:
+        bundle_dir = destination / record.path
+        plan_dir = bundle_dir / "evidence-plans"
+        contract_dir = bundle_dir / "profile-contracts"
+        if plans:
+            plan_dir.mkdir(parents=True, exist_ok=True)
+        if contracts:
+            contract_dir.mkdir(parents=True, exist_ok=True)
+        summarizer = write_artifact_summarizer(bundle_dir)
+        written.append(summarizer)
+        artifact_profiles = {
+            artifact.path: artifact.profile_id
+            for artifact in record.artifacts
+            if artifact.profile_id is not None
+        }
+        for plan in plans:
+            artifact = plan_dir / f"{plan.profile_id}.json"
+            artifact.write_bytes(plan.to_json_bytes())
+            written.append(artifact)
+            artifact_profiles[artifact.relative_to(destination).as_posix()] = plan.profile_id
+        for contract in contracts:
+            artifact = contract_dir / f"{contract.profile_id}.json"
+            artifact.write_bytes(contract.to_json_bytes())
+            written.append(artifact)
+            artifact_profiles[artifact.relative_to(destination).as_posix()] = contract.profile_id
+        rebuilt = CatalogBundle.from_published_bundle(
+            destination,
+            prepared.recipe,
+            record.host,
+            record.bundle_id,
+            record.bundle_name,
+            bundle_dir,
+            requires_endorctl=record.requires_endorctl,
+            artifact_profiles=artifact_profiles,
+        )
+        records.append(
+            replace(
+                rebuilt,
+                include_requires_endorctl=record.include_requires_endorctl,
+                extra_fields=record.extra_fields,
+            )
+        )
+    return BundleRecord(
+        host=bundle.host,
+        written=tuple(written),
+        manifest_records=tuple(records),
+    )
+
+
 def artifact_bundle_record(
     destination: Path,
     recipe: EndorAgentRecipe,
@@ -36,6 +117,7 @@ def artifact_bundle_record(
     bundle_dir: Path,
     *,
     requires_endorctl: str = "",
+    artifact_profiles: Mapping[str, str] | None = None,
 ) -> CatalogBundle:
     """Return manifest metadata for one published artifact bundle."""
 
@@ -47,6 +129,7 @@ def artifact_bundle_record(
         bundle_name,
         bundle_dir,
         requires_endorctl=requires_endorctl,
+        artifact_profiles=artifact_profiles,
     )
 
 

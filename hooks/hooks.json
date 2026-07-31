@@ -9,6 +9,11 @@
     ],
     "beforeShellExecution": [
       {
+        "command": "bash ./hooks/enforce-agent-api.sh beforeShellExecution",
+        "timeout": 10,
+        "type": "command"
+      },
+      {
         "command": "bash ./hooks/check-dep-install.sh beforeShellExecution",
         "timeout": 10,
         "type": "command"

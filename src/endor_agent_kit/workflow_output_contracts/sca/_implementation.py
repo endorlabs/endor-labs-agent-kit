@@ -61,6 +61,8 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
 
     if "uia_evidence" in payload and not isinstance(payload.get("uia_evidence"), list):
         errors.append("uia_evidence: must be an array")
+    if "validation" in payload and not isinstance(payload.get("validation"), list):
+        errors.append("validation: must be an array")
 
     risk_decision = payload.get("risk_decision")
     risk_status = ""
@@ -151,6 +153,12 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
         if _is_empty(validation_requirements):
             errors.append("validation_requirements: required for risk solver decisions")
 
+    if risk_status == "approved_low_risk" and not _has_successful_validation(payload):
+        errors.append(
+            "risk_decision.status: approved_low_risk requires successful targeted validation; "
+            "use approved_with_validation_required when validation has not run"
+        )
+
     branch_names = _collect_branch_names(payload)
     if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation and not branch_names:
         errors.append("branch_name: required and must use remediation/sca/<package>-<target-version>")
@@ -170,6 +178,16 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
         )
 
+    if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation:
+        _validate_finding_count_semantics(payload, selected=selected, errors=errors)
+        _validate_change_request_inventory(
+            payload,
+            selected=selected,
+            gate=gate,
+            risk_status=risk_status,
+            errors=errors,
+        )
+
     if gate == "pr":
         body = _text(_first_present(payload, "pr_body", "body", "pull_request_body"))
         if not body:
@@ -178,6 +196,211 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             errors.extend(f"pr_body: {error}" for error in lint_sca_pr_body(body))
 
     return errors
+
+
+def _has_successful_validation(payload: dict[str, Any]) -> bool:
+    successful = {"completed", "ok", "pass", "passed", "success", "succeeded"}
+    for item in _list(payload.get("validation")):
+        if not isinstance(item, dict):
+            continue
+        if _text(item.get("status") or item.get("result")).lower() in successful:
+            return True
+    return False
+
+
+def _validate_finding_count_semantics(
+    payload: dict[str, Any],
+    *,
+    selected: dict[str, Any],
+    errors: list[str],
+) -> None:
+    instances = selected.get("finding_instances_fixed")
+    advisories = selected.get("unique_advisories_fixed")
+    fixed_uuids = selected.get("fixed_finding_uuids")
+    for field_name, value in (
+        ("finding_instances_fixed", instances),
+        ("unique_advisories_fixed", advisories),
+    ):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            errors.append(f"selected_remediation.{field_name}: required non-negative integer")
+    if not isinstance(fixed_uuids, list):
+        errors.append("selected_remediation.fixed_finding_uuids: required string array")
+    elif any(not re.fullmatch(r"[0-9a-f]{24}", _text(item)) for item in fixed_uuids):
+        errors.append(
+            "selected_remediation.fixed_finding_uuids: each UUID must be 24 lowercase hexadecimal characters"
+        )
+    elif len(fixed_uuids) != len(set(fixed_uuids)):
+        errors.append("selected_remediation.fixed_finding_uuids: UUIDs must be unique")
+
+    legacy_fixed = selected.get("findings_fixed")
+    if (
+        isinstance(legacy_fixed, int)
+        and not isinstance(legacy_fixed, bool)
+        and isinstance(instances, int)
+        and not isinstance(instances, bool)
+        and legacy_fixed != instances
+    ):
+        errors.append(
+            "selected_remediation.findings_fixed: must equal finding_instances_fixed"
+        )
+
+    evidence = [item for item in _list(payload.get("uia_evidence")) if isinstance(item, dict)]
+    if evidence:
+        record = evidence[0]
+        evidence_instances = record.get("finding_instances_fixed")
+        evidence_advisories = record.get("unique_advisories_fixed")
+        evidence_uuids = record.get("fixed_finding_uuids")
+        if evidence_instances != instances:
+            errors.append(
+                "uia_evidence[0].finding_instances_fixed: must match selected remediation"
+            )
+        if evidence_advisories != advisories:
+            errors.append(
+                "uia_evidence[0].unique_advisories_fixed: must match selected remediation"
+            )
+        if evidence_uuids != fixed_uuids:
+            errors.append(
+                "uia_evidence[0].fixed_finding_uuids: must match selected remediation"
+            )
+
+
+def _validate_change_request_inventory(
+    payload: dict[str, Any],
+    *,
+    selected: dict[str, Any],
+    gate: str,
+    risk_status: str,
+    errors: list[str],
+) -> None:
+    requests = [item for item in _list(payload.get("change_requests")) if isinstance(item, dict)]
+    if not requests:
+        errors.append("change_requests[0].inventory: required before selection or mutation")
+        return
+    request = requests[0]
+    prefix = "change_requests[0].inventory"
+    inventory = _dict(request.get("inventory"))
+    if not inventory:
+        errors.append(f"{prefix}: required before selection or mutation")
+        return
+
+    status = _text(inventory.get("status"))
+    allowed_statuses = {"none_found", "exact_duplicate", "different_target", "unavailable"}
+    if status not in allowed_statuses:
+        errors.append(f"{prefix}.status: must be one of {', '.join(sorted(allowed_statuses))}")
+    for field_name in ("lookup_method", "checked_at"):
+        if not _text(inventory.get(field_name)):
+            errors.append(f"{prefix}.{field_name}: required")
+
+    key = _dict(inventory.get("key"))
+    for field_name in (
+        "repository",
+        "base_branch",
+        "ecosystem",
+        "normalized_package",
+        "manifest",
+        "current_version",
+        "target_version",
+    ):
+        if not _text(key.get(field_name)):
+            errors.append(f"{prefix}.key.{field_name}: required")
+    if not isinstance(key.get("finding_set"), list):
+        errors.append(f"{prefix}.key.finding_set: required array")
+    selected_target = _text(selected.get("to_version") or selected.get("target_version"))
+    selected_current = _text(selected.get("from_version") or selected.get("current_version"))
+    selected_manifests = {
+        item
+        for field_name in ("manifests", "affected_manifests")
+        for item in _list(selected.get(field_name))
+        if isinstance(item, str) and item.strip()
+    }
+    if selected_target and _text(key.get("target_version")) != selected_target:
+        errors.append(f"{prefix}.key.target_version: must match selected remediation")
+    if selected_current and _text(key.get("current_version")) != selected_current:
+        errors.append(f"{prefix}.key.current_version: must match selected remediation")
+
+    candidates = inventory.get("candidates")
+    if not isinstance(candidates, list):
+        errors.append(f"{prefix}.candidates: required array")
+        candidates = []
+    for index, candidate in enumerate(candidates):
+        candidate_prefix = f"{prefix}.candidates[{index}]"
+        if not isinstance(candidate, dict):
+            errors.append(f"{candidate_prefix}: must be an object")
+            continue
+        for field_name in ("author", "author_type", "branch", "state", "url"):
+            if not _text(candidate.get(field_name)):
+                errors.append(f"{candidate_prefix}.{field_name}: required")
+        for field_name in ("current_version", "target_version"):
+            if field_name not in candidate:
+                errors.append(f"{candidate_prefix}.{field_name}: required key")
+        if not isinstance(candidate.get("files"), list):
+            errors.append(f"{candidate_prefix}.files: required array")
+        elif selected_manifests and not selected_manifests.intersection(
+            item
+            for item in candidate.get("files", [])
+            if isinstance(item, str) and item.strip()
+        ):
+            errors.append(f"{candidate_prefix}.files: must overlap a selected remediation manifest")
+        if not isinstance(candidate.get("exact_duplicate"), bool):
+            errors.append(f"{candidate_prefix}.exact_duplicate: required boolean")
+        elif candidate.get("exact_duplicate") is True:
+            candidate_current = _text(candidate.get("current_version"))
+            candidate_target = _text(candidate.get("target_version"))
+            if not candidate_current:
+                errors.append(f"{candidate_prefix}.current_version: required for exact duplicate")
+            elif selected_current and candidate_current != selected_current:
+                errors.append(f"{candidate_prefix}.current_version: must match selected remediation")
+            if not candidate_target:
+                errors.append(f"{candidate_prefix}.target_version: required for exact duplicate")
+            elif selected_target and candidate_target != selected_target:
+                errors.append(f"{candidate_prefix}.target_version: must match selected remediation")
+
+    reconciliation = _dict(inventory.get("reconciliation"))
+    reconciliation_status = _text(reconciliation.get("status"))
+    if not reconciliation_status:
+        errors.append(f"{prefix}.reconciliation.status: required")
+    if status == "exact_duplicate":
+        if not any(candidate.get("exact_duplicate") is True for candidate in candidates):
+            errors.append(f"{prefix}.candidates: exact_duplicate requires a matching candidate")
+        request_status = _text(request.get("status"))
+        if reconciliation_status not in {"reuse_existing", "blocked_duplicate"} or request_status in {
+            "created",
+            "opened",
+            "pushed",
+        }:
+            errors.append(f"{prefix}: exact duplicate must be reused or block creation")
+    if status == "none_found" and candidates:
+        errors.append(f"{prefix}.candidates: none_found requires an empty candidate list")
+    if status == "different_target" and any(
+        candidate.get("exact_duplicate") is True for candidate in candidates
+    ):
+        errors.append(f"{prefix}.status: exact matching candidate must use exact_duplicate")
+    if status == "different_target":
+        if reconciliation_status == "operator_choice_required" or reconciliation.get(
+            "operator_choice_required"
+        ) is True:
+            errors.append(
+                f"{prefix}.reconciliation: unresolved target divergence requires operator choice"
+            )
+            if risk_status.startswith("approved"):
+                errors.append(
+                    "risk_decision.status: cannot be approved while target-version divergence is unresolved"
+                )
+        elif reconciliation_status == "resolved":
+            for field_name in ("uia_evidence_checked_at", "upstream_evidence_checked_at"):
+                if not _text(reconciliation.get(field_name)):
+                    errors.append(
+                        f"{prefix}.reconciliation.{field_name}: required for different-target reconciliation"
+                    )
+        else:
+            errors.append(
+                f"{prefix}.reconciliation.status: different target must be resolved or require operator choice"
+            )
+    if gate == "pr":
+        if status == "unavailable":
+            errors.append(f"{prefix}: unavailable inventory fails closed before push/open")
+        if inventory.get("fresh_recheck") is not True:
+            errors.append(f"{prefix}.fresh_recheck: required immediately before push/open")
 
 
 def render_sca_pr_body(payload: dict[str, Any]) -> str:
@@ -206,7 +429,7 @@ def render_sca_pr_body(payload: dict[str, Any]) -> str:
         "",
         (
             f"This PR upgrades **{package}** from `{from_version}` to `{to_version}` "
-            f"across {_format_manifest_cell(manifests)}. Endor Labs Upgrade Impact Analysis "
+            f"across {_format_manifest_cell(manifests)}. OSS Upgrade Investigator "
             f"reports **{findings_fixed}** Endor finding instances fixed with "
             f"**{findings_introduced}** new Endor finding instances introduced."
         ),

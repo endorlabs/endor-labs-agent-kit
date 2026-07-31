@@ -27,14 +27,19 @@ from endor_agent_kit.publication.plugin_package_common import (
 )
 from endor_agent_kit.recipe import editions_for_host
 from endor_agent_kit.safety_posture import source_recipe_safety_posture
+from endor_agent_kit.publication.runtime_support import write_artifact_summarizer
 
 CLAUDE_PLUGIN_PACKAGE_ROOT = Path("plugins") / "claude" / PLUGIN_NAME
 CLAUDE_MARKETPLACE_PATH = Path(".claude-plugin") / "marketplace.json"
+CLAUDE_ROOT_GUARD_MANIFEST_PATH = Path(".claude-plugin") / "plugin.json"
+CLAUDE_ROOT_GUARD_HOOKS_PATH = Path(".claude-plugin") / "root-package-guard-hooks.json"
+CLAUDE_ROOT_GUARD_SCRIPT_PATH = Path(".claude-plugin") / "reject-repository-root.sh"
 CLAUDE_LOCAL_MARKETPLACE_PATH = Path("plugins") / "claude" / ".claude-plugin" / "marketplace.json"
 CLAUDE_SETUP_SKILL = "endor-agent-kit-setup"
 CLAUDE_HOOK_SOURCE_DIR = Path("source") / "plugin-support" / "hooks" / "claude"
 CLAUDE_HOOK_FILENAMES = (
     "suggest-endor-tools.sh",
+    "enforce-agent-api.sh",
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
@@ -44,7 +49,7 @@ CLAUDE_DISCOVERY_TERMS = (
     "SAST remediation",
     "agentic AppSec",
     "AppSec",
-    "Upgrade Impact Analysis",
+    "OSS Upgrade Investigator",
 )
 CLAUDE_UNSUPPORTED_AGENT_FRONTMATTER = frozenset({
     "hooks",
@@ -112,6 +117,9 @@ def publish_claude_plugin_package(
     for spec in package_specs:
         written.extend(_write_claude_plugin_package(destination, spec, sorted_recipes))
 
+    root_guard_artifacts = _write_claude_root_package_guard(destination, version)
+    written.extend(root_guard_artifacts)
+
     marketplace_path.write_text(
         json.dumps(
             _claude_marketplace_manifest(
@@ -160,11 +168,134 @@ def publish_claude_plugin_package(
             package_dir=destination / spec.package_root,
             marketplace_path=CLAUDE_MARKETPLACE_PATH.as_posix(),
             included_agents=tuple(prepared.recipe.id for prepared in sorted_recipes),
-            extra_artifacts=(marketplace_path, local_marketplace_path, plugins_readme),
+            extra_artifacts=(
+                marketplace_path,
+                local_marketplace_path,
+                plugins_readme,
+                *root_guard_artifacts,
+            ),
         )
         for spec in package_specs
     )
     return PluginPackagePublication(package_records=package_records, written=tuple(written))
+
+
+def _write_claude_root_package_guard(
+    destination: Path,
+    version: str,
+) -> tuple[Path, ...]:
+    """Keep repository-root Claude loading from discovering Cursor artifacts."""
+
+    manifest_path = destination / CLAUDE_ROOT_GUARD_MANIFEST_PATH
+    hooks_path = destination / CLAUDE_ROOT_GUARD_HOOKS_PATH
+    script_path = destination / CLAUDE_ROOT_GUARD_SCRIPT_PATH
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+
+    command = (
+        'bash "${CLAUDE_PLUGIN_ROOT}/.claude-plugin/'
+        f'{CLAUDE_ROOT_GUARD_SCRIPT_PATH.name}"'
+    )
+    hooks = {
+        "hooks": {
+            "SessionStart": [
+                {
+                    "matcher": "",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": f"{command} SessionStart",
+                            "timeout": 10,
+                        }
+                    ],
+                }
+            ],
+            "UserPromptSubmit": [
+                {
+                    "matcher": "",
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": f"{command} UserPromptSubmit",
+                            "timeout": 10,
+                        }
+                    ],
+                }
+            ],
+        }
+    }
+    hooks_path.write_text(
+        json.dumps(hooks, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    claude_agents = sorted(
+        (destination / CLAUDE_PLUGIN_PACKAGE_ROOT / "agents").glob("*.md")
+    )
+    if not claude_agents:
+        raise FileNotFoundError(
+            destination / CLAUDE_PLUGIN_PACKAGE_ROOT / "agents"
+        )
+    manifest = {
+        "name": PLUGIN_NAME,
+        "displayName": f"{PLUGIN_DISPLAY_NAME} (Repository Root Guard)",
+        "version": version,
+        "description": (
+            "Prevents Claude Code from loading Cursor artifacts when the Agent "
+            "Kit repository root is passed as a plugin directory."
+        ),
+        "author": {
+            "name": "Endor Labs",
+            "url": "https://www.endorlabs.com/",
+        },
+        "agents": [
+            f"./{agent.relative_to(destination).as_posix()}"
+            for agent in claude_agents
+        ],
+        "hooks": f"./{CLAUDE_ROOT_GUARD_HOOKS_PATH.as_posix()}",
+    }
+    manifest_path.write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+
+    script_path.write_text(_claude_root_guard_script(), encoding="utf-8")
+    script_path.chmod(0o755)
+    return manifest_path, hooks_path, script_path
+
+
+def _claude_root_guard_script() -> str:
+    message = (
+        "Endor Labs Agent Kit: the repository root is the Cursor package and is "
+        "not a supported Claude Code plugin root. Relaunch from the repository "
+        "root with: claude --plugin-dir plugins/claude/endor-labs-agent-kit"
+    )
+    session_payload = json.dumps(
+        {
+            "hookSpecificOutput": {
+                "hookEventName": "SessionStart",
+                "additionalContext": message,
+            }
+        },
+        separators=(",", ":"),
+    )
+    return dedent(
+        f'''\
+        #!/usr/bin/env bash
+        # endor_agent_kit_managed=true
+
+        event_name="${{1:-UserPromptSubmit}}"
+        cat >/dev/null || true
+        message={json.dumps(message)}
+
+        if [[ "$event_name" == "UserPromptSubmit" ]]; then
+          printf '%s\n' "$message" >&2
+          exit 2
+        fi
+
+        printf '%s\n' {json.dumps(session_payload)}
+        exit 0
+        '''
+    )
 
 
 LEGACY_CLAUDE_PLUGIN_NAME = "ai-plugins"
@@ -208,7 +339,7 @@ def _write_claude_plugin_package(
     written: list[Path] = []
     for prepared in sorted_recipes:
         source_agent = _published_claude_agent_path(destination, prepared)
-        target_agent = package_dir / "agents" / f"{prepared.recipe.id}.md"
+        target_agent = package_dir / "agents" / source_agent.name
         target_agent.write_text(
             _render_claude_plugin_agent(
                 prepared,
@@ -226,6 +357,8 @@ def _write_claude_plugin_package(
 
     logo = write_logo(package_dir / "assets")
     written.append(logo)
+
+    written.append(write_artifact_summarizer(package_dir))
 
     if not spec.legacy:
         written.extend(_write_claude_plugin_hooks(spec, package_dir))
@@ -303,6 +436,12 @@ def _claude_hooks_config() -> dict[str, object]:
                     "hooks": [command("suggest-endor-tools.sh")],
                 }
             ],
+            "PreToolUse": [
+                {
+                    "matcher": "Bash",
+                    "hooks": [command("enforce-agent-api.sh")],
+                }
+            ],
             "PostToolUse": [
                 {
                     "matcher": "Bash",
@@ -343,7 +482,10 @@ def _render_claude_plugin_agent(
 
     provenance = "\n".join([
         "<!-- Generated by Endor Labs Agent Kit. Do not hand-edit installed plugin cache copies. -->",
-        f"<!-- endor_agent_kit_managed=true agent_id={prepared.recipe.id} host=claude-code-plugin -->",
+        (
+            f"<!-- endor_agent_kit_managed=true agent_id={prepared.recipe.id} "
+            "profile_id=base host=claude-code-plugin -->"
+        ),
     ])
     setup_note = dedent(
         f"""\
@@ -357,12 +499,15 @@ def _render_claude_plugin_agent(
     return "\n\n".join([
         f"---\n{sanitized_frontmatter.rstrip()}\n---",
         provenance,
-        _compact_claude_plugin_body(body, prepared).rstrip(),
         setup_note,
+        _compact_claude_plugin_body(body, prepared).rstrip(),
     ]) + "\n"
 
 
-def _compact_claude_plugin_body(body: str, prepared: PreparedSourceRecipe) -> str:
+def _compact_claude_plugin_body(
+    body: str,
+    prepared: PreparedSourceRecipe,
+) -> str:
     notice = body.split("\n\n", 1)[0].rstrip()
     compact_body = instructions_for_edition(
         prepared.instructions,
@@ -488,7 +633,7 @@ def _render_setup_skill(
 ) -> str:
     setup_source = _setup_source(prepared_recipes)
     workflow_lines = [
-        f"- `{_workflow_label(prepared.recipe.id)}` -> Claude Code agent `{prepared.recipe.id}`"
+        f"- `{prepared.recipe.name}` -> Claude Code agent `{prepared.recipe.id}`"
         for prepared in prepared_recipes
     ]
     install_notice = _claude_install_upgrade_notice(spec)
@@ -515,7 +660,7 @@ def _render_setup_skill(
         "From the public ai-plugins distribution repository:",
         "",
         "```text",
-        f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY} --sparse .claude-plugin plugins/claude",
+        f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}",
         f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
@@ -564,11 +709,12 @@ def _claude_plugin_readme(
     spec: ClaudePluginPackageSpec,
 ) -> str:
     rows = [
-        f"| {_workflow_label(prepared.recipe.id)} | `{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
+        f"| {prepared.recipe.name} | `{prepared.recipe.id}` | {_workflow_safety(prepared)} |"
         for prepared in prepared_recipes
     ]
     install_notice = _claude_install_upgrade_notice(spec)
     start_here = plugin_readme_start_here(
+        host_id="claude-code",
         host_label="Claude Code",
         install_summary=f"Install `{spec.name}@{CLAUDE_MARKETPLACE_NAME}` from the public marketplace or a local checkout.",
         setup_summary=f"ask Claude Code to use the `{CLAUDE_SETUP_SKILL}` skill.",
@@ -581,8 +727,14 @@ def _claude_plugin_readme(
         f"Version: `{spec.version}`",
         "",
         "This generated Claude Code plugin package includes Endor Labs setup",
-        "support and Claude Code agents generated from source recipes in the",
+        (
+            "support and the 11 canonical Claude Code workflow agents generated "
+            "from source recipes in the"
+        ),
         "Endor Labs Agent Kit repository.",
+        "Task-profile projections remain available in `claude-code/<agent>/` for",
+        "advanced manual invocation; they are intentionally not separate public",
+        "marketplace agents.",
         "",
         *start_here,
         "## Install And Upgrade Notice",
@@ -605,7 +757,7 @@ def _claude_plugin_readme(
         "## Install From The Public Repository",
         "",
         "```text",
-        f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY} --sparse .claude-plugin plugins/claude",
+        f"/plugin marketplace add {PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}",
         f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
         "",
@@ -617,6 +769,16 @@ def _claude_plugin_readme(
         "/plugin marketplace add ./",
         f"/plugin install {spec.name}@{CLAUDE_MARKETPLACE_NAME}",
         "```",
+        "",
+        "For one-off development, point Claude Code at this host-specific package:",
+        "",
+        "```bash",
+        f"claude --plugin-dir plugins/claude/{spec.name}",
+        "```",
+        "",
+        "Do not run `claude --plugin-dir .`. The repository root contains Cursor",
+        "agents, workflow skills, MCP metadata, and Cursor hook events that are not",
+        "a Claude Code plugin package.",
         "",
         "Start a new Claude Code session or run `/reload-plugins` after installing",
         "or reinstalling the plugin.",
@@ -689,24 +851,6 @@ def _claude_install_upgrade_notice(spec: ClaudePluginPackageSpec) -> list[str]:
         "- Do not enable both Claude plugin ids in the same profile because they expose the same agents and setup skill.",
         "- The plugin does not auto-disable, uninstall, or edit Claude settings for either id.",
     ]
-
-
-def _workflow_label(agent_id: str) -> str:
-    labels = {
-        "ai-sast-triage": "Triage AI SAST findings",
-        "cicd-posture": "Assess CI/CD and supply chain posture",
-        "dependency-decision-helper": "Decide whether a dependency is safe to use",
-        "endor-troubleshooter": "Diagnose Endor setup and scan issues",
-        "findings-browser": "Browse existing Endor findings",
-        "package-risk-summary": "Summarize package-version risk",
-        "probe-droid": "Assess GitHub onboarding gaps",
-        "remediation-planner": "Plan remediation across findings",
-        "repository-dependency-reviewer": "Review repository dependency manifests",
-        "sca-remediation": "Find safe SCA remediation paths",
-        "upgrade-impact-analysis": "Analyze upgrade impact",
-        "vulnerability-explainer": "Explain vulnerability risk and remediation",
-    }
-    return labels.get(agent_id, agent_id.replace("-", " ").title())
 
 
 def _workflow_safety(prepared: PreparedSourceRecipe) -> str:

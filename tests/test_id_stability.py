@@ -39,6 +39,19 @@ def test_check_id_stability_flags_rename_as_removed_plus_added():
     assert "beta" in errors[0]
 
 
+def test_check_id_stability_allows_rename_with_explicit_legacy_alias():
+    refs = {"base": {"alpha", "beta"}, "HEAD": {"alpha", "beta-renamed"}}
+
+    errors = check_id_stability(
+        "base",
+        "HEAD",
+        loader=lambda ref, **_: refs[ref],
+        legacy_loader=lambda ref, **_: {"beta"} if ref == "HEAD" else set(),
+    )
+
+    assert errors == []
+
+
 def test_check_id_stability_reports_multiple_sorted():
     refs = {"base": {"a", "b", "c"}, "HEAD": set()}
 

@@ -1,0 +1,153 @@
+#!/usr/bin/env python3
+"""Validate that an ai-plugins checkout matches its Agent Kit provenance."""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+from pathlib import Path
+import re
+from typing import Mapping
+
+
+_SHA256 = re.compile(r"^[0-9a-f]{64}$")
+_AGENT_PREFIX = "endor-"
+_AGENT_SUFFIX = "-agent.md"
+_SETUP_AGENT = "endor-agent-kit-setup-agent.md"
+_MANAGED_AGENT_ID = re.compile(
+    r"<!--\s+endor_agent_kit_managed=true\b[^>]*\bagent_id=([a-z0-9-]+)\b"
+)
+_MANAGED_PROFILE_ID = re.compile(
+    r"<!--\s+endor_agent_kit_managed=true\b[^>]*\bprofile_id=([a-z0-9-]+)\b"
+)
+
+
+def validate_mirror_provenance(root: Path) -> list[str]:
+    errors: list[str] = []
+    try:
+        statement = json.loads(
+            (root / "provenance/agent-kit-catalog.intoto.json").read_text(encoding="utf-8")
+        )
+        checksum_parts = (root / "provenance/manifest.sha256").read_text(
+            encoding="utf-8"
+        ).strip().split()
+        mirrored_manifest = root / "provenance/agent-kit-manifest.json"
+        source_record = json.loads(
+            (root / "provenance/agent-kit-source.json").read_text(encoding="utf-8")
+        )
+    except (OSError, json.JSONDecodeError) as exc:
+        return [f"missing or invalid mirror provenance: {exc}"]
+
+    subjects = statement.get("subject") if isinstance(statement, Mapping) else None
+    if not isinstance(subjects, list) or len(subjects) != 1 or not isinstance(subjects[0], Mapping):
+        errors.append("provenance must contain exactly one manifest subject")
+        subject_digest = ""
+    else:
+        subject = subjects[0]
+        digest = subject.get("digest")
+        subject_digest = str(digest.get("sha256") or "") if isinstance(digest, Mapping) else ""
+        if subject.get("name") != "manifest.json" or not _SHA256.fullmatch(subject_digest):
+            errors.append("provenance subject must be a SHA-256 digest of manifest.json")
+
+    if (
+        len(checksum_parts) != 2
+        or not _SHA256.fullmatch(checksum_parts[0])
+        or checksum_parts[1] != "manifest.json"
+    ):
+        errors.append("manifest.sha256 must contain one manifest.json checksum")
+    elif checksum_parts[0] != subject_digest:
+        errors.append("manifest checksum does not match provenance subject")
+    elif hashlib.sha256(mirrored_manifest.read_bytes()).hexdigest() != checksum_parts[0]:
+        errors.append("mirrored Agent Kit manifest does not match provenance checksum")
+
+    source_sha = source_record.get("agent_kit_sha") if isinstance(source_record, Mapping) else None
+    if not isinstance(source_sha, str) or not re.fullmatch(r"[0-9a-f]{40}", source_sha):
+        errors.append("agent-kit-source.json must pin one literal 40-character Agent Kit SHA")
+
+    predicate = statement.get("predicate") if isinstance(statement, Mapping) else None
+    catalog = predicate.get("catalog") if isinstance(predicate, Mapping) else None
+    if not isinstance(catalog, list) or not all(isinstance(item, Mapping) for item in catalog):
+        errors.append("provenance predicate catalog must be an array of objects")
+        provenance_ids: set[str] = set()
+    else:
+        provenance_ids = {
+            str(item.get("id"))
+            for item in catalog
+            if isinstance(item.get("id"), str) and item.get("id")
+        }
+
+    agents_root = root / "agents"
+    try:
+        agent_paths = tuple(
+            sorted(
+                path
+                for path in agents_root.iterdir()
+                if path.is_file() and path.name != _SETUP_AGENT
+            )
+        )
+    except OSError as exc:
+        errors.append(f"missing mirror agents directory: {exc}")
+        agent_paths = ()
+
+    mirror_ids: set[str] = set()
+    base_ids: set[str] = set()
+    unmanaged_files: list[str] = []
+    profile_files: list[str] = []
+    for path in agent_paths:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            unmanaged_files.append(path.name)
+            continue
+        agent_match = _MANAGED_AGENT_ID.search(text)
+        if agent_match is not None:
+            agent_id = agent_match.group(1)
+            mirror_ids.add(agent_id)
+            profile_match = _MANAGED_PROFILE_ID.search(text)
+            if profile_match is not None and profile_match.group(1) != "base":
+                profile_files.append(path.name)
+            else:
+                base_ids.add(agent_id)
+            continue
+        if path.name.startswith(_AGENT_PREFIX) and path.name.endswith(_AGENT_SUFFIX):
+            agent_id = path.name[len(_AGENT_PREFIX) : -len(_AGENT_SUFFIX)]
+            mirror_ids.add(agent_id)
+            base_ids.add(agent_id)
+            continue
+        unmanaged_files.append(path.name)
+
+    if unmanaged_files:
+        errors.append(f"root agent files lack canonical managed identity: {unmanaged_files}")
+    if profile_files:
+        errors.append(
+            f"root Claude package must not expose task-profile agents: {profile_files}"
+        )
+    if len(provenance_ids) != 11 or len(agent_paths) != 11 or len(mirror_ids) != 11:
+        errors.append(
+            "mirror provenance and root package must each contain exactly 11 "
+            "canonical agent files"
+        )
+    if provenance_ids != mirror_ids:
+        errors.append("mirror canonical agent ids do not match provenance")
+    missing_base_ids = sorted(provenance_ids - base_ids)
+    if missing_base_ids:
+        errors.append(f"root package missing base agent projections: {missing_base_ids}")
+    return errors
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=Path("."))
+    args = parser.parse_args()
+    errors = validate_mirror_provenance(args.root.resolve())
+    if errors:
+        for error in errors:
+            print(f"ERROR: {error}")
+        return 1
+    print("OK: mirror provenance matches 11 canonical agents")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

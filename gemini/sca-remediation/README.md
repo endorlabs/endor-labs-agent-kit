@@ -1,6 +1,11 @@
 # SCA Remediation Gemini CLI Bundle
 
-Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.
+Plans and applies dependency-vulnerability fixes using Endor SCA findings,
+VersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk
+decisions, and local validation. It separates low-risk changes from upgrades
+requiring deeper compatibility review and requires explicit approval before
+editing files, pushing branches, opening change requests, or creating
+tickets.
 
 ## Start Here
 
@@ -11,6 +16,18 @@ This is the Gemini CLI generated skill and subagent bundle for `sca-remediation`
 | Human operator | Prefer the generated Gemini extension under `plugins/gemini/endor-labs-agent-kit`, then restart Gemini CLI. Then use the example prompt below: Use @sca-remediation to check this repository for P0 SCA findings I can start remediating. Do not edit files or open a PR/MR until I approve. |
 | Agent installer | Copy the generated files exactly, including the generated prompt or skill file, `actions.yaml`, `endorctl-setup.md`, `architecture.svg`. Do not summarize or rewrite the generated prompt. |
 | Maintainer | Change `source/agents/sca-remediation/recipe.yaml`, `instructions.md`, evals, action contracts, or `architecture.svg`, then regenerate the catalog. Do not hand-edit generated copies. |
+
+## Recommended Model
+
+This is a release-QA target, not a requirement or model allowlist.
+Agent Kit does not block compatible customer-selected host models.
+
+- Recommended model: `gemini-3.5-flash`.
+- Selection mode: `pinned`.
+- Recommended reasoning/effort: `host managed`.
+- Generated behavior: subagent frontmatter pins model: gemini-3.5-flash.
+- Override behavior: explicit subagent definition or host subagent configuration wins.
+- Provider guidance: <https://geminicli.com/docs/core/subagents/>.
 
 ## Install Through The Generated Extension
 
@@ -30,7 +47,7 @@ subagent manually under your Gemini configuration.
 ## Requirements
 
 - Gemini CLI with filesystem and terminal access to the target repository.
-- Endor tenant access through authenticated `endorctl api` or documented Endor API credentials.
+- Endor tenant access through authenticated `endorctl agent api --agent-id sca-remediation`.
 - Git and source-provider credentials for approved branch, PR/MR, review, or comment workflows.
 
 ## Example
@@ -53,7 +70,7 @@ Use @sca-remediation to prepare the top UIA-backed dependency remediation for th
 
 ![SCA Remediation architecture](architecture.svg)
 
-This mutating Gemini CLI subagent resolves repository context, queries Endor SCA findings, requires VersionUpgrade/UIA evidence before recommending a best first fix, keeps non-breaking low-risk UIA PR candidates separate from the P0/exploited queue and risky solver, resolves risky or CIA-indeterminate upgrades into a deterministic risk_decision, prepares local dependency changes, runs ecosystem-appropriate validation when possible, and opens a PR/MR only after explicit approval. It does not use or require an Endor MCP server.
+This SCA remediation agent resolves repository context from a matching local checkout or a user-supplied repository selector, queries Endor SCA findings, requires VersionUpgrade/UIA evidence before recommending a best first fix, keeps non-breaking low-risk UIA PR candidates separate from the P0/exploited queue and risky solver, resolves risky or CIA-indeterminate upgrades into a deterministic risk_decision, prepares local dependency changes and validation when a checkout exists, and opens a PR/MR only after explicit approval plus source-provider write access. Without a checkout it returns an evidence-only plan and records the missing source, validation, and delivery capabilities instead of fabricating them. It does not use or require an Endor MCP server.
 
 ## Notes
 

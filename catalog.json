@@ -1,12 +1,13 @@
 {
-  "schema_version": "v1",
+  "schema_version": "v2",
   "agents": [
     {
-      "id": "ai-sast-triage",
-      "name": "AI SAST Triage",
+      "id": "ai-sast-remediation",
+      "name": "AI SAST Remediation",
       "audience": "appsec",
-      "short_description": "Triages Endor AI SAST findings with exploit-reproduction and remediation context, and opens change requests when requested.",
-      "description": "Parse Endor AI SAST findings, use exploit reproduction and remediation guidance as patch context, fetch source at the pinned commit, and open change requests when requested.",
+      "category": "Remediation",
+      "short_description": "Triages and remediates Endor AI SAST findings with exploit evidence and approval-gated fixes.",
+      "description": "Triages Endor AI SAST findings using exploit-reproduction evidence,\ndata-flow context, and remediation guidance to distinguish actionable\nvulnerabilities from noise. It can prepare targeted code fixes and, after\nexplicit approval, edit files and open change requests. For exception\nworkflows, it can create or update scoped Endor exception policies only\nafter verified AppSec approval and explicit user confirmation.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -15,16 +16,32 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/ai-sast-triage/ai-sast-triage.md .claude/agents/ai-sast-triage.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
+      ],
+      "legacy_ids": [
+        "ai-sast-triage"
       ]
     },
     {
       "id": "cicd-posture",
       "name": "CI/CD And Supply Chain Posture",
       "audience": "appsec",
-      "short_description": "A read-only CI/CD and supply-chain posture assessment for a namespace, organization, or repository set.",
-      "description": "Use this agent when the user wants a read-only CI/CD and supply chain\nposture assessment for an Endor namespace, GitHub organization, repository\nset, or current repository. The agent combines existing Endor SCPM, CI/CD,\nGitHub Actions, and supply-chain findings with read-only GitHub configuration\nevidence and optional local CI file inspection, then returns deterministic\nscores, critical overrides, evidence queries, and data gaps without mutating\nEndor, GitHub, or repository state.\n",
+      "category": "Compliance",
+      "short_description": "Scores CI/CD and supply-chain posture from read-only Endor and repository evidence.",
+      "description": "Assesses CI/CD and software supply-chain security across an Endor namespace,\nGitHub organization, selected repositories, or the current repository. It\ncombines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain\nfindings with read-only repository configuration evidence and optional local\nCI inspection to produce deterministic scores, critical overrides,\nprioritized improvements, and explicit data gaps. It does not modify Endor,\nGitHub, or repository state.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -33,20 +50,63 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/cicd-posture/cicd-posture.md .claude/agents/cicd-posture.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/cicd-posture && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
     {
-      "id": "dependency-decision-helper",
-      "name": "Dependency Decision Helper",
+      "id": "configuration-automation",
+      "name": "Configuration Automation",
+      "audience": "appsec",
+      "category": "Troubleshooting",
+      "short_description": "Finds GitHub-to-Endor onboarding and monitored-branch coverage gaps without making changes.",
+      "description": "Compares GitHub repository inventory with Endor projects, GitHub App\ncoverage, monitored branches, scan profiles, package-manager integrations,\ndependency resolution, and reachability evidence. It identifies onboarding\nand configuration gaps and provides targeted setup instructions without\nchanging GitHub, Endor, or source repositories.\n",
+      "endorctl_min_version": "1.0.0",
+      "version": "0.1.0",
+      "authors": [
+        "Endor Labs"
+      ],
+      "install": [
+        {
+          "host": "claude-code",
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+        }
+      ],
+      "legacy_ids": [
+        "probe-droid"
+      ]
+    },
+    {
+      "id": "dependency-reviewer",
+      "name": "Dependency Reviewer",
       "audience": "developer",
-      "short_description": "Should you add, upgrade, or use a specific package version? Returns a verdict with evidence, conditions, and alternatives.",
-      "description": "Use this agent when the user asks whether to add, upgrade, or use a specific\npackage version. Examples: \"Is lodash 4.17.20 safe?\", \"Should I use requests\n2.28.0?\", \"Check log4j-core 2.14.1 before I add it.\" Returns a dependency\nverdict with evidence, conditions, alternatives, and any data gaps.\n",
+      "category": "Research & Investigate",
+      "short_description": "Reviews package versions, package risk, or repository dependencies using bounded evidence.",
+      "description": "Evaluates an exact package version, summarizes package risk, or reviews\ndependencies declared by a repository through one focused workflow. It uses\navailable vulnerability, malware, package-health, license, policy, and Endor\nevidence to provide a read-only recommendation and clearly identify missing\ninformation.\n",
       "endorctl_min_version": "1.0.0",
       "version": "1.0.0",
       "authors": [
@@ -55,42 +115,34 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/dependency-decision-helper/dependency-decision-helper.md .claude/agents/dependency-decision-helper.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/dependency-decision-helper && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
-      ]
-    },
-    {
-      "id": "endor-troubleshooter",
-      "name": "Endor Troubleshooter",
-      "audience": "developer",
-      "short_description": "Diagnoses and fixes Endor Labs errors, missing integrations, scan failures, and unhealthy configuration.",
-      "description": "Use this agent when the user needs help diagnosing and fixing Endor Labs\nerrors, warnings, missing integrations, scan failures, slow scans, or\nunhealthy configuration. Endor Troubleshooter gathers the smallest useful\nread-only Endor evidence, classifies the issue across scan, integration,\nauthentication, dependency resolution, container, reachability, policy, and\nworkflow lanes, then returns low-friction repair guidance without mutating\nEndor, source-provider, or repository state.\n",
-      "endorctl_min_version": "1.0.0",
-      "version": "0.1.0",
-      "authors": [
-        "Endor Labs"
       ],
-      "install": [
-        {
-          "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/endor-troubleshooter/endor-troubleshooter.md .claude/agents/endor-troubleshooter.md"
-        },
-        {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/endor-troubleshooter && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
-        }
+      "legacy_ids": [
+        "dependency-decision-helper",
+        "package-risk-summary",
+        "repository-dependency-reviewer"
       ]
     },
     {
       "id": "findings-browser",
       "name": "Findings Browser",
       "audience": "appsec",
-      "short_description": "Browse, filter, and summarize existing Endor Labs findings from read-only evidence.",
-      "description": "Use this agent when the user wants to browse, filter, summarize, or inspect\nexisting Endor Labs findings. Findings Browser uses read-only Endor evidence\nto list matching findings, explain applied filters, surface pagination and\ntruncation limits, and identify data gaps without starting new scans or\nperforming remediation actions.\n",
+      "category": "Research & Investigate",
+      "short_description": "Browses and filters existing Endor findings with clear scope, pagination, and evidence gaps.",
+      "description": "Browses, filters, and summarizes existing Endor findings without starting\nnew scans or performing remediation. It shows the applied scope and filters,\nrelevant severity and reachability context, pagination or truncation limits,\nand any evidence gaps affecting the results.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -99,20 +151,29 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/findings-browser/findings-browser.md .claude/agents/findings-browser.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/findings-browser && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
     {
-      "id": "malware-response",
-      "name": "Malware Response Agent",
+      "id": "malware-responder",
+      "name": "Malware Responder",
       "audience": "appsec",
-      "short_description": "Rapid read-only response to a software supply-chain malware incident: affected packages, blast radius, and containment steps.",
-      "description": "Use this agent when a customer needs rapid read-only response to a software\nsupply-chain malware incident. It gathers or ingests current malware\nintelligence, normalizes affected package and version evidence, and\ncorrelates that evidence against Endor Labs tenant package inventory across a\nnamespace and child namespaces. It reports confirmed exposure, possible\nexposure, unaffected scope, indicators of compromise, remediation guidance,\nand future action contracts without mutating Endor Labs or source systems.\n",
+      "category": "Incident Response",
+      "short_description": "Correlates current malware intelligence with Endor inventory to assess tenant exposure.",
+      "description": "Correlates current software supply-chain malware intelligence for affected\npackages and versions with Endor inventory across a namespace and its child\nnamespaces. It distinguishes confirmed exposure, possible exposure,\nnot-observed exposure, and insufficient data using exact package, version,\nand inventory evidence. It reports affected projects, indicators of\ncompromise, containment guidance, and recommended follow-up actions without\nmodifying Endor or source systems.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -121,20 +182,32 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/malware-response/malware-response.md .claude/agents/malware-response.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/malware-response && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
+      ],
+      "legacy_ids": [
+        "malware-response"
       ]
     },
     {
-      "id": "package-risk-summary",
-      "name": "Endor Labs Package Risk Summary",
+      "id": "oss-upgrade-investigator",
+      "name": "OSS Upgrade Investigator",
       "audience": "developer",
-      "short_description": "An evidence-backed risk profile for a specific package version: vulnerabilities, malware signals, scores, and license notes.",
-      "description": "Use this agent when the user wants a concise risk profile for a specific\npackage version without asking for a yes/no dependency decision. Examples:\n\"Summarize npm lodash 4.17.20 risk\", \"Give me the risk picture for\nlog4j-core 2.14.1\", \"What should I know about this package version before I\nreview it?\" Returns an evidence-backed package risk summary with\nvulnerabilities, malware or typosquat signals, package scores, license notes,\nrecommended next checks, and any data gaps.\n",
+      "category": "Research & Investigate",
+      "short_description": "Compares Endor upgrade candidates, risk, breaking changes, and code impact.",
+      "description": "Evaluates candidate dependency upgrades using Endor VersionUpgrade data,\nCode Impact Analysis, findings, breaking-change information, and\nEndor-provided manifest targets. It compares findings fixed or introduced\nand explains the safest available upgrade path, including whether to upgrade\nnow, proceed cautiously, defer, or gather more evidence.\n",
       "endorctl_min_version": "1.0.0",
       "version": "1.0.0",
       "authors": [
@@ -143,20 +216,32 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/package-risk-summary/package-risk-summary.md .claude/agents/package-risk-summary.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/package-risk-summary && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
+      ],
+      "legacy_ids": [
+        "upgrade-impact-analysis"
       ]
     },
     {
-      "id": "probe-droid",
-      "name": "Probe Droid",
+      "id": "remediation-planning",
+      "name": "Remediation Planning",
       "audience": "appsec",
-      "short_description": "Assesses GitHub repository onboarding gaps for Endor Labs monitored-branch coverage.",
-      "description": "Use this agent when the user wants to assess GitHub repository onboarding\ngaps for Endor Labs monitored-branch coverage. Probe Droid compares\ngithub.com organization or repository inventory with Endor project, GitHub\nApp, package, scan, scan profile, package manager integration, dependency\nresolution, and reachability evidence, then returns human-readable setup\nactions without mutating source, GitHub, or Endor state.\n",
+      "category": "Remediation",
+      "short_description": "Compares read-only remediation options and recommends the safest evidence-backed next step.",
+      "description": "Previews safe remediation options for existing Endor findings without\nchanging code or opening a pull request. It compares VersionUpgrade and\nUpgrade Impact Analysis candidates using findings fixed, upgrade risk,\ncompatibility evidence, and available data, then recommends the safest\nevidence-backed next step.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -165,56 +250,32 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/probe-droid/probe-droid.md .claude/agents/probe-droid.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/probe-droid && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
-        }
-      ]
-    },
-    {
-      "id": "remediation-planner",
-      "name": "Remediation Planner",
-      "audience": "appsec",
-      "short_description": "Previews safe remediation options for Endor Labs findings without opening PRs.",
-      "description": "Preview safe remediation options without opening PRs.",
-      "endorctl_min_version": "1.0.0",
-      "version": "0.1.0",
-      "authors": [
-        "Endor Labs"
-      ],
-      "install": [
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
         {
-          "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/remediation-planner/remediation-planner.md .claude/agents/remediation-planner.md"
-        }
-      ]
-    },
-    {
-      "id": "repository-dependency-reviewer",
-      "name": "Endor Labs Repository Dependency Reviewer",
-      "audience": "developer",
-      "short_description": "A read-only dependency risk review of a repository's local manifests, with exact package coordinates and evidence.",
-      "description": "Use this agent inside a source repository when the user wants a read-only\ndependency risk review based on local manifests. It inspects dependency files,\nresolves exact package coordinates when possible, checks those coordinates\nwith Endor MCP tools, and reports risky dependencies, unresolved versions,\nrecommended next checks, and data gaps.\n",
-      "endorctl_min_version": "1.0.0",
-      "version": "1.0.0",
-      "authors": [
-        "Endor Labs"
-      ],
-      "install": [
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
         {
-          "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/repository-dependency-reviewer/repository-dependency-reviewer.md .claude/agents/repository-dependency-reviewer.md"
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
+      ],
+      "legacy_ids": [
+        "remediation-planner"
       ]
     },
     {
       "id": "sca-remediation",
       "name": "SCA Remediation",
       "audience": "developer",
-      "short_description": "Plans and applies SCA dependency-vulnerability fixes with risk-separated PR lanes, local validation, and approved PR/MR creation.",
-      "description": "Plan and remediate dependency vulnerabilities with Endor SCA findings, VersionUpgrade/UIA evidence, separate low-risk PR lanes, deterministic risk decisions, local validation, and approved PR/MR creation.",
+      "category": "Remediation",
+      "short_description": "Plans and applies approval-gated SCA fixes with upgrade-risk evidence and local validation.",
+      "description": "Plans and applies dependency-vulnerability fixes using Endor SCA findings,\nVersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk\ndecisions, and local validation. It separates low-risk changes from upgrades\nrequiring deeper compatibility review and requires explicit approval before\nediting files, pushing branches, opening change requests, or creating\ntickets.\n",
       "endorctl_min_version": "1.0.0",
       "version": "0.1.0",
       "authors": [
@@ -223,38 +284,63 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/sca-remediation/sca-remediation.md .claude/agents/sca-remediation.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
+        },
+        {
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
     {
-      "id": "upgrade-impact-analysis",
-      "name": "Endor Labs Upgrade Impact Analysis",
+      "id": "troubleshooting",
+      "name": "Troubleshooting",
       "audience": "developer",
-      "short_description": "Safe upgrade paths and upgrade risk for a dependency: findings fixed or introduced, breaking changes, and code impact.",
-      "description": "Use this agent when the user asks for Endor Labs Upgrade Impact Analysis:\nsafe upgrade paths, upgrade risk, findings fixed or introduced, Code Impact\nAnalysis, breaking changes, manifest targeting, or whether a dependency\nupgrade should happen now. The artifact queries Endor's read-only\nVersionUpgrade workflow through documented Endor API or endorctl paths.\n",
+      "category": "Troubleshooting",
+      "short_description": "Diagnoses Endor setup and workflow problems using focused read-only evidence.",
+      "description": "Diagnoses Endor setup, authentication, integration, scanning,\ndependency-resolution, container, reachability, policy, and workflow\nproblems. It gathers the smallest useful set of read-only evidence needed to\nidentify the likely root cause and recommend the lowest-friction repair\nwithout modifying Endor, source-provider, or repository state.\n",
       "endorctl_min_version": "1.0.0",
-      "version": "1.0.0",
+      "version": "0.1.0",
       "authors": [
         "Endor Labs"
       ],
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/upgrade-impact-analysis/upgrade-impact-analysis.md .claude/agents/upgrade-impact-analysis.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/upgrade-impact-analysis && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
+      ],
+      "legacy_ids": [
+        "endor-troubleshooter"
       ]
     },
     {
       "id": "vulnerability-explainer",
-      "name": "Endor Labs Vulnerability Explainer",
+      "name": "Vulnerability Explainer",
       "audience": "developer",
-      "short_description": "Explains what a specific vulnerability means: severity, exploitability, affected context, and remediation guidance.",
-      "description": "Use this agent when the user asks what a specific vulnerability means and how\nto reason about it. Examples: \"Explain CVE-2021-44228\", \"What does\nCVE-2021-45046 mean for log4j-core?\", \"Summarize this Endor\nvulnerability and tell me what to do next.\" Returns a concise vulnerability\nexplanation with severity, exploitability, affected context, remediation\nguidance, and any data gaps.\n",
+      "category": "Research & Investigate",
+      "short_description": "Explains vulnerability severity, exploitability, affected versions, and recommended remediation.",
+      "description": "Explains a CVE, GHSA, or Endor vulnerability, optionally in the context of a\nsupplied package and version. It summarizes severity, exploitability\nsignals, affected and fixed versions, recommended remediation, and relevant\nreachability or repository context when supported by exact Endor evidence.\nIt clearly identifies missing information rather than inferring package or\nproject applicability.\n",
       "endorctl_min_version": "1.0.0",
       "version": "1.0.0",
       "authors": [
@@ -263,11 +349,19 @@
       "install": [
         {
           "host": "claude-code",
-          "command": "mkdir -p .claude/agents && cp claude-code/vulnerability-explainer/vulnerability-explainer.md .claude/agents/vulnerability-explainer.md"
+          "command": "/plugin marketplace add endorlabs/ai-plugins\n/plugin install endor-labs-agent-kit@endorlabs\n/reload-plugins"
         },
         {
-          "host": "claude-managed",
-          "command": "cd claude-managed-agents/vulnerability-explainer && ant beta:agents create < agent.yaml && ant beta:environments create < environment.yaml"
+          "host": "codex",
+          "command": "Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory."
+        },
+        {
+          "host": "cursor",
+          "command": "/add-plugin endorlabs"
+        },
+        {
+          "host": "antigravity",
+          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     }

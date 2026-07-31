@@ -7,7 +7,7 @@
   "homepage": "https://github.com/endorlabs/ai-plugins",
   "hooks": "./hooks/hooks.json",
   "interface": {
-    "brandColor": "#4F46E5",
+    "brandColor": "#26D07C",
     "capabilities": [
       "Code",
       "Security",
@@ -15,14 +15,14 @@
     ],
     "category": "Developer Tools",
     "defaultPrompt": [
-      "Set up Endor Agent Kit for this machine.",
-      "Triage AI SAST findings for this repository.",
-      "Find the safest SCA remediation path."
+      "Install the bundled Endor Agent Kit Codex custom agents. I approve the managed agents-only installation.",
+      "Check whether the bundled Endor Agent Kit Codex custom agents are installed.",
+      "Set up Endor Agent Kit for this machine."
     ],
     "developerName": "Endor Labs",
     "displayName": "Endor Labs Agent Kit",
     "logo": "./assets/logo.png",
-    "longDescription": "Install setup guidance, Codex skills, and bundled custom agents for Endor Labs SCA remediation, AI SAST triage, troubleshooting, and onboarding analysis workflows.",
+    "longDescription": "Install setup guidance and approval-gated custom agents for Endor Labs SCA remediation, AI SAST remediation, troubleshooting, and onboarding analysis workflows.",
     "shortDescription": "Endor Labs security workflows for Codex.",
     "websiteURL": "https://www.endorlabs.com/"
   },
@@ -33,8 +33,9 @@
     "sast",
     "codex"
   ],
+  "mcpServers": "./.mcp.json",
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",
-  "version": "2.1.0"
+  "version": "2.2.0"
 }

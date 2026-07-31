@@ -9,10 +9,11 @@ use `docs/maintainer-guide.md` or `docs/distribution-sync.md` instead.
 | Host | Start Here | Good Fit |
 | --- | --- | --- |
 | Claude Code | `plugins/claude/endor-labs-agent-kit/README.md` | Plugin install with Claude Code agents and setup skill. |
-| Codex | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with Codex skills plus optional managed custom-agent TOML files. |
+| Codex CLI/custom agents | `plugins/codex/endor-labs-agent-kit/README.md` | Plugin install with one setup skill plus approval-gated managed custom-agent TOML files. |
+| Codex Plugins Directory | `plugins/codex-directory/endor-labs-agent-kit/` | Reviewed skills-only install with 11 workflows, setup, and the customer's active Codex model. |
 | Gemini CLI | `plugins/gemini/endor-labs-agent-kit/README.md` | Gemini extension install with skills and preview subagents. |
 | Antigravity CLI | `plugins/antigravity/endor-labs-agent-kit/README.md` | Antigravity plugin install with skills and subagents. |
-| Cursor | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Cursor plugin metadata with generated workflow agents, support skills, and advisory hooks. |
+| Cursor | `/add-plugin endorlabs` | Public Cursor plugin with generated workflow agents, support skills, advisory hooks, and MCP metadata. |
 | Cursor SDK | `cursor-sdk/README.md` | Python SDK automation for local workspaces, CI, orchestration, backend services, or Cursor cloud agents. |
 | Manual single-agent install | `<host>/<agent>/README.md` | One workflow in one host without the full plugin package. |
 | Runtime-neutral integration | `portable/<agent>/README.md` | Internal runtime with its own adapters, approvals, audit, and credentials. |
@@ -30,8 +31,18 @@ consumer accounts.
 Claude Code public install for new users:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install endor-labs-agent-kit@endorlabs
+/reload-plugins
+/agents
+```
+
+The same package is also available from Anthropic's pre-registered official
+marketplace under its stable technical id. It is displayed as **Endor Labs
+Agent Kit**:
+
+```text
+/plugin install ai-plugins@claude-plugins-official
 /reload-plugins
 /agents
 ```
@@ -39,20 +50,68 @@ Claude Code public install for new users:
 Existing Claude Code users pinned to the historical id can keep using:
 
 ```text
-/plugin marketplace add endorlabs/ai-plugins --sparse .claude-plugin plugins/claude
+/plugin marketplace add endorlabs/ai-plugins
 /plugin install ai-plugins@endorlabs
 ```
 
-Do not enable `endor-labs-agent-kit@endorlabs` and `ai-plugins@endorlabs` in
-the same Claude profile for normal use. They expose the same setup skill and
-agents.
+Choose one Claude distribution path. Do not enable
+`endor-labs-agent-kit@endorlabs`, `ai-plugins@endorlabs`, and
+`ai-plugins@claude-plugins-official` together in the same profile for normal
+use. They expose the same setup skill and agents.
 
-For Codex, Gemini CLI, Antigravity CLI, and Cursor, use the host package README
-or package metadata because their public install commands depend on the pushed
-tag and host-specific marketplace behavior. Cursor IDE uses `.cursor-plugin/`,
-root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`;
-Cursor SDK automation uses `cursor-sdk/`; Gemini uses
+For a local checkout, add the repository marketplace with `/plugin marketplace
+add ./` and install `endor-labs-agent-kit@endorlabs`. For one-off development,
+use `claude --plugin-dir plugins/claude/endor-labs-agent-kit`. Do not use
+`claude --plugin-dir .` from the Agent Kit source repository: its root manifest
+is a guard around Cursor artifacts. The generated `ai-plugins` mirror is
+different because synchronization installs the canonical Claude agents,
+setup-only skills, and Claude hooks at that mirror root. The same sync creates
+a self-contained Cursor package under
+`plugins/cursor/endor-labs-agent-kit/` and points the Cursor marketplace at it,
+so neither host auto-discovers the other host's components.
+
+For Codex, install the public package with this instruction:
+
+```text
+Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plugins Directory.
+```
+
+Cursor public installation is `/add-plugin endorlabs`. Antigravity installs the
+complete package from the immutable `2.2.0` release tag:
+
+```bash
+git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0
+agy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+agy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+```
+
+For Gemini CLI and other maintainer installation paths, use the host package
+README because commands depend on the pushed tag and host-specific marketplace
+behavior. In this source repo, Cursor IDE
+uses `.cursor-plugin/`, root `agents/`, root `skills/`, root advisory `hooks/`,
+and `assets/logo.png`; the public mirror marketplace points to the complete
+`plugins/cursor/endor-labs-agent-kit/` package. Cursor SDK automation uses
+`cursor-sdk/`; Gemini uses
 `plugins/gemini/endor-labs-agent-kit/`.
+
+Codex plugin installation exposes only the setup skill. Before the first Codex
+workflow, ask it:
+
+```text
+Use the endor-agent-kit-setup skill to install only the bundled Codex custom agents. I approve the managed agents-only installation.
+```
+
+Start a fresh Codex task after that installation so the 11 workflow agents and
+the setup agent are discovered. Workflow-skill fallbacks remain opt-in.
+
+The public-directory artifact is a separate route. It exposes the 11 workflow
+skills and setup directly, does not install custom-agent TOML files, declare a
+hosted MCP server, implement plugin OAuth, or pin a model. Its workflows use the
+customer's local authenticated `endorctl` session. Installing it must not replace
+or rewrite the CLI/custom-agent package.
+For a runner or container using the CLI package, set `CODEX_HOME` explicitly to
+a persistent writable directory before running the bundled installer; do not
+rely on a developer workstation's home directory.
 
 ## Run Cursor SDK Automation
 
@@ -62,7 +121,7 @@ of installed into the Cursor IDE.
 ```bash
 python3 -m pip install -r cursor-sdk/requirements.txt
 export CURSOR_API_KEY="crsr_..."
-python cursor-sdk/run_cursor_agent.py endor-probe-droid-agent \
+python cursor-sdk/run_cursor_agent.py endor-configuration-automation-agent \
   --workspace /path/to/repo \
   "Explain what evidence you need to assess GitHub onboarding gaps. Keep it read-only."
 ```
@@ -90,20 +149,24 @@ auth, MCP, or toolchain prerequisites. It must not run scans, run
 `endorctl host-check`, edit shell profiles, install language runtimes, install
 package managers, or write credentials.
 
+For Codex, setup also owns the separately approved managed custom-agent
+installation described above; plugin installation alone does not write to the
+user's custom-agent directory.
+
 ## Choose A Workflow
 
 | Job | Workflow |
 | --- | --- |
-| Triage Endor AI SAST findings | `ai-sast-triage` |
+| Triage Endor AI SAST findings | `ai-sast-remediation` |
 | Assess CI/CD and supply chain posture | `cicd-posture` |
-| Diagnose Endor setup, scan, auth, policy, or integration issues | `endor-troubleshooter` |
+| Diagnose Endor setup, scan, auth, policy, or integration issues | `troubleshooting` |
 | Browse, filter, and summarize existing Endor findings | `findings-browser` |
-| Correlate supply-chain malware intelligence against tenant inventory | `malware-response` |
-| Probe GitHub onboarding and monitored-branch coverage gaps | `probe-droid` |
+| Correlate supply-chain malware intelligence against tenant inventory | `malware-responder` |
+| Probe GitHub onboarding and monitored-branch coverage gaps | `configuration-automation` |
 | Find safe dependency remediation paths with Endor SCA evidence | `sca-remediation` |
-| Compare package risk or a dependency decision | `dependency-decision-helper`, `package-risk-summary` |
-| Review repository dependencies or remediation options | `repository-dependency-reviewer`, `remediation-planner` |
-| Analyze upgrade impact or explain vulnerabilities | `upgrade-impact-analysis`, `vulnerability-explainer` |
+| Compare package risk, make a dependency decision, or review repository dependencies | `dependency-reviewer` with the `package-risk`, `package-decision`, or `repository-review` profile |
+| Preview remediation options without making changes | `remediation-planning` |
+| Analyze upgrade impact or explain vulnerabilities | `oss-upgrade-investigator`, `vulnerability-explainer` |
 
 Each workflow above is generated for the supported host packages. Use the
 selected host README for exact invocation names and install paths.
@@ -111,7 +174,7 @@ selected host README for exact invocation names and install paths.
 ## First Prompts
 
 ```text
-Use the ai-sast-triage skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate.
+Use the ai-sast-remediation skill to triage AI SAST findings for this repository. Do not edit files, open a PR/MR, or create an Endor policy unless I approve the specific gate.
 ```
 
 ```text
@@ -119,11 +182,11 @@ Use the sca-remediation skill to check this repository for P0 SCA findings I can
 ```
 
 ```text
-Use the probe-droid skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only.
+Use the configuration-automation skill to probe GitHub org <org> for Endor monitored-branch onboarding gaps and setup prescriptions. Keep the workflow read-only.
 ```
 
 ```text
-Use the endor-troubleshooter skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only.
+Use the troubleshooting skill to diagnose this Endor issue from redacted error text and read-only tenant evidence. Keep the workflow read-only.
 ```
 
 ```text
@@ -144,6 +207,7 @@ Use the findings-browser skill to show the critical and high reachable findings 
 ## More Detail
 
 - Agent and host catalog: `README.md`
+- Renamed and consolidated agent identifiers: `docs/agent-identity-migration.md`
 - Agent-facing operating rules: `docs/for-agents.md`
 - Maintainer workflow: `docs/maintainer-guide.md`
 - Public mirror sync: `docs/distribution-sync.md`

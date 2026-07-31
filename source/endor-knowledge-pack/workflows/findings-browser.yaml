@@ -28,6 +28,19 @@ task_profiles:
       - Do not continue into remediation, scan execution, or posture changes.
     output_focus:
       - Return findings_verdict, applied_filters, severity_summary, finding_results, pagination, evidence_queries, and data_gaps.
+      - When `completeness_required=true`, return the complete matching total in `severity_summary.count` and `pagination.result_count`, keep `finding_results` bounded, and never substitute the bounded page length for the complete total.
+      - For a `--list-all` completeness route, invoke the bundled artifact helper once, use its authoritative `row_count`, and do not invoke `endorctl` directly for the same complete query. The successful complete-count `evidence_queries[]` reason MUST include the helper's exact `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` metadata. Without that metadata, treat the complete route as unavailable and do not claim a complete total.
+    output_fields:
+      - findings_verdict
+      - summary
+      - applied_filters
+      - severity_summary
+      - finding_results
+      - pagination
+      - evidence_queries
+      - data_gaps
+      - policy_context
+      - policy_evaluations
   - id: exact-finding
     title: Inspect Exact Finding
     summary: Fetch one supplied Finding UUID and return a compact row without claiming complete project or namespace counts.
@@ -60,6 +73,7 @@ resources:
       - spec.git
 retrieval_steps:
   - Resolve namespace provenance and normalize requested finding filters.
+  - Normalize namespace traversal as include_children by default, or exact only when the user explicitly excludes child namespaces.
   - Resolve repository or project selectors before project-scoped finding lookup.
   - Use exact Finding get when a Finding UUID is supplied; otherwise query bounded filtered Finding rows.
   - Summarize returned rows by severity and category without claiming complete counts unless evidence proves completeness.
@@ -88,11 +102,11 @@ evidence_query_plans:
     objective: Return bounded table-ready findings for verified filters.
     query_order:
       - Resolve project or namespace scope first.
-      - Query bounded Finding rows with projected fields and a page-size limit.
-      - Query compact complete matching Finding IDs/count fields with `--list-all` when project scope is resolved, then use the
-        bounded page only for table-ready row details.
-      - Summarize complete counts by severity and category when the compact count query succeeds; otherwise surface pagination
-        and data_gaps.
+      - Set completeness_required=true only for explicitly requested complete or exhaustive rows, exact totals, or output that requires full inventory; scope alone never enables it.
+      - When completeness_required=false, query one bounded projected page and stop; never run an auxiliary `--list-all` query
+        for totals or enrichment, and report pagination or truncation in data_gaps.
+      - When completeness_required=true, prefer `--count` or approved aggregation; use compact complete-counts only for required rows or unsupported dimensions.
+      - Apply namespace traversal independently: include `--traverse` for namespace-wide scope and omit it for proven exact scope.
     avoid:
       - Do not enumerate broad unfiltered Finding inventories.
       - Do not claim complete tenant totals when pagination or permission limits exist.
@@ -121,7 +135,7 @@ evidence_query_recipes:
     canonical_id: project-by-git
     resource: Project
     purpose: Resolve repository selector to Endor project identity before finding browse.
-    template: endorctl api list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" --list-all -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Project -n <namespace> --filter 'spec.git.full_name=="<owner/repo>"' --page-size 2 --field-mask "uuid,meta.name,meta.parent_uuid,spec.git" -o json
     fields:
       - uuid
       - meta.name
@@ -135,7 +149,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-filtered
     resource: Finding
     purpose: List bounded existing Finding rows for verified filters.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -147,19 +161,29 @@ evidence_query_recipes:
       - spec.finding_metadata
     constraints:
       - Keep list requests bounded and projected.
+      - Keep context.type==CONTEXT_TYPE_MAIN unless the user explicitly requests PR, CI, or all-context evidence.
+      - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
+      - Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace.
       - Do not use broad unfiltered Finding --list-all queries.
   - profile_id: browse
     id: finding-browser-complete-counts
     canonical_id: finding-browser-complete-counts
     resource: Finding
     purpose: Fetch compact complete matching IDs for severity/category totals without fetching row-detail bodies.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.level in [<LEVELS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
+    selection_condition: runtime.completeness_required
+    result_delivery: runtime.large_result_artifact_required
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.level in [<FINDING_LEVEL_ENUMS>] and spec.finding_categories contains <FINDING_CATEGORY>' --field-mask "uuid,spec.level,spec.finding_categories" --list-all -o json
     fields:
       - uuid
       - spec.level
       - spec.finding_categories
     constraints:
-      - Use only after project or explicit namespace scope is proven.
+      - Use only when completeness_required is true for explicit complete rows or exact multi-dimensional totals.
+      - Keep context.type==CONTEXT_TYPE_MAIN unless the user explicitly requests PR, CI, or all-context evidence.
+      - Map severity labels to canonical `FINDING_LEVEL_*` API literals; never use short labels in `spec.level` filters.
+      - Bounded, page, sample, and top-N requests set `completeness_required=false`, including prompts that say complete inventory is not needed.
+      - Never run this as an auxiliary enrichment query when `completeness_required=false`.
+      - Include child namespaces by default; omit --traverse only for a proven exact-namespace request.
       - Keep table rows bounded; use this compact complete query only for totals and pagination completeness.
       - Do not use broad unfiltered Finding --list-all queries.
   - profile_id: browse
@@ -167,7 +191,7 @@ evidence_query_recipes:
     canonical_id: finding-browser-by-tag
     resource: Finding
     purpose: List bounded existing findings filtered by Endor exploit, reachability, or fix-availability tags for prioritized triage.
-    template: endorctl api list -r Finding -n <namespace> --filter '<SCOPE_FILTER> and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
+    template: endorctl agent api --agent-id <agent-id> list -r Finding -n <namespace> --traverse --filter '<SCOPE_FILTER> and context.type==CONTEXT_TYPE_MAIN and spec.dismiss==false and spec.finding_tags contains <FINDING_TAG>' --page-size 25 --field-mask "uuid,context.type,spec.project_uuid,spec.level,spec.finding_categories,spec.finding_tags,spec.target_dependency_package_name,spec.finding_metadata" -o json
     fields:
       - uuid
       - context.type
@@ -179,6 +203,8 @@ evidence_query_recipes:
       - spec.finding_metadata
     constraints:
       - Use real Endor FINDING_TAGS_* values such as FINDING_TAGS_EXPLOITED, FINDING_TAGS_FIX_AVAILABLE, or FINDING_TAGS_REACHABLE_FUNCTION; do not invent tags.
+      - Keep context.type==CONTEXT_TYPE_MAIN unless the user explicitly requests PR, CI, or all-context evidence.
+      - Include child namespaces by default; omit --traverse only when the user explicitly requests a proven exact namespace.
       - Combine the tag clause with severity, category, or project scope for exploit-first triage and keep the page bounded.
       - Surface the returned spec.finding_tags in finding_results so exploit and fix status are visible.
   - profile_id: exact-finding
@@ -186,7 +212,7 @@ evidence_query_recipes:
     canonical_id: finding-by-uuid
     resource: Finding
     purpose: Fetch one exact Endor Finding by UUID.
-    template: endorctl api get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
+    template: endorctl agent api --agent-id <agent-id> get -r Finding -n <namespace> --uuid <FINDING_UUID> -o json
     fields:
       - uuid
       - context.type

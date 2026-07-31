@@ -60,7 +60,7 @@
       <rect x="24" y="0" width="162" height="2" fill="url(#hairlineGreen)"/>
       <text x="24" y="36" font-size="11" font-weight="700" fill="#54f08f" letter-spacing="1.4">SCOPE</text>
       <text x="24" y="66" font-size="18" font-weight="700" fill="#e8f6f7">Resolve Context</text>
-      <text x="24" y="92" font-size="12" fill="#a6b9c0">namespace provenance</text>
+      <text x="24" y="92" font-size="12" fill="#a6b9c0">namespace + traversal</text>
       <text x="24" y="112" font-size="12" fill="#a6b9c0">project or UUID</text>
     </g>
     <line x1="514" y1="70" x2="564" y2="70" stroke="#54d8ff" stroke-width="1.5" marker-end="url(#arrow)"/>

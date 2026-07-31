@@ -12,6 +12,7 @@ def _recipe(
     mcp_tools: tuple[str, ...] = (),
     mcp_requirement: str = "",
     endorctl_invocations: tuple[str, ...] = (),
+    agent_api_invocations: tuple[str, ...] = (),
 ) -> EndorAgentRecipe:
     return EndorAgentRecipe(
         recipe_schema_version=1,
@@ -28,6 +29,7 @@ def _recipe(
         compatible_hosts=("claude-code",),
         required_endor_mcp_tools=mcp_tools,
         endorctl_api_invocations=endorctl_invocations,
+        endorctl_agent_api_invocations=agent_api_invocations,
         instructions_path="instructions.md",
         model="sonnet",
         requires_endor_mcp=mcp_requirement,
@@ -70,6 +72,19 @@ def test_source_recipe_safety_posture_requires_endorctl_setup_for_api_or_mutatin
         )
     ).requires_endorctl_setup
     assert not source_recipe_safety_posture(_recipe()).requires_endorctl_setup
+
+
+def test_source_recipe_safety_posture_detects_agent_attributed_endor_api():
+    posture = source_recipe_safety_posture(
+        _recipe(
+            transports=("endorctl_agent_api",),
+            agent_api_invocations=("lookup_package_version_uuid",),
+        )
+    )
+
+    assert posture.uses_endorctl_agent_api
+    assert posture.uses_endor_api_transport
+    assert posture.requires_endorctl_setup
 
 
 def test_source_recipe_safety_posture_exposes_host_capability_contract():
