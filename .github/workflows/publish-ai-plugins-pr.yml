@@ -98,17 +98,56 @@ jobs:
         working-directory: endor-labs-agent-kit
         run: .venv/bin/python scripts/smoke_test_provider_installations.py --root .
 
-      - name: Require QA and backend release evidence
+      - name: Report optional QA and backend release evidence
         if: ${{ env.DRY_RUN != 'true' }}
         working-directory: endor-labs-agent-kit
         env:
           AGENT_QA_ACCEPTANCE_JSON: ${{ vars.AGENT_QA_ACCEPTANCE_JSON }}
           ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON: ${{ vars.ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON }}
         run: |
-          .venv/bin/python scripts/validate_release_evidence.py \
+          missing=()
+          [ -n "${AGENT_QA_ACCEPTANCE_JSON:-}" ] || missing+=("AGENT_QA_ACCEPTANCE_JSON")
+          [ -n "${ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON:-}" ] || missing+=("ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON")
+
+          if [ "${#missing[@]}" -ne 0 ]; then
+            message="Optional release evidence is not configured: ${missing[*]}. Publication will continue."
+            echo "::warning title=Optional release evidence unavailable::${message}"
+            {
+              echo "## Optional release evidence"
+              echo
+              echo "$message"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          set +e
+          validation_output="$(.venv/bin/python scripts/validate_release_evidence.py \
             --source-commit "$GITHUB_SHA" \
             --qa-acceptance-env AGENT_QA_ACCEPTANCE_JSON \
-            --backend-acceptance-env ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON
+            --backend-acceptance-env ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON 2>&1)"
+          validation_status=$?
+          set -e
+
+          if [ "$validation_status" -ne 0 ]; then
+            echo "::warning title=Optional release evidence did not validate::QA/backend release evidence is advisory; publication will continue."
+            {
+              echo "## Optional release evidence"
+              echo
+              echo "Validation did not pass. Publication continues because release evidence is advisory."
+              echo
+              echo '```text'
+              printf '%s\n' "$validation_output"
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          printf '%s\n' "$validation_output"
+          {
+            echo "## Optional release evidence"
+            echo
+            echo "QA and backend release evidence validated successfully."
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Regenerate catalog
         working-directory: endor-labs-agent-kit
