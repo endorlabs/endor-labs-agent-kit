@@ -1,11 +1,6 @@
 ---
 name: oss-upgrade-investigator
-description: |
-  Evaluates candidate dependency upgrades using Endor VersionUpgrade data,
-  Code Impact Analysis, findings, breaking-change information, and
-  Endor-provided manifest targets. It compares findings fixed or introduced
-  and explains the safest available upgrade path, including whether to upgrade
-  now, proceed cautiously, defer, or gather more evidence.
+description: "Evaluates candidate dependency upgrades using Endor VersionUpgrade data, Code Impact Analysis, findings, breaking-change information, and Endor-provided manifest targets. It compares findings fixed or introduced and explains the safest available upgrade path, including whether to upgrade now, proceed cautiously, defer, or gather more evidence."
 ---
 
 # OSS Upgrade Investigator

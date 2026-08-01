@@ -139,16 +139,9 @@ endor-agent-kit verify-endor-context --upstream
 git status --short --ignored plugins/gemini plugins/antigravity
 ```
 
-For a real source-to-mirror publish, optionally provide both release evidence bundles:
-
-- private QA `benchmark-acceptance.json` with a passing frozen timing and semantic-quality gate whose treatment commit is the exact 40-character publishing source SHA;
-- backend telemetry acceptance conforming to `schemas/backend-agent-telemetry-acceptance.schema.json`, including all canonical IDs, all legacy aliases, attributed `endorctl agent api` transport, and passing Audit Log correlation.
-
-Validate the pair strictly with `scripts/validate_release_evidence.py` when the
-evidence is available; see `docs/backend-agent-telemetry-acceptance.md`. The
-automated publication workflow reports missing, stale, or invalid evidence as a
-warning and continues. A manual `dry_run=true` may regenerate and validate
-packages, but cannot publish.
+Private QA artifacts and backend telemetry acceptance bundles are not
+publication prerequisites and are not read by the automated source-to-mirror
+workflow.
 
 The final status check must show the Gemini extension directory and
 Antigravity package directory as tracked or untracked, not ignored. It must not

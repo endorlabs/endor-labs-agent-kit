@@ -1,13 +1,6 @@
 ---
 name: cicd-posture
-description: |
-  Assesses CI/CD and software supply-chain security across an Endor namespace,
-  GitHub organization, selected repositories, or the current repository. It
-  combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain
-  findings with read-only repository configuration evidence and optional local
-  CI inspection to produce deterministic scores, critical overrides,
-  prioritized improvements, and explicit data gaps. It does not modify Endor,
-  GitHub, or repository state.
+description: "Assesses CI/CD and software supply-chain security across an Endor namespace, GitHub organization, selected repositories, or the current repository. It combines existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain findings with read-only repository configuration evidence and optional local CI inspection to produce deterministic scores, critical overrides, prioritized improvements, and explicit data gaps. It does not modify Endor, GitHub, or repository state."
 ---
 
 # CI/CD And Supply Chain Posture
