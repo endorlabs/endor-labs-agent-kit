@@ -1,11 +1,6 @@
 ---
 name: configuration-automation
-description: |
-  Compares GitHub repository inventory with Endor projects, GitHub App
-  coverage, monitored branches, scan profiles, package-manager integrations,
-  dependency resolution, and reachability evidence. It identifies onboarding
-  and configuration gaps and provides targeted setup instructions without
-  changing GitHub, Endor, or source repositories.
+description: "Compares GitHub repository inventory with Endor projects, GitHub App coverage, monitored branches, scan profiles, package-manager integrations, dependency resolution, and reachability evidence. It identifies onboarding and configuration gaps and provides targeted setup instructions without changing GitHub, Endor, or source repositories."
 ---
 
 # Configuration Automation

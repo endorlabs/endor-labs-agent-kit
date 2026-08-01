@@ -1,11 +1,6 @@
 ---
 name: troubleshooting
-description: |
-  Diagnoses Endor setup, authentication, integration, scanning,
-  dependency-resolution, container, reachability, policy, and workflow
-  problems. It gathers the smallest useful set of read-only evidence needed to
-  identify the likely root cause and recommend the lowest-friction repair
-  without modifying Endor, source-provider, or repository state.
+description: "Diagnoses Endor setup, authentication, integration, scanning, dependency-resolution, container, reachability, policy, and workflow problems. It gathers the smallest useful set of read-only evidence needed to identify the likely root cause and recommend the lowest-friction repair without modifying Endor, source-provider, or repository state."
 ---
 
 # Troubleshooting

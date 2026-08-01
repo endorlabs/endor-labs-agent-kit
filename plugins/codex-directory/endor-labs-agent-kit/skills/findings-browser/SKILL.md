@@ -1,10 +1,6 @@
 ---
 name: findings-browser
-description: |
-  Browses, filters, and summarizes existing Endor findings without starting
-  new scans or performing remediation. It shows the applied scope and filters,
-  relevant severity and reachability context, pagination or truncation limits,
-  and any evidence gaps affecting the results.
+description: "Browses, filters, and summarizes existing Endor findings without starting new scans or performing remediation. It shows the applied scope and filters, relevant severity and reachability context, pagination or truncation limits, and any evidence gaps affecting the results."
 ---
 
 # Findings Browser

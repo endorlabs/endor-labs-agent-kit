@@ -7,9 +7,11 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import unicodedata
 import zipfile
 
 import pytest
+import yaml
 
 from conftest import GeneratedCatalog, repo_root
 from endor_agent_kit.catalog_schema import CatalogPluginPackage
@@ -42,6 +44,27 @@ def _tree_digest(root: Path) -> str:
         digest.update(path.read_bytes())
         digest.update(b"\0")
     return digest.hexdigest()
+
+
+def _normalized_skill_metadata(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).strip().split())
+
+
+def test_official_directory_skill_metadata_is_pre_normalized(
+    generated_catalog: GeneratedCatalog,
+):
+    skills = _package(generated_catalog.root) / "skills"
+
+    for skill_id in CODEX_DIRECTORY_ALL_SKILL_IDS:
+        text = (skills / skill_id / "SKILL.md").read_text(encoding="utf-8")
+        frontmatter = yaml.safe_load(text.split("---", 2)[1])
+
+        assert frontmatter["name"] == _normalized_skill_metadata(
+            frontmatter["name"]
+        ), skill_id
+        assert frontmatter["description"] == _normalized_skill_metadata(
+            frontmatter["description"]
+        ), skill_id
 
 
 def test_generated_catalog_contains_isolated_skills_only_codex_package(
@@ -102,6 +125,35 @@ def test_generated_catalog_contains_isolated_skills_only_codex_package(
     assert report["status"] == "passed"
     assert report["errors"] == []
     assert report["skill_ids"] == list(CODEX_DIRECTORY_ALL_SKILL_IDS)
+
+
+def test_submission_validator_rejects_non_normalized_skill_frontmatter(
+    tmp_path,
+    generated_catalog: GeneratedCatalog,
+):
+    catalog = tmp_path / "catalog"
+    shutil.copytree(generated_catalog.root, catalog)
+    skill_path = (
+        _package(catalog) / "skills" / "findings-browser" / "SKILL.md"
+    )
+    lines = skill_path.read_text(encoding="utf-8").splitlines()
+    description_index = next(
+        index for index, line in enumerate(lines) if line.startswith("description: ")
+    )
+    lines[description_index : description_index + 1] = [
+        "description: |",
+        "  Browses Endor findings with embedded",
+        "  and trailing whitespace.",
+    ]
+    skill_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+    report = validate_package(catalog)
+
+    assert any(
+        "skills/findings-browser/SKILL.md: name and description must use normalized text"
+        in error
+        for error in report["errors"]
+    )
 
 
 def test_partial_publication_preserves_official_directory_and_manifest_record(

@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 from textwrap import dedent
+import unicodedata
 
 from endor_agent_kit.compilers.rendering import (
     indent,
@@ -51,6 +53,7 @@ def render_codex_skill(
     package_version: str | None = None,
     artifact_summarizer_command: str | None = None,
     artifact_summarizer_guidance: str | None = None,
+    normalized_frontmatter: bool = False,
 ) -> str:
     """Render a Codex skill from a prepared Source Recipe."""
 
@@ -64,6 +67,7 @@ def render_codex_skill(
         package_version=package_version,
         artifact_summarizer_command=artifact_summarizer_command,
         artifact_summarizer_guidance=artifact_summarizer_guidance,
+        normalized_frontmatter=normalized_frontmatter,
     )
 
 
@@ -78,6 +82,7 @@ def _render_skill(
     package_version: str | None = None,
     artifact_summarizer_command: str | None = None,
     artifact_summarizer_guidance: str | None = None,
+    normalized_frontmatter: bool = False,
 ) -> str:
     body = _codex_instruction_text(
         instructions_for_edition(
@@ -104,17 +109,34 @@ def _render_skill(
         package_name=package_name,
         package_version=package_version,
     )
+    if normalized_frontmatter:
+        rendered_description = (
+            "description: "
+            + json.dumps(
+                _normalize_frontmatter_text(recipe.description),
+                ensure_ascii=False,
+            )
+            + "\n"
+        )
+    else:
+        rendered_description = (
+            "description: |\n"
+            f"{indent(recipe.description.strip(), 2)}\n"
+        )
     return (
         "---\n"
         f"name: {recipe.id}\n"
-        "description: |\n"
-        f"{indent(recipe.description.strip(), 2)}\n"
+        f"{rendered_description}"
         "---\n\n"
         f"{notice}\n\n"
         f"{host_contract}\n\n"
         f"{body.rstrip()}\n"
         f"{action_contracts}"
     )
+
+
+def _normalize_frontmatter_text(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).strip().split())
 
 
 def _codex_notice(
