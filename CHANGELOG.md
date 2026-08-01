@@ -9,6 +9,18 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
+## Unreleased
+
+### Changed
+
+- Removed unused private QA and backend telemetry evidence inputs from
+  automated `ai-plugins` publication.
+
+### Fixed
+
+- Normalized Codex Plugins Directory skill metadata so generated submission
+  packages pass OpenAI's text-normalization validation without manual ZIP edits.
+
 ## 2.2.0 - 2026-07-30
 
 ### Added
