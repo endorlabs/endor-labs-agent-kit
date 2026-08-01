@@ -1,17 +1,11 @@
 ---
 name: sca-remediation
-description: |
-  Plans and applies dependency-vulnerability fixes using Endor SCA findings,
-  VersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk
-  decisions, and local validation. It separates low-risk changes from upgrades
-  requiring deeper compatibility review and requires explicit approval before
-  editing files, pushing branches, opening change requests, or creating
-  tickets.
+description: "Plans and applies dependency-vulnerability fixes using Endor SCA findings, VersionUpgrade and Upgrade Impact Analysis evidence, deterministic risk decisions, and local validation. It separates low-risk changes from upgrades requiring deeper compatibility review and requires explicit approval before editing files, pushing branches, opening change requests, or creating tickets."
 ---
 
 # SCA Remediation
 
-Generated from Endor Agent Kit recipe `sca-remediation` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.0.
+Generated from Endor Agent Kit recipe `sca-remediation` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.1.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

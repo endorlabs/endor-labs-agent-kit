@@ -1,16 +1,11 @@
 ---
 name: dependency-reviewer
-description: |
-  Evaluates an exact package version, summarizes package risk, or reviews
-  dependencies declared by a repository through one focused workflow. It uses
-  available vulnerability, malware, package-health, license, policy, and Endor
-  evidence to provide a read-only recommendation and clearly identify missing
-  information.
+description: "Evaluates an exact package version, summarizes package risk, or reviews dependencies declared by a repository through one focused workflow. It uses available vulnerability, malware, package-health, license, policy, and Endor evidence to provide a read-only recommendation and clearly identify missing information."
 ---
 
 # Dependency Reviewer
 
-Generated from Endor Agent Kit recipe `dependency-reviewer` v1.0.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.0.
+Generated from Endor Agent Kit recipe `dependency-reviewer` v1.0.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.1.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

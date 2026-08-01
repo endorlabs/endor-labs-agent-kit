@@ -11,13 +11,14 @@ import re
 import stat
 import struct
 import sys
+import unicodedata
 import zipfile
 
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PACKAGE_PATH = Path("plugins") / "codex-directory" / PLUGIN_NAME
 CHANNEL = "official-directory"
-VALIDATOR_VERSION = "2"
+VALIDATOR_VERSION = "3"
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 MAX_ARCHIVE_ENTRIES = 5000
 CANONICAL_SKILL_IDS = (
@@ -231,9 +232,7 @@ def _validate_skill(skill: Path, skill_id: str, errors: list[str]) -> None:
     skill_path = skill / "SKILL.md"
     if skill_path.is_file():
         text = skill_path.read_text(encoding="utf-8")
-        match = re.match(r"^---\nname:\s*([^\n]+)\n", text)
-        if match is None or match.group(1).strip() != skill_id:
-            errors.append(f"skills/{skill_id}/SKILL.md: frontmatter name must match directory")
+        _validate_skill_frontmatter(text, skill_id, errors)
         attributed = f"endorctl agent api --agent-id {skill_id}"
         if attributed not in text:
             errors.append(f"skills/{skill_id}/SKILL.md: missing canonical attributed CLI contract")
@@ -273,11 +272,7 @@ def _validate_setup_skill(skill: Path, errors: list[str]) -> None:
     skill_path = skill / "SKILL.md"
     if skill_path.is_file():
         text = skill_path.read_text(encoding="utf-8")
-        match = re.match(r"^---\nname:\s*([^\n]+)\n", text)
-        if match is None or match.group(1).strip() != SETUP_SKILL_ID:
-            errors.append(
-                f"skills/{SETUP_SKILL_ID}/SKILL.md: frontmatter name must match directory"
-            )
+        _validate_skill_frontmatter(text, SETUP_SKILL_ID, errors)
         required_text = (
             "endorctl agent api --help",
             "plugin itself has no hosted MCP server",
@@ -310,6 +305,42 @@ def _validate_setup_skill(skill: Path, errors: list[str]) -> None:
             errors.append(
                 f"skills/{SETUP_SKILL_ID}/agents/openai.yaml: invalid interface metadata"
             )
+
+
+def _validate_skill_frontmatter(
+    text: str,
+    skill_id: str,
+    errors: list[str],
+) -> None:
+    label = f"skills/{skill_id}/SKILL.md"
+    match = re.match(
+        r'^---\nname:\s*([^\n]+)\ndescription:\s*([^\n]+)\n---(?:\n|$)',
+        text,
+    )
+    if match is None:
+        errors.append(f"{label}: name and description must use normalized text")
+        return
+
+    name = match.group(1).strip()
+    try:
+        description = json.loads(match.group(2).strip())
+    except json.JSONDecodeError:
+        errors.append(f"{label}: name and description must use normalized text")
+        return
+
+    if (
+        not isinstance(description, str)
+        or name != _normalize_skill_metadata(name)
+        or description != _normalize_skill_metadata(description)
+    ):
+        errors.append(f"{label}: name and description must use normalized text")
+        return
+    if name != skill_id:
+        errors.append(f"{label}: frontmatter name must match directory")
+
+
+def _normalize_skill_metadata(value: str) -> str:
+    return " ".join(unicodedata.normalize("NFKC", value).strip().split())
 
 
 def _validate_catalog_artifacts(
