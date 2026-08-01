@@ -5,7 +5,7 @@ description: "Evaluates an exact package version, summarizes package risk, or re
 
 # Dependency Reviewer
 
-Generated from Endor Agent Kit recipe `dependency-reviewer` v1.0.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.0.
+Generated from Endor Agent Kit recipe `dependency-reviewer` v1.0.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.1.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

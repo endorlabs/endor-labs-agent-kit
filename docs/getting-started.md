@@ -77,12 +77,12 @@ Use /plugins to find and install Endor Labs Agent Kit from the public Codex Plug
 ```
 
 Cursor public installation is `/add-plugin endorlabs`. Antigravity installs the
-complete package from the immutable `2.2.0` release tag:
+complete package from the immutable `2.2.1` release tag:
 
 ```bash
-git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0
-agy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
-agy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit
+git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1
+agy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit
+agy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit
 ```
 
 For Gemini CLI and other maintainer installation paths, use the host package

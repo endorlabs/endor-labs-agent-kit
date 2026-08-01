@@ -998,7 +998,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/getting-started.md" in plugins_readme
     assert "github.com/endorlabs/endor-labs-agent-kit/blob/main/docs/maintainer-guide.md" in plugins_readme
     assert plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert plugin_manifest["version"] == "2.2.0"
+    assert plugin_manifest["version"] == "2.2.1"
     assert plugin_manifest["skills"] == "./skills/"
     assert plugin_manifest["hooks"] == "./hooks/hooks.json"
     assert plugin_manifest["mcpServers"] == "./.mcp.json"
@@ -1026,7 +1026,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         (dest / "plugins" / "claude" / "endor-labs-agent-kit" / ".claude-plugin" / "plugin.json").read_text()
     )
     assert claude_plugin_manifest["name"] == "endor-labs-agent-kit"
-    assert claude_plugin_manifest["version"] == "2.2.0"
+    assert claude_plugin_manifest["version"] == "2.2.1"
     assert claude_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
     assert "agents" not in claude_plugin_manifest
     assert "skills" not in claude_plugin_manifest
