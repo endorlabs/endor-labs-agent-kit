@@ -38,20 +38,8 @@ AI_PLUGINS_SYNC_TOKEN
 The token must be a fine-grained PAT or GitHub App installation token with
 `contents:write` and `pull-requests:write` on `endorlabs/ai-plugins`.
 
-Automated publication can optionally consume two non-secret, sanitized JSON
-repository variables:
-
-```text
-AGENT_QA_ACCEPTANCE_JSON=<passing benchmark-acceptance.json>
-ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON=<passing backend telemetry acceptance bundle>
-```
-
-When supplied, the first should bind its treatment arm to the exact publishing
-source SHA. The second should prove catalog schema v2, all canonical and legacy
-identities, attributed `endorctl agent api`, and Audit Log correlation. See
-`docs/backend-agent-telemetry-acceptance.md`. Missing, invalid, or stale evidence
-produces a workflow warning but does not block publication. Manual
-`dry_run=true` validation never publishes, regardless of evidence availability.
+Private QA artifacts and backend telemetry acceptance bundles are not inputs to
+the automated source-to-mirror publication workflow.
 
 Optional Endor Labs signing variables:
 

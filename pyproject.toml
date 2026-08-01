@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "endor-labs-agent-kit"
-version = "2.2.0"
+version = "2.2.1"
 description = "Portable Endor Labs workflow agents for AI coding hosts"
 readme = "README.md"
 requires-python = ">=3.10"

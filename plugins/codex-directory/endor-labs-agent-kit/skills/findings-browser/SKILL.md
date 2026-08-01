@@ -1,15 +1,11 @@
 ---
 name: findings-browser
-description: |
-  Browses, filters, and summarizes existing Endor findings without starting
-  new scans or performing remediation. It shows the applied scope and filters,
-  relevant severity and reachability context, pagination or truncation limits,
-  and any evidence gaps affecting the results.
+description: "Browses, filters, and summarizes existing Endor findings without starting new scans or performing remediation. It shows the applied scope and filters, relevant severity and reachability context, pagination or truncation limits, and any evidence gaps affecting the results."
 ---
 
 # Findings Browser
 
-Generated from Endor Agent Kit recipe `findings-browser` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.0.
+Generated from Endor Agent Kit recipe `findings-browser` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.1.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

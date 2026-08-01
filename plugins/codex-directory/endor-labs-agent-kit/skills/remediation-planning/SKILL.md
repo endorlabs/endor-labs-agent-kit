@@ -1,16 +1,11 @@
 ---
 name: remediation-planning
-description: |
-  Previews safe remediation options for existing Endor findings without
-  changing code or opening a pull request. It compares VersionUpgrade and
-  Upgrade Impact Analysis candidates using findings fixed, upgrade risk,
-  compatibility evidence, and available data, then recommends the safest
-  evidence-backed next step.
+description: "Previews safe remediation options for existing Endor findings without changing code or opening a pull request. It compares VersionUpgrade and Upgrade Impact Analysis candidates using findings fixed, upgrade risk, compatibility evidence, and available data, then recommends the safest evidence-backed next step."
 ---
 
 # Remediation Planning
 
-Generated from Endor Agent Kit recipe `remediation-planning` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.0.
+Generated from Endor Agent Kit recipe `remediation-planning` v0.1.0 for Endor Labs Agent Kit Universal Plugins Directory plugin; package `endor-labs-agent-kit` v2.2.1.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract

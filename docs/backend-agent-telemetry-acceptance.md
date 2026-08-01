@@ -1,6 +1,6 @@
 # Backend Agent Telemetry Acceptance
 
-Backend telemetry evidence is an optional release signal for canonical Agent
+Backend telemetry evidence is an optional manual diagnostic for canonical Agent
 Kit identities. The backend team owns producing the bundle; Agent Kit only
 validates it and never writes backend state.
 
@@ -22,15 +22,7 @@ python scripts/validate_release_evidence.py \
   --backend-acceptance /path/to/backend-agent-telemetry-acceptance.json
 ```
 
-For automated source-to-mirror publication, maintainers may configure these
-non-secret repository variables with the corresponding JSON objects:
-
-- `AGENT_QA_ACCEPTANCE_JSON`
-- `ENDOR_AGENT_BACKEND_ACCEPTANCE_JSON`
-
-When both variables are configured, the publication workflow validates them and
-reports the result. Missing, stale, mismatched-SHA, alias-incomplete, or
-correlation-incomplete evidence produces a warning and does not block
-publication. The standalone `scripts/validate_release_evidence.py` command
-remains strict and returns a nonzero status for invalid evidence. A manual
-`dry_run=true` may still regenerate and validate packages without publishing.
+The automated source-to-mirror publication workflow does not consume these
+bundles. Run the standalone `scripts/validate_release_evidence.py` command only
+when a maintainer explicitly wants to validate QA and backend evidence together;
+the command remains strict and returns a nonzero status for invalid evidence.

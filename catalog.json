@@ -28,7 +28,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -62,7 +62,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
@@ -93,7 +93,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -127,7 +127,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -163,7 +163,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
@@ -194,7 +194,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -228,7 +228,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -262,7 +262,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -296,7 +296,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     },
@@ -327,7 +327,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ],
       "legacy_ids": [
@@ -361,7 +361,7 @@
         },
         {
           "host": "antigravity",
-          "command": "git clone --branch 2.2.0 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.0\nagy plugin validate ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.0/plugins/antigravity/endor-labs-agent-kit"
+          "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
         }
       ]
     }
