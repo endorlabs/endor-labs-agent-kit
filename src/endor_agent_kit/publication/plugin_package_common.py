@@ -10,7 +10,7 @@ from endor_agent_kit.publication.model_recommendations import model_recommendati
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PLUGIN_DISPLAY_NAME = "Endor Labs Agent Kit"
-PLUGIN_VERSION_FALLBACK = "2.2.0"
+PLUGIN_VERSION_FALLBACK = "2.2.1"
 ENDOR_BRAND_GREEN = "#26D07C"
 LOGO_FILENAME = "logo.png"
 LOGO_PATH = f"assets/{LOGO_FILENAME}"

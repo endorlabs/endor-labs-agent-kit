@@ -10,7 +10,7 @@ description: |
 
 # Configuration Automation
 
-Generated from Endor Agent Kit recipe `configuration-automation` v0.1.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v2.2.0.
+Generated from Endor Agent Kit recipe `configuration-automation` v0.1.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v2.2.1.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract
