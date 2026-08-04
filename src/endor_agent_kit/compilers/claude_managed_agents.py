@@ -161,7 +161,16 @@ def _managed_system(
     else:
         label = "This Managed Agents artifact" if single_edition else f"Managed Agents {_edition_name(edition)}"
         agent_command = f"endorctl agent api --agent-id {recipe.id}"
-        if _uses_github_evidence(recipe):
+        if posture.is_mutating:
+            transport = (
+                f"{label}. Use Bash and the enabled file tools for the documented "
+                f"`{agent_command}` calls and the approval-gated remediation workflow "
+                "(repository inspection, patch preparation, local validation, "
+                "change-request creation) in these instructions. Every mutating action "
+                "requires explicit approval in the current session before it runs. "
+                "Do not require Endor MCP."
+            )
+        elif _uses_github_evidence(recipe):
             transport = (
                 f"{label}. Use Bash only for the documented read-only `{agent_command}` "
                 "lookups and GitHub.com inventory/file lookups in these instructions. "
@@ -232,6 +241,9 @@ def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
         })
 
     if posture.uses_endor_api_transport:
+        config_names = ["bash"]
+        if posture.can_write_files:
+            config_names.extend(["read", "write", "edit", "glob", "grep"])
         tools.append({
             "type": "agent_toolset_20260401",
             "default_config": {
@@ -242,12 +254,13 @@ def _tools(recipe: EndorAgentRecipe, edition: str) -> list[dict]:
             },
             "configs": [
                 {
-                    "name": "bash",
+                    "name": name,
                     "enabled": True,
                     "permission_policy": {
                         "type": "always_ask",
                     },
                 }
+                for name in config_names
             ],
         })
     return tools
@@ -276,7 +289,8 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
 
 def _allowed_hosts(recipe: EndorAgentRecipe) -> list[str]:
     hosts = ["https://api.endorlabs.com"]
-    if _uses_github_evidence(recipe):
+    posture = source_recipe_safety_posture(recipe)
+    if _uses_github_evidence(recipe) or posture.can_open_change_requests:
         hosts.extend([
             "https://api.github.com",
             "https://github.com",
@@ -294,8 +308,22 @@ def _session_template(recipe: EndorAgentRecipe) -> dict:
         "environment_id": "<ENVIRONMENT_ID>",
     }
     posture = source_recipe_safety_posture(recipe)
+    vault_ids: list[str] = []
     if posture.uses_mcp:
-        template["vault_ids"] = ["<ENDOR_MCP_VAULT_ID>"]
+        vault_ids.append("<ENDOR_MCP_VAULT_ID>")
+    if posture.is_mutating and posture.uses_endor_api_transport:
+        vault_ids.append("<ENDOR_CREDENTIALS_VAULT_ID>")
+    if vault_ids:
+        template["vault_ids"] = vault_ids
+    if posture.can_write_files or posture.can_open_change_requests:
+        template["resources"] = [
+            {
+                "type": "github_repository",
+                "url": "<TARGET_REPOSITORY_URL>",
+                "mount_path": "/workspace/<REPOSITORY_NAME>",
+                "authorization_token": "<GITHUB_ACCESS_TOKEN>",
+            }
+        ]
     return template
 
 
@@ -307,4 +335,4 @@ def _edition_name(edition: str) -> str:
 
 
 def _yaml(payload: dict) -> str:
-    return yaml.safe_dump(payload, sort_keys=False, default_flow_style=False, allow_unicode=False)
+    return yaml.safe_dump(payload, sort_keys=False, default_flow_style=False, allow_unicode=True)

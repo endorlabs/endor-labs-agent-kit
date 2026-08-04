@@ -9,6 +9,17 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
+## Unreleased
+
+### Added
+
+- Published `sca-remediation` and `ai-sast-remediation` as Claude Managed
+  Agents artifacts with approval-gated mutations: pre-built Bash and file
+  tools behind `always_ask` permissions, GitHub.com/API network access for
+  change-request delivery, and a session template covering repository
+  mounting via `resources` plus Endor credentials through an Anthropic
+  credential vault.
+
 ## 2.2.1 - 2026-08-01
 
 ### Changed

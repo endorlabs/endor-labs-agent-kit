@@ -4,7 +4,9 @@ import shutil
 from pathlib import Path
 
 import pytest
+import yaml
 
+from endor_agent_kit.compilers import compile_claude_managed_agents
 from endor_agent_kit.publisher import publish_recipe
 
 from conftest import repo_root
@@ -242,3 +244,89 @@ def test_ai_sast_remediation_does_not_require_project_uuid_for_normal_use(tmp_pa
     assert "Optional exception lane" in architecture
     assert "PR/MR comment is evidence, not trigger" in architecture
     assert "Remediation works without the optional exception lane" in architecture
+
+
+def test_ai_sast_remediation_managed_agents_artifacts_carry_mutation_gates(tmp_path):
+    recipe = _copy_agent(tmp_path)
+
+    compile_claude_managed_agents(recipe)
+
+    out_dir = recipe.parent / "dist" / "claude-managed-agents" / "enterprise-edition"
+    assert_host_bundle_files(out_dir, {"agent.yaml", "environment.yaml", "session-template.yaml"})
+    managed = yaml.safe_load((out_dir / "agent.yaml").read_text(encoding="utf-8"))
+    environment = yaml.safe_load((out_dir / "environment.yaml").read_text(encoding="utf-8"))
+    session = yaml.safe_load((out_dir / "session-template.yaml").read_text(encoding="utf-8"))
+
+    assert not (recipe.parent / "dist" / "claude-managed-agents" / "developer-edition").exists()
+    assert managed["metadata"]["endor_agent_kit_recipe_id"] == "ai-sast-remediation"
+    assert managed["mcp_servers"] == []
+    toolset = next(tool for tool in managed["tools"] if tool["type"] == "agent_toolset_20260401")
+    assert toolset["default_config"]["enabled"] is False
+    assert [config["name"] for config in toolset["configs"]] == [
+        "bash",
+        "read",
+        "write",
+        "edit",
+        "glob",
+        "grep",
+    ]
+    assert all(config["enabled"] is True for config in toolset["configs"])
+    assert all(
+        config["permission_policy"] == {"type": "always_ask"} for config in toolset["configs"]
+    )
+    assert "approval-gated remediation workflow" in managed["system"]
+    assert (
+        "Every mutating action requires explicit approval in the current session before it runs"
+        in managed["system"]
+    )
+    assert "Do not require Endor MCP" in managed["system"]
+    assert environment["config"]["networking"]["allowed_hosts"] == [
+        "https://api.endorlabs.com",
+        "https://api.github.com",
+        "https://github.com",
+    ]
+    assert environment["config"]["networking"]["allow_mcp_servers"] is False
+    assert environment["config"]["packages"] == {"npm": ["endorctl"]}
+    assert session["vault_ids"] == ["<ENDOR_CREDENTIALS_VAULT_ID>"]
+    assert session["resources"] == [
+        {
+            "type": "github_repository",
+            "url": "<TARGET_REPOSITORY_URL>",
+            "mount_path": "/workspace/<REPOSITORY_NAME>",
+            "authorization_token": "<GITHUB_ACCESS_TOKEN>",
+        }
+    ]
+
+
+@pytest.mark.publication
+def test_ai_sast_remediation_publishes_managed_agents_bundle(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    managed_dir = dest / "claude-managed-agents" / "ai-sast-remediation"
+    assert_host_bundle_files(
+        managed_dir,
+        {
+            "agent.yaml",
+            "environment.yaml",
+            "session-template.yaml",
+            "README.md",
+            "architecture.svg",
+            "actions.yaml",
+            "endorctl-setup.md",
+            "runtime/summarize_endor_artifact.py",
+        },
+    )
+    assert_no_nested_edition_dirs(managed_dir)
+    readme = (managed_dir / "README.md").read_text(encoding="utf-8")
+    assert (
+        "Triage AI SAST findings for this repository. "
+        "Do not open a PR until I approve the patch." in readme
+    )
+    assert "verified AppSec approval" in readme
+    assert "`create_scoped_exception_policy` is the only mutating Endor API call" in readme
+    assert "`ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET`" in readme
+    assert "mounted through session `resources`" in readme
+    assert "Every mutating action is approval-gated" in readme

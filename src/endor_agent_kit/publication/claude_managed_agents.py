@@ -134,6 +134,47 @@ def managed_agents_edition_readme(
             "The generated `agent.yaml` intentionally uses a placeholder MCP URL that must be replaced.",
             "Unavailable MCP, vault, auth, or account-tier signals are reported in data_gaps.",
         ]
+    elif posture.is_mutating:
+        requirements = [
+            "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
+            "An environment that can install and authenticate endorctl for the Endor API calls documented in endorctl-setup.md.",
+            "A GitHub repository mounted through session `resources` with an authorization token allowed to push branches and open change requests.",
+            "An Anthropic credential vault supplying `ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET` as environment-variable credentials scoped to https://api.endorlabs.com.",
+        ]
+        toolset_note = (
+            "The generated `agent.yaml` enables Bash plus the read, write, edit, glob, and grep "
+            "tools from the pre-built toolset, each with confirmation required."
+        )
+        approval_note = (
+            "Every mutating action is approval-gated: pre-built tools use always_ask permissions "
+            "and the workflow requires explicit in-session approval before any change."
+        )
+        network_note = (
+            "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts so an "
+            "approved remediation can push a branch and open a change request on the mounted repository."
+        )
+        if recipe.id == "sca-remediation":
+            notes = [
+                f"This {artifact_label} plans and applies dependency-vulnerability fixes from Endor SCA findings and VersionUpgrade/UIA evidence, with deterministic risk decisions and local validation inside the managed sandbox.",
+                approval_note,
+                network_note,
+                toolset_note,
+            ]
+        elif recipe.id == "ai-sast-remediation":
+            notes = [
+                f"This {artifact_label} triages Endor AI SAST findings with exploit-reproduction evidence and prepares targeted fixes; file edits and change requests run only after explicit approval.",
+                "Endor exception policies are created or updated only after verified AppSec approval plus explicit user confirmation; `create_scoped_exception_policy` is the only mutating Endor API call.",
+                approval_note,
+                network_note,
+                toolset_note,
+            ]
+        else:
+            notes = [
+                f"This {artifact_label} uses the documented `endorctl agent api --agent-id {recipe.id}` calls and an approval-gated mutation workflow.",
+                approval_note,
+                network_note,
+                toolset_note,
+            ]
     else:
         requirements = [
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
@@ -240,6 +281,8 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
     input_names = {field.name for field in recipe.inputs}
     if recipe.id == "ai-sast-remediation":
         return "Triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
+    if recipe.id == "sca-remediation":
+        return "Check this repository for P0 SCA findings and plan the remediation. Do not edit files or open a change request until I approve."
     if recipe.id == "remediation-planning":
         return "Preview remediation options for repository <owner>/<repo>."
     if "vulnerability_id" in input_names:

@@ -153,13 +153,19 @@ shapes.
 ### Claude Managed Agents
 
 Claude Managed Agents artifacts are published only for compatible recipes.
-Generated environments use limited networking. MCP and Bash toolsets use
+Generated environments use limited networking. MCP and pre-built toolsets use
 `always_ask` permission policy. Package-manager access is disabled unless the
 agent requires `endorctl` setup, in which case the generated environment
 installs only `endorctl`.
 
-The current mutating remediation agents are not published as Claude Managed
-Agents artifacts.
+Read-only agents enable only the pre-built Bash tool. The mutating remediation
+agents (`sca-remediation`, `ai-sast-remediation`) additionally enable the
+pre-built read, write, edit, glob, and grep tools, each behind `always_ask`
+confirmation, and keep every mutation approval-gated by the recipe action
+contracts. Their generated environments allow GitHub.com/API hosts so an
+approved remediation can push a branch and open a change request on the
+repository mounted through session `resources`. Endor credentials are supplied
+through an Anthropic credential vault, never pasted into the session.
 
 ### Codex
 
