@@ -48,7 +48,7 @@ you have the created agent ID, environment ID, and any required vault IDs.
 - Anthropic Console or `ant` CLI access to Claude Managed Agents.
 - An environment that can install and authenticate endorctl for the Endor API calls documented in endorctl-setup.md.
 - A GitHub repository mounted through session `resources` with an authorization token allowed to push branches and open change requests.
-- An Anthropic credential vault supplying `ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET` as environment-variable credentials scoped to https://api.endorlabs.com.
+- An Anthropic credential vault supplying `ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET` as environment-variable credentials scoped to api.endorlabs.com.
 
 ## Example User Message
 

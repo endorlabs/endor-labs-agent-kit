@@ -175,9 +175,9 @@ def test_claude_managed_agents_use_permission_and_network_guardrails():
         networking = environment["config"]["networking"]
         assert networking["type"] == "limited"
         assert set(networking["allowed_hosts"]) <= {
-            "https://api.endorlabs.com",
-            "https://api.github.com",
-            "https://github.com",
+            "api.endorlabs.com",
+            "api.github.com",
+            "github.com",
         }
         packages = environment["config"].get("packages", {})
         if packages:

@@ -18,7 +18,9 @@ package metadata.
   tools behind `always_ask` permissions, GitHub.com/API network access for
   change-request delivery, and a session template covering repository
   mounting via `resources` plus Endor credentials through an Anthropic
-  credential vault.
+  credential vault. Mutating managed artifacts render the compact workflow
+  projection and fail closed when a rendered system prompt exceeds the
+  Managed Agents API limit.
 
 ## 2.2.1 - 2026-08-01
 

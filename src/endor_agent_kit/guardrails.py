@@ -48,11 +48,13 @@ CLAUDE_CODE_WRITE_TOOLS = frozenset({"Write", "Edit", "MultiEdit"})
 
 PORTABLE_FAIL_CLOSED_README_GUIDANCE = "Fail closed to plan-only output or `data_gaps`"
 
+# Managed Agents environment allowed_hosts entries must be bare hostnames;
+# the API rejects entries that carry a URL scheme.
 MANAGED_ALLOWED_HOSTS = frozenset(
     {
-        "https://api.endorlabs.com",
-        "https://api.github.com",
-        "https://github.com",
+        "api.endorlabs.com",
+        "api.github.com",
+        "github.com",
     }
 )
 

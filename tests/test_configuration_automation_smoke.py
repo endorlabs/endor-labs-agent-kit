@@ -274,9 +274,9 @@ def test_configuration_automation_managed_agents_artifacts_carry_github_boundary
     assert "vault_ids" not in session
     assert environment["name"] == "endor-configuration-automation"
     assert environment["config"]["networking"]["allowed_hosts"] == [
-        "https://api.endorlabs.com",
-        "https://api.github.com",
-        "https://github.com",
+        "api.endorlabs.com",
+        "api.github.com",
+        "github.com",
     ]
     assert environment["config"]["networking"]["allow_mcp_servers"] is False
 
@@ -400,9 +400,9 @@ def test_configuration_automation_publish_writes_claude_code_managed_and_codex_c
     assert "GitHub.com inventory/file lookups" in managed_agent
     assert "mcp_toolset" not in managed_agent
     assert managed_environment["config"]["networking"]["allowed_hosts"] == [
-        "https://api.endorlabs.com",
-        "https://api.github.com",
-        "https://github.com",
+        "api.endorlabs.com",
+        "api.github.com",
+        "github.com",
     ]
     assert "Configuration Automation Codex Skill" in codex_readme
     assert "No mutating repository, source-provider, or Endor writes for this skill." in codex_readme

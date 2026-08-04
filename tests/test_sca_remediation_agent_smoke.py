@@ -361,10 +361,13 @@ def test_sca_remediation_managed_agents_artifacts_carry_mutation_gates(tmp_path)
         in managed["system"]
     )
     assert "Do not require Endor MCP" in managed["system"]
+    assert "## Endor Knowledge Pack" in managed["system"]
+    assert "## Action Contracts" in managed["system"]
+    assert len(managed["system"]) <= 100_000
     assert environment["config"]["networking"]["allowed_hosts"] == [
-        "https://api.endorlabs.com",
-        "https://api.github.com",
-        "https://github.com",
+        "api.endorlabs.com",
+        "api.github.com",
+        "github.com",
     ]
     assert environment["config"]["networking"]["allow_mcp_servers"] is False
     assert environment["config"]["packages"] == {"npm": ["endorctl"]}

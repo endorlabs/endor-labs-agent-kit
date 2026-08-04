@@ -32,6 +32,10 @@ MODEL_ALIASES = {
     "sonnet": "claude-sonnet-4-6",
     "opus": "claude-opus-4-7",
 }
+# Managed Agents API validation rejects agents whose system prompt exceeds
+# this length. Mutating artifact generation fails closed against it instead
+# of failing at agent create time.
+MANAGED_SYSTEM_MAX_CHARS = 100_000
 
 
 class LiteralString(str):
@@ -147,14 +151,40 @@ def _managed_system(
     actions: tuple[ActionContract, ...],
     edition: str,
 ) -> str:
+    posture = source_recipe_safety_posture(recipe)
+    # Mutating remediation prompts exceed the Managed Agents API system limit
+    # in full rendering, so they ship the same compact projection as plugin
+    # skill artifacts and fail closed if a rendered prompt still exceeds the
+    # limit.
+    system = _render_managed_system(
+        recipe, instructions, actions, edition, compact=posture.is_mutating
+    )
+    if posture.is_mutating and len(system) > MANAGED_SYSTEM_MAX_CHARS:
+        raise ValueError(
+            f"claude-managed-agents system prompt for {recipe.id} {edition} is "
+            f"{len(system)} characters; the Managed Agents API limit is "
+            f"{MANAGED_SYSTEM_MAX_CHARS}"
+        )
+    return system
+
+
+def _render_managed_system(
+    recipe: EndorAgentRecipe,
+    instructions: str,
+    actions: tuple[ActionContract, ...],
+    edition: str,
+    *,
+    compact: bool,
+) -> str:
+    posture = source_recipe_safety_posture(recipe)
     body = instructions_for_edition(
         instructions,
         edition,
         recipe_id=recipe.id,
         structured_output_recipe=recipe,
+        compact_plugin=compact,
     )
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
-    posture = source_recipe_safety_posture(recipe)
     if not posture.uses_endor_api_transport:
         label = "This Managed Agents artifact" if single_edition else f"Managed Agents {_edition_name(edition)}"
         transport = f"{label}. This agent is MCP-only for this recipe. Do not use Bash, filesystem, web, or mutating tools."
@@ -288,12 +318,14 @@ def _environment_config(recipe: EndorAgentRecipe, edition: str) -> dict:
 
 
 def _allowed_hosts(recipe: EndorAgentRecipe) -> list[str]:
-    hosts = ["https://api.endorlabs.com"]
+    # Managed Agents environments require bare hostnames; the API rejects
+    # allowed_hosts entries that carry a URL scheme.
+    hosts = ["api.endorlabs.com"]
     posture = source_recipe_safety_posture(recipe)
     if _uses_github_evidence(recipe) or posture.can_open_change_requests:
         hosts.extend([
-            "https://api.github.com",
-            "https://github.com",
+            "api.github.com",
+            "github.com",
         ])
     return hosts
 

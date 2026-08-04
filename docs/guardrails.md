@@ -167,6 +167,11 @@ approved remediation can push a branch and open a change request on the
 repository mounted through session `resources`. Endor credentials are supplied
 through an Anthropic credential vault, never pasted into the session.
 
+Mutating managed artifacts render the same compact workflow projection that
+plugin skill artifacts ship, because the full remediation rendering exceeds
+the Managed Agents API system-prompt limit. Mutating managed generation fails
+closed when a rendered system prompt exceeds that limit.
+
 ### Codex
 
 Codex skills include a host contract that tells Codex to stay within the recipe
