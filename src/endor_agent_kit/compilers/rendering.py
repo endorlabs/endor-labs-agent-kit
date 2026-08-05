@@ -120,6 +120,7 @@ def instructions_for_edition(
     compact_plugin: bool = False,
     profile_id: str | None = None,
     artifact_helper: bool = True,
+    source_provider_cli: bool = True,
 ) -> str:
     """Render the shared and edition-specific instruction sections."""
 
@@ -226,6 +227,8 @@ def instructions_for_edition(
     )
     if not artifact_helper:
         rendered = without_bundled_artifact_helper(rendered)
+    if not source_provider_cli:
+        rendered = without_source_provider_cli(rendered)
     return rendered
 
 
@@ -251,6 +254,35 @@ _ARTIFACT_HELPER_FORBIDDEN_TOKENS = (
     "packaged helper",
     "large_result_artifact_required",
 )
+
+
+# Source instructions assume a local source-provider CLI. Hosts without one
+# reach the provider through a declared remote MCP toolset instead.
+_SOURCE_PROVIDER_CLI_SUBSTITUTIONS = (
+    (
+        "On GitHub, when authenticated `gh` is\navailable, use one bounded open-PR listing",
+        "On GitHub, use the authenticated `github` MCP\ntoolset for one bounded open-PR listing",
+    ),
+)
+_SOURCE_PROVIDER_CLI_FORBIDDEN_TOKENS = ("authenticated `gh`",)
+
+
+def without_source_provider_cli(rendered: str) -> str:
+    """Route source-provider lookups through MCP for hosts without a provider CLI.
+
+    Fails closed so reworded source instructions cannot silently ship guidance
+    that depends on a CLI the host does not install.
+    """
+
+    for original, replacement in _SOURCE_PROVIDER_CLI_SUBSTITUTIONS:
+        rendered = rendered.replace(original, replacement)
+    for token in _SOURCE_PROVIDER_CLI_FORBIDDEN_TOKENS:
+        if token in rendered:
+            raise ValueError(
+                f"rendered instructions still require a source-provider CLI ({token!r}); "
+                "add a host-neutral substitution in compilers/rendering.py"
+            )
+    return rendered
 
 
 def without_bundled_artifact_helper(rendered: str) -> str:

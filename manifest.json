@@ -1466,9 +1466,9 @@
         {
           "artifacts": [
             {
-              "bytes": 4110,
+              "bytes": 4601,
               "path": "claude-managed-agents/ai-sast-remediation/README.md",
-              "sha256": "b93c3c2640e01cf91f940c6b027fe6829e38253d4de89f7bc5ca44d94f651837"
+              "sha256": "580d74927c6d763f398f1a40b3d735ef897c00648f27ba177324a2db8bb6d617"
             },
             {
               "bytes": 6563,
@@ -1476,9 +1476,9 @@
               "sha256": "e2d7779cc225d248c72d355a9ff31d822e3f016cd44c2189f6f6d0f9d5a8606a"
             },
             {
-              "bytes": 41102,
+              "bytes": 41913,
               "path": "claude-managed-agents/ai-sast-remediation/agent.yaml",
-              "sha256": "727c980be7a8a8279cd515241119a147826ec1e24af9e723930336ec9858ecb1"
+              "sha256": "6b904f74febbb68b2b3587219ce226a7c4f0642e32357b5ff1dde6e2fae773e7"
             },
             {
               "bytes": 10807,
@@ -1491,9 +1491,9 @@
               "sha256": "983c8cc49f633bc8ac7b448f0ba5a199fca3a7252f241bfc131ce25a4f667104"
             },
             {
-              "bytes": 265,
+              "bytes": 264,
               "path": "claude-managed-agents/ai-sast-remediation/environment.yaml",
-              "sha256": "0a12b8b626ee7b3f0856fab0acfd2a9f0bea9c1e7ca7d9e2a556137d5793be9e"
+              "sha256": "8d0e3d93552e3ed71919c2e956036101716c18ebc335da2c5072fca8eb9396ba"
             },
             {
               "bytes": 7597,
@@ -1564,9 +1564,9 @@
               "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
             },
             {
-              "bytes": 249,
+              "bytes": 273,
               "path": "claude-managed-agents/ai-sast-remediation/session-template.yaml",
-              "sha256": "f2d93a9c21d627f7e15e66d6d4a0cb8c8032e4df8cee2b501ade0b837ae9c547"
+              "sha256": "33ae59dd8fcdb3fc1d073a88a7cbb98c4be21fbb6ffdcbd152d41aef6f579abb"
             }
           ],
           "id": "enterprise-edition",
@@ -2269,9 +2269,9 @@
         {
           "artifacts": [
             {
-              "bytes": 4301,
+              "bytes": 4792,
               "path": "claude-managed-agents/sca-remediation/README.md",
-              "sha256": "a57026444ca2ea0d198282a1fb862e00663d144294bdd08a8f6dff3a83065bec"
+              "sha256": "879cef7e06b53f0ee807cea8062159170943b5bbadb7f0c8a4c7ae1428f54ec5"
             },
             {
               "bytes": 6758,
@@ -2279,9 +2279,9 @@
               "sha256": "e9a3ab37beffeb7755914a628ae0f573c60274234d737c680a3217424abe40ae"
             },
             {
-              "bytes": 56895,
+              "bytes": 57711,
               "path": "claude-managed-agents/sca-remediation/agent.yaml",
-              "sha256": "405acf74e9723603a5e71a1a105a29948bef43dcfe2d321061abb69de0cf8c4c"
+              "sha256": "e7eed0bb97336fd2cc130a84125963192e71c225924a010544866572845f3d6a"
             },
             {
               "bytes": 9865,
@@ -2294,9 +2294,9 @@
               "sha256": "e88ec61dbe15646eaed5d1cb262fb38dc50b2652e9bf0fba7f497430bf34b6e8"
             },
             {
-              "bytes": 261,
+              "bytes": 260,
               "path": "claude-managed-agents/sca-remediation/environment.yaml",
-              "sha256": "c4d82361d6c6c8f8d8b54534bc0d71f2f8bbc26e45e9b068bb6c68ac2277bbe6"
+              "sha256": "07800a17df61c3a116c590a3058a1ead9339936cc6e679f23036693f28eb748b"
             },
             {
               "bytes": 5291,
@@ -2367,9 +2367,9 @@
               "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
             },
             {
-              "bytes": 249,
+              "bytes": 273,
               "path": "claude-managed-agents/sca-remediation/session-template.yaml",
-              "sha256": "f2d93a9c21d627f7e15e66d6d4a0cb8c8032e4df8cee2b501ade0b837ae9c547"
+              "sha256": "33ae59dd8fcdb3fc1d073a88a7cbb98c4be21fbb6ffdcbd152d41aef6f579abb"
             }
           ],
           "id": "enterprise-edition",

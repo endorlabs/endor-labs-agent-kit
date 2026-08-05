@@ -340,7 +340,17 @@ def test_sca_remediation_managed_agents_artifacts_carry_mutation_gates(tmp_path)
 
     assert not (recipe.parent / "dist" / "claude-managed-agents" / "developer-edition").exists()
     assert managed["metadata"]["endor_agent_kit_recipe_id"] == "sca-remediation"
-    assert managed["mcp_servers"] == []
+    assert managed["mcp_servers"] == [
+        {"type": "url", "name": "github", "url": "https://api.githubcopilot.com/mcp/"}
+    ]
+    github_toolset = next(tool for tool in managed["tools"] if tool["type"] == "mcp_toolset")
+    assert github_toolset["mcp_server_name"] == "github"
+    assert github_toolset["default_config"]["permission_policy"] == {"type": "always_ask"}
+    assert environment["config"]["networking"]["allow_mcp_servers"] is True
+    assert "No source-provider CLI exists in this sandbox" in managed["system"]
+    assert "use the `github` MCP toolset" in managed["system"]
+    assert "create_pull_request_with_copilot" in managed["system"]
+    assert "authenticated `gh`" not in managed["system"]
     toolset = next(tool for tool in managed["tools"] if tool["type"] == "agent_toolset_20260401")
     assert toolset["default_config"]["enabled"] is False
     assert [config["name"] for config in toolset["configs"]] == [
@@ -373,9 +383,11 @@ def test_sca_remediation_managed_agents_artifacts_carry_mutation_gates(tmp_path)
         "api.github.com",
         "github.com",
     ]
-    assert environment["config"]["networking"]["allow_mcp_servers"] is False
     assert environment["config"]["packages"] == {"npm": ["endorctl"]}
-    assert session["vault_ids"] == ["<ENDOR_CREDENTIALS_VAULT_ID>"]
+    assert session["vault_ids"] == [
+        "<ENDOR_CREDENTIALS_VAULT_ID>",
+        "<GITHUB_MCP_VAULT_ID>",
+    ]
     assert session["resources"] == [
         {
             "type": "github_repository",

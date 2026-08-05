@@ -7,7 +7,11 @@ from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.compilers.rendering import EDITIONS
-from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude_managed_agents_prepared
+from endor_agent_kit.compilers.claude_managed_agents import (
+    HOST,
+    compile_claude_managed_agents_prepared,
+    uses_source_provider_mcp as _uses_source_provider_mcp,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import (
@@ -141,6 +145,12 @@ def managed_agents_edition_readme(
             "A GitHub repository mounted through session `resources` with an authorization token allowed to push branches and open change requests.",
             "An Anthropic credential vault supplying `ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET` as environment-variable credentials scoped to api.endorlabs.com.",
         ]
+        if _uses_source_provider_mcp(recipe):
+            requirements.append(
+                "A `static_bearer` vault credential for the generated `github` MCP server URL, "
+                "holding a fine-grained GitHub token with Contents and Pull requests write access. "
+                "The remote GitHub MCP server is available on every GitHub plan and needs no Copilot license."
+            )
         toolset_note = (
             "The generated `agent.yaml` enables Bash plus the read, write, edit, glob, and grep "
             "tools from the pre-built toolset, each with confirmation required."
@@ -153,12 +163,18 @@ def managed_agents_edition_readme(
             "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts so an "
             "approved remediation can push a branch and open a change request on the mounted repository."
         )
+        source_provider_note = (
+            "No source-provider CLI exists in the managed sandbox, so source-provider reads and "
+            "change-request creation run through the generated `github` MCP toolset. Copilot-backed "
+            "MCP tools are out of scope for this agent and are never called."
+        )
         if recipe.id == "sca-remediation":
             notes = [
                 f"This {artifact_label} plans and applies dependency-vulnerability fixes from Endor SCA findings and VersionUpgrade/UIA evidence, with deterministic risk decisions and local validation inside the managed sandbox.",
                 approval_note,
                 network_note,
                 toolset_note,
+                *([source_provider_note] if _uses_source_provider_mcp(recipe) else []),
             ]
         elif recipe.id == "ai-sast-remediation":
             notes = [
@@ -167,6 +183,7 @@ def managed_agents_edition_readme(
                 approval_note,
                 network_note,
                 toolset_note,
+                *([source_provider_note] if _uses_source_provider_mcp(recipe) else []),
             ]
         else:
             notes = [

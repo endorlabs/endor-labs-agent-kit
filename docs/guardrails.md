@@ -180,6 +180,16 @@ of at most 100) and must never direct the agent at the packaged helper.
 Rendering fails closed if reworded source instructions still reference it, and
 the guardrail check rejects any managed prompt that mentions it.
 
+The managed sandbox also installs no source-provider CLI, and the repository
+mount token authenticates the git remote rather than the provider API. Mutating
+managed artifacts therefore declare the official remote GitHub MCP server with
+an `always_ask` `mcp_toolset`, route source-provider reads and change-request
+creation through it, and forbid Copilot-licensed MCP tools. `allow_mcp_servers`
+grants that egress, so MCP hosts stay out of `allowed_hosts`. Credentials are a
+`static_bearer` vault credential for the MCP server URL. Rendering fails closed
+if source instructions still require a provider CLI for an artifact that
+declares the MCP replacement.
+
 ### Codex
 
 Codex skills include a host contract that tells Codex to stay within the recipe

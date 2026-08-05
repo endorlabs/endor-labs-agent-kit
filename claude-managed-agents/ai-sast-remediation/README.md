@@ -49,6 +49,7 @@ you have the created agent ID, environment ID, and any required vault IDs.
 - An environment that can install and authenticate endorctl for the Endor API calls documented in endorctl-setup.md.
 - A GitHub repository mounted through session `resources` with an authorization token allowed to push branches and open change requests.
 - An Anthropic credential vault supplying `ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET` as environment-variable credentials scoped to api.endorlabs.com.
+- A `static_bearer` vault credential for the generated `github` MCP server URL, holding a fine-grained GitHub token with Contents and Pull requests write access. The remote GitHub MCP server is available on every GitHub plan and needs no Copilot license.
 
 ## Example User Message
 
@@ -69,3 +70,4 @@ In Agent Kit, PR/MR creation is host-mediated. Claude Code runs in the target ch
 - Every mutating action is approval-gated: pre-built tools use always_ask permissions and the workflow requires explicit in-session approval before any change.
 - The generated environment allows api.endorlabs.com plus GitHub.com/API hosts so an approved remediation can push a branch and open a change request on the mounted repository.
 - The generated `agent.yaml` enables Bash plus the read, write, edit, glob, and grep tools from the pre-built toolset, each with confirmation required.
+- No source-provider CLI exists in the managed sandbox, so source-provider reads and change-request creation run through the generated `github` MCP toolset. Copilot-backed MCP tools are out of scope for this agent and are never called.

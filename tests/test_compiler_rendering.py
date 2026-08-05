@@ -15,6 +15,7 @@ from endor_agent_kit.compilers.rendering import (
     render_action_contracts,
     render_structured_output_contract,
     without_bundled_artifact_helper,
+    without_source_provider_cli,
 )
 from endor_agent_kit.knowledge_pack import PACK_SECTION_HEADING
 from endor_agent_kit.recipe import ActionContract, EndorAgentRecipe, HostCapabilities, RecipeField
@@ -186,6 +187,26 @@ def test_shared_compiler_rendering_replaces_artifact_helper_with_bounded_reads()
     assert "this host has no bundled runtime summarizer" in without_helper
     assert "`--page-size` of at most 100" in without_helper
     assert without_helper.count(PACK_SECTION_HEADING) == 1
+
+
+def test_without_source_provider_cli_routes_provider_reads_through_mcp():
+    source = (
+        "Keep source-provider inventory compact. On GitHub, when authenticated `gh` is\n"
+        "available, use one bounded open-PR listing for the selected base branch with\n"
+        "only number, title, head branch, author, URL, and changed files."
+    )
+
+    rendered = without_source_provider_cli(source)
+
+    assert "authenticated `gh`" not in rendered
+    assert "use the authenticated `github` MCP" in rendered
+    assert "one bounded open-PR listing for the selected base branch" in rendered
+    assert "only number, title, head branch, author, URL, and changed files." in rendered
+
+
+def test_without_source_provider_cli_fails_closed_on_unknown_reference():
+    with pytest.raises(ValueError, match="source-provider CLI"):
+        without_source_provider_cli("Reach for an authenticated `gh` session in new phrasing.")
 
 
 def test_without_bundled_artifact_helper_fails_closed_on_unknown_reference():

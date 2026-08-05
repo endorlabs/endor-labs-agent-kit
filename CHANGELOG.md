@@ -24,6 +24,14 @@ package metadata.
 
 ### Fixed
 
+- Gave mutating Claude Managed Agents artifacts a working source-provider path.
+  The managed sandbox installs no `gh`/`glab` CLI and the repository mount token
+  authenticates only the git remote, so change-request creation previously
+  failed closed with a source-provider data gap. Those artifacts now declare the
+  official remote GitHub MCP server with an `always_ask` toolset, a
+  `static_bearer` vault placeholder, and prompt guidance that routes provider
+  reads and pull-request creation through MCP while forbidding Copilot-licensed
+  MCP tools. The remote GitHub MCP server needs no Copilot license.
 - Replaced bundled-runtime-summarizer guidance with bounded-read guidance in
   every Claude Managed Agents prompt. The managed host receives only
   `agent.yaml` and `environment.yaml`, so the packaged helper never reaches

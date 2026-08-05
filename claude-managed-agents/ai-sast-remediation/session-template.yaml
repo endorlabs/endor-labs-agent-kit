@@ -2,6 +2,7 @@ agent: <AGENT_ID>
 environment_id: <ENVIRONMENT_ID>
 vault_ids:
 - <ENDOR_CREDENTIALS_VAULT_ID>
+- <GITHUB_MCP_VAULT_ID>
 resources:
 - type: github_repository
   url: <TARGET_REPOSITORY_URL>
