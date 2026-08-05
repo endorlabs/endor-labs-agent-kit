@@ -236,7 +236,7 @@ def test_troubleshooting_managed_agents_artifacts_are_read_only(tmp_path):
     assert "vault_ids" not in session
     assert environment["name"] == "endor-troubleshooting"
     assert environment["config"]["networking"]["allowed_hosts"] == [
-        "https://api.endorlabs.com",
+        "api.endorlabs.com",
     ]
 
     tools = {tool["type"]: tool for tool in managed["tools"]}

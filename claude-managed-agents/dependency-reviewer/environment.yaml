@@ -4,7 +4,7 @@ config:
   networking:
     type: limited
     allowed_hosts:
-    - https://api.endorlabs.com
+    - api.endorlabs.com
     allow_mcp_servers: true
     allow_package_managers: true
   packages:

@@ -9,6 +9,42 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
+## Unreleased
+
+### Added
+
+- Published `sca-remediation` and `ai-sast-remediation` as Claude Managed
+  Agents artifacts with approval-gated mutations: pre-built Bash and file
+  tools behind `always_ask` permissions, GitHub.com/API network access for
+  change-request delivery, and a session template covering repository
+  mounting via `resources` plus Endor credentials through an Anthropic
+  credential vault. Mutating managed artifacts render the compact workflow
+  projection and fail closed when a rendered system prompt exceeds the
+  Managed Agents API limit.
+
+### Fixed
+
+- Added a Claude Managed Agents compact-projection fallback for read-only
+  artifacts whose full rendering passes 85% of the API system-prompt limit,
+  and extended the fail-closed limit check to every managed artifact. This
+  brings `troubleshooting` from 89,859 to 27,803 characters. GitHub-evidence
+  agents are excluded because their compact projection omits the bounded
+  GitHub route their transport wording references.
+- Gave mutating Claude Managed Agents artifacts a working source-provider path.
+  The managed sandbox installs no `gh`/`glab` CLI and the repository mount token
+  authenticates only the git remote, so change-request creation previously
+  failed closed with a source-provider data gap. Those artifacts now declare the
+  official remote GitHub MCP server with an `always_ask` toolset, a
+  `static_bearer` vault placeholder, and prompt guidance that routes provider
+  reads and pull-request creation through MCP while forbidding Copilot-licensed
+  MCP tools. The remote GitHub MCP server needs no Copilot license.
+- Replaced bundled-runtime-summarizer guidance with bounded-read guidance in
+  every Claude Managed Agents prompt. The managed host receives only
+  `agent.yaml` and `environment.yaml`, so the packaged helper never reaches
+  the sandbox and agents previously searched the filesystem for it before
+  falling back to unbounded inventory reads. Rendering and the guardrail check
+  now both fail closed on any managed reference to the helper.
+
 ## 2.2.1 - 2026-08-01
 
 ### Changed

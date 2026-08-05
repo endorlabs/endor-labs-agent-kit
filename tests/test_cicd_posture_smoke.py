@@ -180,9 +180,9 @@ def test_cicd_posture_managed_agents_artifacts_carry_github_boundary(tmp_path):
     assert "vault_ids" not in session
     assert environment["name"] == "endor-cicd-posture"
     assert environment["config"]["networking"]["allowed_hosts"] == [
-        "https://api.endorlabs.com",
-        "https://api.github.com",
-        "https://github.com",
+        "api.endorlabs.com",
+        "api.github.com",
+        "github.com",
     ]
     assert environment["config"]["networking"]["allow_mcp_servers"] is False
     assert "GitHub.com inventory/file lookups" in managed["system"]

@@ -1,0 +1,14 @@
+name: endor-ai-sast-remediation
+config:
+  type: cloud
+  networking:
+    type: limited
+    allowed_hosts:
+    - api.endorlabs.com
+    - api.github.com
+    - github.com
+    allow_mcp_servers: true
+    allow_package_managers: true
+  packages:
+    npm:
+    - endorctl

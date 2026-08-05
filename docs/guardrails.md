@@ -153,13 +153,48 @@ shapes.
 ### Claude Managed Agents
 
 Claude Managed Agents artifacts are published only for compatible recipes.
-Generated environments use limited networking. MCP and Bash toolsets use
+Generated environments use limited networking. MCP and pre-built toolsets use
 `always_ask` permission policy. Package-manager access is disabled unless the
 agent requires `endorctl` setup, in which case the generated environment
 installs only `endorctl`.
 
-The current mutating remediation agents are not published as Claude Managed
-Agents artifacts.
+Read-only agents enable only the pre-built Bash tool. The mutating remediation
+agents (`sca-remediation`, `ai-sast-remediation`) additionally enable the
+pre-built read, write, edit, glob, and grep tools, each behind `always_ask`
+confirmation, and keep every mutation approval-gated by the recipe action
+contracts. Their generated environments allow GitHub.com/API hosts so an
+approved remediation can push a branch and open a change request on the
+repository mounted through session `resources`. Endor credentials are supplied
+through an Anthropic credential vault, never pasted into the session.
+
+Mutating managed artifacts render the same compact workflow projection that
+plugin skill artifacts ship, because the full remediation rendering exceeds
+the Managed Agents API system-prompt limit. Any other managed artifact whose
+full rendering passes 85% of that limit also falls back to the compact
+projection, keeping headroom so later source edits cannot silently push a
+published agent past the limit. GitHub-evidence agents are excluded from that
+fallback because their compact projection omits the bounded GitHub route their
+transport wording depends on; they keep full rendering and rely on the
+fail-closed check instead. Managed generation fails closed whenever a rendered
+system prompt exceeds the API limit.
+
+The Managed Agents host receives only `agent.yaml` and `environment.yaml`, so
+no published bundle file reaches the execution sandbox. Managed prompts
+therefore replace bundled-runtime-summarizer guidance with bounded-read
+guidance (documented field masks, group aggregation, an explicit `--page-size`
+of at most 100) and must never direct the agent at the packaged helper.
+Rendering fails closed if reworded source instructions still reference it, and
+the guardrail check rejects any managed prompt that mentions it.
+
+The managed sandbox also installs no source-provider CLI, and the repository
+mount token authenticates the git remote rather than the provider API. Mutating
+managed artifacts therefore declare the official remote GitHub MCP server with
+an `always_ask` `mcp_toolset`, route source-provider reads and change-request
+creation through it, and forbid Copilot-licensed MCP tools. `allow_mcp_servers`
+grants that egress, so MCP hosts stay out of `allowed_hosts`. Credentials are a
+`static_bearer` vault credential for the MCP server URL. Rendering fails closed
+if source instructions still require a provider CLI for an artifact that
+declares the MCP replacement.
 
 ### Codex
 

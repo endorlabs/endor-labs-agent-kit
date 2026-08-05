@@ -119,6 +119,8 @@ def instructions_for_edition(
     structured_output_recipe: EndorAgentRecipe | None = None,
     compact_plugin: bool = False,
     profile_id: str | None = None,
+    artifact_helper: bool = True,
+    source_provider_cli: bool = True,
 ) -> str:
     """Render the shared and edition-specific instruction sections."""
 
@@ -168,6 +170,7 @@ def instructions_for_edition(
         recipe_id,
         compact=effective_compact,
         profile_id=profile_id,
+        artifact_helper=artifact_helper,
     ).rstrip()
     namespace_preflight = (
         ENDOR_NAMESPACE_PREFLIGHT_COMPACT
@@ -217,9 +220,87 @@ def instructions_for_edition(
     rendered = "\n\n".join(sections_to_render) + "\n"
     if recipe_id is not None:
         rendered = rendered.replace("<agent-id>", recipe_id)
-    if effective_compact:
-        return compact_marked_sections(rendered)
-    return strip_compaction_marker_lines(rendered)
+    rendered = (
+        compact_marked_sections(rendered)
+        if effective_compact
+        else strip_compaction_marker_lines(rendered)
+    )
+    if not artifact_helper:
+        rendered = without_bundled_artifact_helper(rendered)
+    if not source_provider_cli:
+        rendered = without_source_provider_cli(rendered)
+    return rendered
+
+
+# Source instructions describe the bundled runtime summarizer that ships in
+# every packaged Host Artifact Bundle. Hosts that cannot place bundle files in
+# the execution sandbox render bounded-read guidance instead.
+_ARTIFACT_HELPER_SUBSTITUTIONS = (
+    (
+        ", `--list-all`, and the packaged helper.",
+        ", and one bounded `--page-size` page ordered by severity.",
+    ),
+    (
+        "reduced by the packaged helper",
+        "reduced by bounded severity grouping and paging",
+    ),
+    (
+        "selected by the packaged helper",
+        "selected from the bounded inventory",
+    ),
+)
+_ARTIFACT_HELPER_FORBIDDEN_TOKENS = (
+    "summarize_endor_artifact",
+    "packaged helper",
+    "large_result_artifact_required",
+)
+
+
+# Source instructions assume a local source-provider CLI. Hosts without one
+# reach the provider through a declared remote MCP toolset instead.
+_SOURCE_PROVIDER_CLI_SUBSTITUTIONS = (
+    (
+        "On GitHub, when authenticated `gh` is\navailable, use one bounded open-PR listing",
+        "On GitHub, use the authenticated `github` MCP\ntoolset for one bounded open-PR listing",
+    ),
+)
+_SOURCE_PROVIDER_CLI_FORBIDDEN_TOKENS = ("authenticated `gh`",)
+
+
+def without_source_provider_cli(rendered: str) -> str:
+    """Route source-provider lookups through MCP for hosts without a provider CLI.
+
+    Fails closed so reworded source instructions cannot silently ship guidance
+    that depends on a CLI the host does not install.
+    """
+
+    for original, replacement in _SOURCE_PROVIDER_CLI_SUBSTITUTIONS:
+        rendered = rendered.replace(original, replacement)
+    for token in _SOURCE_PROVIDER_CLI_FORBIDDEN_TOKENS:
+        if token in rendered:
+            raise ValueError(
+                f"rendered instructions still require a source-provider CLI ({token!r}); "
+                "add a host-neutral substitution in compilers/rendering.py"
+            )
+    return rendered
+
+
+def without_bundled_artifact_helper(rendered: str) -> str:
+    """Rewrite bundled-summarizer guidance for hosts without bundle files.
+
+    Fails closed so reworded source instructions cannot silently ship an
+    instruction the host can never satisfy.
+    """
+
+    for original, replacement in _ARTIFACT_HELPER_SUBSTITUTIONS:
+        rendered = rendered.replace(original, replacement)
+    for token in _ARTIFACT_HELPER_FORBIDDEN_TOKENS:
+        if token in rendered:
+            raise ValueError(
+                f"rendered instructions still reference the bundled artifact helper ({token!r}); "
+                "add a host-neutral substitution in compilers/rendering.py"
+            )
+    return rendered
 
 
 def recipe_declares_output(recipe: EndorAgentRecipe | None, field_name: str) -> bool:

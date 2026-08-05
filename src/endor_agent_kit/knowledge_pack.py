@@ -141,6 +141,18 @@ COMPACT_LARGE_RESULT_DELIVERY_RULE = (
     "`artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in "
     "`evidence_queries[].reason` with `result_count`."
 )
+ARTIFACT_RESULT_DELIVERY = "runtime.large_result_artifact_required"
+BOUNDED_RESULT_DELIVERY = "runtime.bounded_inventory_required"
+# Hosts that cannot ship the bundled runtime summarizer bound the read instead
+# of exporting it to a protected artifact.
+BOUNDED_RESULT_DELIVERY_RULE = (
+    f"`{BOUNDED_RESULT_DELIVERY}` for `--list-all`/complete/>64 KiB/truncated reads: this host has no "
+    "bundled runtime summarizer, so bound the read instead of exporting it. Request only the documented "
+    "field mask, prefer `--group-aggregation-paths` for severity or package counts, page with an explicit "
+    "`--page-size` of at most 100, and stop at the first page that proves the selection. Never search the "
+    "filesystem for a summarizer script and never synthesize a replacement. Preserve required output shapes; "
+    "record the applied bound and any unread remainder in `evidence_queries[].reason` with `result_count`."
+)
 
 
 @dataclass(frozen=True)
@@ -447,6 +459,7 @@ def render_knowledge_pack_section(
     *,
     compact: bool = False,
     profile_id: str | None = None,
+    artifact_helper: bool = True,
 ) -> str:
     """Render compact pack guidance for one generated agent."""
 
@@ -473,10 +486,19 @@ def render_knowledge_pack_section(
             None,
         )
         if large_result_rule is not None:
-            lines.append(f"- {COMPACT_LARGE_RESULT_DELIVERY_RULE}")
+            lines.append(
+                f"- {COMPACT_LARGE_RESULT_DELIVERY_RULE}"
+                if artifact_helper
+                else f"- {BOUNDED_RESULT_DELIVERY_RULE}"
+            )
     else:
         for rule in pack.global_rules:
-            lines.append(f"- {rule.title}: {rule.guidance}")
+            guidance = (
+                BOUNDED_RESULT_DELIVERY_RULE
+                if rule.id == "large-result-delivery" and not artifact_helper
+                else rule.guidance
+            )
+            lines.append(f"- {rule.title}: {guidance}")
     lines.extend(["", "### Evidence Gate Contract", ""])
     gate_rules = COMPACT_EVIDENCE_GATE_RULES if compact else EVIDENCE_GATE_RULES
     lines.extend(f"- {rule}" for rule in gate_rules)
@@ -581,7 +603,10 @@ def render_knowledge_pack_section(
                             else []
                         ),
                         *(
-                            [f"- Result delivery: `{recipe.result_delivery}`"]
+                            [
+                                "- Result delivery: "
+                                f"`{_result_delivery(recipe.result_delivery, artifact_helper)}`"
+                            ]
                             if recipe.result_delivery
                             else []
                         ),
@@ -625,6 +650,14 @@ def default_task_profile_for_agent(agent_id: str) -> str:
         "vulnerability-explainer": "explain",
     }
     return defaults.get(agent_id, "evidence-check")
+
+
+def _result_delivery(result_delivery: str, artifact_helper: bool) -> str:
+    """Return the host-appropriate result-delivery route for one query recipe."""
+
+    if result_delivery == ARTIFACT_RESULT_DELIVERY and not artifact_helper:
+        return BOUNDED_RESULT_DELIVERY
+    return result_delivery
 
 
 def render_task_profile_prompt(
@@ -731,7 +764,10 @@ def render_task_profile_prompt(
                     else []
                 ),
                 *(
-                    [f"  Result delivery: `{recipe.result_delivery}`"]
+                    [
+                        "  Result delivery: "
+                        f"`{_result_delivery(recipe.result_delivery, artifact_helper)}`"
+                    ]
                     if recipe.result_delivery
                     else []
                 ),

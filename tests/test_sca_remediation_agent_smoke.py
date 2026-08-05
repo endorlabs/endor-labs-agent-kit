@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from endor_agent_kit.compilers import compile_claude_managed_agents
 from endor_agent_kit.publisher import publish_recipe
 from endor_agent_kit.validator import validate_recipe_file
 
@@ -324,3 +325,106 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "explicit-namespace-does-not-expose-auth-config",
         "checkout-without-provider-write-stops-before-pr",
     }.issubset(ids)
+
+
+def test_sca_remediation_managed_agents_artifacts_carry_mutation_gates(tmp_path):
+    recipe = _copy_agent(tmp_path)
+
+    compile_claude_managed_agents(recipe)
+
+    out_dir = recipe.parent / "dist" / "claude-managed-agents" / "enterprise-edition"
+    assert_host_bundle_files(out_dir, {"agent.yaml", "environment.yaml", "session-template.yaml"})
+    managed = yaml.safe_load((out_dir / "agent.yaml").read_text(encoding="utf-8"))
+    environment = yaml.safe_load((out_dir / "environment.yaml").read_text(encoding="utf-8"))
+    session = yaml.safe_load((out_dir / "session-template.yaml").read_text(encoding="utf-8"))
+
+    assert not (recipe.parent / "dist" / "claude-managed-agents" / "developer-edition").exists()
+    assert managed["metadata"]["endor_agent_kit_recipe_id"] == "sca-remediation"
+    assert managed["mcp_servers"] == [
+        {"type": "url", "name": "github", "url": "https://api.githubcopilot.com/mcp/"}
+    ]
+    github_toolset = next(tool for tool in managed["tools"] if tool["type"] == "mcp_toolset")
+    assert github_toolset["mcp_server_name"] == "github"
+    assert github_toolset["default_config"]["permission_policy"] == {"type": "always_ask"}
+    assert environment["config"]["networking"]["allow_mcp_servers"] is True
+    assert "No source-provider CLI exists in this sandbox" in managed["system"]
+    assert "use the `github` MCP toolset" in managed["system"]
+    assert "create_pull_request_with_copilot" in managed["system"]
+    assert "authenticated `gh`" not in managed["system"]
+    toolset = next(tool for tool in managed["tools"] if tool["type"] == "agent_toolset_20260401")
+    assert toolset["default_config"]["enabled"] is False
+    assert [config["name"] for config in toolset["configs"]] == [
+        "bash",
+        "read",
+        "write",
+        "edit",
+        "glob",
+        "grep",
+    ]
+    assert all(config["enabled"] is True for config in toolset["configs"])
+    assert all(
+        config["permission_policy"] == {"type": "always_ask"} for config in toolset["configs"]
+    )
+    assert "approval-gated remediation workflow" in managed["system"]
+    assert (
+        "Every mutating action requires explicit approval in the current session before it runs"
+        in managed["system"]
+    )
+    assert "Do not require Endor MCP" in managed["system"]
+    assert "## Endor Knowledge Pack" in managed["system"]
+    assert "## Action Contracts" in managed["system"]
+    assert len(managed["system"]) <= 100_000
+    for forbidden in ("summarize_endor_artifact", "packaged helper", "large_result_artifact_required"):
+        assert forbidden not in managed["system"]
+    assert "`runtime.bounded_inventory_required`" in managed["system"]
+    assert "this host has no bundled runtime summarizer" in managed["system"]
+    assert environment["config"]["networking"]["allowed_hosts"] == [
+        "api.endorlabs.com",
+        "api.github.com",
+        "github.com",
+    ]
+    assert environment["config"]["packages"] == {"npm": ["endorctl"]}
+    assert session["vault_ids"] == [
+        "<ENDOR_CREDENTIALS_VAULT_ID>",
+        "<GITHUB_MCP_VAULT_ID>",
+    ]
+    assert session["resources"] == [
+        {
+            "type": "github_repository",
+            "url": "<TARGET_REPOSITORY_URL>",
+            "mount_path": "/workspace/<REPOSITORY_NAME>",
+            "authorization_token": "<GITHUB_ACCESS_TOKEN>",
+        }
+    ]
+
+
+@pytest.mark.publication
+def test_sca_remediation_publishes_managed_agents_bundle(tmp_path):
+    recipe = _copy_agent(tmp_path)
+    dest = tmp_path / "endor-labs-agent-kit"
+
+    publish_recipe(recipe, dest)
+
+    managed_dir = dest / "claude-managed-agents" / "sca-remediation"
+    assert_host_bundle_files(
+        managed_dir,
+        {
+            "agent.yaml",
+            "environment.yaml",
+            "session-template.yaml",
+            "README.md",
+            "architecture.svg",
+            "actions.yaml",
+            "endorctl-setup.md",
+            "runtime/summarize_endor_artifact.py",
+        },
+    )
+    assert_no_nested_edition_dirs(managed_dir)
+    readme = (managed_dir / "README.md").read_text(encoding="utf-8")
+    assert (
+        "Check this repository for P0 SCA findings and plan the remediation. "
+        "Do not edit files or open a change request until I approve." in readme
+    )
+    assert "`ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET`" in readme
+    assert "mounted through session `resources`" in readme
+    assert "Every mutating action is approval-gated" in readme

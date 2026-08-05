@@ -224,6 +224,7 @@ def test_publish_recipe_emits_identical_inert_evidence_plans_for_every_host(tmp_
     plan_paths = sorted(dest.glob("*/sca-remediation/evidence-plans/evidence-check.json"))
     assert {path.parts[-4] for path in plan_paths} == {
         "claude-code",
+        "claude-managed-agents",
         "codex",
         "gemini",
         "portable",
@@ -245,7 +246,7 @@ def test_publish_recipe_emits_identical_inert_evidence_plans_for_every_host(tmp_
         for artifact in edition["artifacts"]
         if artifact["path"].endswith("/evidence-plans/evidence-check.json")
     ]
-    assert len(plan_artifacts) == 4
+    assert len(plan_artifacts) == 5
     assert {artifact["evidence_execution_mode"] for artifact in plan_artifacts} == {
         "prompt_fallback"
     }
@@ -266,6 +267,7 @@ def test_publish_recipe_emits_verifiable_profile_contracts_for_every_host(tmp_pa
     )
     assert {path.parts[-4] for path in contract_paths} == {
         "claude-code",
+        "claude-managed-agents",
         "codex",
         "gemini",
         "portable",
@@ -298,7 +300,7 @@ def test_publish_recipe_emits_verifiable_profile_contracts_for_every_host(tmp_pa
             "/profile-contracts/evidence-check.json"
         )
     ]
-    assert len(contract_artifacts) == 4
+    assert len(contract_artifacts) == 5
     assert {
         artifact["profile_contract_digest"]
         for artifact in contract_artifacts

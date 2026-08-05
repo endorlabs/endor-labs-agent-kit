@@ -7,7 +7,11 @@ from pathlib import Path
 
 from endor_agent_kit.catalog_schema import CatalogBundle
 from endor_agent_kit.compilers.rendering import EDITIONS
-from endor_agent_kit.compilers.claude_managed_agents import HOST, compile_claude_managed_agents_prepared
+from endor_agent_kit.compilers.claude_managed_agents import (
+    HOST,
+    compile_claude_managed_agents_prepared,
+    uses_source_provider_mcp as _uses_source_provider_mcp,
+)
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.recipe import EndorAgentRecipe, editions_for_host
 from endor_agent_kit.safety_posture import (
@@ -134,6 +138,60 @@ def managed_agents_edition_readme(
             "The generated `agent.yaml` intentionally uses a placeholder MCP URL that must be replaced.",
             "Unavailable MCP, vault, auth, or account-tier signals are reported in data_gaps.",
         ]
+    elif posture.is_mutating:
+        requirements = [
+            "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
+            "An environment that can install and authenticate endorctl for the Endor API calls documented in endorctl-setup.md.",
+            "A GitHub repository mounted through session `resources` with an authorization token allowed to push branches and open change requests.",
+            "An Anthropic credential vault supplying `ENDOR_API_CREDENTIALS_KEY` and `ENDOR_API_CREDENTIALS_SECRET` as environment-variable credentials scoped to api.endorlabs.com.",
+        ]
+        if _uses_source_provider_mcp(recipe):
+            requirements.append(
+                "A `static_bearer` vault credential for the generated `github` MCP server URL, "
+                "holding a fine-grained GitHub token with Contents and Pull requests write access. "
+                "The remote GitHub MCP server is available on every GitHub plan and needs no Copilot license."
+            )
+        toolset_note = (
+            "The generated `agent.yaml` enables Bash plus the read, write, edit, glob, and grep "
+            "tools from the pre-built toolset, each with confirmation required."
+        )
+        approval_note = (
+            "Every mutating action is approval-gated: pre-built tools use always_ask permissions "
+            "and the workflow requires explicit in-session approval before any change."
+        )
+        network_note = (
+            "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts so an "
+            "approved remediation can push a branch and open a change request on the mounted repository."
+        )
+        source_provider_note = (
+            "No source-provider CLI exists in the managed sandbox, so source-provider reads and "
+            "change-request creation run through the generated `github` MCP toolset. Copilot-backed "
+            "MCP tools are out of scope for this agent and are never called."
+        )
+        if recipe.id == "sca-remediation":
+            notes = [
+                f"This {artifact_label} plans and applies dependency-vulnerability fixes from Endor SCA findings and VersionUpgrade/UIA evidence, with deterministic risk decisions and local validation inside the managed sandbox.",
+                approval_note,
+                network_note,
+                toolset_note,
+                *([source_provider_note] if _uses_source_provider_mcp(recipe) else []),
+            ]
+        elif recipe.id == "ai-sast-remediation":
+            notes = [
+                f"This {artifact_label} triages Endor AI SAST findings with exploit-reproduction evidence and prepares targeted fixes; file edits and change requests run only after explicit approval.",
+                "Endor exception policies are created or updated only after verified AppSec approval plus explicit user confirmation; `create_scoped_exception_policy` is the only mutating Endor API call.",
+                approval_note,
+                network_note,
+                toolset_note,
+                *([source_provider_note] if _uses_source_provider_mcp(recipe) else []),
+            ]
+        else:
+            notes = [
+                f"This {artifact_label} uses the documented `endorctl agent api --agent-id {recipe.id}` calls and an approval-gated mutation workflow.",
+                approval_note,
+                network_note,
+                toolset_note,
+            ]
     else:
         requirements = [
             "Anthropic Console or `ant` CLI access to Claude Managed Agents.",
@@ -240,6 +298,8 @@ def managed_example_prompt(recipe: EndorAgentRecipe, edition: str = "enterprise-
     input_names = {field.name for field in recipe.inputs}
     if recipe.id == "ai-sast-remediation":
         return "Triage AI SAST findings for this repository. Do not open a PR until I approve the patch."
+    if recipe.id == "sca-remediation":
+        return "Check this repository for P0 SCA findings and plan the remediation. Do not edit files or open a change request until I approve."
     if recipe.id == "remediation-planning":
         return "Preview remediation options for repository <owner>/<repo>."
     if "vulnerability_id" in input_names:
