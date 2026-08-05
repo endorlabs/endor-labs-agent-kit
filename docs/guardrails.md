@@ -169,8 +169,14 @@ through an Anthropic credential vault, never pasted into the session.
 
 Mutating managed artifacts render the same compact workflow projection that
 plugin skill artifacts ship, because the full remediation rendering exceeds
-the Managed Agents API system-prompt limit. Mutating managed generation fails
-closed when a rendered system prompt exceeds that limit.
+the Managed Agents API system-prompt limit. Any other managed artifact whose
+full rendering passes 85% of that limit also falls back to the compact
+projection, keeping headroom so later source edits cannot silently push a
+published agent past the limit. GitHub-evidence agents are excluded from that
+fallback because their compact projection omits the bounded GitHub route their
+transport wording depends on; they keep full rendering and rely on the
+fail-closed check instead. Managed generation fails closed whenever a rendered
+system prompt exceeds the API limit.
 
 The Managed Agents host receives only `agent.yaml` and `environment.yaml`, so
 no published bundle file reaches the execution sandbox. Managed prompts

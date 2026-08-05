@@ -39,9 +39,13 @@ MODEL_ALIASES = {
     "opus": "claude-opus-4-7",
 }
 # Managed Agents API validation rejects agents whose system prompt exceeds
-# this length. Mutating artifact generation fails closed against it instead
-# of failing at agent create time.
+# this length. Generation fails closed against it instead of failing at agent
+# create time.
 MANAGED_SYSTEM_MAX_CHARS = 100_000
+# Full rendering above this length falls back to the compact projection that
+# plugin skill artifacts already ship, keeping 15% headroom so later source
+# edits cannot silently push a published agent past the API limit.
+MANAGED_SYSTEM_COMPACT_THRESHOLD = 85_000
 
 
 class LiteralString(str):
@@ -158,14 +162,24 @@ def _managed_system(
     edition: str,
 ) -> str:
     posture = source_recipe_safety_posture(recipe)
-    # Mutating remediation prompts exceed the Managed Agents API system limit
-    # in full rendering, so they ship the same compact projection as plugin
-    # skill artifacts and fail closed if a rendered prompt still exceeds the
-    # limit.
+    # Mutating remediation prompts always exceed the Managed Agents API system
+    # limit in full rendering, so they ship the compact projection outright.
+    # Any other prompt that renders close to the limit falls back to it.
     system = _render_managed_system(
         recipe, instructions, actions, edition, compact=posture.is_mutating
     )
-    if posture.is_mutating and len(system) > MANAGED_SYSTEM_MAX_CHARS:
+    if (
+        not posture.is_mutating
+        and len(system) > MANAGED_SYSTEM_COMPACT_THRESHOLD
+        # GitHub-evidence agents keep full rendering: their compact projection
+        # omits the bounded GitHub route their transport wording depends on, so
+        # compacting them would point the agent at absent guidance.
+        and not _uses_github_evidence(recipe)
+    ):
+        system = _render_managed_system(
+            recipe, instructions, actions, edition, compact=True
+        )
+    if len(system) > MANAGED_SYSTEM_MAX_CHARS:
         raise ValueError(
             f"claude-managed-agents system prompt for {recipe.id} {edition} is "
             f"{len(system)} characters; the Managed Agents API limit is "

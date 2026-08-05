@@ -291,6 +291,10 @@ def test_configuration_automation_managed_agents_artifacts_carry_github_boundary
     assert "github_inventory_json" in managed["system"]
     assert "Do not run recursive GitHub tree calls across every repository" in managed["system"]
     assert "Run at most one all-project `PackageVersion` summary query" in managed["system"]
+    # GitHub-evidence agents keep full rendering even above the compact
+    # threshold, because the compact projection drops the bounded GitHub route
+    # this artifact's transport wording depends on.
+    assert len(managed["system"]) <= 100_000
 
 
 @pytest.mark.publication

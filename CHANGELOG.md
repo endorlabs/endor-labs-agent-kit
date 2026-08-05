@@ -24,6 +24,12 @@ package metadata.
 
 ### Fixed
 
+- Added a Claude Managed Agents compact-projection fallback for read-only
+  artifacts whose full rendering passes 85% of the API system-prompt limit,
+  and extended the fail-closed limit check to every managed artifact. This
+  brings `troubleshooting` from 89,859 to 27,803 characters. GitHub-evidence
+  agents are excluded because their compact projection omits the bounded
+  GitHub route their transport wording references.
 - Gave mutating Claude Managed Agents artifacts a working source-provider path.
   The managed sandbox installs no `gh`/`glab` CLI and the repository mount token
   authenticates only the git remote, so change-request creation previously

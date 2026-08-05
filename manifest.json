@@ -2405,9 +2405,9 @@
               "sha256": "f02b5a30ffdc7ed7b5ebe5a36d4b93fa8d54a47da8aa6538796f9a6c669ae7ff"
             },
             {
-              "bytes": 93229,
+              "bytes": 29441,
               "path": "claude-managed-agents/troubleshooting/agent.yaml",
-              "sha256": "73c56167e3d3d476b7f5e9918731198ccbf665ccdbbbe7a4959cac440d0b5d13"
+              "sha256": "8cf41e810852f98ccf1fbeb0152c87f46411132d93deb4773a6e1e5c48c04cf7"
             },
             {
               "bytes": 9829,
