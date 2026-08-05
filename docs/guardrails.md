@@ -172,6 +172,14 @@ plugin skill artifacts ship, because the full remediation rendering exceeds
 the Managed Agents API system-prompt limit. Mutating managed generation fails
 closed when a rendered system prompt exceeds that limit.
 
+The Managed Agents host receives only `agent.yaml` and `environment.yaml`, so
+no published bundle file reaches the execution sandbox. Managed prompts
+therefore replace bundled-runtime-summarizer guidance with bounded-read
+guidance (documented field masks, group aggregation, an explicit `--page-size`
+of at most 100) and must never direct the agent at the packaged helper.
+Rendering fails closed if reworded source instructions still reference it, and
+the guardrail check rejects any managed prompt that mentions it.
+
 ### Codex
 
 Codex skills include a host contract that tells Codex to stay within the recipe

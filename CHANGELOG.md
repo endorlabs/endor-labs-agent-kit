@@ -22,6 +22,15 @@ package metadata.
   projection and fail closed when a rendered system prompt exceeds the
   Managed Agents API limit.
 
+### Fixed
+
+- Replaced bundled-runtime-summarizer guidance with bounded-read guidance in
+  every Claude Managed Agents prompt. The managed host receives only
+  `agent.yaml` and `environment.yaml`, so the packaged helper never reaches
+  the sandbox and agents previously searched the filesystem for it before
+  falling back to unbounded inventory reads. Rendering and the guardrail check
+  now both fail closed on any managed reference to the helper.
+
 ## 2.2.1 - 2026-08-01
 
 ### Changed

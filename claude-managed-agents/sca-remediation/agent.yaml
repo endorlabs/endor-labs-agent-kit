@@ -396,7 +396,7 @@ system: |
   ### Global Rules
 
   - Context first; Namespace provenance; Efficient Endor queries; Large result delivery; Verified evidence only; Evidence ledger; Data gaps.
-  - `runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run `python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason` with `result_count`.
+  - `runtime.bounded_inventory_required` for `--list-all`/complete/>64 KiB/truncated reads: this host has no bundled runtime summarizer, so bound the read instead of exporting it. Request only the documented field mask, prefer `--group-aggregation-paths` for severity or package counts, page with an explicit `--page-size` of at most 100, and stop at the first page that proves the selection. Never search the filesystem for a summarizer script and never synthesize a replacement. Preserve required output shapes; record the applied bound and any unread remainder in `evidence_queries[].reason` with `result_count`.
 
   ### Evidence Gate Contract
 

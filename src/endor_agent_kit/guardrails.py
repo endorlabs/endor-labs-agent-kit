@@ -90,6 +90,15 @@ KNOWLEDGE_PACK_REQUIRED_TEXT = (
     "data_gaps",
 )
 
+# Managed Agents receives only agent.yaml and environment.yaml, so no published
+# bundle file reaches the sandbox. Generated managed prompts must never direct
+# the agent at the bundled runtime summarizer.
+MANAGED_FORBIDDEN_SYSTEM_TEXT = (
+    "summarize_endor_artifact",
+    "packaged helper",
+    "large_result_artifact_required",
+)
+
 PRIMARY_CLAUDE_PLUGIN_HOOKS = (
     "suggest-endor-tools.sh",
     "enforce-agent-api.sh",
@@ -461,6 +470,12 @@ def _check_managed_agents(root: Path, errors: list[str]) -> None:
             errors.append(f"{_rel(root, agent_file)}: missing untrusted-content boundary")
         _check_namespace_preflight(root, agent_file, system, errors)
         _check_knowledge_pack_section(root, agent_file, system, errors)
+        for forbidden in MANAGED_FORBIDDEN_SYSTEM_TEXT:
+            if forbidden in system:
+                errors.append(
+                    f"{_rel(root, agent_file)}: references the bundled artifact helper "
+                    f"{forbidden!r}, which no managed sandbox can reach"
+                )
         for index, tool in enumerate(_list(agent.get("tools"))):
             policy = _dict(_dict(tool).get("default_config")).get("permission_policy", {})
             if _dict(policy).get("type") != "always_ask":

@@ -1476,9 +1476,9 @@
               "sha256": "e2d7779cc225d248c72d355a9ff31d822e3f016cd44c2189f6f6d0f9d5a8606a"
             },
             {
-              "bytes": 40827,
+              "bytes": 41102,
               "path": "claude-managed-agents/ai-sast-remediation/agent.yaml",
-              "sha256": "fbc426dd87261e4e243622ce4063e5a4bdd6be1a82e6a91b9038b782879b0dd4"
+              "sha256": "727c980be7a8a8279cd515241119a147826ec1e24af9e723930336ec9858ecb1"
             },
             {
               "bytes": 10807,
@@ -1605,9 +1605,9 @@
               "sha256": "aba641b518c33c8a1fc449350884cd2ff8584e381eedf10c594b36f6cc88a5a5"
             },
             {
-              "bytes": 48569,
+              "bytes": 47551,
               "path": "claude-managed-agents/cicd-posture/agent.yaml",
-              "sha256": "e52342383e9970438606ab376f1f43f51af16acde6bb27f62e4c88335226bab1"
+              "sha256": "c883b49cd48ee20813b5261b010e0a60b0a3e320da71213eabe1d3954a16b36c"
             },
             {
               "bytes": 8281,
@@ -1705,9 +1705,9 @@
               "sha256": "db00dbe8f047038eeeba8c297be5d615d1e53d0a31c346028478a06a1a4af29a"
             },
             {
-              "bytes": 103737,
+              "bytes": 102707,
               "path": "claude-managed-agents/configuration-automation/agent.yaml",
-              "sha256": "30ebcfe43b5463643e0ce438c2f4fd2f1b973de2c47f928df82da7829fdb6c7f"
+              "sha256": "e4c14d5c920a40e1aeb1e09a5b26a1322747e421d7996b0fdb5bbef7c48b57b9"
             },
             {
               "bytes": 9831,
@@ -1819,9 +1819,9 @@
               "sha256": "955f78eb7a3f96266abdefc5c06e51a72ccb118a852f21e1ef443d50d5ff3135"
             },
             {
-              "bytes": 47527,
+              "bytes": 46509,
               "path": "claude-managed-agents/dependency-reviewer/agent.yaml",
-              "sha256": "8603041d89885986af08e05cf85e47cdd25aa94d014093308ee63a92645d14e7"
+              "sha256": "c84f03987ff4877f951b612b1ad2deb8fbd01f2bb60e36ec9920094f90dd9709"
             },
             {
               "bytes": 9880,
@@ -1935,9 +1935,9 @@
               "sha256": "fb5ab81fa3ef3020d3f7b18574729c38e3d84a08d2a23f9d3a44f6d27ae63869"
             },
             {
-              "bytes": 36741,
+              "bytes": 35719,
               "path": "claude-managed-agents/findings-browser/agent.yaml",
-              "sha256": "ee2acbd11b59a350f27fbc59661d2c77c6a362e5794504b737954ab718e87101"
+              "sha256": "02e33ae84d024dd1a84918efb62d654e302f549c158319b44ff6df641f58ac93"
             },
             {
               "bytes": 8272,
@@ -2046,9 +2046,9 @@
               "sha256": "fda782dffa1bb2801abd3e9fc9667dba5508be08ce8c5beb464035df2fdea010"
             },
             {
-              "bytes": 58570,
+              "bytes": 57548,
               "path": "claude-managed-agents/malware-responder/agent.yaml",
-              "sha256": "be8e8df03ef4e9a59e3a95ca4050c15c302134ca4fe7a20bda5100b6badb42a1"
+              "sha256": "12f982412718100a0e19abd866c5f015ed23fc7d0c7ff95ff53363ff6dfcee83"
             },
             {
               "bytes": 9751,
@@ -2160,9 +2160,9 @@
               "sha256": "581ccfda4fc674b58ebfae469a6af8d3aa692ceb37076c32f31b939991c3beb3"
             },
             {
-              "bytes": 60152,
+              "bytes": 59134,
               "path": "claude-managed-agents/oss-upgrade-investigator/agent.yaml",
-              "sha256": "b5b22ff50915f943cd37ff5fbe9ab2025cc639ad77b8310f18cca59b235a8bac"
+              "sha256": "bfa973483633747cbdc306626bf6b3dd36f95f4e83d781fad8130340bb694a61"
             },
             {
               "bytes": 9941,
@@ -2279,9 +2279,9 @@
               "sha256": "e9a3ab37beffeb7755914a628ae0f573c60274234d737c680a3217424abe40ae"
             },
             {
-              "bytes": 56637,
+              "bytes": 56895,
               "path": "claude-managed-agents/sca-remediation/agent.yaml",
-              "sha256": "caab671bacf6621e260faa8d57f058fa58cf8ca1dfb9fceed3654716377efe95"
+              "sha256": "405acf74e9723603a5e71a1a105a29948bef43dcfe2d321061abb69de0cf8c4c"
             },
             {
               "bytes": 9865,
@@ -2405,9 +2405,9 @@
               "sha256": "f02b5a30ffdc7ed7b5ebe5a36d4b93fa8d54a47da8aa6538796f9a6c669ae7ff"
             },
             {
-              "bytes": 94247,
+              "bytes": 93229,
               "path": "claude-managed-agents/troubleshooting/agent.yaml",
-              "sha256": "1f9696d15d55e1cae4abcf19f33f3015873e04453167ef0b551051d913b3a938"
+              "sha256": "73c56167e3d3d476b7f5e9918731198ccbf665ccdbbbe7a4959cac440d0b5d13"
             },
             {
               "bytes": 9829,
@@ -2519,9 +2519,9 @@
               "sha256": "ef93beab3e48e84ab963c7d337ab6a7391e33f95fc4a782129edcda2beb1a33c"
             },
             {
-              "bytes": 32570,
+              "bytes": 31552,
               "path": "claude-managed-agents/vulnerability-explainer/agent.yaml",
-              "sha256": "d1d3072dfa140180ad7a45a68c624f3e7274c370fff6d33566dedb5adff8aef7"
+              "sha256": "f636319dc9532fcbba3aea298b075cfb9ec8ba4ce2ce7bac8b9e4e8b7f34c2d8"
             },
             {
               "bytes": 1722,

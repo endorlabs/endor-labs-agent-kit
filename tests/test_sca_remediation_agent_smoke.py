@@ -364,6 +364,10 @@ def test_sca_remediation_managed_agents_artifacts_carry_mutation_gates(tmp_path)
     assert "## Endor Knowledge Pack" in managed["system"]
     assert "## Action Contracts" in managed["system"]
     assert len(managed["system"]) <= 100_000
+    for forbidden in ("summarize_endor_artifact", "packaged helper", "large_result_artifact_required"):
+        assert forbidden not in managed["system"]
+    assert "`runtime.bounded_inventory_required`" in managed["system"]
+    assert "this host has no bundled runtime summarizer" in managed["system"]
     assert environment["config"]["networking"]["allowed_hosts"] == [
         "api.endorlabs.com",
         "api.github.com",

@@ -183,6 +183,9 @@ def _render_managed_system(
         recipe_id=recipe.id,
         structured_output_recipe=recipe,
         compact_plugin=compact,
+        # Managed Agents receives only agent.yaml and environment.yaml, so no
+        # published bundle file reaches the sandbox.
+        artifact_helper=False,
     )
     single_edition = len(editions_for_host(recipe, HOST, EDITIONS)) == 1
     if not posture.uses_endor_api_transport:
