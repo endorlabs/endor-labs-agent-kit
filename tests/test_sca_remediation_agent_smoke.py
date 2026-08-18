@@ -178,6 +178,12 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "`not_needed_verified`" in prompt
     assert "`semantic_effect`" in prompt
     assert "set `selection_blocked: true`" in prompt
+    assert "## Gradle Dependency Graph Safety Audit" in prompt
+    assert "Gradle manipulations keep `type` null" in prompt
+    assert "`gradle.version_catalog`" in prompt
+    assert "`gradle.resolution_strategy_force`" in prompt
+    assert "`gradle.dependency_substitution`" in prompt
+    assert "`inventory.key.ecosystem` exactly `gradle`" in prompt
     assert "Validation Command Selection" in prompt
     assert "Never clean validation artifacts in the user's worktree" in prompt
     assert "the user worktree must remain byte-for-byte unchanged" in prompt

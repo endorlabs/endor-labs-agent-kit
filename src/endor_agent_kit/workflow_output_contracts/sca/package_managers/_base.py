@@ -10,9 +10,10 @@ unrecognized tokens instead of skipping them.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import re
+from dataclasses import dataclass, field
 from pathlib import PurePosixPath
-from typing import Any
+from typing import Any, Mapping
 
 from endor_agent_kit.workflow_output_contracts.sca._coerce import _list, _text
 
@@ -63,7 +64,19 @@ REMOVAL_CLASSIFICATIONS = frozenset(
         "not_needed_verified",
     }
 )
+SUBSTITUTION_CLASSIFICATIONS = frozenset(
+    {
+        "unverified",
+        "replacement_conflict_or_incomplete",
+        "replacement_declared",
+        "replacement_verified",
+    }
+)
 GRAPH_RUNTIME_KINDS = frozenset({"resolved_graph", "runtime_linkage"})
+
+COORDINATE_RE = re.compile(
+    r"[A-Za-z0-9._-]+:[A-Za-z0-9._-]+(?::[A-Za-z0-9._+-]+)?"
+)
 
 MAX_MANIPULATIONS = 8
 MAX_DEPENDENCY_PATH = 12
@@ -73,7 +86,14 @@ MAX_VALIDATION_REQUIREMENTS = 2
 
 @dataclass(frozen=True)
 class PackageManagerAuditProfile:
-    """One package manager's dependency-graph audit vocabulary."""
+    """One package manager's dependency-graph audit vocabulary.
+
+    Type-driven profiles (Maven) classify manipulations through the shared
+    `type` enum. Mechanism-driven profiles (Gradle onward) keep `type` null
+    and carry the manager construct in the namespaced `mechanism` field, so
+    the shared type enum never grows per manager. Both map constructs onto
+    the same four semantic kinds: native, override, removal, substitution.
+    """
 
     name: str
     display_name: str
@@ -84,6 +104,9 @@ class PackageManagerAuditProfile:
     native_types: frozenset[str]
     override_types: frozenset[str]
     removal_types: frozenset[str]
+    type_driven: bool = True
+    semantic_effect_required: bool = False
+    mechanisms: Mapping[str, str] = field(default_factory=dict)
 
     @property
     def manipulation_types(self) -> frozenset[str]:
@@ -91,6 +114,19 @@ class PackageManagerAuditProfile:
 
     def mechanism_for_type(self, manipulation_type: str) -> str:
         return f"{self.name}.{manipulation_type}"
+
+    def kind_of(self, manipulation_type: str, mechanism: str) -> str | None:
+        if not isinstance(manipulation_type, str) or not isinstance(mechanism, str):
+            return None
+        if self.type_driven:
+            if manipulation_type in self.native_types:
+                return "native"
+            if manipulation_type in self.override_types:
+                return "override"
+            if manipulation_type in self.removal_types:
+                return "removal"
+            return None
+        return self.mechanisms.get(mechanism)
 
     def matches_ecosystem(self, token: str) -> bool:
         return _normalize_ecosystem(token) in self.ecosystem_aliases
@@ -155,6 +191,16 @@ def detect_package_managers(
                     signals=tuple(signals),
                 )
             )
+    # Coordinate formats are registry-level and shared across managers (JVM
+    # packages are mvn:// for both Maven and Gradle), so a coordinate-only
+    # match yields to any profile matched by ecosystem or manifest evidence.
+    strong = [
+        detection
+        for detection in detections
+        if set(detection.signals) & {"ecosystem", "manifest"}
+    ]
+    if strong:
+        return strong
     return detections
 
 
@@ -220,18 +266,54 @@ def validate_dependency_graph_audit(
 
     removal_classifications: set[str] = set()
     override_classifications: set[str] = set()
-    for index, manipulation in enumerate(manipulations):
+    substitution_classifications: set[str] = set()
+    # Entries beyond the cap already fail the payload via the cap error above;
+    # bounding the walk keeps the error list itself bounded on huge payloads.
+    for index, manipulation in enumerate(manipulations[:MAX_MANIPULATIONS]):
         prefix = f"dependency_graph_audit.manipulations[{index}]"
         if not isinstance(manipulation, dict):
             errors.append(f"{prefix}: must be an object")
             continue
         manipulation_type = _text(manipulation.get("type"))
         classification = _text(manipulation.get("classification"))
-        if manipulation_type not in profile.manipulation_types:
-            errors.append(
-                f"{prefix}.type: must be one of "
-                + ", ".join(sorted(profile.manipulation_types))
-            )
+        mechanism = _text(manipulation.get("mechanism"))
+        if profile.type_driven:
+            if manipulation_type not in profile.manipulation_types:
+                errors.append(
+                    f"{prefix}.type: must be one of "
+                    + ", ".join(sorted(profile.manipulation_types))
+                )
+            if (
+                manipulation.get("mechanism") is not None
+                and manipulation_type in profile.manipulation_types
+                and mechanism != profile.mechanism_for_type(manipulation_type)
+            ):
+                errors.append(
+                    f"{prefix}.mechanism: must be "
+                    f"{profile.mechanism_for_type(manipulation_type)} for {display} "
+                    "manipulations"
+                )
+        else:
+            if manipulation_type:
+                errors.append(
+                    f"{prefix}.type: must be null for {display} manipulations; the "
+                    "mechanism field carries the construct"
+                )
+            if not mechanism:
+                errors.append(
+                    f"{prefix}.mechanism: required for {display} manipulations"
+                )
+            elif mechanism not in profile.mechanisms:
+                errors.append(
+                    f"{prefix}.mechanism: must be one of "
+                    + ", ".join(sorted(profile.mechanisms))
+                )
+            if profile.semantic_effect_required and manipulation.get(
+                "semantic_effect"
+            ) is None:
+                errors.append(
+                    f"{prefix}.semantic_effect: required for {display} manipulations"
+                )
         if classification not in CLASSIFICATIONS:
             errors.append(
                 f"{prefix}.classification: must be one of " + ", ".join(CLASSIFICATIONS)
@@ -244,33 +326,36 @@ def validate_dependency_graph_audit(
                 f"{prefix}.evidence: must contain at most {MAX_EVIDENCE_ITEMS} entries"
             )
         replacement = _text(manipulation.get("replacement"))
-        if (
-            classification in {"replacement_declared", "replacement_verified"}
-            and not replacement
-        ):
-            errors.append(f"{prefix}.replacement: required for {classification}")
+        if classification in {"replacement_declared", "replacement_verified"}:
+            if not replacement:
+                errors.append(f"{prefix}.replacement: required for {classification}")
+            elif not COORDINATE_RE.fullmatch(replacement):
+                errors.append(
+                    f"{prefix}.replacement: must be an exact group:artifact "
+                    "coordinate"
+                )
 
-        if manipulation_type in profile.native_types and classification != "version_control":
+        kind = profile.kind_of(manipulation_type, mechanism)
+        if kind == "native" and classification != "version_control":
             errors.append(
                 f"{prefix}.classification: native {display} controls require "
                 "version_control"
             )
-        if (
-            manipulation_type in profile.override_types
-            and classification not in OVERRIDE_CLASSIFICATIONS
-        ):
+        if kind == "override" and classification not in OVERRIDE_CLASSIFICATIONS:
             errors.append(
                 f"{prefix}.classification: direct {display} overrides require "
                 "mediation evidence"
             )
-        if (
-            manipulation_type in profile.removal_types
-            and classification not in REMOVAL_CLASSIFICATIONS
-        ):
+        if kind == "removal" and classification not in REMOVAL_CLASSIFICATIONS:
             errors.append(
                 f"{prefix}.classification: {display} exclusions require unverified, "
                 "replacement_declared, replacement_verified, not_needed_verified, or "
                 "replacement_conflict_or_incomplete"
+            )
+        if kind == "substitution" and classification not in SUBSTITUTION_CLASSIFICATIONS:
+            errors.append(
+                f"{prefix}.classification: {display} substitutions require "
+                "replacement evidence"
             )
 
         if manipulation.get("semantic_effect") is not None:
@@ -280,21 +365,17 @@ def validate_dependency_graph_audit(
                     f"{prefix}.semantic_effect: must be one of "
                     + ", ".join(SEMANTIC_EFFECTS)
                 )
-            elif manipulation_type in profile.native_types and semantic_effect != (
-                "native_version_control"
-            ):
+            elif kind == "native" and semantic_effect != "native_version_control":
                 errors.append(
                     f"{prefix}.semantic_effect: must be native_version_control for "
                     f"native {display} controls"
                 )
-            elif manipulation_type in profile.override_types and semantic_effect != (
-                "forced_version_mediation"
-            ):
+            elif kind == "override" and semantic_effect != "forced_version_mediation":
                 errors.append(
                     f"{prefix}.semantic_effect: must be forced_version_mediation for "
                     f"direct {display} overrides"
                 )
-            elif manipulation_type in profile.removal_types and semantic_effect not in {
+            elif kind == "removal" and semantic_effect not in {
                 "dependency_removal",
                 "dependency_substitution",
             }:
@@ -302,27 +383,25 @@ def validate_dependency_graph_audit(
                     f"{prefix}.semantic_effect: must be dependency_removal or "
                     f"dependency_substitution for {display} exclusions"
                 )
-        if manipulation.get("mechanism") is not None:
-            mechanism = _text(manipulation.get("mechanism"))
-            if (
-                manipulation_type in profile.manipulation_types
-                and mechanism != profile.mechanism_for_type(manipulation_type)
-            ):
+            elif kind == "substitution" and semantic_effect != "dependency_substitution":
                 errors.append(
-                    f"{prefix}.mechanism: must be "
-                    f"{profile.mechanism_for_type(manipulation_type)} for {display} "
-                    "manipulations"
+                    f"{prefix}.semantic_effect: must be dependency_substitution for "
+                    f"{display} substitutions"
                 )
 
-        if manipulation_type in profile.removal_types:
+        if kind == "removal":
             removal_classifications.add(classification)
-        if manipulation_type in profile.override_types:
+        if kind == "override":
             override_classifications.add(classification)
+        if kind == "substitution":
+            substitution_classifications.add(classification)
 
     has_removal = bool(removal_classifications)
     has_override = bool(override_classifications)
+    has_substitution = bool(substitution_classifications)
     unsafe_removals = removal_classifications & UNSAFE_CLASSIFICATIONS
     unsafe_overrides = override_classifications & UNSAFE_CLASSIFICATIONS
+    unsafe_substitutions = substitution_classifications & UNSAFE_CLASSIFICATIONS
 
     if has_removal and not GRAPH_RUNTIME_KINDS <= audit_validation_requirements:
         errors.append(
@@ -333,6 +412,33 @@ def validate_dependency_graph_audit(
         errors.append(
             f"dependency_graph_audit.validation_requirements: {display} graph "
             "manipulations require resolved_graph and runtime_linkage"
+        )
+    if has_substitution and not GRAPH_RUNTIME_KINDS <= audit_validation_requirements:
+        errors.append(
+            f"dependency_graph_audit.validation_requirements: {display} substitutions "
+            "require resolved_graph and runtime_linkage"
+        )
+    if unsafe_substitutions and audit_status != "blocked":
+        errors.append(
+            f"dependency_graph_audit.status: unverified {display} substitutions "
+            "require blocked"
+        )
+    if (
+        "replacement_declared" in substitution_classifications
+        and not unsafe_substitutions
+        and audit_status != "validation_required"
+    ):
+        errors.append(
+            f"dependency_graph_audit.status: declared {display} substitutions require "
+            "validation_required"
+        )
+    if (
+        "replacement_verified" in substitution_classifications
+        and audit_status != "validated"
+    ):
+        errors.append(
+            f"dependency_graph_audit.status: verified {display} substitutions require "
+            "validated"
         )
     if unsafe_removals and audit_status != "blocked":
         errors.append(
@@ -409,5 +515,14 @@ def validate_dependency_graph_audit(
     ):
         errors.append(
             f"dependency_graph_audit: validated {display} direct overrides require "
+            "passed resolved_graph and runtime_linkage validation"
+        )
+    if (
+        audit_status == "validated"
+        and has_substitution
+        and not GRAPH_RUNTIME_KINDS <= successful_validation_kinds
+    ):
+        errors.append(
+            f"dependency_graph_audit: validated {display} substitutions require "
             "passed resolved_graph and runtime_linkage validation"
         )

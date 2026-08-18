@@ -12,15 +12,22 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
     detect_package_managers,
     validate_dependency_graph_audit,
 )
+from endor_agent_kit.workflow_output_contracts.sca.package_managers.gradle import (
+    GRADLE_PROFILE,
+)
 from endor_agent_kit.workflow_output_contracts.sca.package_managers.maven import (
     MAVEN_PROFILE,
 )
 
-SUPPORTED_PROFILES: tuple[PackageManagerAuditProfile, ...] = (MAVEN_PROFILE,)
+SUPPORTED_PROFILES: tuple[PackageManagerAuditProfile, ...] = (
+    MAVEN_PROFILE,
+    GRADLE_PROFILE,
+)
 
 __all__ = [
     "AUDIT_STATUSES",
     "CLASSIFICATIONS",
+    "GRADLE_PROFILE",
     "GRAPH_RUNTIME_KINDS",
     "MAVEN_PROFILE",
     "SEMANTIC_EFFECTS",

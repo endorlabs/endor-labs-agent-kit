@@ -243,6 +243,50 @@ cases:
     - change_requests[0].inventory.key.ecosystem is exactly maven
     - dependency_graph_audit.package_manager is maven
     data_gaps_allowed: true
+- id: gradle-version-catalog-preferred
+  input:
+    prompt: Plan the selected Gradle transitive-dependency upgrade. The repository pins library versions in gradle/libs.versions.toml and uses dependency constraints.
+  expected:
+    action: preserve_project_native_gradle_version_control
+    required_evidence:
+    - the existing version catalog entry, constraint, or platform is classified as version_control with mechanism gradle.version_catalog, gradle.constraint, or gradle.platform
+    - manipulation type is null and semantic_effect is native_version_control
+    - the plan updates the existing native control instead of adding resolutionStrategy.force or a direct dependency solely to force a transitive version
+    - inventory.key.ecosystem is exactly gradle
+    data_gaps_allowed: true
+- id: gradle-force-requires-evidence
+  input:
+    prompt: Plan the selected Gradle transitive-dependency upgrade. The proposed change adds resolutionStrategy.force for the transitive version in build.gradle.kts.
+  expected:
+    action: require_evidence_for_gradle_forced_mediation
+    required_evidence:
+    - the force rule is classified as mediation_declared with mechanism gradle.resolution_strategy_force, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a configuration-scoped dependencyInsight check and runtime_linkage are both required
+    - an existing catalog entry, constraint, or platform is preferred when available
+    data_gaps_allowed: true
+- id: gradle-bare-exclusion-blocked
+  input:
+    prompt: Plan the selected Gradle remediation. The proposed change excludes commons-logging from an implementation dependency and declares no replacement.
+  expected:
+    action: block_unverified_gradle_exclusion
+    required_evidence:
+    - the exclusion is classified as unverified with mechanism gradle.exclusion and semantic_effect dependency_removal
+    - dependency_graph_audit status is blocked
+    - risk_decision status is blocked_needs_compatibility_analysis
+    must_not:
+    - approve the remediation as low risk
+    data_gaps_allowed: true
+- id: gradle-substitution-validation-required
+  input:
+    prompt: Plan the selected Gradle remediation. The build uses resolutionStrategy.dependencySubstitution to swap commons-logging for org.slf4j:jcl-over-slf4j.
+  expected:
+    action: require_graph_and_runtime_validation_for_gradle_substitution
+    required_evidence:
+    - the substitution is classified as replacement_declared with mechanism gradle.dependency_substitution and the exact replacement coordinate
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file

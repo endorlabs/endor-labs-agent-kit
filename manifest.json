@@ -1138,65 +1138,65 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "e25b5ea611b0f1d4fef2b8a53107787228e29646bf1ce3ab7766060c2fd9dbb2",
+              "evidence_plan_digest": "06df134093c8166ef3718fa396dfaf6d45684bd019b4b0e5a9e888b2273af642",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "bfd173c970b09a998218aa65b23b9a12834dc60f0fa0c7d796c4231f0cea53ff"
+              "sha256": "51216768a7536338c8809b157ffc465d406ffc9bc313fbc08d602df09bdf95d1"
             },
             {
-              "bytes": 10855,
+              "bytes": 10877,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "01b084f8187bf8e2bbbda34de7c6af139a965f82cae85255676cde146fbb648c",
+              "evidence_plan_digest": "d89dc41e646338c7b18d08cf373c149969100b9687b381bca852377e114378ae",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b025bcb5c7f1c5ec9a630de39ed614b9a8c0786f5604d7d13604915d38f17473"
+              "sha256": "fdcc80bceabf8bf466fab1090dabce324dd9c61bbc0812f469d04353df3cbdc7"
             },
             {
               "bytes": 4671,
               "path": "claude-code/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6c568c831f3e45f88038a34935a3b27ee46feb9a6ac4b16f1e9586f5890dd82d"
+              "sha256": "2525c40b2e32f1b640f2ae33224a19e9cbbef7cb041ed6450989c2358ace995a"
             },
             {
               "bytes": 4670,
               "path": "claude-code/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "0994b9242a6672a86e0507b2c2d971b5abbfc4df375ddcf5b8ca5b30ce245539",
+              "profile_contract_digest": "1fd9dff1f9627637efa85eee9bd39810784bbf67ae651efd272035e874b1a7a6",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "043df40fd1665867628d70ec20a72bd47f83ead02228587c13cb50d2125ef256"
+              "sha256": "9baed996e7782b011091a0f020388cccbd89dfc6925bc684b62c0c91f44afc1f"
             },
             {
-              "bytes": 12476,
+              "bytes": 12485,
               "path": "claude-code/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "ce97e2876b4455d7e04e2d2dbcdedbb37e1d466d6d6d9e060d7e3287d6ad97f8"
+              "sha256": "54bee80db40e7003e4552039ea9220392124dc219e4d13c21da0bc5149ff4cd4"
             },
             {
               "bytes": 34235,
@@ -1206,7 +1206,7 @@
             {
               "bytes": 25322,
               "path": "claude-code/sca-remediation/sca-remediation-evidence-check.md",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
@@ -1217,7 +1217,7 @@
             {
               "bytes": 24793,
               "path": "claude-code/sca-remediation/sca-remediation-resolve-scope.md",
-              "profile_contract_digest": "0994b9242a6672a86e0507b2c2d971b5abbfc4df375ddcf5b8ca5b30ce245539",
+              "profile_contract_digest": "1fd9dff1f9627637efa85eee9bd39810784bbf67ae651efd272035e874b1a7a6",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
@@ -1226,20 +1226,20 @@
               "sha256": "08f1e6b711a6175162ebaf529a777f610d00a2f7ab93d2e72f9ea97def95bd55"
             },
             {
-              "bytes": 58151,
+              "bytes": 60017,
               "path": "claude-code/sca-remediation/sca-remediation-selection-plan.md",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "89127d458af98bcbe3361b171f479f1d04d3b70eb2610b485d35ce10ec0ef2c6"
+              "sha256": "b8312a712a2750439406dc4c1f1c5096645dca1256fb17fbba3330b4a3cdad09"
             },
             {
-              "bytes": 114745,
+              "bytes": 116870,
               "path": "claude-code/sca-remediation/sca-remediation.md",
-              "sha256": "2428f73fc4e4633a4f154494c7c1a748651770ae392dcfee7545a6aade01a40f"
+              "sha256": "d15333d7d260e5abf83ad757db93b641cb938325a899d040c047f0364c1feffc"
             }
           ],
           "id": "enterprise-edition",
@@ -3171,9 +3171,9 @@
               "sha256": "1f52afd9a571bcc6674e6677894beeb4817a95142f86fb51640230c912a8c54d"
             },
             {
-              "bytes": 115474,
+              "bytes": 117599,
               "path": "codex/sca-remediation/SKILL.md",
-              "sha256": "68dc97ad0fa4f07763bfaf2563793e754dd94ae407c14a3cd503dbe75d9ce50a"
+              "sha256": "8b3955dc8c1acbdc5d45851d8c569883d5b768cd1552ccb331931dd681859869"
             },
             {
               "bytes": 6758,
@@ -3193,65 +3193,65 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "e25b5ea611b0f1d4fef2b8a53107787228e29646bf1ce3ab7766060c2fd9dbb2",
+              "evidence_plan_digest": "06df134093c8166ef3718fa396dfaf6d45684bd019b4b0e5a9e888b2273af642",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "bfd173c970b09a998218aa65b23b9a12834dc60f0fa0c7d796c4231f0cea53ff"
+              "sha256": "51216768a7536338c8809b157ffc465d406ffc9bc313fbc08d602df09bdf95d1"
             },
             {
-              "bytes": 10855,
+              "bytes": 10877,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "01b084f8187bf8e2bbbda34de7c6af139a965f82cae85255676cde146fbb648c",
+              "evidence_plan_digest": "d89dc41e646338c7b18d08cf373c149969100b9687b381bca852377e114378ae",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b025bcb5c7f1c5ec9a630de39ed614b9a8c0786f5604d7d13604915d38f17473"
+              "sha256": "fdcc80bceabf8bf466fab1090dabce324dd9c61bbc0812f469d04353df3cbdc7"
             },
             {
               "bytes": 4671,
               "path": "codex/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6c568c831f3e45f88038a34935a3b27ee46feb9a6ac4b16f1e9586f5890dd82d"
+              "sha256": "2525c40b2e32f1b640f2ae33224a19e9cbbef7cb041ed6450989c2358ace995a"
             },
             {
               "bytes": 4670,
               "path": "codex/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "0994b9242a6672a86e0507b2c2d971b5abbfc4df375ddcf5b8ca5b30ce245539",
+              "profile_contract_digest": "1fd9dff1f9627637efa85eee9bd39810784bbf67ae651efd272035e874b1a7a6",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "043df40fd1665867628d70ec20a72bd47f83ead02228587c13cb50d2125ef256"
+              "sha256": "9baed996e7782b011091a0f020388cccbd89dfc6925bc684b62c0c91f44afc1f"
             },
             {
-              "bytes": 12476,
+              "bytes": 12485,
               "path": "codex/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "ce97e2876b4455d7e04e2d2dbcdedbb37e1d466d6d6d9e060d7e3287d6ad97f8"
+              "sha256": "54bee80db40e7003e4552039ea9220392124dc219e4d13c21da0bc5149ff4cd4"
             },
             {
               "bytes": 34235,
@@ -4343,9 +4343,9 @@
               "sha256": "5e2e422aeb490f3d3f026ba92d198e7004929394fa4942bf188e7d9ae10f24d4"
             },
             {
-              "bytes": 115516,
+              "bytes": 117641,
               "path": "gemini/sca-remediation/SKILL.md",
-              "sha256": "d542eb9a8a662f5fa66b69cac6063768abb8adcebdf737c120ebc2699af184d9"
+              "sha256": "603aacb5fbbfb091ee11c9518190c1838438f001d5c7653a3fc600583ec0f6dd"
             },
             {
               "bytes": 6758,
@@ -4365,65 +4365,65 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "e25b5ea611b0f1d4fef2b8a53107787228e29646bf1ce3ab7766060c2fd9dbb2",
+              "evidence_plan_digest": "06df134093c8166ef3718fa396dfaf6d45684bd019b4b0e5a9e888b2273af642",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "bfd173c970b09a998218aa65b23b9a12834dc60f0fa0c7d796c4231f0cea53ff"
+              "sha256": "51216768a7536338c8809b157ffc465d406ffc9bc313fbc08d602df09bdf95d1"
             },
             {
-              "bytes": 10855,
+              "bytes": 10877,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "01b084f8187bf8e2bbbda34de7c6af139a965f82cae85255676cde146fbb648c",
+              "evidence_plan_digest": "d89dc41e646338c7b18d08cf373c149969100b9687b381bca852377e114378ae",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b025bcb5c7f1c5ec9a630de39ed614b9a8c0786f5604d7d13604915d38f17473"
+              "sha256": "fdcc80bceabf8bf466fab1090dabce324dd9c61bbc0812f469d04353df3cbdc7"
             },
             {
               "bytes": 4671,
               "path": "gemini/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6c568c831f3e45f88038a34935a3b27ee46feb9a6ac4b16f1e9586f5890dd82d"
+              "sha256": "2525c40b2e32f1b640f2ae33224a19e9cbbef7cb041ed6450989c2358ace995a"
             },
             {
               "bytes": 4670,
               "path": "gemini/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "0994b9242a6672a86e0507b2c2d971b5abbfc4df375ddcf5b8ca5b30ce245539",
+              "profile_contract_digest": "1fd9dff1f9627637efa85eee9bd39810784bbf67ae651efd272035e874b1a7a6",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "043df40fd1665867628d70ec20a72bd47f83ead02228587c13cb50d2125ef256"
+              "sha256": "9baed996e7782b011091a0f020388cccbd89dfc6925bc684b62c0c91f44afc1f"
             },
             {
-              "bytes": 12476,
+              "bytes": 12485,
               "path": "gemini/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "ce97e2876b4455d7e04e2d2dbcdedbb37e1d466d6d6d9e060d7e3287d6ad97f8"
+              "sha256": "54bee80db40e7003e4552039ea9220392124dc219e4d13c21da0bc5149ff4cd4"
             },
             {
               "bytes": 34235,
@@ -4431,9 +4431,9 @@
               "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
             },
             {
-              "bytes": 115820,
+              "bytes": 117945,
               "path": "gemini/sca-remediation/sca-remediation.md",
-              "sha256": "379953f696515a35fabf95a99401841979a3d501dbffc696a1d9ec4c63c02c86"
+              "sha256": "1894fddedb71bd186b3457d92523f33a65aa613e2ac1aac0517dc31a6baad927"
             }
           ],
           "id": "gemini-cli",
@@ -5575,14 +5575,14 @@
               "sha256": "f23a6fc8c5a600a3057ac3374f902dc0ab271810a3b8eb64d0161077a1946dca"
             },
             {
-              "bytes": 21990,
+              "bytes": 22015,
               "path": "portable/sca-remediation/agent.manifest.json",
-              "sha256": "8227fcc4b439e1ac28e56e2f2158ec14274cea0ad40a3feb9452b80937dd4360"
+              "sha256": "38753fa067325f0d4ad86d4f4678ecdcda9219e89038526064ab44918dda49e5"
             },
             {
-              "bytes": 115619,
+              "bytes": 117744,
               "path": "portable/sca-remediation/agent.md",
-              "sha256": "7e496550bfceda093ef8c9f0577d7d650f50ce8b6809e61e103f4362c50e97f4"
+              "sha256": "45899437680d7ce0beec2adbde665521454fa6e1cd2d7c75dfc0dc24a0021981"
             },
             {
               "bytes": 9869,
@@ -5597,70 +5597,70 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "e25b5ea611b0f1d4fef2b8a53107787228e29646bf1ce3ab7766060c2fd9dbb2",
+              "evidence_plan_digest": "06df134093c8166ef3718fa396dfaf6d45684bd019b4b0e5a9e888b2273af642",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "bfd173c970b09a998218aa65b23b9a12834dc60f0fa0c7d796c4231f0cea53ff"
+              "sha256": "51216768a7536338c8809b157ffc465d406ffc9bc313fbc08d602df09bdf95d1"
             },
             {
-              "bytes": 10855,
+              "bytes": 10877,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "01b084f8187bf8e2bbbda34de7c6af139a965f82cae85255676cde146fbb648c",
+              "evidence_plan_digest": "d89dc41e646338c7b18d08cf373c149969100b9687b381bca852377e114378ae",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b025bcb5c7f1c5ec9a630de39ed614b9a8c0786f5604d7d13604915d38f17473"
+              "sha256": "fdcc80bceabf8bf466fab1090dabce324dd9c61bbc0812f469d04353df3cbdc7"
             },
             {
-              "bytes": 10206,
+              "bytes": 10231,
               "path": "portable/sca-remediation/output-contract.md",
-              "sha256": "4e828a4ed080c96b313fc58bed6db95583307cbfd7a13c48b1a5cc94547883e0"
+              "sha256": "f118a343f55acbaa6ceba46951df946d915925cd05315b710c4627c158b9290a"
             },
             {
               "bytes": 4671,
               "path": "portable/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "fcb5241e1364ce0477a6899835073d3b3e6312c11842539aa547c29bb325558e",
+              "profile_contract_digest": "4a32d0bc6108abf27939ea8a3cf1c7fc1530bda318a50b5a8e0aa7e63d42d808",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6c568c831f3e45f88038a34935a3b27ee46feb9a6ac4b16f1e9586f5890dd82d"
+              "sha256": "2525c40b2e32f1b640f2ae33224a19e9cbbef7cb041ed6450989c2358ace995a"
             },
             {
               "bytes": 4670,
               "path": "portable/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "0994b9242a6672a86e0507b2c2d971b5abbfc4df375ddcf5b8ca5b30ce245539",
+              "profile_contract_digest": "1fd9dff1f9627637efa85eee9bd39810784bbf67ae651efd272035e874b1a7a6",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "043df40fd1665867628d70ec20a72bd47f83ead02228587c13cb50d2125ef256"
+              "sha256": "9baed996e7782b011091a0f020388cccbd89dfc6925bc684b62c0c91f44afc1f"
             },
             {
-              "bytes": 12476,
+              "bytes": 12485,
               "path": "portable/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "e7509a4efff6ae1edff472857027f489876320aa8eb9234b138d33f2236b701a",
+              "profile_contract_digest": "01feba3bf506099596ff610a1576c7dab232796dfe387f2485595513a9a212b5",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "ce97e2876b4455d7e04e2d2dbcdedbb37e1d466d6d6d9e060d7e3287d6ad97f8"
+              "sha256": "54bee80db40e7003e4552039ea9220392124dc219e4d13c21da0bc5149ff4cd4"
             },
             {
               "bytes": 34235,
@@ -5930,9 +5930,9 @@
           "sha256": "24b78f5709b2b9b8de3375edc3c39b279c4dfc37930d4422138bacfac8db6ada"
         },
         {
-          "bytes": 54824,
+          "bytes": 56690,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "4462d4a1b407872a462353e7845de1ec1cc8cf1be258018f5efd63bf5f6c60e8"
+          "sha256": "ea9c75d659dcaf99184e5ed6049fe37042f8180941827583e035c03a247a45cd"
         },
         {
           "bytes": 29037,
@@ -6030,9 +6030,9 @@
           "sha256": "b83f2bec2af66c52317ca09cfaa364814535cf7dcc32802d1702749e66643ea4"
         },
         {
-          "bytes": 54471,
+          "bytes": 56337,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "f69e38374372690dbe1baeb6be6ffdbfa48407f0e262cf0dab6addabb85e073f"
+          "sha256": "09634f8a0c692125fb1e40afe59f145b9a01eb1a27f1c37b9b1183487f57483c"
         },
         {
           "bytes": 28788,
@@ -6123,9 +6123,9 @@
           "sha256": "c261fb97eff1bab956cf8145afb61fc649caac51b0d671c5a6cad6673c66e514"
         },
         {
-          "bytes": 53763,
+          "bytes": 55629,
           "path": "plugins/claude/ai-plugins/agents/sca-remediation.md",
-          "sha256": "37c5291b9423dd627291259d18320f244030373bba2547bdf205f4f912d2fb68"
+          "sha256": "6f3e89ea44209789553f1a44be6bcb551ec76e6828b270a45b4b248d2438f7b8"
         },
         {
           "bytes": 28194,
@@ -6257,9 +6257,9 @@
           "sha256": "c261fb97eff1bab956cf8145afb61fc649caac51b0d671c5a6cad6673c66e514"
         },
         {
-          "bytes": 53763,
+          "bytes": 55629,
           "path": "plugins/claude/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "37c5291b9423dd627291259d18320f244030373bba2547bdf205f4f912d2fb68"
+          "sha256": "6f3e89ea44209789553f1a44be6bcb551ec76e6828b270a45b4b248d2438f7b8"
         },
         {
           "bytes": 28194,
@@ -6511,9 +6511,9 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 53957,
+          "bytes": 55823,
           "path": "plugins/codex-directory/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "e48d30de2bdd3b892edbdb493161e3f3bfdc7521f6956d47a3e5909f86c9ef3a"
+          "sha256": "9f0ac86ed4177b2d408eb602a8a7d245ce953b03f2588bc37a2339c822788e4a"
         },
         {
           "bytes": 316,
@@ -6639,9 +6639,9 @@
           "sha256": "f8bec601f8f36f0fddfc31e12c00e8506760e992f3d5cd0b64cccf253031be23"
         },
         {
-          "bytes": 54971,
+          "bytes": 56866,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-sca-remediation-agent.toml",
-          "sha256": "93a198788f0fb54f6b1a826b367c7a8d4e423422568a93ea7dd37ea4ab575f62"
+          "sha256": "9a9851be7006a6c2894fee09856278c268ed9881abb6f998261c81c2945dbb61"
         },
         {
           "bytes": 29664,
@@ -6699,9 +6699,9 @@
           "sha256": "5f8d6bb4970cfa0d0bc4d6a1e5da4ccbfab7a521f779e7050a145d78ecb62c97"
         },
         {
-          "bytes": 53648,
+          "bytes": 55514,
           "path": "plugins/codex/endor-labs-agent-kit/bundled-skills/sca-remediation/SKILL.md",
-          "sha256": "5244e92217602910303657fa30dc0656dd72d0bdb7612ea399f917e52b13df3d"
+          "sha256": "fb078a3b4c2bd61d4468d81770afda9aff185a9fa1a54498c88ebdabb5d70881"
         },
         {
           "bytes": 28209,
@@ -6848,9 +6848,9 @@
           "sha256": "65b8d91cecd06e6fedfe7547f17e74af10007f61ba99ece8482ecd44417f9bf7"
         },
         {
-          "bytes": 54650,
+          "bytes": 56516,
           "path": "agents/endor-sca-remediation-agent.md",
-          "sha256": "bec6e3e419dc33ac044a8434f7050791f661c3df0f9214a8d39c2c01d7251d0d"
+          "sha256": "45aefe4833933affd68805cf28b49247cd8a2dc0274417eacb57c53526c98a95"
         },
         {
           "bytes": 28987,
@@ -6988,9 +6988,9 @@
           "sha256": "c6b265cbed10f00fecfd065aa14b23e81425730ca03684565db0ebf7992e7de2"
         },
         {
-          "bytes": 54337,
+          "bytes": 56203,
           "path": "skills/sca-remediation/SKILL.md",
-          "sha256": "c6a7e863428ab11c322bc8eb2af64080dcbb9d59b7f0326cc21e5d03271366bf"
+          "sha256": "1e3cfc5e8d1873f6d349331e09f5bd63d95584cc046429d7b1d763e72f62b054"
         },
         {
           "bytes": 6758,
@@ -7152,9 +7152,9 @@
           "sha256": "f2553d3a62cb44ddae0605fe0b7fbcca69424daea158b7dc9f88b4295e9556ae"
         },
         {
-          "bytes": 53957,
+          "bytes": 55823,
           "path": "cursor-sdk/agents/endor-sca-remediation-agent.md",
-          "sha256": "8da242a4bc8d6e9afdfb0d5956d0c8fdc64eb46c7c928750fd03c2a3c53a96f1"
+          "sha256": "002983fa3cfe9286dee6d350adeedd420646dca98078d04b155786f5494061f3"
         },
         {
           "bytes": 9829,
@@ -7260,9 +7260,9 @@
           "sha256": "2064a2c7f6431f543fea1b2b89022e64247a62aa5df48659d2be22d38dfc7460"
         },
         {
-          "bytes": 54419,
+          "bytes": 56285,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "3b3a9f74ec0e247f13f5bc8f2e25fdc273d266fea5154b909bae2afe4da00a07"
+          "sha256": "05397900d64a7e49eb5eaa5577c120bd7c2988e2a48dcd2631523e79d8f6ab61"
         },
         {
           "bytes": 28701,
@@ -7360,9 +7360,9 @@
           "sha256": "58228d0f28d3045f64510259ea8aca41605b185c84f9aafb02e654822a753a7f"
         },
         {
-          "bytes": 54115,
+          "bytes": 55981,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "89eef84913b3532f8d013b03245dd83b0cb77c29b39ac38fd2903d489820b3ca"
+          "sha256": "14a9df2091f2c93cdca2529fd9ae04716e0453af434f07bc93145f6fc158d859"
         },
         {
           "bytes": 28442,

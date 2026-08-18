@@ -11,6 +11,23 @@ package metadata.
 
 ## Unreleased
 
+### Added
+
+- Gradle dependency-graph safety audit for SCA remediation: mechanism-driven
+  manipulations (`type` null, `gradle.<construct>` in `mechanism`, required
+  `semantic_effect`) covering version catalogs, constraints, and platforms as
+  native controls; enforcedPlatform, resolutionStrategy.force, forced direct
+  dependencies, and rich-version rules as forced mediation; bare exclusions as
+  blocking removals; and dependency substitutions and component metadata rules
+  as replacement-requiring substitutions with configuration-scoped
+  dependencyInsight plus runtime/linkage validation. Gradle detection uses
+  ecosystem and build-file signals, with registry-level `mvn://` coordinates
+  no longer treated as Maven-only evidence. A self-declared audit is validated
+  even when every detection signal is unrecognizable, declared replacements
+  must be exact `group:artifact` coordinates, deeply nested payload fields can
+  no longer crash text coercion, and the manipulation walk is bounded so huge
+  payloads cannot inflate the error list.
+
 ### Changed
 
 - Extracted the Maven dependency-graph audit into a package-manager profile
