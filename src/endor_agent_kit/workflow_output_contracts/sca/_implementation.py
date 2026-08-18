@@ -19,6 +19,7 @@ from endor_agent_kit.workflow_output_contracts.sca._coerce import (
     _text,
 )
 from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+    PackageManagerDetection,
     SUPPORTED_PROFILES,
     detect_package_managers,
     validate_dependency_graph_audit,
@@ -229,6 +230,23 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             detections = _detect_selected_package_managers(
                 payload, selected, selected_option
             )
+            if not detections and audit_present:
+                # A self-declared audit is validated even when every detection
+                # signal was scrubbed; otherwise unrecognizable signals would
+                # fail open for a payload that itself claims a supported manager.
+                # The ecosystem token is non-canonical by definition here — a
+                # canonical token would have been a detection signal.
+                declared = _text(_dict(dependency_graph_audit).get("package_manager"))
+                detections = [
+                    PackageManagerDetection(
+                        profile=profile,
+                        ecosystem_token="",
+                        ecosystem_is_canonical=False,
+                        signals=("self_declared",),
+                    )
+                    for profile in SUPPORTED_PROFILES
+                    if profile.name == declared
+                ]
             if len(detections) > 1:
                 names = ", ".join(sorted(item.profile.name for item in detections))
                 errors.append(

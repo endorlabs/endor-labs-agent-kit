@@ -215,14 +215,14 @@ unavailable arrays, and emit no aliases or extra keys:
 - `selected_remediation`: `package`, `from_version`, `to_version`, `branch_name`, `project_uuid`, `namespace`, `namespace_provenance`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `risk`, `cia_status`, `cia`, `findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `manifests`, `affected_manifests`, `selection_blocked`. Do not emit `current_version`, `target_version`, `manifest`, `ecosystem`, or workflow-status aliases. When no UIA-backed candidate can be selected, set `selection_blocked: true`, leave the target-version, branch, and count fields null (including `inventory.key.target_version`), and use a blocked or rejected `risk_decision.status`; otherwise set `selection_blocked` null.
 - `uia_evidence[]`: `resource`, `resource_type`, `uuid`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `cia_status`, `findings_fixed`, `total_findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `total_findings_introduced`, `fixed_findings`, `sample_fixed_findings`, `score_explanation`, `breaking_changes`. `breaking_changes`, `fixed_findings`, and `sample_fixed_findings` are arrays; use `[]`, never `false`, when none are known. Do not emit package, version, manifest, score, conflict, or dependency-footprint aliases.
 - `risk_decision`: `status`, `summary`, `reason`, `source_usage_summary`, `validation_requirements`. Put supporting detail into `summary` or `reason`; do not emit `evidence`, `source_usage`, `validation_required`, or `companion_edits` aliases in this compact profile.
-- `dependency_graph_audit`: `package_manager`, `status`, `manifest`, `dependency_path`, `manipulations`, `validation_requirements`. Each manipulation has exactly `type`, `coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`, and `evidence`. Use the exact enum tokens from the Maven Dependency Graph Safety Audit section; no other keys or aliases.
+- `dependency_graph_audit`: `package_manager`, `status`, `manifest`, `dependency_path`, `manipulations`, `validation_requirements`. Each manipulation has exactly `type`, `coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`, and `evidence`. Use the exact enum tokens from the Maven and Gradle Dependency Graph Safety Audit sections; no other keys or aliases.
 - `change_requests[0]`: `status`, `base_branch`, `proposed_branch`, `title`, `body`, `url`, `reason`, `inventory`. Use `base_branch`, `title`, and `url`, never `proposed_base_branch`, `proposed_title`, or `existing_change_request_url`.
 - `inventory.reconciliation`: `status`, `reason`, `selected_target_version`, `uia_evidence_checked_at`, `upstream_evidence_checked_at`, `operator_choice_required`.
 - `policy_context`: `status`, `pack_id`, `pack_version`, `sha256`, `source`. Use `pack_version`, never `version`.
 
 - `inventory.status`: exactly `none_found`, `exact_duplicate`, `different_target`, or `unavailable`.
 - `inventory.lookup_method`, `inventory.checked_at`, and boolean `inventory.fresh_recheck`.
-- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`. For a Maven remediation, `ecosystem` must be exactly `maven`.
+- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`. For a Maven remediation, `ecosystem` must be exactly `maven`; for Gradle, exactly `gradle`.
 - `inventory.candidates`: an array; use `[]` when none or unavailable.
 - `inventory.reconciliation`: an object with non-empty `status` and `reason`; use `status: "not_needed"` for `none_found` and a fail-closed status for unavailable or divergent evidence.
 
@@ -446,6 +446,35 @@ exclusions (remaining `semantic_effect` tokens are reserved for other package
 managers); `mechanism` is `maven.<type>`; use null for either when unsure.
 UIA cannot waive this; evidence-only -> `unavailable`, never
 `approved_low_risk`.
+
+## Gradle Dependency Graph Safety Audit
+
+After UIA selects a Gradle-built candidate, apply the same audit with
+`package_manager` `gradle` and `inventory.key.ecosystem` exactly `gradle`.
+Inspect only the selected dependency path and affected Gradle build files
+(`build.gradle`/`.kts`, `settings.gradle`/`.kts`, `gradle/libs.versions.toml`,
+lockfiles). The same caps, statuses, classifications, manifest rule, and
+bare-token `validation_requirements` rules apply; keep `dependencyInsight`
+output bounded to the affected configuration and never dump full dependency
+reports.
+
+Gradle manipulations keep `type` null; `mechanism` carries the construct and
+`semantic_effect` is required. Native version control (`version_control` +
+`native_version_control`): `gradle.version_catalog`, `gradle.constraint`,
+`gradle.platform` — prefer an existing catalog entry, constraint, or platform.
+Forced mediation (`mediation_declared` -> `validation_required`, then
+`mediation_verified`/`validated` only after a configuration-scoped
+`dependencyInsight` graph check plus a targeted runtime/linkage test pass;
+`semantic_effect` `forced_version_mediation`): `gradle.enforced_platform`,
+`gradle.resolution_strategy_force`, `gradle.direct_dependency_override` (a
+dependency added only to force a transitive version), and
+`gradle.rich_version_rule` (strictly/reject rules). Removal
+(`gradle.exclusion`; `dependency_removal`, or `dependency_substitution` when
+an exact replacement is declared): a bare exclusion is `unverified` ->
+`blocked`; with an exact declared replacement follow the replacement ladder. Substitution (`gradle.dependency_substitution`,
+`gradle.component_metadata_rule`; `dependency_substitution`): always requires
+the exact replacement coordinate and stays
+`replacement_declared`/`validation_required` until both checks pass.
 
 ## Validation Command Selection
 
@@ -764,7 +793,7 @@ table, or other prose outside the object.
     "validation_requirements": []
   },
   "dependency_graph_audit": {
-    "package_manager": "maven",
+    "package_manager": "maven | gradle",
     "status": "clear | validation_required | validated | blocked | unavailable",
     "manifest": "string or null",
     "dependency_path": [],

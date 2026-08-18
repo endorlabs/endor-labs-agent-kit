@@ -31,8 +31,10 @@ def _text(value: Any) -> str:
     if isinstance(value, (list, dict)):
         try:
             return json.dumps(value, sort_keys=True)
-        except (TypeError, ValueError):
-            return str(value)
+        except (TypeError, ValueError, RecursionError):
+            # str()/repr() would recurse on the same pathological nesting, so
+            # fall back to a placeholder that can never match a contract token.
+            return f"<unserializable:{type(value).__name__}>"
     return str(value).strip()
 
 
