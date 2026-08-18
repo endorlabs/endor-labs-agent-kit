@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from endor_agent_kit.profile_contracts import (
     compile_profile_contract,
     profile_contract_from_dict,
@@ -58,7 +60,10 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
     assert tuple(contract.provider_neutral_schema["properties"]) == expected_fields
     # The bounded Maven graph-audit schema adds 1,360 characters to the prior
     # 9,605-character contract while replacing the much larger generic object.
-    assert len(contract.provider_neutral_schema_json) < 11_100
+    # The cross-ecosystem semantic_effect enum, mechanism field, and
+    # selection_blocked sentinel add another 417 measured characters
+    # (11,371 total); keep bounded headroom.
+    assert len(contract.provider_neutral_schema_json) < 11_600
     for omitted_field in (
         "remediation_candidates",
         "patch_plan",
@@ -83,15 +88,29 @@ def test_compiled_sca_selection_plan_uses_compact_maven_graph_audit_schema():
     }
     assert audit["properties"]["dependency_path"]["maxItems"] == 12
     assert audit["properties"]["manipulations"]["maxItems"] == 8
+    selected = contract.provider_neutral_schema["properties"]["selected_remediation"]
+    assert "selection_blocked" in selected["properties"]
     manipulation = audit["properties"]["manipulations"]["items"]
     assert set(manipulation["properties"]) == {
         "type",
         "coordinate",
         "classification",
+        "semantic_effect",
+        "mechanism",
         "replacement",
         "evidence",
     }
     assert manipulation["properties"]["evidence"]["maxItems"] == 3
+    assert set(manipulation["properties"]["semantic_effect"]["enum"]) == {
+        "native_version_control",
+        "forced_version_mediation",
+        "dependency_removal",
+        "dependency_substitution",
+        "asset_or_feature_suppression",
+        "source_override",
+        "lockfile_override",
+        None,
+    }
 
 
 def test_compiled_sca_selection_plan_contract_requires_inventory_sentinel_shape():
@@ -384,6 +403,18 @@ def test_oss_evidence_profile_requires_selected_upgrade_key_but_accepts_null_sen
         "evidence-check",
         {key: value for key, value in payload.items() if key != "selected_upgrade"},
     ) == ["selected_upgrade: required"]
+
+
+def test_serialized_profile_contract_bytes_round_trip_through_from_dict():
+    compiled = compile_profile_contract("sca-remediation", "selection-plan")
+
+    restored = profile_contract_from_dict(
+        json.loads(compiled.to_json_bytes().decode("utf-8")),
+        expected_agent_id="sca-remediation",
+        expected_profile_id="selection-plan",
+    )
+
+    assert restored == compiled
 
 
 def test_serialized_profile_contract_round_trips_and_rejects_tampering():

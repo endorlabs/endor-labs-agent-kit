@@ -889,6 +889,7 @@ def _selected_remediation_schema() -> dict[str, Any]:
             "findings_introduced": _nullable_integer(),
             "manifests": _nullable_string_array(),
             "affected_manifests": _nullable_string_array(),
+            "selection_blocked": _nullable_boolean(),
         }
     )
 
@@ -930,6 +931,18 @@ def _dependency_graph_audit_schema() -> dict[str, Any]:
                     "replacement_conflict_or_incomplete",
                 )
             ),
+            "semantic_effect": _nullable_enum(
+                (
+                    "native_version_control",
+                    "forced_version_mediation",
+                    "dependency_removal",
+                    "dependency_substitution",
+                    "asset_or_feature_suppression",
+                    "source_override",
+                    "lockfile_override",
+                )
+            ),
+            "mechanism": _nullable_string(),
             "replacement": _nullable_string(),
             "evidence": {
                 "type": ["array", "null"],

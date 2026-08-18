@@ -226,9 +226,9 @@ At the `selection-plan` gate, return exactly one `change_requests` entry and alw
 
 The selection-plan profile projection overrides the generic full-workflow
 Output section. Return only `summary`, `project_resolution`,
-`evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`,
-`dependency_graph_audit`, `change_requests`, `data_gaps`, `policy_context`, and
-`policy_evaluations`.
+`execution_context`, `evidence_queries`, `selected_remediation`,
+`uia_evidence`, `risk_decision`, `dependency_graph_audit`, `change_requests`,
+`data_gaps`, `policy_context`, and `policy_evaluations`.
 Omit `remediation_candidates`, `patch_plan`, `validation`, and `tickets`; put
 unrun checks in `risk_decision.validation_requirements` as strings. The
 `selection-plan` task profile explicitly selects structured JSON mode. Before
@@ -240,16 +240,17 @@ nested key below, use `null` for unknown scalar/object values and `[]` for
 unavailable arrays, and emit no aliases or extra keys:
 
 - `project_resolution`: `status`, `project_uuid`, `namespace`, `endor_namespace`, `namespace_provenance`, `repo_full_name`, `repo_url`, `normalized_repo_full_name`, `default_branch`, `selected_branch`, `monitored_branch`, `branch_provenance`, `traverse_attempted`, `traverse_result`, `attempted_selectors`. Do not emit `project_name`.
-- `selected_remediation`: `package`, `from_version`, `to_version`, `branch_name`, `project_uuid`, `namespace`, `namespace_provenance`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `risk`, `cia_status`, `cia`, `findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `manifests`, `affected_manifests`. Do not emit `current_version`, `target_version`, `manifest`, `ecosystem`, or workflow-status aliases.
+- `selected_remediation`: `package`, `from_version`, `to_version`, `branch_name`, `project_uuid`, `namespace`, `namespace_provenance`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `risk`, `cia_status`, `cia`, `findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `manifests`, `affected_manifests`, `selection_blocked`. Do not emit `current_version`, `target_version`, `manifest`, `ecosystem`, or workflow-status aliases. When no UIA-backed candidate can be selected, set `selection_blocked: true`, leave the target-version, branch, and count fields null (including `inventory.key.target_version`), and use a blocked or rejected `risk_decision.status`; otherwise set `selection_blocked` null.
 - `uia_evidence[]`: `resource`, `resource_type`, `uuid`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `cia_status`, `findings_fixed`, `total_findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `total_findings_introduced`, `fixed_findings`, `sample_fixed_findings`, `score_explanation`, `breaking_changes`. `breaking_changes`, `fixed_findings`, and `sample_fixed_findings` are arrays; use `[]`, never `false`, when none are known. Do not emit package, version, manifest, score, conflict, or dependency-footprint aliases.
 - `risk_decision`: `status`, `summary`, `reason`, `source_usage_summary`, `validation_requirements`. Put supporting detail into `summary` or `reason`; do not emit `evidence`, `source_usage`, `validation_required`, or `companion_edits` aliases in this compact profile.
+- `dependency_graph_audit`: `package_manager`, `status`, `manifest`, `dependency_path`, `manipulations`, `validation_requirements`. Each manipulation has exactly `type`, `coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`, and `evidence`. Use the exact enum tokens from the Maven Dependency Graph Safety Audit section; no other keys or aliases.
 - `change_requests[0]`: `status`, `base_branch`, `proposed_branch`, `title`, `body`, `url`, `reason`, `inventory`. Use `base_branch`, `title`, and `url`, never `proposed_base_branch`, `proposed_title`, or `existing_change_request_url`.
 - `inventory.reconciliation`: `status`, `reason`, `selected_target_version`, `uia_evidence_checked_at`, `upstream_evidence_checked_at`, `operator_choice_required`.
 - `policy_context`: `status`, `pack_id`, `pack_version`, `sha256`, `source`. Use `pack_version`, never `version`.
 
 - `inventory.status`: exactly `none_found`, `exact_duplicate`, `different_target`, or `unavailable`.
 - `inventory.lookup_method`, `inventory.checked_at`, and boolean `inventory.fresh_recheck`.
-- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`.
+- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`. For a Maven remediation, `ecosystem` must be exactly `maven`.
 - `inventory.candidates`: an array; use `[]` when none or unavailable.
 - `inventory.reconciliation`: an object with non-empty `status` and `reason`; use `status: "not_needed"` for `none_found` and a fail-closed status for unavailable or divergent evidence.
 
@@ -425,16 +426,46 @@ Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a str
 ## Maven Dependency Graph Safety Audit
 
 After UIA selects Maven, inspect only its dependency path and affected POMs;
-return at most eight manipulations, no raw POM/unbounded tree or Endor query per
-exclusion. Existing property/BOM/`dependencyManagement` is `version_control`;
-prefer it to a direct dependency added only to force a transitive version.
-Such a direct override is `mediation_declared`/`validation_required` until a
-filtered graph and targeted runtime/linkage test pass, then
-`mediation_verified`/`validated`. Exclusion without replacement/conflicting ->
-`blocked`; exact `replacement_declared` follows the same validation rule before
-`replacement_verified`. With neither override nor exclusion use `clear`, or
-`validated` after both checks pass. UIA cannot waive this; evidence-only ->
-`unavailable`, never `approved_low_risk`.
+never return raw POM/XML, an unbounded dependency tree, or one Endor query per
+manipulation. Set `inventory.key.ecosystem` to exactly `maven`.
+
+Return `dependency_graph_audit` with exactly `package_manager` (`maven`),
+`status` (`clear`, `validation_required`, `validated`, `blocked`, or
+`unavailable`), `manifest` (a selected remediation manifest path; when the
+governing native control lives in a parent or aggregator POM, list that POM in
+`selected_remediation.affected_manifests` and name it here),
+`dependency_path` (at most 12 coordinates), `manipulations` (at most 8), and
+`validation_requirements` (at most 2; each entry is exactly the bare token
+`resolved_graph` or `runtime_linkage` with no extra text — commands and
+explanations belong in `risk_decision.validation_requirements`). Each
+manipulation has exactly `type` (`version_property`,
+`dependency_management`, `bom`, `direct_dependency_override`, or `exclusion`),
+`coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`
+(exact coordinate or null), and `evidence` (at most 3 strings). List only
+manipulations on the selected dependency path or its affected POMs; anything
+listed is decision-relevant, so omit unrelated manipulations elsewhere instead
+of flagging them.
+
+Classify with `version_control`, `mediation_declared`, `mediation_verified`,
+`replacement_declared`, `replacement_verified`, `not_needed_verified`,
+`unverified`, or `replacement_conflict_or_incomplete`. Existing
+property/BOM/`dependencyManagement` is `version_control`; prefer it to a direct
+dependency added only to force a transitive version. Such a direct override is
+`mediation_declared`/`validation_required` until a filtered graph and targeted
+runtime/linkage test pass, then `mediation_verified`/`validated`. Exclusion
+without replacement or with a conflicting/incomplete one is `unverified` or
+`replacement_conflict_or_incomplete` -> `blocked`; exact `replacement_declared`
+follows the same validation rule before `replacement_verified`, and
+`not_needed_verified` likewise requires `validated` with both checks passed.
+With neither override nor exclusion use `clear`, or `validated` after both
+checks pass; at the selection-plan gate nothing has run yet, so use `clear`,
+`validation_required`, `blocked`, or `unavailable` there. `semantic_effect` is
+`native_version_control` for native controls, `forced_version_mediation` for
+direct overrides, and `dependency_removal` or `dependency_substitution` for
+exclusions (remaining `semantic_effect` tokens are reserved for other package
+managers); `mechanism` is `maven.<type>`; use null for either when unsure.
+UIA cannot waive this; evidence-only -> `unavailable`, never
+`approved_low_risk`.
 
 ## Validation Command Selection
 
@@ -737,6 +768,14 @@ table, or other prose outside the object.
     "source_usage_summary": "required when CIA is indeterminate, risk is elevated, conflicts exist, or findings are introduced",
     "validation_requirements": []
   },
+  "dependency_graph_audit": {
+    "package_manager": "maven",
+    "status": "clear | validation_required | validated | blocked | unavailable",
+    "manifest": "string or null",
+    "dependency_path": [],
+    "manipulations": [],
+    "validation_requirements": []
+  },
   "patch_plan": [],
   "validation": [],
   "change_requests": [],
@@ -864,7 +903,7 @@ Select at most one UIA-backed remediation candidate and stop before mutation.
 - Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. A read-only remediation gate needs a complete remediation gate JSON object.
 - Minimal evidence: Resolved project and VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance. Local manifest/source usage for the selected package when `execution_context.mode` is `local_checkout`; otherwise an explicit evidence-only risk fallback and source data gap. For a selected Maven candidate, one bounded dependency-path audit of only the affected POMs. Preserve project-native version properties, dependencyManagement, and BOM controls; classify every selected-path direct override or exclusion and name any exact replacement. Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`. Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry. Dirty worktree state for affected manifests before proposing any local mutation. This is not required for an evidence-only plan.
 - Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
-- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request. For Maven, return `dependency_graph_audit`; an unverified direct override or exclusion blocks approval, declared mediation or replacement requires resolved-graph plus runtime/linkage validation, and unrelated graph manipulation outside the selected path is ignored. Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`. The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, dependency_graph_audit, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings. The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys. Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`. Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases. Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows. Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation. Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory. Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
+- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request. For Maven, return `dependency_graph_audit` using the exact audit keys and enum tokens from the instructions, with `inventory.key.ecosystem` exactly `maven`; an unverified direct override or exclusion blocks approval, declared mediation or replacement requires resolved-graph plus runtime/linkage validation, and unrelated graph manipulation outside the selected path is omitted from the audit rather than flagged. Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`. The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, dependency_graph_audit, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings. The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys. Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`. Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases. Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows. Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation. Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory. Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
 
 ### Evidence Query Plans
 

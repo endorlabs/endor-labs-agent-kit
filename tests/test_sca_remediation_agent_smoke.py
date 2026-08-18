@@ -164,14 +164,20 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
     assert "## Maven Dependency Graph Safety Audit" in prompt
     assert "inspect only its dependency path and affected POMs" in prompt
-    assert "Existing property/BOM/`dependencyManagement` is `version_control`" in prompt
-    assert "Exclusion without replacement/conflicting" in prompt
+    assert "property/BOM/`dependencyManagement` is `version_control`" in prompt
+    assert "without replacement or with a conflicting/incomplete one" in prompt
     assert "`mediation_declared`/`validation_required`" in prompt
     assert "`mediation_verified`/`validated`" in prompt
     assert "`replacement_declared`" in prompt
     assert "`replacement_verified`" in prompt
-    assert "at most eight manipulations" in prompt
-    assert "Endor query per\nexclusion" in prompt
+    assert "`manipulations` (at most 8)" in prompt
+    assert "one Endor query per\nmanipulation" in prompt
+    assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
+    assert "Set `inventory.key.ecosystem` to exactly `maven`" in prompt
+    assert "each entry is exactly the bare token" in prompt
+    assert "`not_needed_verified`" in prompt
+    assert "`semantic_effect`" in prompt
+    assert "set `selection_blocked: true`" in prompt
     assert "Validation Command Selection" in prompt
     assert "Never clean validation artifacts in the user's worktree" in prompt
     assert "the user worktree must remain byte-for-byte unchanged" in prompt

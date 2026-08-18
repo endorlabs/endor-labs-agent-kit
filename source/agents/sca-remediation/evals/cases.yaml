@@ -222,6 +222,27 @@ cases:
     - the audit contains at most eight normalized manipulation records
     - no full POM, raw XML, or unbounded dependency tree is returned
     data_gaps_allowed: true
+- id: maven-relabeled-exclusion-still-blocked
+  input:
+    prompt: Plan the selected HttpClient remediation. The proposed POM change excludes commons-logging with no replacement, and a prior draft labeled that exclusion classification not_needed_verified without any validation evidence.
+  expected:
+    action: block_relabeled_maven_exclusion
+    required_evidence:
+    - the bare exclusion is not classified not_needed_verified or version_control without passed resolved_graph and runtime_linkage validation
+    - dependency_graph_audit status is blocked or validation_required, never clear
+    - risk_decision status is not approved_low_risk
+    must_not:
+    - treat a classification relabel as a substitute for graph and runtime evidence
+    data_gaps_allowed: true
+- id: maven-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected Maven transitive-dependency upgrade and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "mvn".
+  expected:
+    action: emit_canonical_maven_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly maven
+    - dependency_graph_audit.package_manager is maven
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file
