@@ -1,0 +1,413 @@
+"""Shared dependency-graph audit engine parameterized by package-manager profiles.
+
+The engine owns the semantic state machine: classification whitelists per
+manipulation kind, status forcing, evidence coupling, risk-decision coupling,
+and the normalized output caps. Profiles own manager-specific vocabulary only
+(ecosystem aliases, manifest and coordinate shapes, manipulation type names).
+Payload fields are untrusted model output, so every rule fails closed on
+unrecognized tokens instead of skipping them.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from pathlib import PurePosixPath
+from typing import Any
+
+from endor_agent_kit.workflow_output_contracts.sca._coerce import _list, _text
+
+AUDIT_STATUSES = (
+    "blocked",
+    "clear",
+    "unavailable",
+    "validated",
+    "validation_required",
+)
+
+CLASSIFICATIONS = (
+    "mediation_declared",
+    "mediation_verified",
+    "not_needed_verified",
+    "replacement_conflict_or_incomplete",
+    "replacement_declared",
+    "replacement_verified",
+    "unverified",
+    "version_control",
+)
+
+SEMANTIC_EFFECTS = (
+    "asset_or_feature_suppression",
+    "dependency_removal",
+    "dependency_substitution",
+    "forced_version_mediation",
+    "lockfile_override",
+    "native_version_control",
+    "source_override",
+)
+
+UNSAFE_CLASSIFICATIONS = frozenset({"unverified", "replacement_conflict_or_incomplete"})
+OVERRIDE_CLASSIFICATIONS = frozenset(
+    {
+        "mediation_declared",
+        "mediation_verified",
+        "unverified",
+        "replacement_conflict_or_incomplete",
+    }
+)
+REMOVAL_CLASSIFICATIONS = frozenset(
+    {
+        "unverified",
+        "replacement_conflict_or_incomplete",
+        "replacement_declared",
+        "replacement_verified",
+        "not_needed_verified",
+    }
+)
+GRAPH_RUNTIME_KINDS = frozenset({"resolved_graph", "runtime_linkage"})
+
+MAX_MANIPULATIONS = 8
+MAX_DEPENDENCY_PATH = 12
+MAX_EVIDENCE_ITEMS = 3
+MAX_VALIDATION_REQUIREMENTS = 2
+
+
+@dataclass(frozen=True)
+class PackageManagerAuditProfile:
+    """One package manager's dependency-graph audit vocabulary."""
+
+    name: str
+    display_name: str
+    ecosystem_aliases: frozenset[str]
+    manifest_basenames: frozenset[str]
+    manifest_suffixes: tuple[str, ...]
+    coordinate_prefixes: tuple[str, ...]
+    native_types: frozenset[str]
+    override_types: frozenset[str]
+    removal_types: frozenset[str]
+
+    @property
+    def manipulation_types(self) -> frozenset[str]:
+        return self.native_types | self.override_types | self.removal_types
+
+    def mechanism_for_type(self, manipulation_type: str) -> str:
+        return f"{self.name}.{manipulation_type}"
+
+    def matches_ecosystem(self, token: str) -> bool:
+        return _normalize_ecosystem(token) in self.ecosystem_aliases
+
+    def matches_manifest(self, manifest: str) -> bool:
+        if not isinstance(manifest, str):
+            return False
+        name = PurePosixPath(manifest.replace("\\", "/")).name.lower()
+        return name in self.manifest_basenames or name.endswith(self.manifest_suffixes)
+
+    def matches_coordinate(self, coordinate: str) -> bool:
+        if not isinstance(coordinate, str):
+            return False
+        return coordinate.lower().startswith(self.coordinate_prefixes)
+
+
+@dataclass(frozen=True)
+class PackageManagerDetection:
+    """Result of matching one profile against payload-level signals."""
+
+    profile: PackageManagerAuditProfile
+    ecosystem_token: str
+    ecosystem_is_canonical: bool
+    signals: tuple[str, ...]
+
+
+def _normalize_ecosystem(token: str) -> str:
+    normalized = _text(token).lower()
+    if normalized.startswith("ecosystem_"):
+        normalized = normalized[len("ecosystem_") :]
+    return "-".join(part for part in normalized.replace("_", " ").split() if part)
+
+
+def detect_package_managers(
+    profiles: tuple[PackageManagerAuditProfile, ...],
+    *,
+    ecosystem_tokens: tuple[str, ...],
+    manifests: tuple[str, ...],
+    coordinates: tuple[str, ...],
+) -> list[PackageManagerDetection]:
+    """Match profiles against every available signal, not just the ecosystem string."""
+
+    primary_token = ecosystem_tokens[0] if ecosystem_tokens else ""
+    detections: list[PackageManagerDetection] = []
+    for profile in profiles:
+        signals: list[str] = []
+        if any(profile.matches_ecosystem(token) for token in ecosystem_tokens):
+            signals.append("ecosystem")
+        if any(profile.matches_manifest(manifest) for manifest in manifests):
+            signals.append("manifest")
+        if any(profile.matches_coordinate(coordinate) for coordinate in coordinates):
+            signals.append("coordinate")
+        if signals:
+            detections.append(
+                PackageManagerDetection(
+                    profile=profile,
+                    ecosystem_token=primary_token,
+                    # Canonicality is exact: aliases and case/prefix variants are
+                    # detection signals, but duplicate-inventory keys and the
+                    # audit contract require the literal manager name.
+                    ecosystem_is_canonical=primary_token == profile.name,
+                    signals=tuple(signals),
+                )
+            )
+    return detections
+
+
+def validate_dependency_graph_audit(
+    profile: PackageManagerAuditProfile,
+    *,
+    audit: dict[str, Any],
+    selected_manifests: set[str],
+    risk_status: str,
+    successful_validation_kinds: set[str],
+    errors: list[str],
+) -> None:
+    """Apply the shared graph-safety state machine to one audit object."""
+
+    display = profile.display_name
+    audit_status = _text(audit.get("status"))
+    if _text(audit.get("package_manager")) != profile.name:
+        errors.append(f"dependency_graph_audit.package_manager: must be {profile.name}")
+    if audit_status not in AUDIT_STATUSES:
+        errors.append(
+            "dependency_graph_audit.status: must be one of " + ", ".join(AUDIT_STATUSES)
+        )
+    audit_manifest = _text(audit.get("manifest"))
+    if (
+        audit_status != "unavailable"
+        and selected_manifests
+        and audit_manifest not in selected_manifests
+    ):
+        errors.append(
+            "dependency_graph_audit.manifest: must match a selected remediation manifest"
+        )
+
+    for field_name in ("dependency_path", "manipulations", "validation_requirements"):
+        raw_value = audit.get(field_name)
+        if raw_value is not None and not isinstance(raw_value, list):
+            errors.append(f"dependency_graph_audit.{field_name}: must be an array")
+
+    dependency_path = _list(audit.get("dependency_path"))
+    if len(dependency_path) > MAX_DEPENDENCY_PATH:
+        errors.append(
+            "dependency_graph_audit.dependency_path: must contain at most "
+            f"{MAX_DEPENDENCY_PATH} entries"
+        )
+    manipulations = _list(audit.get("manipulations"))
+    if len(manipulations) > MAX_MANIPULATIONS:
+        errors.append(
+            "dependency_graph_audit.manipulations: must contain at most "
+            f"{MAX_MANIPULATIONS} entries"
+        )
+    raw_requirements = _list(audit.get("validation_requirements"))
+    audit_validation_requirements = {
+        item for item in raw_requirements if isinstance(item, str)
+    }
+    if len(raw_requirements) > MAX_VALIDATION_REQUIREMENTS or not (
+        audit_validation_requirements <= GRAPH_RUNTIME_KINDS
+        and len(audit_validation_requirements) == len(raw_requirements)
+    ):
+        errors.append(
+            "dependency_graph_audit.validation_requirements: must contain at most "
+            f"{MAX_VALIDATION_REQUIREMENTS} entries drawn from resolved_graph and "
+            "runtime_linkage"
+        )
+
+    removal_classifications: set[str] = set()
+    override_classifications: set[str] = set()
+    for index, manipulation in enumerate(manipulations):
+        prefix = f"dependency_graph_audit.manipulations[{index}]"
+        if not isinstance(manipulation, dict):
+            errors.append(f"{prefix}: must be an object")
+            continue
+        manipulation_type = _text(manipulation.get("type"))
+        classification = _text(manipulation.get("classification"))
+        if manipulation_type not in profile.manipulation_types:
+            errors.append(
+                f"{prefix}.type: must be one of "
+                + ", ".join(sorted(profile.manipulation_types))
+            )
+        if classification not in CLASSIFICATIONS:
+            errors.append(
+                f"{prefix}.classification: must be one of " + ", ".join(CLASSIFICATIONS)
+            )
+        raw_evidence = manipulation.get("evidence")
+        if raw_evidence is not None and not isinstance(raw_evidence, list):
+            errors.append(f"{prefix}.evidence: must be an array")
+        if len(_list(raw_evidence)) > MAX_EVIDENCE_ITEMS:
+            errors.append(
+                f"{prefix}.evidence: must contain at most {MAX_EVIDENCE_ITEMS} entries"
+            )
+        replacement = _text(manipulation.get("replacement"))
+        if (
+            classification in {"replacement_declared", "replacement_verified"}
+            and not replacement
+        ):
+            errors.append(f"{prefix}.replacement: required for {classification}")
+
+        if manipulation_type in profile.native_types and classification != "version_control":
+            errors.append(
+                f"{prefix}.classification: native {display} controls require "
+                "version_control"
+            )
+        if (
+            manipulation_type in profile.override_types
+            and classification not in OVERRIDE_CLASSIFICATIONS
+        ):
+            errors.append(
+                f"{prefix}.classification: direct {display} overrides require "
+                "mediation evidence"
+            )
+        if (
+            manipulation_type in profile.removal_types
+            and classification not in REMOVAL_CLASSIFICATIONS
+        ):
+            errors.append(
+                f"{prefix}.classification: {display} exclusions require unverified, "
+                "replacement_declared, replacement_verified, not_needed_verified, or "
+                "replacement_conflict_or_incomplete"
+            )
+
+        if manipulation.get("semantic_effect") is not None:
+            semantic_effect = _text(manipulation.get("semantic_effect"))
+            if semantic_effect not in SEMANTIC_EFFECTS:
+                errors.append(
+                    f"{prefix}.semantic_effect: must be one of "
+                    + ", ".join(SEMANTIC_EFFECTS)
+                )
+            elif manipulation_type in profile.native_types and semantic_effect != (
+                "native_version_control"
+            ):
+                errors.append(
+                    f"{prefix}.semantic_effect: must be native_version_control for "
+                    f"native {display} controls"
+                )
+            elif manipulation_type in profile.override_types and semantic_effect != (
+                "forced_version_mediation"
+            ):
+                errors.append(
+                    f"{prefix}.semantic_effect: must be forced_version_mediation for "
+                    f"direct {display} overrides"
+                )
+            elif manipulation_type in profile.removal_types and semantic_effect not in {
+                "dependency_removal",
+                "dependency_substitution",
+            }:
+                errors.append(
+                    f"{prefix}.semantic_effect: must be dependency_removal or "
+                    f"dependency_substitution for {display} exclusions"
+                )
+        if manipulation.get("mechanism") is not None:
+            mechanism = _text(manipulation.get("mechanism"))
+            if (
+                manipulation_type in profile.manipulation_types
+                and mechanism != profile.mechanism_for_type(manipulation_type)
+            ):
+                errors.append(
+                    f"{prefix}.mechanism: must be "
+                    f"{profile.mechanism_for_type(manipulation_type)} for {display} "
+                    "manipulations"
+                )
+
+        if manipulation_type in profile.removal_types:
+            removal_classifications.add(classification)
+        if manipulation_type in profile.override_types:
+            override_classifications.add(classification)
+
+    has_removal = bool(removal_classifications)
+    has_override = bool(override_classifications)
+    unsafe_removals = removal_classifications & UNSAFE_CLASSIFICATIONS
+    unsafe_overrides = override_classifications & UNSAFE_CLASSIFICATIONS
+
+    if has_removal and not GRAPH_RUNTIME_KINDS <= audit_validation_requirements:
+        errors.append(
+            f"dependency_graph_audit.validation_requirements: {display} exclusions "
+            "require resolved_graph and runtime_linkage"
+        )
+    if has_override and not GRAPH_RUNTIME_KINDS <= audit_validation_requirements:
+        errors.append(
+            f"dependency_graph_audit.validation_requirements: {display} graph "
+            "manipulations require resolved_graph and runtime_linkage"
+        )
+    if unsafe_removals and audit_status != "blocked":
+        errors.append(
+            f"dependency_graph_audit.status: unverified {display} exclusions require "
+            "blocked"
+        )
+    if unsafe_overrides and audit_status != "blocked":
+        errors.append(
+            f"dependency_graph_audit.status: unverified {display} direct overrides "
+            "require blocked"
+        )
+    if (
+        "replacement_declared" in removal_classifications
+        and not unsafe_removals
+        and audit_status != "validation_required"
+    ):
+        errors.append(
+            f"dependency_graph_audit.status: declared {display} replacements require "
+            "validation_required"
+        )
+    if (
+        "mediation_declared" in override_classifications
+        and not unsafe_overrides
+        and audit_status != "validation_required"
+    ):
+        errors.append(
+            f"dependency_graph_audit.status: declared {display} graph mediation "
+            "requires validation_required"
+        )
+    if "mediation_verified" in override_classifications and audit_status != "validated":
+        errors.append(
+            f"dependency_graph_audit.status: verified {display} graph mediation "
+            "requires validated"
+        )
+    if "replacement_verified" in removal_classifications and audit_status != "validated":
+        errors.append(
+            f"dependency_graph_audit.status: verified {display} replacements require "
+            "validated"
+        )
+    if "not_needed_verified" in removal_classifications and audit_status != "validated":
+        errors.append(
+            f"dependency_graph_audit.status: verified not-needed {display} exclusions "
+            "require validated"
+        )
+
+    if audit_status == "blocked" and risk_status.startswith("approved"):
+        errors.append(
+            f"risk_decision.status: blocked {display} dependency graph audit cannot "
+            "accompany an approved decision"
+        )
+    if audit_status == "validation_required" and risk_status == "approved_low_risk":
+        errors.append(
+            f"risk_decision.status: {display} graph manipulation awaiting validation "
+            "cannot be approved_low_risk"
+        )
+    if audit_status == "unavailable" and risk_status == "approved_low_risk":
+        errors.append(
+            f"risk_decision.status: unavailable {display} dependency graph audit "
+            "cannot be approved_low_risk"
+        )
+    if (
+        audit_status == "validated"
+        and has_removal
+        and not GRAPH_RUNTIME_KINDS <= successful_validation_kinds
+    ):
+        errors.append(
+            f"dependency_graph_audit: validated {display} exclusions require passed "
+            "resolved_graph and runtime_linkage validation"
+        )
+    if (
+        audit_status == "validated"
+        and has_override
+        and not GRAPH_RUNTIME_KINDS <= successful_validation_kinds
+    ):
+        errors.append(
+            f"dependency_graph_audit: validated {display} direct overrides require "
+            "passed resolved_graph and runtime_linkage validation"
+        )

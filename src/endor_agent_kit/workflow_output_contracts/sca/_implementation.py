@@ -8,6 +8,21 @@ from pathlib import Path
 from typing import Any
 
 from endor_agent_kit.policy_pack import policy_evaluations_have_blocking_decision
+from endor_agent_kit.workflow_output_contracts.sca._coerce import (
+    _dict,
+    _first_present,
+    _int,
+    _is_empty,
+    _list,
+    _one_line,
+    _string_list,
+    _text,
+)
+from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+    SUPPORTED_PROFILES,
+    detect_package_managers,
+    validate_dependency_graph_audit,
+)
 
 RISK_DECISION_STATUSES = frozenset(
     {
@@ -178,193 +193,85 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
         )
 
-    if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation:
-        if _selected_package_manager(payload) == "maven":
-            dependency_graph_audit = payload.get("dependency_graph_audit")
-            if not isinstance(dependency_graph_audit, dict):
+    selected_option = _dict(payload.get("selected_option"))
+    selection_blocked = (
+        selected.get("selection_blocked") is True
+        or selected_option.get("selection_blocked") is True
+    )
+    if gate in {"selection-plan", "apply", "validate", "pr"}:
+        if selection_blocked:
+            if risk_status.startswith("approved"):
                 errors.append(
-                    "dependency_graph_audit: required for selected Maven remediations"
+                    "risk_decision.status: selection_blocked cannot accompany an "
+                    "approved decision"
                 )
-            else:
-                audit_status = _text(dependency_graph_audit.get("status"))
-                if _text(dependency_graph_audit.get("package_manager")) != "maven":
-                    errors.append("dependency_graph_audit.package_manager: must be maven")
+            claimed_statuses = {
+                "created",
+                "opened",
+                "open",
+                "pushed",
+                "updated",
+                "existing",
+                "reused",
+            }
+            if any(
+                isinstance(request, dict)
+                and _text(request.get("status")).lower() in claimed_statuses
+                for request in _list(payload.get("change_requests"))
+            ):
+                errors.append(
+                    "change_requests: selection_blocked cannot accompany a created "
+                    "or reused change request"
+                )
+        dependency_graph_audit = payload.get("dependency_graph_audit")
+        audit_present = isinstance(dependency_graph_audit, dict)
+        if has_selected_remediation or (selection_blocked and audit_present):
+            detections = _detect_selected_package_managers(
+                payload, selected, selected_option
+            )
+            if len(detections) > 1:
+                names = ", ".join(sorted(item.profile.name for item in detections))
+                errors.append(
+                    f"dependency_graph_audit: ambiguous package-manager signals ({names}) "
+                    "fail closed; make the selected manager explicit"
+                )
+            for detection in detections:
+                profile = detection.profile
+                if not detection.ecosystem_is_canonical:
+                    errors.append(
+                        "change_requests[0].inventory.key.ecosystem: must be "
+                        f"{profile.name} for {profile.display_name} remediations"
+                    )
+                if not audit_present:
+                    errors.append(
+                        "dependency_graph_audit: required for selected "
+                        f"{profile.display_name} remediations"
+                    )
+                    continue
                 selected_manifests = {
                     item
+                    for source in (selected, selected_option)
                     for field_name in ("manifests", "affected_manifests")
-                    for item in _list(selected.get(field_name))
+                    for item in _list(source.get(field_name))
                     if isinstance(item, str) and item.strip()
                 }
-                audit_manifest = _text(dependency_graph_audit.get("manifest"))
-                if (
-                    audit_status != "unavailable"
-                    and selected_manifests
-                    and audit_manifest not in selected_manifests
-                ):
-                    errors.append(
-                        "dependency_graph_audit.manifest: must match a selected remediation "
-                        "manifest"
-                    )
-                manipulations = _list(dependency_graph_audit.get("manipulations"))
-                if len(manipulations) > 8:
-                    errors.append(
-                        "dependency_graph_audit.manipulations: must contain at most 8 entries"
-                    )
-                exclusion_classifications = {
-                    _text(item.get("classification"))
-                    for item in manipulations
-                    if isinstance(item, dict) and _text(item.get("type")) == "exclusion"
-                }
-                has_exclusion = bool(exclusion_classifications)
-                direct_override_classifications = {
-                    _text(item.get("classification"))
-                    for item in manipulations
-                    if isinstance(item, dict)
-                    and _text(item.get("type")) == "direct_dependency_override"
-                }
-                has_direct_override = bool(direct_override_classifications)
-                audit_validation_requirements = {
-                    item
-                    for item in _list(dependency_graph_audit.get("validation_requirements"))
-                    if isinstance(item, str)
-                }
-                if has_exclusion and not {"resolved_graph", "runtime_linkage"}.issubset(
-                    audit_validation_requirements
-                ):
-                    errors.append(
-                        "dependency_graph_audit.validation_requirements: Maven exclusions "
-                        "require resolved_graph and runtime_linkage"
-                    )
-                if has_direct_override and not {"resolved_graph", "runtime_linkage"}.issubset(
-                    audit_validation_requirements
-                ):
-                    errors.append(
-                        "dependency_graph_audit.validation_requirements: Maven graph "
-                        "manipulations require resolved_graph and runtime_linkage"
-                    )
-                for index, manipulation in enumerate(manipulations):
-                    if not isinstance(manipulation, dict):
-                        continue
-                    if (
-                        _text(manipulation.get("classification"))
-                        in {"replacement_declared", "replacement_verified"}
-                        and not _text(manipulation.get("replacement"))
-                    ):
-                        errors.append(
-                            "dependency_graph_audit.manipulations"
-                            f"[{index}].replacement: required for "
-                            f"{_text(manipulation.get('classification'))}"
-                        )
-                    if (
-                        _text(manipulation.get("type")) == "direct_dependency_override"
-                        and _text(manipulation.get("classification"))
-                        not in {
-                            "mediation_declared",
-                            "mediation_verified",
-                            "unverified",
-                            "replacement_conflict_or_incomplete",
-                        }
-                    ):
-                        errors.append(
-                            "dependency_graph_audit.manipulations"
-                            f"[{index}].classification: direct Maven overrides require "
-                            "mediation evidence"
-                        )
-                unsafe_exclusions = exclusion_classifications.intersection(
-                    {"unverified", "replacement_conflict_or_incomplete"}
+                validate_dependency_graph_audit(
+                    profile,
+                    audit=dependency_graph_audit,
+                    selected_manifests=selected_manifests,
+                    risk_status=risk_status,
+                    successful_validation_kinds=_successful_validation_kinds(payload),
+                    errors=errors,
                 )
-                unsafe_direct_overrides = direct_override_classifications.intersection(
-                    {"unverified", "replacement_conflict_or_incomplete"}
-                )
-                if unsafe_exclusions and audit_status != "blocked":
-                    errors.append(
-                        "dependency_graph_audit.status: unverified Maven exclusions require "
-                        "blocked"
-                    )
-                if (
-                    "replacement_declared" in exclusion_classifications
-                    and not unsafe_exclusions
-                    and audit_status != "validation_required"
-                ):
-                    errors.append(
-                        "dependency_graph_audit.status: declared Maven replacements require "
-                        "validation_required"
-                    )
-                if (
-                    "mediation_declared" in direct_override_classifications
-                    and not unsafe_direct_overrides
-                    and audit_status != "validation_required"
-                ):
-                    errors.append(
-                        "dependency_graph_audit.status: declared Maven graph mediation "
-                        "requires validation_required"
-                    )
-                if (
-                    "mediation_verified" in direct_override_classifications
-                    and audit_status != "validated"
-                ):
-                    errors.append(
-                        "dependency_graph_audit.status: verified Maven graph mediation "
-                        "requires validated"
-                    )
-                if (
-                    "replacement_verified" in exclusion_classifications
-                    and audit_status != "validated"
-                ):
-                    errors.append(
-                        "dependency_graph_audit.status: verified Maven replacements require "
-                        "validated"
-                    )
-                if unsafe_direct_overrides and audit_status != "blocked":
-                    errors.append(
-                        "dependency_graph_audit.status: unverified Maven direct overrides "
-                        "require blocked"
-                    )
-                if audit_status == "blocked" and risk_status.startswith("approved"):
-                    errors.append(
-                        "risk_decision.status: blocked Maven dependency graph audit cannot "
-                        "accompany an approved decision"
-                    )
-                if audit_status == "validation_required" and risk_status == "approved_low_risk":
-                    errors.append(
-                        "risk_decision.status: Maven graph manipulation awaiting validation cannot "
-                        "be approved_low_risk"
-                    )
-                if audit_status == "unavailable" and risk_status == "approved_low_risk":
-                    errors.append(
-                        "risk_decision.status: unavailable Maven dependency graph audit cannot "
-                        "be approved_low_risk"
-                    )
-                if (
-                    audit_status == "validated"
-                    and has_exclusion
-                    and not {"resolved_graph", "runtime_linkage"}.issubset(
-                        _successful_validation_kinds(payload)
-                    )
-                ):
-                    errors.append(
-                        "dependency_graph_audit: validated Maven exclusions require passed "
-                        "resolved_graph and runtime_linkage validation"
-                    )
-                if (
-                    audit_status == "validated"
-                    and has_direct_override
-                    and not {"resolved_graph", "runtime_linkage"}.issubset(
-                        _successful_validation_kinds(payload)
-                    )
-                ):
-                    errors.append(
-                        "dependency_graph_audit: validated Maven direct overrides require "
-                        "passed resolved_graph and runtime_linkage validation"
-                    )
-        _validate_finding_count_semantics(payload, selected=selected, errors=errors)
-        _validate_change_request_inventory(
-            payload,
-            selected=selected,
-            gate=gate,
-            risk_status=risk_status,
-            errors=errors,
-        )
+        if has_selected_remediation:
+            _validate_finding_count_semantics(payload, selected=selected, errors=errors)
+            _validate_change_request_inventory(
+                payload,
+                selected=selected,
+                gate=gate,
+                risk_status=risk_status,
+                errors=errors,
+            )
 
     if gate == "pr":
         body = _text(_first_present(payload, "pr_body", "body", "pull_request_body"))
@@ -376,15 +283,41 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
     return errors
 
 
-def _selected_package_manager(payload: dict[str, Any]) -> str:
+def _detect_selected_package_managers(
+    payload: dict[str, Any],
+    selected: dict[str, Any],
+    selected_option: dict[str, Any] | None = None,
+):
+    ecosystem_tokens: list[str] = []
+    manifests: list[str] = []
+    coordinates: list[str] = []
     for request in _list(payload.get("change_requests")):
         if not isinstance(request, dict):
             continue
-        inventory = _dict(request.get("inventory"))
-        package_manager = _text(_dict(inventory.get("key")).get("ecosystem"))
-        if package_manager:
-            return package_manager.lower()
-    return ""
+        key = _dict(_dict(request.get("inventory")).get("key"))
+        token = _text(key.get("ecosystem"))
+        if token:
+            ecosystem_tokens.append(token)
+        manifest = _text(key.get("manifest"))
+        if manifest:
+            manifests.append(manifest)
+        coordinate = _text(key.get("normalized_package"))
+        if coordinate:
+            coordinates.append(coordinate)
+    for source in (selected, selected_option or {}):
+        for field_name in ("manifests", "affected_manifests"):
+            manifests.extend(
+                item for item in _list(source.get(field_name)) if isinstance(item, str)
+            )
+        package = _text(source.get("package") or source.get("package_name"))
+        if package:
+            coordinates.append(package)
+    return detect_package_managers(
+        SUPPORTED_PROFILES,
+        ecosystem_tokens=tuple(ecosystem_tokens),
+        manifests=tuple(manifests),
+        coordinates=tuple(coordinates),
+    )
 
 
 def _has_successful_validation(payload: dict[str, Any]) -> bool:
@@ -560,7 +493,10 @@ def _validate_change_request_inventory(
     if not reconciliation_status:
         errors.append(f"{prefix}.reconciliation.status: required")
     if status == "exact_duplicate":
-        if not any(candidate.get("exact_duplicate") is True for candidate in candidates):
+        if not any(
+            isinstance(candidate, dict) and candidate.get("exact_duplicate") is True
+            for candidate in candidates
+        ):
             errors.append(f"{prefix}.candidates: exact_duplicate requires a matching candidate")
         request_status = _text(request.get("status"))
         if reconciliation_status not in {"reuse_existing", "blocked_duplicate"} or request_status in {
@@ -572,7 +508,8 @@ def _validate_change_request_inventory(
     if status == "none_found" and candidates:
         errors.append(f"{prefix}.candidates: none_found requires an empty candidate list")
     if status == "different_target" and any(
-        candidate.get("exact_duplicate") is True for candidate in candidates
+        isinstance(candidate, dict) and candidate.get("exact_duplicate") is True
+        for candidate in candidates
     ):
         errors.append(f"{prefix}.status: exact matching candidate must use exact_duplicate")
     if status == "different_target":
@@ -962,7 +899,12 @@ def _advisory_ids(advisory: dict[str, Any]) -> tuple[str, str, str]:
     return cve, ghsa, label
 
 
-def _collect_branch_names(value: Any) -> list[str]:
+def _collect_branch_names(value: Any, depth: int = 0) -> list[str]:
+    # Untrusted payloads can nest arbitrarily deep; branch evidence never
+    # legitimately sits beyond a shallow structure, so cap the walk instead of
+    # recursing into a RecursionError.
+    if depth > 32:
+        return []
     names: list[str] = []
     if isinstance(value, dict):
         for key, item in value.items():
@@ -973,10 +915,10 @@ def _collect_branch_names(value: Any) -> list[str]:
                 branch = item.strip()
                 if branch.lower() not in {"not_created", "none", "n/a", "out_of_scope_per_user"}:
                     names.append(branch)
-            names.extend(_collect_branch_names(item))
+            names.extend(_collect_branch_names(item, depth + 1))
     elif isinstance(value, list):
         for item in value:
-            names.extend(_collect_branch_names(item))
+            names.extend(_collect_branch_names(item, depth + 1))
     return list(dict.fromkeys(names))
 
 
@@ -990,11 +932,13 @@ def _scope_branch_provenance(scope: dict[str, Any]) -> str:
     )
 
 
-def _collect_change_request_branch_names(value: Any) -> list[str]:
+def _collect_change_request_branch_names(value: Any, depth: int = 0) -> list[str]:
     names: list[str] = []
+    if depth > 32:
+        return names
     if isinstance(value, list):
         for item in value:
-            names.extend(_collect_change_request_branch_names(item))
+            names.extend(_collect_change_request_branch_names(item, depth + 1))
         return names
     if not isinstance(value, dict):
         return names
@@ -1014,14 +958,6 @@ def _is_remediation_branch_key(key: str) -> bool:
         "proposed_branch",
         "proposed_branch_name",
     } or key.endswith("_branch_name")
-
-
-def _first_present(mapping: dict[str, Any], *keys: str) -> Any:
-    for key in keys:
-        value = mapping.get(key)
-        if not _is_empty(value):
-            return value
-    return None
 
 
 def _has_conflicts(selected: dict[str, Any]) -> bool:
@@ -1065,50 +1001,3 @@ def _format_manifest_cell(manifests: list[str]) -> str:
     return "<br>".join(f"`{manifest}`" for manifest in manifests)
 
 
-def _dict(value: Any) -> dict[str, Any]:
-    return value if isinstance(value, dict) else {}
-
-
-def _list(value: Any) -> list[Any]:
-    return value if isinstance(value, list) else []
-
-
-def _string_list(value: Any) -> list[str]:
-    if isinstance(value, list):
-        return [_text(item) for item in value if _text(item)]
-    if isinstance(value, str) and value.strip():
-        return [value.strip()]
-    return []
-
-
-def _text(value: Any) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        return value.strip()
-    if isinstance(value, (list, dict)):
-        return json.dumps(value, sort_keys=True)
-    return str(value).strip()
-
-
-def _one_line(value: Any) -> str:
-    return re.sub(r"\s+", " ", _text(value)).strip()
-
-
-def _int(value: Any) -> int:
-    if isinstance(value, int):
-        return value
-    try:
-        return int(str(value))
-    except (TypeError, ValueError):
-        return 0
-
-
-def _is_empty(value: Any) -> bool:
-    if value is None:
-        return True
-    if isinstance(value, str):
-        return not value.strip()
-    if isinstance(value, (list, dict)):
-        return not value
-    return False

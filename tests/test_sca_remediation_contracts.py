@@ -1320,6 +1320,372 @@ def test_sca_cli_preflights_policy_applicability_facts(tmp_path, capsys):
     assert "applicability: missing trusted facts" in capsys.readouterr().out
 
 
+def _bare_exclusion_audit(classification: str | None) -> dict:
+    return {
+        "package_manager": "maven",
+        "status": "clear",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": classification,
+                "replacement": None,
+                "evidence": ["excluded on the selected dependency path"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+
+
+def test_sca_maven_exclusion_rejects_relabeled_classifications():
+    for classification in ("version_control", "mediation_declared", "mediation_verified", None):
+        payload = _valid_netty_payload()
+        payload["dependency_graph_audit"] = _bare_exclusion_audit(classification)
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert any(
+            "classification: Maven exclusions require" in error for error in errors
+        ), f"exclusion classification {classification!r} escaped the whitelist"
+
+
+def test_sca_maven_not_needed_verified_exclusion_requires_validated_evidence():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = _bare_exclusion_audit("not_needed_verified")
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: verified not-needed Maven exclusions require validated"
+        in errors
+    )
+
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = _bare_exclusion_audit("not_needed_verified")
+    payload["dependency_graph_audit"]["status"] = "validated"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit: validated Maven exclusions require passed resolved_graph and runtime_linkage validation"
+        in errors
+    )
+
+
+def test_sca_maven_audit_status_must_be_recognized():
+    for status in (None, "Unavailable", "ok", ""):
+        payload = _valid_netty_payload()
+        payload["dependency_graph_audit"]["status"] = status
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert any(
+            error.startswith("dependency_graph_audit.status: must be one of")
+            for error in errors
+        ), f"audit status {status!r} was not rejected"
+
+
+def test_sca_maven_audit_required_when_ecosystem_token_drifts():
+    for ecosystem in ("java", "mvn", "ECOSYSTEM_MAVEN", "Maven Central"):
+        payload = _valid_netty_payload()
+        payload["change_requests"][0]["inventory"]["key"]["ecosystem"] = ecosystem
+        payload.pop("dependency_graph_audit")
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert (
+            "dependency_graph_audit: required for selected Maven remediations" in errors
+        ), f"ecosystem {ecosystem!r} silently disabled the Maven audit"
+
+
+def test_sca_maven_ecosystem_token_must_be_canonical():
+    payload = _valid_netty_payload()
+    payload["change_requests"][0]["inventory"]["key"]["ecosystem"] = "mvn"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "change_requests[0].inventory.key.ecosystem: must be maven for Maven remediations"
+        in errors
+    )
+
+
+def test_sca_maven_manipulation_type_must_be_recognized():
+    for manipulation_type in (None, "resolution_strategy", ""):
+        payload = _valid_netty_payload()
+        payload["dependency_graph_audit"]["manipulations"][0]["type"] = manipulation_type
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert any(
+            "].type: must be one of" in error for error in errors
+        ), f"manipulation type {manipulation_type!r} was not rejected"
+
+
+def test_sca_maven_native_manipulation_requires_version_control_classification():
+    for manipulation_type in ("version_property", "dependency_management", "bom"):
+        payload = _valid_netty_payload()
+        manipulation = payload["dependency_graph_audit"]["manipulations"][0]
+        manipulation["type"] = manipulation_type
+        manipulation["classification"] = "mediation_declared"
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert any(
+            "classification: native Maven controls require version_control" in error
+            for error in errors
+        ), f"native type {manipulation_type!r} accepted a mediation classification"
+
+
+def test_sca_maven_audit_caps_enforced_at_gate():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["dependency_path"] = [
+        f"group:artifact-{index}" for index in range(13)
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert "dependency_graph_audit.dependency_path: must contain at most 12 entries" in errors
+
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manipulations"][0]["evidence"] = [
+        f"evidence item {index}" for index in range(4)
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any(
+        "].evidence: must contain at most 3 entries" in error for error in errors
+    )
+
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["validation_requirements"] = [
+        "resolved_graph",
+        "runtime_linkage",
+        "mvn_test",
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.validation_requirements: must contain at most 2 entries drawn from resolved_graph and runtime_linkage"
+        in errors
+    )
+
+
+def test_sca_maven_listed_manipulation_counts_even_if_claimed_off_path():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = _bare_exclusion_audit("unverified")
+    payload["dependency_graph_audit"]["dependency_path"] = ["io.netty:netty-all"]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: unverified Maven exclusions require blocked"
+        in errors
+    )
+
+
+def test_sca_selection_blocked_flow_accepts_null_target_without_branch_or_counts():
+    payload = _valid_netty_payload()
+    payload["selected_remediation"] = {
+        "package": "org.apache.httpcomponents:httpclient",
+        "from_version": "4.3.6",
+        "to_version": None,
+        "selection_blocked": True,
+    }
+    payload["risk_decision"]["status"] = "blocked_needs_compatibility_analysis"
+    payload["patch_plan"] = []
+    payload["validation"] = []
+    payload["change_requests"][0]["proposed_branch"] = "not_created"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert not any("branch_name" in error for error in errors)
+    assert not any("finding_instances_fixed" in error for error in errors)
+    assert not any("target_version" in error for error in errors)
+
+
+def test_sca_selection_blocked_cannot_accompany_approval_or_created_change_request():
+    payload = _valid_netty_payload()
+    payload["selected_remediation"]["selection_blocked"] = True
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "risk_decision.status: selection_blocked cannot accompany an approved decision"
+        in errors
+    )
+
+    payload = _valid_netty_payload()
+    payload["selected_remediation"]["selection_blocked"] = True
+    payload["risk_decision"]["status"] = "blocked_needs_compatibility_analysis"
+    payload["change_requests"][0]["status"] = "created"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "change_requests: selection_blocked cannot accompany a created or reused change request"
+        in errors
+    )
+
+
+def test_sca_selection_blocked_audit_is_still_validated_when_present():
+    payload = _valid_netty_payload()
+    payload["selected_remediation"] = {
+        "package": None,
+        "from_version": None,
+        "to_version": None,
+        "selection_blocked": True,
+    }
+    payload["risk_decision"]["status"] = "blocked_needs_compatibility_analysis"
+    payload["dependency_graph_audit"] = _bare_exclusion_audit("unverified")
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: unverified Maven exclusions require blocked"
+        in errors
+    )
+
+
+def test_sca_maven_audit_containers_must_be_arrays():
+    for field_name, value in (
+        ("manipulations", {"0": {"type": "exclusion"}}),
+        ("dependency_path", "io.netty:netty-all -> commons-logging"),
+        ("validation_requirements", "resolved_graph"),
+    ):
+        payload = _valid_netty_payload()
+        payload["dependency_graph_audit"][field_name] = value
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert any(
+            f"dependency_graph_audit.{field_name}: must be an array" in error
+            for error in errors
+        ), f"non-list {field_name} was coerced silently"
+
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manipulations"][0]["evidence"] = "prose evidence"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any("].evidence: must be an array" in error for error in errors)
+
+
+def test_sca_maven_ecosystem_case_and_prefix_variants_are_not_canonical():
+    for token in ("Maven", "MAVEN", "ECOSYSTEM_MAVEN"):
+        payload = _valid_netty_payload()
+        payload["change_requests"][0]["inventory"]["key"]["ecosystem"] = token
+
+        errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+        assert (
+            "change_requests[0].inventory.key.ecosystem: must be maven for Maven remediations"
+            in errors
+        ), f"ecosystem variant {token!r} passed as canonical"
+
+
+def test_sca_selected_option_maven_signals_require_audit():
+    payload = _valid_netty_payload()
+    payload["selected_option"] = payload.pop("selected_remediation")
+    payload.pop("dependency_graph_audit")
+    key = payload["change_requests"][0]["inventory"]["key"]
+    key["ecosystem"] = "java"
+    key["manifest"] = "services/api-gateway/build.txt"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit: required for selected Maven remediations" in errors
+    ), "pom.xml manifests in selected_option escaped Maven detection"
+
+
+def test_sca_inventory_non_dict_candidates_produce_clean_errors():
+    payload = _valid_netty_payload()
+    inventory = payload["change_requests"][0]["inventory"]
+    inventory["status"] = "exact_duplicate"
+    inventory["candidates"] = ["not-an-object", 7]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any("candidates[0]: must be an object" in error for error in errors)
+
+
+def test_sca_deeply_nested_payload_does_not_hit_recursion_limit():
+    payload = _valid_netty_payload()
+    deep: dict = {}
+    node = deep
+    for _ in range(5000):
+        node["child"] = {}
+        node = node["child"]
+    payload["metadata_blob"] = deep
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert isinstance(errors, list)
+
+
+def test_sca_text_coercion_survives_non_serializable_values():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manifest"] = {1: "x", "a": object()}
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert isinstance(errors, list)
+
+
+def test_sca_maven_semantic_effect_must_match_manipulation_type():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manipulations"][0]["semantic_effect"] = (
+        "forced_version_mediation"
+    )
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any(
+        "].semantic_effect: must be native_version_control" in error for error in errors
+    )
+
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = _bare_exclusion_audit("unverified")
+    payload["dependency_graph_audit"]["status"] = "blocked"
+    payload["risk_decision"]["status"] = "blocked_needs_compatibility_analysis"
+    payload["dependency_graph_audit"]["manipulations"][0]["semantic_effect"] = (
+        "native_version_control"
+    )
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any(
+        "].semantic_effect: must be dependency_removal or dependency_substitution"
+        in error
+        for error in errors
+    )
+
+
+def test_sca_maven_mechanism_must_match_manipulation_type():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manipulations"][0]["mechanism"] = "maven.bom"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any(
+        "].mechanism: must be maven.version_property" in error for error in errors
+    )
+
+
+def test_sca_maven_valid_semantic_effect_and_mechanism_are_accepted():
+    payload = _valid_netty_payload()
+    manipulation = payload["dependency_graph_audit"]["manipulations"][0]
+    manipulation["semantic_effect"] = "native_version_control"
+    manipulation["mechanism"] = "maven.version_property"
+
+    assert validate_sca_gate_payload(payload, gate="selection-plan") == []
+
+
 def test_sca_branch_normalizer_uses_remediation_sca_prefix():
     assert normalize_sca_branch("io.netty:netty-all", "4.2.13.Final") == "remediation/sca/netty-all-4.2.13.Final"
     assert normalize_sca_branch("npm://axios", "1.16.1") == "remediation/sca/axios-1.16.1"

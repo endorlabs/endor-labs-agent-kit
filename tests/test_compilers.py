@@ -550,10 +550,13 @@ def _prompt_budget(relative_path: str) -> int:
         # selection-plan nested-key contracts. The compact selection-evidence
         # projection, manifest-overlap reconciliation, and source/delivery
         # capability preflight and bounded Maven dependency-path audit are
-        # quality-critical. This measured ceiling retains bounded headroom over
-        # the largest generated host artifact.
-        # Scoped profiles retain separate <70% checks.
-        return 52_400
+        # quality-critical. The exact dependency_graph_audit key/enum contract
+        # plus the bare-token validation_requirements and selection_blocked
+        # no-candidate rules (required so prompt-only hosts emit gate-valid
+        # audits) measure 54,817 characters on the largest generated host
+        # artifact; retain bounded headroom. Scoped profiles retain separate
+        # <70% checks.
+        return 55_000
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

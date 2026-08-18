@@ -11,11 +11,44 @@ package metadata.
 
 ## Unreleased
 
+### Changed
+
+- Extracted the Maven dependency-graph audit into a package-manager profile
+  registry with a shared audit engine, preparing the seam for Gradle and later
+  ecosystems, and added optional cross-ecosystem `semantic_effect` and
+  `mechanism` manipulation fields to the SCA structured-output contract.
+
 ### Fixed
 
 - Hardened Maven SCA remediation plans against unexplained direct dependency
   overrides and exclusions by requiring a bounded selected-path audit plus
   resolved-graph and targeted runtime/linkage evidence.
+- Closed fail-open seams in the deterministic SCA graph-safety gate: exclusion
+  classifications are now whitelist-constrained (a bare exclusion can no longer
+  pass as `not_needed_verified` or `version_control` without evidence), the
+  audit `status` and manipulation `type`/`classification` tokens are
+  enum-checked, native control types cannot carry mediation classifications,
+  every normalized output cap is enforced deterministically, and Maven
+  detection now cross-checks manifests and coordinates instead of trusting the
+  free-form inventory ecosystem string (which must be exactly `maven`).
+- Documented the exact `dependency_graph_audit` JSON contract, enum vocabulary,
+  and selection-plan gate statuses in the canonical instructions so prompt-only
+  hosts emit contract-valid audits, and aligned the evidence-plan stop
+  condition with the audit's dependency-path scope.
+- Serialized compiled profile contracts in logical field order so shipped
+  `profile-contracts/*.json` files round-trip through
+  `profile_contract_from_dict` again.
+- Closed second-round gate seams found by adversarial re-probe of the hardened
+  validator: `selection_blocked` can no longer accompany an approved risk
+  decision or a created/reused change request and any supplied audit is still
+  validated; non-array audit containers now error instead of coercing to
+  empty; the inventory ecosystem token must be literally `maven` (case and
+  prefix variants rejected); Maven signals in `selected_option` now trigger
+  the audit requirement; and payload-driven crashes were fixed (non-dict
+  inventory candidates, deep-nesting recursion in branch collection, and
+  non-serializable values in text coercion).
+- Isolated the validation-isolation test fixtures from operator-level git
+  configuration such as a global excludesFile that ignores `vendor/` paths.
 
 ## 2.2.1 - 2026-08-01
 

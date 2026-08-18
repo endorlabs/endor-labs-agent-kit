@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 
@@ -13,12 +14,20 @@ from endor_agent_kit.validation_isolation import (
 
 
 def _git(repo, *args):
+    # Fixture repos must not inherit operator-level git config such as a
+    # global excludesFile that ignores vendor/ paths.
+    env = {
+        **os.environ,
+        "GIT_CONFIG_GLOBAL": os.devnull,
+        "GIT_CONFIG_SYSTEM": os.devnull,
+    }
     return subprocess.run(
         ["git", *args],
         cwd=repo,
         check=True,
         capture_output=True,
         text=True,
+        env=env,
     )
 
 
