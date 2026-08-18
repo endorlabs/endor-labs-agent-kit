@@ -16,6 +16,7 @@ from endor_agent_kit.compilers import (
     compile_raw,
 )
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
+from endor_agent_kit.profile_contracts import compile_profile_contract
 from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 
 from conftest import GeneratedCatalog, repo_root
@@ -104,6 +105,7 @@ def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundl
     scoped = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-evidence-check.md").read_text()
     selection = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation-selection-plan.md").read_text()
     base = (target / "dist" / "claude-code" / "enterprise-edition" / "sca-remediation.md").read_text()
+    selection_contract = compile_profile_contract("sca-remediation", "selection-plan")
     assert "name: sca-remediation-evidence-check" in scoped
     assert "Profiles: `evidence-check`" in scoped
     assert "`selection-plan` - Selection Plan" not in scoped
@@ -116,8 +118,10 @@ def test_claude_code_compiler_emits_named_profile_variants_in_same_edition_bundl
         "project_resolution",
         "evidence_queries",
         "selected_remediation",
+        "dependency_graph_audit",
     ):
         assert f"`{field}`" in selection
+    assert "dependency_graph_audit" in selection_contract.output_fields
     assert '"remediation_candidates": []' not in selection
     assert '"patch_plan": []' not in selection
     assert '"tickets": []' not in selection
@@ -545,10 +549,11 @@ def _prompt_budget(relative_path: str) -> int:
         # evidence-ledger/count, validation-backed risk-decision, and strict
         # selection-plan nested-key contracts. The compact selection-evidence
         # projection, manifest-overlap reconciliation, and source/delivery
-        # capability preflight are quality-critical. This measured,
-        # agent-specific ceiling leaves under 500 characters above the largest
-        # generated host artifact. Scoped profiles retain separate <70% checks.
-        return 51_600
+        # capability preflight and bounded Maven dependency-path audit are
+        # quality-critical. This measured ceiling retains bounded headroom over
+        # the largest generated host artifact.
+        # Scoped profiles retain separate <70% checks.
+        return 52_400
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

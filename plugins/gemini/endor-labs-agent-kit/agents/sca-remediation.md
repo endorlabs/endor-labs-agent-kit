@@ -236,7 +236,8 @@ At the `selection-plan` gate, return exactly one `change_requests` entry and alw
 The selection-plan profile projection overrides the generic full-workflow
 Output section. Return only `summary`, `project_resolution`,
 `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`,
-`change_requests`, `data_gaps`, `policy_context`, and `policy_evaluations`.
+`dependency_graph_audit`, `change_requests`, `data_gaps`, `policy_context`, and
+`policy_evaluations`.
 Omit `remediation_candidates`, `patch_plan`, `validation`, and `tickets`; put
 unrun checks in `risk_decision.validation_requirements` as strings. The
 `selection-plan` task profile explicitly selects structured JSON mode. Before
@@ -361,6 +362,20 @@ The Selection / Plan gate is not complete until `risk_decision.status` is presen
 
 Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a straightforward manifest change as a substitute for risk resolution. Those are inputs to `risk_decision`, not the decision itself.
 
+## Maven Dependency Graph Safety Audit
+
+After UIA selects Maven, inspect only its dependency path and affected POMs;
+return at most eight manipulations, no raw POM/unbounded tree or Endor query per
+exclusion. Existing property/BOM/`dependencyManagement` is `version_control`;
+prefer it to a direct dependency added only to force a transitive version.
+Such a direct override is `mediation_declared`/`validation_required` until a
+filtered graph and targeted runtime/linkage test pass, then
+`mediation_verified`/`validated`. Exclusion without replacement/conflicting ->
+`blocked`; exact `replacement_declared` follows the same validation rule before
+`replacement_verified`. With neither override nor exclusion use `clear`, or
+`validated` after both checks pass. UIA cannot waive this; evidence-only ->
+`unavailable`, never `approved_low_risk`.
+
 ## Validation Command Selection
 
 Choose validation commands from the actual repository layout, package manager, and manifest or lockfile that contains the selected dependency. Do not assume a Java/Maven repository, and do not reuse validation commands from a prior run unless the current repository has the same build layout.
@@ -473,7 +488,7 @@ Default response mode is concise human-readable Markdown. Lead with the primary 
 Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
 The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
-string: `summary`; list[object]: `remediation_candidates`, `evidence_queries`, `uia_evidence`, `patch_plan`, `validation`, `change_requests`, `tickets`, `policy_evaluations`; object: `project_resolution`, `execution_context`, `selected_remediation`, `risk_decision`, `policy_context`; list[string]: `data_gaps`
+string: `summary`; list[object]: `remediation_candidates`, `evidence_queries`, `uia_evidence`, `patch_plan`, `validation`, `change_requests`, `tickets`, `policy_evaluations`; object: `project_resolution`, `execution_context`, `selected_remediation`, `risk_decision`, `dependency_graph_audit`, `policy_context`; list[string]: `data_gaps`
 Optional fields when verified:
 object: `task_state`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.

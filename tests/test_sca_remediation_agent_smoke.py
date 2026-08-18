@@ -162,6 +162,16 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Do not say \"not expected to break\"" in prompt
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
+    assert "## Maven Dependency Graph Safety Audit" in prompt
+    assert "inspect only its dependency path and affected POMs" in prompt
+    assert "Existing property/BOM/`dependencyManagement` is `version_control`" in prompt
+    assert "Exclusion without replacement/conflicting" in prompt
+    assert "`mediation_declared`/`validation_required`" in prompt
+    assert "`mediation_verified`/`validated`" in prompt
+    assert "`replacement_declared`" in prompt
+    assert "`replacement_verified`" in prompt
+    assert "at most eight manipulations" in prompt
+    assert "Endor query per\nexclusion" in prompt
     assert "Validation Command Selection" in prompt
     assert "Never clean validation artifacts in the user's worktree" in prompt
     assert "the user worktree must remain byte-for-byte unchanged" in prompt
@@ -323,4 +333,9 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "no-local-checkout-degrades-to-evidence-only",
         "explicit-namespace-does-not-expose-auth-config",
         "checkout-without-provider-write-stops-before-pr",
+        "maven-managed-version-property-preferred",
+        "maven-direct-parent-override-requires-evidence",
+        "maven-bare-exclusion-blocked",
+        "maven-declared-bridge-validation-required",
+        "maven-unrelated-exclusion-ignored",
     }.issubset(ids)

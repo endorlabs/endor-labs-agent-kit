@@ -46,6 +46,7 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
         "selected_remediation",
         "uia_evidence",
         "risk_decision",
+        "dependency_graph_audit",
         "change_requests",
         "data_gaps",
         "policy_context",
@@ -55,7 +56,9 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
     assert contract.output_fields == expected_fields
     assert contract.required_fields == expected_fields
     assert tuple(contract.provider_neutral_schema["properties"]) == expected_fields
-    assert len(contract.provider_neutral_schema_json) < 10_000
+    # The bounded Maven graph-audit schema adds 1,360 characters to the prior
+    # 9,605-character contract while replacing the much larger generic object.
+    assert len(contract.provider_neutral_schema_json) < 11_100
     for omitted_field in (
         "remediation_candidates",
         "patch_plan",
@@ -64,6 +67,31 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
         "task_state",
     ):
         assert omitted_field not in contract.provider_neutral_schema["properties"]
+
+
+def test_compiled_sca_selection_plan_uses_compact_maven_graph_audit_schema():
+    contract = compile_profile_contract("sca-remediation", "selection-plan")
+    audit = contract.provider_neutral_schema["properties"]["dependency_graph_audit"]
+
+    assert set(audit["properties"]) == {
+        "package_manager",
+        "status",
+        "manifest",
+        "dependency_path",
+        "manipulations",
+        "validation_requirements",
+    }
+    assert audit["properties"]["dependency_path"]["maxItems"] == 12
+    assert audit["properties"]["manipulations"]["maxItems"] == 8
+    manipulation = audit["properties"]["manipulations"]["items"]
+    assert set(manipulation["properties"]) == {
+        "type",
+        "coordinate",
+        "classification",
+        "replacement",
+        "evidence",
+    }
+    assert manipulation["properties"]["evidence"]["maxItems"] == 3
 
 
 def test_compiled_sca_selection_plan_contract_requires_inventory_sentinel_shape():
