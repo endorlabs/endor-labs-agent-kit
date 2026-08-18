@@ -9,6 +9,14 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
+## Unreleased
+
+### Fixed
+
+- Hardened Maven SCA remediation plans against unexplained direct dependency
+  overrides and exclusions by requiring a bounded selected-path audit plus
+  resolved-graph and targeted runtime/linkage evidence.
+
 ## 2.2.1 - 2026-08-01
 
 ### Changed

@@ -95,6 +95,22 @@ def _valid_netty_payload() -> dict:
                 "findings_introduced": 0,
             }
         ],
+        "dependency_graph_audit": {
+            "package_manager": "maven",
+            "status": "clear",
+            "manifest": "services/api-gateway/pom.xml",
+            "dependency_path": ["io.netty:netty-all"],
+            "manipulations": [
+                {
+                    "type": "version_property",
+                    "coordinate": "io.netty:netty-all",
+                    "classification": "version_control",
+                    "replacement": None,
+                    "evidence": ["netty.version controls the selected package"],
+                }
+            ],
+            "validation_requirements": [],
+        },
         "patch_plan": [
             {
                 "file": "services/api-gateway/pom.xml",
@@ -184,6 +200,392 @@ def test_sca_gate_validator_requires_namespace_provenance():
     errors = validate_sca_gate_payload(payload)
 
     assert "project_resolution.namespace_provenance: required for SCA workflow gates" in errors
+
+
+def test_sca_selection_requires_maven_dependency_graph_audit():
+    payload = _valid_netty_payload()
+    payload.pop("dependency_graph_audit")
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit: required for selected Maven remediations"
+        in errors
+    )
+
+
+def test_sca_maven_dependency_graph_audit_must_match_selected_manifest():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manifest"] = "services/unrelated/pom.xml"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.manifest: must match a selected remediation manifest"
+        in errors
+    )
+
+
+def test_sca_maven_unverified_exclusion_blocks_approved_decision():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "blocked",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "unverified",
+                "replacement": None,
+                "evidence": ["excluded on the selected dependency path"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "risk_decision.status: blocked Maven dependency graph audit cannot accompany an approved decision"
+        in errors
+    )
+
+
+def test_sca_maven_audit_status_cannot_hide_unverified_exclusion():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "blocked_needs_compatibility_analysis"
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "clear",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "unverified",
+                "replacement": None,
+                "evidence": ["excluded on the selected dependency path"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: unverified Maven exclusions require blocked"
+        in errors
+    )
+
+
+def test_sca_maven_declared_replacement_requires_validation_before_low_risk():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "validation_required",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "replacement_declared",
+                "replacement": "org.slf4j:jcl-over-slf4j",
+                "evidence": ["replacement dependency declared in the affected module"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+    payload["validation"] = [
+        {"kind": "resolved_graph", "status": "passed", "command": "mvn dependency:tree"},
+        {"kind": "runtime_linkage", "status": "passed", "command": "mvn test"},
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "risk_decision.status: Maven graph manipulation awaiting validation cannot be approved_low_risk"
+        in errors
+    )
+
+
+def test_sca_maven_declared_replacement_requires_validation_required_status():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "clear",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "replacement_declared",
+                "replacement": "org.slf4j:jcl-over-slf4j",
+                "evidence": ["replacement dependency declared in the affected module"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: declared Maven replacements require validation_required"
+        in errors
+    )
+
+
+def test_sca_maven_declared_replacement_requires_graph_and_runtime_validation_plan():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "validation_required",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "replacement_declared",
+                "replacement": "org.slf4j:jcl-over-slf4j",
+                "evidence": ["replacement dependency declared in the affected module"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph"],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.validation_requirements: Maven exclusions require resolved_graph and runtime_linkage"
+        in errors
+    )
+
+
+def test_sca_maven_audit_identifies_maven_package_manager():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["package_manager"] = "gradle"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert "dependency_graph_audit.package_manager: must be maven" in errors
+
+
+def test_sca_maven_direct_override_cannot_masquerade_as_native_version_control():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"]["manipulations"] = [
+        {
+            "type": "direct_dependency_override",
+            "coordinate": "io.netty:netty-all",
+            "classification": "version_control",
+            "replacement": None,
+            "evidence": ["direct parent dependency forces the transitive version"],
+        }
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.manipulations[0].classification: direct Maven overrides require mediation evidence"
+        in errors
+    )
+
+
+def test_sca_maven_declared_direct_override_requires_validation():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "clear",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all"],
+        "manipulations": [
+            {
+                "type": "direct_dependency_override",
+                "coordinate": "io.netty:netty-all",
+                "classification": "mediation_declared",
+                "replacement": None,
+                "evidence": ["no project-native version control exists"],
+            }
+        ],
+        "validation_requirements": [],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: declared Maven graph mediation requires validation_required"
+        in errors
+    )
+    assert (
+        "dependency_graph_audit.validation_requirements: Maven graph manipulations require resolved_graph and runtime_linkage"
+        in errors
+    )
+
+
+def test_sca_maven_verified_direct_override_requires_validated_status():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "clear",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all"],
+        "manipulations": [
+            {
+                "type": "direct_dependency_override",
+                "coordinate": "io.netty:netty-all",
+                "classification": "mediation_verified",
+                "replacement": None,
+                "evidence": ["filtered graph and targeted runtime validation passed"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.status: verified Maven graph mediation requires validated"
+        in errors
+    )
+
+
+def test_sca_maven_declared_replacement_requires_exact_coordinate():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "validation_required",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "replacement_declared",
+                "replacement": None,
+                "evidence": ["manifest comment says logging is replaced"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.manipulations[0].replacement: required for replacement_declared"
+        in errors
+    )
+
+
+def test_sca_maven_validated_replacement_requires_graph_and_runtime_evidence():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "validated",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "replacement_verified",
+                "replacement": "org.slf4j:jcl-over-slf4j",
+                "evidence": ["replacement dependency declared in the affected module"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+    payload["validation"] = [
+        {"kind": "resolved_graph", "status": "passed", "command": "mvn dependency:tree"},
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit: validated Maven exclusions require passed resolved_graph and runtime_linkage validation"
+        in errors
+    )
+
+
+def test_sca_maven_dependency_graph_audit_is_bounded():
+    payload = _valid_netty_payload()
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "clear",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all"],
+        "manipulations": [
+            {
+                "type": "version_property",
+                "coordinate": f"io.netty:netty-module-{index}",
+                "classification": "version_control",
+                "replacement": None,
+                "evidence": ["managed by the selected version property"],
+            }
+            for index in range(9)
+        ],
+        "validation_requirements": [],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert "dependency_graph_audit.manipulations: must contain at most 8 entries" in errors
+
+
+def test_sca_maven_unavailable_audit_cannot_be_low_risk():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "unavailable",
+        "manifest": None,
+        "dependency_path": [],
+        "manipulations": [],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+    payload["validation"] = [
+        {"kind": "resolved_graph", "status": "passed", "command": "mvn dependency:tree"},
+        {"kind": "runtime_linkage", "status": "passed", "command": "mvn test"},
+    ]
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "risk_decision.status: unavailable Maven dependency graph audit cannot be approved_low_risk"
+        in errors
+    )
+
+
+def test_sca_maven_verified_replacement_accepts_low_risk_after_graph_and_runtime_validation():
+    payload = _valid_netty_payload()
+    payload["risk_decision"]["status"] = "approved_low_risk"
+    payload["dependency_graph_audit"] = {
+        "package_manager": "maven",
+        "status": "validated",
+        "manifest": "services/api-gateway/pom.xml",
+        "dependency_path": ["io.netty:netty-all", "commons-logging:commons-logging"],
+        "manipulations": [
+            {
+                "type": "exclusion",
+                "coordinate": "commons-logging:commons-logging",
+                "classification": "replacement_verified",
+                "replacement": "org.slf4j:jcl-over-slf4j",
+                "evidence": ["replacement dependency declared in the affected module"],
+            }
+        ],
+        "validation_requirements": ["resolved_graph", "runtime_linkage"],
+    }
+    payload["validation"] = [
+        {"kind": "resolved_graph", "status": "passed", "command": "mvn dependency:tree"},
+        {"kind": "runtime_linkage", "status": "passed", "command": "mvn test"},
+    ]
+
+    assert validate_sca_gate_payload(payload, gate="selection-plan") == []
 
 
 def test_sca_selection_gate_accepts_profile_projected_plan_without_apply_fields():

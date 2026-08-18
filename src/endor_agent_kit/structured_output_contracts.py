@@ -185,6 +185,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("selected_remediation", "object"),
         StructuredOutputField("uia_evidence", "list[object]"),
         StructuredOutputField("risk_decision", "object"),
+        StructuredOutputField("dependency_graph_audit", "object"),
         StructuredOutputField("patch_plan", "list[object]"),
         StructuredOutputField("validation", "list[object]"),
         StructuredOutputField("change_requests", "list[object]"),
@@ -904,6 +905,65 @@ def _risk_decision_schema() -> dict[str, Any]:
     )
 
 
+def _dependency_graph_audit_schema() -> dict[str, Any]:
+    manipulation = _strict_object_schema(
+        {
+            "type": _nullable_enum(
+                (
+                    "version_property",
+                    "dependency_management",
+                    "bom",
+                    "direct_dependency_override",
+                    "exclusion",
+                )
+            ),
+            "coordinate": _nullable_string(),
+            "classification": _nullable_enum(
+                (
+                    "version_control",
+                    "mediation_declared",
+                    "mediation_verified",
+                    "replacement_declared",
+                    "replacement_verified",
+                    "not_needed_verified",
+                    "unverified",
+                    "replacement_conflict_or_incomplete",
+                )
+            ),
+            "replacement": _nullable_string(),
+            "evidence": {
+                "type": ["array", "null"],
+                "items": {"type": "string"},
+                "maxItems": 3,
+            },
+        }
+    )
+    return _strict_object_schema(
+        {
+            "package_manager": _nullable_enum(("maven",)),
+            "status": _nullable_enum(
+                ("clear", "validation_required", "validated", "blocked", "unavailable")
+            ),
+            "manifest": _nullable_string(),
+            "dependency_path": {
+                "type": ["array", "null"],
+                "items": {"type": "string"},
+                "maxItems": 12,
+            },
+            "manipulations": {
+                "type": ["array", "null"],
+                "items": manipulation,
+                "maxItems": 8,
+            },
+            "validation_requirements": {
+                "type": ["array", "null"],
+                "items": {"type": "string", "enum": ["resolved_graph", "runtime_linkage"]},
+                "maxItems": 2,
+            },
+        }
+    )
+
+
 def _evidence_queries_schema() -> dict[str, Any]:
     return {
         "type": "array",
@@ -1376,6 +1436,7 @@ FIELD_SCHEMA_OVERRIDES = {
     "selected_upgrade": _selected_remediation_schema,
     "dependency_delta": _generic_object_schema,
     "risk_decision": _risk_decision_schema,
+    "dependency_graph_audit": _dependency_graph_audit_schema,
     "evidence_queries": _evidence_queries_schema,
     "uia_evidence": _uia_evidence_schema,
     "remediation_candidates": _remediation_candidates_schema,

@@ -199,7 +199,8 @@ At the `selection-plan` gate, return exactly one `change_requests` entry and alw
 The selection-plan profile projection overrides the generic full-workflow
 Output section. Return only `summary`, `project_resolution`,
 `evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`,
-`change_requests`, `data_gaps`, `policy_context`, and `policy_evaluations`.
+`dependency_graph_audit`, `change_requests`, `data_gaps`, `policy_context`, and
+`policy_evaluations`.
 Omit `remediation_candidates`, `patch_plan`, `validation`, and `tickets`; put
 unrun checks in `risk_decision.validation_requirements` as strings. The
 `selection-plan` task profile explicitly selects structured JSON mode. Before
@@ -400,6 +401,20 @@ For a plan-only request, the solver still produces the deterministic `risk_decis
 The Selection / Plan gate is not complete until `risk_decision.status` is present. Even if the user asks for a concise restatement, include `risk_decision.status`, the evidence summary, source-usage summary, validation requirements, and whether the next approval gate is allowed. Do not end with "awaiting approval to apply" when `cia_status` is indeterminate and `risk_decision` is missing.
 
 Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a straightforward manifest change as a substitute for risk resolution. Those are inputs to `risk_decision`, not the decision itself.
+
+## Maven Dependency Graph Safety Audit
+
+After UIA selects Maven, inspect only its dependency path and affected POMs;
+return at most eight manipulations, no raw POM/unbounded tree or Endor query per
+exclusion. Existing property/BOM/`dependencyManagement` is `version_control`;
+prefer it to a direct dependency added only to force a transitive version.
+Such a direct override is `mediation_declared`/`validation_required` until a
+filtered graph and targeted runtime/linkage test pass, then
+`mediation_verified`/`validated`. Exclusion without replacement/conflicting ->
+`blocked`; exact `replacement_declared` follows the same validation rule before
+`replacement_verified`. With neither override nor exclusion use `clear`, or
+`validated` after both checks pass. UIA cannot waive this; evidence-only ->
+`unavailable`, never `approved_low_risk`.
 
 ## Validation Command Selection
 

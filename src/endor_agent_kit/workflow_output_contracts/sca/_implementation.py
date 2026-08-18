@@ -179,6 +179,184 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
         )
 
     if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation:
+        if _selected_package_manager(payload) == "maven":
+            dependency_graph_audit = payload.get("dependency_graph_audit")
+            if not isinstance(dependency_graph_audit, dict):
+                errors.append(
+                    "dependency_graph_audit: required for selected Maven remediations"
+                )
+            else:
+                audit_status = _text(dependency_graph_audit.get("status"))
+                if _text(dependency_graph_audit.get("package_manager")) != "maven":
+                    errors.append("dependency_graph_audit.package_manager: must be maven")
+                selected_manifests = {
+                    item
+                    for field_name in ("manifests", "affected_manifests")
+                    for item in _list(selected.get(field_name))
+                    if isinstance(item, str) and item.strip()
+                }
+                audit_manifest = _text(dependency_graph_audit.get("manifest"))
+                if (
+                    audit_status != "unavailable"
+                    and selected_manifests
+                    and audit_manifest not in selected_manifests
+                ):
+                    errors.append(
+                        "dependency_graph_audit.manifest: must match a selected remediation "
+                        "manifest"
+                    )
+                manipulations = _list(dependency_graph_audit.get("manipulations"))
+                if len(manipulations) > 8:
+                    errors.append(
+                        "dependency_graph_audit.manipulations: must contain at most 8 entries"
+                    )
+                exclusion_classifications = {
+                    _text(item.get("classification"))
+                    for item in manipulations
+                    if isinstance(item, dict) and _text(item.get("type")) == "exclusion"
+                }
+                has_exclusion = bool(exclusion_classifications)
+                direct_override_classifications = {
+                    _text(item.get("classification"))
+                    for item in manipulations
+                    if isinstance(item, dict)
+                    and _text(item.get("type")) == "direct_dependency_override"
+                }
+                has_direct_override = bool(direct_override_classifications)
+                audit_validation_requirements = {
+                    item
+                    for item in _list(dependency_graph_audit.get("validation_requirements"))
+                    if isinstance(item, str)
+                }
+                if has_exclusion and not {"resolved_graph", "runtime_linkage"}.issubset(
+                    audit_validation_requirements
+                ):
+                    errors.append(
+                        "dependency_graph_audit.validation_requirements: Maven exclusions "
+                        "require resolved_graph and runtime_linkage"
+                    )
+                if has_direct_override and not {"resolved_graph", "runtime_linkage"}.issubset(
+                    audit_validation_requirements
+                ):
+                    errors.append(
+                        "dependency_graph_audit.validation_requirements: Maven graph "
+                        "manipulations require resolved_graph and runtime_linkage"
+                    )
+                for index, manipulation in enumerate(manipulations):
+                    if not isinstance(manipulation, dict):
+                        continue
+                    if (
+                        _text(manipulation.get("classification"))
+                        in {"replacement_declared", "replacement_verified"}
+                        and not _text(manipulation.get("replacement"))
+                    ):
+                        errors.append(
+                            "dependency_graph_audit.manipulations"
+                            f"[{index}].replacement: required for "
+                            f"{_text(manipulation.get('classification'))}"
+                        )
+                    if (
+                        _text(manipulation.get("type")) == "direct_dependency_override"
+                        and _text(manipulation.get("classification"))
+                        not in {
+                            "mediation_declared",
+                            "mediation_verified",
+                            "unverified",
+                            "replacement_conflict_or_incomplete",
+                        }
+                    ):
+                        errors.append(
+                            "dependency_graph_audit.manipulations"
+                            f"[{index}].classification: direct Maven overrides require "
+                            "mediation evidence"
+                        )
+                unsafe_exclusions = exclusion_classifications.intersection(
+                    {"unverified", "replacement_conflict_or_incomplete"}
+                )
+                unsafe_direct_overrides = direct_override_classifications.intersection(
+                    {"unverified", "replacement_conflict_or_incomplete"}
+                )
+                if unsafe_exclusions and audit_status != "blocked":
+                    errors.append(
+                        "dependency_graph_audit.status: unverified Maven exclusions require "
+                        "blocked"
+                    )
+                if (
+                    "replacement_declared" in exclusion_classifications
+                    and not unsafe_exclusions
+                    and audit_status != "validation_required"
+                ):
+                    errors.append(
+                        "dependency_graph_audit.status: declared Maven replacements require "
+                        "validation_required"
+                    )
+                if (
+                    "mediation_declared" in direct_override_classifications
+                    and not unsafe_direct_overrides
+                    and audit_status != "validation_required"
+                ):
+                    errors.append(
+                        "dependency_graph_audit.status: declared Maven graph mediation "
+                        "requires validation_required"
+                    )
+                if (
+                    "mediation_verified" in direct_override_classifications
+                    and audit_status != "validated"
+                ):
+                    errors.append(
+                        "dependency_graph_audit.status: verified Maven graph mediation "
+                        "requires validated"
+                    )
+                if (
+                    "replacement_verified" in exclusion_classifications
+                    and audit_status != "validated"
+                ):
+                    errors.append(
+                        "dependency_graph_audit.status: verified Maven replacements require "
+                        "validated"
+                    )
+                if unsafe_direct_overrides and audit_status != "blocked":
+                    errors.append(
+                        "dependency_graph_audit.status: unverified Maven direct overrides "
+                        "require blocked"
+                    )
+                if audit_status == "blocked" and risk_status.startswith("approved"):
+                    errors.append(
+                        "risk_decision.status: blocked Maven dependency graph audit cannot "
+                        "accompany an approved decision"
+                    )
+                if audit_status == "validation_required" and risk_status == "approved_low_risk":
+                    errors.append(
+                        "risk_decision.status: Maven graph manipulation awaiting validation cannot "
+                        "be approved_low_risk"
+                    )
+                if audit_status == "unavailable" and risk_status == "approved_low_risk":
+                    errors.append(
+                        "risk_decision.status: unavailable Maven dependency graph audit cannot "
+                        "be approved_low_risk"
+                    )
+                if (
+                    audit_status == "validated"
+                    and has_exclusion
+                    and not {"resolved_graph", "runtime_linkage"}.issubset(
+                        _successful_validation_kinds(payload)
+                    )
+                ):
+                    errors.append(
+                        "dependency_graph_audit: validated Maven exclusions require passed "
+                        "resolved_graph and runtime_linkage validation"
+                    )
+                if (
+                    audit_status == "validated"
+                    and has_direct_override
+                    and not {"resolved_graph", "runtime_linkage"}.issubset(
+                        _successful_validation_kinds(payload)
+                    )
+                ):
+                    errors.append(
+                        "dependency_graph_audit: validated Maven direct overrides require "
+                        "passed resolved_graph and runtime_linkage validation"
+                    )
         _validate_finding_count_semantics(payload, selected=selected, errors=errors)
         _validate_change_request_inventory(
             payload,
@@ -198,6 +376,17 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
     return errors
 
 
+def _selected_package_manager(payload: dict[str, Any]) -> str:
+    for request in _list(payload.get("change_requests")):
+        if not isinstance(request, dict):
+            continue
+        inventory = _dict(request.get("inventory"))
+        package_manager = _text(_dict(inventory.get("key")).get("ecosystem"))
+        if package_manager:
+            return package_manager.lower()
+    return ""
+
+
 def _has_successful_validation(payload: dict[str, Any]) -> bool:
     successful = {"completed", "ok", "pass", "passed", "success", "succeeded"}
     for item in _list(payload.get("validation")):
@@ -206,6 +395,17 @@ def _has_successful_validation(payload: dict[str, Any]) -> bool:
         if _text(item.get("status") or item.get("result")).lower() in successful:
             return True
     return False
+
+
+def _successful_validation_kinds(payload: dict[str, Any]) -> set[str]:
+    successful = {"completed", "ok", "pass", "passed", "success", "succeeded"}
+    return {
+        _text(item.get("kind"))
+        for item in _list(payload.get("validation"))
+        if isinstance(item, dict)
+        and _text(item.get("status") or item.get("result")).lower() in successful
+        and _text(item.get("kind"))
+    }
 
 
 def _validate_finding_count_semantics(

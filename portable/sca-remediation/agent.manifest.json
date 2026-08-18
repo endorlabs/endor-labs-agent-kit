@@ -399,6 +399,12 @@
       "required": true
     },
     {
+      "description": "Bounded Maven audit of graph manipulations on the selected dependency path, including direct overrides, exclusions, exact replacements, evidence status, and required graph/runtime validation.",
+      "kind": "object",
+      "name": "dependency_graph_audit",
+      "required": true
+    },
+    {
       "description": "Files to edit, dependency-manager commands considered, companion source edits, branch/title/body draft, and explicit approval status.",
       "kind": "list[object]",
       "name": "patch_plan",

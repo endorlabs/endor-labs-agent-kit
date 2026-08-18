@@ -67,6 +67,7 @@ task_profiles:
       - selected_remediation
       - uia_evidence
       - risk_decision
+      - dependency_graph_audit
       - change_requests
       - data_gaps
       - policy_context
@@ -82,6 +83,7 @@ task_profiles:
     minimal_evidence:
       - Resolved project and VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance.
       - Local manifest/source usage for the selected package when `execution_context.mode` is `local_checkout`; otherwise an explicit evidence-only risk fallback and source data gap.
+      - For a selected Maven candidate, one bounded dependency-path audit of only the affected POMs. Preserve project-native version properties, dependencyManagement, and BOM controls; classify every selected-path direct override or exclusion and name any exact replacement.
       - Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`.
       - Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry.
       - Dirty worktree state for affected manifests before proposing any local mutation. This is not required for an evidence-only plan.
@@ -92,6 +94,7 @@ task_profiles:
       - Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change
         request plan, and precise `data_gaps`.
       - Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request.
+      - For Maven, return `dependency_graph_audit`; an unverified direct override or exclusion blocks approval, declared mediation or replacement requires resolved-graph plus runtime/linkage validation, and unrelated graph manipulation outside the selected path is ignored.
       - Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body.
       - Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable.
       - 'For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`.'
@@ -100,7 +103,7 @@ task_profiles:
         `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`.
       - Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`,
         `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`.
-      - 'The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings.'
+      - 'The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, dependency_graph_audit, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings.'
       - 'The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys.'
       - Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`.
       - For an exact duplicate use `inventory.reconciliation.status: reuse_existing` or `blocked_duplicate` exactly.
@@ -205,10 +208,12 @@ evidence_query_plans:
         findings introduced, CIA status, direct package, and manifest files.
       - Fetch detailed VersionUpgrade/UIA evidence only for the selected candidate.
       - Inspect only the selected package manifests and source usage needed for risk_decision.source_usage_summary.
+      - For a selected Maven candidate, inspect only its dependency path and affected POMs for version controls, direct overrides, and exclusions; record at most eight normalized manipulations without another Endor query.
       - Consume `vuln_finding_info.fixed_findings` and nested fixed-summary UUIDs from that detail first. If they cannot support a requested advisory mapping, PR body detail, or count reconciliation, fetch all current-run UUIDs in one exact batched Finding query.
     avoid:
       - Do not enumerate broad Finding inventories before VersionUpgrade narrowing.
       - Do not fetch full advisory/finding lists when the current gate is only selecting or blocking one candidate.
+      - Do not scan every POM, return raw XML or an unbounded dependency tree, or inspect unrelated-module exclusions.
       - Do not try bare package-name Finding filters, one Finding call per UUID, schema/describe probes, or unfiltered samples.
       - Do not edit files, create branches, run dependency-manager mutations, or open change requests without approval.
     stop_after:

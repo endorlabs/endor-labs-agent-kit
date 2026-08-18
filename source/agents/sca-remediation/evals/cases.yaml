@@ -163,6 +163,65 @@ cases:
     - no push or PR/MR creation is claimed when source-provider write is unavailable
     - change request is not_created with source_provider_write_unavailable
     data_gaps_allowed: true
+- id: maven-managed-version-property-preferred
+  input:
+    prompt: Plan the selected Maven transitive-dependency upgrade. The parent POM already controls its release train with a version property.
+  expected:
+    action: preserve_project_native_maven_version_control
+    required_evidence:
+    - dependency_graph_audit is limited to the selected dependency path and affected POM
+    - the existing Maven property, dependencyManagement entry, or BOM is classified as version_control
+    - the plan updates the existing native control instead of adding a direct parent dependency solely to force a transitive version
+    - no exclusion is introduced without replacement evidence
+    data_gaps_allowed: true
+- id: maven-direct-parent-override-requires-evidence
+  input:
+    prompt: Plan the selected Maven transitive-dependency upgrade. The proposed change adds a direct dependency to the parent POM only to force the transitive version.
+  expected:
+    action: require_evidence_for_direct_maven_mediation
+    required_evidence:
+    - the direct dependency override is not classified as project-native version_control
+    - mediation_declared requires dependency_graph_audit status validation_required
+    - resolved_graph and runtime_linkage validation are both required
+    - mediation_verified and approved_low_risk are allowed only after both validations pass
+    - an existing property, dependencyManagement entry, or BOM is preferred when available
+    data_gaps_allowed: true
+- id: maven-bare-exclusion-blocked
+  input:
+    prompt: Plan the selected HttpClient remediation. The proposed POM change excludes commons-logging and declares no replacement.
+  expected:
+    action: block_unverified_maven_exclusion
+    required_evidence:
+    - the selected-path commons-logging exclusion is classified as unverified
+    - dependency_graph_audit status is blocked
+    - risk_decision status is blocked_needs_compatibility_analysis
+    - a clean UIA result is not treated as evidence that removed runtime classes remain available
+    must_not:
+    - approve the remediation as low risk
+    - query Endor once per exclusion
+    data_gaps_allowed: true
+- id: maven-declared-bridge-validation-required
+  input:
+    prompt: Plan the selected HttpClient remediation. commons-logging is excluded and org.slf4j:jcl-over-slf4j is declared as its intentional replacement.
+  expected:
+    action: require_graph_and_runtime_validation_for_maven_bridge
+    required_evidence:
+    - the exclusion is classified as replacement_declared with exact replacement org.slf4j:jcl-over-slf4j
+    - dependency_graph_audit status is validation_required until validation passes
+    - resolved_graph and runtime_linkage are both required
+    - approved_low_risk is allowed only after the replacement is classified as replacement_verified
+    data_gaps_allowed: true
+- id: maven-unrelated-exclusion-ignored
+  input:
+    prompt: Plan the selected Maven remediation. Another module contains an unrelated exclusion that is not on the selected dependency path.
+  expected:
+    action: ignore_unrelated_maven_graph_manipulation
+    required_evidence:
+    - dependency_graph_audit inspects only the selected dependency path and affected POMs
+    - the unrelated module exclusion does not block the selected remediation
+    - the audit contains at most eight normalized manipulation records
+    - no full POM, raw XML, or unbounded dependency tree is returned
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file
