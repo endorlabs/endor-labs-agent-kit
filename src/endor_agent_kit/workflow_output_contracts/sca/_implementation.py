@@ -247,6 +247,46 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                     for profile in SUPPORTED_PROFILES
                     if profile.name == declared
                 ]
+                if not detections:
+                    # A near-miss or null manager label must not disable the
+                    # audit: any audit that claims content (a non-unavailable
+                    # status or listed manipulations) needs a resolvable
+                    # manager to validate against, so it fails closed. Only
+                    # the honest unsupported-manager shape — unavailable with
+                    # no manipulations — passes through.
+                    audit_dict = _dict(dependency_graph_audit)
+                    claims_content = _text(
+                        audit_dict.get("status")
+                    ) != "unavailable" or bool(_list(audit_dict.get("manipulations")))
+                    if claims_content:
+                        supported = ", ".join(
+                            sorted(profile.name for profile in SUPPORTED_PROFILES)
+                        )
+                        errors.append(
+                            "dependency_graph_audit.package_manager: must be one "
+                            f"of {supported} for an audit that reports a "
+                            "non-unavailable status or manipulations"
+                        )
+            if len(detections) > 1 and audit_present:
+                # Registry-family signals (package.json, the npm ecosystem
+                # token, npm:// coordinates) legitimately match every family
+                # member; the audit's declared manager narrows them. Strong
+                # manager-specific signals never narrow — conflicting
+                # lockfiles or mixed ecosystems stay ambiguous and fail
+                # closed.
+                weak_only = all(
+                    not (set(item.signals) & {"ecosystem", "manifest"})
+                    for item in detections
+                )
+                if weak_only:
+                    declared = _text(
+                        _dict(dependency_graph_audit).get("package_manager")
+                    )
+                    narrowed = [
+                        item for item in detections if item.profile.name == declared
+                    ]
+                    if narrowed:
+                        detections = narrowed
             if len(detections) > 1:
                 names = ", ".join(sorted(item.profile.name for item in detections))
                 errors.append(
@@ -258,7 +298,8 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                 if not detection.ecosystem_is_canonical:
                     errors.append(
                         "change_requests[0].inventory.key.ecosystem: must be "
-                        f"{profile.name} for {profile.display_name} remediations"
+                        f"{profile.canonical_ecosystem} for "
+                        f"{profile.display_name} remediations"
                     )
                 if not audit_present:
                     errors.append(

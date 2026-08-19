@@ -553,10 +553,13 @@ def _prompt_budget(relative_path: str) -> int:
         # quality-critical. The exact dependency_graph_audit key/enum contract
         # plus the bare-token validation_requirements and selection_blocked
         # no-candidate rules (required so prompt-only hosts emit gate-valid
-        # audits) and the Gradle mechanism-driven audit section measure 56,613
-        # characters on the largest generated host artifact; retain bounded
-        # headroom. Scoped profiles retain separate <70% checks.
-        return 57_000
+        # audits), the consolidated Maven/Gradle/npm/Yarn/pnpm audit section
+        # with the transitive-closure depth rule and per-manager mechanism
+        # table, and the replay-driven inventory and replacement-format rules
+        # plus the selection-plan approved_low_risk ceiling rule measure
+        # 58,476 characters on the largest generated host artifact; retain
+        # bounded headroom. Scoped profiles retain separate <70% checks.
+        return 58_750
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":
