@@ -13,6 +13,32 @@ package metadata.
 
 ### Added
 
+- Ruby Bundler dependency-graph safety audit for SCA remediation: a single
+  `bundler` profile on the shared kind-bucket engine, mechanism-driven like
+  Gradle, Node, Python, Go, and NuGet (`type` null, `bundler.<construct>`
+  in `mechanism`, required `semantic_effect`). Bundler is the only manager
+  for the RubyGems registry, so there is no registry-family split and no
+  shared weak signals — but the canonical inventory ecosystem is the
+  registry token `gem`, not the manager name. `Gemfile`/`Gemfile.lock`
+  (and `gems.rb`/`gems.locked`) are strong basename signals and `.gemspec`
+  is a strong suffix signal. Bundler resolves one unified constraint set,
+  so a Gemfile entry added only to force a transitive's resolved version
+  is forced mediation (`bundler.transitive_pin`); a hand-edited
+  `Gemfile.lock` is an override with `lockfile_override`
+  (`bundler.lockfile_edit`; the lockfile rules resolution under
+  frozen/deployment mode); and a per-gem `git:`/`github:`/`path:` redirect
+  (`bundler.source_redirect`) or `source`-block/mirror swap
+  (`bundler.gem_source`) is an override with `source_override` — a fork
+  redirect keeps the gem name, so it is never a substitution. The removal
+  bucket is suppression-only: `require: false` (`bundler.require_false`)
+  keeps the gem resolved and pinned in `Gemfile.lock` while suppressing its
+  automatic require at boot, so it is `asset_or_feature_suppression` under
+  the same removal safety rules, and `dependency_removal` and
+  `dependency_substitution` are never claimable through Bundler
+  mechanisms. Replacements are exact bare `gem@version` coordinates
+  (Gem::Version strings); requirement operators, wildcards, git refs, and
+  scheme prefixes are rejected.
+
 - NuGet (.NET) dependency-graph safety audit for SCA remediation: a single
   `nuget` profile on the shared kind-bucket engine, mechanism-driven like
   Gradle, Node, Python, and Go (`type` null, `nuget.<construct>` in
