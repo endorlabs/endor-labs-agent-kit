@@ -197,16 +197,28 @@ def _manifest_basename(manifest: object) -> str | None:
 
     if not isinstance(manifest, str):
         return None
-    normalized = unicodedata.normalize("NFKC", manifest)
-    normalized = "".join(
+    folded = _fold_disguises(manifest).strip().replace("\\", "/")
+    return PurePosixPath(folded).name.lower().rstrip(".")
+
+
+def _fold_disguises(text: str) -> str:
+    """NFKC-fold compatibility lookalikes and drop category-Cf characters.
+
+    Shared by manifest and ecosystem normalization so both identity channels
+    defend against the same disguise class (fullwidth lookalikes, zero-width
+    and other format characters). Without this on the ecosystem channel, a
+    disguised conflicting manager token slips past the ambiguity fail-closed
+    gate.
+    """
+
+    normalized = unicodedata.normalize("NFKC", text)
+    return "".join(
         char for char in normalized if unicodedata.category(char) != "Cf"
     )
-    name = PurePosixPath(normalized.strip().replace("\\", "/")).name.lower()
-    return name.rstrip(".")
 
 
 def _normalize_ecosystem(token: str) -> str:
-    normalized = _text(token).lower()
+    normalized = _fold_disguises(_text(token)).lower()
     if normalized.startswith("ecosystem_"):
         normalized = normalized[len("ecosystem_") :]
     return "-".join(part for part in normalized.replace("_", " ").split() if part)

@@ -190,6 +190,11 @@ Use count names consistently. `finding_instances_fixed` is Endor
 `total_findings_fixed` for the selected VersionUpgrade and is the number used
 in the PR/MR title. `unique_advisories_fixed` is the distinct advisory-ID count
 derived from `vuln_finding_info.fixed_findings` or nested fixed summaries.
+When no VersionUpgrade record backs the selected remediation (for example a
+fix-forward module substitution), derive `findings_fixed`,
+`finding_instances_fixed`, and `unique_advisories_fixed` from the findings
+being remediated and their advisory IDs;
+never omit or null the counters for a selected remediation.
 Finding query row count is only `evidence_queries[].result_count`; never
 substitute it for either remediation count. Preserve the fixed Finding UUIDs
 separately, copied byte-for-byte from VersionUpgrade detail. Do not reconstruct
@@ -344,14 +349,14 @@ Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a str
 ## Dependency Graph Safety Audit
 
 After UIA selects a candidate built by a supported package manager (Maven,
-Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv), audit that manager's
-graph manipulations before
+Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go), audit that
+manager's graph manipulations before
 approval or mutation. Inspect only the selected dependency path and affected
 manifests; never return raw manifest content, an unbounded dependency tree,
 or one Endor query per manipulation.
-Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, the registry
-token `npm` for every Node manager, or the registry token `pypi` for every
-Python manager.
+Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, `go`, the
+registry token `npm` for every Node manager, or the registry token `pypi`
+for every Python manager.
 The selected dependency path spans from the declaring manifest through the
 selected package's full transitive closure (bounded by the 12-coordinate
 `dependency_path` cap). Audit any manipulation whose coordinate mediates,
@@ -361,7 +366,7 @@ Anything listed is decision-relevant, so omit unrelated manipulations
 elsewhere instead of flagging them.
 
 Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
-`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, or `uv`),
+`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, `uv`, or `go`),
 `status` (`clear`, `validation_required`,
 `validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
 manifest path; when the
@@ -373,9 +378,9 @@ manifest in `selected_remediation.affected_manifests` and name it here),
 explanations belong in `risk_decision.validation_requirements`). Each
 manipulation has exactly `type`, `coordinate`, `classification`,
 `semantic_effect`, `mechanism`, `replacement` (a bare
-`group:artifact[:version]` JVM, `name@version` Node, or `name==version`
-Python coordinate, never a `mvn://`, `npm://`, `pypi://`, or other
-scheme-prefixed form, or null), and `evidence`
+`group:artifact[:version]` JVM, `name@version` Node, `name==version`
+Python, or `module@version` Go coordinate, never a `mvn://`, `npm://`,
+`pypi://`, `go://`, or other scheme-prefixed form, or null), and `evidence`
 (at most 3 strings).
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
@@ -415,6 +420,7 @@ Per-manager mechanisms map onto those classification families:
 | Poetry | `poetry.manifest_range` | `poetry.direct_dependency_override`; `poetry.lockfile_edit` (`lockfile_override`); `poetry.source_specifier` (`source_override`) | none |
 | Pipenv | `pipenv.manifest_range` | `pipenv.direct_dependency_override`; `pipenv.lockfile_edit` (`lockfile_override`); `pipenv.source_specifier` (`source_override`) | none |
 | uv | `uv.manifest_range` | `uv.override_dependencies`, `uv.constraint_dependencies`, `uv.direct_dependency_override`; `uv.lockfile_edit` (`lockfile_override`); `uv.source_specifier`, `uv.sources_redirect` (`source_override`) | none |
+| Go | `go.require_directive` | `go.replace_version`, `go.exclude_directive`; `go.sum_edit` (`lockfile_override`); `go.replace_path`, `go.work_replace`, `go.vendor_override` (`source_override`) | `go.replace_module` for substitution (exact `module@version` replacement); no removal construct |
 
 Maven manipulations are type-driven: `type` is one of the five Maven tokens
 above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
@@ -447,6 +453,17 @@ construct — never claim `dependency_removal` or `dependency_substitution`
 for a Python manipulation; a fork swap is a manifest edit of the declaration
 itself. Keep `pipdeptree`/`pip show`/`poetry show --tree`/`pipenv graph`/
 `uv tree` output bounded to the selected package.
+Go manipulations are mechanism-driven too (`type` null, `semantic_effect`
+required): `inventory.key.ecosystem` is exactly `go`, `go.mod` is the
+manifest and `go.sum` the integrity lockfile, replacements are bare
+`module@version` (full semver; pseudo-versions and `+incompatible`
+allowed), a hand-edited `go.sum` is an override with `lockfile_override`,
+filesystem/workspace/vendor redirections are overrides with
+`source_override`, a same-path version `replace` is forced mediation, and
+`exclude` mediates version selection — it removes a version from MVS
+candidates, never the module node, so never claim `dependency_removal` for
+a Go manipulation. Keep `go mod graph`/`go mod why` output bounded to the
+selected module.
 
 ## Validation Command Selection
 
@@ -467,7 +484,9 @@ remediation/sca/<normalized-package-name>-<target-version>
 Normalize package names by using the most specific package artifact name that will be readable in a branch list. Examples:
 
 Do not keep package-path slashes after `remediation/sca/`; replace `/`, `:`,
-spaces, and underscores with `-`. Do not use unrelated branch families such as
+`+`, spaces, and underscores with `-`
+(a Go `+incompatible` target version becomes `-incompatible`). Do not use
+unrelated branch families such as
 `endor/fix/...` for this agent unless the user explicitly overrides the branch
 name in the current request.
 

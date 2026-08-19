@@ -13,6 +13,25 @@ package metadata.
 
 ### Added
 
+- Go modules dependency-graph safety audit for SCA remediation: a single
+  `go` profile on the shared kind-bucket engine, mechanism-driven like
+  Gradle, Node, and Python (`type` null, `go.<construct>` in `mechanism`,
+  required `semantic_effect`). Go is a single-manager family — no
+  registry-family split — so the canonical inventory ecosystem is `go` and
+  `go.mod`/`go.sum`/`go.work` are unambiguous strong signals. The `replace`
+  directive splits by shape: a same-path version redirect is forced version
+  mediation (`go.replace_version`), a filesystem/workspace/vendor redirect is
+  an override with `source_override` (`go.replace_path`, `go.work_replace`,
+  `go.vendor_override`), and a different-module-path redirect is a
+  substitution requiring an exact `module@version` replacement
+  (`go.replace_module`); a hand-edited `go.sum` is an override with
+  `lockfile_override` (`go.sum_edit`); and `exclude` mediates MVS version
+  selection (`go.exclude_directive`) — it removes a version from the
+  candidate set, never the module node, so `dependency_removal` is never
+  claimable through Go mechanisms. Replacements accept full semver,
+  pseudo-versions, and `+incompatible`, but reject `@latest`/branch/major-only
+  queries and scheme prefixes.
+
 - Python dependency-graph safety audit for SCA remediation: pip, Poetry,
   Pipenv, and uv profiles on the shared kind-bucket engine, mechanism-driven
   like Gradle and Node (`type` null, `<manager>.<construct>` in `mechanism`,
@@ -80,6 +99,26 @@ package metadata.
   family for the pre-existing-transitive-pin case.
 
 ### Fixed
+
+- Closed two replay-confirmed emission gaps surfaced by the Go fix-forward
+  substitution case: branch normalization now also replaces `+` with `-` (a
+  Go `+incompatible` target version becomes `-incompatible`, keeping branch
+  names inside the `remediation/sca/<package>-<target-version>` convention),
+  and when no VersionUpgrade record backs the selected remediation the
+  finding counters (`findings_fixed`, `finding_instances_fixed`,
+  `unique_advisories_fixed`) are derived from the findings being remediated
+  instead of being omitted.
+
+- Closed two more red-team-confirmed fail-open seams found while hardening
+  the Go profile, both engine-wide: ecosystem-token normalization now shares
+  the manifest channel's NFKC + format-character folding, so a conflicting
+  second-manager `inventory.key.ecosystem` disguised with a fullwidth
+  lookalike or zero-width space can no longer slip past the ambiguity
+  fail-closed gate; and the self-declared pass-through now tests the raw
+  `manipulations` value instead of its list coercion, so a content-bearing
+  manipulation emitted as a bare object or string (rather than an array) can
+  no longer ride through unvalidated when the declared manager is
+  unresolvable and the status is `unavailable`.
 
 - Closed two more red-team-confirmed fail-open seams found while hardening
   the Python profiles, both engine-wide: manifest basename normalization now
