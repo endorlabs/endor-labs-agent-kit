@@ -26,6 +26,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers.node import 
     PNPM_PROFILE,
     YARN_PROFILE,
 )
+from endor_agent_kit.workflow_output_contracts.sca.package_managers.nuget import (
+    NUGET_PROFILE,
+)
 from endor_agent_kit.workflow_output_contracts.sca.package_managers.python import (
     PIP_PROFILE,
     PIPENV_PROFILE,
@@ -44,6 +47,7 @@ SUPPORTED_PROFILES: tuple[PackageManagerAuditProfile, ...] = (
     PIPENV_PROFILE,
     UV_PROFILE,
     GO_PROFILE,
+    NUGET_PROFILE,
 )
 
 __all__ = [
@@ -54,6 +58,7 @@ __all__ = [
     "GRAPH_RUNTIME_KINDS",
     "MAVEN_PROFILE",
     "NPM_PROFILE",
+    "NUGET_PROFILE",
     "PIP_PROFILE",
     "PIPENV_PROFILE",
     "PNPM_PROFILE",

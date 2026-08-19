@@ -100,7 +100,7 @@ outputs:
 - name: dependency_graph_audit
   kind: object
   required: true
-  description: Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.
+  description: Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, or NuGet audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.
 - name: patch_plan
   kind: list[object]
   required: true

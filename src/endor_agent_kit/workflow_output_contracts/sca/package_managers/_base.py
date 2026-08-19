@@ -198,7 +198,10 @@ def _manifest_basename(manifest: object) -> str | None:
     if not isinstance(manifest, str):
         return None
     folded = _fold_disguises(manifest).strip().replace("\\", "/")
-    return PurePosixPath(folded).name.lower().rstrip(".")
+    # Windows path resolution drops trailing dots AND spaces together in any
+    # interleaved order, so both must strip in one pass — a lone rstrip(".")
+    # left 'Service.csproj .' as 'service.csproj ' and dropped the signal.
+    return PurePosixPath(folded).name.lower().rstrip(". ")
 
 
 def _fold_disguises(text: str) -> str:

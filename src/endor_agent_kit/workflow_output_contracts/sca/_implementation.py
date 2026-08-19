@@ -390,6 +390,14 @@ def _detect_selected_package_managers(
         package = _text(source.get("package") or source.get("package_name"))
         if package:
             coordinates.append(package)
+    # The files a plan intends to edit are manifests of the selected
+    # remediation by definition: without them, scrubbing every other channel
+    # while pointing patch_plan at a real manifest skips the audit entirely.
+    for entry in _list(payload.get("patch_plan")):
+        if isinstance(entry, dict):
+            file_path = _text(entry.get("file"))
+            if file_path:
+                manifests.append(file_path)
     return detect_package_managers(
         SUPPORTED_PROFILES,
         ecosystem_tokens=tuple(ecosystem_tokens),

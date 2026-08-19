@@ -554,16 +554,18 @@ def _prompt_budget(relative_path: str) -> int:
         # plus the bare-token validation_requirements and selection_blocked
         # no-candidate rules (required so prompt-only hosts emit gate-valid
         # audits), the consolidated audit section covering Maven, Gradle, the
-        # npm registry family, and the PyPI registry family (pip/Poetry/
-        # Pipenv/uv) with the transitive-closure depth rule and per-manager
-        # mechanism table, and the replay-driven inventory and
+        # npm registry family, the PyPI registry family (pip/Poetry/
+        # Pipenv/uv), Go, and NuGet with the transitive-closure depth rule
+        # and per-manager mechanism table, the replay-driven inventory and
         # replacement-format rules plus the selection-plan approved_low_risk
-        # ceiling rule, and the replay-driven no-UIA counter-derivation and
-        # branch `+` normalization rules measure 61,924 characters on the
-        # largest generated host artifact (the codex plugin TOML variant,
-        # whose escaping adds to the raw markdown's 61,521); retain bounded
-        # headroom. Scoped profiles retain separate <70% checks.
-        return 62_250
+        # ceiling rule, the replay-driven no-UIA counter-derivation and
+        # branch `+` normalization rules, and the NuGet MSBuild-layering,
+        # asset-suppression-removal, and no-substitution rules measure
+        # 64,007 characters on the largest generated host artifact (the
+        # codex plugin TOML variant, whose escaping adds to the raw
+        # markdown's 63,578); retain bounded headroom. Scoped profiles
+        # retain separate <70% checks.
+        return 64_500
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

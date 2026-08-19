@@ -595,6 +595,7 @@ def test_unresolvable_declared_manager_fails_closed_when_audit_claims_content():
         key["normalized_package"] = "lodash"
         payload["selected_remediation"]["manifests"] = ["app/deps.txt"]
         payload["selected_remediation"]["affected_manifests"] = ["app/deps.txt"]
+        payload["patch_plan"][0]["file"] = "app/deps.txt"
         payload["dependency_graph_audit"]["manifest"] = "app/deps.txt"
         payload["dependency_graph_audit"]["package_manager"] = package_manager
         payload["dependency_graph_audit"]["manipulations"] = [

@@ -965,6 +965,7 @@ def _dependency_graph_audit_schema() -> dict[str, Any]:
                     "pipenv",
                     "uv",
                     "go",
+                    "nuget",
                 )
             ),
             "status": _nullable_enum(

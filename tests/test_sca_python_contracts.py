@@ -682,6 +682,7 @@ def test_unresolvable_declared_python_manager_fails_closed():
         key["normalized_package"] = "urllib3"
         payload["selected_remediation"]["manifests"] = ["app/deps.list"]
         payload["selected_remediation"]["affected_manifests"] = ["app/deps.list"]
+        payload["patch_plan"][0]["file"] = "app/deps.list"
         payload["dependency_graph_audit"]["manifest"] = "app/deps.list"
         payload["dependency_graph_audit"]["package_manager"] = package_manager
         payload["dependency_graph_audit"]["manipulations"] = [
@@ -786,6 +787,7 @@ def test_unresolvable_manager_unavailable_audit_cannot_be_low_risk():
     key["normalized_package"] = "urllib3"
     payload["selected_remediation"]["manifests"] = ["environment.yml"]
     payload["selected_remediation"]["affected_manifests"] = ["environment.yml"]
+    payload["patch_plan"][0]["file"] = "environment.yml"
     payload["dependency_graph_audit"] = {
         "package_manager": "conda",
         "status": "unavailable",
