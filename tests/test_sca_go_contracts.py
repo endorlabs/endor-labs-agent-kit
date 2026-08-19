@@ -163,10 +163,10 @@ def _detect(**signals):
 
 
 def test_go_profile_registered_as_single_manager_family():
-    # The newest profile file pins the exact registry so accidental
-    # additions or removals surface here.
+    # The newest profile file (NuGet) pins the exact registry; this asserts
+    # the Go-era profiles all remain registered.
     names = {profile.name for profile in SUPPORTED_PROFILES}
-    assert names == {
+    assert names >= {
         "maven",
         "gradle",
         "npm",
@@ -237,7 +237,7 @@ def test_go_lockfiles_do_not_bleed_into_other_families():
 def test_go_package_manager_schema_enum_includes_go():
     contract = compile_profile_contract("sca-remediation", "selection-plan")
     audit = contract.provider_neutral_schema["properties"]["dependency_graph_audit"]
-    assert set(audit["properties"]["package_manager"]["enum"]) == {
+    assert set(audit["properties"]["package_manager"]["enum"]) >= {
         "maven",
         "gradle",
         "npm",
@@ -628,6 +628,7 @@ def test_non_list_manipulations_claim_content_and_fail_closed():
         key["normalized_package"] = "golang.org/x/text"
         payload["selected_remediation"]["manifests"] = ["app/deps.list"]
         payload["selected_remediation"]["affected_manifests"] = ["app/deps.list"]
+        payload["patch_plan"][0]["file"] = "app/deps.list"
         payload["dependency_graph_audit"]["package_manager"] = "golang"
         payload["dependency_graph_audit"]["status"] = "unavailable"
         payload["dependency_graph_audit"]["manifest"] = None

@@ -356,14 +356,14 @@ Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a str
 ## Dependency Graph Safety Audit
 
 After UIA selects a candidate built by a supported package manager (Maven,
-Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go), audit that
+Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, or NuGet), audit that
 manager's graph manipulations before
 approval or mutation. Inspect only the selected dependency path and affected
 manifests; never return raw manifest content, an unbounded dependency tree,
 or one Endor query per manipulation.
-Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, `go`, the
-registry token `npm` for every Node manager, or the registry token `pypi`
-for every Python manager.
+Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, `go`, `nuget`,
+the registry token `npm` for every Node manager, or the registry token
+`pypi` for every Python manager.
 The selected dependency path spans from the declaring manifest through the
 selected package's full transitive closure (bounded by the 12-coordinate
 `dependency_path` cap). Audit any manipulation whose coordinate mediates,
@@ -373,8 +373,8 @@ Anything listed is decision-relevant, so omit unrelated manipulations
 elsewhere instead of flagging them.
 
 Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
-`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, `uv`, or `go`),
-`status` (`clear`, `validation_required`,
+`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, `uv`, `go`, or
+`nuget`), `status` (`clear`, `validation_required`,
 `validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
 manifest path; when the
 governing native control lives in a parent or aggregator manifest, list that
@@ -386,8 +386,9 @@ explanations belong in `risk_decision.validation_requirements`). Each
 manipulation has exactly `type`, `coordinate`, `classification`,
 `semantic_effect`, `mechanism`, `replacement` (a bare
 `group:artifact[:version]` JVM, `name@version` Node, `name==version`
-Python, or `module@version` Go coordinate, never a `mvn://`, `npm://`,
-`pypi://`, `go://`, or other scheme-prefixed form, or null), and `evidence`
+Python, `module@version` Go, or `package@version` NuGet coordinate, never a
+`mvn://`, `npm://`, `pypi://`, `go://`, `nuget://`, or other
+scheme-prefixed form, or null), and `evidence`
 (at most 3 strings).
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
@@ -410,7 +411,8 @@ replacement or substitution (`dependency_substitution`) is
 with both checks passed. With no manipulation use `clear`, or `validated`
 after both checks pass; at the selection-plan gate nothing has run yet, so
 use `clear`, `validation_required`, `blocked`, or `unavailable` there.
-`asset_or_feature_suppression` is reserved for other package managers.
+`asset_or_feature_suppression` (asset flow suppressed while the node stays
+resolved, as with NuGet `ExcludeAssets`) follows those same removal rules.
 UIA cannot waive this; evidence-only -> `unavailable`, never
 `approved_low_risk`.
 
@@ -428,6 +430,7 @@ Per-manager mechanisms map onto those classification families:
 | Pipenv | `pipenv.manifest_range` | `pipenv.direct_dependency_override`; `pipenv.lockfile_edit` (`lockfile_override`); `pipenv.source_specifier` (`source_override`) | none |
 | uv | `uv.manifest_range` | `uv.override_dependencies`, `uv.constraint_dependencies`, `uv.direct_dependency_override`; `uv.lockfile_edit` (`lockfile_override`); `uv.source_specifier`, `uv.sources_redirect` (`source_override`) | none |
 | Go | `go.require_directive` | `go.replace_version`, `go.exclude_directive`; `go.sum_edit` (`lockfile_override`); `go.replace_path`, `go.work_replace`, `go.vendor_override` (`source_override`) | `go.replace_module` for substitution (exact `module@version` replacement); no removal construct |
+| NuGet | `nuget.package_reference`, `nuget.central_package_version` | `nuget.transitive_pin`, `nuget.central_transitive_pin`, `nuget.version_override`, `nuget.build_props_layer`; `nuget.lockfile_edit` (`lockfile_override`); `nuget.restore_source` (`source_override`) | `nuget.package_remove` (`dependency_removal`) and `nuget.exclude_assets` (`asset_or_feature_suppression`) for removal; no substitution construct |
 
 Maven manipulations are type-driven: `type` is one of the five Maven tokens
 above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
@@ -471,6 +474,29 @@ filesystem/workspace/vendor redirections are overrides with
 candidates, never the module node, so never claim `dependency_removal` for
 a Go manipulation. Keep `go mod graph`/`go mod why` output bounded to the
 selected module.
+NuGet manipulations are mechanism-driven too (`type` null,
+`semantic_effect` required): `inventory.key.ecosystem` is exactly `nuget`,
+and MSBuild layers version authority across files the project file never
+shows — audit `Directory.Packages.props`, `Directory.Build.props`/
+`.targets`, and `packages.lock.json` alongside the
+`.csproj`/`.fsproj`/`.vbproj`, and list every governing file in
+`selected_remediation.affected_manifests`, the same way as a Maven parent
+POM. A direct `PackageReference` added only to pin a transitive
+(direct-wins resolution), a centrally pinned transitive, a
+`VersionOverride`, or a props/targets layer is forced mediation.
+Replacements are bare `package@version` with an exact three- or four-part
+version — never a floating `2.*` or bracket range. A hand-edited
+`packages.lock.json` is an override with `lockfile_override` (the lockfile
+only constrains restore under `RestoreLockedMode`), and a `nuget.config`
+source redirect or local feed is an override with `source_override`.
+`<PackageReference Remove>` drops the reference itself
+(`dependency_removal`); `ExcludeAssets`/`PrivateAssets` suppresses
+compile or runtime asset flow but never removes the resolved node — the
+package stays in `packages.lock.json` — so classify it
+`asset_or_feature_suppression` under the same removal rules, and never
+claim `dependency_substitution` for a NuGet manipulation; a package-ID
+swap is a manifest edit of the declaration itself. Keep `dotnet list package` output
+bounded to the selected package.
 
 ## Validation Command Selection
 

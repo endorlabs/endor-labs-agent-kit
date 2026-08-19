@@ -464,6 +464,65 @@ cases:
     - change_requests[0].inventory.key.ecosystem is exactly go
     - dependency_graph_audit.package_manager is go
     data_gaps_allowed: true
+- id: nuget-package-reference-preferred
+  input:
+    prompt: Plan the selected NuGet package upgrade. The project declares the version directly on the PackageReference in the .csproj with no props layers, overrides, or lock edits.
+  expected:
+    action: preserve_project_native_nuget_version_control
+    required_evidence:
+    - the PackageReference is classified as version_control with mechanism nuget.package_reference, type null, and semantic_effect native_version_control
+    - the plan updates the PackageReference version instead of adding a props layer or transitive pin
+    - inventory.key.ecosystem is exactly nuget
+    data_gaps_allowed: true
+- id: nuget-build-props-layer-requires-evidence
+  input:
+    prompt: Plan the selected NuGet transitive upgrade. A Directory.Build.targets two directories above the project carries a PackageReference Update that silently forces the package's version.
+  expected:
+    action: require_evidence_for_nuget_props_layer_mediation
+    required_evidence:
+    - the targets layer is classified as mediation_declared with mechanism nuget.build_props_layer, never as version_control
+    - Directory.Build.targets is listed in selected_remediation.affected_manifests like a Maven parent POM
+    - dependency_graph_audit status is validation_required with resolved_graph and runtime_linkage required
+    data_gaps_allowed: true
+- id: nuget-exclude-assets-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected NuGet remediation. The vulnerable package's PackageReference carries ExcludeAssets="runtime" with no explanation, so scanners still resolve it while the deployed app silently loses the assembly.
+  expected:
+    action: block_advisory_dodging_nuget_exclude_assets
+    required_evidence:
+    - the ExcludeAssets entry appears as mechanism nuget.exclude_assets classified unverified with semantic_effect asset_or_feature_suppression, never dependency_removal
+    - dependency_graph_audit status is blocked
+    - the package stays resolved in packages.lock.json while its asset flow is suppressed
+    data_gaps_allowed: true
+- id: nuget-package-remove-requires-replacement-evidence
+  input:
+    prompt: Plan the selected NuGet remediation. An MSBuild ItemGroup removes the vulnerable PackageReference outright and a different package is referenced in its place.
+  expected:
+    action: require_replacement_evidence_for_nuget_package_remove
+    required_evidence:
+    - the Remove item is mechanism nuget.package_remove with semantic_effect dependency_removal
+    - with an exact bare package@version replacement declared it is replacement_declared with status validation_required, and without one it is unverified with status blocked
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: nuget-transitive-pin-direct-wins-audited
+  input:
+    prompt: Plan the selected NuGet upgrade. The project adds a direct PackageReference for a package it never uses in code, pinning a transitive dependency of the selected package to an older version.
+  expected:
+    action: audit_nuget_direct_transitive_pin_as_mediation
+    required_evidence:
+    - the pin is classified as mediation_declared with mechanism nuget.transitive_pin because direct references win over transitive resolution
+    - the manipulation is audited because the pinned package is inside the selected package's transitive closure
+    - dependency_graph_audit status is validation_required
+    data_gaps_allowed: true
+- id: nuget-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this .NET repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "dotnet".
+  expected:
+    action: emit_canonical_nuget_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly nuget
+    - dependency_graph_audit.package_manager is nuget
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file

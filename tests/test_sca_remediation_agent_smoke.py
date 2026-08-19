@@ -186,7 +186,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "`manipulations` (at most 8)" in prompt
     assert "one Endor query per manipulation" in prompt.replace("\n", " ")
     assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
-    assert "to exactly `maven`, `gradle`, `go`, the registry" in prompt.replace(
+    assert "to exactly `maven`, `gradle`, `go`, `nuget`, the registry" in prompt.replace(
         "\n", " "
     )
     assert "token `npm` for every Node manager" in prompt.replace("\n", " ")
@@ -200,8 +200,9 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Per-manager mechanisms map onto those classification families" in prompt
     assert "still fill `lookup_method` with the attempted or blocked method" in prompt
     assert "scheme-prefixed form, or null" in prompt
-    assert "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go" in prompt.replace(
-        "\n", " "
+    assert (
+        "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, or NuGet"
+        in prompt.replace("\n", " ")
     )
     assert "`npm.manifest_range`" in prompt
     assert "`yarn.resolutions`" in prompt
@@ -236,6 +237,24 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Keep `go mod graph`/`go mod why` output bounded" in prompt.replace(
         "\n", " "
     )
+    assert "`nuget.package_reference`" in prompt
+    assert "`nuget.central_package_version`" in prompt
+    assert "`nuget.transitive_pin`" in prompt
+    assert "`nuget.central_transitive_pin`" in prompt
+    assert "`nuget.version_override`" in prompt
+    assert "`nuget.build_props_layer`" in prompt
+    assert "`nuget.lockfile_edit`" in prompt
+    assert "`nuget.restore_source`" in prompt
+    assert "`nuget.exclude_assets`" in prompt
+    assert "`nuget.package_remove`" in prompt
+    assert "`package@version`" in prompt
+    assert "never removes the resolved node" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_substitution` for a NuGet manipulation"
+        in prompt.replace("\n", " ")
+    )
+    assert "Keep `dotnet list package` output bounded" in prompt.replace("\n", " ")
+    assert "list every governing file in" in prompt.replace("\n", " ")
     assert "no removal or substitution construct" in prompt.replace("\n", " ")
     assert (
         "never claim `dependency_removal` or `dependency_substitution` for a "
@@ -275,6 +294,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
         in prompt.replace("\n", " ")
     )
     assert "remediation/sca/golang.org-x-crypto-v0.48.0" in prompt
+    assert "remediation/sca/newtonsoft.json-13.0.1" in prompt
     assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
     assert "Do not use unrelated branch families such as" in prompt.replace("\n", " ")
     assert "`endor/fix/...`" in prompt

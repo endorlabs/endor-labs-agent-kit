@@ -13,6 +13,37 @@ package metadata.
 
 ### Added
 
+- NuGet (.NET) dependency-graph safety audit for SCA remediation: a single
+  `nuget` profile on the shared kind-bucket engine, mechanism-driven like
+  Gradle, Node, Python, and Go (`type` null, `nuget.<construct>` in
+  `mechanism`, required `semantic_effect`). NuGet is a single-manager
+  family: MSBuild project files (`.csproj`/`.fsproj`/`.vbproj`),
+  props/targets layers, `packages.lock.json`, `packages.config`, and
+  `nuget.config` are all unambiguous strong signals (the first profile to
+  exercise the engine's manifest-suffix channel), and the canonical
+  inventory ecosystem is `nuget`. MSBuild layers version authority across
+  files the project never shows — the parent-POM analog — so a direct
+  `PackageReference` added only to pin a transitive (`nuget.transitive_pin`,
+  direct-wins), a centrally pinned transitive
+  (`nuget.central_transitive_pin`), a `VersionOverride`
+  (`nuget.version_override`), and a `Directory.Build.props`/`.targets`
+  layer (`nuget.build_props_layer`) are all forced version mediation, while
+  the project's own `PackageReference` and Central Package Management
+  `PackageVersion` are native. A hand-edited `packages.lock.json` is an
+  override with `lockfile_override` (`nuget.lockfile_edit`; integrity holds
+  only under `RestoreLockedMode`) and a `nuget.config` source redirect is
+  an override with `source_override` (`nuget.restore_source`). NuGet is the
+  first mechanism-driven family with a removal bucket, split by what leaves
+  the graph: `<PackageReference Remove>` is true `dependency_removal`
+  (`nuget.package_remove`), while `ExcludeAssets`/`PrivateAssets`
+  suppresses asset flow but never removes the resolved node, so it is
+  `asset_or_feature_suppression` (`nuget.exclude_assets`) under the same
+  removal safety rules. There is no substitution bucket — a package-ID swap
+  is a manifest edit, and `dependency_substitution` is never claimable
+  through NuGet mechanisms. Replacements are exact bare `package@version`
+  coordinates (three- or four-part versions, prerelease allowed); floating
+  versions, bracket ranges, and scheme prefixes are rejected.
+
 - Go modules dependency-graph safety audit for SCA remediation: a single
   `go` profile on the shared kind-bucket engine, mechanism-driven like
   Gradle, Node, and Python (`type` null, `go.<construct>` in `mechanism`,
@@ -99,6 +130,17 @@ package metadata.
   family for the pre-existing-transitive-pin case.
 
 ### Fixed
+
+- Closed two NuGet red-team findings, both engine-wide: `_manifest_basename`
+  now strips trailing dots and spaces together in one pass the way Windows
+  path resolution folds them (a `Service.csproj .` or `poetry.lock  ..  `
+  disguise kept a residual trailing space, lost its strong signal, and let a
+  smuggled conflicting manifest dodge the ambiguity fail-closed gate), and
+  package-manager detection now reads `patch_plan[].file` as a manifest
+  signal (scrubbing every other channel while pointing the patch plan at a
+  real manifest previously skipped the dependency-graph audit entirely).
+  The NuGet replacement pattern is also compiled ASCII-only so fullwidth
+  lookalike digits cannot ride into an "exact" `package@version` pin.
 
 - Closed two replay-confirmed emission gaps surfaced by the Go fix-forward
   substitution case: branch normalization now also replaces `+` with `-` (a
