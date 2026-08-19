@@ -186,8 +186,11 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "`manipulations` (at most 8)" in prompt
     assert "one Endor query per manipulation" in prompt.replace("\n", " ")
     assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
-    assert "to exactly `maven`, `gradle`, or the registry" in prompt
-    assert "token `npm` for every Node manager" in prompt
+    assert "to exactly `maven`, `gradle`, the registry" in prompt.replace("\n", " ")
+    assert "token `npm` for every Node manager" in prompt.replace("\n", " ")
+    assert "the registry token `pypi` for every Python manager" in prompt.replace(
+        "\n", " "
+    )
     assert "each entry is exactly the bare token" in prompt
     assert "`not_needed_verified`" in prompt
     assert "`semantic_effect`" in prompt
@@ -195,7 +198,9 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Per-manager mechanisms map onto those classification families" in prompt
     assert "still fill `lookup_method` with the attempted or blocked method" in prompt
     assert "scheme-prefixed form, or null" in prompt
-    assert "Gradle, npm, Yarn, or pnpm" in prompt
+    assert "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv" in prompt.replace(
+        "\n", " "
+    )
     assert "`npm.manifest_range`" in prompt
     assert "`yarn.resolutions`" in prompt
     assert "`pnpm.overrides`" in prompt
@@ -207,6 +212,19 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
         "\n", " "
     )
     assert "`name@version`" in prompt
+    assert "`pip.constraints_pin`" in prompt
+    assert "`pip.direct_dependency_override`" in prompt
+    assert "`poetry.lockfile_edit`" in prompt
+    assert "`pipenv.lockfile_edit`" in prompt
+    assert "`uv.override_dependencies`" in prompt
+    assert "`uv.sources_redirect`" in prompt
+    assert "`name==version`" in prompt
+    assert "pip has none, so declare pip explicitly" in prompt.replace("\n", " ")
+    assert "no removal or substitution construct" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_removal` or `dependency_substitution` for a "
+        "Python manipulation" in prompt.replace("\n", " ")
+    )
     assert "`checked_at` with the attempt time (never null)" in prompt
     assert "Maven manipulations are type-driven" in prompt
     assert "`maven.<type>`" in prompt

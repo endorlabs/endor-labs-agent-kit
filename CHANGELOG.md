@@ -13,6 +13,27 @@ package metadata.
 
 ### Added
 
+- Python dependency-graph safety audit for SCA remediation: pip, Poetry,
+  Pipenv, and uv profiles on the shared kind-bucket engine, mechanism-driven
+  like Gradle and Node (`type` null, `<manager>.<construct>` in `mechanism`,
+  required `semantic_effect`). Manager identity comes from lockfiles
+  (`poetry.lock`, `Pipfile`/`Pipfile.lock`, `uv.lock`/`uv.toml`); pip is the
+  family baseline with no lockfile and claims no manager-specific manifests —
+  pip identity comes from the audit's declared manager over family-shared
+  signals (`pyproject.toml`, `setup.py`/`setup.cfg`,
+  requirements/constraints files, the `pypi` ecosystem token, and `pypi://`
+  coordinates), so a Poetry-exported `requirements.txt` next to `poetry.lock`
+  resolves to Poetry instead of failing closed as conflicting managers. The
+  duplicate-inventory ecosystem token is the registry-level `pypi` for every
+  Python manager. Constraints pins, direct pins of transitives, uv
+  `override-dependencies`/`constraint-dependencies`, hand-edited lockfiles
+  (`lockfile_override`), and VCS/URL/path/editable installs plus
+  `[tool.uv.sources]` redirects (`source_override`) are forced-mediation
+  overrides; Python replacements are exact `name==version` PEP 440 pins; and
+  there is no Python removal or substitution construct, so
+  `dependency_removal` and `dependency_substitution` are never claimable
+  through Python mechanisms.
+
 - Node.js dependency-graph safety audit for SCA remediation: npm, Yarn, and
   pnpm profiles on the shared kind-bucket engine, mechanism-driven like Gradle
   (`type` null, `<manager>.<construct>` in `mechanism`, required
@@ -59,6 +80,17 @@ package metadata.
   family for the pre-existing-transitive-pin case.
 
 ### Fixed
+
+- Closed two more red-team-confirmed fail-open seams found while hardening
+  the Python profiles, both engine-wide: manifest basename normalization now
+  NFKC-folds compatibility lookalikes, removes zero-width/format characters,
+  and ignores Windows-style trailing dots, so a disguised conflicting
+  lockfile (`uv.lock` with a zero-width space, `uv.lock.`) can no longer
+  dodge the ambiguity fail-closed gate or validate a wrong-manager audit;
+  and the unavailable/`approved_low_risk` coupling is now enforced
+  profile-independently, so the honest unsupported-manager pass-through
+  (`unavailable`, no manipulations, unresolvable manager) can no longer
+  accompany an `approved_low_risk` risk decision.
 
 - Closed red-team-confirmed fail-open seams in the graph-safety gate: an
   audit whose declared `package_manager` resolves to no supported profile

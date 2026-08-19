@@ -347,6 +347,74 @@ cases:
     - change_requests[0].inventory.key.ecosystem is exactly npm
     - dependency_graph_audit.package_manager is yarn
     data_gaps_allowed: true
+- id: pip-manifest-range-preferred
+  input:
+    prompt: Plan the selected pip dependency upgrade. The repository declares the package version directly in requirements.txt with no constraints file.
+  expected:
+    action: preserve_project_native_pip_version_control
+    required_evidence:
+    - the direct requirements.txt declaration is classified as version_control with mechanism pip.manifest_range, type null, and semantic_effect native_version_control
+    - the plan updates the requirements range instead of adding a constraints pin or a duplicate direct declaration of the transitive
+    - inventory.key.ecosystem is exactly pypi
+    data_gaps_allowed: true
+- id: pip-constraints-pin-requires-evidence
+  input:
+    prompt: Plan the selected pip transitive-dependency upgrade. The proposed change adds a constraints.txt pin only to force the transitive version.
+  expected:
+    action: require_evidence_for_pip_forced_mediation
+    required_evidence:
+    - the constraints pin is classified as mediation_declared with mechanism pip.constraints_pin, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded pip show or pipdeptree check and runtime_linkage are both required
+    - a direct manifest range is preferred when the package is a direct dependency
+    data_gaps_allowed: true
+- id: uv-override-dependencies-requires-evidence
+  input:
+    prompt: Plan the selected uv-managed transitive-dependency upgrade. The proposed change adds an override-dependencies entry under [tool.uv] only to force the transitive version.
+  expected:
+    action: require_evidence_for_uv_forced_mediation
+    required_evidence:
+    - the override entry is classified as mediation_declared with mechanism uv.override_dependencies, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded uv tree check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: python-registry-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Poetry-managed repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "poetry".
+  expected:
+    action: emit_registry_pypi_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly pypi
+    - dependency_graph_audit.package_manager is poetry
+    data_gaps_allowed: true
+- id: poetry-export-lockfile-identity
+  input:
+    prompt: Plan the selected upgrade in a repository that commits pyproject.toml, poetry.lock, and a requirements.txt exported by poetry export for Docker builds.
+  expected:
+    action: identify_manager_from_lockfile_not_export
+    required_evidence:
+    - dependency_graph_audit.package_manager is poetry because poetry.lock is the manager identity
+    - the exported requirements.txt is not treated as evidence of a pip-managed repository or a conflicting manager
+    - the plan edits pyproject.toml and refreshes poetry.lock instead of hand-editing the exported file
+    data_gaps_allowed: true
+- id: python-preexisting-transitive-pin-audited
+  input:
+    prompt: Plan the selected pip remediation. requirements.txt already contains a years-old direct pin of one of the selected package's transitive dependencies, added by a previous team to work around an advisory.
+  expected:
+    action: audit_preexisting_transitive_pin
+    required_evidence:
+    - the pre-existing direct pin of the transitive dependency appears in the audit as pip.direct_dependency_override with mediation evidence, not as version_control and not omitted
+    - an unexplained or advisory-dodging pin is classified unverified with dependency_graph_audit status blocked
+    data_gaps_allowed: true
+- id: python-no-substitution-construct
+  input:
+    prompt: Plan the selected pip remediation. A teammate suggests swapping the vulnerable package for a community fork published under a different name instead of upgrading.
+  expected:
+    action: reject_python_substitution_claim
+    required_evidence:
+    - no manipulation claims dependency_substitution or dependency_removal through a Python mechanism
+    - the plan stays on the Endor-selected upgrade of the declared package or blocks for human review; the fork swap is a manifest edit of the declaration itself, out of scope for the graph-safety substitution family
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file

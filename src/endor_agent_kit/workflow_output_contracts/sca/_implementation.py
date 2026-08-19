@@ -267,6 +267,18 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                             f"of {supported} for an audit that reports a "
                             "non-unavailable status or manipulations"
                         )
+                    if (
+                        _text(audit_dict.get("status")) == "unavailable"
+                        and risk_status == "approved_low_risk"
+                    ):
+                        # The unavailable/approved_low_risk coupling is
+                        # profile-independent: the honest unsupported-manager
+                        # pass-through must not dodge it by resolving to no
+                        # profile.
+                        errors.append(
+                            "risk_decision.status: unavailable dependency "
+                            "graph audit cannot be approved_low_risk"
+                        )
             if len(detections) > 1 and audit_present:
                 # Registry-family signals (package.json, the npm ecosystem
                 # token, npm:// coordinates) legitimately match every family
