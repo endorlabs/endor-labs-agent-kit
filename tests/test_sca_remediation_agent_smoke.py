@@ -161,29 +161,62 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "When reusing an existing remediation PR/MR" in prompt
     assert "Do not say \"not expected to break\"" in prompt
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
+    assert "the selection-plan ceiling is" in prompt
+    assert "even when targeted validation already ran and passed" in prompt
+    assert "belongs to the apply and validate gates" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
-    assert "## Maven Dependency Graph Safety Audit" in prompt
-    assert "inspect only its dependency path and affected POMs" in prompt
-    assert "property/BOM/`dependencyManagement` is `version_control`" in prompt
+    assert "## Dependency Graph Safety Audit" in prompt
+    assert "## Maven Dependency Graph Safety Audit" not in prompt
+    assert "## Gradle Dependency Graph Safety Audit" not in prompt
+    assert "Inspect only the selected dependency path and affected" in prompt
+    assert "selected package's full transitive closure" in prompt
+    assert "bounded by the 12-coordinate" in prompt
+    assert "including pre-existing" in prompt
+    assert "direct declarations of the selected package's transitive dependencies" in prompt
+    assert "Prefer an existing" in prompt
+    assert "native version control" in prompt
     assert "without replacement or with a conflicting/incomplete one" in prompt
     assert "`mediation_declared`/`validation_required`" in prompt
+    assert "An unexplained or advisory-dodging forced mediation is instead" in prompt
+    assert "`unverified` -> `blocked`" in prompt
+    assert "never pair `mediation_declared` with `blocked`" in prompt
     assert "`mediation_verified`/`validated`" in prompt
     assert "`replacement_declared`" in prompt
     assert "`replacement_verified`" in prompt
     assert "`manipulations` (at most 8)" in prompt
-    assert "one Endor query per\nmanipulation" in prompt
+    assert "one Endor query per manipulation" in prompt.replace("\n", " ")
     assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
-    assert "Set `inventory.key.ecosystem` to exactly `maven`" in prompt
+    assert "to exactly `maven`, `gradle`, or the registry" in prompt
+    assert "token `npm` for every Node manager" in prompt
     assert "each entry is exactly the bare token" in prompt
     assert "`not_needed_verified`" in prompt
     assert "`semantic_effect`" in prompt
     assert "set `selection_blocked: true`" in prompt
-    assert "## Gradle Dependency Graph Safety Audit" in prompt
+    assert "Per-manager mechanisms map onto those classification families" in prompt
+    assert "still fill `lookup_method` with the attempted or blocked method" in prompt
+    assert "scheme-prefixed form, or null" in prompt
+    assert "Gradle, npm, Yarn, or pnpm" in prompt
+    assert "`npm.manifest_range`" in prompt
+    assert "`yarn.resolutions`" in prompt
+    assert "`pnpm.overrides`" in prompt
+    assert "`npm.alias_redirect`" in prompt
+    assert "`lockfile_override`" in prompt
+    assert "`source_override`" in prompt
+    assert "no removal construct" in prompt
+    assert "never claim `dependency_removal` for a Node manipulation" in prompt.replace(
+        "\n", " "
+    )
+    assert "`name@version`" in prompt
+    assert "`checked_at` with the attempt time (never null)" in prompt
+    assert "Maven manipulations are type-driven" in prompt
+    assert "`maven.<type>`" in prompt
     assert "Gradle manipulations keep `type` null" in prompt
     assert "`gradle.version_catalog`" in prompt
     assert "`gradle.resolution_strategy_force`" in prompt
     assert "`gradle.dependency_substitution`" in prompt
-    assert "`inventory.key.ecosystem` exactly `gradle`" in prompt
+    assert "keep `dependencyInsight` output" in prompt
+    assert "bounded to the affected configuration" in prompt
+    assert "UIA cannot\nwaive this" in prompt or "UIA cannot waive this" in prompt
     assert "Validation Command Selection" in prompt
     assert "Never clean validation artifacts in the user's worktree" in prompt
     assert "the user worktree must remain byte-for-byte unchanged" in prompt

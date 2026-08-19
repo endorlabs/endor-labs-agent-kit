@@ -241,7 +241,7 @@ unavailable arrays, and emit no aliases or extra keys:
 - `selected_remediation`: `package`, `from_version`, `to_version`, `branch_name`, `project_uuid`, `namespace`, `namespace_provenance`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `risk`, `cia_status`, `cia`, `findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `manifests`, `affected_manifests`, `selection_blocked`. Do not emit `current_version`, `target_version`, `manifest`, `ecosystem`, or workflow-status aliases. When no UIA-backed candidate can be selected, set `selection_blocked: true`, leave the target-version, branch, and count fields null (including `inventory.key.target_version`), and use a blocked or rejected `risk_decision.status`; otherwise set `selection_blocked` null.
 - `uia_evidence[]`: `resource`, `resource_type`, `uuid`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `cia_status`, `findings_fixed`, `total_findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `total_findings_introduced`, `fixed_findings`, `sample_fixed_findings`, `score_explanation`, `breaking_changes`. `breaking_changes`, `fixed_findings`, and `sample_fixed_findings` are arrays; use `[]`, never `false`, when none are known. Do not emit package, version, manifest, score, conflict, or dependency-footprint aliases.
 - `risk_decision`: `status`, `summary`, `reason`, `source_usage_summary`, `validation_requirements`. Put supporting detail into `summary` or `reason`; do not emit `evidence`, `source_usage`, `validation_required`, or `companion_edits` aliases in this compact profile.
-- `dependency_graph_audit`: `package_manager`, `status`, `manifest`, `dependency_path`, `manipulations`, `validation_requirements`. Each manipulation has exactly `type`, `coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`, and `evidence`. Use the exact enum tokens from the Maven and Gradle Dependency Graph Safety Audit sections; no other keys or aliases.
+- `dependency_graph_audit`: `package_manager`, `status`, `manifest`, `dependency_path`, `manipulations`, `validation_requirements`. Each manipulation has exactly `type`, `coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`, and `evidence`. Use the exact enum tokens from the Dependency Graph Safety Audit section; no other keys or aliases.
 - `change_requests[0]`: `status`, `base_branch`, `proposed_branch`, `title`, `body`, `url`, `reason`, `inventory`. Use `base_branch`, `title`, and `url`, never `proposed_base_branch`, `proposed_title`, or `existing_change_request_url`.
 - `inventory.reconciliation`: `status`, `reason`, `selected_target_version`, `uia_evidence_checked_at`, `upstream_evidence_checked_at`, `operator_choice_required`.
 - `policy_context`: `status`, `pack_id`, `pack_version`, `sha256`, `source`. Use `pack_version`, never `version`.
@@ -276,7 +276,7 @@ source-provider lookup—not merely because mutations are forbidden. For
 `exact_duplicate`, set reconciliation status to exactly `reuse_existing` or
 `blocked_duplicate`.
 
-Do not flatten the key or reconciliation into strings such as `repository_base_branch_key` or `reconciliation_status`, and use `checked_at`, never `check_time`. If source-provider lookup is unavailable, set `inventory.status: "unavailable"`, preserve the complete key above, set `candidates: []`, explain the blocker in reconciliation and top-level `data_gaps`, and fail closed before push or PR/MR creation.
+Do not flatten the key or reconciliation into strings such as `repository_base_branch_key` or `reconciliation_status`, and use `checked_at`, never `check_time`. If source-provider lookup is unavailable, set `inventory.status: "unavailable"`, preserve the complete key above, set `candidates: []`, still fill `lookup_method` with the attempted or blocked method and `checked_at` with the attempt time (never null), explain the blocker in reconciliation and top-level `data_gaps`, and fail closed before push or PR/MR creation.
 
 Keep source-provider inventory compact. On GitHub, when authenticated `gh` is
 available, use one bounded open-PR listing for the selected base branch with
@@ -327,7 +327,7 @@ ecosystem assumptions, release notes, and provider metadata are not local source
 
 Return exactly one `risk_decision.status`:
 
-- `approved_low_risk`: UIA/CIA and local source evidence are clean and targeted validation for the proposed change ran successfully in the current run. This is not available merely because the UIA risk is low.
+- `approved_low_risk`: UIA/CIA and local source evidence are clean and targeted validation for the proposed change ran successfully in the current run. This is not available merely because the UIA risk is low. The projection omits `validation` records, so the selection-plan ceiling is `approved_with_validation_required` even when targeted validation already ran and passed (summarize outcomes in `risk_decision.reason`); `approved_low_risk` belongs to the apply and validate gates.
 - `approved_with_validation_required`: the patch is reasonable, but the PR must say compatibility requires validation. Use this for a read-only selection plan when validation has not run, including low-risk/no-breaking-change UIA candidates, or when CIA is still indeterminate.
 - `blocked_needs_compatibility_analysis`: do not apply or open a PR yet. Use this when source usage, conflicts, introduced findings, or CIA data require more analysis.
 - `rejected`: do not recommend this candidate because the evidence shows unacceptable introduced findings, conflicts, breaking changes, or required companion edits outside the requested scope.
@@ -352,78 +352,91 @@ The Selection / Plan gate is not complete until `risk_decision.status` is presen
 
 Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a straightforward manifest change as a substitute for risk resolution. Those are inputs to `risk_decision`, not the decision itself.
 
-## Maven Dependency Graph Safety Audit
+## Dependency Graph Safety Audit
 
-After UIA selects Maven, inspect only its dependency path and affected POMs;
-never return raw POM/XML, an unbounded dependency tree, or one Endor query per
-manipulation. Set `inventory.key.ecosystem` to exactly `maven`.
+After UIA selects a candidate built by a supported package manager (Maven,
+Gradle, npm, Yarn, or pnpm), audit that manager's graph manipulations before
+approval or mutation. Inspect only the selected dependency path and affected
+manifests; never return raw manifest content, an unbounded dependency tree,
+or one Endor query per manipulation.
+Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, or the registry
+token `npm` for every Node manager.
+The selected dependency path spans from the declaring manifest through the
+selected package's full transitive closure (bounded by the 12-coordinate
+`dependency_path` cap). Audit any manipulation whose coordinate mediates,
+removes, or substitutes a package in that closure — including pre-existing
+direct declarations of the selected package's transitive dependencies.
+Anything listed is decision-relevant, so omit unrelated manipulations
+elsewhere instead of flagging them.
 
-Return `dependency_graph_audit` with exactly `package_manager` (`maven`),
-`status` (`clear`, `validation_required`, `validated`, `blocked`, or
-`unavailable`), `manifest` (a selected remediation manifest path; when the
-governing native control lives in a parent or aggregator POM, list that POM in
-`selected_remediation.affected_manifests` and name it here),
+Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
+`gradle`, `npm`, `yarn`, or `pnpm`), `status` (`clear`, `validation_required`,
+`validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
+manifest path; when the
+governing native control lives in a parent or aggregator manifest, list that
+manifest in `selected_remediation.affected_manifests` and name it here),
 `dependency_path` (at most 12 coordinates), `manipulations` (at most 8), and
 `validation_requirements` (at most 2; each entry is exactly the bare token
 `resolved_graph` or `runtime_linkage` with no extra text — commands and
 explanations belong in `risk_decision.validation_requirements`). Each
-manipulation has exactly `type` (`version_property`,
-`dependency_management`, `bom`, `direct_dependency_override`, or `exclusion`),
-`coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`
-(exact coordinate or null), and `evidence` (at most 3 strings). List only
-manipulations on the selected dependency path or its affected POMs; anything
-listed is decision-relevant, so omit unrelated manipulations elsewhere instead
-of flagging them.
+manipulation has exactly `type`, `coordinate`, `classification`,
+`semantic_effect`, `mechanism`, `replacement` (a bare
+`group:artifact[:version]` JVM or `name@version` Node coordinate, never a
+`mvn://`, `npm://`, or other scheme-prefixed form, or null), and `evidence`
+(at most 3 strings).
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
 `replacement_declared`, `replacement_verified`, `not_needed_verified`,
-`unverified`, or `replacement_conflict_or_incomplete`. Existing
-property/BOM/`dependencyManagement` is `version_control`; prefer it to a direct
-dependency added only to force a transitive version. Such a direct override is
-`mediation_declared`/`validation_required` until a filtered graph and targeted
-runtime/linkage test pass, then `mediation_verified`/`validated`. Exclusion
+`unverified`, or `replacement_conflict_or_incomplete`. Prefer an existing
+native version control (`version_control`; `semantic_effect`
+`native_version_control`) to a construct added only to force a transitive
+version; such forced mediation (`forced_version_mediation`) is
+`mediation_declared`/`validation_required` until a bounded resolved-graph
+check and a targeted runtime/linkage test pass, then
+`mediation_verified`/`validated`.
+An unexplained or advisory-dodging forced mediation is instead
+`unverified` -> `blocked`; never pair `mediation_declared` with `blocked`.
+A removal (`dependency_removal`)
 without replacement or with a conflicting/incomplete one is `unverified` or
-`replacement_conflict_or_incomplete` -> `blocked`; exact `replacement_declared`
-follows the same validation rule before `replacement_verified`, and
-`not_needed_verified` likewise requires `validated` with both checks passed.
-With neither override nor exclusion use `clear`, or `validated` after both
-checks pass; at the selection-plan gate nothing has run yet, so use `clear`,
-`validation_required`, `blocked`, or `unavailable` there. `semantic_effect` is
-`native_version_control` for native controls, `forced_version_mediation` for
-direct overrides, and `dependency_removal` or `dependency_substitution` for
-exclusions (remaining `semantic_effect` tokens are reserved for other package
-managers); `mechanism` is `maven.<type>`; use null for either when unsure.
+`replacement_conflict_or_incomplete` -> `blocked`. An exact declared
+replacement or substitution (`dependency_substitution`) is
+`replacement_declared` and follows the same validation rule before
+`replacement_verified`; `not_needed_verified` likewise requires `validated`
+with both checks passed. With no manipulation use `clear`, or `validated`
+after both checks pass; at the selection-plan gate nothing has run yet, so
+use `clear`, `validation_required`, `blocked`, or `unavailable` there.
+`asset_or_feature_suppression` is reserved for other package managers.
 UIA cannot waive this; evidence-only -> `unavailable`, never
 `approved_low_risk`.
 
-## Gradle Dependency Graph Safety Audit
+Per-manager mechanisms map onto those classification families:
 
-After UIA selects a Gradle-built candidate, apply the same audit with
-`package_manager` `gradle` and `inventory.key.ecosystem` exactly `gradle`.
-Inspect only the selected dependency path and affected Gradle build files
-(`build.gradle`/`.kts`, `settings.gradle`/`.kts`, `gradle/libs.versions.toml`,
-lockfiles). The same caps, statuses, classifications, manifest rule, and
-bare-token `validation_requirements` rules apply; keep `dependencyInsight`
-output bounded to the affected configuration and never dump full dependency
-reports.
+| Manager | Native version control | Forced mediation / overrides | Removal / substitution |
+| --- | --- | --- | --- |
+| Maven | `version_property`, `dependency_management`, `bom` | `direct_dependency_override` | `exclusion` (`dependency_removal`, or `dependency_substitution` when an exact replacement is declared) |
+| Gradle | `gradle.version_catalog`, `gradle.constraint`, `gradle.platform` | `gradle.enforced_platform`, `gradle.resolution_strategy_force`, `gradle.direct_dependency_override`, `gradle.rich_version_rule` (strictly/reject) | `gradle.exclusion` for removal; `gradle.dependency_substitution`, `gradle.component_metadata_rule` for substitution (exact replacement always required) |
+| npm | `npm.manifest_range` | `npm.overrides`; `npm.lockfile_edit` (`lockfile_override`); `npm.source_specifier` (`source_override`) | `npm.alias_redirect` for substitution; no removal construct |
+| Yarn | `yarn.manifest_range` | `yarn.resolutions`; `yarn.lockfile_edit` (`lockfile_override`); `yarn.patch_protocol`, `yarn.source_protocol` (`source_override`) | `yarn.alias_redirect` for substitution; no removal construct |
+| pnpm | `pnpm.manifest_range` | `pnpm.overrides`, `pnpm.pnpmfile_hook`; `pnpm.lockfile_edit` (`lockfile_override`); `pnpm.source_specifier` (`source_override`) | `pnpm.alias_redirect` for substitution; no removal construct |
 
-Gradle manipulations keep `type` null; `mechanism` carries the construct and
-`semantic_effect` is required. Native version control (`version_control` +
-`native_version_control`): `gradle.version_catalog`, `gradle.constraint`,
-`gradle.platform` — prefer an existing catalog entry, constraint, or platform.
-Forced mediation (`mediation_declared` -> `validation_required`, then
-`mediation_verified`/`validated` only after a configuration-scoped
-`dependencyInsight` graph check plus a targeted runtime/linkage test pass;
-`semantic_effect` `forced_version_mediation`): `gradle.enforced_platform`,
-`gradle.resolution_strategy_force`, `gradle.direct_dependency_override` (a
-dependency added only to force a transitive version), and
-`gradle.rich_version_rule` (strictly/reject rules). Removal
-(`gradle.exclusion`; `dependency_removal`, or `dependency_substitution` when
-an exact replacement is declared): a bare exclusion is `unverified` ->
-`blocked`; with an exact declared replacement follow the replacement ladder. Substitution (`gradle.dependency_substitution`,
-`gradle.component_metadata_rule`; `dependency_substitution`): always requires
-the exact replacement coordinate and stays
-`replacement_declared`/`validation_required` until both checks pass.
+Maven manipulations are type-driven: `type` is one of the five Maven tokens
+above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
+null for `semantic_effect` or `mechanism` when unsure.
+Gradle manipulations keep `type` null; `mechanism` carries the
+`gradle.<construct>` token and `semantic_effect` is required; affected build
+files are `build.gradle`/`.kts`, `settings.gradle`/`.kts`,
+`gradle/libs.versions.toml`, and lockfiles; keep `dependencyInsight` output
+bounded to the affected configuration and never dump full dependency reports.
+npm, Yarn, and pnpm manipulations are mechanism-driven like Gradle (`type`
+null, `semantic_effect` required) and share the npm registry:
+`inventory.key.ecosystem` stays exactly `npm`, `package.json` alone does not
+identify the manager (the lockfile does: `package-lock.json`, `yarn.lock`,
+`pnpm-lock.yaml`), replacements are bare `name@version`, a hand-edited
+lockfile is an override with `lockfile_override`, git/file/link/portal
+redirections are overrides with `source_override`, and there is
+no removal construct — never claim `dependency_removal` for a Node
+manipulation. Keep `npm ls`/`yarn why`/`pnpm why` output bounded to the
+selected package.
 
 ## Validation Command Selection
 

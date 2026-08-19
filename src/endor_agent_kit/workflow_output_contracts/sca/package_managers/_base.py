@@ -107,6 +107,26 @@ class PackageManagerAuditProfile:
     type_driven: bool = True
     semantic_effect_required: bool = False
     mechanisms: Mapping[str, str] = field(default_factory=dict)
+    # Registry-family vocabulary: some managers share one registry (npm/Yarn/
+    # pnpm all install from the npm registry), so the duplicate-inventory
+    # ecosystem token, some manifests, and coordinate shapes identify the
+    # family, never one manager. Shared signals are weak: they yield to any
+    # manager-specific ecosystem or manifest match.
+    canonical_ecosystem: str = ""
+    shared_ecosystem_aliases: frozenset[str] = frozenset()
+    shared_manifest_basenames: frozenset[str] = frozenset()
+    # Mechanisms whose semantic_effect differs from the kind default (e.g. a
+    # hand-edited lockfile is an override construct with lockfile_override
+    # semantics, not forced version mediation).
+    mechanism_semantic_effects: Mapping[str, frozenset[str]] = field(
+        default_factory=dict
+    )
+    replacement_pattern: re.Pattern[str] = COORDINATE_RE
+    replacement_format: str = "group:artifact"
+
+    def __post_init__(self) -> None:
+        if not self.canonical_ecosystem:
+            object.__setattr__(self, "canonical_ecosystem", self.name)
 
     @property
     def manipulation_types(self) -> frozenset[str]:
@@ -131,11 +151,20 @@ class PackageManagerAuditProfile:
     def matches_ecosystem(self, token: str) -> bool:
         return _normalize_ecosystem(token) in self.ecosystem_aliases
 
+    def matches_shared_ecosystem(self, token: str) -> bool:
+        return _normalize_ecosystem(token) in self.shared_ecosystem_aliases
+
     def matches_manifest(self, manifest: str) -> bool:
-        if not isinstance(manifest, str):
+        name = _manifest_basename(manifest)
+        if name is None:
             return False
-        name = PurePosixPath(manifest.replace("\\", "/")).name.lower()
         return name in self.manifest_basenames or name.endswith(self.manifest_suffixes)
+
+    def matches_shared_manifest(self, manifest: str) -> bool:
+        name = _manifest_basename(manifest)
+        if name is None:
+            return False
+        return name in self.shared_manifest_basenames
 
     def matches_coordinate(self, coordinate: str) -> bool:
         if not isinstance(coordinate, str):
@@ -151,6 +180,19 @@ class PackageManagerDetection:
     ecosystem_token: str
     ecosystem_is_canonical: bool
     signals: tuple[str, ...]
+
+
+def _manifest_basename(manifest: object) -> str | None:
+    """Whitespace-stripped lowercase basename, or None for non-strings.
+
+    Stripping is load-bearing: a padded lockfile name ('yarn.lock ') must
+    still register as a strong manager signal, or conflicting lockfiles could
+    dodge the ambiguity fail-closed gate.
+    """
+
+    if not isinstance(manifest, str):
+        return None
+    return PurePosixPath(manifest.strip().replace("\\", "/")).name.lower()
 
 
 def _normalize_ecosystem(token: str) -> str:
@@ -177,6 +219,14 @@ def detect_package_managers(
             signals.append("ecosystem")
         if any(profile.matches_manifest(manifest) for manifest in manifests):
             signals.append("manifest")
+        if any(
+            profile.matches_shared_ecosystem(token) for token in ecosystem_tokens
+        ):
+            signals.append("registry_ecosystem")
+        if any(
+            profile.matches_shared_manifest(manifest) for manifest in manifests
+        ):
+            signals.append("shared_manifest")
         if any(profile.matches_coordinate(coordinate) for coordinate in coordinates):
             signals.append("coordinate")
         if signals:
@@ -185,15 +235,19 @@ def detect_package_managers(
                     profile=profile,
                     ecosystem_token=primary_token,
                     # Canonicality is exact: aliases and case/prefix variants are
-                    # detection signals, but duplicate-inventory keys and the
-                    # audit contract require the literal manager name.
-                    ecosystem_is_canonical=primary_token == profile.name,
+                    # detection signals, but duplicate-inventory keys require the
+                    # registry-level canonical token (the manager name outside
+                    # registry families).
+                    ecosystem_is_canonical=primary_token
+                    == profile.canonical_ecosystem,
                     signals=tuple(signals),
                 )
             )
-    # Coordinate formats are registry-level and shared across managers (JVM
-    # packages are mvn:// for both Maven and Gradle), so a coordinate-only
-    # match yields to any profile matched by ecosystem or manifest evidence.
+    # Coordinate formats, registry-level ecosystem tokens, and registry-shared
+    # manifests identify a family, not one manager (JVM packages are mvn://
+    # for both Maven and Gradle; package.json is shared by npm/Yarn/pnpm), so
+    # those matches yield to any profile matched by manager-specific ecosystem
+    # or manifest evidence.
     strong = [
         detection
         for detection in detections
@@ -329,10 +383,10 @@ def validate_dependency_graph_audit(
         if classification in {"replacement_declared", "replacement_verified"}:
             if not replacement:
                 errors.append(f"{prefix}.replacement: required for {classification}")
-            elif not COORDINATE_RE.fullmatch(replacement):
+            elif not profile.replacement_pattern.fullmatch(replacement):
                 errors.append(
-                    f"{prefix}.replacement: must be an exact group:artifact "
-                    "coordinate"
+                    f"{prefix}.replacement: must be an exact "
+                    f"{profile.replacement_format} coordinate"
                 )
 
         kind = profile.kind_of(manipulation_type, mechanism)
@@ -360,11 +414,20 @@ def validate_dependency_graph_audit(
 
         if manipulation.get("semantic_effect") is not None:
             semantic_effect = _text(manipulation.get("semantic_effect"))
+            mechanism_effects = profile.mechanism_semantic_effects.get(mechanism)
             if semantic_effect not in SEMANTIC_EFFECTS:
                 errors.append(
                     f"{prefix}.semantic_effect: must be one of "
                     + ", ".join(SEMANTIC_EFFECTS)
                 )
+            elif mechanism_effects is not None:
+                if semantic_effect not in mechanism_effects:
+                    construct = mechanism.split(".", 1)[-1] if mechanism else mechanism
+                    errors.append(
+                        f"{prefix}.semantic_effect: must be "
+                        + " or ".join(sorted(mechanism_effects))
+                        + f" for {display} {construct} manipulations"
+                    )
             elif kind == "native" and semantic_effect != "native_version_control":
                 errors.append(
                     f"{prefix}.semantic_effect: must be native_version_control for "

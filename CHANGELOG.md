@@ -13,6 +13,21 @@ package metadata.
 
 ### Added
 
+- Node.js dependency-graph safety audit for SCA remediation: npm, Yarn, and
+  pnpm profiles on the shared kind-bucket engine, mechanism-driven like Gradle
+  (`type` null, `<manager>.<construct>` in `mechanism`, required
+  `semantic_effect`). Manager identity comes from lockfiles
+  (`package-lock.json`/`npm-shrinkwrap.json`, `yarn.lock`/`.yarnrc*`,
+  `pnpm-lock.yaml`/`pnpm-workspace.yaml`); `package.json`, the npm ecosystem
+  token, and `npm://` coordinates are registry-family signals shared by all
+  three, narrowed by the audit's declared manager and otherwise failing
+  closed. The duplicate-inventory ecosystem token is the registry-level `npm`
+  for every Node manager. First uses of the reserved `lockfile_override`
+  (hand-edited lockfiles) and `source_override` (git/file/link/portal
+  redirections) semantic effects; alias redirections require an exact bare
+  `name@version` replacement; there is no Node removal construct, so
+  `dependency_removal` is never claimable through Node mechanisms.
+
 - Gradle dependency-graph safety audit for SCA remediation: mechanism-driven
   manipulations (`type` null, `gradle.<construct>` in `mechanism`, required
   `semantic_effect`) covering version catalogs, constraints, and platforms as
@@ -34,9 +49,50 @@ package metadata.
   registry with a shared audit engine, preparing the seam for Gradle and later
   ecosystems, and added optional cross-ecosystem `semantic_effect` and
   `mechanism` manipulation fields to the SCA structured-output contract.
+- Consolidated the Maven and Gradle audit instructions into one shared
+  "Dependency Graph Safety Audit" section with a per-manager mechanism table
+  and short per-manager exception lines, and defined transitive path depth
+  normatively: the selected dependency path spans the selected package's full
+  transitive closure (within the 12-coordinate cap), and pre-existing direct
+  declarations of the selected package's transitive dependencies are audited
+  rather than omitted as unrelated. Added one discriminating eval per manager
+  family for the pre-existing-transitive-pin case.
 
 ### Fixed
 
+- Closed red-team-confirmed fail-open seams in the graph-safety gate: an
+  audit whose declared `package_manager` resolves to no supported profile
+  (null, case variants, aliases like `node`, or non-string values) now fails
+  closed whenever the audit reports a non-unavailable status or any
+  manipulations, instead of silently skipping validation when every detection
+  signal is scrubbed; Node replacement coordinates must pin a full immutable
+  semver (mutable dist-tags like `pkg@latest` and x-ranges like `pkg@1.x` are
+  rejected); and whitespace-padded lockfile names still register as strong
+  manager signals so conflicting lockfiles cannot dodge the ambiguity
+  fail-closed gate.
+- Required `change_requests[0].inventory.lookup_method` and `checked_at` to be
+  filled (never null) even when the source-provider lookup is unavailable;
+  live replays showed prompt-only hosts nulling both in the unavailable path,
+  which the strict selection-plan contract rejects.
+- Resolved a contract inconsistency between the risk solver and the
+  selection-plan projection: the solver offered `approved_low_risk` when
+  targeted validation ran in the current run, but the projection omits the
+  `validation` records the deterministic gate needs to verify that claim, so
+  the status was structurally unreachable at the plan gate (found by the first
+  execution-enabled live replay). The canonical instructions now state the
+  selection-plan ceiling is `approved_with_validation_required` even when
+  validation already passed, with executed outcomes summarized in
+  `risk_decision.reason`; `approved_low_risk` belongs to the apply and
+  validate gates where `validation` entries are returned.
+- Spelled out the override classification pairing in the canonical
+  instructions: an unexplained or advisory-dodging forced mediation is
+  `unverified` -> `blocked`, and `mediation_declared` never pairs with
+  `blocked`; a live Node replay emitted the incoherent pair and the gate
+  correctly rejected it.
+- Pinned the manipulation `replacement` format in the canonical instructions
+  to a bare `group:artifact[:version]` coordinate; a live replay emitted a
+  `mvn://...@version` form that the deterministic coordinate check correctly
+  rejects.
 - Hardened Maven SCA remediation plans against unexplained direct dependency
   overrides and exclusions by requiring a bounded selected-path audit plus
   resolved-graph and targeted runtime/linkage evidence.
