@@ -186,7 +186,9 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "`manipulations` (at most 8)" in prompt
     assert "one Endor query per manipulation" in prompt.replace("\n", " ")
     assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
-    assert "to exactly `maven`, `gradle`, the registry" in prompt.replace("\n", " ")
+    assert "to exactly `maven`, `gradle`, `go`, the registry" in prompt.replace(
+        "\n", " "
+    )
     assert "token `npm` for every Node manager" in prompt.replace("\n", " ")
     assert "the registry token `pypi` for every Python manager" in prompt.replace(
         "\n", " "
@@ -198,7 +200,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Per-manager mechanisms map onto those classification families" in prompt
     assert "still fill `lookup_method` with the attempted or blocked method" in prompt
     assert "scheme-prefixed form, or null" in prompt
-    assert "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv" in prompt.replace(
+    assert "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go" in prompt.replace(
         "\n", " "
     )
     assert "`npm.manifest_range`" in prompt
@@ -220,6 +222,20 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "`uv.sources_redirect`" in prompt
     assert "`name==version`" in prompt
     assert "pip has none, so declare pip explicitly" in prompt.replace("\n", " ")
+    assert "`go.require_directive`" in prompt
+    assert "`go.replace_version`" in prompt
+    assert "`go.exclude_directive`" in prompt
+    assert "`go.replace_module`" in prompt
+    assert "`go.sum_edit`" in prompt
+    assert "`module@version`" in prompt
+    assert "`exclude` mediates version selection" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_removal` for a Go manipulation"
+        in prompt.replace("\n", " ")
+    )
+    assert "Keep `go mod graph`/`go mod why` output bounded" in prompt.replace(
+        "\n", " "
+    )
     assert "no removal or substitution construct" in prompt.replace("\n", " ")
     assert (
         "never claim `dependency_removal` or `dependency_substitution` for a "
@@ -252,9 +268,15 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "project-specific layout" not in prompt
     assert "services/api-gateway/pom.xml dependency:resolve" not in prompt
     assert "remediation/sca/<normalized-package-name>-<target-version>" in prompt
+    assert "a Go `+incompatible` target version becomes" in prompt.replace("\n", " ")
+    assert "`-incompatible`" in prompt
+    assert (
+        "never omit or null the counters for a selected remediation"
+        in prompt.replace("\n", " ")
+    )
     assert "remediation/sca/golang.org-x-crypto-v0.48.0" in prompt
     assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
-    assert "Do not use unrelated branch families such as" in prompt
+    assert "Do not use unrelated branch families such as" in prompt.replace("\n", " ")
     assert "`endor/fix/...`" in prompt
     assert "copy the final branch into every" in prompt
     assert "selected_remediation.branch_name" in prompt

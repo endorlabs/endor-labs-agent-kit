@@ -255,9 +255,16 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                     # the honest unsupported-manager shape — unavailable with
                     # no manipulations — passes through.
                     audit_dict = _dict(dependency_graph_audit)
-                    claims_content = _text(
-                        audit_dict.get("status")
-                    ) != "unavailable" or bool(_list(audit_dict.get("manipulations")))
+                    # Test the raw manipulations value, not _list(...): _list
+                    # coerces a dict or string to [], so a content-bearing
+                    # manipulation emitted as a non-list would otherwise read
+                    # as "no manipulations" and ride through unvalidated.
+                    raw_manipulations = audit_dict.get("manipulations")
+                    has_manipulation_content = raw_manipulations not in (None, [])
+                    claims_content = (
+                        _text(audit_dict.get("status")) != "unavailable"
+                        or has_manipulation_content
+                    )
                     if claims_content:
                         supported = ", ".join(
                             sorted(profile.name for profile in SUPPORTED_PROFILES)

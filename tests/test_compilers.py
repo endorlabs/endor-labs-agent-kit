@@ -558,11 +558,12 @@ def _prompt_budget(relative_path: str) -> int:
         # Pipenv/uv) with the transitive-closure depth rule and per-manager
         # mechanism table, and the replay-driven inventory and
         # replacement-format rules plus the selection-plan approved_low_risk
-        # ceiling rule measure 60,448 characters on the largest generated
-        # host artifact (the codex plugin TOML variant, whose escaping adds
-        # to the raw markdown's 60,079); retain bounded headroom. Scoped
-        # profiles retain separate <70% checks.
-        return 60_750
+        # ceiling rule, and the replay-driven no-UIA counter-derivation and
+        # branch `+` normalization rules measure 61,924 characters on the
+        # largest generated host artifact (the codex plugin TOML variant,
+        # whose escaping adds to the raw markdown's 61,521); retain bounded
+        # headroom. Scoped profiles retain separate <70% checks.
+        return 62_250
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

@@ -182,7 +182,7 @@ def _detect(**signals):
 
 def test_python_profiles_registered_with_registry_level_ecosystem():
     names = {profile.name for profile in SUPPORTED_PROFILES}
-    assert names == {
+    assert names >= {
         "maven",
         "gradle",
         "npm",
@@ -327,7 +327,7 @@ def test_python_family_narrows_by_declared_manager_without_lockfile():
 def test_python_package_manager_schema_enum_covers_python_managers():
     contract = compile_profile_contract("sca-remediation", "selection-plan")
     audit = contract.provider_neutral_schema["properties"]["dependency_graph_audit"]
-    assert set(audit["properties"]["package_manager"]["enum"]) == {
+    assert set(audit["properties"]["package_manager"]["enum"]) >= {
         "maven",
         "gradle",
         "npm",

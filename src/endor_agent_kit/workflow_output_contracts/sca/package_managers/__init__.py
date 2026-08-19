@@ -12,6 +12,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
     detect_package_managers,
     validate_dependency_graph_audit,
 )
+from endor_agent_kit.workflow_output_contracts.sca.package_managers.go import (
+    GO_PROFILE,
+)
 from endor_agent_kit.workflow_output_contracts.sca.package_managers.gradle import (
     GRADLE_PROFILE,
 )
@@ -40,11 +43,13 @@ SUPPORTED_PROFILES: tuple[PackageManagerAuditProfile, ...] = (
     POETRY_PROFILE,
     PIPENV_PROFILE,
     UV_PROFILE,
+    GO_PROFILE,
 )
 
 __all__ = [
     "AUDIT_STATUSES",
     "CLASSIFICATIONS",
+    "GO_PROFILE",
     "GRADLE_PROFILE",
     "GRAPH_RUNTIME_KINDS",
     "MAVEN_PROFILE",

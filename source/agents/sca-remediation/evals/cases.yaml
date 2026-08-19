@@ -415,6 +415,55 @@ cases:
     - no manipulation claims dependency_substitution or dependency_removal through a Python mechanism
     - the plan stays on the Endor-selected upgrade of the declared package or blocks for human review; the fork swap is a manifest edit of the declaration itself, out of scope for the graph-safety substitution family
     data_gaps_allowed: true
+- id: go-require-directive-preferred
+  input:
+    prompt: Plan the selected Go module upgrade. The repository declares the module version directly in go.mod with no replace or exclude directives.
+  expected:
+    action: preserve_project_native_go_version_control
+    required_evidence:
+    - the require directive is classified as version_control with mechanism go.require_directive, type null, and semantic_effect native_version_control
+    - the plan updates the require directive and refreshes go.sum instead of adding a replace pin
+    - inventory.key.ecosystem is exactly go
+    data_gaps_allowed: true
+- id: go-replace-version-requires-evidence
+  input:
+    prompt: Plan the selected Go transitive-module upgrade. The proposed change adds a same-path replace directive to go.mod only to force the transitive version.
+  expected:
+    action: require_evidence_for_go_forced_mediation
+    required_evidence:
+    - the replace directive is classified as mediation_declared with mechanism go.replace_version, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded go mod why or go mod graph check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: go-exclude-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Go remediation. go.mod contains an exclude directive on the advisory's fixed version with no explanation, so MVS keeps resolving the vulnerable release.
+  expected:
+    action: block_advisory_dodging_go_exclude
+    required_evidence:
+    - the exclude directive appears as mechanism go.exclude_directive classified unverified with semantic_effect forced_version_mediation, never dependency_removal
+    - dependency_graph_audit status is blocked
+    - the exclude mediates version selection rather than removing the module from the graph
+    data_gaps_allowed: true
+- id: go-replace-module-substitution-validation-required
+  input:
+    prompt: Plan the selected Go remediation. go.mod replaces the archived vulnerable module with its maintained fork under a different module path.
+  expected:
+    action: require_graph_and_runtime_validation_for_go_substitution
+    required_evidence:
+    - the replace is classified as replacement_declared with mechanism go.replace_module and an exact bare module@version replacement
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: go-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Go-modules repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "golang".
+  expected:
+    action: emit_canonical_go_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly go
+    - dependency_graph_audit.package_manager is go
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file

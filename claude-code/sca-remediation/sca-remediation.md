@@ -191,6 +191,11 @@ Use count names consistently. `finding_instances_fixed` is Endor
 `total_findings_fixed` for the selected VersionUpgrade and is the number used
 in the PR/MR title. `unique_advisories_fixed` is the distinct advisory-ID count
 derived from `vuln_finding_info.fixed_findings` or nested fixed summaries.
+When no VersionUpgrade record backs the selected remediation (for example a
+fix-forward module substitution), derive `findings_fixed`,
+`finding_instances_fixed`, and `unique_advisories_fixed` from the findings
+being remediated and their advisory IDs;
+never omit or null the counters for a selected remediation.
 Finding query row count is only `evidence_queries[].result_count`; never
 substitute it for either remediation count. Preserve the fixed Finding UUIDs
 separately, copied byte-for-byte from VersionUpgrade detail. Do not reconstruct
@@ -414,14 +419,14 @@ Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a str
 ## Dependency Graph Safety Audit
 
 After UIA selects a candidate built by a supported package manager (Maven,
-Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv), audit that manager's
-graph manipulations before
+Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go), audit that
+manager's graph manipulations before
 approval or mutation. Inspect only the selected dependency path and affected
 manifests; never return raw manifest content, an unbounded dependency tree,
 or one Endor query per manipulation.
-Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, the registry
-token `npm` for every Node manager, or the registry token `pypi` for every
-Python manager.
+Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, `go`, the
+registry token `npm` for every Node manager, or the registry token `pypi`
+for every Python manager.
 The selected dependency path spans from the declaring manifest through the
 selected package's full transitive closure (bounded by the 12-coordinate
 `dependency_path` cap). Audit any manipulation whose coordinate mediates,
@@ -431,7 +436,7 @@ Anything listed is decision-relevant, so omit unrelated manipulations
 elsewhere instead of flagging them.
 
 Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
-`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, or `uv`),
+`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, `uv`, or `go`),
 `status` (`clear`, `validation_required`,
 `validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
 manifest path; when the
@@ -443,9 +448,9 @@ manifest in `selected_remediation.affected_manifests` and name it here),
 explanations belong in `risk_decision.validation_requirements`). Each
 manipulation has exactly `type`, `coordinate`, `classification`,
 `semantic_effect`, `mechanism`, `replacement` (a bare
-`group:artifact[:version]` JVM, `name@version` Node, or `name==version`
-Python coordinate, never a `mvn://`, `npm://`, `pypi://`, or other
-scheme-prefixed form, or null), and `evidence`
+`group:artifact[:version]` JVM, `name@version` Node, `name==version`
+Python, or `module@version` Go coordinate, never a `mvn://`, `npm://`,
+`pypi://`, `go://`, or other scheme-prefixed form, or null), and `evidence`
 (at most 3 strings).
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
@@ -485,6 +490,7 @@ Per-manager mechanisms map onto those classification families:
 | Poetry | `poetry.manifest_range` | `poetry.direct_dependency_override`; `poetry.lockfile_edit` (`lockfile_override`); `poetry.source_specifier` (`source_override`) | none |
 | Pipenv | `pipenv.manifest_range` | `pipenv.direct_dependency_override`; `pipenv.lockfile_edit` (`lockfile_override`); `pipenv.source_specifier` (`source_override`) | none |
 | uv | `uv.manifest_range` | `uv.override_dependencies`, `uv.constraint_dependencies`, `uv.direct_dependency_override`; `uv.lockfile_edit` (`lockfile_override`); `uv.source_specifier`, `uv.sources_redirect` (`source_override`) | none |
+| Go | `go.require_directive` | `go.replace_version`, `go.exclude_directive`; `go.sum_edit` (`lockfile_override`); `go.replace_path`, `go.work_replace`, `go.vendor_override` (`source_override`) | `go.replace_module` for substitution (exact `module@version` replacement); no removal construct |
 
 Maven manipulations are type-driven: `type` is one of the five Maven tokens
 above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
@@ -517,6 +523,17 @@ construct — never claim `dependency_removal` or `dependency_substitution`
 for a Python manipulation; a fork swap is a manifest edit of the declaration
 itself. Keep `pipdeptree`/`pip show`/`poetry show --tree`/`pipenv graph`/
 `uv tree` output bounded to the selected package.
+Go manipulations are mechanism-driven too (`type` null, `semantic_effect`
+required): `inventory.key.ecosystem` is exactly `go`, `go.mod` is the
+manifest and `go.sum` the integrity lockfile, replacements are bare
+`module@version` (full semver; pseudo-versions and `+incompatible`
+allowed), a hand-edited `go.sum` is an override with `lockfile_override`,
+filesystem/workspace/vendor redirections are overrides with
+`source_override`, a same-path version `replace` is forced mediation, and
+`exclude` mediates version selection — it removes a version from MVS
+candidates, never the module node, so never claim `dependency_removal` for
+a Go manipulation. Keep `go mod graph`/`go mod why` output bounded to the
+selected module.
 
 ## Validation Command Selection
 
@@ -551,7 +568,9 @@ Normalize package names by using the most specific package artifact name that wi
 - `pypi://example_package` -> `remediation/sca/example-package-7.8.9`
 - `go://golang.org/x/crypto` -> `remediation/sca/golang.org-x-crypto-v0.48.0`
 Do not keep package-path slashes after `remediation/sca/`; replace `/`, `:`,
-spaces, and underscores with `-`. Do not use unrelated branch families such as
+`+`, spaces, and underscores with `-`
+(a Go `+incompatible` target version becomes `-incompatible`). Do not use
+unrelated branch families such as
 `endor/fix/...` for this agent unless the user explicitly overrides the branch
 name in the current request.
 
@@ -954,7 +973,7 @@ Select at most one UIA-backed remediation candidate and stop before mutation.
 - Use when: The user asks for the best next remediation, a PR plan, or a read-only remediation gate. A read-only remediation gate needs a complete remediation gate JSON object.
 - Minimal evidence: Resolved project and VersionUpgrade/UIA evidence for candidate ranking and fixed-finding provenance. Local manifest/source usage for the selected package when `execution_context.mode` is `local_checkout`; otherwise an explicit evidence-only risk fallback and source data gap. For a selected Maven candidate, one bounded dependency-path audit of only the affected POMs. Preserve project-native version properties, dependencyManagement, and BOM controls; classify every selected-path direct override or exclusion and name any exact replacement. Resolved project evidence includes branch provenance and `project_resolution.traverse_attempted`. Use VersionUpgrade `vuln_finding_info` directly when it supplies the requested fixed-finding identifiers and counts. Otherwise add one exact batched Finding lookup by those current-run UUIDs, or a precise `data_gaps[]` entry. Dirty worktree state for affected manifests before proposing any local mutation. This is not required for an evidence-only plan.
 - Stop when: One candidate is selected, blocked, or rejected with `risk_decision.status`. Do not edit files, run dependency-manager mutations, create branches, or open change requests without explicit approval.
-- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request. For Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv, return `dependency_graph_audit` using the exact audit keys and enum tokens from the instructions, with `inventory.key.ecosystem` exactly `maven`, `gradle`, the registry token `npm` for every Node manager, or the registry token `pypi` for every Python manager; Gradle, Node, and Python manipulations keep `type` null and carry the `<manager>.<construct>` token in `mechanism` with `semantic_effect` set. An unverified direct override, forced mediation, exclusion, or substitution blocks approval; declared mediation, replacement, or substitution requires resolved-graph plus runtime/linkage validation; unrelated graph manipulation outside the selected path is omitted from the audit rather than flagged. Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`. The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, dependency_graph_audit, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings. The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys. Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`. Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases. Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows. Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation. Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory. Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
+- Output focus: Return exactly one JSON object with selected remediation, UIA evidence, risk decision, validation requirements, change request plan, and precise `data_gaps`. Return `execution_context`; evidence-only continues Endor selection but cannot use `approved_low_risk` or create a change request. For Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go, return `dependency_graph_audit` using the exact audit keys and enum tokens from the instructions, with `inventory.key.ecosystem` exactly `maven`, `gradle`, `go`, the registry token `npm` for every Node manager, or the registry token `pypi` for every Python manager; Gradle, Node, Python, and Go manipulations keep `type` null and carry the `<manager>.<construct>` token in `mechanism` with `semantic_effect` set. An unverified direct override, forced mediation, exclusion, or substitution blocks approval; declared mediation, replacement, or substitution requires resolved-graph plus runtime/linkage validation; unrelated graph manipulation outside the selected path is omitted from the audit rather than flagged. Do not draft a full PR/MR body unless the current request explicitly asks for a PR/MR plan or body. Return exactly one `change_requests` entry. It must contain a complete deterministic `inventory` even when source-provider lookup is unavailable. For an unavailable lookup, use `status: unavailable`, identify the attempted or unavailable lookup method and check time, preserve the full key from the selected remediation, use an empty candidates array, and explain reconciliation and the blocker in `data_gaps`. Include branch provenance and `project_resolution.traverse_attempted`. When a remediation candidate is selected, include `selected_remediation.branch_name` and `change_requests[].proposed_branch` using `remediation/sca/<package>-<target-version>`. Set `risk_decision.status` to exactly one of `approved_low_risk`, `approved_with_validation_required`, `blocked_needs_compatibility_analysis`, or `rejected`; never use selection labels such as `selected`. The selection-plan projection is authoritative: return only summary, project_resolution, execution_context, evidence_queries, selected_remediation, uia_evidence, risk_decision, dependency_graph_audit, change_requests, data_gaps, policy_context, and policy_evaluations. Omit remediation_candidates, patch_plan, validation, and tickets; put unrun checks in risk_decision.validation_requirements as strings. The generated selection-plan profile contract is strict: follow the canonical nested-key contract in the source instructions, use null for unknown scalar/object values and [] for unavailable arrays, and emit no aliases or extra keys. Mirror `finding_instances_fixed`, `unique_advisories_fixed`, and the verbatim 24-hex `fixed_finding_uuids` in both `selected_remediation` and `uia_evidence[0]`. Keep only package/manifest-overlapping inventory candidates. Each candidate has exactly author, author_type, branch, state, files, url, current_version, target_version, and exact_duplicate; do not emit number, versions, or overlap aliases. Prove compact candidate overlap with at least one files path exactly matching selected_remediation.manifests or selected_remediation.affected_manifests; omit unrelated provider rows. Use null versions only for a non-exact overlapping candidate when the provider evidence cannot determine them. Exact duplicates require both versions matching the selected remediation. Prefer one bounded source-provider change-request list with changed-file paths, filter locally by selected manifest, then fetch only the matching manifest patch for at most five candidates. Avoid full bodies, comments, commits, reviews, and broad MCP/app inventory. Before returning, verify that the projection is one syntactically complete JSON object with balanced object and array delimiters.
 
 ### Evidence Query Plans
 
@@ -977,7 +996,7 @@ Prove whether scoped Finding and VersionUpgrade/UIA evidence exists without sele
 #### `selection-plan` - Selection Plan Query Plan
 
 Select at most one UIA-backed candidate by narrowing through VersionUpgrade before detailed Finding expansion.
-- Query order: 1. Resolve namespace, project, repository provenance, and dirty worktree state first. 2. Query VersionUpgrade/UIA candidate summaries with tight fields for worth_it, is_best, upgrade risk, findings fixed, findings introduced, CIA status, direct package, and manifest files. 3. Fetch detailed VersionUpgrade/UIA evidence only for the selected candidate. 4. Inspect only the selected package manifests and source usage needed for risk_decision.source_usage_summary. 5. For a selected Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv candidate, inspect only its dependency path and affected POMs, Gradle build files, or package.json or pyproject.toml/requirements manifests plus the manager lockfile for version controls, forced mediation, exclusions, overrides, and substitutions; record at most eight normalized manipulations without another Endor query. 6. Consume `vuln_finding_info.fixed_findings` and nested fixed-summary UUIDs from that detail first. If they cannot support a requested advisory mapping, PR body detail, or count reconciliation, fetch all current-run UUIDs in one exact batched Finding query.
+- Query order: 1. Resolve namespace, project, repository provenance, and dirty worktree state first. 2. Query VersionUpgrade/UIA candidate summaries with tight fields for worth_it, is_best, upgrade risk, findings fixed, findings introduced, CIA status, direct package, and manifest files. 3. Fetch detailed VersionUpgrade/UIA evidence only for the selected candidate. 4. Inspect only the selected package manifests and source usage needed for risk_decision.source_usage_summary. 5. For a selected Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go candidate, inspect only its dependency path and affected POMs, Gradle build files, package.json, pyproject.toml/requirements, or go.mod/go.work manifests plus the manager lockfile for version controls, forced mediation, exclusions, overrides, and substitutions; record at most eight normalized manipulations without another Endor query. 6. Consume `vuln_finding_info.fixed_findings` and nested fixed-summary UUIDs from that detail first. If they cannot support a requested advisory mapping, PR body detail, or count reconciliation, fetch all current-run UUIDs in one exact batched Finding query.
 - Avoid: Do not enumerate broad Finding inventories before VersionUpgrade narrowing. Do not fetch full advisory/finding lists when the current gate is only selecting or blocking one candidate. Do not scan every POM, return raw XML or an unbounded dependency tree, or inspect unrelated-module exclusions. Do not try bare package-name Finding filters, one Finding call per UUID, schema/describe probes, or unfiltered samples. Do not edit files, create branches, run dependency-manager mutations, or open change requests without approval.
 - Stop after: Stop after one candidate is selected, blocked, or rejected with risk_decision.status and validation requirements.
 - Data gaps: Record skipped broad Finding detail, missing introduced-finding identity, missing advisory mapping, dirty worktree blockers, and unavailable UIA/CIA evidence in data_gaps.
@@ -1115,7 +1134,7 @@ Required top-level fields must appear in this order:
 - `selected_remediation` (`object`): Selected package upgrade or manual remediation path, including package, from/to versions, upgrade UUID, target manifests, Endor finding-instance count, distinct advisory count, fixed Finding UUIDs, and why it was selected.
 - `uia_evidence` (`list[object]`): VersionUpgrade/UIA records used for ranking, including risk, CIA status, Endor finding instances fixed, distinct advisories fixed, fixed Finding UUIDs, findings introduced, score explanation, and breaking-change notes.
 - `risk_decision` (`object`): Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.
-- `dependency_graph_audit` (`object`): Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.
+- `dependency_graph_audit` (`object`): Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, or Go audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.
 - `patch_plan` (`list[object]`): Files to edit, dependency-manager commands considered, companion source edits, branch/title/body draft, and explicit approval status.
 - `validation` (`list[object]`): Local validation commands considered or run, status, output summary, and blockers.
 - `change_requests` (`list[object]`): PR/MR URLs, branches, status, comment URLs, and failure reasons for requested change-request creation.
