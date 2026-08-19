@@ -12,6 +12,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
     detect_package_managers,
     validate_dependency_graph_audit,
 )
+from endor_agent_kit.workflow_output_contracts.sca.package_managers.bundler import (
+    BUNDLER_PROFILE,
+)
 from endor_agent_kit.workflow_output_contracts.sca.package_managers.go import (
     GO_PROFILE,
 )
@@ -48,10 +51,12 @@ SUPPORTED_PROFILES: tuple[PackageManagerAuditProfile, ...] = (
     UV_PROFILE,
     GO_PROFILE,
     NUGET_PROFILE,
+    BUNDLER_PROFILE,
 )
 
 __all__ = [
     "AUDIT_STATUSES",
+    "BUNDLER_PROFILE",
     "CLASSIFICATIONS",
     "GO_PROFILE",
     "GRADLE_PROFILE",

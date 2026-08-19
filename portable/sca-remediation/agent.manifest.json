@@ -399,7 +399,7 @@
       "required": true
     },
     {
-      "description": "Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, or NuGet audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.",
+      "description": "Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, or Bundler audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.",
       "kind": "object",
       "name": "dependency_graph_audit",
       "required": true

@@ -523,6 +523,65 @@ cases:
     - change_requests[0].inventory.key.ecosystem is exactly nuget
     - dependency_graph_audit.package_manager is nuget
     data_gaps_allowed: true
+- id: bundler-gemfile-requirement-preferred
+  input:
+    prompt: Plan the selected Ruby gem upgrade. The Gemfile declares the gem's version requirement directly with no pins, lock edits, or source redirects.
+  expected:
+    action: preserve_project_native_bundler_version_control
+    required_evidence:
+    - the Gemfile requirement is classified as version_control with mechanism bundler.gemfile_requirement, type null, and semantic_effect native_version_control
+    - the plan updates the Gemfile requirement and re-resolves Gemfile.lock instead of adding a transitive pin
+    - inventory.key.ecosystem is exactly gem
+    data_gaps_allowed: true
+- id: bundler-transitive-pin-requires-evidence
+  input:
+    prompt: Plan the selected Ruby transitive-gem upgrade. The Gemfile contains an entry for a gem the application never requires, added only to force that transitive's resolved version.
+  expected:
+    action: require_evidence_for_bundler_transitive_pin
+    required_evidence:
+    - the pin is classified as mediation_declared with mechanism bundler.transitive_pin, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded bundle list or gem dependency check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: bundler-lockfile-edit-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Ruby remediation. Gemfile.lock pins the vulnerable gem to a version the Gemfile requirement cannot produce, with no explanation — the lockfile was edited by hand and CI installs with frozen mode.
+  expected:
+    action: block_advisory_dodging_bundler_lockfile_edit
+    required_evidence:
+    - the lock entry appears as mechanism bundler.lockfile_edit classified unverified with semantic_effect lockfile_override
+    - dependency_graph_audit status is blocked
+    - the hand-edited lockfile rules resolution under frozen or deployment mode
+    data_gaps_allowed: true
+- id: bundler-require-false-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Ruby remediation. The vulnerable gem's Gemfile entry carries require false with no explanation, so the gem stays installed and locked while the app silently stops loading it at boot.
+  expected:
+    action: block_advisory_dodging_bundler_require_false
+    required_evidence:
+    - the entry appears as mechanism bundler.require_false classified unverified with semantic_effect asset_or_feature_suppression, never dependency_removal
+    - dependency_graph_audit status is blocked
+    - the gem stays resolved and pinned in Gemfile.lock while its automatic require is suppressed
+    data_gaps_allowed: true
+- id: bundler-git-redirect-is-source-override
+  input:
+    prompt: Plan the selected Ruby remediation. The Gemfile redirects the vulnerable gem to a maintained fork with git and branch options while keeping the gem name.
+  expected:
+    action: audit_bundler_git_redirect_as_source_override
+    required_evidence:
+    - the redirect is mechanism bundler.source_redirect with semantic_effect source_override, never dependency_substitution
+    - dependency_graph_audit status is validation_required with resolved_graph and runtime_linkage required
+    - a mutable branch reference does not count as an exact pin
+    data_gaps_allowed: true
+- id: bundler-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Ruby repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "rubygems".
+  expected:
+    action: emit_canonical_gem_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly gem
+    - dependency_graph_audit.package_manager is bundler
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file
