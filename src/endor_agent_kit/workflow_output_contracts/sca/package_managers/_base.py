@@ -11,6 +11,7 @@ unrecognized tokens instead of skipping them.
 from __future__ import annotations
 
 import re
+import unicodedata
 from dataclasses import dataclass, field
 from pathlib import PurePosixPath
 from typing import Any, Mapping
@@ -183,16 +184,25 @@ class PackageManagerDetection:
 
 
 def _manifest_basename(manifest: object) -> str | None:
-    """Whitespace-stripped lowercase basename, or None for non-strings.
+    """Normalized lowercase basename, or None for non-strings.
 
-    Stripping is load-bearing: a padded lockfile name ('yarn.lock ') must
-    still register as a strong manager signal, or conflicting lockfiles could
-    dodge the ambiguity fail-closed gate.
+    Normalization is load-bearing: a padded, zero-width-embellished, or
+    trailing-dot lockfile name ('yarn.lock ', 'uv.lock​', 'uv.lock.')
+    must still register as a strong manager signal, or conflicting lockfiles
+    could dodge the ambiguity fail-closed gate. NFKC folds compatibility
+    lookalikes, category-Cf characters render as nothing and are removed
+    outright, and trailing dots are ignored the way Windows path resolution
+    ignores them.
     """
 
     if not isinstance(manifest, str):
         return None
-    return PurePosixPath(manifest.strip().replace("\\", "/")).name.lower()
+    normalized = unicodedata.normalize("NFKC", manifest)
+    normalized = "".join(
+        char for char in normalized if unicodedata.category(char) != "Cf"
+    )
+    name = PurePosixPath(normalized.strip().replace("\\", "/")).name.lower()
+    return name.rstrip(".")
 
 
 def _normalize_ecosystem(token: str) -> str:

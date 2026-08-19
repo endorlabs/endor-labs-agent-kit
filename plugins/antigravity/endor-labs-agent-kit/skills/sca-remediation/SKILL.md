@@ -359,12 +359,14 @@ Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a str
 ## Dependency Graph Safety Audit
 
 After UIA selects a candidate built by a supported package manager (Maven,
-Gradle, npm, Yarn, or pnpm), audit that manager's graph manipulations before
+Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, or uv), audit that manager's
+graph manipulations before
 approval or mutation. Inspect only the selected dependency path and affected
 manifests; never return raw manifest content, an unbounded dependency tree,
 or one Endor query per manipulation.
-Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, or the registry
-token `npm` for every Node manager.
+Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, the registry
+token `npm` for every Node manager, or the registry token `pypi` for every
+Python manager.
 The selected dependency path spans from the declaring manifest through the
 selected package's full transitive closure (bounded by the 12-coordinate
 `dependency_path` cap). Audit any manipulation whose coordinate mediates,
@@ -374,7 +376,8 @@ Anything listed is decision-relevant, so omit unrelated manipulations
 elsewhere instead of flagging them.
 
 Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
-`gradle`, `npm`, `yarn`, or `pnpm`), `status` (`clear`, `validation_required`,
+`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, or `uv`),
+`status` (`clear`, `validation_required`,
 `validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
 manifest path; when the
 governing native control lives in a parent or aggregator manifest, list that
@@ -385,8 +388,9 @@ manifest in `selected_remediation.affected_manifests` and name it here),
 explanations belong in `risk_decision.validation_requirements`). Each
 manipulation has exactly `type`, `coordinate`, `classification`,
 `semantic_effect`, `mechanism`, `replacement` (a bare
-`group:artifact[:version]` JVM or `name@version` Node coordinate, never a
-`mvn://`, `npm://`, or other scheme-prefixed form, or null), and `evidence`
+`group:artifact[:version]` JVM, `name@version` Node, or `name==version`
+Python coordinate, never a `mvn://`, `npm://`, `pypi://`, or other
+scheme-prefixed form, or null), and `evidence`
 (at most 3 strings).
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
@@ -422,6 +426,10 @@ Per-manager mechanisms map onto those classification families:
 | npm | `npm.manifest_range` | `npm.overrides`; `npm.lockfile_edit` (`lockfile_override`); `npm.source_specifier` (`source_override`) | `npm.alias_redirect` for substitution; no removal construct |
 | Yarn | `yarn.manifest_range` | `yarn.resolutions`; `yarn.lockfile_edit` (`lockfile_override`); `yarn.patch_protocol`, `yarn.source_protocol` (`source_override`) | `yarn.alias_redirect` for substitution; no removal construct |
 | pnpm | `pnpm.manifest_range` | `pnpm.overrides`, `pnpm.pnpmfile_hook`; `pnpm.lockfile_edit` (`lockfile_override`); `pnpm.source_specifier` (`source_override`) | `pnpm.alias_redirect` for substitution; no removal construct |
+| pip | `pip.manifest_range` | `pip.constraints_pin`, `pip.direct_dependency_override`; `pip.source_specifier` (`source_override`) | none |
+| Poetry | `poetry.manifest_range` | `poetry.direct_dependency_override`; `poetry.lockfile_edit` (`lockfile_override`); `poetry.source_specifier` (`source_override`) | none |
+| Pipenv | `pipenv.manifest_range` | `pipenv.direct_dependency_override`; `pipenv.lockfile_edit` (`lockfile_override`); `pipenv.source_specifier` (`source_override`) | none |
+| uv | `uv.manifest_range` | `uv.override_dependencies`, `uv.constraint_dependencies`, `uv.direct_dependency_override`; `uv.lockfile_edit` (`lockfile_override`); `uv.source_specifier`, `uv.sources_redirect` (`source_override`) | none |
 
 Maven manipulations are type-driven: `type` is one of the five Maven tokens
 above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
@@ -441,6 +449,19 @@ redirections are overrides with `source_override`, and there is
 no removal construct — never claim `dependency_removal` for a Node
 manipulation. Keep `npm ls`/`yarn why`/`pnpm why` output bounded to the
 selected package.
+pip, Poetry, Pipenv, and uv manipulations are mechanism-driven too (`type`
+null, `semantic_effect` required) and share the PyPI registry:
+`inventory.key.ecosystem` stays exactly `pypi`, and `pyproject.toml` or
+requirements/constraints files alone do not identify the manager — the
+lockfile does (`poetry.lock`, `Pipfile.lock`, `uv.lock`; pip has none, so
+declare pip explicitly). Replacements are bare `name==version`, a
+hand-edited lockfile is an override with `lockfile_override`,
+VCS/URL/path/editable installs and `[tool.uv.sources]` redirects are
+overrides with `source_override`, and there is no removal or substitution
+construct — never claim `dependency_removal` or `dependency_substitution`
+for a Python manipulation; a fork swap is a manifest edit of the declaration
+itself. Keep `pipdeptree`/`pip show`/`poetry show --tree`/`pipenv graph`/
+`uv tree` output bounded to the selected package.
 
 ## Validation Command Selection
 

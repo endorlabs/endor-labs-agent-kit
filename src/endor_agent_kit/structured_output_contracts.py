@@ -954,7 +954,17 @@ def _dependency_graph_audit_schema() -> dict[str, Any]:
     return _strict_object_schema(
         {
             "package_manager": _nullable_enum(
-                ("maven", "gradle", "npm", "yarn", "pnpm")
+                (
+                    "maven",
+                    "gradle",
+                    "npm",
+                    "yarn",
+                    "pnpm",
+                    "pip",
+                    "poetry",
+                    "pipenv",
+                    "uv",
+                )
             ),
             "status": _nullable_enum(
                 ("clear", "validation_required", "validated", "blocked", "unavailable")

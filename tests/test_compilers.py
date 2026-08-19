@@ -553,13 +553,16 @@ def _prompt_budget(relative_path: str) -> int:
         # quality-critical. The exact dependency_graph_audit key/enum contract
         # plus the bare-token validation_requirements and selection_blocked
         # no-candidate rules (required so prompt-only hosts emit gate-valid
-        # audits), the consolidated Maven/Gradle/npm/Yarn/pnpm audit section
-        # with the transitive-closure depth rule and per-manager mechanism
-        # table, and the replay-driven inventory and replacement-format rules
-        # plus the selection-plan approved_low_risk ceiling rule measure
-        # 58,476 characters on the largest generated host artifact; retain
-        # bounded headroom. Scoped profiles retain separate <70% checks.
-        return 58_750
+        # audits), the consolidated audit section covering Maven, Gradle, the
+        # npm registry family, and the PyPI registry family (pip/Poetry/
+        # Pipenv/uv) with the transitive-closure depth rule and per-manager
+        # mechanism table, and the replay-driven inventory and
+        # replacement-format rules plus the selection-plan approved_low_risk
+        # ceiling rule measure 60,448 characters on the largest generated
+        # host artifact (the codex plugin TOML variant, whose escaping adds
+        # to the raw markdown's 60,079); retain bounded headroom. Scoped
+        # profiles retain separate <70% checks.
+        return 60_750
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":
