@@ -555,18 +555,19 @@ def _prompt_budget(relative_path: str) -> int:
         # no-candidate rules (required so prompt-only hosts emit gate-valid
         # audits), the consolidated audit section covering Maven, Gradle, the
         # npm registry family, the PyPI registry family (pip/Poetry/
-        # Pipenv/uv), Go, NuGet, and Bundler with the transitive-closure
-        # depth rule and per-manager mechanism table, the replay-driven
-        # inventory and replacement-format rules plus the selection-plan
-        # approved_low_risk ceiling rule, the replay-driven no-UIA
-        # counter-derivation and branch `+` normalization rules, the NuGet
-        # MSBuild-layering rules, and the Bundler unified-resolution,
-        # require-false-suppression, and fork-redirect-is-source-override
-        # rules measure 65,811 characters on the largest generated host
-        # artifact (the codex plugin TOML variant, whose escaping adds to
-        # the raw markdown's 65,360); retain bounded headroom. Scoped
-        # profiles retain separate <70% checks.
-        return 66_250
+        # Pipenv/uv), Go, NuGet, Bundler, and Cargo with the
+        # transitive-closure depth rule and per-manager mechanism table,
+        # the replay-driven inventory and replacement-format rules plus the
+        # selection-plan approved_low_risk ceiling rule, the replay-driven
+        # no-UIA counter-derivation and branch `+` normalization rules, the
+        # NuGet MSBuild-layering rules, the Bundler unified-resolution and
+        # require-false-suppression rules, and the Cargo patch/rename,
+        # lockfile-hold, and feature-suppression rules measure 67,884
+        # characters on the largest generated host artifact (the codex
+        # plugin TOML variant, whose escaping adds to the raw markdown's
+        # 67,406); retain bounded headroom. Scoped profiles retain separate
+        # <70% checks.
+        return 68_350
     if agent_id == "ai-sast-remediation":
         return 36_000
     if agent_id == "vulnerability-explainer":

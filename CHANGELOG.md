@@ -13,6 +13,32 @@ package metadata.
 
 ### Added
 
+- Rust Cargo dependency-graph safety audit for SCA remediation: a single
+  `cargo` profile on the shared kind-bucket engine, mechanism-driven
+  (`type` null, `cargo.<construct>` in `mechanism`, required
+  `semantic_effect`). Cargo is the only manager for crates.io — no
+  registry-family split, canonical inventory ecosystem `cargo`, strong
+  `Cargo.toml`/`Cargo.lock` signals (`.cargo/config.toml` carries the
+  source-replacement mechanism but is deliberately not a detection signal:
+  a bare `config.toml` basename is too generic). Cargo unifies
+  semver-compatible requirements, so an exact `=` requirement added only
+  to constrain a transitive's unified resolution is forced mediation
+  (`cargo.transitive_pin`), a `Cargo.lock` held at a version fresh
+  resolution would not pick is an override with `lockfile_override`
+  (`cargo.lockfile_pin`; authoritative under `--locked`/`--frozen`), and
+  `[patch]`/`[replace]` split by shape — same-crate version redirects are
+  forced mediation (`cargo.patch_version`), git/path redirects and
+  `.cargo/config.toml` source replacements are overrides with
+  `source_override` (`cargo.patch_source`, `cargo.source_replacement`).
+  Cargo is the first single-manager family with BOTH removal and
+  substitution buckets: feature disables (`cargo.feature_suppression`)
+  allow `asset_or_feature_suppression` or `dependency_removal` — chosen by
+  whether an optional dependency node actually left the graph — and a
+  dependency alias (`name = { package = "other-crate" }`,
+  `cargo.package_rename`) is a substitution requiring an exact bare
+  `crate@version` replacement (requirement operators, wildcards, partial
+  versions, git refs, and scheme prefixes rejected).
+
 - Ruby Bundler dependency-graph safety audit for SCA remediation: a single
   `bundler` profile on the shared kind-bucket engine, mechanism-driven like
   Gradle, Node, Python, Go, and NuGet (`type` null, `bundler.<construct>`

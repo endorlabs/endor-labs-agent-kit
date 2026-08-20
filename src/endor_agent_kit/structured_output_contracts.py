@@ -967,6 +967,7 @@ def _dependency_graph_audit_schema() -> dict[str, Any]:
                     "go",
                     "nuget",
                     "bundler",
+                    "cargo",
                 )
             ),
             "status": _nullable_enum(

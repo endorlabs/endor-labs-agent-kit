@@ -186,8 +186,9 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "`manipulations` (at most 8)" in prompt
     assert "one Endor query per manipulation" in prompt.replace("\n", " ")
     assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
-    assert "to exactly `maven`, `gradle`, `go`, `nuget`, the registry" in prompt.replace(
-        "\n", " "
+    assert (
+        "to exactly `maven`, `gradle`, `go`, `nuget`, `cargo`, the registry"
+        in prompt.replace("\n", " ")
     )
     assert "token `npm` for every Node manager" in prompt.replace("\n", " ")
     assert "the registry token `pypi` for every Python manager" in prompt.replace(
@@ -201,7 +202,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "still fill `lookup_method` with the attempted or blocked method" in prompt
     assert "scheme-prefixed form, or null" in prompt
     assert (
-        "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, or Bundler"
+        "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, Bundler, or Cargo"
         in prompt.replace("\n", " ")
     )
     assert "the registry token `gem` for Bundler" in prompt.replace("\n", " ")
@@ -272,6 +273,18 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "Keep `bundle list`/`gem dependency` output bounded" in prompt.replace(
         "\n", " "
     )
+    assert "`cargo.manifest_requirement`" in prompt
+    assert "`cargo.workspace_dependency`" in prompt
+    assert "`cargo.transitive_pin`" in prompt
+    assert "`cargo.lockfile_pin`" in prompt
+    assert "`cargo.patch_version`" in prompt
+    assert "`cargo.patch_source`" in prompt
+    assert "`cargo.source_replacement`" in prompt
+    assert "`cargo.feature_suppression`" in prompt
+    assert "`cargo.package_rename`" in prompt
+    assert "`crate@version`" in prompt
+    assert "can also drop optional dependency nodes" in prompt.replace("\n", " ")
+    assert "Keep `cargo tree` output bounded" in prompt.replace("\n", " ")
     assert "no removal or substitution construct" in prompt.replace("\n", " ")
     assert (
         "never claim `dependency_removal` or `dependency_substitution` for a "
@@ -313,6 +326,7 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "remediation/sca/golang.org-x-crypto-v0.48.0" in prompt
     assert "remediation/sca/newtonsoft.json-13.0.1" in prompt
     assert "remediation/sca/addressable-2.8.0" in prompt
+    assert "remediation/sca/regex-1.5.5" in prompt
     assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
     assert "Do not use unrelated branch families such as" in prompt.replace("\n", " ")
     assert "`endor/fix/...`" in prompt

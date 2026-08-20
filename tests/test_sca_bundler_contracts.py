@@ -165,10 +165,10 @@ def _detect(**signals):
 
 
 def test_bundler_profile_registered_as_single_manager_family():
-    # The newest profile file pins the exact registry so accidental
-    # additions or removals surface here.
+    # The newest profile file (Cargo) pins the exact registry; this asserts
+    # the Bundler-era profiles all remain registered.
     names = {profile.name for profile in SUPPORTED_PROFILES}
-    assert names == {
+    assert names >= {
         "maven",
         "gradle",
         "npm",
@@ -247,7 +247,7 @@ def test_bundler_manifests_do_not_bleed_into_other_families():
 def test_bundler_package_manager_schema_enum_includes_bundler():
     contract = compile_profile_contract("sca-remediation", "selection-plan")
     audit = contract.provider_neutral_schema["properties"]["dependency_graph_audit"]
-    assert set(audit["properties"]["package_manager"]["enum"]) == {
+    assert set(audit["properties"]["package_manager"]["enum"]) >= {
         "maven",
         "gradle",
         "npm",
