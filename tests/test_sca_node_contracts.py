@@ -622,8 +622,10 @@ def test_unresolvable_declared_manager_fails_closed_when_audit_claims_content():
         ), f"unresolvable declared manager {token!r} skipped audit validation"
 
     # The honest unsupported-manager shape stays accepted: unavailable with
-    # no manipulations and no supported-manager claim.
-    payload = scrubbed_payload("cargo")
+    # no manipulations and no supported-manager claim. (This originally used
+    # "cargo", which became a supported profile in Phase 7 — the token here
+    # must stay genuinely unsupported.)
+    payload = scrubbed_payload("composer")
     payload["dependency_graph_audit"]["status"] = "unavailable"
     payload["dependency_graph_audit"]["manifest"] = None
     payload["dependency_graph_audit"]["manipulations"] = []

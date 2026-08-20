@@ -354,14 +354,15 @@ Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a str
 ## Dependency Graph Safety Audit
 
 After UIA selects a candidate built by a supported package manager (Maven,
-Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, or Bundler),
-audit that manager's graph manipulations before
+Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, Bundler, or
+Cargo), audit that manager's graph manipulations before
 approval or mutation. Inspect only the selected dependency path and affected
 manifests; never return raw manifest content, an unbounded dependency tree,
 or one Endor query per manipulation.
 Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, `go`, `nuget`,
-the registry token `gem` for Bundler, the registry token `npm` for every
-Node manager, or the registry token `pypi` for every Python manager.
+`cargo`, the registry token `gem` for Bundler, the registry token `npm`
+for every Node manager, or the registry token `pypi` for every Python
+manager.
 The selected dependency path spans from the declaring manifest through the
 selected package's full transitive closure (bounded by the 12-coordinate
 `dependency_path` cap). Audit any manipulation whose coordinate mediates,
@@ -372,7 +373,7 @@ elsewhere instead of flagging them.
 
 Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
 `gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, `uv`, `go`,
-`nuget`, or `bundler`), `status` (`clear`, `validation_required`,
+`nuget`, `bundler`, or `cargo`), `status` (`clear`, `validation_required`,
 `validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
 manifest path; when the
 governing native control lives in a parent or aggregator manifest, list that
@@ -384,10 +385,10 @@ explanations belong in `risk_decision.validation_requirements`). Each
 manipulation has exactly `type`, `coordinate`, `classification`,
 `semantic_effect`, `mechanism`, `replacement` (a bare
 `group:artifact[:version]` JVM, `name@version` Node, `name==version`
-Python, `module@version` Go, `package@version` NuGet, or `gem@version`
-Bundler coordinate, never a `mvn://`, `npm://`, `pypi://`, `go://`,
-`nuget://`, `gem://`, or other scheme-prefixed form, or null), and
-`evidence` (at most 3 strings).
+Python, `module@version` Go, `package@version` NuGet, `gem@version`
+Bundler, or `crate@version` Cargo coordinate, never a `mvn://`, `npm://`,
+`pypi://`, `go://`, `nuget://`, `gem://`, `cargo://`, or other
+scheme-prefixed form, or null), and `evidence` (at most 3 strings).
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
 `replacement_declared`, `replacement_verified`, `not_needed_verified`,
@@ -431,6 +432,7 @@ Per-manager mechanisms map onto those classification families:
 | Go | `go.require_directive` | `go.replace_version`, `go.exclude_directive`; `go.sum_edit` (`lockfile_override`); `go.replace_path`, `go.work_replace`, `go.vendor_override` (`source_override`) | `go.replace_module` for substitution (exact `module@version` replacement); no removal construct |
 | NuGet | `nuget.package_reference`, `nuget.central_package_version` | `nuget.transitive_pin`, `nuget.central_transitive_pin`, `nuget.version_override`, `nuget.build_props_layer`; `nuget.lockfile_edit` (`lockfile_override`); `nuget.restore_source` (`source_override`) | `nuget.package_remove` (`dependency_removal`) and `nuget.exclude_assets` (`asset_or_feature_suppression`) for removal; no substitution construct |
 | Bundler | `bundler.gemfile_requirement`, `bundler.gemspec_requirement` | `bundler.transitive_pin`; `bundler.lockfile_edit` (`lockfile_override`); `bundler.source_redirect`, `bundler.gem_source` (`source_override`) | `bundler.require_false` (`asset_or_feature_suppression`) for removal; no substitution construct |
+| Cargo | `cargo.manifest_requirement`, `cargo.workspace_dependency` | `cargo.transitive_pin`, `cargo.patch_version`; `cargo.lockfile_pin` (`lockfile_override`); `cargo.patch_source`, `cargo.source_replacement` (`source_override`) | `cargo.feature_suppression` (`asset_or_feature_suppression`, or `dependency_removal` when a node leaves the graph) for removal; `cargo.package_rename` for substitution (exact `crate@version` replacement) |
 
 Maven manipulations are type-driven: `type` is one of the five Maven tokens
 above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
@@ -517,6 +519,29 @@ claim `dependency_removal` or `dependency_substitution` for a Bundler
 manipulation; removing or renaming a gem is a manifest edit of the
 declaration itself. Keep `bundle list`/`gem dependency` output bounded to
 the selected gem.
+Cargo manipulations are mechanism-driven too (`type` null,
+`semantic_effect` required): `inventory.key.ecosystem` is exactly `cargo`
+(never `rust` or `crates`), `Cargo.toml` is the manifest and `Cargo.lock`
+the lockfile (authoritative under `--locked`/`--frozen`), and
+`[workspace.dependencies]` is the sanctioned central version channel.
+Cargo unifies semver-compatible requirements to one resolved version, so
+an exact `=` requirement added only to constrain a transitive's unified
+resolution is forced mediation, as is a `Cargo.lock` held at a version a
+fresh resolution would not pick (`lockfile_override`). The
+`[patch]`/`[replace]` sections split by shape: a same-crate version
+redirect is forced mediation, while a git/path redirect — or a
+`.cargo/config.toml` source replacement or vendor/mirror swap — is an
+override with `source_override` and keeps the crate's name. Disabling
+features (`default-features = false`, trimmed feature lists) suppresses
+feature-gated code paths and, because optional dependencies are
+feature-activated, can also drop optional dependency nodes from the
+resolved graph — classify by what actually left the graph
+(`asset_or_feature_suppression`, or `dependency_removal` when a node is
+gone) under the same removal rules. A dependency alias
+(`name = { package = "other-crate" }`) resolves a different crate under
+the declared name: a substitution requiring an exact bare `crate@version`
+replacement — never a `^`/`~`/`=` requirement, wildcard, or git ref. Keep
+`cargo tree` output bounded to the selected crate.
 
 ## Validation Command Selection
 

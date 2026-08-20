@@ -582,6 +582,65 @@ cases:
     - change_requests[0].inventory.key.ecosystem is exactly gem
     - dependency_graph_audit.package_manager is bundler
     data_gaps_allowed: true
+- id: cargo-manifest-requirement-preferred
+  input:
+    prompt: Plan the selected Rust crate upgrade. Cargo.toml declares the crate's version requirement directly with no patch sections, pins, or config source replacements.
+  expected:
+    action: preserve_project_native_cargo_version_control
+    required_evidence:
+    - the requirement is classified as version_control with mechanism cargo.manifest_requirement, type null, and semantic_effect native_version_control
+    - the plan updates the Cargo.toml requirement and re-resolves Cargo.lock instead of adding a patch or pin
+    - inventory.key.ecosystem is exactly cargo
+    data_gaps_allowed: true
+- id: cargo-transitive-pin-requires-evidence
+  input:
+    prompt: Plan the selected Rust transitive-crate upgrade. Cargo.toml contains an exact "=" requirement for a crate the application never uses directly, added only to constrain that transitive's unified resolution.
+  expected:
+    action: require_evidence_for_cargo_transitive_pin
+    required_evidence:
+    - the pin is classified as mediation_declared with mechanism cargo.transitive_pin, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded cargo tree check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: cargo-lockfile-hold-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Rust remediation. Cargo.lock holds the vulnerable crate at a version below what the Cargo.toml requirement would freshly resolve, with no explanation, and CI builds with --locked.
+  expected:
+    action: block_advisory_dodging_cargo_lockfile_hold
+    required_evidence:
+    - the lock entry appears as mechanism cargo.lockfile_pin classified unverified with semantic_effect lockfile_override
+    - dependency_graph_audit status is blocked
+    - the held lockfile rules resolution under --locked or --frozen builds
+    data_gaps_allowed: true
+- id: cargo-feature-suppression-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Rust remediation. The vulnerable crate's Cargo.toml entry disables default features with no explanation, claiming the vulnerable code path is feature-gated, and an optional dependency disappeared from Cargo.lock.
+  expected:
+    action: block_advisory_dodging_cargo_feature_suppression
+    required_evidence:
+    - the entry appears as mechanism cargo.feature_suppression classified unverified
+    - the semantic_effect is chosen by what left the graph — dependency_removal when the optional dependency node is gone, asset_or_feature_suppression otherwise
+    - dependency_graph_audit status is blocked
+    data_gaps_allowed: true
+- id: cargo-package-rename-substitution-validation-required
+  input:
+    prompt: Plan the selected Rust remediation. Cargo.toml declares the dependency under its usual name but with a package key pointing at a different crate, so the code resolves a fork under the original name.
+  expected:
+    action: require_graph_and_runtime_validation_for_cargo_rename
+    required_evidence:
+    - the alias is classified as replacement_declared with mechanism cargo.package_rename and an exact bare crate@version replacement
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: cargo-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Rust repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "rust".
+  expected:
+    action: emit_canonical_cargo_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly cargo
+    - dependency_graph_audit.package_manager is cargo
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file
