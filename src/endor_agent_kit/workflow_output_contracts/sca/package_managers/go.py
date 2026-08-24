@@ -35,7 +35,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
 # go:// or other scheme prefix.
 GO_REPLACEMENT_RE = re.compile(
     r"[a-z0-9][A-Za-z0-9.-]*(?:/[A-Za-z0-9._~-]+)*"
-    r"@v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+incompatible)?"
+    r"@v\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+incompatible)?",
+    # ASCII-only so \d cannot admit fullwidth lookalike digits.
+    re.ASCII,
 )
 
 GO_PROFILE = PackageManagerAuditProfile(

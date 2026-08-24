@@ -11,6 +11,31 @@ package metadata.
 
 ## Unreleased
 
+### Fixed
+
+- Cross-family dependency-graph audit hardening (close-out sweep over the
+  per-family red-team residuals): every replacement pattern is now
+  ASCII-only, so fullwidth lookalike digits can no longer satisfy an
+  "exact version" pin in the Maven/Gradle, Node, Python, or Go families
+  (NuGet, Bundler, and Cargo already compiled with `re.ASCII`); a payload
+  with a null `selected_remediation` and no `selection_blocked` can no
+  longer claim a created or reused change request, and a supplied
+  `dependency_graph_audit` is now always validated even when the selection
+  is nulled out (previously the entire remediation block was skipped); and
+  a declared replacement that restates the audited package at the
+  remediation's own vulnerable version — a deceptive no-op "replacing" the
+  vulnerable state with itself — is rejected engine-wide, while legitimate
+  same-name alias pins at a different version keep validating. A follow-up
+  adversarial pass over the first version of these fixes found and closed
+  three bypasses in them: the restatement guard now anchors on the trusted
+  selection identity (selected package name plus from_version and the
+  inventory current_version, case- and version-normalized so trailing-`.0`
+  padding, `v` prefixes, and casing cannot dodge it) instead of only the
+  model-controlled optional `coordinate` field; a
+  `dependency_graph_audit` supplied as a non-object and a
+  `change_requests` supplied as a non-array now fail closed as shape
+  errors instead of being silently coerced away.
+
 ### Added
 
 - Rust Cargo dependency-graph safety audit for SCA remediation: a single

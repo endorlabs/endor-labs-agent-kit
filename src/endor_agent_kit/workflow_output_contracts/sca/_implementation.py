@@ -24,6 +24,10 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
     detect_package_managers,
     validate_dependency_graph_audit,
 )
+from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import (
+    _fold_disguises,
+    _normalize_version_token,
+)
 
 RISK_DECISION_STATUSES = frozenset(
     {
@@ -200,33 +204,58 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
         or selected_option.get("selection_blocked") is True
     )
     if gate in {"selection-plan", "apply", "validate", "pr"}:
+        claimed_statuses = {
+            "created",
+            "opened",
+            "open",
+            "pushed",
+            "updated",
+            "existing",
+            "reused",
+        }
+        claims_change_request = any(
+            isinstance(request, dict)
+            and _fold_disguises(_text(request.get("status"))).strip().lower()
+            in claimed_statuses
+            for request in _list(payload.get("change_requests"))
+        )
         if selection_blocked:
             if risk_status.startswith("approved"):
                 errors.append(
                     "risk_decision.status: selection_blocked cannot accompany an "
                     "approved decision"
                 )
-            claimed_statuses = {
-                "created",
-                "opened",
-                "open",
-                "pushed",
-                "updated",
-                "existing",
-                "reused",
-            }
-            if any(
-                isinstance(request, dict)
-                and _text(request.get("status")).lower() in claimed_statuses
-                for request in _list(payload.get("change_requests"))
-            ):
+            if claims_change_request:
                 errors.append(
                     "change_requests: selection_blocked cannot accompany a created "
                     "or reused change request"
                 )
+        elif not has_selected_remediation and claims_change_request:
+            # Off-contract shape: nothing was selected and selection was not
+            # declared blocked, yet a change request claims to exist. Without
+            # this, a null selected_remediation skipped the entire
+            # remediation block while asserting a created CR.
+            errors.append(
+                "change_requests: a created or reused change request requires a "
+                "selected remediation or selection_blocked"
+            )
+        raw_change_requests = payload.get("change_requests")
+        if raw_change_requests is not None and not isinstance(
+            raw_change_requests, list
+        ):
+            # _list() coerces non-list containers to [], which would dodge
+            # the created-CR guards and the inventory validation entirely.
+            errors.append("change_requests: must be an array")
         dependency_graph_audit = payload.get("dependency_graph_audit")
         audit_present = isinstance(dependency_graph_audit, dict)
-        if has_selected_remediation or (selection_blocked and audit_present):
+        if dependency_graph_audit is not None and not audit_present:
+            # A dangerous audit wrapped in a list or emitted as a string
+            # must never ride through shape coercion.
+            errors.append("dependency_graph_audit: must be an object")
+        # A supplied audit is always validated, even with no selection: a
+        # dangerous audit must never ride through because the selection was
+        # nulled out.
+        if has_selected_remediation or audit_present:
             detections = _detect_selected_package_managers(
                 payload, selected, selected_option
             )
@@ -333,6 +362,36 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                     for item in _list(source.get(field_name))
                     if isinstance(item, str) and item.strip()
                 }
+                selected_package_names = set()
+                selected_vulnerable_versions = set()
+                for source in (selected, _dict(payload.get("selected_option"))):
+                    for key in ("package", "package_name"):
+                        token = _text(source.get(key))
+                        if token:
+                            selected_package_names.add(token.casefold())
+                    from_version = _text(source.get("from_version"))
+                    if from_version:
+                        selected_vulnerable_versions.add(
+                            _normalize_version_token(from_version)
+                        )
+                for request in _list(payload.get("change_requests")):
+                    if not isinstance(request, dict):
+                        continue
+                    inventory_key = _dict(_dict(request.get("inventory")).get("key"))
+                    current_version = _text(inventory_key.get("current_version"))
+                    if current_version:
+                        selected_vulnerable_versions.add(
+                            _normalize_version_token(current_version)
+                        )
+                    # The inventory key's normalized_package is an equally
+                    # trusted name anchor — without it, nulling the selection
+                    # collapsed the name set to the model-controlled
+                    # coordinate alone.
+                    normalized_package = _text(inventory_key.get("normalized_package"))
+                    if "://" in normalized_package:
+                        normalized_package = normalized_package.split("://", 1)[1]
+                    if normalized_package:
+                        selected_package_names.add(normalized_package.casefold())
                 validate_dependency_graph_audit(
                     profile,
                     audit=dependency_graph_audit,
@@ -340,6 +399,10 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                     risk_status=risk_status,
                     successful_validation_kinds=_successful_validation_kinds(payload),
                     errors=errors,
+                    selected_package_names=frozenset(selected_package_names),
+                    selected_vulnerable_versions=frozenset(
+                        selected_vulnerable_versions
+                    ),
                 )
         if has_selected_remediation:
             _validate_finding_count_semantics(payload, selected=selected, errors=errors)
