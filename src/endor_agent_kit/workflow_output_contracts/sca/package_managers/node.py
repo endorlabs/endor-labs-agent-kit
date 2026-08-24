@@ -30,7 +30,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
 # x-ranges (1, 1.x, 1.2.x) are mutable and defeat the graph-safety pin.
 NODE_REPLACEMENT_RE = re.compile(
     r"(?:@[A-Za-z0-9._-]+/)?[A-Za-z0-9._-]+"
-    r"@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?"
+    r"@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?",
+    # ASCII-only so \d cannot admit fullwidth lookalike digits.
+    re.ASCII,
 )
 
 _SHARED_ECOSYSTEM_ALIASES = frozenset(

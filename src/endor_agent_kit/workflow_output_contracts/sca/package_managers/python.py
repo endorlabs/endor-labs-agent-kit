@@ -38,7 +38,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
 # and extras are mutable or ambiguous and defeat the graph-safety pin.
 PYTHON_REPLACEMENT_RE = re.compile(
     r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?"
-    r"==\d+(?:\.\d+)*(?:(?:a|b|rc)\d+)?(?:\.post\d+)?(?:\.dev\d+)?"
+    r"==\d+(?:\.\d+)*(?:(?:a|b|rc)\d+)?(?:\.post\d+)?(?:\.dev\d+)?",
+    # ASCII-only so \d cannot admit fullwidth lookalike digits.
+    re.ASCII,
 )
 
 _SHARED_ECOSYSTEM_ALIASES = frozenset(

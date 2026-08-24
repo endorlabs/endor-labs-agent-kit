@@ -76,7 +76,10 @@ SUBSTITUTION_CLASSIFICATIONS = frozenset(
 GRAPH_RUNTIME_KINDS = frozenset({"resolved_graph", "runtime_linkage"})
 
 COORDINATE_RE = re.compile(
-    r"[A-Za-z0-9._-]+:[A-Za-z0-9._-]+(?::[A-Za-z0-9._+-]+)?"
+    r"[A-Za-z0-9._-]+:[A-Za-z0-9._-]+(?::[A-Za-z0-9._+-]+)?",
+    # The explicit classes are already ASCII-literal; the flag keeps every
+    # replacement pattern uniformly ASCII-only.
+    re.ASCII,
 )
 
 MAX_MANIPULATIONS = 8
@@ -220,6 +223,20 @@ def _fold_disguises(text: str) -> str:
     )
 
 
+def _normalize_version_token(version: str) -> str:
+    """Fold cosmetic version variants for the restatement guard.
+
+    A leading `v` and trailing `.0` padding are presentation choices
+    (`v0.3.5` vs `0.3.5`, `12.0.2.0` vs `12.0.2`) that must not let a
+    replacement dodge equality with the vulnerable version.
+    """
+
+    token = _text(version).strip().casefold().lstrip("v")
+    while token.endswith(".0"):
+        token = token[:-2]
+    return token
+
+
 def _normalize_ecosystem(token: str) -> str:
     normalized = _fold_disguises(_text(token)).lower()
     if normalized.startswith("ecosystem_"):
@@ -291,6 +308,8 @@ def validate_dependency_graph_audit(
     risk_status: str,
     successful_validation_kinds: set[str],
     errors: list[str],
+    selected_package_names: frozenset[str] = frozenset(),
+    selected_vulnerable_versions: frozenset[str] = frozenset(),
 ) -> None:
     """Apply the shared graph-safety state machine to one audit object."""
 
@@ -413,6 +432,39 @@ def validate_dependency_graph_audit(
                     f"{prefix}.replacement: must be an exact "
                     f"{profile.replacement_format} coordinate"
                 )
+            elif selected_vulnerable_versions:
+                # A replacement equal to the audited package at the
+                # remediation's own vulnerable version is a deceptive no-op:
+                # it "replaces" the vulnerable state with itself. Same-name
+                # replacements at a DIFFERENT version stay legitimate (the
+                # alias-pin pattern). Anchored on the TRUSTED selection
+                # identity — never only on the model-controlled optional
+                # coordinate field — and compared through case and version
+                # normalization so padding/casing variants cannot dodge it.
+                separator = (
+                    "=="
+                    if "==" in profile.replacement_format
+                    else ("@" if "@" in profile.replacement_format else ":")
+                )
+                name, _, version = replacement.rpartition(separator)
+                coordinate = _text(manipulation.get("coordinate"))
+                for scheme in profile.coordinate_prefixes:
+                    if coordinate.lower().startswith(scheme):
+                        coordinate = coordinate[len(scheme) :]
+                names = set(selected_package_names)
+                if coordinate:
+                    names.add(coordinate.casefold())
+                # With every name source scrubbed, a replacement matching a
+                # known vulnerable version has no honest reading: legitimate
+                # payloads always carry selection identity, so an empty name
+                # set fails closed on the version match alone.
+                if (
+                    not names or name.casefold() in names
+                ) and _normalize_version_token(version) in selected_vulnerable_versions:
+                    errors.append(
+                        f"{prefix}.replacement: must not restate the audited "
+                        "coordinate at its vulnerable version"
+                    )
 
         kind = profile.kind_of(manipulation_type, mechanism)
         if kind == "native" and classification != "version_control":
