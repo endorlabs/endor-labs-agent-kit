@@ -1,0 +1,139 @@
+"""Turn an A2A task message into a validated :class:`AnalysisRequest`.
+
+Input modes for v1 (§2):
+
+* ``repo_url`` (GitHub/GitLab URL) + optional ``ref``.
+* ``owner/repo`` shorthand in the message text.
+* ``endor_project_id`` / ``namespace`` supplied via message ``metadata``.
+
+The service validates and clearly rejects ambiguous requests rather than
+guessing (§2, §10).
+"""
+
+from __future__ import annotations
+
+import re
+from typing import Any, Mapping, Sequence
+
+from .errors import AmbiguousTargetError, InvalidParamsError
+from .models import AnalysisRequest, Severity
+
+# github.com/owner/repo or gitlab.com/group/subgroup/repo, with optional
+# scheme, .git suffix, and trailing path/query.
+_REPO_URL_RE = re.compile(
+    r"""(?ix)
+    \b(?:https?://)?
+    (?P<host>github\.com|gitlab\.com)/
+    (?P<path>[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+?)
+    (?:\.git)?
+    (?=[\s/?#)\].,]|$)
+    """
+)
+
+# Bare owner/repo shorthand (exactly one slash), not part of a URL or path.
+_OWNER_REPO_RE = re.compile(r"(?<![\w./@:-])([A-Za-z0-9._-]+/[A-Za-z0-9._-]+)(?![\w./-])")
+
+_P0_RE = re.compile(r"(?i)\bp0\b|\bcritical\b")
+_P1_RE = re.compile(r"(?i)\bp1\b|\bhigh\b")
+
+
+def _text_from_message(message: Mapping[str, Any]) -> str:
+    """Concatenate the text parts of an A2A message."""
+
+    parts = message.get("parts")
+    if not isinstance(parts, Sequence):
+        return ""
+    chunks: list[str] = []
+    for part in parts:
+        if not isinstance(part, Mapping):
+            continue
+        # A2A text parts: {"kind": "text", "text": "..."}. Tolerate the older/
+        # alternate `type` discriminator some clients and A2A versions emit.
+        discriminator = part.get("kind") or part.get("type")
+        if discriminator == "text" and isinstance(part.get("text"), str):
+            chunks.append(part["text"])
+    return "\n".join(chunks).strip()
+
+
+def _repo_full_name_from_url(host: str, path: str) -> str:
+    """Normalize a repo URL path to ``owner/repo`` (drop deep GitLab subgroups)."""
+
+    segments = [seg for seg in path.split("/") if seg]
+    if len(segments) < 2:
+        return path
+    # For GitHub the first two segments are owner/repo. GitLab supports nested
+    # groups; keep the last two segments as the project's owner-path/repo.
+    return "/".join(segments[-2:])
+
+
+def parse_task_message(message: Mapping[str, Any]) -> AnalysisRequest:
+    """Parse a single A2A ``message`` object into an :class:`AnalysisRequest`.
+
+    Raises :class:`InvalidParamsError` when the message is structurally wrong
+    and :class:`AmbiguousTargetError` when no repository or Endor project can
+    be identified.
+    """
+
+    if not isinstance(message, Mapping):
+        raise InvalidParamsError("`message` must be an object")
+
+    text = _text_from_message(message)
+    metadata = message.get("metadata")
+    metadata = metadata if isinstance(metadata, Mapping) else {}
+
+    request = AnalysisRequest(raw_text=text)
+
+    # 1. Structured references win over free-text ones when both are present.
+    namespace = metadata.get("namespace") or metadata.get("endor_namespace")
+    if isinstance(namespace, str) and namespace.strip():
+        request.namespace = namespace.strip()
+
+    project_id = metadata.get("endor_project_id") or metadata.get("project_id")
+    if isinstance(project_id, str) and project_id.strip():
+        request.project_id = project_id.strip()
+
+    ref = metadata.get("ref")
+    if isinstance(ref, str) and ref.strip():
+        request.ref = ref.strip()
+
+    repo_url = metadata.get("repo_url")
+    if isinstance(repo_url, str) and repo_url.strip():
+        request.repo_url = repo_url.strip()
+
+    # 2. Fall back to references embedded in the natural-language text.
+    if request.repo_url is None:
+        url_match = _REPO_URL_RE.search(text)
+        if url_match:
+            request.repo_url = url_match.group(0)
+            request.repo_full_name = _repo_full_name_from_url(
+                url_match.group("host"), url_match.group("path")
+            )
+    elif request.repo_full_name is None:
+        url_match = _REPO_URL_RE.search(request.repo_url)
+        if url_match:
+            request.repo_full_name = _repo_full_name_from_url(
+                url_match.group("host"), url_match.group("path")
+            )
+
+    if request.repo_full_name is None and request.repo_url is None:
+        shorthand = _OWNER_REPO_RE.search(text)
+        if shorthand:
+            request.repo_full_name = shorthand.group(1)
+
+    # 3. Severity intent. Default to both P0 and P1 when unspecified.
+    severities: list[Severity] = []
+    if _P0_RE.search(text):
+        severities.append(Severity.P0)
+    if _P1_RE.search(text):
+        severities.append(Severity.P1)
+    request.severity_filter = severities or [Severity.P0, Severity.P1]
+
+    # 4. Ambiguity gate: we need *some* resolvable target.
+    if not any((request.repo_url, request.repo_full_name, request.project_id)):
+        raise AmbiguousTargetError(
+            "No repository or Endor project reference found in the request. "
+            "Provide a repo URL, an owner/repo, or an Endor project/namespace "
+            "(for example: 'Check acme/service-api for P0 SCA findings')."
+        )
+
+    return request
