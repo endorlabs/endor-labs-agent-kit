@@ -8,6 +8,26 @@ from pathlib import Path
 from typing import Any
 
 from endor_agent_kit.policy_pack import policy_evaluations_have_blocking_decision
+from endor_agent_kit.workflow_output_contracts.sca._coerce import (
+    _dict,
+    _first_present,
+    _int,
+    _is_empty,
+    _list,
+    _one_line,
+    _string_list,
+    _text,
+)
+from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+    PackageManagerDetection,
+    SUPPORTED_PROFILES,
+    detect_package_managers,
+    validate_dependency_graph_audit,
+)
+from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import (
+    _fold_disguises,
+    _normalize_version_token,
+)
 
 RISK_DECISION_STATUSES = frozenset(
     {
@@ -178,15 +198,221 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
             "policy_evaluations: blocking policy decision cannot accompany approved risk_decision"
         )
 
-    if gate in {"selection-plan", "apply", "validate", "pr"} and has_selected_remediation:
-        _validate_finding_count_semantics(payload, selected=selected, errors=errors)
-        _validate_change_request_inventory(
-            payload,
-            selected=selected,
-            gate=gate,
-            risk_status=risk_status,
-            errors=errors,
+    selected_option = _dict(payload.get("selected_option"))
+    selection_blocked = (
+        selected.get("selection_blocked") is True
+        or selected_option.get("selection_blocked") is True
+    )
+    if gate in {"selection-plan", "apply", "validate", "pr"}:
+        claimed_statuses = {
+            "created",
+            "opened",
+            "open",
+            "pushed",
+            "updated",
+            "existing",
+            "reused",
+        }
+        claims_change_request = any(
+            isinstance(request, dict)
+            and _fold_disguises(_text(request.get("status"))).strip().lower()
+            in claimed_statuses
+            for request in _list(payload.get("change_requests"))
         )
+        if selection_blocked:
+            if risk_status.startswith("approved"):
+                errors.append(
+                    "risk_decision.status: selection_blocked cannot accompany an "
+                    "approved decision"
+                )
+            if claims_change_request:
+                errors.append(
+                    "change_requests: selection_blocked cannot accompany a created "
+                    "or reused change request"
+                )
+        elif not has_selected_remediation and claims_change_request:
+            # Off-contract shape: nothing was selected and selection was not
+            # declared blocked, yet a change request claims to exist. Without
+            # this, a null selected_remediation skipped the entire
+            # remediation block while asserting a created CR.
+            errors.append(
+                "change_requests: a created or reused change request requires a "
+                "selected remediation or selection_blocked"
+            )
+        raw_change_requests = payload.get("change_requests")
+        if raw_change_requests is not None and not isinstance(
+            raw_change_requests, list
+        ):
+            # _list() coerces non-list containers to [], which would dodge
+            # the created-CR guards and the inventory validation entirely.
+            errors.append("change_requests: must be an array")
+        dependency_graph_audit = payload.get("dependency_graph_audit")
+        audit_present = isinstance(dependency_graph_audit, dict)
+        if dependency_graph_audit is not None and not audit_present:
+            # A dangerous audit wrapped in a list or emitted as a string
+            # must never ride through shape coercion.
+            errors.append("dependency_graph_audit: must be an object")
+        # A supplied audit is always validated, even with no selection: a
+        # dangerous audit must never ride through because the selection was
+        # nulled out.
+        if has_selected_remediation or audit_present:
+            detections = _detect_selected_package_managers(
+                payload, selected, selected_option
+            )
+            if not detections and audit_present:
+                # A self-declared audit is validated even when every detection
+                # signal was scrubbed; otherwise unrecognizable signals would
+                # fail open for a payload that itself claims a supported manager.
+                # The ecosystem token is non-canonical by definition here — a
+                # canonical token would have been a detection signal.
+                declared = _text(_dict(dependency_graph_audit).get("package_manager"))
+                detections = [
+                    PackageManagerDetection(
+                        profile=profile,
+                        ecosystem_token="",
+                        ecosystem_is_canonical=False,
+                        signals=("self_declared",),
+                    )
+                    for profile in SUPPORTED_PROFILES
+                    if profile.name == declared
+                ]
+                if not detections:
+                    # A near-miss or null manager label must not disable the
+                    # audit: any audit that claims content (a non-unavailable
+                    # status or listed manipulations) needs a resolvable
+                    # manager to validate against, so it fails closed. Only
+                    # the honest unsupported-manager shape — unavailable with
+                    # no manipulations — passes through.
+                    audit_dict = _dict(dependency_graph_audit)
+                    # Test the raw manipulations value, not _list(...): _list
+                    # coerces a dict or string to [], so a content-bearing
+                    # manipulation emitted as a non-list would otherwise read
+                    # as "no manipulations" and ride through unvalidated.
+                    raw_manipulations = audit_dict.get("manipulations")
+                    has_manipulation_content = raw_manipulations not in (None, [])
+                    claims_content = (
+                        _text(audit_dict.get("status")) != "unavailable"
+                        or has_manipulation_content
+                    )
+                    if claims_content:
+                        supported = ", ".join(
+                            sorted(profile.name for profile in SUPPORTED_PROFILES)
+                        )
+                        errors.append(
+                            "dependency_graph_audit.package_manager: must be one "
+                            f"of {supported} for an audit that reports a "
+                            "non-unavailable status or manipulations"
+                        )
+                    if (
+                        _text(audit_dict.get("status")) == "unavailable"
+                        and risk_status == "approved_low_risk"
+                    ):
+                        # The unavailable/approved_low_risk coupling is
+                        # profile-independent: the honest unsupported-manager
+                        # pass-through must not dodge it by resolving to no
+                        # profile.
+                        errors.append(
+                            "risk_decision.status: unavailable dependency "
+                            "graph audit cannot be approved_low_risk"
+                        )
+            if len(detections) > 1 and audit_present:
+                # Registry-family signals (package.json, the npm ecosystem
+                # token, npm:// coordinates) legitimately match every family
+                # member; the audit's declared manager narrows them. Strong
+                # manager-specific signals never narrow — conflicting
+                # lockfiles or mixed ecosystems stay ambiguous and fail
+                # closed.
+                weak_only = all(
+                    not (set(item.signals) & {"ecosystem", "manifest"})
+                    for item in detections
+                )
+                if weak_only:
+                    declared = _text(
+                        _dict(dependency_graph_audit).get("package_manager")
+                    )
+                    narrowed = [
+                        item for item in detections if item.profile.name == declared
+                    ]
+                    if narrowed:
+                        detections = narrowed
+            if len(detections) > 1:
+                names = ", ".join(sorted(item.profile.name for item in detections))
+                errors.append(
+                    f"dependency_graph_audit: ambiguous package-manager signals ({names}) "
+                    "fail closed; make the selected manager explicit"
+                )
+            for detection in detections:
+                profile = detection.profile
+                if not detection.ecosystem_is_canonical:
+                    errors.append(
+                        "change_requests[0].inventory.key.ecosystem: must be "
+                        f"{profile.canonical_ecosystem} for "
+                        f"{profile.display_name} remediations"
+                    )
+                if not audit_present:
+                    errors.append(
+                        "dependency_graph_audit: required for selected "
+                        f"{profile.display_name} remediations"
+                    )
+                    continue
+                selected_manifests = {
+                    item
+                    for source in (selected, selected_option)
+                    for field_name in ("manifests", "affected_manifests")
+                    for item in _list(source.get(field_name))
+                    if isinstance(item, str) and item.strip()
+                }
+                selected_package_names = set()
+                selected_vulnerable_versions = set()
+                for source in (selected, _dict(payload.get("selected_option"))):
+                    for key in ("package", "package_name"):
+                        token = _text(source.get(key))
+                        if token:
+                            selected_package_names.add(token.casefold())
+                    from_version = _text(source.get("from_version"))
+                    if from_version:
+                        selected_vulnerable_versions.add(
+                            _normalize_version_token(from_version)
+                        )
+                for request in _list(payload.get("change_requests")):
+                    if not isinstance(request, dict):
+                        continue
+                    inventory_key = _dict(_dict(request.get("inventory")).get("key"))
+                    current_version = _text(inventory_key.get("current_version"))
+                    if current_version:
+                        selected_vulnerable_versions.add(
+                            _normalize_version_token(current_version)
+                        )
+                    # The inventory key's normalized_package is an equally
+                    # trusted name anchor — without it, nulling the selection
+                    # collapsed the name set to the model-controlled
+                    # coordinate alone.
+                    normalized_package = _text(inventory_key.get("normalized_package"))
+                    if "://" in normalized_package:
+                        normalized_package = normalized_package.split("://", 1)[1]
+                    if normalized_package:
+                        selected_package_names.add(normalized_package.casefold())
+                validate_dependency_graph_audit(
+                    profile,
+                    audit=dependency_graph_audit,
+                    selected_manifests=selected_manifests,
+                    risk_status=risk_status,
+                    successful_validation_kinds=_successful_validation_kinds(payload),
+                    errors=errors,
+                    selected_package_names=frozenset(selected_package_names),
+                    selected_vulnerable_versions=frozenset(
+                        selected_vulnerable_versions
+                    ),
+                )
+        if has_selected_remediation:
+            _validate_finding_count_semantics(payload, selected=selected, errors=errors)
+            _validate_change_request_inventory(
+                payload,
+                selected=selected,
+                gate=gate,
+                risk_status=risk_status,
+                errors=errors,
+            )
 
     if gate == "pr":
         body = _text(_first_present(payload, "pr_body", "body", "pull_request_body"))
@@ -198,6 +424,51 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
     return errors
 
 
+def _detect_selected_package_managers(
+    payload: dict[str, Any],
+    selected: dict[str, Any],
+    selected_option: dict[str, Any] | None = None,
+):
+    ecosystem_tokens: list[str] = []
+    manifests: list[str] = []
+    coordinates: list[str] = []
+    for request in _list(payload.get("change_requests")):
+        if not isinstance(request, dict):
+            continue
+        key = _dict(_dict(request.get("inventory")).get("key"))
+        token = _text(key.get("ecosystem"))
+        if token:
+            ecosystem_tokens.append(token)
+        manifest = _text(key.get("manifest"))
+        if manifest:
+            manifests.append(manifest)
+        coordinate = _text(key.get("normalized_package"))
+        if coordinate:
+            coordinates.append(coordinate)
+    for source in (selected, selected_option or {}):
+        for field_name in ("manifests", "affected_manifests"):
+            manifests.extend(
+                item for item in _list(source.get(field_name)) if isinstance(item, str)
+            )
+        package = _text(source.get("package") or source.get("package_name"))
+        if package:
+            coordinates.append(package)
+    # The files a plan intends to edit are manifests of the selected
+    # remediation by definition: without them, scrubbing every other channel
+    # while pointing patch_plan at a real manifest skips the audit entirely.
+    for entry in _list(payload.get("patch_plan")):
+        if isinstance(entry, dict):
+            file_path = _text(entry.get("file"))
+            if file_path:
+                manifests.append(file_path)
+    return detect_package_managers(
+        SUPPORTED_PROFILES,
+        ecosystem_tokens=tuple(ecosystem_tokens),
+        manifests=tuple(manifests),
+        coordinates=tuple(coordinates),
+    )
+
+
 def _has_successful_validation(payload: dict[str, Any]) -> bool:
     successful = {"completed", "ok", "pass", "passed", "success", "succeeded"}
     for item in _list(payload.get("validation")):
@@ -206,6 +477,17 @@ def _has_successful_validation(payload: dict[str, Any]) -> bool:
         if _text(item.get("status") or item.get("result")).lower() in successful:
             return True
     return False
+
+
+def _successful_validation_kinds(payload: dict[str, Any]) -> set[str]:
+    successful = {"completed", "ok", "pass", "passed", "success", "succeeded"}
+    return {
+        _text(item.get("kind"))
+        for item in _list(payload.get("validation"))
+        if isinstance(item, dict)
+        and _text(item.get("status") or item.get("result")).lower() in successful
+        and _text(item.get("kind"))
+    }
 
 
 def _validate_finding_count_semantics(
@@ -360,7 +642,10 @@ def _validate_change_request_inventory(
     if not reconciliation_status:
         errors.append(f"{prefix}.reconciliation.status: required")
     if status == "exact_duplicate":
-        if not any(candidate.get("exact_duplicate") is True for candidate in candidates):
+        if not any(
+            isinstance(candidate, dict) and candidate.get("exact_duplicate") is True
+            for candidate in candidates
+        ):
             errors.append(f"{prefix}.candidates: exact_duplicate requires a matching candidate")
         request_status = _text(request.get("status"))
         if reconciliation_status not in {"reuse_existing", "blocked_duplicate"} or request_status in {
@@ -372,7 +657,8 @@ def _validate_change_request_inventory(
     if status == "none_found" and candidates:
         errors.append(f"{prefix}.candidates: none_found requires an empty candidate list")
     if status == "different_target" and any(
-        candidate.get("exact_duplicate") is True for candidate in candidates
+        isinstance(candidate, dict) and candidate.get("exact_duplicate") is True
+        for candidate in candidates
     ):
         errors.append(f"{prefix}.status: exact matching candidate must use exact_duplicate")
     if status == "different_target":
@@ -762,7 +1048,12 @@ def _advisory_ids(advisory: dict[str, Any]) -> tuple[str, str, str]:
     return cve, ghsa, label
 
 
-def _collect_branch_names(value: Any) -> list[str]:
+def _collect_branch_names(value: Any, depth: int = 0) -> list[str]:
+    # Untrusted payloads can nest arbitrarily deep; branch evidence never
+    # legitimately sits beyond a shallow structure, so cap the walk instead of
+    # recursing into a RecursionError.
+    if depth > 32:
+        return []
     names: list[str] = []
     if isinstance(value, dict):
         for key, item in value.items():
@@ -773,10 +1064,10 @@ def _collect_branch_names(value: Any) -> list[str]:
                 branch = item.strip()
                 if branch.lower() not in {"not_created", "none", "n/a", "out_of_scope_per_user"}:
                     names.append(branch)
-            names.extend(_collect_branch_names(item))
+            names.extend(_collect_branch_names(item, depth + 1))
     elif isinstance(value, list):
         for item in value:
-            names.extend(_collect_branch_names(item))
+            names.extend(_collect_branch_names(item, depth + 1))
     return list(dict.fromkeys(names))
 
 
@@ -790,11 +1081,13 @@ def _scope_branch_provenance(scope: dict[str, Any]) -> str:
     )
 
 
-def _collect_change_request_branch_names(value: Any) -> list[str]:
+def _collect_change_request_branch_names(value: Any, depth: int = 0) -> list[str]:
     names: list[str] = []
+    if depth > 32:
+        return names
     if isinstance(value, list):
         for item in value:
-            names.extend(_collect_change_request_branch_names(item))
+            names.extend(_collect_change_request_branch_names(item, depth + 1))
         return names
     if not isinstance(value, dict):
         return names
@@ -814,14 +1107,6 @@ def _is_remediation_branch_key(key: str) -> bool:
         "proposed_branch",
         "proposed_branch_name",
     } or key.endswith("_branch_name")
-
-
-def _first_present(mapping: dict[str, Any], *keys: str) -> Any:
-    for key in keys:
-        value = mapping.get(key)
-        if not _is_empty(value):
-            return value
-    return None
 
 
 def _has_conflicts(selected: dict[str, Any]) -> bool:
@@ -865,50 +1150,3 @@ def _format_manifest_cell(manifests: list[str]) -> str:
     return "<br>".join(f"`{manifest}`" for manifest in manifests)
 
 
-def _dict(value: Any) -> dict[str, Any]:
-    return value if isinstance(value, dict) else {}
-
-
-def _list(value: Any) -> list[Any]:
-    return value if isinstance(value, list) else []
-
-
-def _string_list(value: Any) -> list[str]:
-    if isinstance(value, list):
-        return [_text(item) for item in value if _text(item)]
-    if isinstance(value, str) and value.strip():
-        return [value.strip()]
-    return []
-
-
-def _text(value: Any) -> str:
-    if value is None:
-        return ""
-    if isinstance(value, str):
-        return value.strip()
-    if isinstance(value, (list, dict)):
-        return json.dumps(value, sort_keys=True)
-    return str(value).strip()
-
-
-def _one_line(value: Any) -> str:
-    return re.sub(r"\s+", " ", _text(value)).strip()
-
-
-def _int(value: Any) -> int:
-    if isinstance(value, int):
-        return value
-    try:
-        return int(str(value))
-    except (TypeError, ValueError):
-        return 0
-
-
-def _is_empty(value: Any) -> bool:
-    if value is None:
-        return True
-    if isinstance(value, str):
-        return not value.strip()
-    if isinstance(value, (list, dict)):
-        return not value
-    return False
