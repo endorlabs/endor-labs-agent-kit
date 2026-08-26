@@ -17,6 +17,11 @@ from typing import Any, Mapping, Sequence
 
 from .errors import AmbiguousTargetError, InvalidParamsError
 from .models import AnalysisRequest, Severity
+from .validation import (
+    validate_namespace,
+    validate_project_id,
+    validate_repo_full_name,
+)
 
 # github.com/owner/repo or gitlab.com/group/subgroup/repo, with optional
 # scheme, .git suffix, and trailing path/query.
@@ -128,7 +133,17 @@ def parse_task_message(message: Mapping[str, Any]) -> AnalysisRequest:
         severities.append(Severity.P1)
     request.severity_filter = severities or [Severity.P0, Severity.P1]
 
-    # 4. Ambiguity gate: we need *some* resolvable target.
+    # 4. Validate every value that will be interpolated into an Endor URL path
+    # or filter expression, before it can reach those sinks. Malformed input is
+    # a clean InvalidParams error, not a silent or injectable pass-through.
+    if request.namespace is not None:
+        validate_namespace(request.namespace)
+    if request.repo_full_name is not None:
+        validate_repo_full_name(request.repo_full_name)
+    if request.project_id is not None:
+        validate_project_id(request.project_id)
+
+    # 5. Ambiguity gate: we need *some* resolvable target.
     if not any((request.repo_url, request.repo_full_name, request.project_id)):
         raise AmbiguousTargetError(
             "No repository or Endor project reference found in the request. "
