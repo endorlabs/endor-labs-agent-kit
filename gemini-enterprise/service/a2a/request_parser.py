@@ -24,13 +24,14 @@ from .validation import (
 )
 
 # github.com/owner/repo or gitlab.com/group/subgroup/repo, with optional
-# scheme, .git suffix, and trailing path/query.
+# scheme, .git suffix, and trailing path/query. The path match is greedy so a
+# nested GitLab project keeps all its segments; the normalizer below decides
+# which segments form the repo name.
 _REPO_URL_RE = re.compile(
     r"""(?ix)
     \b(?:https?://)?
     (?P<host>github\.com|gitlab\.com)/
-    (?P<path>[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+?)
-    (?:\.git)?
+    (?P<path>[A-Za-z0-9._-]+(?:/[A-Za-z0-9._-]+)+)
     (?=[\s/?#)\].,]|$)
     """
 )
@@ -60,15 +61,44 @@ def _text_from_message(message: Mapping[str, Any]) -> str:
     return "\n".join(chunks).strip()
 
 
-def _repo_full_name_from_url(host: str, path: str) -> str:
-    """Normalize a repo URL path to ``owner/repo`` (drop deep GitLab subgroups)."""
+# GitLab reserves these path segments for in-repo views; in legacy web URLs
+# (no "/-/" separator) they mark where the project path ends.
+_GITLAB_RESERVED_SEGMENTS = frozenset(
+    {
+        "-", "issues", "merge_requests", "pipelines", "blob", "tree", "raw",
+        "commit", "commits", "wikis", "snippets", "releases", "tags",
+        "branches", "jobs", "boards", "milestones",
+    }
+)
+
+
+def _repo_full_name_from_url(host: str, path: str) -> str | None:
+    """Normalize a repo URL path to the project's full name.
+
+    GitHub projects are always ``owner/repo`` (deeper segments are in-repo
+    paths). GitLab projects keep their full group/subgroup path, cut at the
+    ``/-/`` separator or at the first reserved in-repo segment. Returns
+    ``None`` when no two-segment project path remains — never a raw,
+    un-normalized path.
+    """
 
     segments = [seg for seg in path.split("/") if seg]
+    if host.lower() == "github.com":
+        segments = segments[:2]
+    else:
+        for index, segment in enumerate(segments):
+            if segment in _GITLAB_RESERVED_SEGMENTS:
+                segments = segments[:index]
+                break
+    if segments:
+        # Sentence-final punctuation and a .git suffix are not part of the name.
+        segments[-1] = segments[-1].rstrip(".")
+        if segments[-1].endswith(".git"):
+            segments[-1] = segments[-1][: -len(".git")]
+        segments = [segment for segment in segments if segment]
     if len(segments) < 2:
-        return path
-    # For GitHub the first two segments are owner/repo. GitLab supports nested
-    # groups; keep the last two segments as the project's owner-path/repo.
-    return "/".join(segments[-2:])
+        return None
+    return "/".join(segments)
 
 
 def parse_task_message(message: Mapping[str, Any]) -> AnalysisRequest:

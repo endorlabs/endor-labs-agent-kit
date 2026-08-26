@@ -1,6 +1,8 @@
 """FastAPI app exposing the A2A JSON-RPC endpoint and the Agent Card.
 
-v1 / build-order step 2: a local, mocked A2A round-trip. Endpoints:
+v1 / build-order step 3: the A2A round-trip against the mock client
+(``ENDOR_CLIENT=mock``, default) or the real Endor REST client
+(``ENDOR_CLIENT=rest``). Endpoints:
 
 * ``GET  /healthz``                     -- liveness probe.
 * ``GET  /.well-known/agent-card.json`` -- the A2A Agent Card (§4).
@@ -13,6 +15,7 @@ service will sit behind them (§3, §5), but they are later build-order steps.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -20,11 +23,13 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from .a2a.errors import AgentError, MethodNotFoundError
-from .a2a.errors import INVALID_REQUEST, PARSE_ERROR
+from .a2a.errors import INTERNAL_ERROR, INVALID_REQUEST, PARSE_ERROR
 from .a2a.context import resolve_caller_context
 from .a2a.task_handler import handle_message_send, handle_tasks_get
 from .a2a.task_store import TaskStore
 from .config import build_endor_client
+
+logger = logging.getLogger(__name__)
 
 # Per-process store so `tasks/get` can return a recently completed task.
 _TASK_STORE = TaskStore()
@@ -34,7 +39,7 @@ _AGENT_CARD_PATH = Path(__file__).resolve().parent.parent / "agent-card.json"
 app = FastAPI(
     title="Endor Labs SCA Remediation (Gemini Enterprise)",
     version="1.0.0",
-    description="Read-only SCA finding + remediation A2A agent. v1 (mocked).",
+    description="Read-only SCA finding + remediation A2A agent (v1).",
 )
 
 
@@ -52,14 +57,18 @@ def agent_card() -> JSONResponse:
     return JSONResponse(_load_agent_card())
 
 
+def _jsonrpc_error_response(request_id: Any, error: dict[str, Any]) -> JSONResponse:
+    # JSON-RPC transport errors are still HTTP 200; the error lives in the body.
+    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "error": error})
+
+
 def _jsonrpc_error(
     request_id: Any, code: int, message: str, *, data: Any | None = None
 ) -> JSONResponse:
     error: dict[str, Any] = {"code": code, "message": message}
     if data is not None:
         error["data"] = data
-    # JSON-RPC transport errors are still HTTP 200; the error lives in the body.
-    return JSONResponse({"jsonrpc": "2.0", "id": request_id, "error": error})
+    return _jsonrpc_error_response(request_id, error)
 
 
 def _jsonrpc_result(request_id: Any, result: Any) -> JSONResponse:
@@ -101,9 +110,12 @@ async def jsonrpc_entrypoint(request: Request) -> JSONResponse:
             return _jsonrpc_result(request_id, result)
         raise MethodNotFoundError(f"Unknown method: {method!r}")
     except AgentError as exc:
-        return _jsonrpc_error(
-            request_id, exc.code, exc.message, data=exc.data
-        )
-    except NotImplementedError as exc:
-        # e.g. ENDOR_CLIENT=rest before the real client lands.
-        return _jsonrpc_error(request_id, -32603, str(exc))
+        return _jsonrpc_error_response(request_id, exc.to_jsonrpc())
+    except Exception:  # noqa: BLE001 -- the JSON-RPC contract forbids raw 500s
+        # Anything unexpected (misconfiguration, upstream HTTP/transport
+        # failures, bugs) must still come back as a JSON-RPC error envelope.
+        # The message is deliberately generic: exception text can carry config
+        # paths, upstream details, or credential hints. The full traceback
+        # goes to the server log so operators can diagnose it.
+        logger.exception("Unhandled error while handling JSON-RPC method %r", method)
+        return _jsonrpc_error(request_id, INTERNAL_ERROR, "Internal error")

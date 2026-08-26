@@ -1,8 +1,7 @@
 """Runtime configuration and Endor client selection.
 
-v1 defaults to the mock client (build-order step 2). When the real REST client
-lands (step 3), set ``ENDOR_CLIENT=rest`` and provide the §11 environment
-variables; ``build_endor_client`` will construct it then.
+v1 defaults to the mock client. Set ``ENDOR_CLIENT=rest`` and provide the §11
+environment variables to use the real Endor REST client (build-order step 3).
 """
 
 from __future__ import annotations
@@ -21,7 +20,8 @@ def build_endor_client() -> EndorSCAClient:
         return MockEndorSCAClient()
     if kind == "rest":
         # Direct Endor REST API client (build-order step 3). Credentials come
-        # from env (deployed: Secret Manager) or ~/.endorctl/config.yaml (dev).
+        # from env (deployed: Secret Manager); ~/.endorctl/config.yaml is an
+        # explicit opt-in dev fallback (ENDOR_ALLOW_ENDORCTL_CONFIG=1).
         from .endor_client.auth import TokenProvider, load_credentials
         from .endor_client.rest import RestEndorSCAClient
 

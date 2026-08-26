@@ -40,17 +40,17 @@ from ..a2a.validation import (
 from .auth import TokenProvider
 from .base import EndorSCAClient, EndorSCAResult
 
-# Endor severity level -> our P0/P1 bucket. Documented and adjustable: v1 treats
-# critical/high as P0 and medium/low as P1.
+# Endor severity level -> our P0/P1 bucket. The v1 scope is high-severity
+# findings (§1; the Agent Card advertises "high-severity"): CRITICAL -> P0 and
+# HIGH -> P1, matching the request parser's "critical"/"high" wording.
+# MEDIUM/LOW/INFO are out of scope for v1 and dropped.
 _LEVEL_TO_SEVERITY: dict[str, Severity] = {
     "FINDING_LEVEL_CRITICAL": Severity.P0,
-    "FINDING_LEVEL_HIGH": Severity.P0,
-    "FINDING_LEVEL_MEDIUM": Severity.P1,
-    "FINDING_LEVEL_LOW": Severity.P1,
+    "FINDING_LEVEL_HIGH": Severity.P1,
 }
 _SEVERITY_TO_LEVELS: dict[Severity, list[str]] = {
-    Severity.P0: ["FINDING_LEVEL_CRITICAL", "FINDING_LEVEL_HIGH"],
-    Severity.P1: ["FINDING_LEVEL_MEDIUM", "FINDING_LEVEL_LOW"],
+    Severity.P0: ["FINDING_LEVEL_CRITICAL"],
+    Severity.P1: ["FINDING_LEVEL_HIGH"],
 }
 
 _VULN_CATEGORY = "spec.finding_categories contains [FINDING_CATEGORY_VULNERABILITY]"
@@ -108,7 +108,7 @@ class RestEndorSCAClient(EndorSCAClient):
         self._tokens = token_provider
         self._default_namespace = default_namespace
         self._client = http_client or httpx.Client(
-            base_url=base_url or token_provider._credentials.base_url,
+            base_url=base_url or token_provider.base_url,
             timeout=60.0,
         )
 
@@ -144,6 +144,12 @@ class RestEndorSCAClient(EndorSCAClient):
         response.raise_for_status()
         return response.json()
 
+    @staticmethod
+    def _objects(payload: dict[str, Any]) -> list[dict[str, Any]]:
+        """The object rows of an Endor list-response envelope."""
+
+        return (payload.get("list") or {}).get("objects") or []
+
     def _iter_objects(
         self, namespace: str, resource: str, *, filter: str, mask: str,
         cap: int,
@@ -155,7 +161,7 @@ class RestEndorSCAClient(EndorSCAClient):
                 namespace, resource, filter=filter, mask=mask, page_id=page_id
             )
             listing = payload.get("list") or {}
-            page = listing.get("objects") or []
+            page = self._objects(payload)
             objects.extend(page)
             page_id = (listing.get("response") or {}).get("next_page_id") or listing.get(
                 "next_page_id"
@@ -180,7 +186,7 @@ class RestEndorSCAClient(EndorSCAClient):
         payload = self._get_list(
             namespace, "projects", filter=filt, mask=_PROJECT_MASK, page_size=2
         )
-        objects = (payload.get("list") or {}).get("objects") or []
+        objects = self._objects(payload)
         if not objects:
             return None, [f"project_not_found: {selector}"]
         return objects[0].get("uuid"), []
@@ -199,7 +205,7 @@ class RestEndorSCAClient(EndorSCAClient):
         level = spec.get("level")
         severity = _LEVEL_TO_SEVERITY.get(level)
         if severity is None:
-            return None  # INFO/unknown levels are not P0/P1
+            return None  # MEDIUM/LOW/INFO/unknown levels are out of v1 scope
 
         package, version = _parse_package(spec.get("target_dependency_package_name"))
         vuln = ((spec.get("finding_metadata") or {}).get("vulnerability") or {})

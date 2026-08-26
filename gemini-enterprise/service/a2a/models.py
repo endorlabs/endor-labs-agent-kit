@@ -9,7 +9,6 @@ changes.
 from __future__ import annotations
 
 from enum import Enum
-from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -17,6 +16,19 @@ from pydantic import BaseModel, Field
 class Severity(str, Enum):
     P0 = "P0"
     P1 = "P1"
+
+
+class AnalysisStatus(str, Enum):
+    """Task status values from the §10 result contract.
+
+    ``NEEDS_MORE_INFO`` is part of the contract but v1 never produces it: an
+    unresolvable target is rejected up front as an ``AmbiguousTargetError``
+    (§2), so there is no mid-task "ask the user" path yet.
+    """
+
+    COMPLETED = "completed"
+    NEEDS_MORE_INFO = "needs_more_info"
+    DATA_GAP = "data_gap"
 
 
 class RecommendedAction(str, Enum):
@@ -59,7 +71,7 @@ class ScaAnalysisResult(BaseModel):
     evidence is missing.
     """
 
-    status: Literal["completed", "needs_more_info", "data_gap"]
+    status: AnalysisStatus
     namespace: str
     findings_summary: FindingsSummary
     findings: list[ScaFinding] = Field(default_factory=list)

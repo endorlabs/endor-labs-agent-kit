@@ -48,6 +48,13 @@
 Generated outputs are checked in for installation, but behavior changes should
 start from source recipes or publication code and then regenerate.
 
+## Hand-Written Services
+
+- `gemini-enterprise/`: hand-written A2A SCA Remediation service for the Google
+  Gemini Enterprise Marketplace. Not generated, not part of the recipe catalog,
+  distinct from the generated `gemini/` CLI extension. Own CI at
+  `.github/workflows/gemini-enterprise-ci.yml`; edit it directly.
+
 ## Common Commands
 
 ```bash
