@@ -4,12 +4,18 @@ The service authenticates to the Endor REST API with an **API key + secret**
 that it exchanges for a short-lived bearer token, then sends
 ``Authorization: Bearer <token>`` on each request.
 
-Credential sources, in priority order:
+Credential sources:
 
 1. Environment: ``ENDOR_API_CREDENTIALS_KEY`` / ``ENDOR_API_CREDENTIALS_SECRET``
    (this is how the deployed service gets them, from Secret Manager -- §8.4).
-2. A local ``~/.endorctl/config.yaml`` (developer convenience only). Only the
-   two credential keys and the namespace are read; the file is never echoed.
+   This is the only source unless the fallback below is explicitly enabled.
+2. A local ``~/.endorctl/config.yaml``, **only** when
+   ``ENDOR_ALLOW_ENDORCTL_CONFIG=1`` is set (developer convenience; the §11
+   posture for deploys is env + Secret Manager only). Only the two credential
+   keys and the namespace are read; the file is never echoed. If the config
+   file and ``ENDOR_NAMESPACE`` disagree on the namespace, loading fails
+   loudly rather than silently preferring one (a headless service cannot ask;
+   see docs/guardrails.md on namespace conflicts).
 
 The secret is held only inside this module and sent to Endor's auth endpoint;
 it is never logged, returned, or placed in task output.
@@ -17,6 +23,7 @@ it is never logged, returned, or placed in task output.
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from dataclasses import dataclass
@@ -24,6 +31,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
+
+from ..a2a.errors import AuthenticationError
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_BASE_URL = "https://api.endorlabs.com"
 # Fallback token lifetime when the server does not return a usable expiry.
@@ -78,15 +89,26 @@ def _read_endorctl_config_value(text: str, field: str) -> str | None:
     return None
 
 
+def _endorctl_fallback_enabled() -> bool:
+    return os.environ.get("ENDOR_ALLOW_ENDORCTL_CONFIG", "").strip().lower() in (
+        "1", "true", "yes",
+    )
+
+
 def load_credentials() -> EndorCredentials:
-    """Load Endor credentials from env, falling back to the endorctl config."""
+    """Load Endor credentials from env (plus an opt-in endorctl fallback).
+
+    Raises :class:`~service.a2a.errors.AuthenticationError` when no complete
+    credential pair can be resolved, or when the environment and the endorctl
+    config file disagree on the namespace (never silently prefer one).
+    """
 
     key = os.environ.get("ENDOR_API_CREDENTIALS_KEY")
     secret = os.environ.get("ENDOR_API_CREDENTIALS_SECRET")
     namespace = os.environ.get("ENDOR_NAMESPACE")
     base_url = os.environ.get("ENDOR_API_BASE_URL", DEFAULT_BASE_URL)
 
-    if not (key and secret):
+    if _endorctl_fallback_enabled():
         config_path = Path(
             os.environ.get("ENDORCTL_CONFIG", "~/.endorctl/config.yaml")
         ).expanduser()
@@ -96,14 +118,28 @@ def load_credentials() -> EndorCredentials:
             secret = secret or _read_endorctl_config_value(
                 text, "ENDOR_API_CREDENTIALS_SECRET"
             )
-            namespace = namespace or _read_endorctl_config_value(
-                text, "ENDOR_NAMESPACE"
-            )
+            config_namespace = _read_endorctl_config_value(text, "ENDOR_NAMESPACE")
+            if namespace and config_namespace and namespace != config_namespace:
+                # Two sources are in play and disagree: refuse to start rather
+                # than silently trusting one (docs/guardrails.md). The config
+                # path goes to the server log only -- error messages are
+                # serialized to remote callers and must not leak local paths.
+                logger.warning(
+                    "ENDOR_NAMESPACE from the environment conflicts with the "
+                    "value in %s", config_path,
+                )
+                raise AuthenticationError(
+                    "Namespace conflict: ENDOR_NAMESPACE from the environment "
+                    "and the endorctl config file name different namespaces. "
+                    "Unset one of them."
+                )
+            namespace = namespace or config_namespace
 
     if not (key and secret):
-        raise RuntimeError(
+        raise AuthenticationError(
             "Endor API credentials not found. Set ENDOR_API_CREDENTIALS_KEY and "
-            "ENDOR_API_CREDENTIALS_SECRET, or provide ~/.endorctl/config.yaml."
+            "ENDOR_API_CREDENTIALS_SECRET (or, for local dev only, set "
+            "ENDOR_ALLOW_ENDORCTL_CONFIG=1 to read ~/.endorctl/config.yaml)."
         )
 
     return EndorCredentials(
@@ -127,6 +163,12 @@ class TokenProvider:
         self._token: str | None = None
         self._expires_at: float = 0.0
 
+    @property
+    def base_url(self) -> str:
+        """The Endor API base URL these credentials authenticate against."""
+
+        return self._credentials.base_url
+
     def _exchange(self) -> tuple[str, float]:
         """Return ``(token, ttl_seconds)`` from the api-key exchange.
 
@@ -142,11 +184,17 @@ class TokenProvider:
                 "secret": self._credentials.secret,
             },
         )
+        if response.status_code in (401, 403):
+            # Rejected key/secret must surface as a clear auth failure (§10),
+            # not fall through to the transport's generic internal error.
+            raise AuthenticationError(
+                "Endor rejected the service credentials at token exchange."
+            )
         response.raise_for_status()
         payload = response.json()
         token = payload.get("token")
         if not token:
-            raise RuntimeError(
+            raise AuthenticationError(
                 "Endor auth exchange succeeded but returned no token field."
             )
         return token, _ttl_from_expiration(payload.get("expirationTime"))

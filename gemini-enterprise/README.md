@@ -15,7 +15,7 @@ the Google **Gemini Enterprise** product this service integrates with.
 > Design source of truth: *SCA Remediation Agent — Gemini Enterprise
 > Marketplace (v1)*. Section references (§N) below point at that doc.
 
-## Status — build-order step 2 (mocked A2A round-trip)
+## Status — build-order step 3 (real Endor data, direct REST)
 
 | Build-order step (§7) | State |
 | --- | --- |
@@ -52,8 +52,10 @@ the full JSON-RPC → parse → REST → map path.
     `spec.project_uuid`, and `spec.level`).
   - `GET /v1/namespaces/{ns}/version-upgrades` — upgrade/UIA evidence (reserved;
     see limitations).
-- **Severity mapping (v1, adjustable):** `CRITICAL`/`HIGH` → P0, `MEDIUM`/`LOW`
-  → P1; `INFO`/unknown levels are dropped.
+- **Severity mapping (v1, adjustable):** `CRITICAL` → P0, `HIGH` → P1;
+  `MEDIUM`/`LOW`/`INFO` and unknown levels are out of the v1 high-severity
+  scope (§1) and dropped. This matches the request parser, where "critical"
+  means P0 and "high" means P1.
 - **Read-only:** v1 returns findings + remediation guidance only. No PRs, no
   branch pushes, no writes to customer source/CI (§1). The mutating phase is v2.
 
@@ -85,6 +87,13 @@ gemini-enterprise/
   tests/
     test_a2a_roundtrip.py    # step-2 DoD (§12): local JSON-RPC round-trip
     test_rest_client.py      # step-3 offline contract tests (httpx MockTransport)
+    test_app_errors.py       # transport error contract: no raw 500s, no leaks
+    test_auth.py             # credential loading, TTL parsing, token caching
+    test_caller_context.py   # tenant-context resolution seam
+    test_input_validation.py # injection guards for namespace/repo/project
+    test_request_parser.py   # repo-URL normalization + severity words
+    test_result_formatter.py # summary counts, status, human summary
+    test_task_store.py       # bounded store eviction + recency
 ```
 
 Deferred (later build-order steps, per §6): `service/auth/` (OAuth authorize/
@@ -129,9 +138,12 @@ python -m pytest -q
 
 Set `ENDOR_CLIENT=rest`. Credentials are read by the service from env
 (`ENDOR_API_CREDENTIALS_KEY` / `ENDOR_API_CREDENTIALS_SECRET`, plus optional
-`ENDOR_NAMESPACE` / `ENDOR_API_BASE_URL`) or, for local dev, from
-`~/.endorctl/config.yaml`. The service reads only those keys — it never echoes
-the file, and the secret never leaves `auth.py`.
+`ENDOR_NAMESPACE` / `ENDOR_API_BASE_URL`). For local dev only, setting
+`ENDOR_ALLOW_ENDORCTL_CONFIG=1` lets the service fall back to
+`~/.endorctl/config.yaml`; if the env and that file disagree on the namespace,
+startup fails loudly instead of silently preferring one. The service reads
+only those keys — it never echoes the file, and the secret never leaves
+`auth.py`.
 
 Live smoke test through the full A2A round-trip:
 

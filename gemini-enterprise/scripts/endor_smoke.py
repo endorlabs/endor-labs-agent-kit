@@ -3,14 +3,15 @@
 
 Drives the full A2A JSON-RPC round-trip through the FastAPI app with the real
 Endor REST client (``ENDOR_CLIENT=rest``), proving auth + project resolution +
-findings retrieval end to end. Credentials are read by the service from env or
-``~/.endorctl/config.yaml`` -- this script never handles them directly.
+findings retrieval end to end. Credentials are read by the service from env
+(or, with ``ENDOR_ALLOW_ENDORCTL_CONFIG=1``, from ``~/.endorctl/config.yaml``)
+-- this script never handles them directly.
 
 Usage:
     ENDOR_CLIENT=rest python scripts/endor_smoke.py <owner/repo> [--p0]
 
 The target repo and tenant come from your own environment
-(ENDOR_NAMESPACE / ~/.endorctl/config.yaml); nothing is hard-coded here.
+(ENDOR_NAMESPACE, or the opt-in endorctl config); nothing is hard-coded here.
 """
 
 from __future__ import annotations

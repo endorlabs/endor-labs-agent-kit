@@ -14,7 +14,7 @@ from typing import Any, Mapping
 from ..endor_client.base import EndorSCAClient
 from .context import CallerContext
 from .errors import InvalidParamsError, TaskNotFoundError
-from .models import ScaAnalysisResult
+from .models import AnalysisStatus, ScaAnalysisResult
 from .request_parser import parse_task_message
 from .result_formatter import build_analysis_result, human_summary
 from .task_store import TaskStore
@@ -22,9 +22,9 @@ from .task_store import TaskStore
 # A2A task states we emit. ``needs_more_info`` maps to input-required; a
 # ``data_gap`` still completes with partial results (§10).
 _STATE_BY_STATUS = {
-    "completed": "completed",
-    "data_gap": "completed",
-    "needs_more_info": "input-required",
+    AnalysisStatus.COMPLETED: "completed",
+    AnalysisStatus.DATA_GAP: "completed",
+    AnalysisStatus.NEEDS_MORE_INFO: "input-required",
 }
 
 

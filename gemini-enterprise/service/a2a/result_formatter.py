@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .models import FindingsSummary, ScaAnalysisResult, Severity
+from .models import AnalysisStatus, FindingsSummary, ScaAnalysisResult, Severity
 
 if TYPE_CHECKING:
     from ..endor_client.base import EndorSCAResult
@@ -20,7 +20,7 @@ def build_analysis_result(result: "EndorSCAResult") -> ScaAnalysisResult:
     p0 = sum(1 for f in result.findings if f.severity is Severity.P0)
     p1 = sum(1 for f in result.findings if f.severity is Severity.P1)
 
-    status = "data_gap" if result.data_gaps else "completed"
+    status = AnalysisStatus.DATA_GAP if result.data_gaps else AnalysisStatus.COMPLETED
 
     return ScaAnalysisResult(
         status=status,

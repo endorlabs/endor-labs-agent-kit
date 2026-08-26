@@ -34,17 +34,22 @@ _DOT_SEGMENTS = frozenset({".", ".."})
 
 
 def is_valid_namespace(value: str) -> bool:
-    return bool(NAMESPACE_RE.match(value)) and value not in _DOT_SEGMENTS
+    # fullmatch: unlike `$`, it cannot be satisfied with a trailing newline.
+    if not isinstance(value, str) or not NAMESPACE_RE.fullmatch(value):
+        return False
+    return value not in _DOT_SEGMENTS
 
 
 def is_valid_repo_full_name(value: str) -> bool:
-    if not REPO_FULL_NAME_RE.match(value):
+    if not isinstance(value, str) or not REPO_FULL_NAME_RE.fullmatch(value):
         return False
     return all(segment not in _DOT_SEGMENTS for segment in value.split("/"))
 
 
-def is_valid_project_uuid(value: str) -> bool:
-    return bool(PROJECT_UUID_RE.match(value))
+def is_valid_project_uuid(value: object) -> bool:
+    # `object` because one caller checks an Endor-returned value, which is not
+    # guaranteed to be a string.
+    return isinstance(value, str) and bool(PROJECT_UUID_RE.fullmatch(value))
 
 
 def validate_namespace(value: str) -> str:

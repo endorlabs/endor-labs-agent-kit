@@ -38,6 +38,19 @@ package metadata.
 
 ### Added
 
+- `gemini-enterprise/`: hand-written, read-only SCA Remediation A2A service
+  for the Google Gemini Enterprise Marketplace (v1, build-order step 3: mock
+  or direct Endor REST client). Post-review hardening on the same branch: all
+  unexpected exceptions now return generic JSON-RPC internal-error envelopes
+  instead of raw HTTP 500s; credential loading raises typed auth errors, the
+  `~/.endorctl/config.yaml` fallback is gated behind
+  `ENDOR_ALLOW_ENDORCTL_CONFIG=1`, and an env/config namespace conflict fails
+  loudly; severity buckets now match the v1 high-severity scope (`CRITICAL` →
+  P0, `HIGH` → P1; `MEDIUM`/`LOW`/`INFO` dropped) and the request parser's
+  "critical"/"high" wording; repo-URL normalization strips `.git` and keeps
+  GitLab subgroup project names; `.env.example` now names the env vars the
+  service actually reads; the service is registered in the root catalog
+  README, `llms.txt`, and `docs/maintainer-guide.md`.
 - Rust Cargo dependency-graph safety audit for SCA remediation: a single
   `cargo` profile on the shared kind-bucket engine, mechanism-driven
   (`type` null, `cargo.<construct>` in `mechanism`, required

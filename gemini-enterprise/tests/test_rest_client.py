@@ -53,8 +53,8 @@ _FINDINGS = [
         aliases=["CVE-2024-38820"], primary="GHSA-4gc7-5j7h-4qph",
     ),
     _finding(
-        "f3", "FINDING_LEVEL_LOW", "mvn://com.example:no-fix@1.0.0",
-        aliases=["CVE-2020-0001"], primary="CVE-2020-0001",
+        "f3", "FINDING_LEVEL_LOW", "mvn://com.example:low-level@1.0.0",
+        aliases=["CVE-2020-0002"], primary="CVE-2020-0002",
     ),
     _finding(
         "f4", "FINDING_LEVEL_INFO", "mvn://com.example:informational@1.0.0",
@@ -62,6 +62,10 @@ _FINDINGS = [
     _finding(
         "f5", "FINDING_LEVEL_CRITICAL", "mvn://com.example:patched@1.0.0",
         patch={"uuid": "patch-1"}, aliases=["CVE-2021-1234"], primary="CVE-2021-1234",
+    ),
+    _finding(
+        "f6", "FINDING_LEVEL_HIGH", "mvn://com.example:no-fix@1.0.0",
+        aliases=["CVE-2020-0001"], primary="GHSA-aaaa-bbbb-cccc",
     ),
 ]
 
@@ -112,27 +116,29 @@ def test_maps_findings_from_repo():
 
     assert result.namespace == NS
     assert result.data_gaps == []
-    # f4 (INFO) is dropped; f1,f2,f3,f5 remain.
-    assert len(result.findings) == 4
+    # v1 high-severity scope: f2 (MEDIUM), f3 (LOW), f4 (INFO) are dropped;
+    # f1 (HIGH), f5 (CRITICAL), f6 (HIGH) remain.
+    assert len(result.findings) == 3
 
     by_pkg = {f.package: f for f in result.findings}
+    assert "org.springframework:spring-context" not in by_pkg
+    assert "com.example:low-level" not in by_pkg
+    assert "com.example:informational" not in by_pkg
 
     assertj = by_pkg["org.assertj:assertj-core"]
     assert assertj.current_version == "3.24.2"
-    assert assertj.severity is Severity.P0
+    assert assertj.severity is Severity.P1
     assert assertj.recommended_action is RecommendedAction.UPGRADE
     assert assertj.target_version == "3.27.7"
     # CVE ordered before GHSA.
     assert assertj.vulnerability_ids[0] == "CVE-2026-24400"
 
-    spring = by_pkg["org.springframework:spring-context"]
-    assert spring.severity is Severity.P1
-    # Primary GHSA is included even though only the CVE alias was listed.
-    assert "GHSA-4gc7-5j7h-4qph" in spring.vulnerability_ids
-
     nofix = by_pkg["com.example:no-fix"]
+    assert nofix.severity is Severity.P1
     assert nofix.recommended_action is RecommendedAction.NO_FIX_AVAILABLE
     assert nofix.target_version is None
+    # Primary GHSA is included even though only the CVE alias was listed.
+    assert "GHSA-aaaa-bbbb-cccc" in nofix.vulnerability_ids
 
     patched = by_pkg["com.example:patched"]
     assert patched.severity is Severity.P0
@@ -150,8 +156,24 @@ def test_severity_filter_builds_level_clause():
     )
     findings_req = next(r for r in handler.requests if r.url.path.endswith("/findings"))
     filt = findings_req.url.params["list_parameters.filter"]
-    assert "FINDING_LEVEL_CRITICAL" in filt and "FINDING_LEVEL_HIGH" in filt
+    # P0 means CRITICAL only: a "critical" request must not pull HIGH findings,
+    # and vice versa (the parser maps "critical" -> P0 and "high" -> P1).
+    assert "FINDING_LEVEL_CRITICAL" in filt
+    assert "FINDING_LEVEL_HIGH" not in filt
     assert "FINDING_LEVEL_MEDIUM" not in filt
+
+
+def test_p1_severity_filter_requests_high_levels():
+    handler = _Handler()
+    client = _client(handler)
+    client.get_sca_analysis(
+        AnalysisRequest(repo_full_name="acme/known", severity_filter=[Severity.P1])
+    )
+    findings_req = next(r for r in handler.requests if r.url.path.endswith("/findings"))
+    filt = findings_req.url.params["list_parameters.filter"]
+    assert "FINDING_LEVEL_HIGH" in filt
+    assert "FINDING_LEVEL_CRITICAL" not in filt
+    assert "FINDING_LEVEL_MEDIUM" not in filt and "FINDING_LEVEL_LOW" not in filt
 
 
 def test_project_not_found_is_data_gap():
