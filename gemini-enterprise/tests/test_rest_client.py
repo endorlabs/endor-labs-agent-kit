@@ -9,13 +9,17 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from service.a2a.errors import AuthenticationError, NamespaceNotAuthorizedError
+from service.a2a.errors import (
+    AuthenticationError,
+    InvalidParamsError,
+    NamespaceNotAuthorizedError,
+)
 from service.a2a.models import AnalysisRequest, RecommendedAction, Severity
 from service.endor_client.auth import EndorCredentials, TokenProvider
 from service.endor_client.rest import RestEndorSCAClient
 
-NS = "ram-learn"
-PROJECT_UUID = "proj-123"
+NS = "demo-tenant"
+PROJECT_UUID = "0123456789abcdef01234567"  # 24-char hex, format-valid
 
 
 def _finding(uuid, level, purl, *, proposed=None, patch=None, tags=None, aliases=None, primary=None):
@@ -103,7 +107,7 @@ def test_maps_findings_from_repo():
     handler = _Handler()
     client = _client(handler)
     result = client.get_sca_analysis(
-        AnalysisRequest(repo_full_name="rd-endor/sca-basic-cursor")
+        AnalysisRequest(repo_full_name="example-org/demo-service")
     )
 
     assert result.namespace == NS
@@ -176,3 +180,12 @@ def test_findings_403_raises_namespace_error():
     client = _client(_Handler(findings_status=403))
     with pytest.raises(NamespaceNotAuthorizedError):
         client.get_sca_analysis(AnalysisRequest(project_id=PROJECT_UUID))
+
+
+def test_client_rejects_malicious_namespace_directly():
+    # Defense in depth: the client validates even when called directly.
+    client = _client(_Handler())
+    with pytest.raises(InvalidParamsError):
+        client.get_sca_analysis(
+            AnalysisRequest(project_id=PROJECT_UUID, namespace="evil/../ns")
+        )

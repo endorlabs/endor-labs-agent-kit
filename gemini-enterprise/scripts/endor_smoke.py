@@ -7,9 +7,10 @@ findings retrieval end to end. Credentials are read by the service from env or
 ``~/.endorctl/config.yaml`` -- this script never handles them directly.
 
 Usage:
-    ENDOR_CLIENT=rest python scripts/endor_smoke.py [owner/repo] [--p0]
+    ENDOR_CLIENT=rest python scripts/endor_smoke.py <owner/repo> [--p0]
 
-Defaults to the ram-learn demo project when no target is given.
+The target repo and tenant come from your own environment
+(ENDOR_NAMESPACE / ~/.endorctl/config.yaml); nothing is hard-coded here.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("target", nargs="?", default="rd-endor/sca-basic-cursor")
+    parser.add_argument("target", metavar="owner/repo", help="repository to analyze")
     parser.add_argument("--p0", action="store_true", help="P0 only")
     parser.add_argument("--limit", type=int, default=10, help="sample findings to print")
     args = parser.parse_args()

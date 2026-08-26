@@ -19,6 +19,7 @@ source state.
 from __future__ import annotations
 
 from typing import Any, Iterable
+from urllib.parse import quote
 
 import httpx
 
@@ -29,6 +30,12 @@ from ..a2a.models import (
     RecommendedAction,
     ScaFinding,
     Severity,
+)
+from ..a2a.validation import (
+    is_valid_project_uuid,
+    validate_namespace,
+    validate_project_id,
+    validate_repo_full_name,
 )
 from .auth import TokenProvider
 from .base import EndorSCAClient, EndorSCAResult
@@ -118,8 +125,11 @@ class RestEndorSCAClient(EndorSCAClient):
         }
         if page_id:
             params["list_parameters.page_id"] = page_id
+        # Defense in depth: validate + percent-encode the only dynamic path
+        # segment so a namespace can never restructure the URL.
+        validate_namespace(namespace)
         response = self._client.get(
-            f"/v1/namespaces/{namespace}/{resource}",
+            f"/v1/namespaces/{quote(namespace, safe='')}/{resource}",
             params=params,
             headers=self._tokens.auth_header(),
         )
@@ -160,10 +170,12 @@ class RestEndorSCAClient(EndorSCAClient):
         self, namespace: str, request: AnalysisRequest
     ) -> tuple[str | None, list[str]]:
         if request.project_id:
-            return request.project_id, []
+            return validate_project_id(request.project_id), []
         selector = request.repo_full_name
         if not selector:
             return None, ["no_repo_or_project_selector"]
+        # Validated before it enters the filter literal (defense in depth).
+        validate_repo_full_name(selector)
         filt = f'spec.git.full_name=="{selector}"'
         payload = self._get_list(
             namespace, "projects", filter=filt, mask=_PROJECT_MASK, page_size=2
@@ -229,9 +241,16 @@ class RestEndorSCAClient(EndorSCAClient):
                 namespace="unknown", findings=[], data_gaps=["no_namespace_resolved"]
             )
 
+        validate_namespace(namespace)
         project_uuid, gaps = self._resolve_project_uuid(namespace, request)
         if not project_uuid:
             return EndorSCAResult(namespace=namespace, findings=[], data_gaps=gaps)
+        # An Endor-returned project uuid must be a well-formed UUID before it is
+        # interpolated into the findings filter.
+        if not is_valid_project_uuid(project_uuid):
+            return EndorSCAResult(
+                namespace=namespace, findings=[], data_gaps=["invalid_project_uuid"]
+            )
 
         filt = f'spec.project_uuid=="{project_uuid}" and {_VULN_CATEGORY}'
         severity_clause = self._severity_filter(request)

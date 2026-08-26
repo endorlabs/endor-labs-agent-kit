@@ -33,9 +33,9 @@ well-formed A2A `Task` whose data artifact matches the §10 result contract —
 now from **real Endor SCA findings** (or mocked, by config). No OAuth/DCR yet,
 no mutations.
 
-Verified live against the `ram-learn` tenant (project `rd-endor/sca-basic-cursor`):
-**239 findings, 101 P0 / 138 P1**, with real packages, CVE/GHSA IDs, and Endor's
-proposed target versions — through the full JSON-RPC → parse → REST → map path.
+Verified live end-to-end against a real Endor tenant: findings returned with
+real package names, CVE/GHSA IDs, and Endor's proposed target versions, through
+the full JSON-RPC → parse → REST → map path.
 
 ## Decisions locked in for v1
 
@@ -137,7 +137,7 @@ Live smoke test through the full A2A round-trip:
 
 ```bash
 cd gemini-enterprise
-ENDOR_CLIENT=rest python scripts/endor_smoke.py rd-endor/sca-basic-cursor
+ENDOR_CLIENT=rest python scripts/endor_smoke.py <owner/repo>
 ENDOR_CLIENT=rest python scripts/endor_smoke.py <owner/repo> --p0
 ```
 
@@ -212,7 +212,7 @@ the non-happy paths without real Endor:
 
 - **IdP dynamic client registration:** does Endor's IdP support DCR directly,
   or is a thin registration shim needed? Biggest unknown; worth a spike first.
-- Whether the existing Firestore instance in `marketplace-458521` is in Native
+- Whether the target marketplace GCP project's Firestore instance is in Native
   mode and what else uses it (§8.3).
 - Whether the Endor REST API is publicly reachable with a service credential or
   needs VPC connectivity (§8.2).
