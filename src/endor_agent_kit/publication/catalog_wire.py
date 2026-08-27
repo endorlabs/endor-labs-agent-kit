@@ -33,9 +33,6 @@ AUDIENCES = frozenset({"appsec", "developer"})
 _ENDORCTL_OPERATOR_RE = re.compile(r"^(?:>=|>)")
 _PACKAGE_VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?")
 _SETUP_SKILL_PATH = PurePosixPath("skills/endor-agent-kit-setup/SKILL.md")
-# The VS Code extension nests its skills under `.github/skills/` rather than the
-# conventional top-level `skills/`.
-_VSCODE_SETUP_SKILL_PATH = PurePosixPath(".github/skills/endor-agent-kit-setup/SKILL.md")
 
 
 @dataclass(frozen=True)
@@ -222,13 +219,11 @@ def _eligible_install_packages(
 
 def _package_contains_setup_skill(package: CatalogPluginPackage) -> bool:
     package_root = PurePosixPath(package.path)
-    candidates = []
-    for setup_path in (_SETUP_SKILL_PATH, _VSCODE_SETUP_SKILL_PATH):
-        if package.path in ("", "."):
-            candidates.append(setup_path.as_posix())
-        else:
-            candidates.append((package_root / setup_path).as_posix())
-    return any(artifact.path in candidates for artifact in package.artifacts)
+    if package.path in ("", "."):
+        expected = _SETUP_SKILL_PATH.as_posix()
+    else:
+        expected = (package_root / _SETUP_SKILL_PATH).as_posix()
+    return any(artifact.path == expected for artifact in package.artifacts)
 
 
 def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
@@ -281,9 +276,8 @@ def _install_command(repo_host: str, package: CatalogPluginPackage) -> str:
         )
     if repo_host == "vscode":
         return (
-            f"code --install-extension endorlabs.{PLUGIN_NAME}\n"
-            f"# or build from source: (cd plugins/vscode/{PLUGIN_NAME} && "
-            "npx --yes @vscode/vsce package)"
+            f"copilot plugin install endorlabs/ai-plugins:plugins/vscode/{PLUGIN_NAME}\n"
+            "# or in VS Code: Command Palette -> Chat: Install Plugin From Source"
         )
     raise ValueError(f"unsupported install host {repo_host!r}")
 

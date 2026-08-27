@@ -36,7 +36,7 @@
 - `portable/`
 - `plugins/`
   - `plugins/codex-directory/endor-labs-agent-kit/`: unpacked skills-only Codex public-directory package.
-  - `plugins/vscode/endor-labs-agent-kit/`: installable VS Code extension (`package.json` + `extension.js`) that registers skills, custom agents, instructions, and the Endor MCP server declaratively; build/publish with `@vscode/vsce` (`vsce package`/`vsce publish`) or `ovsx`. The same directory also works as a copy-into-workspace `.github/` + `.vscode/` overlay.
+  - `plugins/vscode/endor-labs-agent-kit/`: cross-Copilot Agent Plugin (Agent Plugins 1.0). `plugin.json` at root, portable `skills/<id>/SKILL.md` + `mcp.json` (top-level `mcpServers`), and Copilot components under `com.github.copilot/` (`agents/`, `rules/`). Installs into Copilot in VS Code, the Copilot CLI, and the Copilot app via Git source (Chat: Install Plugin From Source / `copilot plugin install owner/repo:subpath`); no `.vsix`.
 - `.cursor-plugin/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`

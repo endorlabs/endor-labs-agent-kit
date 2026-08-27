@@ -268,19 +268,19 @@ authorized. The ZIP is never committed or reconstructed manually. See
 - Do not enable the official `ai-plugins@claude-plugins-official` package with
   either Endor-hosted Claude id in the same profile.
 - Do not couple Cursor package sync to Gemini CLI extension files.
-- The VS Code package `plugins/vscode/endor-labs-agent-kit/` is an installable
-  VS Code extension (`package.json` + `extension.js`) whose directory also doubles
-  as a copy-into-workspace `.github/` + `.vscode/` overlay. The extension registers
-  skills/agents/instructions via `contributes.chatSkills`/`chatAgents`/`chatInstructions`
-  and the Endor MCP server via `contributes.mcpServerDefinitionProviders` + the
-  provider API. It is not a Claude/Cursor-style plugin-marketplace manifest and is
-  exempt from those boundary checks. The overlay's `.vscode/mcp.json` must still use
-  the top-level `servers` key (not `mcpServers`), keep the CLI-first
+- The VS Code package `plugins/vscode/endor-labs-agent-kit/` is a cross-Copilot
+  **Agent Plugin** (Agent Plugins 1.0): `plugin.json` at its root, portable
+  `skills/<id>/SKILL.md` + `mcp.json`, and Copilot components under
+  `com.github.copilot/` (`agents/<id>.agent.md`, `rules/`). It is not a
+  Claude/Cursor-style plugin-marketplace manifest and is exempt from those boundary
+  checks. The plugin `mcp.json` must use the top-level `mcpServers` key (not
+  `servers`), include the Agent Plugins 1.0 `$schema`, keep the CLI-first
   `npx -y endorctl ai-tools mcp-server` command, and carry no credentials.
-- Do not commit a `.vsix`. Build and publish the extension from the generated
-  package with Node + `@vscode/vsce` (`vsce package` / `vsce publish`) and Open VSX
-  (`ovsx publish`); these run outside the pure Python `publish` flow and require the
-  publisher's Marketplace/Open VSX credentials.
+- Do not build or commit a `.vsix`. The plugin installs from a Git source
+  (VS Code "Chat: Install Plugin From Source" / `chat.pluginLocations`, or
+  `copilot plugin install endorlabs/ai-plugins:plugins/vscode/endor-labs-agent-kit`).
+  Publishing to a plugin marketplace repo (`.github/plugin/marketplace.json`) is an
+  ops step outside the pure Python `publish` flow.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
 - The Agent Kit source root `.mcp.json` may declare the source-approved
   `endor-cli-tools` MCP server. In `ai-plugins`, mirror sync writes that config

@@ -230,21 +230,21 @@ def validate_marketplace_host_boundaries(root: Path) -> list[str]:
     vscode_root = root / VSCODE_PACKAGE_ROOT
     if vscode_root.is_dir():
         exposed_paths.extend([
-            vscode_root / ".github" / "agents",
-            vscode_root / ".github" / "skills",
+            vscode_root / "skills",
+            vscode_root / "com.github.copilot" / "agents",
         ])
     _scan_forbidden_text([path for path in exposed_paths if path.exists()], errors)
     return errors
 
 
 def _validate_vscode_package(root: Path, errors: list[str]) -> None:
-    """Validate the VS Code extension package (also usable as a workspace overlay).
+    """Validate the VS Code / Copilot Agent Plugins 1.0 bundle.
 
-    VS Code ships an installable extension (``package.json`` + ``extension.js``)
-    whose directory also doubles as a copy-into-workspace ``.github/`` + ``.vscode/``
-    overlay. It is not a Claude/Cursor-style plugin marketplace manifest, so it is
-    exempt from those manifest boundary checks; its extension manifest, component
-    structure, and MCP key convention are validated instead.
+    The VS Code slice is a cross-Copilot Agent Plugin (``plugin.json`` at its root,
+    portable ``skills/`` + ``mcp.json``, and Copilot components under
+    ``com.github.copilot/``). It is not a Claude/Cursor-style plugin marketplace
+    manifest, so it is exempt from those boundary checks; its plugin manifest,
+    component structure, and MCP key convention are validated instead.
     """
 
     package = root / VSCODE_PACKAGE_ROOT
@@ -252,48 +252,43 @@ def _validate_vscode_package(root: Path, errors: list[str]) -> None:
         return
 
     for relative in (
-        ".github/agents",
-        ".github/skills",
-        ".github/copilot-instructions.md",
-        "package.json",
-        "extension.js",
+        "plugin.json",
+        "mcp.json",
+        "skills",
+        "com.github.copilot/agents",
         "runtime/summarize_endor_artifact.py",
         "assets/logo.png",
     ):
         if not (package / relative).exists():
             errors.append(f"VS Code package is missing conventional component path: {package / relative}")
 
-    agents_dir = package / ".github" / "agents"
+    agents_dir = package / "com.github.copilot" / "agents"
     if agents_dir.is_dir() and not sorted(agents_dir.glob("*.agent.md")):
         errors.append("VS Code package has no custom agents")
 
-    manifest_path = package / "package.json"
+    manifest_path = package / "plugin.json"
     if manifest_path.is_file():
         try:
             manifest = _load_json_object(manifest_path)
         except (OSError, ValueError, json.JSONDecodeError) as exc:
-            errors.append(f"VS Code extension manifest is invalid: {exc}")
+            errors.append(f"VS Code plugin manifest is invalid: {exc}")
             manifest = {}
-        engines = manifest.get("engines")
-        if not isinstance(engines, dict) or not engines.get("vscode"):
-            errors.append(f"{manifest_path}: extension manifest must pin engines.vscode")
-        contributes = manifest.get("contributes")
-        if not isinstance(contributes, dict) or "mcpServerDefinitionProviders" not in contributes:
-            errors.append(
-                f"{manifest_path}: extension manifest must contribute mcpServerDefinitionProviders"
-            )
+        if manifest.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json":
+            errors.append(f"{manifest_path}: plugin.json $schema must be the Agent Plugins 1.0 plugin schema")
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append(f"{manifest_path}: plugin.json name must be endor-labs-agent-kit")
 
-    mcp_path = package / ".vscode" / "mcp.json"
+    mcp_path = package / "mcp.json"
     try:
         mcp = _load_json_object(mcp_path)
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         errors.append(f"VS Code MCP config is missing or invalid: {exc}")
         return
-    if "mcpServers" in mcp:
-        errors.append(f"{mcp_path}: VS Code MCP config must use the top-level 'servers' key, not 'mcpServers'")
-    servers = mcp.get("servers")
+    if "servers" in mcp:
+        errors.append(f"{mcp_path}: Agent Plugin mcp.json must use the top-level 'mcpServers' key, not 'servers'")
+    servers = mcp.get("mcpServers")
     if not isinstance(servers, dict) or "endor-cli-tools" not in servers:
-        errors.append(f"{mcp_path}: VS Code MCP config must declare the endor-cli-tools server under 'servers'")
+        errors.append(f"{mcp_path}: mcp.json must declare the endor-cli-tools server under 'mcpServers'")
 
 
 def main() -> int:

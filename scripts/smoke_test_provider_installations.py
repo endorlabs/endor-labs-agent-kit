@@ -117,8 +117,8 @@ def smoke_test(
 
         vscode = home / "vscode" / "endor-labs-agent-kit"
         shutil.copytree(root / "plugins/vscode/endor-labs-agent-kit", vscode)
-        _require_names(vscode / ".github" / "agents", canonical, suffix=".agent.md")
-        _require_directories(vscode / ".github" / "skills", canonical)
+        _require_names(vscode / "com.github.copilot" / "agents", canonical, suffix=".agent.md")
+        _require_directories(vscode / "skills", canonical)
         results["vscode"] = {"canonical_agents": len(canonical), "status": "passed"}
 
     return {

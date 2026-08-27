@@ -1702,85 +1702,34 @@ def _check_antigravity_plugin_package(
     )
 
 
-def _check_vscode_extension_manifest(
-    root: Path,
-    vscode_package: Path,
-    errors: list[str],
-) -> None:
-    """Validate the generated VS Code extension wrapper (package.json + entry + icon)."""
-
-    manifest_path = vscode_package / "package.json"
-    manifest = _load_json_mapping(root, manifest_path, errors)
-    if manifest:
-        engines = manifest.get("engines")
-        if not isinstance(engines, dict) or not engines.get("vscode"):
-            errors.append(f"{_rel(root, manifest_path)}: extension manifest must pin engines.vscode")
-        if not manifest.get("main"):
-            errors.append(f"{_rel(root, manifest_path)}: extension manifest must set a 'main' entry point")
-        if not manifest.get("publisher"):
-            errors.append(f"{_rel(root, manifest_path)}: extension manifest must set a 'publisher'")
-        contributes = manifest.get("contributes")
-        if not isinstance(contributes, dict):
-            errors.append(f"{_rel(root, manifest_path)}: extension manifest must declare 'contributes'")
-            contributes = {}
-        providers = contributes.get("mcpServerDefinitionProviders")
-        if not (
-            isinstance(providers, list)
-            and any(isinstance(p, dict) and p.get("id") == "endor-cli-tools" for p in providers)
-        ):
-            errors.append(
-                f"{_rel(root, manifest_path)}: contributes.mcpServerDefinitionProviders must declare the endor-cli-tools provider"
-            )
-        # Every contributed skill/agent/instruction path must resolve on disk.
-        for field in ("chatSkills", "chatAgents", "chatInstructions"):
-            entries = contributes.get(field)
-            if not isinstance(entries, list) or not entries:
-                errors.append(f"{_rel(root, manifest_path)}: contributes.{field} must list at least one path")
-                continue
-            for entry in entries:
-                rel = entry.get("path") if isinstance(entry, dict) else None
-                if not isinstance(rel, str):
-                    errors.append(f"{_rel(root, manifest_path)}: contributes.{field} entries must have a 'path'")
-                    continue
-                rel_clean = rel[2:] if rel.startswith("./") else rel
-                target = vscode_package / rel_clean
-                if not target.is_file():
-                    errors.append(
-                        f"{_rel(root, manifest_path)}: contributes.{field} path does not exist: {rel}"
-                    )
-        icon = manifest.get("icon")
-        if not isinstance(icon, str) or not (vscode_package / icon).is_file():
-            errors.append(f"{_rel(root, manifest_path)}: extension manifest 'icon' must point at a bundled file")
-
-    entry = vscode_package / "extension.js"
-    if not entry.is_file():
-        errors.append(f"{_rel(root, entry)}: missing VS Code extension entry point")
-    else:
-        entry_text = entry.read_text(encoding="utf-8")
-        for required in ("registerMcpServerDefinitionProvider", "endor-cli-tools"):
-            if required not in entry_text:
-                errors.append(f"{_rel(root, entry)}: extension entry must register the endor-cli-tools MCP provider")
-                break
-
-
 def _check_vscode_plugin_package(
     root: Path,
     vscode_package: Path,
     errors: list[str],
 ) -> None:
-    github_dir = vscode_package / ".github"
+    copilot_dir = vscode_package / "com.github.copilot"
 
-    mcp_path = vscode_package / ".vscode" / "mcp.json"
+    manifest_path = vscode_package / "plugin.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        if manifest.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json":
+            errors.append(
+                f"{_rel(root, manifest_path)}: plugin.json $schema must be the Agent Plugins 1.0 plugin schema"
+            )
+        if manifest.get("name") != "endor-labs-agent-kit":
+            errors.append(f"{_rel(root, manifest_path)}: plugin.json name must be endor-labs-agent-kit")
+
+    mcp_path = vscode_package / "mcp.json"
     mcp = _load_json_mapping(root, mcp_path, errors)
     if mcp:
-        if "mcpServers" in mcp:
+        if "servers" in mcp:
             errors.append(
-                f"{_rel(root, mcp_path)}: VS Code MCP config must use the top-level 'servers' key, not 'mcpServers'"
+                f"{_rel(root, mcp_path)}: Agent Plugin mcp.json must use the top-level 'mcpServers' key, not 'servers'"
             )
-        servers = mcp.get("servers")
+        servers = mcp.get("mcpServers")
         if not isinstance(servers, dict) or "endor-cli-tools" not in servers:
             errors.append(
-                f"{_rel(root, mcp_path)}: VS Code MCP config must declare the endor-cli-tools server under 'servers'"
+                f"{_rel(root, mcp_path)}: mcp.json must declare the endor-cli-tools server under 'mcpServers'"
             )
         else:
             server = servers["endor-cli-tools"]
@@ -1789,49 +1738,43 @@ def _check_vscode_plugin_package(
                     f"{_rel(root, mcp_path)}: endor-cli-tools server must run the CLI-first 'npx' command"
                 )
 
-    _check_vscode_extension_manifest(root, vscode_package, errors)
-
-    instructions = github_dir / "copilot-instructions.md"
-    if not instructions.is_file():
-        errors.append(f"{_rel(root, instructions)}: missing VS Code copilot-instructions.md")
+    rules = copilot_dir / "rules" / "endor-labs-agent-kit.md"
+    if not rules.is_file():
+        errors.append(f"{_rel(root, rules)}: missing Copilot agent-plugin rules document")
     else:
-        instructions_text = instructions.read_text(encoding="utf-8")
-        for required in (
-            "Endor Labs Agent Kit For VS Code",
-            "Do not assume Endor MCP is configured",
-            "endor-agent-kit-setup",
-        ):
-            if required not in instructions_text:
-                errors.append(
-                    f"{_rel(root, instructions)}: missing required global instructions text {required!r}"
-                )
+        rules_text = rules.read_text(encoding="utf-8")
+        if "Do not assume Endor MCP is configured" not in rules_text:
+            errors.append(f"{_rel(root, rules)}: rules document must retain the MCP caveat")
 
-    setup = github_dir / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    setup = vscode_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
-        errors.append(f"{_rel(root, setup)}: missing VS Code setup skill")
+        errors.append(f"{_rel(root, setup)}: missing Copilot agent-plugin setup skill")
     else:
         setup_text = setup.read_text(encoding="utf-8")
         for required in (
             "Run `endorctl scan`",
             "Run `endorctl host-check`",
             "Do not add plugin-wide MCP automatically",
-            "VS Code custom agents are host-managed",
+            "Copilot custom agents are host-managed",
         ):
             if required not in setup_text:
                 errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
         _check_namespace_setup_guidance(root, setup, setup_text, errors)
 
-    for skill in sorted((github_dir / "skills").glob("*/SKILL.md")):
+    for skill in sorted((vscode_package / "skills").glob("*/SKILL.md")):
         if skill.parent.name == "endor-agent-kit-setup":
             continue
         text = skill.read_text(encoding="utf-8")
         for required in ("## VS Code Host Contract", "data_gaps"):
             if required not in text:
-                errors.append(f"{_rel(root, skill)}: missing required VS Code plugin skill text {required!r}")
+                errors.append(f"{_rel(root, skill)}: missing required Copilot agent-plugin skill text {required!r}")
+        frontmatter = _frontmatter_mapping(root, skill, text, errors)
+        if frontmatter.get("name") != skill.parent.name:
+            errors.append(f"{_rel(root, skill)}: SKILL.md name must equal its directory name")
         _check_namespace_preflight(root, skill, text, errors)
         _check_knowledge_pack_section(root, skill, text, errors)
 
-    for agent in sorted((github_dir / "agents").glob("*.agent.md")):
+    for agent in sorted((copilot_dir / "agents").glob("*.agent.md")):
         text = agent.read_text(encoding="utf-8")
         for required in (
             "endor_agent_kit_managed=true",
@@ -1839,29 +1782,26 @@ def _check_vscode_plugin_package(
             "data_gaps",
         ):
             if required not in text:
-                errors.append(f"{_rel(root, agent)}: missing required VS Code plugin agent text {required!r}")
+                errors.append(f"{_rel(root, agent)}: missing required Copilot agent-plugin agent text {required!r}")
         frontmatter = _frontmatter_mapping(root, agent, text, errors)
-        if frontmatter.get("target") != "vscode":
-            errors.append(f"{_rel(root, agent)}: VS Code custom agent frontmatter must set target: vscode")
         if "model" in frontmatter:
             errors.append(
-                f"{_rel(root, agent)}: VS Code custom agent must omit model so the agent-mode picker remains authoritative"
+                f"{_rel(root, agent)}: Copilot custom agent must omit model so the agent-mode picker remains authoritative"
             )
         for forbidden in ("mcpServers", "hooks"):
             if forbidden in frontmatter:
-                errors.append(f"{_rel(root, agent)}: VS Code plugin agent must not declare {forbidden}")
+                errors.append(f"{_rel(root, agent)}: Copilot agent-plugin agent must not declare {forbidden}")
         tools = frontmatter.get("tools")
         tool_list = tools if isinstance(tools, list) else []
-        mutating_tools = {"editFiles", "changes"}
-        if mutating_tools & set(tool_list):
+        if {"editFiles", "changes"} & set(tool_list):
             if "separate approval gates" not in text:
                 errors.append(
-                    f"{_rel(root, agent)}: VS Code agent with edit tools must carry the mutating approval-gate contract"
+                    f"{_rel(root, agent)}: Copilot agent with edit tools must carry the mutating approval-gate contract"
                 )
         else:
             if "Keep the workflow read-only" not in text:
                 errors.append(
-                    f"{_rel(root, agent)}: read-only VS Code agent must carry the read-only host contract"
+                    f"{_rel(root, agent)}: read-only Copilot agent must carry the read-only host contract"
                 )
         _check_namespace_preflight(root, agent, text, errors)
         _check_knowledge_pack_section(root, agent, text, errors)
