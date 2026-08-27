@@ -76,11 +76,15 @@ class CompiledProfileContract:
     def to_json_bytes(self) -> bytes:
         """Serialize identically for identical source."""
 
+        # Key order is contract-bearing: profile_contract_from_dict requires
+        # provider_neutral_schema.properties in output_fields order, so the
+        # serialized form must not alphabetize it. to_dict() emits every
+        # mapping in a fixed order, which keeps the bytes deterministic.
         return (
             json.dumps(
                 self.to_dict(),
                 ensure_ascii=False,
-                sort_keys=True,
+                sort_keys=False,
                 separators=(",", ":"),
             )
             + "\n"

@@ -185,6 +185,7 @@ _BASE_STRUCTURED_OUTPUT_CONTRACTS: dict[str, tuple[StructuredOutputField, ...]] 
         StructuredOutputField("selected_remediation", "object"),
         StructuredOutputField("uia_evidence", "list[object]"),
         StructuredOutputField("risk_decision", "object"),
+        StructuredOutputField("dependency_graph_audit", "object"),
         StructuredOutputField("patch_plan", "list[object]"),
         StructuredOutputField("validation", "list[object]"),
         StructuredOutputField("change_requests", "list[object]"),
@@ -888,6 +889,7 @@ def _selected_remediation_schema() -> dict[str, Any]:
             "findings_introduced": _nullable_integer(),
             "manifests": _nullable_string_array(),
             "affected_manifests": _nullable_string_array(),
+            "selection_blocked": _nullable_boolean(),
         }
     )
 
@@ -900,6 +902,76 @@ def _risk_decision_schema() -> dict[str, Any]:
             "reason": _nullable_string(),
             "source_usage_summary": _nullable_string(),
             "validation_requirements": _nullable_string_array(),
+        }
+    )
+
+
+def _dependency_graph_audit_schema() -> dict[str, Any]:
+    # Derived from the audit engine's own vocabulary so the transport schema
+    # and the runtime validator can never drift apart. Imported lazily: this
+    # module stays a leaf at import time, and schema builders only run inside
+    # json_schema_for_agent(), after package initialization. Frozenset-backed
+    # vocabularies are sorted so generated contract JSON stays deterministic.
+    from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+        AUDIT_STATUSES,
+        CLASSIFICATIONS,
+        GRAPH_RUNTIME_KINDS,
+        MAVEN_PROFILE,
+        MAX_DEPENDENCY_PATH,
+        MAX_EVIDENCE_ITEMS,
+        MAX_MANIPULATIONS,
+        MAX_VALIDATION_REQUIREMENTS,
+        SEMANTIC_EFFECTS,
+        SUPPORTED_PROFILES,
+    )
+
+    # `type` carries only the type-driven (Maven) vocabulary; every
+    # mechanism-driven manager keeps `type` null and expresses its construct
+    # through the free-string `mechanism`, whose per-manager enforcement is
+    # owned by the runtime validator — strict transport schemas cannot
+    # express per-manager conditionals.
+    maven_types = sorted(
+        MAVEN_PROFILE.native_types
+        | MAVEN_PROFILE.override_types
+        | MAVEN_PROFILE.removal_types
+    )
+    manipulation = _strict_object_schema(
+        {
+            "type": _nullable_enum(tuple(maven_types)),
+            "coordinate": _nullable_string(),
+            "classification": _nullable_enum(CLASSIFICATIONS),
+            "semantic_effect": _nullable_enum(SEMANTIC_EFFECTS),
+            "mechanism": _nullable_string(),
+            "replacement": _nullable_string(),
+            "evidence": {
+                "type": ["array", "null"],
+                "items": {"type": "string"},
+                "maxItems": MAX_EVIDENCE_ITEMS,
+            },
+        }
+    )
+    return _strict_object_schema(
+        {
+            "package_manager": _nullable_enum(
+                tuple(profile.name for profile in SUPPORTED_PROFILES)
+            ),
+            "status": _nullable_enum(AUDIT_STATUSES),
+            "manifest": _nullable_string(),
+            "dependency_path": {
+                "type": ["array", "null"],
+                "items": {"type": "string"},
+                "maxItems": MAX_DEPENDENCY_PATH,
+            },
+            "manipulations": {
+                "type": ["array", "null"],
+                "items": manipulation,
+                "maxItems": MAX_MANIPULATIONS,
+            },
+            "validation_requirements": {
+                "type": ["array", "null"],
+                "items": {"type": "string", "enum": sorted(GRAPH_RUNTIME_KINDS)},
+                "maxItems": MAX_VALIDATION_REQUIREMENTS,
+            },
         }
     )
 
@@ -1376,6 +1448,7 @@ FIELD_SCHEMA_OVERRIDES = {
     "selected_upgrade": _selected_remediation_schema,
     "dependency_delta": _generic_object_schema,
     "risk_decision": _risk_decision_schema,
+    "dependency_graph_audit": _dependency_graph_audit_schema,
     "evidence_queries": _evidence_queries_schema,
     "uia_evidence": _uia_evidence_schema,
     "remediation_candidates": _remediation_candidates_schema,

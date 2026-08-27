@@ -193,6 +193,11 @@ Use count names consistently. `finding_instances_fixed` is Endor
 `total_findings_fixed` for the selected VersionUpgrade and is the number used
 in the PR/MR title. `unique_advisories_fixed` is the distinct advisory-ID count
 derived from `vuln_finding_info.fixed_findings` or nested fixed summaries.
+When no VersionUpgrade record backs the selected remediation (for example a
+fix-forward module substitution), derive `findings_fixed`,
+`finding_instances_fixed`, and `unique_advisories_fixed` from the findings
+being remediated and their advisory IDs;
+never omit or null the counters for a selected remediation.
 Finding query row count is only `evidence_queries[].result_count`; never
 substitute it for either remediation count. Preserve the fixed Finding UUIDs
 separately, copied byte-for-byte from VersionUpgrade detail. Do not reconstruct
@@ -216,8 +221,9 @@ At the `selection-plan` gate, return exactly one `change_requests` entry and alw
 
 The selection-plan profile projection overrides the generic full-workflow
 Output section. Return only `summary`, `project_resolution`,
-`evidence_queries`, `selected_remediation`, `uia_evidence`, `risk_decision`,
-`change_requests`, `data_gaps`, `policy_context`, and `policy_evaluations`.
+`execution_context`, `evidence_queries`, `selected_remediation`,
+`uia_evidence`, `risk_decision`, `dependency_graph_audit`, `change_requests`,
+`data_gaps`, `policy_context`, and `policy_evaluations`.
 Omit `remediation_candidates`, `patch_plan`, `validation`, and `tickets`; put
 unrun checks in `risk_decision.validation_requirements` as strings. The
 `selection-plan` task profile explicitly selects structured JSON mode. Before
@@ -229,16 +235,17 @@ nested key below, use `null` for unknown scalar/object values and `[]` for
 unavailable arrays, and emit no aliases or extra keys:
 
 - `project_resolution`: `status`, `project_uuid`, `namespace`, `endor_namespace`, `namespace_provenance`, `repo_full_name`, `repo_url`, `normalized_repo_full_name`, `default_branch`, `selected_branch`, `monitored_branch`, `branch_provenance`, `traverse_attempted`, `traverse_result`, `attempted_selectors`. Do not emit `project_name`.
-- `selected_remediation`: `package`, `from_version`, `to_version`, `branch_name`, `project_uuid`, `namespace`, `namespace_provenance`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `risk`, `cia_status`, `cia`, `findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `manifests`, `affected_manifests`. Do not emit `current_version`, `target_version`, `manifest`, `ecosystem`, or workflow-status aliases.
+- `selected_remediation`: `package`, `from_version`, `to_version`, `branch_name`, `project_uuid`, `namespace`, `namespace_provenance`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `risk`, `cia_status`, `cia`, `findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `manifests`, `affected_manifests`, `selection_blocked`. Do not emit `current_version`, `target_version`, `manifest`, `ecosystem`, or workflow-status aliases. When no UIA-backed candidate can be selected, set `selection_blocked: true`, leave the target-version, branch, and count fields null (including `inventory.key.target_version`), and use a blocked or rejected `risk_decision.status`; otherwise set `selection_blocked` null.
 - `uia_evidence[]`: `resource`, `resource_type`, `uuid`, `uia_uuid`, `version_upgrade_uuid`, `upgrade_risk`, `cia_status`, `findings_fixed`, `total_findings_fixed`, `finding_instances_fixed`, `unique_advisories_fixed`, `fixed_finding_uuids`, `findings_introduced`, `total_findings_introduced`, `fixed_findings`, `sample_fixed_findings`, `score_explanation`, `breaking_changes`. `breaking_changes`, `fixed_findings`, and `sample_fixed_findings` are arrays; use `[]`, never `false`, when none are known. Do not emit package, version, manifest, score, conflict, or dependency-footprint aliases.
 - `risk_decision`: `status`, `summary`, `reason`, `source_usage_summary`, `validation_requirements`. Put supporting detail into `summary` or `reason`; do not emit `evidence`, `source_usage`, `validation_required`, or `companion_edits` aliases in this compact profile.
+- `dependency_graph_audit`: `package_manager`, `status`, `manifest`, `dependency_path`, `manipulations`, `validation_requirements`. Each manipulation has exactly `type`, `coordinate`, `classification`, `semantic_effect`, `mechanism`, `replacement`, and `evidence`. Use the exact enum tokens from the Dependency Graph Safety Audit section; no other keys or aliases.
 - `change_requests[0]`: `status`, `base_branch`, `proposed_branch`, `title`, `body`, `url`, `reason`, `inventory`. Use `base_branch`, `title`, and `url`, never `proposed_base_branch`, `proposed_title`, or `existing_change_request_url`.
 - `inventory.reconciliation`: `status`, `reason`, `selected_target_version`, `uia_evidence_checked_at`, `upstream_evidence_checked_at`, `operator_choice_required`.
 - `policy_context`: `status`, `pack_id`, `pack_version`, `sha256`, `source`. Use `pack_version`, never `version`.
 
 - `inventory.status`: exactly `none_found`, `exact_duplicate`, `different_target`, or `unavailable`.
 - `inventory.lookup_method`, `inventory.checked_at`, and boolean `inventory.fresh_recheck`.
-- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`.
+- `inventory.key`: non-empty `repository`, `base_branch`, `ecosystem`, `normalized_package`, `manifest`, `current_version`, and `target_version`, plus array `finding_set`. Both versions must exactly match `selected_remediation`. For a Maven remediation, `ecosystem` must be exactly `maven`; for Gradle, exactly `gradle`.
 - `inventory.candidates`: an array; use `[]` when none or unavailable.
 - `inventory.reconciliation`: an object with non-empty `status` and `reason`; use `status: "not_needed"` for `none_found` and a fail-closed status for unavailable or divergent evidence.
 
@@ -266,7 +273,7 @@ source-provider lookup—not merely because mutations are forbidden. For
 `exact_duplicate`, set reconciliation status to exactly `reuse_existing` or
 `blocked_duplicate`.
 
-Do not flatten the key or reconciliation into strings such as `repository_base_branch_key` or `reconciliation_status`, and use `checked_at`, never `check_time`. If source-provider lookup is unavailable, set `inventory.status: "unavailable"`, preserve the complete key above, set `candidates: []`, explain the blocker in reconciliation and top-level `data_gaps`, and fail closed before push or PR/MR creation.
+Do not flatten the key or reconciliation into strings such as `repository_base_branch_key` or `reconciliation_status`, and use `checked_at`, never `check_time`. If source-provider lookup is unavailable, set `inventory.status: "unavailable"`, preserve the complete key above, set `candidates: []`, still fill `lookup_method` with the attempted or blocked method and `checked_at` with the attempt time (never null), explain the blocker in reconciliation and top-level `data_gaps`, and fail closed before push or PR/MR creation.
 
 Keep source-provider inventory compact. On GitHub, when authenticated `gh` is
 available, use one bounded open-PR listing for the selected base branch with
@@ -317,7 +324,7 @@ ecosystem assumptions, release notes, and provider metadata are not local source
 
 Return exactly one `risk_decision.status`:
 
-- `approved_low_risk`: UIA/CIA and local source evidence are clean and targeted validation for the proposed change ran successfully in the current run. This is not available merely because the UIA risk is low.
+- `approved_low_risk`: UIA/CIA and local source evidence are clean and targeted validation for the proposed change ran successfully in the current run. This is not available merely because the UIA risk is low. The projection omits `validation` records, so the selection-plan ceiling is `approved_with_validation_required` even when targeted validation already ran and passed (summarize outcomes in `risk_decision.reason`); `approved_low_risk` belongs to the apply and validate gates.
 - `approved_with_validation_required`: the patch is reasonable, but the PR must say compatibility requires validation. Use this for a read-only selection plan when validation has not run, including low-risk/no-breaking-change UIA candidates, or when CIA is still indeterminate.
 - `blocked_needs_compatibility_analysis`: do not apply or open a PR yet. Use this when source usage, conflicts, introduced findings, or CIA data require more analysis.
 - `rejected`: do not recommend this candidate because the evidence shows unacceptable introduced findings, conflicts, breaking changes, or required companion edits outside the requested scope.
@@ -342,6 +349,205 @@ The Selection / Plan gate is not complete until `risk_decision.status` is presen
 
 Do not treat `upgrade_risk=low`, `conflicts=0`, a single-property edit, or a straightforward manifest change as a substitute for risk resolution. Those are inputs to `risk_decision`, not the decision itself.
 
+## Dependency Graph Safety Audit
+
+After UIA selects a candidate built by a supported package manager (Maven,
+Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, Bundler, or
+Cargo), audit that manager's graph manipulations before
+approval or mutation. Inspect only the selected dependency path and affected
+manifests; never return raw manifest content, an unbounded dependency tree,
+or one Endor query per manipulation.
+Set `inventory.key.ecosystem` to exactly `maven`, `gradle`, `go`, `nuget`,
+`cargo`, the registry token `gem` for Bundler, the registry token `npm`
+for every Node manager, or the registry token `pypi` for every Python
+manager.
+The selected dependency path spans from the declaring manifest through the
+selected package's full transitive closure (bounded by the 12-coordinate
+`dependency_path` cap). Audit any manipulation whose coordinate mediates,
+removes, or substitutes a package in that closure — including pre-existing
+direct declarations of the selected package's transitive dependencies.
+Anything listed is decision-relevant, so omit unrelated manipulations
+elsewhere instead of flagging them.
+
+Return `dependency_graph_audit` with exactly `package_manager` (`maven`,
+`gradle`, `npm`, `yarn`, `pnpm`, `pip`, `poetry`, `pipenv`, `uv`, `go`,
+`nuget`, `bundler`, or `cargo`), `status` (`clear`, `validation_required`,
+`validated`, `blocked`, or `unavailable`), `manifest` (a selected remediation
+manifest path; when the
+governing native control lives in a parent or aggregator manifest, list that
+manifest in `selected_remediation.affected_manifests` and name it here),
+`dependency_path` (at most 12 coordinates), `manipulations` (at most 8), and
+`validation_requirements` (at most 2; each entry is exactly the bare token
+`resolved_graph` or `runtime_linkage` with no extra text — commands and
+explanations belong in `risk_decision.validation_requirements`). Each
+manipulation has exactly `type`, `coordinate`, `classification`,
+`semantic_effect`, `mechanism`, `replacement` (a bare
+`group:artifact[:version]` JVM, `name@version` Node, `name==version`
+Python, `module@version` Go, `package@version` NuGet, `gem@version`
+Bundler, or `crate@version` Cargo coordinate, never a `mvn://`, `npm://`,
+`pypi://`, `go://`, `nuget://`, `gem://`, `cargo://`, or other
+scheme-prefixed form, or null), and `evidence` (at most 3 strings).
+
+A package manager without an audit profile (Composer, Swift, or any manager
+outside the thirteen above) still returns the audit: `package_manager: null`,
+`status: "unavailable"`, empty `manipulations`, null `manifest`. Remediation
+proceeds normally, but an unavailable audit deliberately caps certification at
+`approved_with_validation_required` — never `approved_low_risk` — because no
+manager-specific graph-safety audit backs the change.
+
+Classify with `version_control`, `mediation_declared`, `mediation_verified`,
+`replacement_declared`, `replacement_verified`, `not_needed_verified`,
+`unverified`, or `replacement_conflict_or_incomplete`. Prefer an existing
+native version control (`version_control`; `semantic_effect`
+`native_version_control`) to a construct added only to force a transitive
+version; such forced mediation (`forced_version_mediation`) is
+`mediation_declared`/`validation_required` until a bounded resolved-graph
+check and a targeted runtime/linkage test pass, then
+`mediation_verified`/`validated`.
+An unexplained or advisory-dodging forced mediation is instead
+`unverified` -> `blocked`; never pair `mediation_declared` with `blocked`.
+A removal (`dependency_removal`)
+without replacement or with a conflicting/incomplete one is `unverified` or
+`replacement_conflict_or_incomplete` -> `blocked`. An exact declared
+replacement or substitution (`dependency_substitution`) is
+`replacement_declared` and follows the same validation rule before
+`replacement_verified`; `not_needed_verified` likewise requires `validated`
+with both checks passed. With no manipulation use `clear`, or `validated`
+after both checks pass; at the selection-plan gate nothing has run yet, so
+use `clear`, `validation_required`, `blocked`, or `unavailable` there.
+`asset_or_feature_suppression` (asset flow suppressed while the node stays
+resolved, as with NuGet `ExcludeAssets` or Bundler `require: false`)
+follows those same removal rules.
+UIA cannot waive this; evidence-only -> `unavailable`, never
+`approved_low_risk`.
+
+Per-manager mechanisms map onto those classification families:
+
+| Manager | Native version control | Forced mediation / overrides | Removal / substitution |
+| --- | --- | --- | --- |
+| Maven | `version_property`, `dependency_management`, `bom` | `direct_dependency_override` | `exclusion` (`dependency_removal`, or `dependency_substitution` when an exact replacement is declared) |
+| Gradle | `gradle.version_catalog`, `gradle.constraint`, `gradle.platform` | `gradle.enforced_platform`, `gradle.resolution_strategy_force`, `gradle.direct_dependency_override`, `gradle.rich_version_rule` (strictly/reject) | `gradle.exclusion` for removal; `gradle.dependency_substitution`, `gradle.component_metadata_rule` for substitution (exact replacement always required) |
+| npm | `npm.manifest_range` | `npm.overrides`; `npm.lockfile_edit` (`lockfile_override`); `npm.source_specifier` (`source_override`) | `npm.alias_redirect` for substitution; no removal construct |
+| Yarn | `yarn.manifest_range` | `yarn.resolutions`; `yarn.lockfile_edit` (`lockfile_override`); `yarn.patch_protocol`, `yarn.source_protocol` (`source_override`) | `yarn.alias_redirect` for substitution; no removal construct |
+| pnpm | `pnpm.manifest_range` | `pnpm.overrides`, `pnpm.pnpmfile_hook`; `pnpm.lockfile_edit` (`lockfile_override`); `pnpm.source_specifier` (`source_override`) | `pnpm.alias_redirect` for substitution; no removal construct |
+| pip | `pip.manifest_range` | `pip.constraints_pin`, `pip.direct_dependency_override`; `pip.source_specifier` (`source_override`) | none |
+| Poetry | `poetry.manifest_range` | `poetry.direct_dependency_override`; `poetry.lockfile_edit` (`lockfile_override`); `poetry.source_specifier` (`source_override`) | none |
+| Pipenv | `pipenv.manifest_range` | `pipenv.direct_dependency_override`; `pipenv.lockfile_edit` (`lockfile_override`); `pipenv.source_specifier` (`source_override`) | none |
+| uv | `uv.manifest_range` | `uv.override_dependencies`, `uv.constraint_dependencies`, `uv.direct_dependency_override`; `uv.lockfile_edit` (`lockfile_override`); `uv.source_specifier`, `uv.sources_redirect` (`source_override`) | none |
+| Go | `go.require_directive` | `go.replace_version`, `go.exclude_directive`; `go.sum_edit` (`lockfile_override`); `go.replace_path`, `go.work_replace`, `go.vendor_override` (`source_override`) | `go.replace_module` for substitution (exact `module@version` replacement); no removal construct |
+| NuGet | `nuget.package_reference`, `nuget.central_package_version` | `nuget.transitive_pin`, `nuget.central_transitive_pin`, `nuget.version_override`, `nuget.build_props_layer`; `nuget.lockfile_edit` (`lockfile_override`); `nuget.restore_source` (`source_override`) | `nuget.package_remove` (`dependency_removal`) and `nuget.exclude_assets` (`asset_or_feature_suppression`) for removal; no substitution construct |
+| Bundler | `bundler.gemfile_requirement`, `bundler.gemspec_requirement` | `bundler.transitive_pin`; `bundler.lockfile_edit` (`lockfile_override`); `bundler.source_redirect`, `bundler.gem_source` (`source_override`) | `bundler.require_false` (`asset_or_feature_suppression`) for removal; no substitution construct |
+| Cargo | `cargo.manifest_requirement`, `cargo.workspace_dependency` | `cargo.transitive_pin`, `cargo.patch_version`; `cargo.lockfile_pin` (`lockfile_override`); `cargo.patch_source`, `cargo.source_replacement` (`source_override`) | `cargo.feature_suppression` (`asset_or_feature_suppression`, or `dependency_removal` when a node leaves the graph) for removal; `cargo.package_rename` for substitution (exact `crate@version` replacement) |
+
+Maven manipulations are type-driven: `type` is one of the five Maven tokens
+above, `mechanism` is `maven.<type>`, affected manifests are POMs, and use
+null for `semantic_effect` or `mechanism` when unsure.
+Gradle manipulations keep `type` null; `mechanism` carries the
+`gradle.<construct>` token and `semantic_effect` is required; affected build
+files are `build.gradle`/`.kts`, `settings.gradle`/`.kts`,
+`gradle/libs.versions.toml`, and lockfiles; keep `dependencyInsight` output
+bounded to the affected configuration and never dump full dependency reports.
+npm, Yarn, and pnpm manipulations are mechanism-driven like Gradle (`type`
+null, `semantic_effect` required) and share the npm registry:
+`inventory.key.ecosystem` stays exactly `npm`, `package.json` alone does not
+identify the manager (the lockfile does: `package-lock.json`, `yarn.lock`,
+`pnpm-lock.yaml`), replacements are bare `name@version`, a hand-edited
+lockfile is an override with `lockfile_override`, git/file/link/portal
+redirections are overrides with `source_override`, and there is
+no removal construct — never claim `dependency_removal` for a Node
+manipulation. Keep `npm ls`/`yarn why`/`pnpm why` output bounded to the
+selected package.
+pip, Poetry, Pipenv, and uv manipulations are mechanism-driven too (`type`
+null, `semantic_effect` required) and share the PyPI registry:
+`inventory.key.ecosystem` stays exactly `pypi`, and `pyproject.toml` or
+requirements/constraints files alone do not identify the manager — the
+lockfile does (`poetry.lock`, `Pipfile.lock`, `uv.lock`; pip has none, so
+declare pip explicitly). Replacements are bare `name==version`, a
+hand-edited lockfile is an override with `lockfile_override`,
+VCS/URL/path/editable installs and `[tool.uv.sources]` redirects are
+overrides with `source_override`, and there is no removal or substitution
+construct — never claim `dependency_removal` or `dependency_substitution`
+for a Python manipulation; a fork swap is a manifest edit of the declaration
+itself. Keep `pipdeptree`/`pip show`/`poetry show --tree`/`pipenv graph`/
+`uv tree` output bounded to the selected package.
+Go manipulations are mechanism-driven too (`type` null, `semantic_effect`
+required): `inventory.key.ecosystem` is exactly `go`, `go.mod` is the
+manifest and `go.sum` the integrity lockfile, replacements are bare
+`module@version` (full semver; pseudo-versions and `+incompatible`
+allowed), a hand-edited `go.sum` is an override with `lockfile_override`,
+filesystem/workspace/vendor redirections are overrides with
+`source_override`, a same-path version `replace` is forced mediation, and
+`exclude` mediates version selection — it removes a version from MVS
+candidates, never the module node, so never claim `dependency_removal` for
+a Go manipulation. Keep `go mod graph`/`go mod why` output bounded to the
+selected module.
+NuGet manipulations are mechanism-driven too (`type` null,
+`semantic_effect` required): `inventory.key.ecosystem` is exactly `nuget`,
+and MSBuild layers version authority across files the project file never
+shows — audit `Directory.Packages.props`, `Directory.Build.props`/
+`.targets`, and `packages.lock.json` alongside the
+`.csproj`/`.fsproj`/`.vbproj`, and list every governing file in
+`selected_remediation.affected_manifests`, the same way as a Maven parent
+POM. A direct `PackageReference` added only to pin a transitive
+(direct-wins resolution), a centrally pinned transitive, a
+`VersionOverride`, or a props/targets layer is forced mediation.
+Replacements are bare `package@version` with an exact three- or four-part
+version — never a floating `2.*` or bracket range. A hand-edited
+`packages.lock.json` is an override with `lockfile_override` (the lockfile
+only constrains restore under `RestoreLockedMode`), and a `nuget.config`
+source redirect or local feed is an override with `source_override`.
+`<PackageReference Remove>` drops the reference itself
+(`dependency_removal`); `ExcludeAssets`/`PrivateAssets` suppresses
+compile or runtime asset flow but never removes the resolved node — the
+package stays in `packages.lock.json` — so classify it
+`asset_or_feature_suppression` under the same removal rules, and never
+claim `dependency_substitution` for a NuGet manipulation; a package-ID
+swap is a manifest edit of the declaration itself. Keep `dotnet list package` output
+bounded to the selected package.
+Bundler manipulations are mechanism-driven too (`type` null,
+`semantic_effect` required): `inventory.key.ecosystem` is exactly `gem`
+(never `bundler` or `rubygems`), `Gemfile`/`gems.rb` is the manifest,
+`Gemfile.lock`/`gems.locked` the lockfile, and `.gemspec` files declare a
+gem's own dependencies. Bundler resolves one unified constraint set, so a
+Gemfile entry added only to force a transitive's resolved version is
+forced mediation. Replacements are bare `gem@version` with an exact
+Gem::Version string — never a `~>`/`>=` requirement, wildcard, or git
+ref. A hand-edited `Gemfile.lock` is an override with `lockfile_override`
+(the lockfile rules resolution under frozen/deployment mode), and a
+per-gem `git:`/`github:`/`path:` redirect or a `source`-block/mirror swap
+is an override with `source_override` — a fork redirect keeps the gem name,
+so it is never a substitution. `require: false` suppresses the gem's
+automatic require at boot but never removes it from the graph — it stays
+resolved and pinned in `Gemfile.lock` — so classify it
+`asset_or_feature_suppression` under the same removal rules, and never
+claim `dependency_removal` or `dependency_substitution` for a Bundler
+manipulation; removing or renaming a gem is a manifest edit of the
+declaration itself. Keep `bundle list`/`gem dependency` output bounded to
+the selected gem.
+Cargo manipulations are mechanism-driven too (`type` null,
+`semantic_effect` required): `inventory.key.ecosystem` is exactly `cargo`
+(never `rust` or `crates`), `Cargo.toml` is the manifest and `Cargo.lock`
+the lockfile (authoritative under `--locked`/`--frozen`), and
+`[workspace.dependencies]` is the sanctioned central version channel.
+Cargo unifies semver-compatible requirements to one resolved version, so
+an exact `=` requirement added only to constrain a transitive's unified
+resolution is forced mediation, as is a `Cargo.lock` held at a version a
+fresh resolution would not pick (`lockfile_override`). The
+`[patch]`/`[replace]` sections split by shape: a same-crate version
+redirect is forced mediation, while a git/path redirect — or a
+`.cargo/config.toml` source replacement or vendor/mirror swap — is an
+override with `source_override` and keeps the crate's name. Disabling
+features (`default-features = false`, trimmed feature lists) suppresses
+feature-gated code paths and, because optional dependencies are
+feature-activated, can also drop optional dependency nodes from the
+resolved graph — classify by what actually left the graph
+(`asset_or_feature_suppression`, or `dependency_removal` when a node is
+gone) under the same removal rules. A dependency alias
+(`name = { package = "other-crate" }`) resolves a different crate under
+the declared name: a substitution requiring an exact bare `crate@version`
+replacement — never a `^`/`~`/`=` requirement, wildcard, or git ref. Keep
+`cargo tree` output bounded to the selected crate.
+
 ## Validation Command Selection
 
 Choose validation commands from the actual repository layout, package manager, and manifest or lockfile that contains the selected dependency. Do not assume a Java/Maven repository, and do not reuse validation commands from a prior run unless the current repository has the same build layout.
@@ -361,7 +567,9 @@ remediation/sca/<normalized-package-name>-<target-version>
 Normalize package names by using the most specific package artifact name that will be readable in a branch list. Examples:
 
 Do not keep package-path slashes after `remediation/sca/`; replace `/`, `:`,
-spaces, and underscores with `-`. Do not use unrelated branch families such as
+`+`, spaces, and underscores with `-`
+(a Go `+incompatible` target version becomes `-incompatible`). Do not use
+unrelated branch families such as
 `endor/fix/...` for this agent unless the user explicitly overrides the branch
 name in the current request.
 
@@ -454,7 +662,7 @@ Default response mode is concise human-readable Markdown. Lead with the primary 
 Use structured JSON mode only when the user or calling runtime explicitly requests JSON, machine-readable output, or the structured output contract. In that mode, return exactly one parseable JSON object in the final answer.
 The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
-string: `summary`; list[object]: `remediation_candidates`, `evidence_queries`, `uia_evidence`, `patch_plan`, `validation`, `change_requests`, `tickets`, `policy_evaluations`; object: `project_resolution`, `execution_context`, `selected_remediation`, `risk_decision`, `policy_context`; list[string]: `data_gaps`
+string: `summary`; list[object]: `remediation_candidates`, `evidence_queries`, `uia_evidence`, `patch_plan`, `validation`, `change_requests`, `tickets`, `policy_evaluations`; object: `project_resolution`, `execution_context`, `selected_remediation`, `risk_decision`, `dependency_graph_audit`, `policy_context`; list[string]: `data_gaps`
 Optional fields when verified:
 object: `task_state`
 `evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.

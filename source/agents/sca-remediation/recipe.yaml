@@ -97,6 +97,10 @@ outputs:
   kind: object
   required: true
   description: Deterministic compatibility verdict for the selected upgrade, especially when CIA is indeterminate, risk is medium/high, conflicts exist, or findings are introduced.
+- name: dependency_graph_audit
+  kind: object
+  required: true
+  description: Bounded Maven, Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, Bundler, or Cargo audit of graph manipulations on the selected dependency path, including forced overrides, exclusions, substitutions, exact replacements, evidence status, and required graph/runtime validation.
 - name: patch_plan
   kind: list[object]
   required: true

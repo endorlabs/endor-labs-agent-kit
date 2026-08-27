@@ -10,6 +10,7 @@ htmlcov/
 *.log
 *.tmp
 .venv/
+.codex/
 .codex-artifacts/
 .claude/settings.local.json
 dist/

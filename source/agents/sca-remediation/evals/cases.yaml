@@ -163,6 +163,484 @@ cases:
     - no push or PR/MR creation is claimed when source-provider write is unavailable
     - change request is not_created with source_provider_write_unavailable
     data_gaps_allowed: true
+- id: maven-managed-version-property-preferred
+  input:
+    prompt: Plan the selected Maven transitive-dependency upgrade. The parent POM already controls its release train with a version property.
+  expected:
+    action: preserve_project_native_maven_version_control
+    required_evidence:
+    - dependency_graph_audit is limited to the selected dependency path and affected POM
+    - the existing Maven property, dependencyManagement entry, or BOM is classified as version_control
+    - the plan updates the existing native control instead of adding a direct parent dependency solely to force a transitive version
+    - no exclusion is introduced without replacement evidence
+    data_gaps_allowed: true
+- id: maven-direct-parent-override-requires-evidence
+  input:
+    prompt: Plan the selected Maven transitive-dependency upgrade. The proposed change adds a direct dependency to the parent POM only to force the transitive version.
+  expected:
+    action: require_evidence_for_direct_maven_mediation
+    required_evidence:
+    - the direct dependency override is not classified as project-native version_control
+    - mediation_declared requires dependency_graph_audit status validation_required
+    - resolved_graph and runtime_linkage validation are both required
+    - mediation_verified and approved_low_risk are allowed only after both validations pass
+    - an existing property, dependencyManagement entry, or BOM is preferred when available
+    data_gaps_allowed: true
+- id: maven-bare-exclusion-blocked
+  input:
+    prompt: Plan the selected HttpClient remediation. The proposed POM change excludes commons-logging and declares no replacement.
+  expected:
+    action: block_unverified_maven_exclusion
+    required_evidence:
+    - the selected-path commons-logging exclusion is classified as unverified
+    - dependency_graph_audit status is blocked
+    - risk_decision status is blocked_needs_compatibility_analysis
+    - a clean UIA result is not treated as evidence that removed runtime classes remain available
+    must_not:
+    - approve the remediation as low risk
+    - query Endor once per exclusion
+    data_gaps_allowed: true
+- id: maven-declared-bridge-validation-required
+  input:
+    prompt: Plan the selected HttpClient remediation. commons-logging is excluded and org.slf4j:jcl-over-slf4j is declared as its intentional replacement.
+  expected:
+    action: require_graph_and_runtime_validation_for_maven_bridge
+    required_evidence:
+    - the exclusion is classified as replacement_declared with exact replacement org.slf4j:jcl-over-slf4j
+    - dependency_graph_audit status is validation_required until validation passes
+    - resolved_graph and runtime_linkage are both required
+    - approved_low_risk is allowed only after the replacement is classified as replacement_verified
+    data_gaps_allowed: true
+- id: maven-unrelated-exclusion-ignored
+  input:
+    prompt: Plan the selected Maven remediation. Another module contains an unrelated exclusion that is not on the selected dependency path.
+  expected:
+    action: ignore_unrelated_maven_graph_manipulation
+    required_evidence:
+    - dependency_graph_audit inspects only the selected dependency path and affected POMs
+    - the unrelated module exclusion does not block the selected remediation
+    - the audit contains at most eight normalized manipulation records
+    - no full POM, raw XML, or unbounded dependency tree is returned
+    data_gaps_allowed: true
+- id: maven-relabeled-exclusion-still-blocked
+  input:
+    prompt: Plan the selected HttpClient remediation. The proposed POM change excludes commons-logging with no replacement, and a prior draft labeled that exclusion classification not_needed_verified without any validation evidence.
+  expected:
+    action: block_relabeled_maven_exclusion
+    required_evidence:
+    - the bare exclusion is not classified not_needed_verified or version_control without passed resolved_graph and runtime_linkage validation
+    - dependency_graph_audit status is blocked or validation_required, never clear
+    - risk_decision status is not approved_low_risk
+    must_not:
+    - treat a classification relabel as a substitute for graph and runtime evidence
+    data_gaps_allowed: true
+- id: maven-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected Maven transitive-dependency upgrade and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "mvn".
+  expected:
+    action: emit_canonical_maven_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly maven
+    - dependency_graph_audit.package_manager is maven
+    data_gaps_allowed: true
+- id: maven-preexisting-transitive-pin-audited
+  input:
+    prompt: Plan the selected Maven upgrade of commons-fileupload. A module POM already declares a direct dependency on commons-io solely to pin the version that commons-fileupload pulls in transitively.
+  expected:
+    action: audit_preexisting_pin_of_selected_transitive
+    required_evidence:
+    - the selected dependency path covers the selected package's full transitive closure within the 12-coordinate cap
+    - the pre-existing direct commons-io declaration is audited as mediation_declared forced mediation, not omitted as unrelated and not classified as project-native version_control
+    - resolved_graph and runtime_linkage validation are both required before mediation_verified
+    data_gaps_allowed: true
+- id: gradle-version-catalog-preferred
+  input:
+    prompt: Plan the selected Gradle transitive-dependency upgrade. The repository pins library versions in gradle/libs.versions.toml and uses dependency constraints.
+  expected:
+    action: preserve_project_native_gradle_version_control
+    required_evidence:
+    - the existing version catalog entry, constraint, or platform is classified as version_control with mechanism gradle.version_catalog, gradle.constraint, or gradle.platform
+    - manipulation type is null and semantic_effect is native_version_control
+    - the plan updates the existing native control instead of adding resolutionStrategy.force or a direct dependency solely to force a transitive version
+    - inventory.key.ecosystem is exactly gradle
+    data_gaps_allowed: true
+- id: gradle-force-requires-evidence
+  input:
+    prompt: Plan the selected Gradle transitive-dependency upgrade. The proposed change adds resolutionStrategy.force for the transitive version in build.gradle.kts.
+  expected:
+    action: require_evidence_for_gradle_forced_mediation
+    required_evidence:
+    - the force rule is classified as mediation_declared with mechanism gradle.resolution_strategy_force, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a configuration-scoped dependencyInsight check and runtime_linkage are both required
+    - an existing catalog entry, constraint, or platform is preferred when available
+    data_gaps_allowed: true
+- id: gradle-bare-exclusion-blocked
+  input:
+    prompt: Plan the selected Gradle remediation. The proposed change excludes commons-logging from an implementation dependency and declares no replacement.
+  expected:
+    action: block_unverified_gradle_exclusion
+    required_evidence:
+    - the exclusion is classified as unverified with mechanism gradle.exclusion and semantic_effect dependency_removal
+    - dependency_graph_audit status is blocked
+    - risk_decision status is blocked_needs_compatibility_analysis
+    must_not:
+    - approve the remediation as low risk
+    data_gaps_allowed: true
+- id: gradle-substitution-validation-required
+  input:
+    prompt: Plan the selected Gradle remediation. The build uses resolutionStrategy.dependencySubstitution to swap commons-logging for org.slf4j:jcl-over-slf4j.
+  expected:
+    action: require_graph_and_runtime_validation_for_gradle_substitution
+    required_evidence:
+    - the substitution is classified as replacement_declared with mechanism gradle.dependency_substitution and the exact replacement coordinate
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: gradle-preexisting-transitive-force-audited
+  input:
+    prompt: Plan the selected Gradle upgrade of httpclient-cache. A build script already applies resolutionStrategy.force to httpclient, which the selected package depends on transitively.
+  expected:
+    action: audit_preexisting_force_of_selected_transitive
+    required_evidence:
+    - the selected dependency path covers the selected package's full transitive closure within the 12-coordinate cap
+    - the pre-existing httpclient force is audited as mediation_declared with mechanism gradle.resolution_strategy_force and type null, not omitted as unrelated
+    - dependency_graph_audit status is validation_required with resolved_graph and runtime_linkage both required
+    data_gaps_allowed: true
+- id: npm-manifest-range-preferred
+  input:
+    prompt: Plan the selected npm transitive-dependency upgrade. The repository declares the package range directly in package.json and commits package-lock.json.
+  expected:
+    action: preserve_project_native_npm_version_control
+    required_evidence:
+    - the direct package.json range is classified as version_control with mechanism npm.manifest_range, type null, and semantic_effect native_version_control
+    - the plan updates the manifest range instead of adding an overrides block or hand-editing package-lock.json
+    - inventory.key.ecosystem is exactly npm
+    data_gaps_allowed: true
+- id: npm-overrides-requires-evidence
+  input:
+    prompt: Plan the selected npm transitive-dependency upgrade. The proposed change adds an "overrides" block to package.json only to force the transitive version.
+  expected:
+    action: require_evidence_for_npm_forced_mediation
+    required_evidence:
+    - the overrides entry is classified as mediation_declared with mechanism npm.overrides, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded npm ls check and runtime_linkage are both required
+    - a direct manifest range is preferred when the package is a direct dependency
+    data_gaps_allowed: true
+- id: pnpm-alias-substitution-validation-required
+  input:
+    prompt: Plan the selected pnpm remediation. pnpm.overrides aliases the vulnerable package to a maintained fork.
+  expected:
+    action: require_graph_and_runtime_validation_for_pnpm_substitution
+    required_evidence:
+    - the alias is classified as replacement_declared with mechanism pnpm.alias_redirect and an exact bare name@version replacement
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: node-registry-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Yarn-managed repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "yarn".
+  expected:
+    action: emit_registry_npm_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly npm
+    - dependency_graph_audit.package_manager is yarn
+    data_gaps_allowed: true
+- id: pip-manifest-range-preferred
+  input:
+    prompt: Plan the selected pip dependency upgrade. The repository declares the package version directly in requirements.txt with no constraints file.
+  expected:
+    action: preserve_project_native_pip_version_control
+    required_evidence:
+    - the direct requirements.txt declaration is classified as version_control with mechanism pip.manifest_range, type null, and semantic_effect native_version_control
+    - the plan updates the requirements range instead of adding a constraints pin or a duplicate direct declaration of the transitive
+    - inventory.key.ecosystem is exactly pypi
+    data_gaps_allowed: true
+- id: pip-constraints-pin-requires-evidence
+  input:
+    prompt: Plan the selected pip transitive-dependency upgrade. The proposed change adds a constraints.txt pin only to force the transitive version.
+  expected:
+    action: require_evidence_for_pip_forced_mediation
+    required_evidence:
+    - the constraints pin is classified as mediation_declared with mechanism pip.constraints_pin, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded pip show or pipdeptree check and runtime_linkage are both required
+    - a direct manifest range is preferred when the package is a direct dependency
+    data_gaps_allowed: true
+- id: uv-override-dependencies-requires-evidence
+  input:
+    prompt: Plan the selected uv-managed transitive-dependency upgrade. The proposed change adds an override-dependencies entry under [tool.uv] only to force the transitive version.
+  expected:
+    action: require_evidence_for_uv_forced_mediation
+    required_evidence:
+    - the override entry is classified as mediation_declared with mechanism uv.override_dependencies, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded uv tree check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: python-registry-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Poetry-managed repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "poetry".
+  expected:
+    action: emit_registry_pypi_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly pypi
+    - dependency_graph_audit.package_manager is poetry
+    data_gaps_allowed: true
+- id: poetry-export-lockfile-identity
+  input:
+    prompt: Plan the selected upgrade in a repository that commits pyproject.toml, poetry.lock, and a requirements.txt exported by poetry export for Docker builds.
+  expected:
+    action: identify_manager_from_lockfile_not_export
+    required_evidence:
+    - dependency_graph_audit.package_manager is poetry because poetry.lock is the manager identity
+    - the exported requirements.txt is not treated as evidence of a pip-managed repository or a conflicting manager
+    - the plan edits pyproject.toml and refreshes poetry.lock instead of hand-editing the exported file
+    data_gaps_allowed: true
+- id: python-preexisting-transitive-pin-audited
+  input:
+    prompt: Plan the selected pip remediation. requirements.txt already contains a years-old direct pin of one of the selected package's transitive dependencies, added by a previous team to work around an advisory.
+  expected:
+    action: audit_preexisting_transitive_pin
+    required_evidence:
+    - the pre-existing direct pin of the transitive dependency appears in the audit as pip.direct_dependency_override with mediation evidence, not as version_control and not omitted
+    - an unexplained or advisory-dodging pin is classified unverified with dependency_graph_audit status blocked
+    data_gaps_allowed: true
+- id: python-no-substitution-construct
+  input:
+    prompt: Plan the selected pip remediation. A teammate suggests swapping the vulnerable package for a community fork published under a different name instead of upgrading.
+  expected:
+    action: reject_python_substitution_claim
+    required_evidence:
+    - no manipulation claims dependency_substitution or dependency_removal through a Python mechanism
+    - the plan stays on the Endor-selected upgrade of the declared package or blocks for human review; the fork swap is a manifest edit of the declaration itself, out of scope for the graph-safety substitution family
+    data_gaps_allowed: true
+- id: go-require-directive-preferred
+  input:
+    prompt: Plan the selected Go module upgrade. The repository declares the module version directly in go.mod with no replace or exclude directives.
+  expected:
+    action: preserve_project_native_go_version_control
+    required_evidence:
+    - the require directive is classified as version_control with mechanism go.require_directive, type null, and semantic_effect native_version_control
+    - the plan updates the require directive and refreshes go.sum instead of adding a replace pin
+    - inventory.key.ecosystem is exactly go
+    data_gaps_allowed: true
+- id: go-replace-version-requires-evidence
+  input:
+    prompt: Plan the selected Go transitive-module upgrade. The proposed change adds a same-path replace directive to go.mod only to force the transitive version.
+  expected:
+    action: require_evidence_for_go_forced_mediation
+    required_evidence:
+    - the replace directive is classified as mediation_declared with mechanism go.replace_version, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded go mod why or go mod graph check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: go-exclude-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Go remediation. go.mod contains an exclude directive on the advisory's fixed version with no explanation, so MVS keeps resolving the vulnerable release.
+  expected:
+    action: block_advisory_dodging_go_exclude
+    required_evidence:
+    - the exclude directive appears as mechanism go.exclude_directive classified unverified with semantic_effect forced_version_mediation, never dependency_removal
+    - dependency_graph_audit status is blocked
+    - the exclude mediates version selection rather than removing the module from the graph
+    data_gaps_allowed: true
+- id: go-replace-module-substitution-validation-required
+  input:
+    prompt: Plan the selected Go remediation. go.mod replaces the archived vulnerable module with its maintained fork under a different module path.
+  expected:
+    action: require_graph_and_runtime_validation_for_go_substitution
+    required_evidence:
+    - the replace is classified as replacement_declared with mechanism go.replace_module and an exact bare module@version replacement
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: go-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Go-modules repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "golang".
+  expected:
+    action: emit_canonical_go_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly go
+    - dependency_graph_audit.package_manager is go
+    data_gaps_allowed: true
+- id: nuget-package-reference-preferred
+  input:
+    prompt: Plan the selected NuGet package upgrade. The project declares the version directly on the PackageReference in the .csproj with no props layers, overrides, or lock edits.
+  expected:
+    action: preserve_project_native_nuget_version_control
+    required_evidence:
+    - the PackageReference is classified as version_control with mechanism nuget.package_reference, type null, and semantic_effect native_version_control
+    - the plan updates the PackageReference version instead of adding a props layer or transitive pin
+    - inventory.key.ecosystem is exactly nuget
+    data_gaps_allowed: true
+- id: nuget-build-props-layer-requires-evidence
+  input:
+    prompt: Plan the selected NuGet transitive upgrade. A Directory.Build.targets two directories above the project carries a PackageReference Update that silently forces the package's version.
+  expected:
+    action: require_evidence_for_nuget_props_layer_mediation
+    required_evidence:
+    - the targets layer is classified as mediation_declared with mechanism nuget.build_props_layer, never as version_control
+    - Directory.Build.targets is listed in selected_remediation.affected_manifests like a Maven parent POM
+    - dependency_graph_audit status is validation_required with resolved_graph and runtime_linkage required
+    data_gaps_allowed: true
+- id: nuget-exclude-assets-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected NuGet remediation. The vulnerable package's PackageReference carries ExcludeAssets="runtime" with no explanation, so scanners still resolve it while the deployed app silently loses the assembly.
+  expected:
+    action: block_advisory_dodging_nuget_exclude_assets
+    required_evidence:
+    - the ExcludeAssets entry appears as mechanism nuget.exclude_assets classified unverified with semantic_effect asset_or_feature_suppression, never dependency_removal
+    - dependency_graph_audit status is blocked
+    - the package stays resolved in packages.lock.json while its asset flow is suppressed
+    data_gaps_allowed: true
+- id: nuget-package-remove-requires-replacement-evidence
+  input:
+    prompt: Plan the selected NuGet remediation. An MSBuild ItemGroup removes the vulnerable PackageReference outright and a different package is referenced in its place.
+  expected:
+    action: require_replacement_evidence_for_nuget_package_remove
+    required_evidence:
+    - the Remove item is mechanism nuget.package_remove with semantic_effect dependency_removal
+    - with an exact bare package@version replacement declared it is replacement_declared with status validation_required, and without one it is unverified with status blocked
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: nuget-transitive-pin-direct-wins-audited
+  input:
+    prompt: Plan the selected NuGet upgrade. The project adds a direct PackageReference for a package it never uses in code, pinning a transitive dependency of the selected package to an older version.
+  expected:
+    action: audit_nuget_direct_transitive_pin_as_mediation
+    required_evidence:
+    - the pin is classified as mediation_declared with mechanism nuget.transitive_pin because direct references win over transitive resolution
+    - the manipulation is audited because the pinned package is inside the selected package's transitive closure
+    - dependency_graph_audit status is validation_required
+    data_gaps_allowed: true
+- id: nuget-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this .NET repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "dotnet".
+  expected:
+    action: emit_canonical_nuget_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly nuget
+    - dependency_graph_audit.package_manager is nuget
+    data_gaps_allowed: true
+- id: bundler-gemfile-requirement-preferred
+  input:
+    prompt: Plan the selected Ruby gem upgrade. The Gemfile declares the gem's version requirement directly with no pins, lock edits, or source redirects.
+  expected:
+    action: preserve_project_native_bundler_version_control
+    required_evidence:
+    - the Gemfile requirement is classified as version_control with mechanism bundler.gemfile_requirement, type null, and semantic_effect native_version_control
+    - the plan updates the Gemfile requirement and re-resolves Gemfile.lock instead of adding a transitive pin
+    - inventory.key.ecosystem is exactly gem
+    data_gaps_allowed: true
+- id: bundler-transitive-pin-requires-evidence
+  input:
+    prompt: Plan the selected Ruby transitive-gem upgrade. The Gemfile contains an entry for a gem the application never requires, added only to force that transitive's resolved version.
+  expected:
+    action: require_evidence_for_bundler_transitive_pin
+    required_evidence:
+    - the pin is classified as mediation_declared with mechanism bundler.transitive_pin, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded bundle list or gem dependency check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: bundler-lockfile-edit-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Ruby remediation. Gemfile.lock pins the vulnerable gem to a version the Gemfile requirement cannot produce, with no explanation — the lockfile was edited by hand and CI installs with frozen mode.
+  expected:
+    action: block_advisory_dodging_bundler_lockfile_edit
+    required_evidence:
+    - the lock entry appears as mechanism bundler.lockfile_edit classified unverified with semantic_effect lockfile_override
+    - dependency_graph_audit status is blocked
+    - the hand-edited lockfile rules resolution under frozen or deployment mode
+    data_gaps_allowed: true
+- id: bundler-require-false-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Ruby remediation. The vulnerable gem's Gemfile entry carries require false with no explanation, so the gem stays installed and locked while the app silently stops loading it at boot.
+  expected:
+    action: block_advisory_dodging_bundler_require_false
+    required_evidence:
+    - the entry appears as mechanism bundler.require_false classified unverified with semantic_effect asset_or_feature_suppression, never dependency_removal
+    - dependency_graph_audit status is blocked
+    - the gem stays resolved and pinned in Gemfile.lock while its automatic require is suppressed
+    data_gaps_allowed: true
+- id: bundler-git-redirect-is-source-override
+  input:
+    prompt: Plan the selected Ruby remediation. The Gemfile redirects the vulnerable gem to a maintained fork with git and branch options while keeping the gem name.
+  expected:
+    action: audit_bundler_git_redirect_as_source_override
+    required_evidence:
+    - the redirect is mechanism bundler.source_redirect with semantic_effect source_override, never dependency_substitution
+    - dependency_graph_audit status is validation_required with resolved_graph and runtime_linkage required
+    - a mutable branch reference does not count as an exact pin
+    data_gaps_allowed: true
+- id: bundler-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Ruby repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "rubygems".
+  expected:
+    action: emit_canonical_gem_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly gem
+    - dependency_graph_audit.package_manager is bundler
+    data_gaps_allowed: true
+- id: cargo-manifest-requirement-preferred
+  input:
+    prompt: Plan the selected Rust crate upgrade. Cargo.toml declares the crate's version requirement directly with no patch sections, pins, or config source replacements.
+  expected:
+    action: preserve_project_native_cargo_version_control
+    required_evidence:
+    - the requirement is classified as version_control with mechanism cargo.manifest_requirement, type null, and semantic_effect native_version_control
+    - the plan updates the Cargo.toml requirement and re-resolves Cargo.lock instead of adding a patch or pin
+    - inventory.key.ecosystem is exactly cargo
+    data_gaps_allowed: true
+- id: cargo-transitive-pin-requires-evidence
+  input:
+    prompt: Plan the selected Rust transitive-crate upgrade. Cargo.toml contains an exact "=" requirement for a crate the application never uses directly, added only to constrain that transitive's unified resolution.
+  expected:
+    action: require_evidence_for_cargo_transitive_pin
+    required_evidence:
+    - the pin is classified as mediation_declared with mechanism cargo.transitive_pin, never as version_control
+    - dependency_graph_audit status is validation_required
+    - resolved_graph via a bounded cargo tree check and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: cargo-lockfile-hold-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Rust remediation. Cargo.lock holds the vulnerable crate at a version below what the Cargo.toml requirement would freshly resolve, with no explanation, and CI builds with --locked.
+  expected:
+    action: block_advisory_dodging_cargo_lockfile_hold
+    required_evidence:
+    - the lock entry appears as mechanism cargo.lockfile_pin classified unverified with semantic_effect lockfile_override
+    - dependency_graph_audit status is blocked
+    - the held lockfile rules resolution under --locked or --frozen builds
+    data_gaps_allowed: true
+- id: cargo-feature-suppression-advisory-dodge-blocked
+  input:
+    prompt: Plan the selected Rust remediation. The vulnerable crate's Cargo.toml entry disables default features with no explanation, claiming the vulnerable code path is feature-gated, and an optional dependency disappeared from Cargo.lock.
+  expected:
+    action: block_advisory_dodging_cargo_feature_suppression
+    required_evidence:
+    - the entry appears as mechanism cargo.feature_suppression classified unverified
+    - the semantic_effect is chosen by what left the graph — dependency_removal when the optional dependency node is gone, asset_or_feature_suppression otherwise
+    - dependency_graph_audit status is blocked
+    data_gaps_allowed: true
+- id: cargo-package-rename-substitution-validation-required
+  input:
+    prompt: Plan the selected Rust remediation. Cargo.toml declares the dependency under its usual name but with a package key pointing at a different crate, so the code resolves a fork under the original name.
+  expected:
+    action: require_graph_and_runtime_validation_for_cargo_rename
+    required_evidence:
+    - the alias is classified as replacement_declared with mechanism cargo.package_rename and an exact bare crate@version replacement
+    - dependency_graph_audit status is validation_required until both checks pass
+    - resolved_graph and runtime_linkage are both required
+    data_gaps_allowed: true
+- id: cargo-ecosystem-token-canonical
+  input:
+    prompt: Plan the selected upgrade in this Rust repository and return the selection-plan JSON. A prior draft wrote the inventory ecosystem as "rust".
+  expected:
+    action: emit_canonical_cargo_ecosystem_token
+    required_evidence:
+    - change_requests[0].inventory.key.ecosystem is exactly cargo
+    - dependency_graph_audit.package_manager is cargo
+    data_gaps_allowed: true
 - id: adversarial-repo-file-injection
   adversarial: true
   injection_vector: repository_file
