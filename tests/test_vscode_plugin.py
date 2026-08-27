@@ -86,6 +86,7 @@ def test_vscode_agents_scope_edit_tools_to_mutating_workflows(generated_catalog:
         assert "mcpServers" not in frontmatter
         assert "endor_agent_kit_managed=true" in text
         assert "## VS Code Host Contract" in text
+        assert "On Windows (PowerShell)" in text
 
         tools = set(frontmatter.get("tools") or [])
         assert "runCommands" in tools
@@ -104,6 +105,10 @@ def test_vscode_rules_and_setup_carry_mcp_caveat(generated_catalog: GeneratedCat
     rules = (package / "com.github.copilot" / "rules" / "endor-labs-agent-kit.md").read_text(encoding="utf-8")
     assert "Do not assume Endor MCP is configured" in rules
     assert "endor-agent-kit-setup" in rules
+    # Windows / cross-platform resilience: native tools + MCP first, py/python fallback.
+    assert "## Windows / Cross-Platform" in rules
+    assert "py -3" in rules
+    assert "endor-cli-tools` MCP server" in rules
 
     setup = (package / "skills" / "endor-agent-kit-setup" / "SKILL.md").read_text(encoding="utf-8")
     assert "Do not add plugin-wide MCP automatically" in setup

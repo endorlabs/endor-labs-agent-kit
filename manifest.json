@@ -7413,64 +7413,64 @@
           "sha256": "3bc1cce0aa35f12d7de7c537726305f6125692ef5f147774abd683a7b269917e"
         },
         {
-          "bytes": 35251,
+          "bytes": 35565,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/ai-sast-remediation.agent.md",
-          "sha256": "832fa72ff35d4349f988e623fdd55f398f65eef02311b671c296155652f3c59e"
+          "sha256": "4d0b94ad0db0b72a3b884d5d5bc253ef4fa2131facafe303034857302af71c35"
         },
         {
-          "bytes": 23643,
+          "bytes": 23957,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/cicd-posture.agent.md",
-          "sha256": "7e2b9f377eef37e4074c70b50a8549d63e3989ce31095ceb0c3a4319cd6231aa"
+          "sha256": "990b61225ea46d3fe45e5a32e4459239ef7d54db382f6760699069c4a905fe5b"
         },
         {
-          "bytes": 29259,
+          "bytes": 29573,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/configuration-automation.agent.md",
-          "sha256": "5a8bea41a16f076dbc0184a0a9162ebd9c7180d9086ecfdff1a7792217c52800"
+          "sha256": "d874b6dbab0c22634727d34d9b1809e37905616222b14e165d3ada6b37633d13"
         },
         {
-          "bytes": 19407,
+          "bytes": 19721,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/dependency-reviewer.agent.md",
-          "sha256": "4b3e6fd23d440776ffdade978a582b2bf96bff3a3e5022f246585c4b795b24df"
+          "sha256": "b658b57fd3e593e5427d33de74530809bd3a3f60b580857c04706e27a27e00f7"
         },
         {
-          "bytes": 15886,
+          "bytes": 16200,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/findings-browser.agent.md",
-          "sha256": "9898ac360dec223d4d8b2d07a8c3ec17c07386a972edd87a44066d97c02b4460"
+          "sha256": "186c53c7b2545d63c4009179ecbf94773a6da017dc020ed962f3f40a53251a68"
         },
         {
-          "bytes": 14687,
+          "bytes": 15001,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/malware-responder.agent.md",
-          "sha256": "5155d7b03d2db3e589d5eb9ed267a281ea5a0c49c7cbc7df9a9a826eac3d71a4"
+          "sha256": "7fa6e40c0aec10538396329468f2ad8bce026924e7a4b732b4e9f88560c17365"
         },
         {
-          "bytes": 17674,
+          "bytes": 17988,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/oss-upgrade-investigator.agent.md",
-          "sha256": "8c88167dd3ebd573aa0778368edd77dccb4ad339bb530e94ea16eec1c31eee59"
+          "sha256": "a1e383fa89050195d0b8208c44b725be0ab218777c8895af36b8ce917c109cb2"
         },
         {
-          "bytes": 15556,
+          "bytes": 15870,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/remediation-planning.agent.md",
-          "sha256": "4745787b9c6b38613cdee4fe5df02338ec78600f1e1ac2b3b8a1182d080a3d42"
+          "sha256": "78f97effee4cb6254f67e632bb7d28e1d0d5034934f50a1b42fe1001bc58f290"
         },
         {
-          "bytes": 50802,
+          "bytes": 51116,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/sca-remediation.agent.md",
-          "sha256": "0acdb5aa017d1440850a2bcb94f2a6f0c6ec30d1481b9e1c0759bbc717e3ce0e"
+          "sha256": "1bada0610f0c4898eef3c1965df47afe358a11783e6f9ded23d41e4620411c90"
         },
         {
-          "bytes": 28704,
+          "bytes": 29018,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/troubleshooting.agent.md",
-          "sha256": "992cf93fed9bd1ef7b3a898a7db6262095209c40da79d709d514884b9f50e9e3"
+          "sha256": "940e6697e95f20636d65ffd769b88fb9b68958a1225e5d8ef6ec616480896876"
         },
         {
-          "bytes": 14121,
+          "bytes": 14435,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/agents/vulnerability-explainer.agent.md",
-          "sha256": "de7c1ccd4bc37c20c67421022c449be976981c87662177bd81967443ac04ca92"
+          "sha256": "40ad2e21949d719987821bdd05a1c6dd78850712e51ec7ae89ff2df55a4a05f2"
         },
         {
-          "bytes": 2204,
+          "bytes": 3486,
           "path": "plugins/vscode/endor-labs-agent-kit/com.github.copilot/rules/endor-labs-agent-kit.md",
-          "sha256": "cbedbecdcc483b89f93df7193ff8c1465127781acf6dbeb5ddc86c07fb4db719"
+          "sha256": "38055b1340631c35a977290fd8b9145dbd117921fe88a9b20710ae1fe2cc4805"
         },
         {
           "bytes": 275,
@@ -7488,24 +7488,24 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 34926,
+          "bytes": 35240,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/ai-sast-remediation/SKILL.md",
-          "sha256": "ed45846845b559252ca831405b76b50c76e581f54438913b88ffbe325036d76c"
+          "sha256": "80fc77b2f054b0701caaabd10e72d9f9f146d1056f34eb2722081e5f6ea4b169"
         },
         {
-          "bytes": 23351,
+          "bytes": 23665,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "be9adbe3a9ae978bf9eded098e806be276529549fc10577bb2292596d752adb2"
+          "sha256": "c16a0bc54310ed6a1cd60a986db1197ae248c31c9cb43bc9a736854433c1440b"
         },
         {
-          "bytes": 28979,
+          "bytes": 29293,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/configuration-automation/SKILL.md",
-          "sha256": "85d7fe23e45dbe4bfe81c92b3d88814f3ed47a7882b2dfa758a8dbb9de806e20"
+          "sha256": "abd33c84f01cf3452badf68724abb726fa603815f8b385aae1ceade08b8a9ffe"
         },
         {
-          "bytes": 19108,
+          "bytes": 19422,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/dependency-reviewer/SKILL.md",
-          "sha256": "ae2f67b8ad839c295931c19b18fa77f203e8b6f6d1fddaf235b5c66e0950a118"
+          "sha256": "76b42b14d5ad136df88f09ab699d9e3121046d86e0b87147b3e7b5b82fd0a69f"
         },
         {
           "bytes": 9905,
@@ -7513,39 +7513,39 @@
           "sha256": "973c7578a0aa841d3712b50ab44e7153460b53e231ffe06a9dc410c723d83b81"
         },
         {
-          "bytes": 15614,
+          "bytes": 15928,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/findings-browser/SKILL.md",
-          "sha256": "502407cabd7610619063b6183455d2713fc33d1243b6ad12bf3c19d59c7156df"
+          "sha256": "2d28fc9ebf86ea0316b994ce65ff00501ac2bcac1c55b31311935fccf298ab95"
         },
         {
-          "bytes": 14414,
+          "bytes": 14728,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/malware-responder/SKILL.md",
-          "sha256": "0019fa7fe75b4403c34a66f485ec45a53ec439b08d31ff19b952d7285c4cf7ea"
+          "sha256": "bddfcf04ac885cbb299b00748ce3034a61148a42e8719f7296455e84f1ad66d1"
         },
         {
-          "bytes": 17394,
+          "bytes": 17708,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/oss-upgrade-investigator/SKILL.md",
-          "sha256": "73bc8fa90fd6167343fd515d18545633be2effcb36797b40e9c67cd7aa154f70"
+          "sha256": "f50f91474f4e81f7c5c03f19ac2024ba84c557c883c67570ddc08d27ab6e5178"
         },
         {
-          "bytes": 15280,
+          "bytes": 15594,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/remediation-planning/SKILL.md",
-          "sha256": "f16f21ff72ba2279a6c16f056d49173bbf5c0693b0992b897873bc73490a0caf"
+          "sha256": "f737f087f58e6c8f75281fb587abc19e40ff610037f14c06b4658f279703f9d4"
         },
         {
-          "bytes": 50481,
+          "bytes": 50795,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "da4615949f7721631ed62ddec0c848115e6dd87c92cd3524e8befb1b41eb843a"
+          "sha256": "fdce3a931bb359fb02f1ff2af58ab42578b1985e27194c7547ce0372f63a1753"
         },
         {
-          "bytes": 28433,
+          "bytes": 28747,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/troubleshooting/SKILL.md",
-          "sha256": "9f2f71a8c9ccca5ded89ec97efc38b3c9ed9784af47d9ede8cabcde190655464"
+          "sha256": "1deea5a9b5847e0ad60d35821c2b2ce3f13e6730b3c4b684ba7096ee3607ac5f"
         },
         {
-          "bytes": 13842,
+          "bytes": 14156,
           "path": "plugins/vscode/endor-labs-agent-kit/skills/vulnerability-explainer/SKILL.md",
-          "sha256": "6fe138a18a7b017073e6f90eeea7228a927d19c8a6d3e1c80112bf5b16864831"
+          "sha256": "9ddcec1c9de70a7ef9b1173e5fba4d073dfd061b72c2789532274d3ec5fb0c58"
         },
         {
           "bytes": 4996,

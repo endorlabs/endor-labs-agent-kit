@@ -550,6 +550,16 @@ VS Code "Chat: Install Plugin From Source" or `chat.pluginLocations`, and Copilo
 `copilot plugin install endorlabs/ai-plugins:plugins/vscode/endor-labs-agent-kit`. The
 plugin works across GitHub Copilot in VS Code, the Copilot CLI, and the Copilot app.
 
+**Windows / cross-platform.** The plugin runs mostly in VS Code on Windows, where the
+shell is PowerShell and Python / Unix tools (`find`/`grep`/`rg`/`jq`) may be absent. The
+host contract (in every skill and agent, via `_vscode_host_contract`) carries a short OS
+note, and `com.github.copilot/rules/endor-labs-agent-kit.md` carries the full
+"## Windows / Cross-Platform" guidance: prefer native file tools + the `endor-cli-tools`
+MCP server (neither needs Python or a POSIX shell), fall back to PowerShell-compatible
+commands + `py -3`/`python` for the summarizer, and bound the query / record a `data_gaps`
+when Python is unavailable. This is VS-Code-scoped (injected in the vscode compiler/
+publisher); shared recipes and other hosts are unchanged.
+
 Verified facts + risks: MCP-in-plugins uses `mcp.json`/`mcpServers` (Agent Plugins
 1.0 schema); the `com.github.copilot/rules/` file format and the accepted custom-agent
 tool identifiers (namespaced like `search/codebase`?) are version-flagged — confirm in

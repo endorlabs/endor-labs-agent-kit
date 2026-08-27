@@ -186,6 +186,12 @@ def _vscode_host_contract(recipe: EndorAgentRecipe) -> str:
         lines.append("- Do not create branches, commits, pushes, PRs, or MRs as part of this agent workflow.")
     if posture.uses_mcp:
         lines.append("- Do not assume Endor MCP is configured. Ask the user to run setup if MCP tools are unavailable.")
+    lines.append(
+        "- On Windows (PowerShell), Python and Unix tools may be absent: prefer VS Code native file "
+        "tools and the `endor-cli-tools` MCP server over shell `find`/`grep`/`rg`/`jq` and the Python "
+        "helper; if the helper is required, use `py -3`/`python` when `python3` is missing, else bound "
+        "the query and record a `data_gaps`."
+    )
     return "\n".join(lines)
 
 

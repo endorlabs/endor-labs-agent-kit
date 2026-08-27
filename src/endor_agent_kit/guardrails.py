@@ -1745,6 +1745,8 @@ def _check_vscode_plugin_package(
         rules_text = rules.read_text(encoding="utf-8")
         if "Do not assume Endor MCP is configured" not in rules_text:
             errors.append(f"{_rel(root, rules)}: rules document must retain the MCP caveat")
+        if "## Windows / Cross-Platform" not in rules_text:
+            errors.append(f"{_rel(root, rules)}: rules document must include the Windows / Cross-Platform section")
 
     setup = vscode_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
@@ -1765,7 +1767,7 @@ def _check_vscode_plugin_package(
         if skill.parent.name == "endor-agent-kit-setup":
             continue
         text = skill.read_text(encoding="utf-8")
-        for required in ("## VS Code Host Contract", "data_gaps"):
+        for required in ("## VS Code Host Contract", "data_gaps", "On Windows (PowerShell)"):
             if required not in text:
                 errors.append(f"{_rel(root, skill)}: missing required Copilot agent-plugin skill text {required!r}")
         frontmatter = _frontmatter_mapping(root, skill, text, errors)
@@ -1780,6 +1782,7 @@ def _check_vscode_plugin_package(
             "endor_agent_kit_managed=true",
             "## VS Code Host Contract",
             "data_gaps",
+            "On Windows (PowerShell)",
         ):
             if required not in text:
                 errors.append(f"{_rel(root, agent)}: missing required Copilot agent-plugin agent text {required!r}")
