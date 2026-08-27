@@ -27,6 +27,7 @@ This generated documentation is checked for source drift but is not part of the 
 | Antigravity CLI | `Gemini 3.6 Flash (Low)` | `low` | `low` | `host_pinned` | pin Gemini 3.6 Flash (Low) in Antigravity Model Usage; plugins cannot set a per-agent model |
 | Cursor IDE | `composer-2.5` | `host managed` | `host managed` | `pinned` | plugin-agent frontmatter pins composer-2.5 standard with fast=false |
 | Cursor SDK | `composer-2.5` | `host managed` | `host managed` | `pinned` | SDK runner pins composer-2.5 standard with fast=false |
+| VS Code | `runtime-selected agent-mode model` | `host managed` | `host managed` | `runtime_selected` | agent frontmatter omits model; VS Code uses the agent-mode model picker |
 | Portable runtime | `runtime-selected compatible agentic model` | `runtime managed` | `runtime managed` | `runtime_selected` | portable bundles do not select a provider model |
 
 Standard agent tier: `cicd-posture, configuration-automation, dependency-reviewer, findings-browser, malware-responder, oss-upgrade-investigator, remediation-planning, troubleshooting, vulnerability-explainer`.

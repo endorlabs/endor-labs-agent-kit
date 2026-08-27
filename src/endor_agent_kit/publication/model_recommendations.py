@@ -129,6 +129,17 @@ HOST_MODEL_RECOMMENDATIONS = (
         provider_guidance_url="https://cursor.com/composer",
     ),
     HostModelRecommendation(
+        host="vscode",
+        label="VS Code",
+        recommended_model="runtime-selected agent-mode model",
+        selection_mode="runtime_selected",
+        standard_effort="host managed",
+        complex_remediation_effort="host managed",
+        generated_artifact_behavior="agent frontmatter omits model; VS Code uses the agent-mode model picker",
+        customer_override="VS Code model picker selection remains authoritative",
+        provider_guidance_url="https://code.visualstudio.com/docs/copilot/customization/custom-agents",
+    ),
+    HostModelRecommendation(
         host="portable",
         label="Portable runtime",
         recommended_model="runtime-selected compatible agentic model",

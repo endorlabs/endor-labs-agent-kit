@@ -13,6 +13,7 @@ from endor_agent_kit.compilers import (
     compile_gemini,
     compile_portable,
     compile_raw,
+    compile_vscode,
 )
 from endor_agent_kit.compilers.rendering import EDITION_CHOICES
 from endor_agent_kit.endor_context import (
@@ -86,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
     compile_parser.add_argument("recipe", type=Path)
     compile_parser.add_argument(
         "--target",
-        choices=("claude-code", "claude-managed-agents", "codex", "gemini", "portable", "raw"),
+        choices=("claude-code", "claude-managed-agents", "codex", "gemini", "portable", "raw", "vscode"),
         required=True,
     )
     compile_parser.add_argument(
@@ -339,6 +340,11 @@ def main(argv: list[str] | None = None) -> int:
                     print("ERROR: --edition/--variant is not valid for portable artifacts")
                     return 1
                 outputs = compile_portable(args.recipe)
+            elif args.target == "vscode":
+                if args.edition is not None:
+                    print("ERROR: --edition/--variant is not valid for VS Code artifacts")
+                    return 1
+                outputs = compile_vscode(args.recipe)
             else:
                 if args.edition is not None:
                     print("ERROR: --edition/--variant is only valid for Claude provider targets")

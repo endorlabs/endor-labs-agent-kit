@@ -1589,6 +1589,7 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         ("cursor", "endorlabs", "repository"),
         ("cursor-sdk", "endor-labs-agent-kit-cursor-sdk", "repository"),
         ("gemini", "endor-labs-agent-kit", "repository"),
+        ("vscode", "endor-labs-agent-kit", "repository"),
     }
     packages = {
         (host, name): {
@@ -1657,6 +1658,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "included_agents": list(antigravity_agent_ids),
         "name": "endor-labs-agent-kit",
         "path": "plugins/antigravity/endor-labs-agent-kit",
+        "version": gemini_plugin_manifest["version"],
+    }
+    assert packages[("vscode", "endor-labs-agent-kit")] == {
+        "artifacts": packages[("vscode", "endor-labs-agent-kit")]["artifacts"],
+        "display_name": "Endor Labs Agent Kit",
+        "host": "vscode",
+        "included_agents": list(gemini_agent_ids),
+        "name": "endor-labs-agent-kit",
+        "path": "plugins/vscode/endor-labs-agent-kit",
         "version": gemini_plugin_manifest["version"],
     }
     assert packages[("cursor", "endorlabs")] == {

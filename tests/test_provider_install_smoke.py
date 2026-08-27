@@ -19,6 +19,7 @@ def test_all_provider_packages_install_in_disposable_roots() -> None:
         "cursor",
         "gemini",
         "antigravity",
+        "vscode",
     }
     assert all(item["status"] == "passed" for item in result["providers"].values())
 

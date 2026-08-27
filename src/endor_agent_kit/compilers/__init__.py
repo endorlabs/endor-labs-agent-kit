@@ -6,6 +6,7 @@ from endor_agent_kit.compilers.codex import compile_codex
 from endor_agent_kit.compilers.gemini import compile_gemini
 from endor_agent_kit.compilers.portable import compile_portable
 from endor_agent_kit.compilers.raw import compile_raw
+from endor_agent_kit.compilers.vscode import compile_vscode
 
 __all__ = [
     "compile_claude_code",
@@ -14,4 +15,5 @@ __all__ = [
     "compile_gemini",
     "compile_portable",
     "compile_raw",
+    "compile_vscode",
 ]

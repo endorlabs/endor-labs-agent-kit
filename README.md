@@ -25,7 +25,7 @@ A machine-readable index is available in `llms.txt`.
 
 | Area | What is inside | Start here |
 | --- | --- | --- |
-| 🤖 Plugin agents | Host packages for Claude Code, Codex, Gemini CLI, Antigravity CLI, and Cursor | [`plugins/README.md`](plugins/README.md) |
+| 🤖 Plugin agents | Host packages for Claude Code, Codex, Gemini CLI, Antigravity CLI, VS Code, and Cursor | [`plugins/README.md`](plugins/README.md) |
 | 🖱️ Cursor IDE | Cursor plugin metadata, generated agents, support skills, and advisory hooks | [`.cursor-plugin/plugin.json`](.cursor-plugin/plugin.json) |
 | 🐍 Cursor SDK | Python SDK launcher and generated prompts for automation | [`cursor-sdk/README.md`](cursor-sdk/README.md) |
 | 🧩 Single-agent bundles | Manual per-host artifacts and README files | [Agent Catalog](#agent-catalog) |
@@ -66,6 +66,7 @@ Current generated plugin package version: `2.2.1`.
 | Gemini CLI | Extension with skills and preview subagents | Read `plugins/gemini/endor-labs-agent-kit/README.md`. |
 | Antigravity CLI | Plugin with skills and subagents | Read `plugins/antigravity/endor-labs-agent-kit/README.md`. |
 | Cursor IDE | Customer-facing Cursor plugin agents | Public installs use `/add-plugin endorlabs`; source validation uses the root Cursor package. |
+| VS Code | Agent-mode skills and custom agents plus opt-in MCP | Read `plugins/vscode/endor-labs-agent-kit/README.md`, then copy `.github/` and `.vscode/` into your workspace. |
 
 Google documents Antigravity CLI as the consumer transition path for
 Gemini CLI. Use the Gemini package for supported Gemini CLI environments
@@ -79,7 +80,7 @@ Use the endor-agent-kit-setup skill to check Endor Agent Kit readiness. Do not r
 ```
 
 The plugin packages are the lowest-friction way to load Endor Labs
-workflows into Claude Code, Codex, Gemini CLI, Antigravity CLI, or Cursor. They package setup
+workflows into Claude Code, Codex, Gemini CLI, Antigravity CLI, VS Code, or Cursor. They package setup
 guidance and generated workflow agents/skills from the same source recipes
 as the manual catalog without injecting every recipe into the active model
 context.
@@ -135,6 +136,7 @@ This generated documentation is checked for source drift but is not part of the 
 | Antigravity CLI | `Gemini 3.6 Flash (Low)` | `low` | `low` | `host_pinned` | pin Gemini 3.6 Flash (Low) in Antigravity Model Usage; plugins cannot set a per-agent model |
 | Cursor IDE | `composer-2.5` | `host managed` | `host managed` | `pinned` | plugin-agent frontmatter pins composer-2.5 standard with fast=false |
 | Cursor SDK | `composer-2.5` | `host managed` | `host managed` | `pinned` | SDK runner pins composer-2.5 standard with fast=false |
+| VS Code | `runtime-selected agent-mode model` | `host managed` | `host managed` | `runtime_selected` | agent frontmatter omits model; VS Code uses the agent-mode model picker |
 | Portable runtime | `runtime-selected compatible agentic model` | `runtime managed` | `runtime managed` | `runtime_selected` | portable bundles do not select a provider model |
 
 Standard agent tier: `cicd-posture, configuration-automation, dependency-reviewer, findings-browser, malware-responder, oss-upgrade-investigator, remediation-planning, troubleshooting, vulnerability-explainer`.
@@ -247,6 +249,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the VS Code workspace overlay | `plugins/vscode/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Cursor package | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Gemini extension files, `source/`, `src/`, `tests/` |
 | Run Cursor SDK automation | `cursor-sdk/README.md` | Cursor IDE plugin metadata, Gemini extension files, `source/` |
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
@@ -270,6 +273,7 @@ are the generated host directories listed in the catalog.
 | Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$HOME/.agents/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
+| VS Code | `plugins/vscode/endor-labs-agent-kit/` | Copy-into-workspace `.github/` + `.vscode/` overlay with agent-mode skills, custom agents, and opt-in MCP; no plugin-marketplace manifest |
 | Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, `hooks/`, and `assets/logo.png` | Cursor plugin install with generated agents, support skills, and advisory hooks; Gemini extension files are separate |
 | Cursor SDK | `cursor-sdk/` | Python automation, CI, orchestration, backend services, local SDK agents, or Cursor cloud agents |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
@@ -412,6 +416,10 @@ Generated plugin packages currently include:
 - `plugins/antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json`.
+- `plugins/vscode/endor-labs-agent-kit/`: VS Code agent-mode workspace overlay
+  with setup skill, `.github/skills/` Agent Skills, `.github/agents/` custom
+  agents, `.github/copilot-instructions.md`, and the opt-in Endor MCP server in
+  `.vscode/mcp.json` (top-level `servers` key). Copy-into-workspace; no marketplace manifest.
 - `.cursor-plugin/` plus root `agents/`, `skills/`, `hooks/`, and `assets/logo.png`: Cursor plugin metadata,
   generated Cursor workflow agents, setup agent, support skills, and advisory hooks for source validation. Cursor
   does not install Gemini CLI extension files; use

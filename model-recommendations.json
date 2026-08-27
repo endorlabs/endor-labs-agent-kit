@@ -114,6 +114,17 @@
       "standard_effort": "host managed"
     },
     {
+      "complex_remediation_effort": "host managed",
+      "customer_override": "VS Code model picker selection remains authoritative",
+      "generated_artifact_behavior": "agent frontmatter omits model; VS Code uses the agent-mode model picker",
+      "host": "vscode",
+      "label": "VS Code",
+      "provider_guidance_url": "https://code.visualstudio.com/docs/copilot/customization/custom-agents",
+      "recommended_model": "runtime-selected agent-mode model",
+      "selection_mode": "runtime_selected",
+      "standard_effort": "host managed"
+    },
+    {
       "complex_remediation_effort": "runtime managed",
       "customer_override": "runtime operator owns model selection",
       "generated_artifact_behavior": "portable bundles do not select a provider model",

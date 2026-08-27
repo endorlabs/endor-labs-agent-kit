@@ -16,6 +16,7 @@ CLAUDE_ROOT_HOOKS = Path("hooks/hooks.json")
 CURSOR_MARKETPLACE = Path(".cursor-plugin/marketplace.json")
 CURSOR_PACKAGE_ROOT = Path("plugins/cursor/endor-labs-agent-kit")
 CURSOR_PACKAGE_MANIFEST = CURSOR_PACKAGE_ROOT / ".cursor-plugin/plugin.json"
+VSCODE_PACKAGE_ROOT = Path("plugins/vscode/endor-labs-agent-kit")
 STALE_CURSOR_ROOT_MANIFEST = Path(".cursor-plugin/plugin.json")
 STALE_CURSOR_RUNTIME_ROOT = Path("cursor/endor-labs-agent-kit")
 COMPONENT_FIELDS = ("agents", "skills", "hooks", "mcpServers")
@@ -218,14 +219,61 @@ def validate_marketplace_host_boundaries(root: Path) -> list[str]:
                 f"Cursor hook references missing command: {cursor_root / match.group(1)}"
             )
 
+    _validate_vscode_package(root, errors)
+
     exposed_paths = [
         root / "agents",
         root / "skills",
         cursor_root / "agents",
         cursor_root / "skills",
     ]
-    _scan_forbidden_text(exposed_paths, errors)
+    vscode_root = root / VSCODE_PACKAGE_ROOT
+    if vscode_root.is_dir():
+        exposed_paths.extend([
+            vscode_root / ".github" / "agents",
+            vscode_root / ".github" / "skills",
+        ])
+    _scan_forbidden_text([path for path in exposed_paths if path.exists()], errors)
     return errors
+
+
+def _validate_vscode_package(root: Path, errors: list[str]) -> None:
+    """Validate the marketplace-manifest-exempt VS Code workspace overlay.
+
+    VS Code is distributed as a copy-into-workspace ``.github/`` + ``.vscode/``
+    overlay. It intentionally has no plugin-marketplace manifest, so it is
+    exempt from the Claude/Cursor manifest boundary checks; only its component
+    structure and MCP key convention are validated.
+    """
+
+    package = root / VSCODE_PACKAGE_ROOT
+    if not package.is_dir():
+        return
+
+    for relative in (
+        ".github/agents",
+        ".github/skills",
+        "runtime/summarize_endor_artifact.py",
+        "assets/logo.png",
+    ):
+        if not (package / relative).exists():
+            errors.append(f"VS Code package is missing conventional component path: {package / relative}")
+
+    agents_dir = package / ".github" / "agents"
+    if agents_dir.is_dir() and not sorted(agents_dir.glob("*.agent.md")):
+        errors.append("VS Code package has no custom agents")
+
+    mcp_path = package / ".vscode" / "mcp.json"
+    try:
+        mcp = _load_json_object(mcp_path)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        errors.append(f"VS Code MCP config is missing or invalid: {exc}")
+        return
+    if "mcpServers" in mcp:
+        errors.append(f"{mcp_path}: VS Code MCP config must use the top-level 'servers' key, not 'mcpServers'")
+    servers = mcp.get("servers")
+    if not isinstance(servers, dict) or "endor-cli-tools" not in servers:
+        errors.append(f"{mcp_path}: VS Code MCP config must declare the endor-cli-tools server under 'servers'")
 
 
 def main() -> int:

@@ -143,7 +143,8 @@ Run from `ai-plugins`:
 ```bash
 AGENT_KIT_REPO="/path/to/endor-labs-agent-kit"
 
-for skill in skills/* plugins/cursor/endor-labs-agent-kit/skills/*; do
+for skill in skills/* plugins/cursor/endor-labs-agent-kit/skills/* \
+  plugins/vscode/endor-labs-agent-kit/.github/skills/*; do
   python3 scripts/quick_validate.py "$skill"
 done
 python3 scripts/validate_mirror_provenance.py
@@ -175,9 +176,10 @@ test -f plugins/gemini/endor-labs-agent-kit/gemini-extension.json
 test ! -e plugins/gemini/endor-labs-agent-kit.zip
 test ! -e .cursor-plugin/plugin.json
 test ! -e cursor/endor-labs-agent-kit
-for provider in antigravity claude codex codex-directory gemini; do
+for provider in antigravity claude codex codex-directory gemini vscode; do
   diff -qr "$AGENT_KIT_REPO/plugins/$provider" "./plugins/$provider"
 done
+python3 -m json.tool plugins/vscode/endor-labs-agent-kit/.vscode/mcp.json >/dev/null
 diff -q "$AGENT_KIT_REPO/plugins/README.md" ./plugins/README.md
 diff -qr "$AGENT_KIT_REPO/agents" ./plugins/cursor/endor-labs-agent-kit/agents
 diff -qr "$AGENT_KIT_REPO/cursor-sdk" ./cursor-sdk
@@ -266,6 +268,12 @@ authorized. The ZIP is never committed or reconstructed manually. See
 - Do not enable the official `ai-plugins@claude-plugins-official` package with
   either Endor-hosted Claude id in the same profile.
 - Do not couple Cursor package sync to Gemini CLI extension files.
+- The VS Code package `plugins/vscode/endor-labs-agent-kit/` is a
+  copy-into-workspace `.github/` + `.vscode/` overlay. It has no
+  plugin-marketplace manifest and is marketplace-boundary-exempt. Its
+  `.vscode/mcp.json` must use the top-level `servers` key (not `mcpServers`),
+  keep the CLI-first `npx -y endorctl ai-tools mcp-server` command, and carry no
+  credentials.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
 - The Agent Kit source root `.mcp.json` may declare the source-approved
   `endor-cli-tools` MCP server. In `ai-plugins`, mirror sync writes that config

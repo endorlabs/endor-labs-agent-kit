@@ -74,7 +74,7 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     assert len(evidence_plan["provenance"]["plan_digest"]) == 64
     assert "selection-plan" in agent["task_profiles"]
     assert agent["default_task_profile"] == "selection-plan"
-    assert agent["provider_targets"] == ["antigravity", "claude", "codex", "cursor", "gemini"]
+    assert agent["provider_targets"] == ["antigravity", "claude", "codex", "cursor", "gemini", "vscode"]
     assert "plugin:antigravity" in agent["generated_targets"]
     assert agent["coverage"]["evidence_plans"] == "present"
     assert str(repo_root()) not in output.read_text(encoding="utf-8")

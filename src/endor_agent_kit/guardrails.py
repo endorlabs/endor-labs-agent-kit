@@ -650,6 +650,10 @@ def _check_plugins(root: Path, errors: list[str]) -> None:
     if antigravity_package.is_dir():
         _check_antigravity_plugin_package(root, antigravity_package, errors)
 
+    vscode_package = plugins_root / "vscode" / "endor-labs-agent-kit"
+    if vscode_package.is_dir():
+        _check_vscode_plugin_package(root, vscode_package, errors)
+
     _check_unexpected_plugin_hooks(root, plugins_root, errors)
 
 
@@ -1696,6 +1700,113 @@ def _check_antigravity_plugin_package(
         host_label="Antigravity",
         hook_namespace="endor-labs-agent-kit",
     )
+
+
+def _check_vscode_plugin_package(
+    root: Path,
+    vscode_package: Path,
+    errors: list[str],
+) -> None:
+    github_dir = vscode_package / ".github"
+
+    mcp_path = vscode_package / ".vscode" / "mcp.json"
+    mcp = _load_json_mapping(root, mcp_path, errors)
+    if mcp:
+        if "mcpServers" in mcp:
+            errors.append(
+                f"{_rel(root, mcp_path)}: VS Code MCP config must use the top-level 'servers' key, not 'mcpServers'"
+            )
+        servers = mcp.get("servers")
+        if not isinstance(servers, dict) or "endor-cli-tools" not in servers:
+            errors.append(
+                f"{_rel(root, mcp_path)}: VS Code MCP config must declare the endor-cli-tools server under 'servers'"
+            )
+        else:
+            server = servers["endor-cli-tools"]
+            if not isinstance(server, dict) or server.get("command") != "npx":
+                errors.append(
+                    f"{_rel(root, mcp_path)}: endor-cli-tools server must run the CLI-first 'npx' command"
+                )
+
+    instructions = github_dir / "copilot-instructions.md"
+    if not instructions.is_file():
+        errors.append(f"{_rel(root, instructions)}: missing VS Code copilot-instructions.md")
+    else:
+        instructions_text = instructions.read_text(encoding="utf-8")
+        for required in (
+            "Endor Labs Agent Kit For VS Code",
+            "Do not assume Endor MCP is configured",
+            "endor-agent-kit-setup",
+        ):
+            if required not in instructions_text:
+                errors.append(
+                    f"{_rel(root, instructions)}: missing required global instructions text {required!r}"
+                )
+
+    setup = github_dir / "skills" / "endor-agent-kit-setup" / "SKILL.md"
+    if not setup.is_file():
+        errors.append(f"{_rel(root, setup)}: missing VS Code setup skill")
+    else:
+        setup_text = setup.read_text(encoding="utf-8")
+        for required in (
+            "Run `endorctl scan`",
+            "Run `endorctl host-check`",
+            "Do not add plugin-wide MCP automatically",
+            "VS Code custom agents are host-managed",
+        ):
+            if required not in setup_text:
+                errors.append(f"{_rel(root, setup)}: missing required setup text {required!r}")
+        _check_namespace_setup_guidance(root, setup, setup_text, errors)
+
+    for skill in sorted((github_dir / "skills").glob("*/SKILL.md")):
+        if skill.parent.name == "endor-agent-kit-setup":
+            continue
+        text = skill.read_text(encoding="utf-8")
+        for required in ("## VS Code Host Contract", "data_gaps"):
+            if required not in text:
+                errors.append(f"{_rel(root, skill)}: missing required VS Code plugin skill text {required!r}")
+        _check_namespace_preflight(root, skill, text, errors)
+        _check_knowledge_pack_section(root, skill, text, errors)
+
+    for agent in sorted((github_dir / "agents").glob("*.agent.md")):
+        text = agent.read_text(encoding="utf-8")
+        for required in (
+            "endor_agent_kit_managed=true",
+            "## VS Code Host Contract",
+            "data_gaps",
+        ):
+            if required not in text:
+                errors.append(f"{_rel(root, agent)}: missing required VS Code plugin agent text {required!r}")
+        frontmatter = _frontmatter_mapping(root, agent, text, errors)
+        if frontmatter.get("target") != "vscode":
+            errors.append(f"{_rel(root, agent)}: VS Code custom agent frontmatter must set target: vscode")
+        if "model" in frontmatter:
+            errors.append(
+                f"{_rel(root, agent)}: VS Code custom agent must omit model so the agent-mode picker remains authoritative"
+            )
+        for forbidden in ("mcpServers", "hooks"):
+            if forbidden in frontmatter:
+                errors.append(f"{_rel(root, agent)}: VS Code plugin agent must not declare {forbidden}")
+        tools = frontmatter.get("tools")
+        tool_list = tools if isinstance(tools, list) else []
+        mutating_tools = {"editFiles", "changes"}
+        if mutating_tools & set(tool_list):
+            if "separate approval gates" not in text:
+                errors.append(
+                    f"{_rel(root, agent)}: VS Code agent with edit tools must carry the mutating approval-gate contract"
+                )
+        else:
+            if "Keep the workflow read-only" not in text:
+                errors.append(
+                    f"{_rel(root, agent)}: read-only VS Code agent must carry the read-only host contract"
+                )
+        _check_namespace_preflight(root, agent, text, errors)
+        _check_knowledge_pack_section(root, agent, text, errors)
+
+    forbidden_names = {"recipe.yaml", "cases.yaml"}
+    for path in vscode_package.rglob("*"):
+        if path.is_file() and path.name in forbidden_names:
+            errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
 
 def _check_portable(root: Path, errors: list[str]) -> None:

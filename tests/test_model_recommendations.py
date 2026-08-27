@@ -47,6 +47,7 @@ def test_model_recommendations_cover_supported_hosts_and_never_block_overrides()
         "cursor-sdk",
         "gemini",
         "portable",
+        "vscode",
     }
     assert recommendations["claude-code"].recommended_model == "sonnet"
     assert recommendations["codex"].recommended_model == "gpt-5.6-luna"
@@ -64,6 +65,7 @@ def test_model_recommendations_cover_supported_hosts_and_never_block_overrides()
     assert recommendations["cursor"].selection_mode == "pinned"
     assert recommendations["cursor-sdk"].selection_mode == "pinned"
     assert recommendations["portable"].selection_mode == "runtime_selected"
+    assert recommendations["vscode"].selection_mode == "runtime_selected"
     assert {
         recommendation.selection_mode for recommendation in recommendations.values()
     } <= ALLOWED_SELECTION_MODES

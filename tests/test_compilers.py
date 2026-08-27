@@ -14,6 +14,7 @@ from endor_agent_kit.compilers import (
     compile_codex,
     compile_gemini,
     compile_raw,
+    compile_vscode,
 )
 from endor_agent_kit.compilers.claude_code import _disallowed_tools
 from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
@@ -441,6 +442,53 @@ def test_gemini_compiler_emits_skill_and_subagent_artifacts(tmp_path):
     assert "## Gemini CLI Host Contract" in agent
 
 
+def test_vscode_compiler_emits_skill_and_custom_agent_artifacts(tmp_path):
+    recipe = _copy_agent(tmp_path)
+
+    outputs = compile_vscode(recipe)
+
+    assert [path.name for path in outputs] == ["SKILL.md", "dependency-reviewer.agent.md"]
+    skill = (recipe.parent / "dist" / "vscode" / "dependency-reviewer" / "SKILL.md").read_text()
+    agent = (
+        recipe.parent / "dist" / "vscode" / "dependency-reviewer" / "dependency-reviewer.agent.md"
+    ).read_text()
+    agent_frontmatter = yaml.safe_load(agent.split("---", 2)[1])
+
+    assert "name: dependency-reviewer" in skill
+    assert "Generated from Endor Agent Kit recipe `dependency-reviewer`" in skill
+    assert "## VS Code Host Contract" in skill
+    assert "Shell commands, when used, must stay read-only" in skill
+    assert "## Structured Output Contract" in skill
+    assert "endorctl agent api --agent-id dependency-reviewer list" in skill
+    assert "data_gaps" in skill
+    assert agent_frontmatter["target"] == "vscode"
+    assert agent_frontmatter["user-invocable"] is True
+    assert "model" not in agent_frontmatter
+    assert "mcpServers" not in agent_frontmatter
+    # Read-only workflow: shell access to run endorctl, but no edit tools.
+    assert "runCommands" in agent_frontmatter["tools"]
+    assert "editFiles" not in agent_frontmatter["tools"]
+    assert "endor_agent_kit_managed=true" in agent
+    assert "## VS Code Host Contract" in agent
+
+
+def test_vscode_compiler_scopes_edit_tools_to_mutating_agents(tmp_path):
+    src = repo_root() / "source" / "agents" / "sca-remediation"
+    dst = tmp_path / "sca-remediation"
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns("dist"))
+    recipe = dst / "recipe.yaml"
+
+    compile_vscode(recipe)
+    agent = (
+        recipe.parent / "dist" / "vscode" / "sca-remediation" / "sca-remediation.agent.md"
+    ).read_text()
+    frontmatter = yaml.safe_load(agent.split("---", 2)[1])
+
+    assert "editFiles" in frontmatter["tools"]
+    assert "changes" in frontmatter["tools"]
+    assert "separate approval gates" in agent
+
+
 def test_raw_compiler_removes_legacy_prompt_names(tmp_path):
     recipe = _copy_agent(tmp_path)
     raw_dir = recipe.parent / "dist" / "raw"
@@ -489,6 +537,8 @@ def _plugin_prompt_files(root: Path) -> list[Path]:
         "plugins/gemini/endor-labs-agent-kit/agents/*.md",
         "plugins/antigravity/endor-labs-agent-kit/skills/*/SKILL.md",
         "plugins/antigravity/endor-labs-agent-kit/agents/*.md",
+        "plugins/vscode/endor-labs-agent-kit/.github/skills/*/SKILL.md",
+        "plugins/vscode/endor-labs-agent-kit/.github/agents/*.agent.md",
         "agents/*.md",
         "skills/*/SKILL.md",
         "cursor-sdk/agents/*.md",
@@ -561,6 +611,9 @@ def _agent_id_from_prompt_path(relative_path: str) -> str:
     if path.name == "SKILL.md":
         return path.parent.name
     stem = path.stem
+    if stem.endswith(".agent"):
+        # VS Code custom agents use a `<id>.agent.md` double extension.
+        stem = stem[: -len(".agent")]
     if stem in {"endor-agent-kit-setup-agent", "endor-agent-kit-setup"}:
         return "endor-agent-kit-setup"
     if stem in {"troubleshooting-agent", "troubleshooting"}:

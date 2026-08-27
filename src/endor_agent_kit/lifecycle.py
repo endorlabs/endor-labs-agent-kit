@@ -277,7 +277,7 @@ def _generated_targets_for_recipe(recipe: EndorAgentRecipe | None) -> list[str]:
     if "codex" in recipe.compatible_hosts:
         targets.update({"plugin:codex", "cursor", "cursor-sdk"})
     if "gemini" in recipe.compatible_hosts:
-        targets.update({"plugin:gemini", "plugin:antigravity"})
+        targets.update({"plugin:gemini", "plugin:antigravity", "plugin:vscode"})
     return sorted(targets)
 
 
@@ -290,7 +290,7 @@ def _provider_targets_for_recipe(recipe: EndorAgentRecipe | None) -> list[str]:
     if "codex" in recipe.compatible_hosts:
         targets.update({"codex", "cursor"})
     if "gemini" in recipe.compatible_hosts:
-        targets.update({"antigravity", "gemini"})
+        targets.update({"antigravity", "gemini", "vscode"})
     return sorted(targets)
 
 

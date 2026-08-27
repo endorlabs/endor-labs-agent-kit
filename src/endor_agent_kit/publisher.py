@@ -27,6 +27,7 @@ from endor_agent_kit.publication.codex_directory_plugin import (
 from endor_agent_kit.publication.cursor_plugin import publish_cursor_plugin_package
 from endor_agent_kit.publication.cursor_sdk import publish_cursor_sdk_package
 from endor_agent_kit.publication.gemini_plugin import publish_gemini_plugin_package
+from endor_agent_kit.publication.vscode_plugin import publish_vscode_plugin_package
 from endor_agent_kit.publication.catalog_wire import write_catalog
 from endor_agent_kit.publication.mcp_support import publish_root_mcp_support
 from endor_agent_kit.publication.model_recommendations import (
@@ -113,6 +114,10 @@ def publish_recipes(
         if antigravity_plugin is not None:
             written.extend(antigravity_plugin.written)
             plugin_packages.append(antigravity_plugin.package_record)
+        vscode_plugin = publish_vscode_plugin_package(prepared_recipes, destination)
+        if vscode_plugin is not None:
+            written.extend(vscode_plugin.written)
+            plugin_packages.append(vscode_plugin.package_record)
         cursor_plugin = publish_cursor_plugin_package(prepared_recipes, destination)
         if cursor_plugin is not None:
             written.extend(cursor_plugin.written)
