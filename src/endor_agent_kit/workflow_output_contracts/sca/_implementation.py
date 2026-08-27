@@ -22,11 +22,9 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
     PackageManagerDetection,
     SUPPORTED_PROFILES,
     detect_package_managers,
+    fold_disguises as _fold_disguises,
+    normalize_version_token as _normalize_version_token,
     validate_dependency_graph_audit,
-)
-from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import (
-    _fold_disguises,
-    _normalize_version_token,
 )
 
 RISK_DECISION_STATUSES = frozenset(
@@ -335,12 +333,68 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                     ]
                     if narrowed:
                         detections = narrowed
+            if not detections and not audit_present and has_selected_remediation:
+                # The per-detection audit requirement below never fires when
+                # the inventory's ecosystem, manifest, and coordinates match
+                # no profile — a fail-open for unrecognized manager tokens.
+                # A selection always demands an audit; unsupported managers
+                # report the honest unavailable-and-empty shape instead.
+                errors.append(
+                    "dependency_graph_audit: required for a selected remediation; "
+                    "report status unavailable when the package manager is "
+                    "unsupported"
+                )
             if len(detections) > 1:
                 names = ", ".join(sorted(item.profile.name for item in detections))
                 errors.append(
                     f"dependency_graph_audit: ambiguous package-manager signals ({names}) "
                     "fail closed; make the selected manager explicit"
                 )
+            # None of these anchor sets depend on the detection; build them
+            # once. The change-request inventory manifest joins the manifest
+            # set because it is the one required manifest field — without it,
+            # a selection that omits its optional manifest lists left the set
+            # empty and let any audited manifest through.
+            selected_manifests = {
+                item
+                for source in (selected, selected_option)
+                for field_name in ("manifests", "affected_manifests")
+                for item in _list(source.get(field_name))
+                if isinstance(item, str) and item.strip()
+            }
+            selected_package_names = set()
+            selected_vulnerable_versions = set()
+            for source in (selected, selected_option):
+                for key in ("package", "package_name"):
+                    token = _text(source.get(key))
+                    if token:
+                        selected_package_names.add(token.casefold())
+                from_version = _text(source.get("from_version"))
+                if from_version:
+                    selected_vulnerable_versions.add(
+                        _normalize_version_token(from_version)
+                    )
+            for request in _list(payload.get("change_requests")):
+                if not isinstance(request, dict):
+                    continue
+                inventory_key = _dict(_dict(request.get("inventory")).get("key"))
+                inventory_manifest = _text(inventory_key.get("manifest"))
+                if inventory_manifest:
+                    selected_manifests.add(inventory_manifest)
+                current_version = _text(inventory_key.get("current_version"))
+                if current_version:
+                    selected_vulnerable_versions.add(
+                        _normalize_version_token(current_version)
+                    )
+                # The inventory key's normalized_package is an equally
+                # trusted name anchor — without it, nulling the selection
+                # collapsed the name set to the model-controlled
+                # coordinate alone.
+                normalized_package = _text(inventory_key.get("normalized_package"))
+                if "://" in normalized_package:
+                    normalized_package = normalized_package.split("://", 1)[1]
+                if normalized_package:
+                    selected_package_names.add(normalized_package.casefold())
             for detection in detections:
                 profile = detection.profile
                 if not detection.ecosystem_is_canonical:
@@ -355,43 +409,6 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                         f"{profile.display_name} remediations"
                     )
                     continue
-                selected_manifests = {
-                    item
-                    for source in (selected, selected_option)
-                    for field_name in ("manifests", "affected_manifests")
-                    for item in _list(source.get(field_name))
-                    if isinstance(item, str) and item.strip()
-                }
-                selected_package_names = set()
-                selected_vulnerable_versions = set()
-                for source in (selected, _dict(payload.get("selected_option"))):
-                    for key in ("package", "package_name"):
-                        token = _text(source.get(key))
-                        if token:
-                            selected_package_names.add(token.casefold())
-                    from_version = _text(source.get("from_version"))
-                    if from_version:
-                        selected_vulnerable_versions.add(
-                            _normalize_version_token(from_version)
-                        )
-                for request in _list(payload.get("change_requests")):
-                    if not isinstance(request, dict):
-                        continue
-                    inventory_key = _dict(_dict(request.get("inventory")).get("key"))
-                    current_version = _text(inventory_key.get("current_version"))
-                    if current_version:
-                        selected_vulnerable_versions.add(
-                            _normalize_version_token(current_version)
-                        )
-                    # The inventory key's normalized_package is an equally
-                    # trusted name anchor — without it, nulling the selection
-                    # collapsed the name set to the model-controlled
-                    # coordinate alone.
-                    normalized_package = _text(inventory_key.get("normalized_package"))
-                    if "://" in normalized_package:
-                        normalized_package = normalized_package.split("://", 1)[1]
-                    if normalized_package:
-                        selected_package_names.add(normalized_package.casefold())
                 validate_dependency_graph_audit(
                     profile,
                     audit=dependency_graph_audit,
@@ -428,7 +445,7 @@ def _detect_selected_package_managers(
     payload: dict[str, Any],
     selected: dict[str, Any],
     selected_option: dict[str, Any] | None = None,
-):
+) -> list[PackageManagerDetection]:
     ecosystem_tokens: list[str] = []
     manifests: list[str] = []
     coordinates: list[str] = []
