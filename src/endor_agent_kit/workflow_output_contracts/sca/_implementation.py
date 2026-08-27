@@ -341,8 +341,8 @@ def validate_sca_gate_payload(payload: dict[str, Any], *, gate: str = "selection
                 # report the honest unavailable-and-empty shape instead.
                 errors.append(
                     "dependency_graph_audit: required for a selected remediation; "
-                    "report status unavailable when the package manager is "
-                    "unsupported"
+                    "a manager without an audit profile reports package_manager "
+                    "null with status unavailable"
                 )
             if len(detections) > 1:
                 names = ", ".join(sorted(item.profile.name for item in detections))
