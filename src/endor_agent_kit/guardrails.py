@@ -1702,6 +1702,67 @@ def _check_antigravity_plugin_package(
     )
 
 
+def _check_vscode_extension_manifest(
+    root: Path,
+    vscode_package: Path,
+    errors: list[str],
+) -> None:
+    """Validate the generated VS Code extension wrapper (package.json + entry + icon)."""
+
+    manifest_path = vscode_package / "package.json"
+    manifest = _load_json_mapping(root, manifest_path, errors)
+    if manifest:
+        engines = manifest.get("engines")
+        if not isinstance(engines, dict) or not engines.get("vscode"):
+            errors.append(f"{_rel(root, manifest_path)}: extension manifest must pin engines.vscode")
+        if not manifest.get("main"):
+            errors.append(f"{_rel(root, manifest_path)}: extension manifest must set a 'main' entry point")
+        if not manifest.get("publisher"):
+            errors.append(f"{_rel(root, manifest_path)}: extension manifest must set a 'publisher'")
+        contributes = manifest.get("contributes")
+        if not isinstance(contributes, dict):
+            errors.append(f"{_rel(root, manifest_path)}: extension manifest must declare 'contributes'")
+            contributes = {}
+        providers = contributes.get("mcpServerDefinitionProviders")
+        if not (
+            isinstance(providers, list)
+            and any(isinstance(p, dict) and p.get("id") == "endor-cli-tools" for p in providers)
+        ):
+            errors.append(
+                f"{_rel(root, manifest_path)}: contributes.mcpServerDefinitionProviders must declare the endor-cli-tools provider"
+            )
+        # Every contributed skill/agent/instruction path must resolve on disk.
+        for field in ("chatSkills", "chatAgents", "chatInstructions"):
+            entries = contributes.get(field)
+            if not isinstance(entries, list) or not entries:
+                errors.append(f"{_rel(root, manifest_path)}: contributes.{field} must list at least one path")
+                continue
+            for entry in entries:
+                rel = entry.get("path") if isinstance(entry, dict) else None
+                if not isinstance(rel, str):
+                    errors.append(f"{_rel(root, manifest_path)}: contributes.{field} entries must have a 'path'")
+                    continue
+                rel_clean = rel[2:] if rel.startswith("./") else rel
+                target = vscode_package / rel_clean
+                if not target.is_file():
+                    errors.append(
+                        f"{_rel(root, manifest_path)}: contributes.{field} path does not exist: {rel}"
+                    )
+        icon = manifest.get("icon")
+        if not isinstance(icon, str) or not (vscode_package / icon).is_file():
+            errors.append(f"{_rel(root, manifest_path)}: extension manifest 'icon' must point at a bundled file")
+
+    entry = vscode_package / "extension.js"
+    if not entry.is_file():
+        errors.append(f"{_rel(root, entry)}: missing VS Code extension entry point")
+    else:
+        entry_text = entry.read_text(encoding="utf-8")
+        for required in ("registerMcpServerDefinitionProvider", "endor-cli-tools"):
+            if required not in entry_text:
+                errors.append(f"{_rel(root, entry)}: extension entry must register the endor-cli-tools MCP provider")
+                break
+
+
 def _check_vscode_plugin_package(
     root: Path,
     vscode_package: Path,
@@ -1727,6 +1788,8 @@ def _check_vscode_plugin_package(
                 errors.append(
                     f"{_rel(root, mcp_path)}: endor-cli-tools server must run the CLI-first 'npx' command"
                 )
+
+    _check_vscode_extension_manifest(root, vscode_package, errors)
 
     instructions = github_dir / "copilot-instructions.md"
     if not instructions.is_file():

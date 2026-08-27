@@ -238,12 +238,13 @@ def validate_marketplace_host_boundaries(root: Path) -> list[str]:
 
 
 def _validate_vscode_package(root: Path, errors: list[str]) -> None:
-    """Validate the marketplace-manifest-exempt VS Code workspace overlay.
+    """Validate the VS Code extension package (also usable as a workspace overlay).
 
-    VS Code is distributed as a copy-into-workspace ``.github/`` + ``.vscode/``
-    overlay. It intentionally has no plugin-marketplace manifest, so it is
-    exempt from the Claude/Cursor manifest boundary checks; only its component
-    structure and MCP key convention are validated.
+    VS Code ships an installable extension (``package.json`` + ``extension.js``)
+    whose directory also doubles as a copy-into-workspace ``.github/`` + ``.vscode/``
+    overlay. It is not a Claude/Cursor-style plugin marketplace manifest, so it is
+    exempt from those manifest boundary checks; its extension manifest, component
+    structure, and MCP key convention are validated instead.
     """
 
     package = root / VSCODE_PACKAGE_ROOT
@@ -253,6 +254,9 @@ def _validate_vscode_package(root: Path, errors: list[str]) -> None:
     for relative in (
         ".github/agents",
         ".github/skills",
+        ".github/copilot-instructions.md",
+        "package.json",
+        "extension.js",
         "runtime/summarize_endor_artifact.py",
         "assets/logo.png",
     ):
@@ -262,6 +266,22 @@ def _validate_vscode_package(root: Path, errors: list[str]) -> None:
     agents_dir = package / ".github" / "agents"
     if agents_dir.is_dir() and not sorted(agents_dir.glob("*.agent.md")):
         errors.append("VS Code package has no custom agents")
+
+    manifest_path = package / "package.json"
+    if manifest_path.is_file():
+        try:
+            manifest = _load_json_object(manifest_path)
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            errors.append(f"VS Code extension manifest is invalid: {exc}")
+            manifest = {}
+        engines = manifest.get("engines")
+        if not isinstance(engines, dict) or not engines.get("vscode"):
+            errors.append(f"{manifest_path}: extension manifest must pin engines.vscode")
+        contributes = manifest.get("contributes")
+        if not isinstance(contributes, dict) or "mcpServerDefinitionProviders" not in contributes:
+            errors.append(
+                f"{manifest_path}: extension manifest must contribute mcpServerDefinitionProviders"
+            )
 
     mcp_path = package / ".vscode" / "mcp.json"
     try:

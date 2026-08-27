@@ -66,7 +66,7 @@ Current generated plugin package version: `2.2.1`.
 | Gemini CLI | Extension with skills and preview subagents | Read `plugins/gemini/endor-labs-agent-kit/README.md`. |
 | Antigravity CLI | Plugin with skills and subagents | Read `plugins/antigravity/endor-labs-agent-kit/README.md`. |
 | Cursor IDE | Customer-facing Cursor plugin agents | Public installs use `/add-plugin endorlabs`; source validation uses the root Cursor package. |
-| VS Code | Agent-mode skills and custom agents plus opt-in MCP | Read `plugins/vscode/endor-labs-agent-kit/README.md`, then copy `.github/` and `.vscode/` into your workspace. |
+| VS Code | Agent-mode skills, custom agents, and MCP as an installable extension | Read `plugins/vscode/endor-labs-agent-kit/README.md`; install the extension (recommended) or copy the `.github/` + `.vscode/` overlay. |
 
 Google documents Antigravity CLI as the consumer transition path for
 Gemini CLI. Use the Gemini package for supported Gemini CLI environments
@@ -249,7 +249,7 @@ You only need `source/agents/` when you are changing or contributing an agent.
 | Install the Codex plugin package | `plugins/codex/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Gemini CLI extension package | `plugins/gemini/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Antigravity CLI plugin package | `plugins/antigravity/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
-| Install the VS Code workspace overlay | `plugins/vscode/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
+| Install the VS Code extension (or workspace overlay) | `plugins/vscode/endor-labs-agent-kit/README.md` | `source/`, `src/`, `tests/` |
 | Install the Cursor package | `.cursor-plugin/`, root `agents/`, root `skills/`, root `hooks/`, and `assets/logo.png` | Gemini extension files, `source/`, `src/`, `tests/` |
 | Run Cursor SDK automation | `cursor-sdk/README.md` | Cursor IDE plugin metadata, Gemini extension files, `source/` |
 | Install a Claude Code agent | `claude-code/<agent>/README.md` | `source/`, `src/`, `tests/` |
@@ -273,7 +273,7 @@ are the generated host directories listed in the catalog.
 | Codex | `plugins/codex/endor-labs-agent-kit/` and `codex/<agent>/` | Codex plugin marketplace, bundled global custom agents, or `$HOME/.agents/skills/<agent>/` for manual skill installs |
 | Gemini | `plugins/gemini/endor-labs-agent-kit/` and `gemini/<agent>/` | Gemini CLI extension install, or manual skill/subagent reference from `gemini/<agent>/` |
 | Antigravity | `plugins/antigravity/endor-labs-agent-kit/` | Antigravity CLI plugin install with generated skills and subagents |
-| VS Code | `plugins/vscode/endor-labs-agent-kit/` | Copy-into-workspace `.github/` + `.vscode/` overlay with agent-mode skills, custom agents, and opt-in MCP; no plugin-marketplace manifest |
+| VS Code | `plugins/vscode/endor-labs-agent-kit/` | Installable VS Code extension (`package.json` + `extension.js`, packaged with `vsce`) that registers agent-mode skills, custom agents, instructions, and the Endor MCP server; the same directory also works as a copy-into-workspace `.github/` + `.vscode/` overlay |
 | Cursor | `.cursor-plugin/`, `agents/<agent>.md`, `skills/<agent>/`, `hooks/`, and `assets/logo.png` | Cursor plugin install with generated agents, support skills, and advisory hooks; Gemini extension files are separate |
 | Cursor SDK | `cursor-sdk/` | Python automation, CI, orchestration, backend services, local SDK agents, or Cursor cloud agents |
 | Portable | `portable/<agent>/` | Customer-managed agent runtime, workflow engine, or internal platform |
@@ -416,10 +416,11 @@ Generated plugin packages currently include:
 - `plugins/antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json`.
-- `plugins/vscode/endor-labs-agent-kit/`: VS Code agent-mode workspace overlay
-  with setup skill, `.github/skills/` Agent Skills, `.github/agents/` custom
-  agents, `.github/copilot-instructions.md`, and the opt-in Endor MCP server in
-  `.vscode/mcp.json` (top-level `servers` key). Copy-into-workspace; no marketplace manifest.
+- `plugins/vscode/endor-labs-agent-kit/`: installable VS Code extension
+  (`package.json` + `extension.js`) that registers `.github/skills/` Agent
+  Skills, `.github/agents/` custom agents, `.github/copilot-instructions.md`,
+  and the Endor MCP server declaratively; the directory also works as a
+  copy-into-workspace `.github/` + `.vscode/` overlay. Build/publish with `vsce`.
 - `.cursor-plugin/` plus root `agents/`, `skills/`, `hooks/`, and `assets/logo.png`: Cursor plugin metadata,
   generated Cursor workflow agents, setup agent, support skills, and advisory hooks for source validation. Cursor
   does not install Gemini CLI extension files; use

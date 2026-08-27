@@ -268,12 +268,19 @@ authorized. The ZIP is never committed or reconstructed manually. See
 - Do not enable the official `ai-plugins@claude-plugins-official` package with
   either Endor-hosted Claude id in the same profile.
 - Do not couple Cursor package sync to Gemini CLI extension files.
-- The VS Code package `plugins/vscode/endor-labs-agent-kit/` is a
-  copy-into-workspace `.github/` + `.vscode/` overlay. It has no
-  plugin-marketplace manifest and is marketplace-boundary-exempt. Its
-  `.vscode/mcp.json` must use the top-level `servers` key (not `mcpServers`),
-  keep the CLI-first `npx -y endorctl ai-tools mcp-server` command, and carry no
-  credentials.
+- The VS Code package `plugins/vscode/endor-labs-agent-kit/` is an installable
+  VS Code extension (`package.json` + `extension.js`) whose directory also doubles
+  as a copy-into-workspace `.github/` + `.vscode/` overlay. The extension registers
+  skills/agents/instructions via `contributes.chatSkills`/`chatAgents`/`chatInstructions`
+  and the Endor MCP server via `contributes.mcpServerDefinitionProviders` + the
+  provider API. It is not a Claude/Cursor-style plugin-marketplace manifest and is
+  exempt from those boundary checks. The overlay's `.vscode/mcp.json` must still use
+  the top-level `servers` key (not `mcpServers`), keep the CLI-first
+  `npx -y endorctl ai-tools mcp-server` command, and carry no credentials.
+- Do not commit a `.vsix`. Build and publish the extension from the generated
+  package with Node + `@vscode/vsce` (`vsce package` / `vsce publish`) and Open VSX
+  (`ovsx publish`); these run outside the pure Python `publish` flow and require the
+  publisher's Marketplace/Open VSX credentials.
 - Do not add plugin-wide MCP unless a source decision and provider validation explicitly support it.
 - The Agent Kit source root `.mcp.json` may declare the source-approved
   `endor-cli-tools` MCP server. In `ai-plugins`, mirror sync writes that config

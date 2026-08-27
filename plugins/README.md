@@ -53,13 +53,14 @@ Current generated package slices:
 - `antigravity/endor-labs-agent-kit/`: Antigravity CLI plugin package with
   setup skill, Antigravity workflow skills, subagents, minimal assets, and
   a root `plugin.json` validated with `agy plugin validate`.
-- `vscode/endor-labs-agent-kit/`: VS Code agent-mode workspace template with
-  setup skill, workflow Agent Skills under `.github/skills/<id>/SKILL.md`,
-  custom agents under `.github/agents/<id>.agent.md`, global guardrails in
-  `.github/copilot-instructions.md`, and the Endor MCP server in
-  `.vscode/mcp.json` (top-level `servers` key). Distributed as a
-  copy-into-workspace `.github/` + `.vscode/` overlay; it has no
-  plugin-marketplace manifest and is exempt from the marketplace-boundary checks.
+- `vscode/endor-labs-agent-kit/`: installable VS Code extension (`package.json`
+  + `extension.js`, packaged with `vsce`) that registers workflow Agent Skills,
+  custom agents, global instructions, and the Endor MCP server declaratively via
+  `contributes.chatSkills`/`chatAgents`/`chatInstructions`/`mcpServerDefinitionProviders`.
+  The same directory doubles as a copy-into-workspace `.github/` + `.vscode/`
+  overlay (skills under `.github/skills/<id>/SKILL.md`, agents under
+  `.github/agents/<id>.agent.md`, `.vscode/mcp.json` with the top-level `servers`
+  key). Not published as a committed `.vsix`; build/publish with `vsce`/`ovsx`.
 
 In the Agent Kit source repo, the Cursor package is generated at repository root as `.cursor-plugin/`,
 root `agents/`, root `skills/`, root advisory `hooks/`, and `assets/logo.png`

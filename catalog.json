@@ -29,6 +29,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -63,6 +67,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ]
     },
@@ -94,6 +102,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -128,6 +140,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -164,6 +180,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ]
     },
@@ -195,6 +215,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -229,6 +253,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -263,6 +291,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -297,6 +329,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ]
     },
@@ -328,6 +364,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ],
       "legacy_ids": [
@@ -362,6 +402,10 @@
         {
           "host": "antigravity",
           "command": "git clone --branch 2.2.1 https://github.com/endorlabs/ai-plugins.git endor-ai-plugins-2.2.1\nagy plugin validate ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit\nagy plugin install ./endor-ai-plugins-2.2.1/plugins/antigravity/endor-labs-agent-kit"
+        },
+        {
+          "host": "vscode",
+          "command": "code --install-extension endorlabs.endor-labs-agent-kit\n# or build from source: (cd plugins/vscode/endor-labs-agent-kit && npx --yes @vscode/vsce package)"
         }
       ]
     }

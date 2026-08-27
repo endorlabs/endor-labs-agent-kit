@@ -36,7 +36,7 @@
 - `portable/`
 - `plugins/`
   - `plugins/codex-directory/endor-labs-agent-kit/`: unpacked skills-only Codex public-directory package.
-  - `plugins/vscode/endor-labs-agent-kit/`: VS Code agent-mode workspace overlay. Copy `.github/` (skills, custom agents, `copilot-instructions.md`) and `.vscode/mcp.json` into a workspace, or place `skills/` and `agents/` under `~/.copilot/` for cross-workspace use. No plugin-marketplace manifest.
+  - `plugins/vscode/endor-labs-agent-kit/`: installable VS Code extension (`package.json` + `extension.js`) that registers skills, custom agents, instructions, and the Endor MCP server declaratively; build/publish with `@vscode/vsce` (`vsce package`/`vsce publish`) or `ovsx`. The same directory also works as a copy-into-workspace `.github/` + `.vscode/` overlay.
 - `.cursor-plugin/`
 - `agents/<generated-cursor-agent>.md`
 - `skills/<generated-cursor-skill>/`

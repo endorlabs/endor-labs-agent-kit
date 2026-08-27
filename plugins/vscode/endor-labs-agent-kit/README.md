@@ -4,10 +4,11 @@
 
 Version: `2.2.1`
 
-This generated VS Code package is a copy-into-workspace overlay with Endor
-Labs setup support, VS Code Agent Skills, VS Code custom agents, global
-Copilot instructions, and the opt-in Endor MCP server, generated from source
-recipes in the Endor Labs Agent Kit repository.
+This generated package is an installable VS Code extension — and the same
+directory doubles as a copy-into-workspace overlay. It bundles Endor Labs
+setup support, VS Code Agent Skills, VS Code custom agents, global Copilot
+instructions, and the Endor MCP server, generated from source recipes in the
+Endor Labs Agent Kit repository.
 
 ## Start Here
 
@@ -35,14 +36,37 @@ Agent Kit does not block compatible customer-selected host models.
 
 ## Host Metadata
 
-- Distribution: copy-into-workspace `.github/` + `.vscode/` overlay; no plugin-marketplace manifest.
-- Skills: `.github/skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
-- Custom agents: `.github/agents/<agent>.agent.md`.
-- Global instructions: `.github/copilot-instructions.md`.
-- MCP: `.vscode/mcp.json` declares the opt-in `endor-cli-tools` server under the top-level `servers` key.
+- Distribution: installable VS Code extension (`package.json` + `extension.js`), packaged with `vsce`; the same directory is also a copy-into-workspace `.github/` + `.vscode/` overlay.
+- Skills: `.github/skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`; registered by the extension via `contributes.chatSkills`.
+- Custom agents: `.github/agents/<agent>.agent.md`; registered via `contributes.chatAgents`.
+- Global instructions: `.github/copilot-instructions.md`; registered via `contributes.chatInstructions`.
+- MCP: the extension registers the `endor-cli-tools` server via `contributes.mcpServerDefinitionProviders` + the provider API (no `.vscode/mcp.json` edit needed). The overlay's `.vscode/mcp.json` (top-level `servers` key) is kept for manual, extension-free use.
 - Model/runtime: agent frontmatter omits a model; VS Code uses the model selected in its agent-mode picker.
 
-## Install Into A Workspace
+## Install The Extension (Recommended)
+
+Install the packaged extension — skills, agents, instructions, and the Endor
+MCP server are registered automatically, with nothing copied into your repo:
+
+```bash
+# From a built VSIX
+code --install-extension endorlabs.endor-labs-agent-kit-2.2.1.vsix
+# Or, from the VS Code Marketplace once published
+code --install-extension endorlabs.endor-labs-agent-kit
+```
+
+Build the VSIX from this package directory (requires Node and `@vscode/vsce`):
+
+```bash
+cd /path/to/plugins/vscode/endor-labs-agent-kit
+npx --yes @vscode/vsce package
+```
+
+To try it from source without packaging, open this directory in VS Code and
+press F5 (Extension Development Host). Reload the window after install so
+agent mode discovers the skills, custom agents, and MCP server.
+
+## Install As A Workspace Overlay (Manual)
 
 ```bash
 cp -R /path/to/endor-labs-agent-kit/plugins/vscode/endor-labs-agent-kit/.github .
@@ -109,3 +133,5 @@ gates. Setup never performs those workflow actions.
 - https://code.visualstudio.com/docs/copilot/customization/custom-agents
 - https://code.visualstudio.com/docs/copilot/customization/custom-instructions
 - https://code.visualstudio.com/docs/copilot/customization/mcp-servers
+- https://code.visualstudio.com/api/extension-guides/ai/mcp
+- https://code.visualstudio.com/api/working-with-extensions/publishing-extension

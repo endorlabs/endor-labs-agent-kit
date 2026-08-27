@@ -81,6 +81,42 @@ def test_vscode_agents_scope_edit_tools_to_mutating_workflows(generated_catalog:
 
 
 @pytest.mark.publication
+def test_vscode_extension_manifest_registers_skills_agents_and_mcp(generated_catalog: GeneratedCatalog):
+    package = _package(generated_catalog)
+    manifest = json.loads((package / "package.json").read_text(encoding="utf-8"))
+
+    assert manifest["publisher"]
+    assert manifest["engines"]["vscode"]
+    assert manifest["main"] == "./extension.js"
+    assert manifest["icon"] == "assets/composer-icon.png"
+    assert (package / "assets" / "composer-icon.png").is_file()
+
+    contributes = manifest["contributes"]
+    provider_ids = {p["id"] for p in contributes["mcpServerDefinitionProviders"]}
+    assert "endor-cli-tools" in provider_ids
+
+    # Every contributed skill/agent/instruction path resolves inside the package,
+    # and coverage matches the on-disk overlay (11 agents, 12 skills, 1 instruction).
+    assert len(contributes["chatAgents"]) == 11
+    assert len(contributes["chatSkills"]) == 12
+    assert len(contributes["chatInstructions"]) == 1
+    for field in ("chatAgents", "chatSkills", "chatInstructions"):
+        for entry in contributes[field]:
+            rel = entry["path"]
+            rel = rel[2:] if rel.startswith("./") else rel
+            assert (package / rel).is_file(), f"{field}: missing {entry['path']}"
+
+
+@pytest.mark.publication
+def test_vscode_extension_entry_registers_mcp_provider(generated_catalog: GeneratedCatalog):
+    entry = (_package(generated_catalog) / "extension.js").read_text(encoding="utf-8")
+    assert "registerMcpServerDefinitionProvider" in entry
+    assert "endor-cli-tools" in entry
+    assert "McpStdioServerDefinition" in entry
+    assert "endor_agent_kit_managed=true" in entry
+
+
+@pytest.mark.publication
 def test_vscode_copilot_instructions_and_setup_carry_mcp_caveat(generated_catalog: GeneratedCatalog):
     package = _package(generated_catalog)
     instructions = (package / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")

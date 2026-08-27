@@ -33,6 +33,9 @@ AUDIENCES = frozenset({"appsec", "developer"})
 _ENDORCTL_OPERATOR_RE = re.compile(r"^(?:>=|>)")
 _PACKAGE_VERSION_RE = re.compile(r"\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?")
 _SETUP_SKILL_PATH = PurePosixPath("skills/endor-agent-kit-setup/SKILL.md")
+# The VS Code extension nests its skills under `.github/skills/` rather than the
+# conventional top-level `skills/`.
+_VSCODE_SETUP_SKILL_PATH = PurePosixPath(".github/skills/endor-agent-kit-setup/SKILL.md")
 
 
 @dataclass(frozen=True)
@@ -52,6 +55,7 @@ _WIRE_INSTALL_PACKAGES = (
     _InstallPackageSpec("codex", "codex", PLUGIN_NAME, "official-directory"),
     _InstallPackageSpec("cursor", "cursor", "endorlabs", "repository"),
     _InstallPackageSpec("antigravity", "antigravity", PLUGIN_NAME, "repository"),
+    _InstallPackageSpec("vscode", "vscode", PLUGIN_NAME, "repository"),
 )
 
 
@@ -218,11 +222,13 @@ def _eligible_install_packages(
 
 def _package_contains_setup_skill(package: CatalogPluginPackage) -> bool:
     package_root = PurePosixPath(package.path)
-    if package.path in ("", "."):
-        expected = _SETUP_SKILL_PATH.as_posix()
-    else:
-        expected = (package_root / _SETUP_SKILL_PATH).as_posix()
-    return any(artifact.path == expected for artifact in package.artifacts)
+    candidates = []
+    for setup_path in (_SETUP_SKILL_PATH, _VSCODE_SETUP_SKILL_PATH):
+        if package.path in ("", "."):
+            candidates.append(setup_path.as_posix())
+        else:
+            candidates.append((package_root / setup_path).as_posix())
+    return any(artifact.path in candidates for artifact in package.artifacts)
 
 
 def _validate_legacy_id_claims(by_id: dict[str, list[CatalogAgent]]) -> None:
@@ -272,6 +278,12 @@ def _install_command(repo_host: str, package: CatalogPluginPackage) -> str:
             f"https://github.com/{PUBLIC_CLAUDE_DISTRIBUTION_REPOSITORY}.git {clone_dir}\n"
             f"agy plugin validate {plugin_path}\n"
             f"agy plugin install {plugin_path}"
+        )
+    if repo_host == "vscode":
+        return (
+            f"code --install-extension endorlabs.{PLUGIN_NAME}\n"
+            f"# or build from source: (cd plugins/vscode/{PLUGIN_NAME} && "
+            "npx --yes @vscode/vsce package)"
         )
     raise ValueError(f"unsupported install host {repo_host!r}")
 

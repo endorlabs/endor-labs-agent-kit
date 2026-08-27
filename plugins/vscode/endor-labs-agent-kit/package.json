@@ -1,0 +1,119 @@
+{
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "categories": [
+    "AI",
+    "Chat"
+  ],
+  "contributes": {
+    "chatAgents": [
+      {
+        "path": "./.github/agents/ai-sast-remediation.agent.md"
+      },
+      {
+        "path": "./.github/agents/cicd-posture.agent.md"
+      },
+      {
+        "path": "./.github/agents/configuration-automation.agent.md"
+      },
+      {
+        "path": "./.github/agents/dependency-reviewer.agent.md"
+      },
+      {
+        "path": "./.github/agents/findings-browser.agent.md"
+      },
+      {
+        "path": "./.github/agents/malware-responder.agent.md"
+      },
+      {
+        "path": "./.github/agents/oss-upgrade-investigator.agent.md"
+      },
+      {
+        "path": "./.github/agents/remediation-planning.agent.md"
+      },
+      {
+        "path": "./.github/agents/sca-remediation.agent.md"
+      },
+      {
+        "path": "./.github/agents/troubleshooting.agent.md"
+      },
+      {
+        "path": "./.github/agents/vulnerability-explainer.agent.md"
+      }
+    ],
+    "chatInstructions": [
+      {
+        "path": "./.github/copilot-instructions.md"
+      }
+    ],
+    "chatSkills": [
+      {
+        "path": "./.github/skills/ai-sast-remediation/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/cicd-posture/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/configuration-automation/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/dependency-reviewer/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/findings-browser/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/malware-responder/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/oss-upgrade-investigator/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/remediation-planning/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/sca-remediation/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/troubleshooting/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/vulnerability-explainer/SKILL.md"
+      },
+      {
+        "path": "./.github/skills/endor-agent-kit-setup/SKILL.md"
+      }
+    ],
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "endor-cli-tools",
+        "label": "Endor Labs Agent Kit MCP"
+      }
+    ]
+  },
+  "description": "Endor Labs security workflow agents, Agent Skills, and MCP server for VS Code agent mode.",
+  "displayName": "Endor Labs Agent Kit",
+  "engines": {
+    "vscode": "^1.104.0"
+  },
+  "icon": "assets/composer-icon.png",
+  "keywords": [
+    "endor",
+    "endor labs",
+    "security",
+    "sca",
+    "sast",
+    "mcp",
+    "appsec"
+  ],
+  "license": "MIT",
+  "main": "./extension.js",
+  "name": "endor-labs-agent-kit",
+  "publisher": "endorlabs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/endorlabs/ai-plugins.git"
+  },
+  "version": "2.2.1"
+}
