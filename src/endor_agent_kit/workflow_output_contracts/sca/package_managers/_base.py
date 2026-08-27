@@ -322,14 +322,15 @@ def validate_dependency_graph_audit(
             "dependency_graph_audit.status: must be one of " + ", ".join(AUDIT_STATUSES)
         )
     audit_manifest = _text(audit.get("manifest"))
-    if (
-        audit_status != "unavailable"
-        and selected_manifests
-        and audit_manifest not in selected_manifests
-    ):
-        errors.append(
-            "dependency_graph_audit.manifest: must match a selected remediation manifest"
-        )
+    if audit_status != "unavailable":
+        if not audit_manifest:
+            errors.append(
+                "dependency_graph_audit.manifest: required unless status is unavailable"
+            )
+        elif selected_manifests and audit_manifest not in selected_manifests:
+            errors.append(
+                "dependency_graph_audit.manifest: must match a selected remediation manifest"
+            )
 
     for field_name in ("dependency_path", "manipulations", "validation_requirements"):
         raw_value = audit.get(field_name)

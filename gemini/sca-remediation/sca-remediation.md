@@ -939,7 +939,7 @@ table, or other prose outside the object.
     "validation_requirements": []
   },
   "dependency_graph_audit": {
-    "package_manager": "maven | gradle",
+    "package_manager": "maven | gradle | npm | yarn | pnpm | pip | poetry | pipenv | uv | go | nuget | bundler | cargo",
     "status": "clear | validation_required | validated | blocked | unavailable",
     "manifest": "string or null",
     "dependency_path": [],

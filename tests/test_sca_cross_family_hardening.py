@@ -424,3 +424,89 @@ def test_honest_empty_payload_shapes_stay_accepted():
 
     assert not any("created or reused change request requires" in e for e in errors)
     assert not any("dependency_graph_audit" in e for e in errors)
+
+
+def test_audit_manifest_required_unless_unavailable():
+    # PR 51 review: `audit.manifest` had no requiredness check, so a selected
+    # remediation could ship an audit that names no manifest at all. Required
+    # for every content-bearing status; the honest unsupported-manager shape
+    # (unavailable) keeps its manifest-free pass-through.
+    payload = _valid_go_payload()
+    payload["dependency_graph_audit"]["manifest"] = None
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.manifest: required unless status is unavailable"
+        in errors
+    )
+
+
+def test_scrubbed_selection_manifests_cannot_launder_audit_manifest():
+    # PR 51 review: the membership set was built only from the selection's
+    # optional manifest lists, and `and selected_manifests` short-circuited
+    # the check, so scrubbing those lists let any string through as the
+    # audited manifest. The required change-request inventory manifest now
+    # anchors the set.
+    payload = _valid_go_payload()
+    payload["selected_remediation"].pop("manifests")
+    payload["selected_remediation"].pop("affected_manifests")
+    payload["dependency_graph_audit"]["manifest"] = "attacker/unrelated.mod"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert (
+        "dependency_graph_audit.manifest: must match a selected remediation manifest"
+        in errors
+    )
+
+
+def test_unrecognized_ecosystem_selection_without_audit_fails_closed():
+    # PR 51 review: the audit-required error lived inside the detections
+    # loop, so an inventory whose ecosystem matches no profile produced no
+    # detection and no audit demand — a fail-open for unrecognized manager
+    # tokens. A selection with zero detections must still demand the audit.
+    payload = _valid_go_payload()
+    payload.pop("dependency_graph_audit")
+    payload["selected_remediation"]["package"] = "zlib"
+    payload["selected_remediation"]["manifests"] = ["conanfile.py"]
+    payload["selected_remediation"]["affected_manifests"] = ["conanfile.py"]
+    key = payload["change_requests"][0]["inventory"]["key"]
+    key["ecosystem"] = "conan"
+    key["normalized_package"] = "conan://zlib"
+    key["manifest"] = "conanfile.py"
+    payload["patch_plan"][0]["file"] = "conanfile.py"
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert any(
+        error.startswith("dependency_graph_audit: required for a selected remediation")
+        for error in errors
+    ), errors
+
+
+def test_unsupported_ecosystem_unavailable_audit_passes():
+    # Companion guard: managers outside the 13 profiles (composer, conan)
+    # stay remediable — the honest unavailable-and-empty audit shape must
+    # keep passing once the fail-closed rule above lands.
+    payload = _valid_go_payload()
+    payload["selected_remediation"]["package"] = "zlib"
+    payload["selected_remediation"]["manifests"] = ["conanfile.py"]
+    payload["selected_remediation"]["affected_manifests"] = ["conanfile.py"]
+    key = payload["change_requests"][0]["inventory"]["key"]
+    key["ecosystem"] = "conan"
+    key["normalized_package"] = "conan://zlib"
+    key["manifest"] = "conanfile.py"
+    payload["patch_plan"][0]["file"] = "conanfile.py"
+    payload["dependency_graph_audit"] = {
+        "package_manager": "conan",
+        "status": "unavailable",
+        "manifest": None,
+        "dependency_path": [],
+        "manipulations": [],
+        "validation_requirements": [],
+    }
+
+    errors = validate_sca_gate_payload(payload, gate="selection-plan")
+
+    assert not any("dependency_graph_audit" in error for error in errors), errors
