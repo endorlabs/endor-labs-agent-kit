@@ -85,6 +85,9 @@
       "name": "AssuredPackageVersionService"
     },
     {
+      "name": "AsyncJobService"
+    },
+    {
       "name": "AuditLogService"
     },
     {
@@ -223,10 +226,19 @@
       "name": "SegmentIndexRequestService"
     },
     {
+      "name": "FunctionSummaryQueryService"
+    },
+    {
+      "name": "FunctionSummaryHashesQueryService"
+    },
+    {
       "name": "IngestionStateService"
     },
     {
       "name": "InstallationService"
+    },
+    {
+      "name": "QueryIntegrationResourceService"
     },
     {
       "name": "InvitationService"
@@ -271,6 +283,9 @@
       "name": "MalwareDetectionAssessmentService"
     },
     {
+      "name": "MalwareDetectionAssessmentPromotionService"
+    },
+    {
       "name": "MalwareDetectionIoCService"
     },
     {
@@ -284,6 +299,9 @@
     },
     {
       "name": "MalwareExposureService"
+    },
+    {
+      "name": "MalwareExposureQueryService"
     },
     {
       "name": "MCPServerLogService"
@@ -517,6 +535,9 @@
       "name": "ScanWorkflowResultService"
     },
     {
+      "name": "SchedulerResourceHistoryService"
+    },
+    {
       "name": "SCMAppService"
     },
     {
@@ -580,6 +601,9 @@
       "name": "ToolPatternService"
     },
     {
+      "name": "UISavedViewService"
+    },
+    {
       "name": "UITelemetryService"
     },
     {
@@ -605,6 +629,9 @@
     },
     {
       "name": "VectorStoreDataDeleteQueryService"
+    },
+    {
+      "name": "VectorStoreDataMetadataUpdateQueryService"
     },
     {
       "name": "VectorStoreDataDocumentConsistencyQueryService"
@@ -6224,6 +6251,49 @@
         ],
         "tags": [
           "ToolPatternService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{object.tenant_meta.namespace}/ui-saved-views": {
+      "patch": {
+        "summary": "UpdateUISavedView",
+        "description": "Updates the saved view.",
+        "operationId": "UISavedViewService_UpdateUISavedView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UISavedView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "object.tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UISavedViewServiceUpdateUISavedViewBody"
+            }
+          }
+        ],
+        "tags": [
+          "UISavedViewService"
         ],
         "x-internal": true
       }
@@ -13585,6 +13655,96 @@
           "AssuredPackageVersionService"
         ],
         "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/async-jobs": {
+      "post": {
+        "summary": "CreateAsyncJob",
+        "description": "Initiates asynchronous execution of a job. Returns immediately with the job\nUUID and state=JOB_STATE_NEW; poll GetAsyncJob to track progress.",
+        "operationId": "AsyncJobService_CreateAsyncJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AsyncJob"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AsyncJobServiceCreateAsyncJobBody"
+            }
+          }
+        ],
+        "tags": [
+          "AsyncJobService"
+        ]
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/async-jobs/{uuid}": {
+      "get": {
+        "summary": "GetAsyncJob",
+        "description": "Fetches an async job by UUID. When state = JOB_STATE_SUCCESS, spec.response\ncarries the type-specific arm (sbom or vex) with a freshly signed download\nURL (5-minute TTL) and the stable object-store file_path.",
+        "operationId": "AsyncJobService_GetAsyncJob",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AsyncJob"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the requested resource.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "get_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "AsyncJobService"
+        ]
       }
     },
     "/v1/namespaces/{tenant_meta.namespace}/audit-logs": {
@@ -26680,6 +26840,41 @@
         "x-internal": true
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/jobs/supported-report-formats": {
+      "get": {
+        "summary": "GetSupportedReportFormats",
+        "description": "Returns the export formats supported per report job type.",
+        "operationId": "JobService_GetSupportedReportFormats",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetSupportedReportFormatsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          }
+        ],
+        "tags": [
+          "JobService"
+        ],
+        "x-internal": true
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/jobs/{uuid}": {
       "get": {
         "summary": "GetJob",
@@ -30100,6 +30295,49 @@
         ],
         "tags": [
           "MalwareDetectionAssessmentService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/malware-detection-assessments:promote": {
+      "post": {
+        "summary": "CreateMalwareDetectionAssessmentPromotion",
+        "description": "Promotes the assessment named in spec.request.assessment_uuid into the malware feed.\nIdempotent on the malware record's spec.upsert_key: promoting the same assessment twice\nreturns the existing record rather than creating a second one. The record is derived from\nthe assessment, not supplied by the caller.",
+        "operationId": "MalwareDetectionAssessmentPromotionService_CreateMalwareDetectionAssessmentPromotion",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MalwareDetectionAssessmentPromotion"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MalwareDetectionAssessmentPromotionServiceCreateMalwareDetectionAssessmentPromotionBody"
+            }
+          }
+        ],
+        "tags": [
+          "MalwareDetectionAssessmentPromotionService"
         ],
         "x-internal": true
       }
@@ -46299,6 +46537,135 @@
         "x-internal": true
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/function-summaries": {
+      "post": {
+        "summary": "CreateFunctionSummaryQuery",
+        "description": "Searches indexed OSS function summaries.",
+        "operationId": "FunctionSummaryQueryService_CreateFunctionSummaryQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FunctionSummaryQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FunctionSummaryQueryServiceCreateFunctionSummaryQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "FunctionSummaryQueryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/function-summary-hashes": {
+      "post": {
+        "summary": "CreateFunctionSummaryHashesQuery",
+        "description": "Reports which of the given function summary hashes are missing a usable\nsummary, of any status.",
+        "operationId": "FunctionSummaryHashesQueryService_CreateFunctionSummaryHashesQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1FunctionSummaryHashesQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/FunctionSummaryHashesQueryServiceCreateFunctionSummaryHashesQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "FunctionSummaryHashesQueryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/integration-resources": {
+      "post": {
+        "summary": "CreateQueryIntegrationResource",
+        "description": "Lists the selectable resources of the requested kind visible to the\nsupplied credentials. Synchronous and read-only; persists nothing.",
+        "operationId": "QueryIntegrationResourceService_CreateQueryIntegrationResource",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1QueryIntegrationResource"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/QueryIntegrationResourceServiceCreateQueryIntegrationResourceBody"
+            }
+          }
+        ],
+        "tags": [
+          "QueryIntegrationResourceService"
+        ],
+        "x-internal": true
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/queries/malware": {
       "post": {
         "summary": "CreateQueryMalware",
@@ -46338,6 +46705,48 @@
         ],
         "tags": [
           "QueryMalwareService"
+        ]
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/queries/malware-exposure": {
+      "post": {
+        "summary": "CreateMalwareExposureQuery",
+        "description": "Creates a MalwareExposureQuery.",
+        "operationId": "MalwareExposureQueryService_CreateMalwareExposureQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1MalwareExposureQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MalwareExposureQueryServiceCreateMalwareExposureQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "MalwareExposureQueryService"
         ]
       }
     },
@@ -56961,6 +57370,331 @@
         ]
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/scheduler-resource-histories": {
+      "get": {
+        "summary": "ListSchedulerResourceHistories",
+        "description": "Lists scheduler resource history records in a given namespace.",
+        "operationId": "SchedulerResourceHistoryService_ListSchedulerResourceHistories",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListSchedulerResourceHistoriesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "list_parameters.filter",
+            "description": "String of conditions to filter resources by.\nFilters may include any attribute along with the following operators:\n\"==\", \"!=\", \"\u003e\", \"\u003e=\", \"\u003c\", \"\u003c=\", \"Contains\", \"In\", \"Matches\", and\n\"Exists\". The logical operators \"And\" and \"Or\" are also supported.\nExpressions may be combined and grouped with parentheses.\n\nExamples:\n\"spec.value == 5\",\n\"spec.value in [\"a\", \"b\", \"c\"]\",\n\"(meta.name == \"xyz\" and \"spec.value in [\"a\",\"b\"]) or (spec.value ==\n\"c\")\".",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_token",
+            "description": "Set the page token to start from.\nUse page tokens to page through list results or list specific pages.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.page_size",
+            "description": "Set the page size to limit the number of results returned.\nDefault: 100. Max: 500.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.action",
+            "description": "Action to be executed with a request. Not supported for all endpoints.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.traverse",
+            "description": "Get data from any child namespaces as well.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.sort.path",
+            "description": "Field to sort objects by, for example, meta.name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.sort.order",
+            "description": "Sort order. Default: ASC.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_ENTRY_ORDER_UNSPECIFIED",
+              "SORT_ENTRY_ORDER_ASC",
+              "SORT_ENTRY_ORDER_DESC"
+            ],
+            "default": "SORT_ENTRY_ORDER_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.count",
+            "description": "Return the number of objects matching the given list parameters.\nIf count is set to true, the response is a CountResponse.\nCan be used together with filter and traverse.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.aggregation_paths",
+            "description": "Group the objects based on this field.\nIf there are multiple fields then the objects are grouped\nbased on the uniqueness of all fields.\nSupports composite paths.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.show_aggregation_uuids",
+            "description": "Return the UUID of each object in each group as specified by\naggregation_paths.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.unique_count_paths",
+            "description": "List of fields for which we want the unique count.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.unique_value_paths",
+            "description": "List of fields for which we want the unique values.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.ci_run_uuid",
+            "description": "Only return objects from PR scans that match this context id.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_id",
+            "description": "Page ID to retrieve.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_paths",
+            "description": "Group the objects based on this time field,\nfor example, meta.create_time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.show_aggregation_uuids",
+            "description": "Return the UUIDs of the objects in each group.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group_by_time.interval",
+            "description": "Interval unit by which the objects should be grouped.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "GROUP_BY_TIME_INTERVAL_UNSPECIFIED",
+              "GROUP_BY_TIME_INTERVAL_YEAR",
+              "GROUP_BY_TIME_INTERVAL_QUARTER",
+              "GROUP_BY_TIME_INTERVAL_MONTH",
+              "GROUP_BY_TIME_INTERVAL_WEEK",
+              "GROUP_BY_TIME_INTERVAL_DAY",
+              "GROUP_BY_TIME_INTERVAL_HOUR",
+              "GROUP_BY_TIME_INTERVAL_MINUTE",
+              "GROUP_BY_TIME_INTERVAL_SECOND"
+            ],
+            "default": "GROUP_BY_TIME_INTERVAL_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.group_by_time.group_size",
+            "description": "Size of the time interval to group the objects by,\nfor example, to group objects by 2-week intervals, set interval\nto GROUP_BY_TIME_INTERVAL_WEEK and group_size to 2.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.group_by_time.start_time",
+            "description": "Beginning of the time period to group objects.\nDefaults to the beginning of time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.end_time",
+            "description": "End of the time period to group objects.\nDefaults to the current time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.mode",
+            "description": "The mode determines how the matching objects are counted\nin the produced time-series. Values allowed are:\ncount (default) : is the number of items matching in every interval.\nsum: is the total number of items matching since the beginning of the\naggregation time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_value_field",
+            "description": "The aggregation_field is a field on the matched objects that we want to\nperform some operation in each interval (example : min, max, avg)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_operator",
+            "description": "The aggreation_operator is the operator that we should use for the\naggregation. Allowed values are: min, max, sum, avg",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.disable_pagination",
+            "description": "If true, the results will not be paginated and\nonly the first page will be returned. The order\nof the results is not guaranteed.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "SchedulerResourceHistoryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/scheduler-resource-histories/{uuid}": {
+      "get": {
+        "summary": "GetSchedulerResourceHistory",
+        "description": "Fetches a scheduler resource history record identified by its UUID.",
+        "operationId": "SchedulerResourceHistoryService_GetSchedulerResourceHistory",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SchedulerResourceHistory"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the requested resource.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "get_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "SchedulerResourceHistoryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/scheduler-resource-histories:appendRun": {
+      "post": {
+        "summary": "AppendSchedulerResourceHistoryRun",
+        "description": "Atomically appends a run summary to the record's bounded ring buffer,\ncreating the record if absent, and stores the recomputed recommendation.\nUsed by the scheduler resource recorder on job completion.",
+        "operationId": "SchedulerResourceHistoryService_AppendSchedulerResourceHistoryRun",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AppendSchedulerResourceHistoryRunResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SchedulerResourceHistoryServiceAppendSchedulerResourceHistoryRunBody"
+            }
+          }
+        ],
+        "tags": [
+          "SchedulerResourceHistoryService"
+        ],
+        "x-internal": true
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/scm-credentials": {
       "get": {
         "summary": "ListSCMCredentials lists all SCM credentials in the given namespace.",
@@ -61631,6 +62365,384 @@
         "x-internal": true
       }
     },
+    "/v1/namespaces/{tenant_meta.namespace}/ui-saved-views": {
+      "get": {
+        "summary": "ListUISavedViews",
+        "description": "Lists all saved views in a namespace.",
+        "operationId": "UISavedViewService_ListUISavedViews",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListUISavedViewsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "list_parameters.filter",
+            "description": "String of conditions to filter resources by.\nFilters may include any attribute along with the following operators:\n\"==\", \"!=\", \"\u003e\", \"\u003e=\", \"\u003c\", \"\u003c=\", \"Contains\", \"In\", \"Matches\", and\n\"Exists\". The logical operators \"And\" and \"Or\" are also supported.\nExpressions may be combined and grouped with parentheses.\n\nExamples:\n\"spec.value == 5\",\n\"spec.value in [\"a\", \"b\", \"c\"]\",\n\"(meta.name == \"xyz\" and \"spec.value in [\"a\",\"b\"]) or (spec.value ==\n\"c\")\".",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_token",
+            "description": "Set the page token to start from.\nUse page tokens to page through list results or list specific pages.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.page_size",
+            "description": "Set the page size to limit the number of results returned.\nDefault: 100. Max: 500.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.action",
+            "description": "Action to be executed with a request. Not supported for all endpoints.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.traverse",
+            "description": "Get data from any child namespaces as well.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.sort.path",
+            "description": "Field to sort objects by, for example, meta.name.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.sort.order",
+            "description": "Sort order. Default: ASC.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "SORT_ENTRY_ORDER_UNSPECIFIED",
+              "SORT_ENTRY_ORDER_ASC",
+              "SORT_ENTRY_ORDER_DESC"
+            ],
+            "default": "SORT_ENTRY_ORDER_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.count",
+            "description": "Return the number of objects matching the given list parameters.\nIf count is set to true, the response is a CountResponse.\nCan be used together with filter and traverse.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.aggregation_paths",
+            "description": "Group the objects based on this field.\nIf there are multiple fields then the objects are grouped\nbased on the uniqueness of all fields.\nSupports composite paths.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.show_aggregation_uuids",
+            "description": "Return the UUID of each object in each group as specified by\naggregation_paths.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group.unique_count_paths",
+            "description": "List of fields for which we want the unique count.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group.unique_value_paths",
+            "description": "List of fields for which we want the unique values.\nSupports arrays and maps.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.ci_run_uuid",
+            "description": "Only return objects from PR scans that match this context id.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.page_id",
+            "description": "Page ID to retrieve.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_paths",
+            "description": "Group the objects based on this time field,\nfor example, meta.create_time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.show_aggregation_uuids",
+            "description": "Return the UUIDs of the objects in each group.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          },
+          {
+            "name": "list_parameters.group_by_time.interval",
+            "description": "Interval unit by which the objects should be grouped.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "enum": [
+              "GROUP_BY_TIME_INTERVAL_UNSPECIFIED",
+              "GROUP_BY_TIME_INTERVAL_YEAR",
+              "GROUP_BY_TIME_INTERVAL_QUARTER",
+              "GROUP_BY_TIME_INTERVAL_MONTH",
+              "GROUP_BY_TIME_INTERVAL_WEEK",
+              "GROUP_BY_TIME_INTERVAL_DAY",
+              "GROUP_BY_TIME_INTERVAL_HOUR",
+              "GROUP_BY_TIME_INTERVAL_MINUTE",
+              "GROUP_BY_TIME_INTERVAL_SECOND"
+            ],
+            "default": "GROUP_BY_TIME_INTERVAL_UNSPECIFIED"
+          },
+          {
+            "name": "list_parameters.group_by_time.group_size",
+            "description": "Size of the time interval to group the objects by,\nfor example, to group objects by 2-week intervals, set interval\nto GROUP_BY_TIME_INTERVAL_WEEK and group_size to 2.",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "list_parameters.group_by_time.start_time",
+            "description": "Beginning of the time period to group objects.\nDefaults to the beginning of time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.end_time",
+            "description": "End of the time period to group objects.\nDefaults to the current time.",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
+          },
+          {
+            "name": "list_parameters.group_by_time.mode",
+            "description": "The mode determines how the matching objects are counted\nin the produced time-series. Values allowed are:\ncount (default) : is the number of items matching in every interval.\nsum: is the total number of items matching since the beginning of the\naggregation time.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_value_field",
+            "description": "The aggregation_field is a field on the matched objects that we want to\nperform some operation in each interval (example : min, max, avg)",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.group_by_time.aggregation_operator",
+            "description": "The aggreation_operator is the operator that we should use for the\naggregation. Allowed values are: min, max, sum, avg",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "list_parameters.disable_pagination",
+            "description": "If true, the results will not be paginated and\nonly the first page will be returned. The order\nof the results is not guaranteed.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "UISavedViewService"
+        ],
+        "x-internal": true
+      },
+      "post": {
+        "summary": "CreateUISavedView",
+        "description": "Creates a saved view.",
+        "operationId": "UISavedViewService_CreateUISavedView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UISavedView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UISavedViewServiceCreateUISavedViewBody"
+            }
+          }
+        ],
+        "tags": [
+          "UISavedViewService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/ui-saved-views/{uuid}": {
+      "get": {
+        "summary": "GetUISavedView",
+        "description": "Fetches the saved view identified by the UUID.",
+        "operationId": "UISavedViewService_GetUISavedView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1UISavedView"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the requested resource.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "get_parameters.mask",
+            "description": "List of fields to return (all fields are returned by default).",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "UISavedViewService"
+        ],
+        "x-internal": true
+      },
+      "delete": {
+        "summary": "DeleteUISavedView",
+        "description": "Deletes the saved view specified by the UUID.",
+        "operationId": "UISavedViewService_DeleteUISavedView",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "uuid",
+            "description": "The UUID of the resource to be deleted.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "delete_parameters.action",
+            "description": "Action to be executed with delete request.",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "delete_parameters.force",
+            "description": "Force will force the deletion of the resource if any\nchecks fail.",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "UISavedViewService"
+        ],
+        "x-internal": true
+      }
+    },
     "/v1/namespaces/{tenant_meta.namespace}/ui-telemetries": {
       "post": {
         "summary": "CreateUITelemetry",
@@ -62134,6 +63246,49 @@
         ],
         "tags": [
           "VectorStoreDataDeleteQueryService"
+        ],
+        "x-internal": true
+      }
+    },
+    "/v1/namespaces/{tenant_meta.namespace}/vector-store-data-metadata-update-queries": {
+      "post": {
+        "summary": "CreateVectorStoreDataMetadataUpdateQuery",
+        "description": "Patches the metadata of documents matching a filter.",
+        "operationId": "VectorStoreDataMetadataUpdateQueryService_CreateVectorStoreDataMetadataUpdateQuery",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1VectorStoreDataMetadataUpdateQuery"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/googlerpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "tenant_meta.namespace",
+            "description": "Namespaces are a way to organize organizational units into virtual\ngroupings of resources. Namespaces must be a fully qualified name,\nfor example, the child namespace of namespace \"endor.prod\" called \"app\"\nis called \"endor.prod.app\".",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "x-endor-name": "Namespace"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/VectorStoreDataMetadataUpdateQueryServiceCreateVectorStoreDataMetadataUpdateQueryBody"
+            }
+          }
+        ],
+        "tags": [
+          "VectorStoreDataMetadataUpdateQueryService"
         ],
         "x-internal": true
       }
@@ -65629,6 +66784,38 @@
         "meta"
       ]
     },
+    "AdoBoardsWorkItemTypesResultProjectWorkItemTypes": {
+      "type": "object",
+      "properties": {
+        "project_name": {
+          "type": "string",
+          "description": "The project these work item types belong to."
+        },
+        "work_item_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/AdoBoardsWorkItemTypesResultWorkItemType"
+          },
+          "description": "The work item types available for the project."
+        }
+      },
+      "description": "ProjectWorkItemTypes groups the work item types available for one project."
+    },
+    "AdoBoardsWorkItemTypesResultWorkItemType": {
+      "type": "object",
+      "properties": {
+        "reference_name": {
+          "type": "string",
+          "description": "The reference name (e.g. Microsoft.VSTS.WorkItemTypes.Bug)."
+        },
+        "name": {
+          "type": "string",
+          "description": "The display name (e.g. Bug, User Story)."
+        }
+      },
+      "description": "WorkItemType is a selectable ADO Boards work item type."
+    },
     "AffectedSource": {
       "type": "string",
       "enum": [
@@ -66855,6 +68042,35 @@
         "context"
       ]
     },
+    "AsyncJobServiceCreateAsyncJobBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "UUID of the AsyncJob. Assigned by the server on Create; use it to\nfetch the job via GetAsyncJob.",
+          "readOnly": true,
+          "x-endor-name": "Uuid"
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant the async job belongs to.",
+          "title": "Tenant the async job belongs to."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1AsyncJobSpec",
+          "description": "AsyncJob inputs and observed outputs."
+        }
+      },
+      "description": "AsyncJob is an asynchronous job — SBOM export or VEX export\ntypes today, with more types added as they ship.",
+      "required": [
+        "meta",
+        "spec"
+      ]
+    },
     "AuditLogServiceCreateAuditLogBody": {
       "type": "object",
       "properties": {
@@ -67285,6 +68501,13 @@
             "type": "string"
           },
           "description": "An optional field for BOM dependencies that are either\nvendored or discovered in containers and identify the list of file\nlocations that this dependency is seen at."
+        },
+        "file_location_remote_paths": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "description": "Maps each entry in file_locations (the local, scanned-workspace path)\nto the matched path in the dependency's own upstream source, when\nknown. Only populated for IMPORTED_TYPE_SEGMENT_MATCH dependencies."
         },
         "container_layers": {
           "type": "array",
@@ -67966,6 +69189,16 @@
         "meta",
         "spec"
       ]
+    },
+    "CmdLineMatchCommandSource": {
+      "type": "string",
+      "enum": [
+        "COMMAND_SOURCE_UNSPECIFIED",
+        "COMMAND_SOURCE_CMD_HOOK",
+        "COMMAND_SOURCE_MCP_TOOL_INPUT"
+      ],
+      "default": "COMMAND_SOURCE_UNSPECIFIED",
+      "description": "CommandSource names the hook payload the evaluated command text was read\nfrom. A shell exposed as an MCP tool (e.g. Claude Desktop's \"workspace\"\nserver, tool \"bash\") carries its command in mcp_tool.tool_input rather\nthan in cmd_line, so CmdLine policies read from either payload and record\nwhich one they read.\n\n - COMMAND_SOURCE_UNSPECIFIED: Records written before the command source was tracked.\n - COMMAND_SOURCE_CMD_HOOK: spec.cmd_line: the agent's own shell tool.\n - COMMAND_SOURCE_MCP_TOOL_INPUT: spec.mcp_tool.tool_input: a shell exposed as an MCP tool."
     },
     "CodeOwnersServiceCreateCodeOwnersBody": {
       "type": "object",
@@ -68933,6 +70166,21 @@
           "type": "boolean",
           "description": "Set to true if the dependency is fixed to a specific version by a\nlock file at install time (outcome).\n\nIf a dependency is locked, but not pinned, it could drift if the\nlock file is regenerated (for example, by 'npm update').",
           "x-endor-name": "Dependency Version is Locked"
+        },
+        "upstream_reference": {
+          "type": "string",
+          "description": "The public package this private dependency was forked from, so its\nvulnerabilities can be attributed to the fork. Empty means the resolver\nhas not run yet; \"N/A\" means it ran and found no upstream.",
+          "x-endor-name": "Upstream Package"
+        },
+        "forked": {
+          "type": "boolean",
+          "description": "Set to true if the dependency is a downstream fork of a public dependency.\nTrue exactly when upstream_reference names a package, so both fields are\nwritten together.",
+          "x-endor-name": "Dependency is a Fork of an Upstream Package"
+        },
+        "native_scope": {
+          "type": "string",
+          "description": "Un-normalized native dependency scope from the package manager (e.g.\nMaven \"provided\"), before it is collapsed into scope. Empty if none.",
+          "x-endor-name": "Native Dependency Scope"
         }
       },
       "description": "Information about the dependency.",
@@ -70181,6 +71429,276 @@
       "required": [
         "meta",
         "tenant_meta"
+      ]
+    },
+    "FunctionSummaryHashesQueryServiceCreateFunctionSummaryHashesQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "Ephemeral query identifier.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant metadata that scopes the query.",
+          "title": "Tenant metadata that scopes the query."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required by the internal CRUD transport."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1FunctionSummaryHashesQuerySpec",
+          "description": "Query input and result."
+        }
+      },
+      "description": "FunctionSummaryHashesQuery reports which of the given segment hashes are\nmissing a usable function summary, of any status, at the given prompt\nversion or newer. Unlike FunctionSummaryQuery, which returns full summary\ncontent and only matches usable ('ok') summaries for search consumers,\nthis checks bare existence so a client can skip re-summarizing a segment\nalready tombstoned as trivial or failed.",
+      "required": [
+        "tenant_meta",
+        "spec"
+      ]
+    },
+    "FunctionSummaryQueryFunctionSummary": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string",
+          "description": "Exact normalized Foiegras function segment hash."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable description of the function behavior."
+        },
+        "data_flow": {
+          "type": "string",
+          "description": "Description of data flow through the function."
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Searchable concepts associated with the function."
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions expected to hold before the function executes."
+        },
+        "postconditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions expected to hold after the function executes."
+        },
+        "is_trivial": {
+          "type": "boolean",
+          "description": "Whether the function is classified as trivial."
+        },
+        "is_entry_point": {
+          "type": "boolean",
+          "description": "Whether the function is an application entry point."
+        },
+        "is_source": {
+          "type": "boolean",
+          "description": "Whether the function introduces untrusted data."
+        },
+        "is_sink": {
+          "type": "boolean",
+          "description": "Whether the function consumes data in a security-sensitive operation."
+        },
+        "is_sanitizer": {
+          "type": "boolean",
+          "description": "Whether the function sanitizes untrusted data."
+        },
+        "is_critical_api": {
+          "type": "boolean",
+          "description": "Whether the function is itself a security-critical API."
+        },
+        "uses_critical_api": {
+          "type": "boolean",
+          "description": "Whether the function invokes a security-critical API."
+        },
+        "sanitizes_for": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Vulnerability classes mitigated by the function."
+        },
+        "rest_path": {
+          "type": "string",
+          "description": "REST route associated with an entry-point function."
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model that produced the summary."
+        },
+        "prompt_version": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Prompt schema version that produced the summary."
+        },
+        "libraries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/FunctionSummaryQueryProvenance"
+          },
+          "description": "Indexed source occurrences that provide provenance for the summary."
+        }
+      },
+      "description": "FunctionSummary is the latest usable structured summary for one hash."
+    },
+    "FunctionSummaryQueryProvenance": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Source repository URL."
+        },
+        "library": {
+          "type": "string",
+          "description": "Indexed library name."
+        },
+        "version": {
+          "type": "string",
+          "description": "Human-readable source version."
+        },
+        "version_unique": {
+          "type": "string",
+          "description": "Immutable source revision."
+        },
+        "file_path": {
+          "type": "string",
+          "description": "Repository-relative source file path."
+        },
+        "function_reference": {
+          "type": "string",
+          "description": "Function name or qualified reference."
+        },
+        "start_line": {
+          "type": "integer",
+          "format": "int32",
+          "description": "One-based first source line."
+        },
+        "end_line": {
+          "type": "integer",
+          "format": "int32",
+          "description": "One-based last source line."
+        }
+      },
+      "description": "Provenance identifies one indexed occurrence of a summarized function."
+    },
+    "FunctionSummaryQuerySearch": {
+      "type": "object",
+      "properties": {
+        "hashes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Exact normalized Foiegras function segment hashes. Multiple values match\nany hash."
+        },
+        "repository": {
+          "type": "string",
+          "description": "Exact source repository URL, matched case-insensitively."
+        },
+        "library": {
+          "type": "string",
+          "description": "Exact indexed library/dependency name, matched case-insensitively."
+        },
+        "version": {
+          "type": "string",
+          "description": "Exact human-readable source version or tag."
+        },
+        "version_unique": {
+          "type": "string",
+          "description": "Exact immutable source revision."
+        },
+        "file_path": {
+          "type": "string",
+          "description": "Exact repository-relative source path."
+        },
+        "function_references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Exact function names or qualified references. Multiple values match any\nreference."
+        },
+        "security_relevant_only": {
+          "type": "boolean",
+          "description": "Return only functions classified as a source, sink, sanitizer, entry\npoint, critical API, or critical-API user."
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Maximum number of distinct summaries to return. Defaults to 20 and is\ncapped at 100."
+        }
+      },
+      "description": "Search is one exact, bounded function-summary query."
+    },
+    "FunctionSummaryQuerySearchResult": {
+      "type": "object",
+      "properties": {
+        "summaries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/FunctionSummaryQueryFunctionSummary"
+          },
+          "description": "Summaries matching the corresponding search."
+        }
+      },
+      "description": "SearchResult contains the summaries for the corresponding search."
+    },
+    "FunctionSummaryQueryServiceCreateFunctionSummaryQueryBody": {
+      "type": "object",
+      "properties": {
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant metadata that scopes the query.",
+          "title": "Tenant metadata that scopes the query."
+        },
+        "language": {
+          "$ref": "#/definitions/v1Language",
+          "description": "Language of the indexed functions."
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Ephemeral query identifier.",
+          "readOnly": true
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required by the internal CRUD transport."
+        },
+        "searches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/FunctionSummaryQuerySearch"
+          },
+          "description": "Ordered independent searches. Each search combines its non-empty filters\nwith AND. A request may contain at most 20 searches."
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/FunctionSummaryQuerySearchResult"
+          },
+          "description": "Results in the same order as searches.",
+          "readOnly": true
+        }
+      },
+      "description": "FunctionSummaryQuery searches structured security summaries for\nindexed OSS functions. Non-empty filters are combined with AND.",
+      "required": [
+        "language"
       ]
     },
     "GHEAppRegistrationServiceCreateGHEAppRegistrationBody": {
@@ -71909,6 +73427,35 @@
       ],
       "x-internal": true
     },
+    "MalwareDetectionAssessmentPromotionServiceCreateMalwareDetectionAssessmentPromotionBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the resource.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "The tenant metadata restricts access to a specific tenant.",
+          "title": "The tenant metadata restricts access to a specific tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for the object."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1MalwareDetectionAssessmentPromotionSpec"
+        }
+      },
+      "description": "MalwareDetectionAssessmentPromotion publishes a human-reviewed malware detection assessment\ninto the malware feed. Nothing is stored under this kind: the server performs the promotion\nand returns the resulting record in spec.response.",
+      "required": [
+        "tenant_meta",
+        "meta",
+        "spec"
+      ],
+      "x-internal": true
+    },
     "MalwareDetectionAssessmentServiceCreateMalwareDetectionAssessmentBody": {
       "type": "object",
       "properties": {
@@ -72250,6 +73797,30 @@
         "spec"
       ],
       "x-internal": true
+    },
+    "MalwareExposureQueryServiceCreateMalwareExposureQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "UUID of the MalwareExposureQuery object.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant data.",
+          "title": "Tenant data."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1MalwareExposureQuerySpec",
+          "description": "Object specific data."
+        }
+      },
+      "description": "Request to get the exposure of one or more Malware objects on a given namespace."
     },
     "MalwareExposureServiceCreateMalwareExposureBody": {
       "type": "object",
@@ -72975,10 +74546,11 @@
         "ACTION_TYPE_VANTA",
         "ACTION_TYPE_SLACK",
         "ACTION_TYPE_GITHUB_PR",
-        "ACTION_TYPE_ADO_BOARDS"
+        "ACTION_TYPE_ADO_BOARDS",
+        "ACTION_TYPE_REMEDIATION_PR"
       ],
       "default": "ACTION_TYPE_UNSPECIFIED",
-      "description": " - ACTION_TYPE_WEBHOOK: ACTION_TYPE_WEBHOOK indicates a webhook call action.\n - ACTION_TYPE_JIRA: ACTION_TYPE_JIRA indicates a JIRA action.\n - ACTION_TYPE_EMAIL: ACTION_TYPE_EMAIL indicates an email action.\n - ACTION_TYPE_VANTA: ACTION_TYPE_VANTA indicates configuration of a Vanta plugin.\n - ACTION_TYPE_SLACK: ACTION_TYPE_SLACK indicates a Slack integration.\n - ACTION_TYPE_GITHUB_PR: ACTION_TYPE_GITHUB_PR indicates a GitHub PR action.\n - ACTION_TYPE_ADO_BOARDS: ACTION_TYPE_ADO_BOARDS indicates an ADO board action."
+      "description": " - ACTION_TYPE_WEBHOOK: ACTION_TYPE_WEBHOOK indicates a webhook call action.\n - ACTION_TYPE_JIRA: ACTION_TYPE_JIRA indicates a JIRA action.\n - ACTION_TYPE_EMAIL: ACTION_TYPE_EMAIL indicates an email action.\n - ACTION_TYPE_VANTA: ACTION_TYPE_VANTA indicates configuration of a Vanta plugin.\n - ACTION_TYPE_SLACK: ACTION_TYPE_SLACK indicates a Slack integration.\n - ACTION_TYPE_GITHUB_PR: ACTION_TYPE_GITHUB_PR indicates a GitHub PR action.\nDeprecated: Use ACTION_TYPE_REMEDIATION_PR, which supports all SCM platforms.\n - ACTION_TYPE_ADO_BOARDS: ACTION_TYPE_ADO_BOARDS indicates an ADO board action.\n - ACTION_TYPE_REMEDIATION_PR: ACTION_TYPE_REMEDIATION_PR indicates an automated remediation pull request action.\nThe pull request is opened on the SCM platform of the violating project,\nfor example a GitHub pull request or a GitLab merge request."
     },
     "NotificationTargetNotificationTargetAction": {
       "type": "object",
@@ -73015,6 +74587,9 @@
         },
         "ado_boards_config": {
           "$ref": "#/definitions/v1ADOBoardsConfig"
+        },
+        "remediation_pr_config": {
+          "$ref": "#/definitions/v1RemediationPRConfig"
         }
       },
       "required": [
@@ -77595,6 +79170,65 @@
       "default": "SECURITY_SEVERITY_LEVEL_UNSPECIFIED",
       "description": "Level represents the severity or importance level of a security aspect or finding\nUsed to prioritize security concerns and determine the urgency of required actions.\n\n - SECURITY_SEVERITY_LEVEL_UNSPECIFIED: Default level when severity is unknown\n - SECURITY_SEVERITY_LEVEL_LOW: Minor security concerns with minimal impact\n - SECURITY_SEVERITY_LEVEL_MEDIUM: Moderate security concerns that should be addressed\n - SECURITY_SEVERITY_LEVEL_HIGH: Significant security concerns requiring prompt attention\n - SECURITY_SEVERITY_LEVEL_CRITICAL: Critical security issues that need immediate remediation"
     },
+    "QueryIntegrationResourceCredentialSourceInlineCredentials": {
+      "type": "object",
+      "properties": {
+        "host_url": {
+          "type": "string",
+          "description": "The provider host (e.g. https://dev.azure.com/myorg)."
+        },
+        "pat": {
+          "$ref": "#/definitions/QueryIntegrationResourceCredentialSourcePatAuth",
+          "title": "Starting at 1001 so that if we need to add more fields to the parent message, they don't overlap with authtypes"
+        }
+      },
+      "description": "InlineCredentials carries raw, per-call credentials for the host and one authentication mode.",
+      "required": [
+        "host_url"
+      ]
+    },
+    "QueryIntegrationResourceCredentialSourcePatAuth": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "Write-only PAT; never echoed back in responses."
+        }
+      },
+      "description": "PatAuth authenticates with a personal access token.",
+      "required": [
+        "token"
+      ]
+    },
+    "QueryIntegrationResourceServiceCreateQueryIntegrationResourceBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "Server-assigned query id.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Associates the query with a tenant; drives namespace-scoped authorization.",
+          "title": "Associates the query with a tenant; drives namespace-scoped authorization."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Query name and labels."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1QueryIntegrationResourceSpec",
+          "description": "The credential source, the query selector, and the parsed results."
+        }
+      },
+      "description": "QueryIntegrationResource brokers a synchronous, read-only lookup against a\nthird-party provider (Azure DevOps Boards, Jira, ...) so the frontend can\nprefill guided setup dropdowns. A query-as-resource: it persists nothing.",
+      "required": [
+        "meta",
+        "spec"
+      ],
+      "x-internal": true
+    },
     "QueryJoinFilters": {
       "type": "object",
       "properties": {
@@ -79193,6 +80827,22 @@
       "default": "STATUS_ERROR_UNSPECIFIED",
       "description": "StatusError is the type of issue discovered.\n\n - STATUS_ERROR_MANIFEST_LOAD: MANIFEST_LOAD indicates that the system is unable to find the manifest of\nthe language (pom.xml, packages.json, etc). This status error is only\nused for unresolved dependencies.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will not be computed by the system.\n- The resolved dependencies will not be computed by the system.\n- The callgraph will not be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version is marked as failed and\nendorctl will log an error.\n\nFor OSS packages:\nWhen it happens and if the package version is in the OSS namespace, the\npackage version will not be scanned anymore. When it happens, the scan of\nthe package version is marked as failed and endorctl will log an error.\n - STATUS_ERROR_MANIFEST_PARSE: MANIFEST_PARSE indicates that the system failed to parse the manifest.\nThis status error is only used for unresolved dependencies.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will not be computed by the system.\n- The resolved dependencies will not be computed by the system.\n- The callgraph will be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version is marked as failed and\nendorctl will log an error.\n\nFor OSS packages:\nWhen it happens and if the package version is in the OSS namespace, the\npackage version will not be scanned anymore. When it happens, the scan of\nthe package version is marked as failed and endorctl will log an error.\n - STATUS_ERROR_MANIFEST_EMPTY: MANIFEST_EMPTY indicates that the system failed to find\nany dependencies and is returning empty results on purpose.\nDEPRECATED: use STATUS_ERROR_MANIFEST_PARSE instead.\n - STATUS_ERROR_DEPENDENCY: DEPENDENCY indicates that the system failed to resolve a dependency.\nUsually this happens when a manifest contains bad associations of\ndependencies and versions. This status error is only used for resolved\ndependencies.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will be computed by the system.\n- The resolved dependencies will not be computed by the system.\n- The callgraph will be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version is marked as failed and\nendorctl will log an error.\n\nFor OSS packages:\nWhen it happens and if the package version is in the OSS namespace, the\npackage version will not be scanned anymore. When it happens, the scan of\nthe package version is marked as failed and endorctl will log an error.\n - STATUS_ERROR_CALL_GRAPH: CALL_GRAPH indicates that the system failed to construct the call graph.\nThis status error is only used for callgraph computation.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will be computed by the system.\n- The resolved dependencies will be computed by the system.\n- The callgraph will not be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version will not be marked as\nfailed, only a warning log will be emitted by the system.\n\nFor OSS packages:\nWhen it happens, the scan of the package version will not be marked as\nfailed, only a warning log will be emitted by the system.\n - STATUS_ERROR_MISSING_ARTIFACT: MISSING_ARTIFACT indicates that the system failed to compute the\ncallgraph because the package is not built. This status error is only\nused for callgraph computation.\n\nFor OSS packages:\nWhen it happens, the system will try to build the package and the\ncomputation of the callgraph will be launched again.\n\nIt should be noted that we should never have this state set in a package\nversion. This is a transient state only used by the system. This state\ncan not happen for tenant packages, we always expect that tenant packages\nwill be built for us.\n - STATUS_ERROR_BUILD: BUILD indicates that the plugin failed to build the package version.\nThis status error is only used for unresolved dependencies.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will not be computed by the system.\n- The resolved dependencies will not be computed by the system.\n- The callgraph will not be computed by the system.\n\nFor OSS packages:\nWhen it happens and if the package version is in the OSS namespace, the\npackage version will not be scanned anymore. When it happens, the scan of\nthe package version is marked as failed and endorctl will log an error.\n\nIt should be noted that this state can not happen for tenant packages, we\nalways expect that tenant packages will be built for us.\n - STATUS_ERROR_PACKAGE_VERSION_UNAVAILABLE: PACKAGE_VERSION_UNAVAILABLE indicates that the package version is not\navailable from the package manager. This status error is only used for\nunresolved dependencies.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will not be computed by the system.\n- The resolved dependencies will not be computed by the system.\n- The callgraph will not be computed by the system.\n\nFor OSS packages::\nWhen it happens and if the package version is in the OSS namespace, the\npackage version will not be scanned anymore. When it happens, the scan of\nthe package version is marked as failed and endorctl will log an error.\n\nIt should be noted that this state can not happen for tenant packages,\nfor tenant we scan based on the source code and we never download a\npackage from a package manager.\n - STATUS_ERROR_NO_CODE_ARTIFACT: NO_CODE_ARTIFACT indicates that package version do not have any source\ncode. The status error is only used for call graphs.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will be computed by the system.\n- The resolved dependencies will be computed by the system.\n- The call graph will not be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version will not be marked as a\ncall graph failure, only a warning log will be emitted by the system.\n\nFor OSS packages:\nWhen it happens, the scan of the package version will not be marked as a\ncall graph failure, only a warning log will be emitted by the system.\n - STATUS_ERROR_VENV: STATUS_ERROR_VENV indicates that the system failed to create the virtual\nenvironment required to generate the call graph.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will be computed by the system.\n- The resolved dependencies will be computed by the system.\n- The call graph will not be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version will be not be marked as\na call graph failure. This indicates that the client code was not setup\ncorrectly.\n\nFor OSS packages:\nWhen it happens, the scan of the package version will not be marked as a\ncall graph failure, only a warning log will be emitted by the system.\n - STATUS_ERROR_INTERNAL: STATUS_ERROR_INTERNAL indicates that there was an internal system failure\nsuch as a data stream error.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will be computed by the system.\n- The resolved dependencies will be computed by the system.\n- The call graph will not be computed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version will be not be marked as\na call graph failure.\n\nFor OSS packages:\nWhen it happens, the scan of the package version will not be marked as a\ncall graph failure, only a warning log will be emitted by the system.\n - STATUS_ERROR_UNSUPPORTED: STATUS_ERROR_UNSUPPORTED indicates that we scanned a package version\nhaving an unsupported language.\n\nWhen it happens, the state of the package version will be as follows:\n- The unresolved dependencies will not be computed by the system.\n- The resolved dependencies will not be computed by the system.\n- The call graph will not not becomputed by the system.\n\nFor tenant packages:\nWhen it happens, the scan of the package version is marked as\nunsupported.\n\nFor OSS packages:\nWhen it happens, the scan of the package version is marked as\nunsupported."
     },
+    "ResponseCounts": {
+      "type": "object",
+      "properties": {
+        "definitely_affected": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Definitely affected count."
+        },
+        "potentially_affected": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Potentially affected count."
+        }
+      },
+      "description": "Definitely and potentially affected counts."
+    },
     "ResponseEntryMatchResult": {
       "type": "object",
       "properties": {
@@ -80616,6 +82266,115 @@
         "spec"
       ]
     },
+    "SchedulerResourceHistoryRecommendation": {
+      "type": "object",
+      "properties": {
+        "cpu_milli": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Recommended CPU request in millicores."
+        },
+        "mem_bytes": {
+          "type": "string",
+          "format": "int64",
+          "description": "Recommended memory request in bytes."
+        },
+        "source": {
+          "type": "string",
+          "description": "How the recommendation was derived: \"history\", \"default\", \"spike\",\nor \"eviction_bump\"."
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this recommendation was last recomputed."
+        }
+      },
+      "description": "Recommendation holds the computed resource request for the next job launch,\nderived from the run history via max + headroom heuristics."
+    },
+    "SchedulerResourceHistoryRunSummary": {
+      "type": "object",
+      "properties": {
+        "ts": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When the job completed."
+        },
+        "job_name": {
+          "type": "string",
+          "description": "The Kubernetes job name."
+        },
+        "duration_seconds": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Wall-clock duration of the job in seconds."
+        },
+        "cpu_peak_millicores": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Peak CPU usage observed during the job, in millicores."
+        },
+        "mem_peak_bytes": {
+          "type": "string",
+          "format": "int64",
+          "description": "Peak memory working set observed during the job, in bytes."
+        },
+        "requested_cpu_milli": {
+          "type": "integer",
+          "format": "int32",
+          "description": "CPU request the job was launched with, in millicores."
+        },
+        "requested_mem_bytes": {
+          "type": "string",
+          "format": "int64",
+          "description": "Memory request the job was launched with, in bytes."
+        },
+        "throttled": {
+          "type": "boolean",
+          "description": "Whether CFS CPU throttling was detected during the job."
+        },
+        "outcome": {
+          "type": "string",
+          "description": "How the job terminated: \"success\", \"evicted\", \"fail\", or \"timeout\"."
+        },
+        "endorctl_version": {
+          "type": "string",
+          "description": "The endorctl binary version that ran the job."
+        }
+      },
+      "description": "RunSummary captures the resource usage of a single completed scheduler job."
+    },
+    "SchedulerResourceHistoryServiceAppendSchedulerResourceHistoryRunBody": {
+      "type": "object",
+      "properties": {
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant the history record belongs to.",
+          "title": "Tenant the history record belongs to."
+        },
+        "project_uuid": {
+          "type": "string",
+          "description": "Project the history record is keyed to."
+        },
+        "kind": {
+          "type": "string",
+          "description": "Scheduler job kind the history record is keyed to."
+        },
+        "run": {
+          "$ref": "#/definitions/SchedulerResourceHistoryRunSummary",
+          "description": "The run summary to append to the ring buffer."
+        },
+        "window_size": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Maximum number of runs to retain; the ring buffer keeps the newest N.\nUnset or non-positive falls back to the handler default window."
+        },
+        "recommendation": {
+          "$ref": "#/definitions/SchedulerResourceHistoryRecommendation",
+          "description": "Recomputed sizing recommendation to store alongside the appended run."
+        }
+      },
+      "description": "Request to atomically append a single run summary to a scheduler resource\nhistory's bounded ring buffer, creating the record on first write."
+    },
     "ScopePolicyServiceCreateScopePolicyBody": {
       "type": "object",
       "properties": {
@@ -81070,6 +82829,103 @@
       ],
       "x-internal": true
     },
+    "SegmentIndexRequestFunctionSummaryReport": {
+      "type": "object",
+      "properties": {
+        "hash": {
+          "type": "string",
+          "description": "Segment signature hash this summary belongs to, matching the\ncorresponding Segment.metadata.signature in this request."
+        },
+        "summary": {
+          "type": "string",
+          "description": "Human-readable description of the function behavior."
+        },
+        "data_flow": {
+          "type": "string",
+          "description": "Description of data flow through the function."
+        },
+        "keywords": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Searchable concepts associated with the function."
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions expected to hold before the function executes."
+        },
+        "postconditions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Conditions expected to hold after the function executes."
+        },
+        "is_trivial": {
+          "type": "boolean",
+          "description": "Whether the function is classified as trivial."
+        },
+        "is_entry_point": {
+          "type": "boolean",
+          "description": "Whether the function is an application entry point."
+        },
+        "is_source": {
+          "type": "boolean",
+          "description": "Whether the function introduces untrusted data."
+        },
+        "is_sink": {
+          "type": "boolean",
+          "description": "Whether the function consumes data in a security-sensitive operation."
+        },
+        "is_sanitizer": {
+          "type": "boolean",
+          "description": "Whether the function sanitizes untrusted data."
+        },
+        "is_critical_api": {
+          "type": "boolean",
+          "description": "Whether the function is itself a security-critical API."
+        },
+        "uses_critical_api": {
+          "type": "boolean",
+          "description": "Whether the function invokes a security-critical API."
+        },
+        "sanitizes_for": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Vulnerability classes mitigated by the function."
+        },
+        "rest_path": {
+          "type": "string",
+          "description": "REST route associated with an entry-point function."
+        },
+        "model": {
+          "type": "string",
+          "description": "AI model that produced the summary."
+        },
+        "prompt_version": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Prompt schema version that produced the summary."
+        },
+        "language": {
+          "$ref": "#/definitions/v1Language",
+          "description": "Language of the summarized function."
+        }
+      },
+      "description": "FunctionSummaryReport is one function summary computed by the client\nfor a segment in this request, identified by its segment signature hash.",
+      "required": [
+        "hash",
+        "model",
+        "prompt_version",
+        "language"
+      ]
+    },
     "SegmentIndexRequestServiceCreateSegmentIndexRequestBody": {
       "type": "object",
       "properties": {
@@ -81461,6 +83317,55 @@
         "days"
       ]
     },
+    "SpecAMFRecord": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "int64",
+          "description": "AMF's internal identifier for the record."
+        },
+        "ecosystem": {
+          "type": "string",
+          "description": "Ecosystem as reported by AMF."
+        },
+        "package_name": {
+          "type": "string",
+          "description": "Package name as reported by AMF."
+        },
+        "version": {
+          "type": "string",
+          "description": "Package version as reported by AMF."
+        },
+        "status": {
+          "type": "string",
+          "description": "Status of the record as reported by AMF."
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Reasons for flagging the package, as reported by AMF."
+        },
+        "detected_on": {
+          "type": "string",
+          "format": "int64",
+          "description": "Epoch-seconds timestamp of when AMF detected the malware."
+        },
+        "release_date": {
+          "type": "string",
+          "format": "int64",
+          "description": "Epoch-seconds timestamp of the flagged package version's release."
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "int64",
+          "description": "Epoch-seconds timestamp of the last update to the record by AMF."
+        }
+      },
+      "description": "Raw record as received from the AMF (Aikido) malware feed."
+    },
     "SpecAffectedPackage": {
       "type": "object",
       "properties": {
@@ -81646,7 +83551,10 @@
         "AVAILABLE_LLM_GOOGLE_GEMINI_3_1_PRO_PREVIEW",
         "AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE_PREVIEW",
         "AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE",
+        "AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH_LITE",
         "AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH",
+        "AVAILABLE_LLM_GOOGLE_GEMINI_3_6_FLASH",
+        "AVAILABLE_LLM_GOOGLE_GEMINI_3_7_FLASH",
         "AVAILABLE_LLM_GOOGLE_GEMINI_3_FLASH_PREVIEW",
         "AVAILABLE_LLM_ANTHROPIC_CLAUDE_3_5_SONNET",
         "AVAILABLE_LLM_ANTHROPIC_CLAUDE_4_5_SONNET",
@@ -81674,7 +83582,7 @@
         "AVAILABLE_LLM_FIREWORKS_QWEN_3_6_PLUS"
       ],
       "default": "AVAILABLE_LLM_UNSPECIFIED",
-      "description": "LLMs available to AgentConfig.\n\n - AVAILABLE_LLM_OPENAI_GPT_5_CHAT: GPT-5 chat is a variant of GPT-5 that is optimized for chat use cases and\ndoes not support reasoning.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_LUNA: GPT-5.6 Luna is the cost-efficient GPT-5.6 tier.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_SOL: GPT-5.6 Sol is the highest-capability GPT-5.6 tier.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_TERRA: GPT-5.6 Terra balances GPT-5.6 cost and capability.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_LITE_LATEST: NEVER USE: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE: GA Gemini 3.1 Flash Lite; in the EU it is served from the eu.rep data-residency endpoint.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH: Generally available Gemini 3.5 Flash model on Vertex AI."
+      "description": "LLMs available to AgentConfig.\n\n - AVAILABLE_LLM_OPENAI_GPT_5_CHAT: GPT-5 chat is a variant of GPT-5 that is optimized for chat use cases and\ndoes not support reasoning.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_LUNA: GPT-5.6 Luna is the cost-efficient GPT-5.6 tier.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_SOL: GPT-5.6 Sol is the highest-capability GPT-5.6 tier.\n - AVAILABLE_LLM_OPENAI_GPT_5_6_TERRA: GPT-5.6 Terra balances GPT-5.6 cost and capability.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_LITE_LATEST: NEVER USE: use AVAILABLE_LLM_GOOGLE_GEMINI_FLASH_2_5_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE_PREVIEW: deprecated: use AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE instead.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_1_FLASH_LITE: GA Gemini 3.1 Flash Lite; in the EU it is served from the eu.rep data-residency endpoint.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH_LITE: Generally available Gemini 3.5 Flash Lite model on Vertex AI: the\nhigh-throughput tier of the 3.5 generation.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_5_FLASH: Generally available Gemini 3.5 Flash model on Vertex AI.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_6_FLASH: Generally available Gemini 3.6 Flash model on Vertex AI: the successor to\n3.5 Flash.\n - AVAILABLE_LLM_GOOGLE_GEMINI_3_7_FLASH: Generally available Gemini 3.7 Flash model on Vertex AI: the successor to\n3.6 Flash."
     },
     "SpecBinaryType": {
       "type": "string",
@@ -82542,6 +84450,39 @@
         "command"
       ]
     },
+    "SpecInternalRecord": {
+      "type": "object",
+      "properties": {
+        "ecosystem": {
+          "$ref": "#/definitions/v1Ecosystem",
+          "description": "Ecosystem of the assessed package."
+        },
+        "package_name": {
+          "type": "string",
+          "description": "Name of the assessed package."
+        },
+        "version": {
+          "type": "string",
+          "description": "Version of the assessed package."
+        },
+        "human_reviewed": {
+          "type": "boolean",
+          "description": "Whether a human reviewed this assessment."
+        },
+        "reasons": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Reasons for the assessment's verdict."
+        },
+        "result": {
+          "$ref": "#/definitions/v1MalwareAssessmentResultType",
+          "description": "The assessment's verdict."
+        }
+      },
+      "description": "Sanitized projection of the internal malware detection assessment. Deliberately\nNOT the full MalwareDetectionAssessment: that message carries internal-only\nfields (prompt_compressed, llm_call_stats, total_llm_cost, review state) that\nmust never reach GetMalware/ListMalware, which are public, unmasked-by-default\nAPIs. Only add fields here that are safe to return to any Malware caller."
+    },
     "SpecInvitationState": {
       "type": "string",
       "enum": [
@@ -83203,6 +85144,24 @@
           "$ref": "#/definitions/SpecKEVRecord"
         }
       }
+    },
+    "SpecRawMalware": {
+      "type": "object",
+      "properties": {
+        "amf": {
+          "$ref": "#/definitions/SpecAMFRecord",
+          "description": "Raw record from the AMF (Aikido) malware feed."
+        },
+        "osv": {
+          "$ref": "#/definitions/osvVulnerability",
+          "description": "Raw upstream OSV vulnerability record."
+        },
+        "internal": {
+          "$ref": "#/definitions/SpecInternalRecord",
+          "description": "Sanitized projection of the internal malware detection assessment."
+        }
+      },
+      "description": "Raw source records for accountability, one field per contributing feed.\nOnly the field(s) matching the record's actual source(s) are populated.\nNamed MalwareRaw, not Raw, so its generated OpenAPI definition doesn't collide\nwith Vuln.Spec.Raw's (both are Spec.Raw, which would force the swagger generator\nto fall back to fully-qualified names and rename Vuln's existing definition)."
     },
     "SpecRequestTimeRange": {
       "type": "object",
@@ -84037,6 +85996,18 @@
       },
       "description": "UpgradeInfo contains the summary of the impact of the upgrade of the package."
     },
+    "SpecUserKind": {
+      "type": "string",
+      "enum": [
+        "USER_KIND_UNSPECIFIED",
+        "USER_KIND_EMAIL",
+        "USER_KIND_GITHUB_LOGIN",
+        "USER_KIND_OS_LOGIN",
+        "USER_KIND_ASSERTED"
+      ],
+      "default": "USER_KIND_UNSPECIFIED",
+      "description": "UserKind says which kind of identifier the user field carries. Agents\nname their users differently, so the value alone cannot be classified:\na bare login is indistinguishable from an OS login of the same spelling.\nA consumer that joins identities must read this before treating a user\nas an account.\n\n - USER_KIND_UNSPECIFIED: No kind was reported, which is what events from builds older than this\nfield look like. Treat the user field as unclassified rather than as\nany particular kind.\n - USER_KIND_EMAIL: Account email the agent itself reports.\n - USER_KIND_GITHUB_LOGIN: GitHub account handle, which is all GitHub Copilot records locally.\n - USER_KIND_OS_LOGIN: No agent account was resolved, so the user field repeats os_user.\nNever join on this as an account: one shared machine would merge every\ndeveloper who used it into a single identity.\n - USER_KIND_ASSERTED: Identifier supplied by the operator through the environment rather than\nread from the agent, so its shape is whatever the fleet configured."
+    },
     "SpecUserTelemetryEvent": {
       "type": "object",
       "properties": {
@@ -84810,6 +86781,94 @@
         }
       }
     },
+    "UISavedViewServiceCreateUISavedViewBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the saved view.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "The Tenant Metadata restricts access to a specific tenant.",
+          "title": "The Tenant Metadata restricts access to a specific tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1UISavedViewSpec",
+          "description": "The specification of the saved view: scope, surface, view type,\noptional base reference, query, and display configuration."
+        },
+        "propagate": {
+          "type": "boolean",
+          "description": "Propagate controls the visibility of the saved view in child namespaces."
+        }
+      },
+      "description": "UISavedView persists a view configuration (query values + display\npreferences) over an Endor resource.",
+      "required": [
+        "tenant_meta",
+        "meta",
+        "spec"
+      ],
+      "x-internal": true
+    },
+    "UISavedViewServiceUpdateUISavedViewBody": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1UpdateRequest",
+          "description": "Update request options (field mask, etc.)."
+        },
+        "object": {
+          "type": "object",
+          "properties": {
+            "uuid": {
+              "type": "string",
+              "description": "The UUID of the saved view.",
+              "readOnly": true
+            },
+            "tenant_meta": {
+              "type": "object",
+              "description": "The Tenant Metadata restricts access to a specific tenant.",
+              "title": "The Tenant Metadata restricts access to a specific tenant."
+            },
+            "meta": {
+              "$ref": "#/definitions/v1Meta",
+              "description": "Metadata required for all objects."
+            },
+            "spec": {
+              "$ref": "#/definitions/v1UISavedViewSpec",
+              "description": "The specification of the saved view: scope, surface, view type,\noptional base reference, query, and display configuration."
+            },
+            "propagate": {
+              "type": "boolean",
+              "description": "Propagate controls the visibility of the saved view in child namespaces."
+            }
+          },
+          "description": "The saved view with updated field values.",
+          "title": "The saved view with updated field values.",
+          "x-internal": true
+        }
+      },
+      "description": "Request to update a UI saved view.",
+      "required": [
+        "tenant_meta",
+        "meta",
+        "spec"
+      ]
+    },
+    "UISavedViewViewType": {
+      "type": "string",
+      "enum": [
+        "VIEW_TYPE_UNSPECIFIED",
+        "VIEW_TYPE_TABLE"
+      ],
+      "default": "VIEW_TYPE_UNSPECIFIED",
+      "description": "The UI presentation flavor of the view.\n\n - VIEW_TYPE_UNSPECIFIED: No view type has been set.\n - VIEW_TYPE_TABLE: Tabular (columns + rows) presentation."
+    },
     "UITelemetryServiceCreateUITelemetryBody": {
       "type": "object",
       "properties": {
@@ -85125,6 +87184,30 @@
         }
       },
       "description": "VectorStoreDataDocumentConsistencyQuery checks which documents need to be updated in a vector store.\nThis is a lightweight check that only requires uniqueness fields and content hash,\navoiding the need to send full document content over the wire.",
+      "required": [
+        "spec"
+      ],
+      "x-internal": true
+    },
+    "VectorStoreDataMetadataUpdateQueryServiceCreateVectorStoreDataMetadataUpdateQueryBody": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "readOnly": true
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta"
+        },
+        "tenant_meta": {
+          "type": "object",
+          "description": "Tenant related data for the tenant containing the resource."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1VectorStoreDataMetadataUpdateQuerySpec"
+        }
+      },
+      "description": "VectorStoreDataMetadataUpdateQuery patches the metadata of stored documents\nwithout touching their content or embeddings.\n\nRe-uploading a document cannot do this: the upload path skips any document\nwhose uniqueness key and content hash already match what is stored, so a\nmetadata-only change is silently dropped. Deleting and re-adding would work\nbut re-embeds every document and leaves a window where the document is\nmissing, which for summary stores means an interrupted run re-pays the LLM\nthat produced it. This applies the patch in place instead.",
       "required": [
         "spec"
       ],
@@ -85907,6 +87990,20 @@
         }
       }
     },
+    "endorv1BasicAuth": {
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "description": "The username for HTTP Basic registry auth."
+        },
+        "password": {
+          "type": "string",
+          "description": "The password for HTTP Basic registry auth."
+        }
+      },
+      "description": "BasicAuth carries username + password for HTTP Basic registry auth."
+    },
     "endorv1ConfidenceLevel": {
       "type": "string",
       "enum": [
@@ -85918,6 +88015,42 @@
       ],
       "default": "CONFIDENCE_LEVEL_UNSPECIFIED",
       "description": "Protobuf definition for ConfidenceLevel."
+    },
+    "endorv1FindingCounts": {
+      "type": "object",
+      "properties": {
+        "total": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Total number of findings."
+        },
+        "critical": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of critical findings."
+        },
+        "high": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of high severity findings."
+        },
+        "medium": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of medium severity findings."
+        },
+        "low": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of low severity findings."
+        },
+        "dismissed": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Number of dismissed findings."
+        }
+      },
+      "description": "Counts of findings broken down by severity.\nA dismissed finding is counted only in dismissed, never in total or in one of the severities."
     },
     "endorv1Job": {
       "type": "object",
@@ -87071,6 +89204,14 @@
             "$ref": "#/definitions/AISASTScanCacheSegmentEntry"
           },
           "description": "Embedded per-segment scan states."
+        },
+        "ref": {
+          "type": "string",
+          "description": "Git ref whose scan wrote this entry, as it appears on the scanned\nRepositoryVersion (e.g. \"main\", \"refs/heads/release/1.2\").\n\nAttribution only, never a key. Entries are keyed by content hash so that\nrefs sharing a file's content share its entry, which is what keeps the\ncost of scanning a second ref close to zero. A shared entry therefore\nnames whichever ref wrote it last: read this to understand where an entry\ncame from, and do not branch behavior on it."
+        },
+        "source_repository_version_uuid": {
+          "type": "string",
+          "description": "RepositoryVersion whose LinterResults hold the findings these segments\nproduced. Set to the scanned version, which is not necessarily the\nversion this entry is parented to.\n\nA cache hit means \"this content was already scanned\"; it does not mean the\nfindings are attached to the version being scanned now. This field names\nwhere they are, so a hit can be turned back into findings for another ref.\n\nLeft unset rather than empty when the scanning version is unknown, so the\npattern requires a real UUID whenever the field is present."
         }
       },
       "description": "Spec holds the file-level scan state and embedded segment entries.",
@@ -87377,6 +89518,83 @@
         }
       },
       "description": "Metadata added by the admission or notification policy scanner."
+    },
+    "v1AdoBoardsProject": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The provider-assigned project id."
+        },
+        "name": {
+          "type": "string",
+          "description": "The project display name."
+        }
+      },
+      "description": "AdoBoardsProject is a selectable ADO Boards project."
+    },
+    "v1AdoBoardsProjectsQuery": {
+      "type": "object",
+      "properties": {
+        "page_size": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Maximum projects to return per page; the broker maps this to the ADO $top\npage size and applies a default when unset."
+        },
+        "continuation_token": {
+          "type": "string",
+          "description": "Opaque cursor from a prior response; unset for the first page."
+        }
+      },
+      "description": "AdoBoardsProjectsQuery lists the ADO Boards projects visible to the credentials."
+    },
+    "v1AdoBoardsProjectsResult": {
+      "type": "object",
+      "properties": {
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1AdoBoardsProject"
+          },
+          "description": "The projects in this page."
+        },
+        "continuation_token": {
+          "type": "string",
+          "description": "Opaque cursor for the next page; unset when the list is exhausted."
+        }
+      },
+      "description": "AdoBoardsProjectsResult is a single page of ADO Boards projects."
+    },
+    "v1AdoBoardsWorkItemTypesQuery": {
+      "type": "object",
+      "properties": {
+        "project_names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The project names to scope work item types to; at least one is required."
+        }
+      },
+      "description": "AdoBoardsWorkItemTypesQuery lists the work item types available for one or\nmore projects.",
+      "required": [
+        "project_names"
+      ]
+    },
+    "v1AdoBoardsWorkItemTypesResult": {
+      "type": "object",
+      "properties": {
+        "project_work_item_types": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/AdoBoardsWorkItemTypesResultProjectWorkItemTypes"
+          },
+          "description": "The per-project work item types, one entry per requested project."
+        }
+      },
+      "description": "AdoBoardsWorkItemTypesResult is the set of work item types per requested project."
     },
     "v1AgentActivity": {
       "type": "object",
@@ -87835,6 +90053,18 @@
         "has_policy_violation": {
           "type": "boolean",
           "description": "Set to true when policy_matches is non-empty."
+        },
+        "identity": {
+          "$ref": "#/definitions/v1AgentIdentity",
+          "description": "Org identity resolved for this session against the org directory.\nPopulated at SessionStart and attached to every event in the session\nso policy can match on role / group. Absent when the directory\nresolve did not succeed."
+        },
+        "os_user": {
+          "type": "string",
+          "description": "Operating-system login of the account running the agent, carried\nalongside user rather than instead of it, and populated even when it\nrepeats user.\n\nThis is the key that links one person's agent accounts, because the same\ndeveloper is an email to one agent and a GitHub handle to another while\nstaying one OS login underneath. Pair it with device_id: on a shared\nmachine or a CI runner the login is a generic name such as \"runner\" or\n\"root\", and joining on it alone merges unrelated people."
+        },
+        "user_kind": {
+          "$ref": "#/definitions/SpecUserKind",
+          "description": "Which kind of identifier the user field carries."
         }
       }
     },
@@ -87976,6 +90206,34 @@
         }
       },
       "description": "AgentHookPolicyScope restricts a policy to a subset of events by matching\nagainst per-event identity carried on AgentHookEvent.Spec (repository, user).\nScope is evaluated once, before activity-kind matching, so it applies\nuniformly to all activity kinds.\n\nMatch logic: an unset scope (or a scope with no matchers set) applies to\nevery event. When set, configured matcher branches are AND'd — every set\nbranch must produce a hit; within a branch the regexes are OR'd (any one\nmatching satisfies the branch); an empty branch is ignored. A scope miss\nmakes the policy a no-op for the event for both blocklist and allowlist\nmatch types (the policy simply does not apply)."
+    },
+    "v1AgentIdentity": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "description": "Corporate email of the resolved user."
+        },
+        "display_name": {
+          "type": "string",
+          "description": "Display name of the resolved user."
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Org roles the user holds."
+        },
+        "groups": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Org groups / teams the user belongs to."
+        }
+      },
+      "description": "AgentIdentity is the org identity resolved for the account behind an event,\nsourced from the agent provider's org directory. Only the caller's own\nidentity is ever resolved on a client (self-scoped)."
     },
     "v1AgentInstructionFile": {
       "type": "object",
@@ -88838,6 +91096,10 @@
         "app_password"
       ]
     },
+    "v1AppendSchedulerResourceHistoryRunResponse": {
+      "type": "object",
+      "description": "Response for AppendSchedulerResourceHistoryRun."
+    },
     "v1ApproveServiceRequest": {
       "type": "object",
       "properties": {
@@ -89280,6 +91542,105 @@
         "version_type"
       ]
     },
+    "v1AsyncJob": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "UUID of the AsyncJob. Assigned by the server on Create; use it to\nfetch the job via GetAsyncJob.",
+          "readOnly": true,
+          "x-endor-name": "Uuid"
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Tenant the async job belongs to."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1AsyncJobSpec",
+          "description": "AsyncJob inputs and observed outputs."
+        }
+      },
+      "description": "AsyncJob is an asynchronous job — SBOM export or VEX export\ntypes today, with more types added as they ship.",
+      "required": [
+        "meta",
+        "spec"
+      ]
+    },
+    "v1AsyncJobSpec": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/v1AsyncJobType",
+          "description": "The kind of async job to run."
+        },
+        "request": {
+          "$ref": "#/definitions/v1AsyncJobSpecRequest",
+          "description": "Async-job-specific inputs."
+        },
+        "state": {
+          "$ref": "#/definitions/SpecJobState",
+          "description": "Current lifecycle state.",
+          "readOnly": true
+        },
+        "response": {
+          "$ref": "#/definitions/v1AsyncJobSpecResponse",
+          "description": "Type-specific server response.",
+          "readOnly": true
+        }
+      },
+      "description": "AsyncJob inputs and outputs.",
+      "required": [
+        "type",
+        "request"
+      ]
+    },
+    "v1AsyncJobSpecRequest": {
+      "type": "object",
+      "properties": {
+        "sbom": {
+          "$ref": "#/definitions/v1SBOMExportJobRequest",
+          "description": "Required when type = TYPE_SBOM."
+        },
+        "vex": {
+          "$ref": "#/definitions/v1VEXExportJobRequest",
+          "description": "Required when type = TYPE_VEX."
+        }
+      },
+      "description": "Wrapper holding the type-specific request arm."
+    },
+    "v1AsyncJobSpecResponse": {
+      "type": "object",
+      "properties": {
+        "sbom": {
+          "$ref": "#/definitions/v1SBOMExportJobResponse",
+          "description": "Populated when Spec.type = TYPE_SBOM."
+        },
+        "vex": {
+          "$ref": "#/definitions/v1VEXExportJobResponse",
+          "description": "Populated when Spec.type = TYPE_VEX."
+        },
+        "error_message": {
+          "type": "string",
+          "description": "Reason for failure. Populated when state = Job.Spec.JobState.JOB_STATE_FAILED.",
+          "readOnly": true
+        }
+      },
+      "description": "Wrapper holding the type-specific response arm and any error message."
+    },
+    "v1AsyncJobType": {
+      "type": "string",
+      "enum": [
+        "TYPE_UNSPECIFIED",
+        "TYPE_SBOM",
+        "TYPE_VEX"
+      ],
+      "default": "TYPE_UNSPECIFIED",
+      "description": "The kind of async job being run.\n\n - TYPE_UNSPECIFIED: Unset.\n - TYPE_SBOM: Software Bill of Materials.\n - TYPE_VEX: Vulnerability Exploitability eXchange."
+    },
     "v1AuditLog": {
       "type": "object",
       "properties": {
@@ -89667,7 +92028,7 @@
           "items": {
             "type": "string"
           },
-          "description": "additional_environment_variables is a list of additional environment\nvariables that must be used, specific to languages or tools."
+          "description": "additional_environment_variables sets extra environment variables for the\nscan, specific to languages or tools. By design only ENDOR_-prefixed\nvariables are honored; any entry without the ENDOR_ prefix is silently\ndropped, as are a few reserved ENDOR_ variables the scanner sets itself."
         },
         "enable_pr_comments": {
           "type": "boolean",
@@ -90993,6 +93354,18 @@
         "matched_cmd_pattern": {
           "type": "string",
           "title": "matched cmd pattern"
+        },
+        "command_source": {
+          "$ref": "#/definitions/CmdLineMatchCommandSource",
+          "description": "Which hook payload the evaluated command text came from."
+        },
+        "mcp_server_name": {
+          "type": "string",
+          "description": "MCP server that carried the command (e.g. \"workspace\"). Set only when\ncommand_source is COMMAND_SOURCE_MCP_TOOL_INPUT."
+        },
+        "tool_name": {
+          "type": "string",
+          "description": "MCP tool that carried the command (e.g. \"bash\"). Set only when\ncommand_source is COMMAND_SOURCE_MCP_TOOL_INPUT."
         }
       },
       "description": "CmdLineMatch describes a command-line invocation that matched a policy."
@@ -92635,6 +95008,15 @@
         "base_severity"
       ]
     },
+    "v1CycloneDxSpecVersion": {
+      "type": "string",
+      "enum": [
+        "CYCLONE_DX_SPEC_VERSION_UNSPECIFIED",
+        "CYCLONE_DX_SPEC_VERSION_1_5"
+      ],
+      "default": "CYCLONE_DX_SPEC_VERSION_UNSPECIFIED",
+      "description": "CycloneDx specification versions Endor emits. Values are added as Endor adds\nsupport, so this list is the supported set.\n\n - CYCLONE_DX_SPEC_VERSION_UNSPECIFIED: Unset. The export uses the current CycloneDx default.\n - CYCLONE_DX_SPEC_VERSION_1_5: CycloneDx 1.5."
+    },
     "v1DashboardConfig": {
       "type": "object",
       "properties": {
@@ -92799,6 +95181,15 @@
         "top_dependencies": {
           "$ref": "#/definitions/SpecResponseTopDependencies",
           "description": "Top dependencies by various metrics.",
+          "readOnly": true
+        },
+        "finding_count_entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FindingCountEntry"
+          },
+          "description": "Namespace roll-up of the per-project finding_count_entries, summed per group and stage.\nEntries arrive in the registry's group and stage order. Only projects whose summaries\ncarry finding_count_entries contribute, so until every project has been rescanned this\nroll-up can cover fewer projects than vulnerability_counts in the same response.",
           "readOnly": true
         }
       }
@@ -93178,10 +95569,12 @@
         "DIMENSION_KEY_MCP_SERVER",
         "DIMENSION_KEY_COMMAND",
         "DIMENSION_KEY_CATEGORY",
-        "DIMENSION_KEY_TOOL"
+        "DIMENSION_KEY_TOOL",
+        "DIMENSION_KEY_SKILL",
+        "DIMENSION_KEY_AI_TOOL"
       ],
       "default": "DIMENSION_KEY_UNSPECIFIED",
-      "description": "DimensionKey identifies the aggregation dimension."
+      "description": "DimensionKey identifies the aggregation dimension.\n\n - DIMENSION_KEY_SKILL: Skills discovered in agent sessions. Written in daily buckets only.\n - DIMENSION_KEY_AI_TOOL: AI tools detected on developer workstations. Written in daily buckets only."
     },
     "v1DiscoveredSkill": {
       "type": "object",
@@ -93316,7 +95709,7 @@
       "properties": {
         "scope": {
           "type": "string",
-          "description": "Scope identifies the counter document this entry deduplicates against."
+          "description": "Scope identifies the counter document this entry deduplicates against.\nFormat: \"\u003cenum name\u003e:\u003centity name\u003e\", where the enum is a DimensionKey\nfor aggregate scopes or an InventoryType for inventory scopes\n(e.g. \"DIMENSION_KEY_MCP_SERVER:github\", \"INVENTORY_TYPE_SKILL:my-skill\")."
         },
         "bucket": {
           "type": "string",
@@ -94824,6 +97217,53 @@
         }
       }
     },
+    "v1FindingCountEntry": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "$ref": "#/definitions/v1FindingCountGroup",
+          "description": "The group whose criteria the counted findings match."
+        },
+        "stage": {
+          "$ref": "#/definitions/v1FindingCountStage",
+          "description": "The step within that group."
+        },
+        "counts": {
+          "$ref": "#/definitions/endorv1FindingCounts",
+          "description": "Severity breakdown of the findings left at this stage."
+        }
+      },
+      "description": "Counts for one stage of one group.\nAn entry is emitted only where the group matched at least one finding, so a missing entry reads\nas zero rather than as absent data."
+    },
+    "v1FindingCountGroup": {
+      "type": "string",
+      "enum": [
+        "FINDING_COUNT_GROUP_UNSPECIFIED",
+        "FINDING_COUNT_GROUP_SCA_VULNERABILITY",
+        "FINDING_COUNT_GROUP_AI_SAST",
+        "FINDING_COUNT_GROUP_SECRETS",
+        "FINDING_COUNT_GROUP_CONTAINER"
+      ],
+      "default": "FINDING_COUNT_GROUP_UNSPECIFIED",
+      "description": "Identifies a group: a set of finding-matching criteria, and a tree of stages that narrows it.\nBoth the criteria and the stage tree live in the backend registry, which is the only emitter of\nthese counts. Groups are not mutually exclusive, so a finding matching two of them would be\ncounted in each.\n\n - FINDING_COUNT_GROUP_UNSPECIFIED: No group has been set.\n - FINDING_COUNT_GROUP_SCA_VULNERABILITY: Findings carrying both the SCA and vulnerability categories.\n - FINDING_COUNT_GROUP_AI_SAST: Findings carrying the SAST category and the AI tag.\n - FINDING_COUNT_GROUP_SECRETS: Findings carrying the secrets category.\n - FINDING_COUNT_GROUP_CONTAINER: Findings carrying the container category."
+    },
+    "v1FindingCountStage": {
+      "type": "string",
+      "enum": [
+        "FINDING_COUNT_STAGE_UNSPECIFIED",
+        "FINDING_COUNT_STAGE_TOTAL",
+        "FINDING_COUNT_STAGE_NOT_IN_TEST",
+        "FINDING_COUNT_STAGE_FIX_AVAILABLE",
+        "FINDING_COUNT_STAGE_REACHABLE",
+        "FINDING_COUNT_STAGE_EXPLOITABLE",
+        "FINDING_COUNT_STAGE_TRUE_POSITIVE",
+        "FINDING_COUNT_STAGE_VALID_SECRET",
+        "FINDING_COUNT_STAGE_POTENTIALLY_REACHABLE",
+        "FINDING_COUNT_STAGE_POTENTIALLY_EXPLOITABLE"
+      ],
+      "default": "FINDING_COUNT_STAGE_UNSPECIFIED",
+      "description": "Identifies one step in a group's stage tree.\nEach value names only the criteria that step narrows by. A stage counts what is left once its own\ncriteria and every criteria on its path from the tree's root have been applied, so the same stage\ncounts a different set in each group it appears in, and the registry's stage tree is the only\nplace a stage's full criteria can be read. Sibling stages fork the funnel: each narrows their\nshared parent independently, and their sets may overlap.\n\n - FINDING_COUNT_STAGE_UNSPECIFIED: No stage has been set.\n - FINDING_COUNT_STAGE_TOTAL: Narrows by nothing; counts every finding matching the group's own criteria.\n - FINDING_COUNT_STAGE_NOT_IN_TEST: Narrows to findings carrying the normal tag, which marks findings outside test code.\n - FINDING_COUNT_STAGE_FIX_AVAILABLE: Narrows to findings carrying the fix available tag.\n - FINDING_COUNT_STAGE_REACHABLE: Narrows to findings carrying the reachable function tag for SCA vulnerabilities, or the\nreachable dependency tag for containers.\n - FINDING_COUNT_STAGE_EXPLOITABLE: Narrows to findings with an EPSS probability at or above 1%, the threshold for exploitation in\nthe wild. Follows REACHABLE in every group that uses it, so it never counts an unreachable\nfinding.\n - FINDING_COUNT_STAGE_TRUE_POSITIVE: Narrows to findings carrying the true positive tag.\n - FINDING_COUNT_STAGE_VALID_SECRET: Narrows to findings carrying the valid secret tag, set when the secret still authenticates\nagainst its provider.\n - FINDING_COUNT_STAGE_POTENTIALLY_REACHABLE: Narrows to findings carrying a potentially reachable tag. Forks from the same parent as\nREACHABLE, and the two branches may overlap: a finding tagged both reachable and potentially\nreachable is counted in each.\n - FINDING_COUNT_STAGE_POTENTIALLY_EXPLOITABLE: Narrows by the same EPSS threshold as EXPLOITABLE, but follows POTENTIALLY_REACHABLE, so it\ncounts the exploitable findings on the potentially reachable branch."
+    },
     "v1FindingFixingPatch": {
       "type": "object",
       "properties": {
@@ -95058,6 +97498,10 @@
         "ai_sast_data": {
           "$ref": "#/definitions/AIResultSAST",
           "description": "Structured AI SAST data (per-section markdown and the source-to-sink\ndata-flow path with SCM links) for AI Model SAST findings. Reuses the\nAIResult.SAST message so the typed contract is not duplicated."
+        },
+        "sast_data": {
+          "$ref": "#/definitions/v1SastData",
+          "description": "Fields common to every SAST-shaped finding, AI SAST and rule-based\n(opengrep) findings alike. ai_sast_data remains the home for\nAI-SAST-specific workflow output."
         }
       },
       "description": "Metadata associated with a finding."
@@ -95199,6 +97643,10 @@
         "target_dependency_version": {
           "type": "string",
           "description": "Dependency version, if applicable.\nThis is just the version (i.e. it does not include the ecosystem or the\npackage name)."
+        },
+        "target_dependency_native_scope": {
+          "type": "string",
+          "description": "Un-normalized native dependency scope from the package manager\n(e.g. Maven \"provided\"). Empty if none."
         },
         "explanation": {
           "type": "string",
@@ -95558,6 +98006,134 @@
         "tenant_meta"
       ]
     },
+    "v1FunctionSummaryHashesQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "Ephemeral query identifier.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Tenant metadata that scopes the query."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required by the internal CRUD transport."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1FunctionSummaryHashesQuerySpec",
+          "description": "Query input and result."
+        }
+      },
+      "description": "FunctionSummaryHashesQuery reports which of the given segment hashes are\nmissing a usable function summary, of any status, at the given prompt\nversion or newer. Unlike FunctionSummaryQuery, which returns full summary\ncontent and only matches usable ('ok') summaries for search consumers,\nthis checks bare existence so a client can skip re-summarizing a segment\nalready tombstoned as trivial or failed.",
+      "required": [
+        "tenant_meta",
+        "spec"
+      ]
+    },
+    "v1FunctionSummaryHashesQuerySpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1FunctionSummaryHashesQuerySpecRequest",
+          "description": "Caller-supplied query input."
+        },
+        "response": {
+          "$ref": "#/definitions/v1FunctionSummaryHashesQuerySpecResponse",
+          "description": "Server-computed query result.",
+          "readOnly": true
+        }
+      },
+      "description": "Spec holds the request the caller sends and the response the server\nreturns.",
+      "required": [
+        "request"
+      ]
+    },
+    "v1FunctionSummaryHashesQuerySpecRequest": {
+      "type": "object",
+      "properties": {
+        "language": {
+          "$ref": "#/definitions/v1Language",
+          "description": "Language of the indexed functions."
+        },
+        "hashes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Exact normalized Foiegras function segment hashes to check. A request\nmay contain at most 1000 hashes."
+        },
+        "prompt_version": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Summaries at this prompt version or newer count as present."
+        }
+      },
+      "description": "Request selects the segment hashes to check.",
+      "required": [
+        "language",
+        "hashes",
+        "prompt_version"
+      ]
+    },
+    "v1FunctionSummaryHashesQuerySpecResponse": {
+      "type": "object",
+      "properties": {
+        "missing_hashes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The requested hashes that do not have a summary at prompt_version or\nnewer, of any status."
+        }
+      },
+      "description": "Response reports the hashes that need summarizing."
+    },
+    "v1FunctionSummaryQuery": {
+      "type": "object",
+      "properties": {
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Tenant metadata that scopes the query."
+        },
+        "language": {
+          "$ref": "#/definitions/v1Language",
+          "description": "Language of the indexed functions."
+        },
+        "uuid": {
+          "type": "string",
+          "description": "Ephemeral query identifier.",
+          "readOnly": true
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required by the internal CRUD transport."
+        },
+        "searches": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/FunctionSummaryQuerySearch"
+          },
+          "description": "Ordered independent searches. Each search combines its non-empty filters\nwith AND. A request may contain at most 20 searches."
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/FunctionSummaryQuerySearchResult"
+          },
+          "description": "Results in the same order as searches.",
+          "readOnly": true
+        }
+      },
+      "description": "FunctionSummaryQuery searches structured security summaries for\nindexed OSS functions. Non-empty filters are combined with AND.",
+      "required": [
+        "language"
+      ]
+    },
     "v1Fuzzy": {
       "type": "object",
       "properties": {
@@ -95661,11 +98237,19 @@
         },
         "user": {
           "type": "string",
-          "description": "The user name to use to access this repository."
+          "description": "The user name to use to access this repository.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
         },
         "password": {
           "type": "string",
-          "description": "An encrypted password that must be provided by the repository owner."
+          "description": "An encrypted password that must be provided by the repository owner.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
+        },
+        "basic_auth": {
+          "$ref": "#/definitions/endorv1BasicAuth",
+          "description": "Basic auth (username + password) for the registry."
+        },
+        "token_auth": {
+          "$ref": "#/definitions/v1TokenAuth",
+          "description": "Sent as the HTTP Basic password (token-as-password), not a literal\nAuthorization: Bearer. Works with JFrog / Azure Artifacts / GitLab /\nNexus token auth; will NOT satisfy a registry that requires\nAuthorization: Bearer and rejects Basic."
         }
       },
       "description": "GemSpec represents a configuration for the Ruby gems package manager.",
@@ -95682,6 +98266,20 @@
         }
       },
       "description": "Parameters for a get request."
+    },
+    "v1GetSupportedReportFormatsResponse": {
+      "type": "object",
+      "properties": {
+        "formats_by_job_type": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1SupportedReportFormats"
+          },
+          "description": "Supported formats keyed by job type enum name, e.g. \"JOB_TYPE_FINDINGS_REPORT\"."
+        }
+      },
+      "description": "Export formats the backend supports, per report job type.",
+      "x-internal": true
     },
     "v1GitHubConfig": {
       "type": "object",
@@ -95736,7 +98334,8 @@
         "EVENT_TYPE_PULL_REQUEST",
         "EVENT_TYPE_CHECK_SUITE",
         "EVENT_TYPE_CHECK_RUN",
-        "EVENT_TYPE_REPOSITORY"
+        "EVENT_TYPE_REPOSITORY",
+        "EVENT_TYPE_ISSUE_COMMENT"
       ],
       "default": "EVENT_TYPE_UNSPECIFIED"
     },
@@ -95744,9 +98343,11 @@
       "type": "object",
       "properties": {
         "enabled": {
-          "type": "boolean"
+          "type": "boolean",
+          "description": "Turns the creation of automated pull requests on or off for this target."
         }
       },
+      "description": "GitHubPRConfig configures automated GitHub pull requests for remediations.\nDeprecated: Use RemediationPRConfig, which supports all SCM platforms.",
       "required": [
         "enabled"
       ]
@@ -96906,8 +99507,7 @@
         },
         "marked_for_deletion": {
           "type": "boolean",
-          "description": "Indicates the installation is marked for deletion,\nand in next sync call the installation with its related data will be\ndeleted.",
-          "readOnly": true
+          "description": "Indicates the installation is marked for deletion,\nand in next sync call the installation with its related data will be\ndeleted."
         },
         "include_archived_repos": {
           "type": "boolean",
@@ -97367,9 +99967,11 @@
         "LANGUAGE_C",
         "LANGUAGE_CPP",
         "LANGUAGE_SWIFTURL",
-        "LANGUAGE_CONAN"
+        "LANGUAGE_CONAN",
+        "LANGUAGE_GOSU"
       ],
-      "default": "LANGUAGE_UNSPECIFIED"
+      "default": "LANGUAGE_UNSPECIFIED",
+      "description": " - LANGUAGE_GOSU: Gosu, a JVM language used by Guidewire applications."
     },
     "v1Languages": {
       "type": "object",
@@ -97844,6 +100446,10 @@
         "symbols": {
           "type": "string",
           "description": "Key variables/symbols in the data flow path for the linter result."
+        },
+        "content_hash": {
+          "type": "string",
+          "description": "sha256 over the source spans (finding location + taint dataflow) this analysis\nwas computed against; a mismatch on rescan invalidates the cached verdict and\nforces re-analysis of the result."
         }
       },
       "description": "LinterCorrectnessAnalysis represents an analysis of a linter result.",
@@ -102433,6 +105039,43 @@
         }
       }
     },
+    "v1ListSchedulerResourceHistoriesResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/v1ListSchedulerResourceHistoriesResponseList",
+          "description": "List of scheduler resource histories."
+        },
+        "count_response": {
+          "$ref": "#/definitions/v1CountResponse",
+          "description": "Count response."
+        },
+        "group_response": {
+          "$ref": "#/definitions/v1GroupResponse",
+          "description": "Group response."
+        }
+      },
+      "description": "Response returned for requests to list scheduler resource histories.",
+      "x-internal": true
+    },
+    "v1ListSchedulerResourceHistoriesResponseList": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1SchedulerResourceHistory"
+          },
+          "description": "List of scheduler resource histories."
+        },
+        "response": {
+          "$ref": "#/definitions/v1ListResponse",
+          "description": "List response metadata."
+        }
+      },
+      "description": "List of scheduler resource histories."
+    },
     "v1ListScopePoliciesResponse": {
       "type": "object",
       "properties": {
@@ -102764,6 +105407,42 @@
           "$ref": "#/definitions/v1ListResponse"
         }
       }
+    },
+    "v1ListUISavedViewsResponse": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "$ref": "#/definitions/v1ListUISavedViewsResponseList",
+          "description": "Paged list of saved views."
+        },
+        "count_response": {
+          "$ref": "#/definitions/v1CountResponse",
+          "description": "Count of saved views matching the filter."
+        },
+        "group_response": {
+          "$ref": "#/definitions/v1GroupResponse",
+          "description": "Grouped aggregation over matching saved views."
+        }
+      },
+      "description": "Response to the request to list UI saved views."
+    },
+    "v1ListUISavedViewsResponseList": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1UISavedView"
+          },
+          "description": "The saved views returned in this page."
+        },
+        "response": {
+          "$ref": "#/definitions/v1ListResponse",
+          "description": "Pagination and total-count metadata for the list."
+        }
+      },
+      "description": "List wraps a page of UISavedView objects with the standard list response."
     },
     "v1ListUserTelemetriesResponse": {
       "type": "object",
@@ -103427,6 +106106,107 @@
         "spec"
       ],
       "x-internal": true
+    },
+    "v1MalwareDetectionAssessmentPromotion": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the resource.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "The tenant metadata restricts access to a specific tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for the object."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1MalwareDetectionAssessmentPromotionSpec"
+        }
+      },
+      "description": "MalwareDetectionAssessmentPromotion publishes a human-reviewed malware detection assessment\ninto the malware feed. Nothing is stored under this kind: the server performs the promotion\nand returns the resulting record in spec.response.",
+      "required": [
+        "tenant_meta",
+        "meta",
+        "spec"
+      ],
+      "x-internal": true
+    },
+    "v1MalwareDetectionAssessmentPromotionRequest": {
+      "type": "object",
+      "properties": {
+        "assessment_uuid": {
+          "type": "string",
+          "description": "The assessment to promote. It must carry a MALICIOUS result and no assessment_error;\nanything else is rejected rather than promoted."
+        },
+        "summary": {
+          "type": "string",
+          "description": "One-line description of the malicious behaviour for feed consumers, who see the\nrecord without access to the assessment behind it."
+        },
+        "cwe_id": {
+          "type": "string",
+          "description": "Weakness classification the reviewer assigns, for example CWE-506."
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Identifiers this malware is already known by elsewhere, for example a GHSA or OSV id."
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/VulnSpecReference"
+          },
+          "description": "Supporting links, such as an upstream advisory or a registry takedown notice."
+        },
+        "additional_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Reviewer notes that do not belong in the verdict reasons."
+        }
+      },
+      "description": "MalwareDetectionAssessmentPromotionRequest carries the promotion inputs the assessment itself does not hold.",
+      "required": [
+        "assessment_uuid"
+      ]
+    },
+    "v1MalwareDetectionAssessmentPromotionResponse": {
+      "type": "object",
+      "properties": {
+        "malware": {
+          "$ref": "#/definitions/v1Malware",
+          "description": "The malware record the promotion produced.",
+          "readOnly": true
+        },
+        "already_promoted": {
+          "type": "boolean",
+          "description": "true when the assessment had already been promoted.",
+          "readOnly": true
+        }
+      },
+      "description": "MalwareDetectionAssessmentPromotionResponse holds the malware record the promotion produced."
+    },
+    "v1MalwareDetectionAssessmentPromotionSpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1MalwareDetectionAssessmentPromotionRequest",
+          "description": "Promotion request."
+        },
+        "response": {
+          "$ref": "#/definitions/v1MalwareDetectionAssessmentPromotionResponse",
+          "description": "Promotion response.",
+          "readOnly": true
+        }
+      }
     },
     "v1MalwareDetectionAssessmentSpec": {
       "type": "object",
@@ -104277,6 +107057,103 @@
         "spec"
       ]
     },
+    "v1MalwareExposureQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "UUID of the MalwareExposureQuery object.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Tenant data."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1MalwareExposureQuerySpec",
+          "description": "Object specific data."
+        }
+      },
+      "description": "Request to get the exposure of one or more Malware objects on a given namespace."
+    },
+    "v1MalwareExposureQuerySpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1MalwareExposureQuerySpecRequest",
+          "description": "Request data for MalwareExposureQuery."
+        },
+        "response": {
+          "$ref": "#/definitions/v1MalwareExposureQuerySpecResponse",
+          "description": "Response data for MalwareExposureQuery.",
+          "readOnly": true
+        }
+      },
+      "description": "Object specific data for MalwareExposureQuery."
+    },
+    "v1MalwareExposureQuerySpecRequest": {
+      "type": "object",
+      "properties": {
+        "malware_uuids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "UUIDs of the Malware objects to get exposure for.\nLeave empty to get exposure for all, non-contested Malware objects.\nUse the filter field to get exposure for a subset of Malware\nobjects if you do not have the UUIDs.\n\nNote: The UUIDs are not checked for existence.\nThere is no error returned if a UUID is not found, but there\nwill not be an entry for it in the project counts."
+        },
+        "filter": {
+          "type": "string",
+          "description": "String of conditions to filter MalwareExposure objects by.\nFor example, to only get data for the last 7 days, use:\n\"meta.create_time \u003e= now(-168h)\".\n\nOnly applied if malware_uuids is empty.\nSkips contested malware records.\n\nNote: The filter is applied to the MalwareExposure objects,\nnot the Malware objects.\n\nFilters may include any attribute along with the following operators:\n\"==\", \"!=\", \"\u003e\", \"\u003e=\", \"\u003c\", \"\u003c=\", \"Contains\", \"In\", \"Matches\", and\n\"Exists\". The logical operators \"And\" and \"Or\" are also supported.\nExpressions may be combined and grouped with parentheses.\n\nExamples:\n\"spec.value == 5\",\n\"spec.value in [\"a\", \"b\", \"c\"]\",\n\"(meta.name == \"xyz\" and \"spec.value in [\"a\",\"b\"]) or (spec.value ==\n\"c\")\"."
+        },
+        "traverse": {
+          "type": "boolean",
+          "description": "Get data from any child namespaces as well."
+        },
+        "project_uuid": {
+          "type": "string",
+          "description": "Limit the request to a specific project."
+        }
+      },
+      "description": "Request data for MalwareExposureQuery."
+    },
+    "v1MalwareExposureQuerySpecResponse": {
+      "type": "object",
+      "properties": {
+        "definitely_affected_projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of definitely affected project UUIDs."
+        },
+        "potentially_affected_projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of potentially affected project UUIDs."
+        },
+        "project_counts_by_malware": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ResponseCounts"
+          },
+          "description": "Project counts per Malware object, indexed by Malware UUID."
+        },
+        "malware_counts_by_project": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/ResponseCounts"
+          },
+          "description": "Malware counts per project, indexed by project UUID."
+        }
+      },
+      "description": "Response data for MalwareExposureQuery.\n\nContested malware records are skipped unless explicitly requested\nvia the malware_uuids field."
+    },
     "v1MalwareExposureSpec": {
       "type": "object",
       "properties": {
@@ -104287,6 +107164,11 @@
         "ecosystem": {
           "$ref": "#/definitions/v1Ecosystem",
           "description": "Ecosystem of the Malware object."
+        },
+        "malware_detected_on": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Date the malware was detected in public repositories.\nCopied directly from the malware record, so that it\ncan be used to filter MalwareExposure objects.\n\nFormat: 2017-01-15T01:30:15.01Z\nRFC 3339: https://www.ietf.org/rfc/rfc3339.txt."
         }
       },
       "description": "Object specific data for MalwareExposure.",
@@ -104496,6 +107378,10 @@
             "$ref": "#/definitions/v1MalwareIOCAttribute"
           },
           "description": "IOC attributes of the malware found during the analysis."
+        },
+        "raw": {
+          "$ref": "#/definitions/SpecRawMalware",
+          "description": "Raw upstream data per source, kept for accountability and traceability."
         }
       },
       "required": [
@@ -104561,11 +107447,11 @@
         },
         "user": {
           "type": "string",
-          "description": "The user name to use to access this repo."
+          "description": "The user name to use to access this repo.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
         },
         "password": {
           "type": "string",
-          "title": "An encrypted password that must be provided by the repository owner.\nhttps://maven.apache.org/guides/mini/guide-encryption.html"
+          "description": "An encrypted password that must be provided by the repository owner.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
         },
         "id": {
           "type": "string",
@@ -104594,6 +107480,14 @@
         "mtls": {
           "$ref": "#/definitions/v1MTLSAuth",
           "description": "MTLS authentication for the Maven package manager."
+        },
+        "basic_auth": {
+          "$ref": "#/definitions/endorv1BasicAuth",
+          "description": "Basic auth (username + password) for the registry."
+        },
+        "token_auth": {
+          "$ref": "#/definitions/v1TokenAuth",
+          "description": "Emitted as \"Authorization: Bearer \u003ctoken\u003e\" via settings.xml \u003chttpHeaders\u003e."
         }
       },
       "description": "MavenSpec represents a configuration for the Maven package manager.",
@@ -105867,11 +108761,19 @@
         },
         "user": {
           "type": "string",
-          "description": "The username to use to access this repository."
+          "description": "The username to use to access this repository.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
         },
         "password": {
           "type": "string",
-          "description": "An encrypted password that must be provided by the repository owner."
+          "description": "An encrypted password that must be provided by the repository owner.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
+        },
+        "basic_auth": {
+          "$ref": "#/definitions/endorv1BasicAuth",
+          "description": "Basic auth (username + password) for the registry."
+        },
+        "token_auth": {
+          "$ref": "#/definitions/v1TokenAuth",
+          "description": "Sent as the HTTP Basic password (token-as-password), not a literal\nAuthorization: Bearer. Works with JFrog / Azure Artifacts / GitLab /\nNexus token auth; will NOT satisfy a registry that requires\nAuthorization: Bearer and rejects Basic."
         }
       },
       "description": "NugetSpec represents a configuration for the NuGet package manager.",
@@ -107686,6 +110588,11 @@
         "precomputed_call_graph_state": {
           "$ref": "#/definitions/v1PrecomputedState",
           "description": "The state of the precomputed callgraph."
+        },
+        "upstream_reference": {
+          "type": "string",
+          "description": "The public package this private package was forked from, so its\nvulnerabilities can be attributed to the fork. Empty means the resolver\nhas not run yet; \"N/A\" means it ran and found no upstream.",
+          "x-endor-name": "Upstream Package"
         }
       },
       "required": [
@@ -108621,6 +111528,14 @@
         "top_dependencies": {
           "$ref": "#/definitions/ProjectSummarySpecTopDependencies",
           "description": "Top dependencies in various categories."
+        },
+        "finding_count_entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1FindingCountEntry"
+          },
+          "description": "Per-group, per-stage finding counts computed at scan time from the backend registry.\nSupersedes vulnerability_counts, which is retained until every project has been rescanned.\nThe models differ: the SCA vulnerability group requires both the SCA and vulnerability\ncategories, while vulnerability_counts counts every vulnerability finding (container,\nCI/CD, and AI-model vulnerabilities included), so totals here can be lower."
         }
       },
       "required": [
@@ -108784,15 +111699,23 @@
         },
         "user": {
           "type": "string",
-          "description": "The user name to use to access this repository."
+          "description": "The user name to use to access this repository.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
         },
         "password": {
           "type": "string",
-          "description": "An encrypted password that must be provided by the repository owner."
+          "description": "An encrypted password that must be provided by the repository owner.\nSuperseded by `auth`; kept only for migration, removed in a later CR."
         },
         "mtls": {
           "$ref": "#/definitions/v1MTLSAuth",
           "description": "MTLS authentication for the Python package manager."
+        },
+        "basic_auth": {
+          "$ref": "#/definitions/endorv1BasicAuth",
+          "description": "Basic auth (username + password) for the registry."
+        },
+        "token_auth": {
+          "$ref": "#/definitions/v1TokenAuth",
+          "description": "Sent as the HTTP Basic password (token-as-password), not a literal\nAuthorization: Bearer. Works with JFrog / Azure Artifacts / GitLab /\nNexus token auth; will NOT satisfy a registry that requires\nAuthorization: Bearer and rejects Basic."
         }
       },
       "description": "PypiSpec represents a configuration for the Python package manager.",
@@ -108847,6 +111770,102 @@
       "required": [
         "tenant_meta",
         "meta"
+      ]
+    },
+    "v1QueryIntegrationResource": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "Server-assigned query id.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "Associates the query with a tenant; drives namespace-scoped authorization."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Query name and labels."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1QueryIntegrationResourceSpec",
+          "description": "The credential source, the query selector, and the parsed results."
+        }
+      },
+      "description": "QueryIntegrationResource brokers a synchronous, read-only lookup against a\nthird-party provider (Azure DevOps Boards, Jira, ...) so the frontend can\nprefill guided setup dropdowns. A query-as-resource: it persists nothing.",
+      "required": [
+        "meta",
+        "spec"
+      ],
+      "x-internal": true
+    },
+    "v1QueryIntegrationResourceCredentialSource": {
+      "type": "object",
+      "properties": {
+        "inline": {
+          "$ref": "#/definitions/QueryIntegrationResourceCredentialSourceInlineCredentials",
+          "description": "Raw credentials supplied directly by the caller."
+        },
+        "installation_ref": {
+          "type": "string",
+          "description": "UUID of an existing Installation to read credentials from."
+        },
+        "notification_target_ref": {
+          "type": "string",
+          "description": "UUID of an existing NotificationTarget to read credentials from."
+        }
+      },
+      "description": "QueryIntegrationResourceCredentialSource is how the broker obtains the provider host\nand credentials: inline for the create flow, or a reference to a stored record\nin the caller's namespace for the edit flow (so secrets never leave the backend)."
+    },
+    "v1QueryIntegrationResourceRequest": {
+      "type": "object",
+      "properties": {
+        "ado_boards_projects": {
+          "$ref": "#/definitions/v1AdoBoardsProjectsQuery",
+          "description": "List the Azure DevOps Boards projects visible to the credentials."
+        },
+        "ado_boards_work_item_types": {
+          "$ref": "#/definitions/v1AdoBoardsWorkItemTypesQuery",
+          "description": "List the work item types available for an ADO Boards project."
+        }
+      },
+      "description": "Request selects which provider resource to list."
+    },
+    "v1QueryIntegrationResourceResponse": {
+      "type": "object",
+      "properties": {
+        "ado_boards_projects": {
+          "$ref": "#/definitions/v1AdoBoardsProjectsResult",
+          "description": "ADO Boards projects."
+        },
+        "ado_boards_work_item_types": {
+          "$ref": "#/definitions/v1AdoBoardsWorkItemTypesResult",
+          "description": "ADO Boards work item types."
+        }
+      },
+      "description": "Response carries the payload for the requested resource kind."
+    },
+    "v1QueryIntegrationResourceSpec": {
+      "type": "object",
+      "properties": {
+        "credential_source": {
+          "$ref": "#/definitions/v1QueryIntegrationResourceCredentialSource",
+          "description": "How to obtain the provider host and credentials."
+        },
+        "request": {
+          "$ref": "#/definitions/v1QueryIntegrationResourceRequest",
+          "description": "The resource kind to list."
+        },
+        "response": {
+          "$ref": "#/definitions/v1QueryIntegrationResourceResponse",
+          "description": "The parsed lookup results, populated by the handler.",
+          "readOnly": true
+        }
+      },
+      "required": [
+        "credential_source",
+        "request"
       ]
     },
     "v1QueryMalware": {
@@ -109585,6 +112604,19 @@
           "description": "Skipped due To CIA."
         }
       }
+    },
+    "v1RemediationPRConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Turns the creation of automated pull requests on or off for this target."
+        }
+      },
+      "description": "RemediationPRConfig configures automated remediation pull requests.\nThe SCM platform is determined by the platform source of the violating project.",
+      "required": [
+        "enabled"
+      ]
     },
     "v1RemediationParameters": {
       "type": "object",
@@ -110777,6 +113809,78 @@
         }
       }
     },
+    "v1SBOMExportJobRequest": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1SBOMKind",
+          "description": "Identifies the SBOM specification the output should conform to. Restricted\nto CycloneDx (1) and SPDX (2); other SBOMKind values are rejected."
+        },
+        "format": {
+          "$ref": "#/definitions/v1ExportedSBOMFormat",
+          "description": "Serialization format of the rendered SBOM document. Restricted to JSON,\nXML, and Tag-Value; the format must be compatible with the chosen kind\n(e.g. SPDX Tag-Value is supported, CycloneDx Tag-Value is not)."
+        },
+        "component_type": {
+          "$ref": "#/definitions/v1ExportedSBOMComponentType",
+          "description": "Library or application classification for the SBOM root component."
+        },
+        "hide_private_components": {
+          "type": "boolean",
+          "description": "Whether to hide private (internal) packages in the SBOM output."
+        },
+        "include_test_dependencies": {
+          "type": "boolean",
+          "description": "Whether to include test/dev/build/optional dependencies. When false\n(default), non-production dependencies are excluded along with any\ntransitive dependencies reachable only through them."
+        },
+        "export_parameters": {
+          "$ref": "#/definitions/v1ExportParameters",
+          "description": "Parameters describing which package versions to include in the SBOM.\nSupports project_uuid / project_name / package_version_uuids variants."
+        },
+        "package_version_uuid": {
+          "type": "string",
+          "description": "UUID of a single PackageVersion to export. When set, the handler\ngenerates an SBOM containing just this package version. Mutually\nexclusive with export_parameters."
+        },
+        "include_vulnerabilities": {
+          "type": "boolean",
+          "description": "When true, embed the scope's vulnerabilities as a top-level\nvulnerabilities[] array in the SBOM, producing one unified document.\nCycloneDx only."
+        },
+        "cyclonedx_spec_version": {
+          "$ref": "#/definitions/v1CycloneDxSpecVersion",
+          "description": "Required when kind is SBOM_KIND_CYCLONEDX."
+        },
+        "spdx_spec_version": {
+          "$ref": "#/definitions/v1SPDXSpecVersion",
+          "description": "Required when kind is SBOM_KIND_SPDX."
+        }
+      },
+      "description": "Request holds the input parameters for running an SBOM export job.",
+      "required": [
+        "component_type"
+      ]
+    },
+    "v1SBOMExportJobResponse": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "The file path of the generated SBOM in object storage.\nStored on the Job by the handler; the apiserver Job RPC layer reads\nthis on every GetJob and produces a fresh signed download URL."
+        },
+        "report_url": {
+          "type": "string",
+          "description": "The signed download URL for the generated SBOM. Populated by the\napiserver Job RPC layer on each GetJob call (5-minute TTL)."
+        },
+        "sbom_size_bytes": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Byte length of the generated SBOM artifact in object storage. Useful\nfor clients deciding whether to display a download progress indicator\nand for operational reporting on export sizes."
+        },
+        "resource_namespace": {
+          "type": "string",
+          "description": "Namespace jobctl read the referenced resources from — the caller's\ntenant, or \"oss\" if the fallback fired."
+        }
+      },
+      "description": "Response holds the output after the SBOM export job completes."
+    },
     "v1SBOMKind": {
       "type": "string",
       "enum": [
@@ -111040,6 +114144,15 @@
         "platform_source",
         "payload"
       ]
+    },
+    "v1SPDXSpecVersion": {
+      "type": "string",
+      "enum": [
+        "SPDX_SPEC_VERSION_UNSPECIFIED",
+        "SPDX_SPEC_VERSION_2_3"
+      ],
+      "default": "SPDX_SPEC_VERSION_UNSPECIFIED",
+      "description": "SPDX specification versions Endor emits. Values are added as Endor adds\nsupport, so this list is the supported set.\n\n - SPDX_SPEC_VERSION_UNSPECIFIED: Unset. The export uses the current SPDX default.\n - SPDX_SPEC_VERSION_2_3: SPDX 2.3."
     },
     "v1SarifArtifactContent": {
       "type": "object",
@@ -111673,6 +114786,92 @@
         }
       },
       "description": "Describes an HTTP response."
+    },
+    "v1SastData": {
+      "type": "object",
+      "properties": {
+        "rule_id": {
+          "type": "string",
+          "description": "Rule identifier: CWE ID for an AI SAST finding, or the rule id for a\nrule-based finding."
+        },
+        "rule_name": {
+          "type": "string",
+          "description": "Human-readable rule/CWE name, used for UI grouping and rule filtering."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short display title for the detected pattern, distinct from rule_name."
+        },
+        "location": {
+          "$ref": "#/definitions/v1SourceLocation",
+          "description": "Primary finding location."
+        },
+        "cwes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "CWE identifiers associated with the finding."
+        },
+        "languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Programming languages the finding's location spans."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compliance/classification tags (e.g. OWASP, SANS)."
+        },
+        "classification": {
+          "$ref": "#/definitions/v1FindingClassification",
+          "description": "Classification of the finding type, shared with\nAIResult.SAST.classification."
+        },
+        "references": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Reference links for the finding."
+        },
+        "ai_analyses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1LinterCorrectnessAnalysis"
+          },
+          "description": "False-positive analyses. Populating this reroutes the finding to the\nFP-validation UI tab."
+        },
+        "message": {
+          "type": "string",
+          "description": "Detailed finding message, shown when the finding has no explanation or\nremediation text of its own."
+        },
+        "confidence": {
+          "type": "string",
+          "description": "Confidence that the finding is a true positive."
+        },
+        "impact": {
+          "type": "string",
+          "description": "Impact of the finding if exploited."
+        },
+        "likelihood": {
+          "type": "string",
+          "description": "Likelihood the finding is exploitable. Rule-based findings only."
+        },
+        "rule_version": {
+          "type": "string",
+          "description": "Version of the rule that produced the finding. Rule-based findings only."
+        },
+        "rule_uuid": {
+          "type": "string",
+          "description": "UUID of the SemgrepRule resource that produced the finding. Rule-based\nfindings only."
+        }
+      },
+      "description": "Fields common to every SAST-shaped finding: AI SAST and rule-based\n(opengrep) findings alike. location reuses SourceLocation rather than a\nseparate snippet field."
     },
     "v1SavedQuery": {
       "type": "object",
@@ -112532,6 +115731,59 @@
           "description": "automated_scan_parameters contains parameters that can be applied across\nall cloud workflow scans."
         }
       }
+    },
+    "v1SchedulerResourceHistory": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the scheduler resource history record.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "SchedulerResourceHistory is associated with a tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata for the scheduler resource history record."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1SchedulerResourceHistorySpec",
+          "description": "Scheduler resource history specifications."
+        }
+      },
+      "description": "SchedulerResourceHistory stores per-project resource usage history and sizing\nrecommendations for scheduler jobs. One document per (project_uuid, kind).\nWritten by the resource recorder on job completion; read by the launcher to\nsize the next run's resource requests.",
+      "required": [
+        "meta"
+      ],
+      "x-internal": true
+    },
+    "v1SchedulerResourceHistorySpec": {
+      "type": "object",
+      "properties": {
+        "project_uuid": {
+          "type": "string",
+          "description": "The project this history belongs to."
+        },
+        "kind": {
+          "type": "string",
+          "description": "The type of scheduler job this history covers."
+        },
+        "runs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SchedulerResourceHistoryRunSummary"
+          },
+          "description": "Bounded ring buffer of per-run resource usage summaries, newest last.\nMaintained via atomic $push/$slice(-N) on upsert."
+        },
+        "recommendation": {
+          "$ref": "#/definitions/SchedulerResourceHistoryRecommendation",
+          "description": "The current sizing recommendation computed from the run history."
+        }
+      },
+      "description": "Spec holds the project binding, job kind, run history ring buffer, and\nthe current sizing recommendation derived from that history."
     },
     "v1ScopePolicy": {
       "type": "object",
@@ -113607,6 +116859,11 @@
         "rest": {
           "type": "boolean",
           "description": "Flag to indicate the segment is a REST segment."
+        },
+        "has_summary": {
+          "type": "boolean",
+          "description": "Set by the server response to indicate this segment already has a\nusable function summary, so the client does not need to summarize it.",
+          "readOnly": true
         }
       },
       "description": "Index segment with associated metadata."
@@ -113687,6 +116944,29 @@
           "type": "integer",
           "format": "int32",
           "title": "Segmenter version"
+        },
+        "summary_done": {
+          "type": "boolean",
+          "description": "Set by the server response to indicate every function segment\nindexed for this source control version already has a usable\nsummary, so the client does not need to summarize any of them.",
+          "readOnly": true
+        },
+        "summaries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/SegmentIndexRequestFunctionSummaryReport"
+          },
+          "description": "Function summaries the client computed for segments in this request\nthat the server reported as missing one (see Segment.has_summary)."
+        },
+        "generate_embeddings": {
+          "type": "boolean",
+          "description": "Whether the client wants embedding vectors computed for the segments\nin this request. Defaults to true when unset, so a client sent before\nthis field existed keeps its current embedding behavior; only an\nexplicit false skips embedding generation."
+        },
+        "function_summary_prompt_version": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Prompt schema version the server currently requires for function\nsummaries.",
+          "readOnly": true
         }
       }
     },
@@ -114949,6 +118229,20 @@
             "type": "string"
           },
           "description": "Regex matchers for the user name from AgentHookEvent.Spec.user\n(e.g. \"alice\", \"svc-.*\", \".*@example\\\\.com\")."
+        },
+        "role_matchers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regex matchers against the resolved org roles in\nAgentHookEvent.Spec.identity.roles. A match fires when any role\nmatches any matcher (e.g. \"contractor\", \"admin\")."
+        },
+        "group_matchers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Regex matchers against the resolved org groups in\nAgentHookEvent.Spec.identity.groups. A match fires when any group\nmatches any matcher (e.g. \"platform\", \"security\")."
         }
       },
       "description": "SessionTopLevelCriteria matches against SessionHook top-level fields\n(composer_mode, source, is_background_agent) and the per-session\nuser identity carried on AgentHookEvent.Spec.user."
@@ -115166,6 +118460,20 @@
       "required": [
         "expiration_time"
       ]
+    },
+    "v1SupportedReportFormats": {
+      "type": "object",
+      "properties": {
+        "report_types": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "report_type enum literals, e.g. \"REPORT_TYPE_PDF\", \"REPORT_TYPE_CSV\"."
+        }
+      },
+      "description": "SupportedReportFormats lists the export formats supported for one report job type.",
+      "x-internal": true
     },
     "v1SupportedToolChainProfile": {
       "type": "object",
@@ -115845,6 +119153,16 @@
       },
       "description": "Tge sequence of TimeSlots for each time resolution we track.\nWe can track multiple resolutions, and some resolutions may be empty."
     },
+    "v1TokenAuth": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string",
+          "description": "The opaque token credential; see the message doc for per-ecosystem wire encoding."
+        }
+      },
+      "description": "TokenAuth is a single opaque token credential. Its wire encoding is\necosystem-specific (see per-spec doc comments): a literal Authorization:\nBearer header where the tooling supports it (Maven), otherwise the HTTP\nBasic password. Named TokenAuth (not BearerAuth) precisely because it is\nnot a bearer header on every ecosystem."
+    },
     "v1ToolChainProfile": {
       "type": "object",
       "properties": {
@@ -116060,6 +119378,94 @@
         }
       },
       "description": "Protobuf definition for TypeChange."
+    },
+    "v1UISavedView": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "description": "The UUID of the saved view.",
+          "readOnly": true
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta",
+          "description": "The Tenant Metadata restricts access to a specific tenant."
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta",
+          "description": "Metadata required for all objects."
+        },
+        "spec": {
+          "$ref": "#/definitions/v1UISavedViewSpec",
+          "description": "The specification of the saved view: scope, surface, view type,\noptional base reference, query, and display configuration."
+        },
+        "propagate": {
+          "type": "boolean",
+          "description": "Propagate controls the visibility of the saved view in child namespaces."
+        }
+      },
+      "description": "UISavedView persists a view configuration (query values + display\npreferences) over an Endor resource.",
+      "required": [
+        "tenant_meta",
+        "meta",
+        "spec"
+      ],
+      "x-internal": true
+    },
+    "v1UISavedViewScope": {
+      "type": "string",
+      "enum": [
+        "SCOPE_UNSPECIFIED",
+        "SCOPE_PERSONAL",
+        "SCOPE_NAMESPACE"
+      ],
+      "default": "SCOPE_UNSPECIFIED",
+      "description": "Who owns / can see the view. Determines lookup precedence and sharing.\n\n - SCOPE_UNSPECIFIED: No scope has been set.\n - SCOPE_PERSONAL: Visible only to the user who created the view.\n - SCOPE_NAMESPACE: Shared with everyone in the owning namespace."
+    },
+    "v1UISavedViewSpec": {
+      "type": "object",
+      "properties": {
+        "scope": {
+          "$ref": "#/definitions/v1UISavedViewScope",
+          "description": "Ownership / visibility classification of the view."
+        },
+        "owner_claims": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Subject claims of the user who created this view. Populated by the\nserver at create time and immutable thereafter. Used for SCOPE_PERSONAL\nvisibility filtering. Empty for other types",
+          "readOnly": true
+        },
+        "surface": {
+          "type": "string",
+          "description": "Surface identifier that scopes the view to a specific UI area, e.g.\n\"findings.table\" or \"packages.inventory\". Lowercase, dot-separated\nsegments of [a-z0-9_]."
+        },
+        "view_type": {
+          "$ref": "#/definitions/UISavedViewViewType",
+          "description": "Presentation flavor of the view."
+        },
+        "query": {
+          "$ref": "#/definitions/QueryQuerySpec",
+          "description": "The query executed to produce the rows for this view."
+        },
+        "display": {
+          "type": "object",
+          "description": "Free-form display configuration (column order, widths, sort, grouping,\netc.). Shape is owned by the frontend and versioned via display_version."
+        },
+        "display_version": {
+          "type": "integer",
+          "format": "int32",
+          "description": "Schema version of the display payload. Allows the frontend to migrate\nolder display blobs when the shape evolves."
+        }
+      },
+      "description": "Spec captures the saved view's configuration.",
+      "required": [
+        "scope",
+        "surface",
+        "view_type",
+        "query"
+      ]
     },
     "v1UITelemetry": {
       "type": "object",
@@ -116327,6 +119733,66 @@
         "user_id",
         "session_id"
       ]
+    },
+    "v1VEXExportJobRequest": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "$ref": "#/definitions/v1SBOMKind",
+          "description": "Identifies the specification the output conforms to. VEX is emitted as\nCycloneDx, so only CycloneDx (1) is accepted."
+        },
+        "format": {
+          "$ref": "#/definitions/v1ExportedVEXFormat",
+          "description": "Serialization format of the rendered VEX document. Restricted to JSON (1)\nand XML (2)."
+        },
+        "component_type": {
+          "$ref": "#/definitions/v1ExportedVEXComponentType",
+          "description": "Library or application classification for the VEX root component."
+        },
+        "include_test_dependencies": {
+          "type": "boolean",
+          "description": "Whether to include findings against test/dev/build/optional dependencies.\nWhen false (default), findings whose target dependency is non-production —\nor only reachable from the root through non-production paths — are excluded."
+        },
+        "export_parameters": {
+          "$ref": "#/definitions/v1ExportParameters",
+          "description": "Parameters describing which package versions to include in the VEX.\nSupports project_uuid / project_name / package_version_uuids variants."
+        },
+        "package_version_uuid": {
+          "type": "string",
+          "description": "UUID of a single PackageVersion to export. When set, the handler generates\na VEX containing just this package version's findings. Mutually exclusive\nwith export_parameters."
+        },
+        "cyclonedx_spec_version": {
+          "$ref": "#/definitions/v1CycloneDxSpecVersion",
+          "description": "CycloneDx specification version the rendered document conforms to. VEX is\nemitted as CycloneDx, so an SPDX version is not representable here. Leave\nunset to take the CycloneDx default of 1.5."
+        }
+      },
+      "description": "Request holds the input parameters for running a VEX export job.",
+      "required": [
+        "component_type"
+      ]
+    },
+    "v1VEXExportJobResponse": {
+      "type": "object",
+      "properties": {
+        "file_path": {
+          "type": "string",
+          "description": "The file path of the generated VEX document in object storage.\nStored on the Job by the handler; the apiserver Job RPC layer reads this\non every GetJob and produces a fresh signed download URL."
+        },
+        "report_url": {
+          "type": "string",
+          "description": "The signed download URL for the generated VEX document. Populated by the\napiserver Job RPC layer on each GetJob call (5-minute TTL)."
+        },
+        "vex_size_bytes": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Byte length of the generated VEX artifact in object storage. Useful for\nclients deciding whether to show a download progress indicator and for\noperational reporting on export sizes."
+        },
+        "resource_namespace": {
+          "type": "string",
+          "description": "Namespace jobctl read the referenced resources from — the caller's\ntenant, or \"oss\" if the fallback fired."
+        }
+      },
+      "description": "Response holds the output after the VEX export job completes."
     },
     "v1ValidateAPIKeyReq": {
       "type": "object",
@@ -116605,6 +120071,81 @@
       },
       "description": "Response contains the results of the entry match check."
     },
+    "v1VectorStoreDataMetadataUpdateQuery": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "readOnly": true
+        },
+        "meta": {
+          "$ref": "#/definitions/v1Meta"
+        },
+        "tenant_meta": {
+          "$ref": "#/definitions/v1TenantMeta"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1VectorStoreDataMetadataUpdateQuerySpec"
+        }
+      },
+      "description": "VectorStoreDataMetadataUpdateQuery patches the metadata of stored documents\nwithout touching their content or embeddings.\n\nRe-uploading a document cannot do this: the upload path skips any document\nwhose uniqueness key and content hash already match what is stored, so a\nmetadata-only change is silently dropped. Deleting and re-adding would work\nbut re-embeds every document and leaves a window where the document is\nmissing, which for summary stores means an interrupted run re-pays the LLM\nthat produced it. This applies the patch in place instead.",
+      "required": [
+        "spec"
+      ],
+      "x-internal": true
+    },
+    "v1VectorStoreDataMetadataUpdateQuerySpec": {
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/v1VectorStoreDataMetadataUpdateQuerySpecRequest",
+          "description": "Request contains the input parameters for the metadata update operation."
+        },
+        "response": {
+          "$ref": "#/definitions/v1VectorStoreDataMetadataUpdateQuerySpecResponse",
+          "description": "Response contains the output from the metadata update operation.",
+          "readOnly": true
+        }
+      },
+      "description": "Spec is the specification of the metadata update request.",
+      "required": [
+        "request"
+      ]
+    },
+    "v1VectorStoreDataMetadataUpdateQuerySpecRequest": {
+      "type": "object",
+      "properties": {
+        "vector_store_uuid": {
+          "type": "string",
+          "description": "vector_store_uuid is the ID of the vector store holding the documents."
+        },
+        "filter": {
+          "type": "object",
+          "description": "filter selects the documents to patch, e.g.\n{\"repo\": \"/path/to/repo\", \"file_path\": \"src/a.go\"}.\nRequired and must be non-empty: an empty filter would rewrite every\ndocument in the store."
+        },
+        "metadata": {
+          "type": "object",
+          "description": "metadata holds the keys to set on each matching document. Keys absent\nfrom this struct are left as they are, so this is a patch rather than a\nreplacement, and re-running the same request is a no-op."
+        }
+      },
+      "description": "Request contains the input parameters for the metadata update operation.",
+      "required": [
+        "vector_store_uuid",
+        "filter",
+        "metadata"
+      ]
+    },
+    "v1VectorStoreDataMetadataUpdateQuerySpecResponse": {
+      "type": "object",
+      "properties": {
+        "updated_count": {
+          "type": "string",
+          "format": "int64",
+          "description": "updated_count is the number of documents that were patched."
+        }
+      },
+      "description": "Response contains the output from the metadata update operation."
+    },
     "v1VectorStoreDataSpec": {
       "type": "object",
       "properties": {
@@ -116806,6 +120347,10 @@
         "apply_uniqueness_index_changes": {
           "type": "boolean",
           "description": "apply_uniqueness_index_changes explicitly authorizes migrating uniqueness indexes\nwhen the requested uniqueness_fields differ from the currently provisioned index.\nThis must be true any time changes are made to the uniqueness_fields."
+        },
+        "search_index_fields": {
+          "type": "string",
+          "description": "search_index_fields lists metadata fields that queries filter on beyond the\nuniqueness fields. A non-unique index is ensured on each field when the store\nis created or next opened, so equality filters on it can avoid a full scan.\nThe declared set is authoritative: adding a field creates its index and\nremoving a field drops it, both on the next open."
         }
       },
       "required": [

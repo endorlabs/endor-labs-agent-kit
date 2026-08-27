@@ -161,7 +161,145 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "When reusing an existing remediation PR/MR" in prompt
     assert "Do not say \"not expected to break\"" in prompt
     assert "Selection / Plan gate is not complete until `risk_decision.status` is present" in prompt
+    assert "the selection-plan ceiling is" in prompt
+    assert "even when targeted validation already ran and passed" in prompt
+    assert "belongs to the apply and validate gates" in prompt
     assert "Those are inputs to `risk_decision`, not the decision itself" in prompt
+    assert "## Dependency Graph Safety Audit" in prompt
+    assert "## Maven Dependency Graph Safety Audit" not in prompt
+    assert "## Gradle Dependency Graph Safety Audit" not in prompt
+    assert "Inspect only the selected dependency path and affected" in prompt
+    assert "selected package's full transitive closure" in prompt
+    assert "bounded by the 12-coordinate" in prompt
+    assert "including pre-existing" in prompt
+    assert "direct declarations of the selected package's transitive dependencies" in prompt
+    assert "Prefer an existing" in prompt
+    assert "native version control" in prompt
+    assert "without replacement or with a conflicting/incomplete one" in prompt
+    assert "`mediation_declared`/`validation_required`" in prompt
+    assert "An unexplained or advisory-dodging forced mediation is instead" in prompt
+    assert "`unverified` -> `blocked`" in prompt
+    assert "never pair `mediation_declared` with `blocked`" in prompt
+    assert "`mediation_verified`/`validated`" in prompt
+    assert "`replacement_declared`" in prompt
+    assert "`replacement_verified`" in prompt
+    assert "`manipulations` (at most 8)" in prompt
+    assert "one Endor query per manipulation" in prompt.replace("\n", " ")
+    assert "Return `dependency_graph_audit` with exactly `package_manager`" in prompt
+    assert (
+        "to exactly `maven`, `gradle`, `go`, `nuget`, `cargo`, the registry"
+        in prompt.replace("\n", " ")
+    )
+    assert "token `npm` for every Node manager" in prompt.replace("\n", " ")
+    assert "the registry token `pypi` for every Python manager" in prompt.replace(
+        "\n", " "
+    )
+    assert "each entry is exactly the bare token" in prompt
+    assert "`not_needed_verified`" in prompt
+    assert "`semantic_effect`" in prompt
+    assert "set `selection_blocked: true`" in prompt
+    assert "Per-manager mechanisms map onto those classification families" in prompt
+    assert "still fill `lookup_method` with the attempted or blocked method" in prompt
+    assert "scheme-prefixed form, or null" in prompt
+    assert (
+        "Gradle, npm, Yarn, pnpm, pip, Poetry, Pipenv, uv, Go, NuGet, Bundler, or Cargo"
+        in prompt.replace("\n", " ")
+    )
+    assert "the registry token `gem` for Bundler" in prompt.replace("\n", " ")
+    assert "`npm.manifest_range`" in prompt
+    assert "`yarn.resolutions`" in prompt
+    assert "`pnpm.overrides`" in prompt
+    assert "`npm.alias_redirect`" in prompt
+    assert "`lockfile_override`" in prompt
+    assert "`source_override`" in prompt
+    assert "no removal construct" in prompt
+    assert "never claim `dependency_removal` for a Node manipulation" in prompt.replace(
+        "\n", " "
+    )
+    assert "`name@version`" in prompt
+    assert "`pip.constraints_pin`" in prompt
+    assert "`pip.direct_dependency_override`" in prompt
+    assert "`poetry.lockfile_edit`" in prompt
+    assert "`pipenv.lockfile_edit`" in prompt
+    assert "`uv.override_dependencies`" in prompt
+    assert "`uv.sources_redirect`" in prompt
+    assert "`name==version`" in prompt
+    assert "pip has none, so declare pip explicitly" in prompt.replace("\n", " ")
+    assert "`go.require_directive`" in prompt
+    assert "`go.replace_version`" in prompt
+    assert "`go.exclude_directive`" in prompt
+    assert "`go.replace_module`" in prompt
+    assert "`go.sum_edit`" in prompt
+    assert "`module@version`" in prompt
+    assert "`exclude` mediates version selection" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_removal` for a Go manipulation"
+        in prompt.replace("\n", " ")
+    )
+    assert "Keep `go mod graph`/`go mod why` output bounded" in prompt.replace(
+        "\n", " "
+    )
+    assert "`nuget.package_reference`" in prompt
+    assert "`nuget.central_package_version`" in prompt
+    assert "`nuget.transitive_pin`" in prompt
+    assert "`nuget.central_transitive_pin`" in prompt
+    assert "`nuget.version_override`" in prompt
+    assert "`nuget.build_props_layer`" in prompt
+    assert "`nuget.lockfile_edit`" in prompt
+    assert "`nuget.restore_source`" in prompt
+    assert "`nuget.exclude_assets`" in prompt
+    assert "`nuget.package_remove`" in prompt
+    assert "`package@version`" in prompt
+    assert "never removes the resolved node" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_substitution` for a NuGet manipulation"
+        in prompt.replace("\n", " ")
+    )
+    assert "Keep `dotnet list package` output bounded" in prompt.replace("\n", " ")
+    assert "list every governing file in" in prompt.replace("\n", " ")
+    assert "`bundler.gemfile_requirement`" in prompt
+    assert "`bundler.gemspec_requirement`" in prompt
+    assert "`bundler.transitive_pin`" in prompt
+    assert "`bundler.lockfile_edit`" in prompt
+    assert "`bundler.source_redirect`" in prompt
+    assert "`bundler.gem_source`" in prompt
+    assert "`bundler.require_false`" in prompt
+    assert "`gem@version`" in prompt
+    assert "a fork redirect keeps the gem name" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_removal` or `dependency_substitution` for a "
+        "Bundler manipulation" in prompt.replace("\n", " ")
+    )
+    assert "Keep `bundle list`/`gem dependency` output bounded" in prompt.replace(
+        "\n", " "
+    )
+    assert "`cargo.manifest_requirement`" in prompt
+    assert "`cargo.workspace_dependency`" in prompt
+    assert "`cargo.transitive_pin`" in prompt
+    assert "`cargo.lockfile_pin`" in prompt
+    assert "`cargo.patch_version`" in prompt
+    assert "`cargo.patch_source`" in prompt
+    assert "`cargo.source_replacement`" in prompt
+    assert "`cargo.feature_suppression`" in prompt
+    assert "`cargo.package_rename`" in prompt
+    assert "`crate@version`" in prompt
+    assert "can also drop optional dependency nodes" in prompt.replace("\n", " ")
+    assert "Keep `cargo tree` output bounded" in prompt.replace("\n", " ")
+    assert "no removal or substitution construct" in prompt.replace("\n", " ")
+    assert (
+        "never claim `dependency_removal` or `dependency_substitution` for a "
+        "Python manipulation" in prompt.replace("\n", " ")
+    )
+    assert "`checked_at` with the attempt time (never null)" in prompt
+    assert "Maven manipulations are type-driven" in prompt
+    assert "`maven.<type>`" in prompt
+    assert "Gradle manipulations keep `type` null" in prompt
+    assert "`gradle.version_catalog`" in prompt
+    assert "`gradle.resolution_strategy_force`" in prompt
+    assert "`gradle.dependency_substitution`" in prompt
+    assert "keep `dependencyInsight` output" in prompt
+    assert "bounded to the affected configuration" in prompt
+    assert "UIA cannot\nwaive this" in prompt or "UIA cannot waive this" in prompt
     assert "Validation Command Selection" in prompt
     assert "Never clean validation artifacts in the user's worktree" in prompt
     assert "the user worktree must remain byte-for-byte unchanged" in prompt
@@ -179,9 +317,18 @@ def test_sca_remediation_agent_generated_catalog_surface(tmp_path):
     assert "project-specific layout" not in prompt
     assert "services/api-gateway/pom.xml dependency:resolve" not in prompt
     assert "remediation/sca/<normalized-package-name>-<target-version>" in prompt
+    assert "a Go `+incompatible` target version becomes" in prompt.replace("\n", " ")
+    assert "`-incompatible`" in prompt
+    assert (
+        "never omit or null the counters for a selected remediation"
+        in prompt.replace("\n", " ")
+    )
     assert "remediation/sca/golang.org-x-crypto-v0.48.0" in prompt
+    assert "remediation/sca/newtonsoft.json-13.0.1" in prompt
+    assert "remediation/sca/addressable-2.8.0" in prompt
+    assert "remediation/sca/regex-1.5.5" in prompt
     assert "Do not keep package-path slashes after `remediation/sca/`" in prompt
-    assert "Do not use unrelated branch families such as" in prompt
+    assert "Do not use unrelated branch families such as" in prompt.replace("\n", " ")
     assert "`endor/fix/...`" in prompt
     assert "copy the final branch into every" in prompt
     assert "selected_remediation.branch_name" in prompt
@@ -323,4 +470,31 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "no-local-checkout-degrades-to-evidence-only",
         "explicit-namespace-does-not-expose-auth-config",
         "checkout-without-provider-write-stops-before-pr",
+        "maven-managed-version-property-preferred",
+        "maven-direct-parent-override-requires-evidence",
+        "maven-bare-exclusion-blocked",
+        "maven-declared-bridge-validation-required",
+        "maven-unrelated-exclusion-ignored",
     }.issubset(ids)
+
+
+def test_audit_skeleton_package_manager_tokens_match_supported_profiles():
+    # PR 51 review: the JSON skeleton's package_manager line went stale at
+    # "maven | gradle" while the prose enum listed all 13 managers, and the
+    # skeleton is what prompt-only hosts copy. Pin the skeleton tokens to the
+    # profile registry so the two can never drift again.
+    from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+        SUPPORTED_PROFILES,
+    )
+
+    instructions = (
+        repo_root() / "source" / "agents" / "sca-remediation" / "instructions.md"
+    ).read_text(encoding="utf-8")
+    marker = '"package_manager": "'
+    start = instructions.index(marker) + len(marker)
+    skeleton_tokens = {
+        token.strip()
+        for token in instructions[start : instructions.index('"', start)].split("|")
+    }
+
+    assert skeleton_tokens == {profile.name for profile in SUPPORTED_PROFILES}

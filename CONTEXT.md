@@ -105,6 +105,14 @@ _Avoid_: phase string, mode flag
 The mechanical validation, rendering, and linting rules for one Endor workflow agent's output at a Workflow Gate. Workflow Output Contracts live behind gate-local modules so CLI commands and tests exercise the same gate Interface instead of reconstructing JSON and PR/MR body rules directly.
 _Avoid_: output helper, validation util
 
+**Dependency Graph Audit**:
+The structured `dependency_graph_audit` object a selected SCA remediation must carry, plus the shared fail-closed state machine that validates it: classification whitelists per manipulation kind, status forcing, evidence and risk-decision coupling, and normalized output caps. A selection always demands an audit; unsupported package managers report the honest unavailable-and-empty shape instead of omitting it.
+_Avoid_: manifest check, graph lint
+
+**Package Manager Audit Profile**:
+One package manager's dependency-graph audit vocabulary — ecosystem aliases, manifest and coordinate shapes, manipulation mechanisms mapped onto the four semantic kinds (native, override, removal, substitution), and the replacement coordinate pattern. Profiles own manager-specific vocabulary only; the shared audit engine in `package_managers/_base.py` owns the semantic rules, so the 13 supported managers never fork the state machine.
+_Avoid_: ecosystem config, manager plugin
+
 **Publication Interface**:
 The current caller-facing functions `publish_recipe()` and `publish_recipes()`. The Publication Interface should stay stable while Host Artifact Publication is deepened underneath it.
 _Avoid_: new public entrypoint, replacement command
