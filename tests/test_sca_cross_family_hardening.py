@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 
 from endor_agent_kit.sca_remediation import validate_sca_gate_payload
+from endor_agent_kit.structured_output_contracts import json_schema_for_agent
 from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
     SUPPORTED_PROFILES,
 )
@@ -488,7 +489,11 @@ def test_unrecognized_ecosystem_selection_without_audit_fails_closed():
 def test_unsupported_ecosystem_unavailable_audit_passes():
     # Companion guard: managers outside the 13 profiles (composer, conan)
     # stay remediable — the honest unavailable-and-empty audit shape must
-    # keep passing once the fail-closed rule above lands.
+    # keep passing once the fail-closed rule above lands. package_manager is
+    # null, not the manager's own token: the transport schema's enum admits
+    # only the 13 profile names plus null, so any other string would be
+    # rejected by a schema-constrained host before the runtime validator
+    # ever saw it.
     payload = _valid_go_payload()
     payload["selected_remediation"]["package"] = "zlib"
     payload["selected_remediation"]["manifests"] = ["conanfile.py"]
@@ -499,7 +504,7 @@ def test_unsupported_ecosystem_unavailable_audit_passes():
     key["manifest"] = "conanfile.py"
     payload["patch_plan"][0]["file"] = "conanfile.py"
     payload["dependency_graph_audit"] = {
-        "package_manager": "conan",
+        "package_manager": None,
         "status": "unavailable",
         "manifest": None,
         "dependency_path": [],
@@ -510,3 +515,7 @@ def test_unsupported_ecosystem_unavailable_audit_passes():
     errors = validate_sca_gate_payload(payload, gate="selection-plan")
 
     assert not any("dependency_graph_audit" in error for error in errors), errors
+    audit_enum = json_schema_for_agent("sca-remediation")["properties"][
+        "dependency_graph_audit"
+    ]["properties"]["package_manager"]["enum"]
+    assert None in audit_enum and "conan" not in audit_enum

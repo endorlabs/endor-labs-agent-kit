@@ -3,16 +3,45 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `2.2.1`. Merging to `main` does not
+The current generated package version is `2.2.2`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
-## Unreleased
+## 2.2.2 - 2026-08-27
 
 ### Fixed
 
+- PR 51 review hardening of the dependency-graph audit gate:
+  `dependency_graph_audit.manifest` is now required for every
+  content-bearing status (only `unavailable` passes manifest-free), the
+  audited-manifest membership set is anchored by the required
+  `change_requests[0].inventory.key.manifest` so a selection that omits its
+  optional manifest lists can no longer launder an arbitrary audited
+  manifest, and a selected remediation with zero package-manager detections
+  fails closed demanding the audit object instead of skipping the audit
+  requirement entirely. Managers without an audit profile (Composer, Swift)
+  report `package_manager: null` with `status: "unavailable"` and remediate
+  normally, deliberately capped at `approved_with_validation_required` —
+  never `approved_low_risk` — because no manager-specific graph-safety audit
+  backs the change.
+- The `dependency_graph_audit` JSON skeleton in the sca-remediation
+  instructions listed only `maven | gradle`; it now carries all 13 supported
+  managers, and a drift test pins the skeleton tokens to
+  `SUPPORTED_PROFILES` so the two cannot diverge again.
+- `_dependency_graph_audit_schema` now derives its vocabulary (statuses,
+  classifications, semantic effects, manager names, Maven type union,
+  graph/runtime kinds, and the output caps) from the audit engine's
+  constants in `package_managers/_base.py` instead of restating them as
+  literals, with a lockstep test guarding the wiring; the engine's
+  disguise-folding and version-normalization helpers are exported on the
+  package surface (`fold_disguises`, `normalize_version_token`).
+- The substitution rules in the shared audit engine each ran with an
+  untested twin: new tests drive every substitution classification,
+  semantic-effect coupling, validation-requirement, and status-forcing
+  branch (including both `replacement_conflict_or_incomplete` rules),
+  taking `package_managers/_base.py` to 100% statement and branch coverage.
 - Cross-family dependency-graph audit hardening (close-out sweep over the
   per-family red-team residuals): every replacement pattern is now
   ASCII-only, so fullwidth lookalike digits can no longer satisfy an
