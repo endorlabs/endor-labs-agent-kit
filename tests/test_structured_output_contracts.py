@@ -495,9 +495,33 @@ def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
         },
     )
 
-    assert "evidence_queries[0].query: unsupported ledger field" in errors
-    assert "evidence_queries[0].name: required" in errors
-    assert "evidence_queries[0].source: required" in errors
+    assert (
+        "evidence_queries[0].query: unsupported ledger field; supported fields "
+        "are name, resource, source, status, query_template_id, filter_summary, "
+        "field_mask_summary, result_count, list_all, artifact, reason"
+    ) in errors
+    assert "evidence_queries[0].name: must be a non-empty string" in errors
+    assert "evidence_queries[0].source: must be a non-empty string" in errors
+
+
+def test_required_text_field_error_is_identical_with_and_without_unsupported_fields():
+    def errors_for(row: dict) -> list[str]:
+        return [
+            error
+            for error in validate_structured_output_payload(
+                "remediation-planning",
+                {"evidence_queries": [row], "data_gaps": []},
+                ("evidence_queries", "data_gaps"),
+            )
+            if ".name:" in error
+        ]
+
+    clean_row = _succeeded_row(name="")
+    noisy_row = _succeeded_row(name="")
+    noisy_row["query"] = "raw query text"
+    assert errors_for(clean_row) == errors_for(noisy_row) == [
+        "evidence_queries[0].name: must be a non-empty string"
+    ]
 
 
 def test_structured_output_contract_requires_canonical_evidence_source():
@@ -521,7 +545,8 @@ def test_structured_output_contract_requires_canonical_evidence_source():
 
     assert errors == [
         "evidence_queries[0].source: must be one of endorctl_agent_api, "
-        "endor_mcp, local_repository, user_input, public_docs"
+        "endor_mcp, local_repository, user_input, public_docs "
+        "(received 'endorctl_api')"
     ]
 
     row["source"] = "endorctl_agent_api"
@@ -556,8 +581,9 @@ def test_large_result_evidence_requires_authoritative_artifact_metadata():
 
     assert errors == [
         "evidence_queries[0].artifact: required for a successful complete-inventory "
-        "route; provide artifact_ref, sha256, format, bytes, and row_count from the "
-        "artifact summarizer"
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
     ]
 
 
@@ -837,8 +863,9 @@ def test_list_all_true_requires_artifact_metadata():
     )
     assert errors == [
         "evidence_queries[0].artifact: required for a successful complete-inventory "
-        "route; provide artifact_ref, sha256, format, bytes, and row_count from the "
-        "artifact summarizer"
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
     ]
 
 
@@ -890,8 +917,9 @@ def test_legacy_affirmative_list_all_prose_still_requires_artifact():
     )
     assert errors == [
         "evidence_queries[0].artifact: required for a successful complete-inventory "
-        "route; provide artifact_ref, sha256, format, bytes, and row_count from the "
-        "artifact summarizer"
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
     ]
 
 
@@ -904,6 +932,7 @@ def test_artifact_object_fields_are_validated_individually():
             "format": "json",
             "bytes": 0,
             "row_count": -1,
+            "pages": 3,
         },
     )
     errors = validate_structured_output_payload(
@@ -912,6 +941,8 @@ def test_artifact_object_fields_are_validated_individually():
         ("evidence_queries", "data_gaps"),
     )
     assert errors == [
+        "evidence_queries[0].artifact.pages: unsupported artifact field; supported "
+        "fields are artifact_ref, sha256, format, bytes, row_count",
         "evidence_queries[0].artifact.artifact_ref: must be a non-empty string",
         "evidence_queries[0].artifact.sha256: must be a 64-character lowercase hex digest",
         "evidence_queries[0].artifact.bytes: must be a positive integer",
@@ -1112,4 +1143,49 @@ def test_widened_claim_fields_require_nonempty_ledger():
     assert errors == [
         "evidence_queries: required when current Endor or repository evidence is claimed"
     ]
+
+
+def test_query_template_ids_unchecked_without_allowlist():
+    payload = _minimal_ledger_payload(
+        _succeeded_row(query_template_id="completely-made-up-id")
+    )
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_query_template_ids_validated_against_allowlist():
+    payload = _minimal_ledger_payload(
+        _succeeded_row(query_template_id="completely-made-up-id")
+    )
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("evidence_queries", "data_gaps"),
+        allowed_query_template_ids={"project-by-git", "version-upgrade-summary"},
+    )
+    assert errors == [
+        "evidence_queries[0].query_template_id: 'completely-made-up-id' is not "
+        "a known query recipe id for this workflow; copy the id of the recipe "
+        "that was actually executed or set it to null"
+    ]
+
+
+def test_query_template_ids_allowlist_accepts_known_and_null_ids():
+    known = _succeeded_row(query_template_id="project-by-git")
+    unattributed = _succeeded_row(
+        name="local manifest scan",
+        resource="repository",
+        source="local_repository",
+        query_template_id=None,
+    )
+    payload = {"evidence_queries": [known, unattributed], "data_gaps": []}
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("evidence_queries", "data_gaps"),
+        allowed_query_template_ids={"project-by-git"},
+    ) == []
 

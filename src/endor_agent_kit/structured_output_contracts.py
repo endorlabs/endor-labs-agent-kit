@@ -352,8 +352,15 @@ def validate_structured_output_payload(
     agent_id: str,
     payload: dict[str, Any],
     output_fields: tuple[str, ...] | None = None,
+    *,
+    allowed_query_template_ids: frozenset[str] | set[str] | None = None,
 ) -> list[str]:
-    """Validate top-level field presence and basic JSON value shapes."""
+    """Validate top-level field presence and basic JSON value shapes.
+
+    ``allowed_query_template_ids`` is supplied by callers that know the
+    knowledge-pack recipe inventory (see ``profile_contracts``); this module
+    stays a leaf and never computes the set itself. ``None`` disables the check.
+    """
 
     contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
@@ -379,7 +386,11 @@ def validate_structured_output_payload(
             errors.append(
                 f"{field.name}: must be one of {', '.join(enum_values)}"
             )
-    errors.extend(_evidence_query_ledger_errors(payload))
+    errors.extend(
+        _evidence_query_ledger_errors(
+            payload, allowed_query_template_ids=allowed_query_template_ids
+        )
+    )
     errors.extend(_project_scope_resolution_errors(payload))
     errors.extend(_summary_count_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
@@ -1624,7 +1635,11 @@ _LEGACY_LIST_ALL_NEGATION_RE = re.compile(
 )
 
 
-def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
+def _evidence_query_ledger_errors(
+    payload: dict[str, Any],
+    *,
+    allowed_query_template_ids: frozenset[str] | set[str] | None = None,
+) -> list[str]:
     evidence_queries = payload.get("evidence_queries")
     if not isinstance(evidence_queries, list):
         return []
@@ -1634,24 +1649,22 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
         if not isinstance(item, dict):
             errors.append(f"evidence_queries[{index}]: must be an object")
             continue
-        has_unsupported_fields = False
         for field in item:
             if field not in EVIDENCE_QUERY_LEDGER_FIELDS:
-                has_unsupported_fields = True
-                errors.append(f"evidence_queries[{index}].{field}: unsupported ledger field")
+                errors.append(
+                    f"evidence_queries[{index}].{field}: unsupported ledger field; "
+                    f"supported fields are {', '.join(EVIDENCE_QUERY_LEDGER_FIELDS)}"
+                )
         for field in EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS:
             if not _text(item.get(field)):
-                suffix = (
-                    "required"
-                    if has_unsupported_fields and field in {"name", "source"}
-                    else "must be a non-empty string"
+                errors.append(
+                    f"evidence_queries[{index}].{field}: must be a non-empty string"
                 )
-                errors.append(f"evidence_queries[{index}].{field}: {suffix}")
         source = _text(item.get("source"))
         if source and source not in EVIDENCE_QUERY_SOURCE_VALUES:
             errors.append(
                 f"evidence_queries[{index}].source: must be one of "
-                f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)}"
+                f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)} (received {source!r})"
             )
         for field in EVIDENCE_QUERY_LEDGER_FIELDS:
             if (
@@ -1692,6 +1705,17 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
             elif not _text(item.get("reason")) and not data_gaps:
                 errors.append(f"evidence_queries[{index}].reason: required for unavailable or failed evidence")
         query_template_id = _text(item.get("query_template_id"))
+        if (
+            allowed_query_template_ids is not None
+            and query_template_id
+            and query_template_id not in allowed_query_template_ids
+        ):
+            errors.append(
+                f"evidence_queries[{index}].query_template_id: "
+                f"{query_template_id!r} is not a known query recipe id for this "
+                "workflow; copy the id of the recipe that was actually executed "
+                "or set it to null"
+            )
         complete_route = (
             list_all is True
             or query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
@@ -1706,8 +1730,10 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
         ):
             errors.append(
                 f"evidence_queries[{index}].artifact: required for a successful "
-                "complete-inventory route; provide artifact_ref, sha256, format, "
-                "bytes, and row_count from the artifact summarizer"
+                "complete-inventory route; copy the artifact summarizer output "
+                "into artifact {artifact_ref, sha256, format, bytes, row_count} "
+                "or into reason as "
+                '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
             )
     return errors
 
@@ -1728,7 +1754,8 @@ def _artifact_metadata_errors(index: int, artifact: Any) -> list[str]:
     for field in artifact:
         if field not in EVIDENCE_QUERY_ARTIFACT_FIELDS:
             errors.append(
-                f"evidence_queries[{index}].artifact.{field}: unsupported artifact field"
+                f"evidence_queries[{index}].artifact.{field}: unsupported artifact "
+                f"field; supported fields are {', '.join(EVIDENCE_QUERY_ARTIFACT_FIELDS)}"
             )
     if not _text(artifact.get("artifact_ref")):
         errors.append(

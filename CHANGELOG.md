@@ -46,6 +46,25 @@ package metadata.
     evidence-claim field list also gained `affected_package_set`,
     `finding_results`, `github_evidence`, `impacted_projects`, and
     `manifests`.
+- Contract hardening (agent-excellence PR 1, item 7):
+  - `evidence_queries[].query_template_id` is now validated against the real
+    knowledge-pack recipe inventory when payloads are checked through a task
+    profile: `profile_contracts.validate_profile_output_payload` computes the
+    allowed set (canonical recipe ids plus the agent workflow's recipe ids)
+    and passes it to the contract validator via the new optional
+    `allowed_query_template_ids` argument, keeping
+    `structured_output_contracts` a leaf module. Fabricated template ids are
+    rejected with the received value echoed; null ids (for local or
+    user-input evidence) remain allowed.
+- Contract hardening (agent-excellence PR 1, item 8):
+  - Evidence-ledger validation errors are now uniformly actionable: the
+    unsupported-field errors list the supported field names, the `source`
+    error echoes the received value, the required-artifact error includes
+    both accepted formats (the structured `artifact` object and the legacy
+    `reason` metadata template), and the required-text-field message no
+    longer changes wording based on unrelated unsupported fields in the same
+    row (the accidental `required` / `must be a non-empty string` coupling is
+    removed).
 ## 2.2.2 - 2026-08-27
 
 ### Fixed

@@ -435,3 +435,54 @@ def test_serialized_profile_contract_round_trips_and_rejects_tampering():
     with pytest.raises(ValueError, match="output_fields do not match schema properties"):
         profile_contract_from_dict(tampered)
 
+
+def test_profile_validation_rejects_fabricated_query_template_ids():
+    payload = {
+        "evidence_queries": [
+            {
+                "name": "scoped finding availability",
+                "resource": "Finding",
+                "source": "endorctl_agent_api",
+                "status": "succeeded",
+                "query_template_id": "finding-count-by-severity-invented",
+                "filter_summary": "project-scoped",
+                "field_mask_summary": "uuid",
+                "result_count": 3,
+                "reason": "Scoped availability returned.",
+            }
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_profile_output_payload("sca-remediation", "evidence-check", payload)
+    assert (
+        "evidence_queries[0].query_template_id: 'finding-count-by-severity-invented' "
+        "is not a known query recipe id for this workflow; copy the id of the recipe "
+        "that was actually executed or set it to null"
+    ) in errors
+
+
+def test_profile_validation_accepts_canonical_and_workflow_recipe_ids():
+    def row(template_id: str) -> dict:
+        return {
+            "name": f"row for {template_id}",
+            "resource": "Project",
+            "source": "endorctl_agent_api",
+            "status": "succeeded",
+            "query_template_id": template_id,
+            "filter_summary": "scoped",
+            "field_mask_summary": "uuid",
+            "result_count": 1,
+            "reason": "Returned.",
+        }
+
+    payload = {
+        "evidence_queries": [
+            row("project-by-git"),
+            row("finding-availability"),
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_profile_output_payload(
+        "remediation-planning", "selection-plan", payload
+    )
+    assert not [error for error in errors if "query_template_id" in error]
