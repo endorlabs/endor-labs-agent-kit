@@ -29,6 +29,15 @@ POLICY_OUTPUT_FIELDS = (
 
 
 ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
+    # Must stay set-equal to workflow_output_contracts.cicd_posture VERDICT_BANDS;
+    # this module is a leaf, so a lockstep test enforces the pairing instead of an import.
+    ("cicd-posture", "posture_verdict"): (
+        "HEALTHY",
+        "NEEDS_ATTENTION",
+        "HIGH_RISK",
+        "CRITICAL",
+        "INSUFFICIENT_DATA",
+    ),
     ("configuration-automation", "onboarding_verdict"): (
         "READY_TO_ONBOARD",
         "PARTIAL_COVERAGE",
@@ -52,6 +61,48 @@ ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
         "HIGH",
         "CRITICAL",
         "UNKNOWN",
+    ),
+    ("findings-browser", "findings_verdict"): (
+        "EXACT_FINDING_FOUND",
+        "ACTIVE_FINDINGS_FOUND",
+        "NO_MATCHING_FINDINGS",
+        "PARTIAL_RESULTS",
+        "INSUFFICIENT_DATA",
+    ),
+    ("malware-responder", "incident_verdict"): (
+        "CONFIRMED_EXPOSURE",
+        "POSSIBLE_EXPOSURE",
+        "NOT_OBSERVED",
+        "INSUFFICIENT_DATA",
+    ),
+    ("oss-upgrade-investigator", "upgrade_recommendation"): (
+        "UPGRADE_NOW",
+        "UPGRADE_WITH_CAUTION",
+        "DEFER",
+        "INSUFFICIENT_DATA",
+    ),
+    ("oss-upgrade-investigator", "risk_delta"): (
+        "LOWER",
+        "SAME",
+        "HIGHER",
+        "UNKNOWN",
+    ),
+    # PROJECT_NOT_FOUND is commanded by the zero-match rule in the troubleshooting
+    # instructions even though the verdict list there omits it; both are honored here.
+    ("troubleshooting", "troubleshooting_verdict"): (
+        "ACTIONABLE_FIX_IDENTIFIED",
+        "LIKELY_ROOT_CAUSE_IDENTIFIED",
+        "PARTIAL_DIAGNOSIS",
+        "PROJECT_NOT_FOUND",
+        "INSUFFICIENT_DATA",
+        "SUPPORT_ESCALATION_RECOMMENDED",
+        "NO_ISSUE_FOUND",
+    ),
+    ("vulnerability-explainer", "action"): (
+        "CRITICAL_ACTION_REQUIRED",
+        "ACTION_RECOMMENDED",
+        "MONITOR",
+        "INSUFFICIENT_DATA",
     ),
 }
 
@@ -987,11 +1038,27 @@ def _evidence_queries_schema() -> dict[str, Any]:
                     "type": ["string", "null"],
                     "enum": [*EVIDENCE_QUERY_SOURCE_VALUES, None],
                 },
-                "status": _nullable_string(),
+                "status": {
+                    "type": ["string", "null"],
+                    "enum": [*EVIDENCE_QUERY_STATUS_VALUES, None],
+                },
                 "query_template_id": _nullable_string(),
                 "filter_summary": _nullable_string(),
                 "field_mask_summary": _nullable_string(),
                 "result_count": _nullable_integer(),
+                "list_all": _nullable_boolean(),
+                "artifact": _with_nullable(
+                    _strict_object_schema(
+                        {
+                            "artifact_ref": {"type": "string"},
+                            "sha256": {"type": "string"},
+                            "format": {"type": "string"},
+                            "bytes": {"type": "integer"},
+                            "row_count": {"type": "integer"},
+                        }
+                    ),
+                    nullable=True,
+                ),
                 "reason": _nullable_string(),
             }
         ),
@@ -1512,6 +1579,8 @@ EVIDENCE_QUERY_LEDGER_FIELDS = (
     "filter_summary",
     "field_mask_summary",
     "result_count",
+    "list_all",
+    "artifact",
     "reason",
 )
 
@@ -1523,13 +1592,16 @@ EVIDENCE_QUERY_SOURCE_VALUES = (
     "user_input",
     "public_docs",
 )
-EVIDENCE_QUERY_GAP_STATUSES = (
-    "blocked",
-    "error",
-    "failed",
-    "lookup_unavailable",
-    "no_results",
-    "unavailable",
+# Must stay identical to the taught ledger vocabulary in compilers/rendering.py.
+EVIDENCE_QUERY_STATUS_VALUES = ("succeeded", "failed", "skipped", "unavailable")
+EVIDENCE_QUERY_SUCCESS_STATUSES = frozenset({"succeeded"})
+EVIDENCE_QUERY_GAP_STATUSES = frozenset({"failed", "skipped", "unavailable"})
+EVIDENCE_QUERY_ARTIFACT_FIELDS = (
+    "artifact_ref",
+    "sha256",
+    "format",
+    "bytes",
+    "row_count",
 )
 LARGE_RESULT_ARTIFACT_QUERY_IDS = frozenset(
     {
@@ -1538,12 +1610,15 @@ LARGE_RESULT_ARTIFACT_QUERY_IDS = frozenset(
         "tenant-package-inventory",
     }
 )
-EVIDENCE_QUERY_SUCCESS_STATUSES = frozenset(
-    {"completed", "confirmed", "ok", "success", "succeeded"}
-)
 ARTIFACT_METADATA_RE = re.compile(
     r"artifact_ref=[^;\s]+;sha256=[0-9a-f]{64};"
     r"format=[A-Za-z0-9._+-]+;bytes=[1-9][0-9]*"
+)
+_SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
+_LEGACY_LIST_ALL_NEGATION_RE = re.compile(
+    r"(?:\b(?:no|not|without|omit\w*|skip\w*)\b[^.;]{0,40}list-all)"
+    r"|(?:list-all\s*(?:==|=|:)\s*false\b)"
+    r"|(?:list-all[^.;]{0,20}\bnot\b)"
 )
 
 
@@ -1577,34 +1652,105 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
                 f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)}"
             )
         for field in EVIDENCE_QUERY_LEDGER_FIELDS:
-            if field == "result_count" or field not in item or item[field] is None:
+            if (
+                field in {"result_count", "list_all", "artifact"}
+                or field not in item
+                or item[field] is None
+            ):
                 continue
             if not isinstance(item[field], str):
                 errors.append(f"evidence_queries[{index}].{field}: must be a string or null")
         if "result_count" in item and item["result_count"] is not None:
             if isinstance(item["result_count"], bool) or not isinstance(item["result_count"], int):
                 errors.append(f"evidence_queries[{index}].result_count: must be an integer or null")
-        status = _text(item.get("status")).lower()
-        if any(marker in status for marker in EVIDENCE_QUERY_GAP_STATUSES):
-            if not _text(item.get("reason")) and not data_gaps:
+        list_all = item.get("list_all")
+        if "list_all" in item and list_all is not None and not isinstance(list_all, bool):
+            errors.append(
+                f"evidence_queries[{index}].list_all: must be true, false, or null"
+            )
+            list_all = None
+        artifact = item.get("artifact")
+        artifact_valid = False
+        if "artifact" in item and artifact is not None:
+            artifact_errors = _artifact_metadata_errors(index, artifact)
+            errors.extend(artifact_errors)
+            artifact_valid = not artifact_errors
+        status = _text(item.get("status"))
+        if status and status not in EVIDENCE_QUERY_STATUS_VALUES:
+            errors.append(
+                f"evidence_queries[{index}].status: must be one of "
+                f"{', '.join(EVIDENCE_QUERY_STATUS_VALUES)} (received {status!r})"
+            )
+        if status in EVIDENCE_QUERY_GAP_STATUSES:
+            if status == "skipped":
+                if not _text(item.get("reason")):
+                    errors.append(
+                        f"evidence_queries[{index}].reason: required when status is skipped"
+                    )
+            elif not _text(item.get("reason")) and not data_gaps:
                 errors.append(f"evidence_queries[{index}].reason: required for unavailable or failed evidence")
         query_template_id = _text(item.get("query_template_id"))
-        filter_summary = _text(item.get("filter_summary")).lower()
-        list_all_delivery = "list-all" in filter_summary and not re.search(
-            r"list-all\s*(?:==|=|:)\s*false\b", filter_summary
+        complete_route = (
+            list_all is True
+            or query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
+            or (list_all is None and _legacy_list_all_delivery(item.get("filter_summary")))
         )
         if (
             status in EVIDENCE_QUERY_SUCCESS_STATUSES
-            and (
-                query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
-                or list_all_delivery
-            )
+            and complete_route
+            and not artifact_valid
+            and "artifact" not in item
             and not ARTIFACT_METADATA_RE.search(_text(item.get("reason")))
         ):
             errors.append(
-                f"evidence_queries[{index}].reason: successful large-result route "
-                "requires artifact_ref, sha256, format, and bytes metadata"
+                f"evidence_queries[{index}].artifact: required for a successful "
+                "complete-inventory route; provide artifact_ref, sha256, format, "
+                "bytes, and row_count from the artifact summarizer"
             )
+    return errors
+
+
+def _legacy_list_all_delivery(filter_summary: Any) -> bool:
+    """Prose fallback for rows that predate the structured `list_all` boolean."""
+
+    summary = _text(filter_summary).lower()
+    if "list-all" not in summary:
+        return False
+    return not _LEGACY_LIST_ALL_NEGATION_RE.search(summary)
+
+
+def _artifact_metadata_errors(index: int, artifact: Any) -> list[str]:
+    if not isinstance(artifact, dict):
+        return [f"evidence_queries[{index}].artifact: must be an object or null"]
+    errors: list[str] = []
+    for field in artifact:
+        if field not in EVIDENCE_QUERY_ARTIFACT_FIELDS:
+            errors.append(
+                f"evidence_queries[{index}].artifact.{field}: unsupported artifact field"
+            )
+    if not _text(artifact.get("artifact_ref")):
+        errors.append(
+            f"evidence_queries[{index}].artifact.artifact_ref: must be a non-empty string"
+        )
+    sha256 = artifact.get("sha256")
+    if not isinstance(sha256, str) or not _SHA256_HEX_RE.fullmatch(sha256):
+        errors.append(
+            f"evidence_queries[{index}].artifact.sha256: must be a 64-character lowercase hex digest"
+        )
+    if not _text(artifact.get("format")):
+        errors.append(
+            f"evidence_queries[{index}].artifact.format: must be a non-empty string"
+        )
+    size = artifact.get("bytes")
+    if isinstance(size, bool) or not isinstance(size, int) or size <= 0:
+        errors.append(
+            f"evidence_queries[{index}].artifact.bytes: must be a positive integer"
+        )
+    row_count = artifact.get("row_count")
+    if isinstance(row_count, bool) or not isinstance(row_count, int) or row_count < 0:
+        errors.append(
+            f"evidence_queries[{index}].artifact.row_count: must be a non-negative integer"
+        )
     return errors
 
 

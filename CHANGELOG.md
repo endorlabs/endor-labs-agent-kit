@@ -9,6 +9,29 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
+## Unreleased
+
+### Changed
+
+- Contract hardening (agent-excellence PR 1, items 1-3):
+  - Pinned seven previously free-text verdict vocabularies as closed enums in
+    `ENUM_FIELD_VALUES`: `cicd-posture.posture_verdict` (locksteps with the
+    posture gate's `VERDICT_BANDS`), `troubleshooting.troubleshooting_verdict`,
+    `findings-browser.findings_verdict`, `malware-responder.incident_verdict`,
+    `oss-upgrade-investigator.upgrade_recommendation` and `.risk_delta`, and
+    `vulnerability-explainer.action`. Unlisted verdict values are now rejected
+    with the allowed list in the error.
+  - Closed the evidence-ledger `status` vocabulary to exactly
+    `succeeded | failed | skipped | unavailable` (matching the taught ledger
+    guidance); substring status matching and the legacy success aliases
+    (`ok`, `success`, `completed`, `confirmed`) are gone, and `skipped` rows
+    now always require a `reason`.
+  - Added structured `list_all` (boolean) and `artifact`
+    (`artifact_ref`/`sha256`/`format`/`bytes`/`row_count`) evidence-ledger row
+    fields. A successful complete-inventory route (explicit `list_all: true`
+    or a large-result query template) now requires validated artifact
+    metadata; `list_all: false` bypasses the legacy prose heuristic entirely,
+    and negated prose such as "no --list-all used" no longer false-positives.
 ## 2.2.2 - 2026-08-27
 
 ### Fixed

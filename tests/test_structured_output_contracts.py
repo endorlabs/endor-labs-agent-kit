@@ -118,7 +118,16 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
         "filter_summary",
         "field_mask_summary",
         "result_count",
+        "list_all",
+        "artifact",
         "reason",
+    ]
+    assert evidence_query["properties"]["status"]["enum"] == [
+        "succeeded",
+        "failed",
+        "skipped",
+        "unavailable",
+        None,
     ]
     assert evidence_query["properties"]["source"]["enum"] == [
         "endorctl_agent_api",
@@ -533,8 +542,9 @@ def test_large_result_evidence_requires_authoritative_artifact_metadata():
     )
 
     assert errors == [
-        "evidence_queries[0].reason: successful large-result route requires "
-        "artifact_ref, sha256, format, and bytes metadata"
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; provide artifact_ref, sha256, format, bytes, and row_count from the "
+        "artifact summarizer"
     ]
 
 
@@ -547,7 +557,7 @@ def test_large_result_evidence_accepts_authoritative_artifact_metadata():
                     "name": "complete package inventory",
                     "resource": "PackageVersion",
                     "source": "endorctl_agent_api",
-                    "status": "success",
+                    "status": "succeeded",
                     "query_template_id": "tenant-package-inventory",
                     "filter_summary": "named package inventory",
                     "field_mask_summary": "uuid,meta.name",
@@ -683,3 +693,249 @@ def test_dependency_graph_audit_schema_matches_audit_engine_constants() -> None:
         == MAX_VALIDATION_REQUIREMENTS
     )
     assert manipulation["properties"]["evidence"]["maxItems"] == MAX_EVIDENCE_ITEMS
+
+
+def _minimal_ledger_payload(row: dict) -> dict:
+    return {"evidence_queries": [row], "data_gaps": []}
+
+
+def _succeeded_row(**overrides) -> dict:
+    row = {
+        "name": "scoped finding groups",
+        "resource": "Finding",
+        "source": "endorctl_agent_api",
+        "status": "succeeded",
+        "query_template_id": "finding-package-severity-groups",
+        "filter_summary": "project-scoped severity groups",
+        "field_mask_summary": "uuid,spec.level",
+        "result_count": 3,
+        "reason": "Scoped severity groups returned.",
+    }
+    row.update(overrides)
+    return row
+
+
+def test_pinned_verdict_enums_reject_unlisted_values():
+    cases = {
+        ("cicd-posture", "posture_verdict"): ("HEALTHY", "MOSTLY_HEALTHY"),
+        ("troubleshooting", "troubleshooting_verdict"): (
+            "ACTIONABLE_FIX_IDENTIFIED",
+            "using_skill",
+        ),
+        ("findings-browser", "findings_verdict"): (
+            "ACTIVE_FINDINGS_FOUND",
+            "FINDINGS_PRESENT",
+        ),
+        ("malware-responder", "incident_verdict"): (
+            "NOT_OBSERVED",
+            "CLEAN",
+        ),
+        ("oss-upgrade-investigator", "upgrade_recommendation"): (
+            "UPGRADE_NOW",
+            "RECOMMENDED",
+        ),
+        ("oss-upgrade-investigator", "risk_delta"): ("LOWER", "REDUCED"),
+        ("vulnerability-explainer", "action"): ("MONITOR", "WATCH"),
+    }
+    from endor_agent_kit.structured_output_contracts import ENUM_FIELD_VALUES
+
+    for (agent_id, field_name), (valid, invalid) in cases.items():
+        allowed = ENUM_FIELD_VALUES[(agent_id, field_name)]
+        assert valid in allowed
+        errors = validate_structured_output_payload(
+            agent_id, {field_name: invalid}, (field_name,)
+        )
+        assert errors == [
+            f"{field_name}: must be one of {', '.join(allowed)}"
+        ]
+        assert validate_structured_output_payload(
+            agent_id, {field_name: valid}, (field_name,)
+        ) == []
+
+
+def test_cicd_posture_verdict_enum_locksteps_with_gate_verdict_bands():
+    from endor_agent_kit.structured_output_contracts import ENUM_FIELD_VALUES
+    from endor_agent_kit.workflow_output_contracts.cicd_posture._implementation import (
+        VERDICT_BANDS,
+    )
+
+    assert set(ENUM_FIELD_VALUES[("cicd-posture", "posture_verdict")]) == VERDICT_BANDS
+
+
+def test_json_schema_pins_posture_verdict_enum_values():
+    schema = json_schema_for_agent("cicd-posture")
+    verdict_schema = schema["properties"]["posture_verdict"]
+    assert verdict_schema["type"] == "string"
+    assert set(verdict_schema["enum"]) == {
+        "HEALTHY",
+        "NEEDS_ATTENTION",
+        "HIGH_RISK",
+        "CRITICAL",
+        "INSUFFICIENT_DATA",
+    }
+
+
+def test_evidence_query_status_must_use_closed_vocabulary():
+    for invalid in ("ok", "success", "completed", "confirmed", "zero_results", "no_results"):
+        errors = validate_structured_output_payload(
+            "remediation-planning",
+            _minimal_ledger_payload(_succeeded_row(status=invalid)),
+            ("evidence_queries", "data_gaps"),
+        )
+        assert errors == [
+            "evidence_queries[0].status: must be one of succeeded, failed, "
+            f"skipped, unavailable (received {invalid!r})"
+        ]
+    for valid in ("succeeded", "failed", "skipped", "unavailable"):
+        errors = validate_structured_output_payload(
+            "remediation-planning",
+            _minimal_ledger_payload(
+                _succeeded_row(status=valid, reason="Scoped lookup attempted.")
+            ),
+            ("evidence_queries", "data_gaps"),
+        )
+        assert errors == []
+
+
+def test_skipped_evidence_query_requires_reason_even_with_data_gaps():
+    payload = _minimal_ledger_payload(_succeeded_row(status="skipped", reason=None))
+    payload["data_gaps"] = ["out_of_scope: source_provider_access was not tested"]
+    errors = validate_structured_output_payload(
+        "remediation-planning", payload, ("evidence_queries", "data_gaps")
+    )
+    assert errors == [
+        "evidence_queries[0].reason: required when status is skipped"
+    ]
+
+
+def test_failed_evidence_query_accepts_data_gaps_in_place_of_reason():
+    payload = _minimal_ledger_payload(_succeeded_row(status="failed", reason=None))
+    payload["data_gaps"] = ["unavailable: Finding lookup failed after retry"]
+    assert validate_structured_output_payload(
+        "remediation-planning", payload, ("evidence_queries", "data_gaps")
+    ) == []
+
+
+def test_list_all_true_requires_artifact_metadata():
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(_succeeded_row(list_all=True)),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; provide artifact_ref, sha256, format, bytes, and row_count from the "
+        "artifact summarizer"
+    ]
+
+
+def test_list_all_true_accepts_structured_artifact_object():
+    row = _succeeded_row(
+        list_all=True,
+        artifact={
+            "artifact_ref": "/tmp/endor-agent-artifacts/result.json",
+            "sha256": "a" * 64,
+            "format": "json",
+            "bytes": 2048,
+            "row_count": 177,
+        },
+    )
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_list_all_false_never_consults_filter_summary_prose():
+    row = _succeeded_row(
+        list_all=False,
+        filter_summary="bounded page of five; list-all delivery not used",
+    )
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_negated_list_all_prose_no_longer_false_positives():
+    row = _succeeded_row(filter_summary="scoped page of 5; no --list-all used")
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_legacy_affirmative_list_all_prose_still_requires_artifact():
+    row = _succeeded_row(filter_summary="complete inventory via --list-all")
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; provide artifact_ref, sha256, format, bytes, and row_count from the "
+        "artifact summarizer"
+    ]
+
+
+def test_artifact_object_fields_are_validated_individually():
+    row = _succeeded_row(
+        list_all=True,
+        artifact={
+            "artifact_ref": "",
+            "sha256": "not-a-digest",
+            "format": "json",
+            "bytes": 0,
+            "row_count": -1,
+        },
+    )
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact.artifact_ref: must be a non-empty string",
+        "evidence_queries[0].artifact.sha256: must be a 64-character lowercase hex digest",
+        "evidence_queries[0].artifact.bytes: must be a positive integer",
+        "evidence_queries[0].artifact.row_count: must be a non-negative integer",
+    ]
+
+
+def test_list_all_must_be_boolean_or_null():
+    row = _succeeded_row(list_all="yes")
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].list_all: must be true, false, or null"
+    ]
+
+
+def test_evidence_queries_schema_pins_status_and_new_fields():
+    schema = json_schema_for_agent("remediation-planning")
+    row_schema = schema["properties"]["evidence_queries"]["items"]
+    assert set(row_schema["properties"]["status"]["enum"]) == {
+        "succeeded",
+        "failed",
+        "skipped",
+        "unavailable",
+        None,
+    }
+    assert row_schema["properties"]["list_all"]["type"] == ["boolean", "null"]
+    artifact_schema = row_schema["properties"]["artifact"]
+    assert artifact_schema["additionalProperties"] is False
+    assert set(artifact_schema["required"]) == {
+        "artifact_ref",
+        "sha256",
+        "format",
+        "bytes",
+        "row_count",
+    }
+

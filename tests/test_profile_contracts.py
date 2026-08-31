@@ -62,8 +62,10 @@ def test_compiled_sca_selection_plan_contract_omits_non_selection_workflow_state
     # 9,605-character contract while replacing the much larger generic object.
     # The cross-ecosystem semantic_effect enum, mechanism field, and
     # selection_blocked sentinel add another 417 measured characters
-    # (11,371 total); keep bounded headroom.
-    assert len(contract.provider_neutral_schema_json) < 11_600
+    # (11,371 total). The closed evidence-ledger status enum plus the structured
+    # list_all/artifact row fields add another 502 measured characters
+    # (11,873 total); keep bounded headroom.
+    assert len(contract.provider_neutral_schema_json) < 12_100
     for omitted_field in (
         "remediation_candidates",
         "patch_plan",
@@ -432,3 +434,4 @@ def test_serialized_profile_contract_round_trips_and_rejects_tampering():
     tampered["output_fields"].append("selected_remediation")
     with pytest.raises(ValueError, match="output_fields do not match schema properties"):
         profile_contract_from_dict(tampered)
+

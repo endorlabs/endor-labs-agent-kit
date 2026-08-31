@@ -23,7 +23,7 @@
             {
               "bytes": 27015,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-evidence-check.md",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
@@ -34,7 +34,7 @@
             {
               "bytes": 26718,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-resolve-scope.md",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "2204635f75a0814b22c710109c8aad477f1ead181e89306cdbcc4ac0e8388fda",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
@@ -45,7 +45,7 @@
             {
               "bytes": 39095,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-selection-plan.md",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
@@ -71,65 +71,65 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "5d85acedd7096e89d8e3ee13bde118521222ba275d2bf7fcd1fdbb54e1f05f7d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "19be6f4fd75bcbf40090e609b4f89072fdf76cadbfde0acf5c6f607d80788930"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "72f9eb7e3af9ca2e15e7b92a7ceeaa746c03b544a2f109c582c508bbe0a70ad3",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "4ad604e67bd99946a8a87f258061faac8161e825d76deaa5ee59b127e156ae57"
             },
             {
-              "bytes": 5463,
+              "bytes": 5876,
               "path": "claude-code/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "ce20166370c89850e20571ee8fe6c1dc8b7b286b5aec4265089950adbb617e2e"
             },
             {
-              "bytes": 3914,
+              "bytes": 4327,
               "path": "claude-code/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "2204635f75a0814b22c710109c8aad477f1ead181e89306cdbcc4ac0e8388fda",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "1cd1e9d808449fb5ab4b80d2618e1cc15f6732eadfd9b9e51d985ddab290227a"
             },
             {
-              "bytes": 53161,
+              "bytes": 53574,
               "path": "claude-code/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "d38bcdba7c1b145ce56dd8756e138b1b005a3ec254481406c1bec8811aaaa110"
             },
             {
               "bytes": 34235,
@@ -180,7 +180,7 @@
             {
               "bytes": 42386,
               "path": "claude-code/cicd-posture/cicd-posture-posture.md",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
@@ -201,39 +201,39 @@
             {
               "bytes": 10413,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "86652a2e01ca29732b33a612312c5189c69523c6cf4ae76c850f1d05f9663f87",
+              "evidence_plan_digest": "140155ecbbaf1e1186387325476db4ff79a6fe696a642feb79de394ec6cec7c2",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/cicd-posture/evidence-plans/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "84652553e9d293099b88839984b1e98da01ea20faf5733a707ecf5828d1c0312"
+              "sha256": "55df5e382d839a8c8dd8d4cd4fe7d5b2204482b5fd883d7d48ddc36586dd59da"
             },
             {
-              "bytes": 57811,
+              "bytes": 58304,
               "path": "claude-code/cicd-posture/profile-contracts/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "26a4b08b46134ff703876936b503fa5b88f839e3bc60c64ce2ba56ad50887de5"
+              "sha256": "864741881204d3e0b35d0125b8c6361cb1366b2de124fe079b55eb7d25fff36b"
             },
             {
-              "bytes": 57818,
+              "bytes": 58311,
               "path": "claude-code/cicd-posture/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "9aab6a67a139048c815ba7c50c02acceafa912cab0809a29c249307b52cee231",
+              "profile_contract_digest": "773dff83ab413c2771a33ba3b6607f2b6df05cf63f495c384adb22a54dc978c4",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f9ea36ed9d44eb7c3d3402006f95ba415e2cab8fb7dfd49a94ac808bde4ae66f"
+              "sha256": "53ee8f02dd2fc9c65c8fb166130465eec33e9ee48eb221b5338c018fcf1045db"
             },
             {
               "bytes": 34235,
@@ -281,7 +281,7 @@
             {
               "bytes": 19922,
               "path": "claude-code/configuration-automation/configuration-automation-evidence-check.md",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
@@ -302,50 +302,50 @@
             {
               "bytes": 16426,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "3aa181c7ec5fabff37aa36a1fec06f9149a753a1531afbd2f927fb3403f3def8",
+              "evidence_plan_digest": "b29bdf81e7f4d438a9b3c387b7998837ef462a8fa1c573be62fd9d553556e4dc",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/configuration-automation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "f372ad2effbb2bb73a7f6155da69dd81c1f41ff6a6f543b7df84504cf1d9823e"
+              "sha256": "b05113320e4cf5be0a8f2d0804dc400222097e7053ce430f4bb3942afd48bdaf"
             },
             {
-              "bytes": 69418,
+              "bytes": 69831,
               "path": "claude-code/configuration-automation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "4ea626eafa7d969c060b8eed054e09e9cf83050641aa1a2df724cd15621fd5d6"
+              "sha256": "fc93fd98182abdf2c2edf253f3dfedd0a55ac4f6da15982ccdf465c92e44dac7"
             },
             {
-              "bytes": 94201,
+              "bytes": 94614,
               "path": "claude-code/configuration-automation/profile-contracts/prescribe-actions.json",
-              "profile_contract_digest": "1f9e8c57e76f20b5114f5f00058d5df22962e097758b9e3c6a3d78dc546298e0",
+              "profile_contract_digest": "dbe87fc961ef474b6fcb182bffe046cf8d2d640a1e9004d60a6ebc1b921bfa3f",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "prescribe-actions",
-              "sha256": "736c75bf582728f350bb57e4fb291032e157287a3bf2fbe59e544429d0f8deca"
+              "sha256": "f4c7f2007c3036bc0b534db8ca71c17d897a339e3acd482179627da0bd0a3a79"
             },
             {
-              "bytes": 94197,
+              "bytes": 94610,
               "path": "claude-code/configuration-automation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "c90aeea2849dea3c8c102b5f2852e04f616bda8359c0960b1b32bb8c28a8400d",
+              "profile_contract_digest": "4f3777c703b9d2fc9ee723d27d698347dfa9cbe2e15c3015177675194047c4ba",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f528389d6e736415030f4b2c7927f5834b7a937f723fc39288a67f5b35437703"
+              "sha256": "10cec99d3ac4e6ff2e8118f7f2c45f425a089c93101de0e87c3a13967c1051b2"
             },
             {
               "bytes": 34235,
@@ -396,7 +396,7 @@
             {
               "bytes": 16254,
               "path": "claude-code/dependency-reviewer/developer-edition/dependency-reviewer-package-decision.md",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
@@ -407,7 +407,7 @@
             {
               "bytes": 15906,
               "path": "claude-code/dependency-reviewer/developer-edition/dependency-reviewer-package-risk.md",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
@@ -418,7 +418,7 @@
             {
               "bytes": 17443,
               "path": "claude-code/dependency-reviewer/developer-edition/dependency-reviewer-repository-review.md",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
@@ -439,50 +439,50 @@
             {
               "bytes": 5082,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "caeb7dabed0f062b63b9d6faf1fa596854cc8d9dde491b9eab0d88a9be6a75a7",
+              "evidence_plan_digest": "b9ad8f5cffd4484257e02fb240aaf4ca0b9b7e0c8c9b258442abb15267cf0cc4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/dependency-reviewer/developer-edition/evidence-plans/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "9b9b85203f3b548ed598453a0aa84247984e4217d84ce44ac6fe38d86ee47a93"
+              "sha256": "874d59469b06a045650db7af382b11eabbc55eb001bb88c3517d8e66c5e1869f"
             },
             {
-              "bytes": 3226,
+              "bytes": 3639,
               "path": "claude-code/dependency-reviewer/developer-edition/profile-contracts/package-decision.json",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "298506ac58bf15c8d0791a2015fa76e7c29bf6c61dd6299724cdb87133942710"
+              "sha256": "33cf84c8d292f5eb3cf693afd2504645450f98ba8c77d52af3606e39e68e01b1"
             },
             {
-              "bytes": 9310,
+              "bytes": 9723,
               "path": "claude-code/dependency-reviewer/developer-edition/profile-contracts/package-risk.json",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "42a8db6cc4eff11cfd2e4274547ab852df5492ded917ec16d3fd90347cb35ddd"
+              "sha256": "841126c15c6b743d507cdf6ab48c7421b6f6e0167a7b9cab76055056b4eac7e0"
             },
             {
-              "bytes": 21490,
+              "bytes": 21903,
               "path": "claude-code/dependency-reviewer/developer-edition/profile-contracts/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "69ec06a72c6f5b8b741d71dbeb7b0c4fef74a0f88d9b906155edec2d607ccf8c"
+              "sha256": "ac57762c531a3cbf2f733bbe7abb952c2d257eaf144e7320ffdbdd1d15a0d757"
             },
             {
               "bytes": 34235,
@@ -510,7 +510,7 @@
             {
               "bytes": 16157,
               "path": "claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-package-decision.md",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
@@ -521,7 +521,7 @@
             {
               "bytes": 15809,
               "path": "claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-package-risk.md",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
@@ -532,7 +532,7 @@
             {
               "bytes": 17346,
               "path": "claude-code/dependency-reviewer/enterprise-edition/dependency-reviewer-repository-review.md",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
@@ -553,50 +553,50 @@
             {
               "bytes": 5082,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "caeb7dabed0f062b63b9d6faf1fa596854cc8d9dde491b9eab0d88a9be6a75a7",
+              "evidence_plan_digest": "b9ad8f5cffd4484257e02fb240aaf4ca0b9b7e0c8c9b258442abb15267cf0cc4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/dependency-reviewer/enterprise-edition/evidence-plans/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "9b9b85203f3b548ed598453a0aa84247984e4217d84ce44ac6fe38d86ee47a93"
+              "sha256": "874d59469b06a045650db7af382b11eabbc55eb001bb88c3517d8e66c5e1869f"
             },
             {
-              "bytes": 3226,
+              "bytes": 3639,
               "path": "claude-code/dependency-reviewer/enterprise-edition/profile-contracts/package-decision.json",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "298506ac58bf15c8d0791a2015fa76e7c29bf6c61dd6299724cdb87133942710"
+              "sha256": "33cf84c8d292f5eb3cf693afd2504645450f98ba8c77d52af3606e39e68e01b1"
             },
             {
-              "bytes": 9310,
+              "bytes": 9723,
               "path": "claude-code/dependency-reviewer/enterprise-edition/profile-contracts/package-risk.json",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "42a8db6cc4eff11cfd2e4274547ab852df5492ded917ec16d3fd90347cb35ddd"
+              "sha256": "841126c15c6b743d507cdf6ab48c7421b6f6e0167a7b9cab76055056b4eac7e0"
             },
             {
-              "bytes": 21490,
+              "bytes": 21903,
               "path": "claude-code/dependency-reviewer/enterprise-edition/profile-contracts/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "69ec06a72c6f5b8b741d71dbeb7b0c4fef74a0f88d9b906155edec2d607ccf8c"
+              "sha256": "ac57762c531a3cbf2f733bbe7abb952c2d257eaf144e7320ffdbdd1d15a0d757"
             },
             {
               "bytes": 34235,
@@ -654,22 +654,22 @@
             {
               "bytes": 5295,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "125667144e75f4fd5b89860702be8a999f7b137abb378ead1a7f4098fb7cb307",
+              "evidence_plan_digest": "7b3de6929e3a83ff5745853acc5eb1a6f04d42737ea345406b44563d769ee8f5",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/findings-browser/evidence-plans/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "3ae8f672452dae3cc813e4e9af5c202bc1917088e94f9d187cf36ddfbdd9cc66"
+              "sha256": "dec8e2a1aca4c48dc1f82a86d4adb51a6d4ca64ca38adec58982c956a73bee26"
             },
             {
               "bytes": 30286,
               "path": "claude-code/findings-browser/findings-browser-browse.md",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
@@ -683,37 +683,37 @@
               "sha256": "5b1f40715fbf31f143339d115d52c2595e637f487305af41add785f895d9d4ac"
             },
             {
-              "bytes": 6352,
+              "bytes": 6881,
               "path": "claude-code/findings-browser/profile-contracts/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "1bc016a15c694e01df13e23e14d955c445166b2ad12e07020f941399b0c817bb"
+              "sha256": "a39eaf679f7dc74293114922ed7d1616f3ce2f149c3d02cf86852438618c3a46"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "claude-code/findings-browser/profile-contracts/exact-finding.json",
-              "profile_contract_digest": "ed2dd3e60a3a10b4205e5c258868d7fd75bbf86e1031b26919b8039c5d43ad41",
+              "profile_contract_digest": "9d9db3f52241a2381702b6fc8bad431cc9da507256c6db1548dd69bedde0aa1a",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "exact-finding",
-              "sha256": "852719232df90d9bab019898c4a6a3a68eb5f7015cd46323ed8051ba2f68249d"
+              "sha256": "87e4946c050d2eed56ff15fce675fd482a564cc249b30cbc13c1b26c95d7533f"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "claude-code/findings-browser/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "14ddf3ca58fdfa47cc4b187fb72b06b7043d4a466235e0f93026a4a3bfb0a070",
+              "profile_contract_digest": "6754841ff50593ca53628e892c57f10f722d8abfae3ea1816649498889d3a4df",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "b1a41ab4ce906b1088590430f06d77281ae1b58c4b2db9aa205b7135b20a7bad"
+              "sha256": "e56d69a38291c32b4994807cfa09ab34f9bd1a9b1540fa4c39b5978049a98074"
             },
             {
               "bytes": 34235,
@@ -766,22 +766,22 @@
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "627ec7956ad022b382ceff49ca66b1aa8531c77c8a2463359ccf78033fe466cf",
+              "evidence_plan_digest": "66a7dc514dcf6de65278c567a30459450fdeb3292bfa3c9656ae09089a3d1038",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "e84f251384f419f06a601d456bc1a6ae2cee422f6834095add8f972909c2da87"
+              "sha256": "e25a834e97cbb7493445606fc64b696285c77fac6fe3874d2185a0a72da932b3"
             },
             {
               "bytes": 48158,
               "path": "claude-code/malware-responder/malware-responder-exposure-check.md",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
@@ -795,37 +795,37 @@
               "sha256": "86a9c19b4548c2c96ebd7b76456a8d13932a0629f5af12e80365eee09db23549"
             },
             {
-              "bytes": 33481,
+              "bytes": 33979,
               "path": "claude-code/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "a1d576d0bdb01f45e22e603dff0a1e6692acb5cd3128c7146c20d4035643f839"
+              "sha256": "31f202ec1ed7e1e92aec026051aeadb17dd5b5a055f6aeb9d2d4f8faffc43fa6"
             },
             {
-              "bytes": 70238,
+              "bytes": 70736,
               "path": "claude-code/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "1d3386b48320493ce4002109bde3537da978fc36eec96cd568be194fc9cc0436",
+              "profile_contract_digest": "ebbd95190b0d1821b71732d1cc3d1ebe827884b87bc2ea976689b7dbd44a10b6",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "008f60e29f74ad256450761e0fb2093f872f983fc229570d855e6c0170d55c99"
+              "sha256": "3a6b680a89691df13bf0b8417b1485dee10c31c80078b9dd3f8a9961ece5ff63"
             },
             {
-              "bytes": 70239,
+              "bytes": 70737,
               "path": "claude-code/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "990da0678fd895c4ec81fb7a662ef3516f9deeb59ea859d5aa1756a977e4cc56",
+              "profile_contract_digest": "f4775cfeab0f4d1071cf4d72b315532e9d28d7779ea1db7959a9e120ba64a562",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "c3f59143ae37efc57bb9115e2bdd815c27467409a9bdd95acbf73ed1da2c74ba"
+              "sha256": "96d039738afff71206e8a95071fac72afc88c5c8991271631c3b1a338639bf80"
             },
             {
               "bytes": 34235,
@@ -881,22 +881,22 @@
             {
               "bytes": 9167,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "33e934adbfb354f4a68ace6fce1d381a1b98d84180054ff6bb92b71c21af8b72",
+              "evidence_plan_digest": "6d27903e85b4ad187d2f3b33516a1e36eb5c7ab06e180c8fc516b634ca1cf96f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/oss-upgrade-investigator/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "981c01c0ac72a7a331c4db5d58f43869a1276e3ee0d130a5d034bb8dc160968b"
+              "sha256": "5bc15a4164b4b4a64c6a4f7df19f9d0ec024c657b17788075838817a5b658794"
             },
             {
               "bytes": 47901,
               "path": "claude-code/oss-upgrade-investigator/oss-upgrade-investigator-evidence-check.md",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
@@ -910,37 +910,37 @@
               "sha256": "e20e0131fb4ea10e1303b54ae105aad9362b4008ac1e156ccf2d4b3eb5099689"
             },
             {
-              "bytes": 5061,
+              "bytes": 5591,
               "path": "claude-code/oss-upgrade-investigator/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6476926802eebbd7056d73b6c1e68c38caf699b05ac64c8adda82471b40bfd63"
+              "sha256": "260608de1f8c399c8dff2a60c946d2065fcdea210b3b59492e3ecc953e0bdaf9"
             },
             {
-              "bytes": 12102,
+              "bytes": 12632,
               "path": "claude-code/oss-upgrade-investigator/profile-contracts/explain.json",
-              "profile_contract_digest": "db62111f8d5efac260d9c75fecec4079f6486d11c5616c2962f29ad49b98ac10",
+              "profile_contract_digest": "464050e4e1ed9fd0e9644072bb7105af9fbdcbec582de3fb0f66194b96e3ec44",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "0e2b410248a10103f6cc11123f08b32f4c3d63ab8c8168dfe2fafaadd15291eb"
+              "sha256": "e2b49159cbe47ad98758dcfbcde360ab26abbe2125d711b2d6b02472950b8b06"
             },
             {
-              "bytes": 12108,
+              "bytes": 12638,
               "path": "claude-code/oss-upgrade-investigator/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "bc41a9d3c1ec1ddd661ae129067ebce11df118492e7ceb9c9c09b9c4e232c014",
+              "profile_contract_digest": "b26c9c0900fb0436962f128079fed667b511ce882c64298c9f64466d1af3f47c",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "aee60697884676b4978a3d95c3a206d86b6b9241a1faeef4f7758f0f1676e6ff"
+              "sha256": "808bcfc84d278c765efcc5b38fb0a5c6e4229ff8e996d50df08207f1e001bdc3"
             },
             {
               "bytes": 34235,
@@ -996,55 +996,55 @@
             {
               "bytes": 8201,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "bc534785e9617a3d695116248f1cceadf8bf3e3f3e8d7c3b0ffb303f55d1fd85",
+              "evidence_plan_digest": "bc2902d7723a6e27a615548e629390aaa6e9d9eb38e703ad17623eeb14cae34f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/remediation-planning/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "c181957a81a6de552507131622e2ee5e111e916c0b386f207626a52ae24a33d4"
+              "sha256": "ba9187a90971de735f18229421d7b233ab7ab9e655fca84c5350e27431354d35"
             },
             {
-              "bytes": 4674,
+              "bytes": 5087,
               "path": "claude-code/remediation-planning/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e68c5e96e493c0d1b2c1d9eb3160130b4091faefc425d763ac3d5e9d6731118a",
+              "profile_contract_digest": "c5c95d8c329f1c13138e1604de9d6ab1d7ad68b4ec698fb6c0bdf8b37026b973",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "64c677205cf34851f3237a8de415f363c5149271ae8d54531f02e2148c24d566"
+              "sha256": "cbe84da452586e38e8f5cb0ec3a518db3ffc62bd47ee0ddfa9ef7107d8c22e15"
             },
             {
-              "bytes": 3917,
+              "bytes": 4330,
               "path": "claude-code/remediation-planning/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "75acd4baf0e6995ebb4dace9093c0a09b2058e9231cf76d74f4c2340bd13e314",
+              "profile_contract_digest": "21bcef3cf54e3071e3ed63e6a2b682b1202dfebb91651b81410c2fe2916db648",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f82e3074f9a107e179cee18ca5dacb31fe8c720258845976d5dc7440f98aed65"
+              "sha256": "7d7cb47c33559b4311f80715d39fd5690a6a0ffe94165c8fdc5e7ff2136b1618"
             },
             {
-              "bytes": 6183,
+              "bytes": 6596,
               "path": "claude-code/remediation-planning/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "4508075fa7b3e6771f0f244e245727e1f1a3e1e07b6cbeaba01628339ddaec9c"
+              "sha256": "c4131c699c05659bcbcebd8c4dbb1e9503fabc5d95f2d2ef8cfa64b6f1f59cd7"
             },
             {
               "bytes": 26435,
               "path": "claude-code/remediation-planning/remediation-planning-evidence-check.md",
-              "profile_contract_digest": "e68c5e96e493c0d1b2c1d9eb3160130b4091faefc425d763ac3d5e9d6731118a",
+              "profile_contract_digest": "c5c95d8c329f1c13138e1604de9d6ab1d7ad68b4ec698fb6c0bdf8b37026b973",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
@@ -1055,7 +1055,7 @@
             {
               "bytes": 24915,
               "path": "claude-code/remediation-planning/remediation-planning-resolve-scope.md",
-              "profile_contract_digest": "75acd4baf0e6995ebb4dace9093c0a09b2058e9231cf76d74f4c2340bd13e314",
+              "profile_contract_digest": "21bcef3cf54e3071e3ed63e6a2b682b1202dfebb91651b81410c2fe2916db648",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
@@ -1066,7 +1066,7 @@
             {
               "bytes": 28014,
               "path": "claude-code/remediation-planning/remediation-planning-selection-plan.md",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
@@ -1138,65 +1138,65 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "12ff2cd141839f01b080eb6e6fcdca9575a971cbc3fc23c1b9e0eee00e940594",
+              "evidence_plan_digest": "b041817bf0407eb3df3f7240dfa237ed3fa885e21c21e4ac3e9fd8f370992555",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "cb0c9a49becb1fd86d1e136c2404cc29d9674703324f8054b0667ee865edccef"
+              "sha256": "8735316ecf0f5560a801f300e7c6f475c2647b996d4a019b3fa3009303616ee0"
             },
             {
               "bytes": 11074,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "d6e473e9366027d9efe5a7709681d9300c33db57087c78d7cc02195804a04713",
+              "evidence_plan_digest": "affc7991e972c35066e3fdb6942c5d232bf5958510d4b0d3b752b4f3eae1a65e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b7e0fa2a8a67ff26376a74a30aec16bded028cd1f150c5ba5e1dc711dd606529"
+              "sha256": "e57f13bddef94ae40468ad10efc1cb4f783dcf552f8e2303c247805df1f01b1b"
             },
             {
-              "bytes": 4671,
+              "bytes": 5084,
               "path": "claude-code/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "039e5e3847e69e2ff8054b5889cce5e0b82f9f7daf49d599c7d3a29f36e64aa6"
+              "sha256": "fcf48a4ab08cb38b478ea96513608c5ff9e7117e2d9b568e08d798082652456a"
             },
             {
-              "bytes": 4670,
+              "bytes": 5083,
               "path": "claude-code/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "febefbfda5ec63c6256993a70e420d0254e9c0ed71cee99a983d7c6aaf3c7e8f",
+              "profile_contract_digest": "8152db22e0c7a364f39dd42764fd1e58057bb99b78f8cca93976b776d5d600c5",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f90f1aeba61a76adddf3b9c14d7e8e2fa357af9bc0c4ae910e2978c9d5838e3d"
+              "sha256": "5f0398afb4e51548612044bfd6afc1388da25c552c9a214e55d1dce6578273db"
             },
             {
-              "bytes": 12565,
+              "bytes": 12978,
               "path": "claude-code/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "5ff9f859251844430971254d1e3253cb0d1c954b308e61f4b973969046b3ea0b"
+              "sha256": "bd5e50358a65c9a0f410fe0a5ae629015503d0427d6e9b6bf2943d5bda39c90a"
             },
             {
               "bytes": 34235,
@@ -1206,7 +1206,7 @@
             {
               "bytes": 25322,
               "path": "claude-code/sca-remediation/sca-remediation-evidence-check.md",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
@@ -1217,7 +1217,7 @@
             {
               "bytes": 24793,
               "path": "claude-code/sca-remediation/sca-remediation-resolve-scope.md",
-              "profile_contract_digest": "febefbfda5ec63c6256993a70e420d0254e9c0ed71cee99a983d7c6aaf3c7e8f",
+              "profile_contract_digest": "8152db22e0c7a364f39dd42764fd1e58057bb99b78f8cca93976b776d5d600c5",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
@@ -1228,7 +1228,7 @@
             {
               "bytes": 71394,
               "path": "claude-code/sca-remediation/sca-remediation-selection-plan.md",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
@@ -1287,50 +1287,50 @@
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "24811002f9f1c0c78fab5768ae7f669a9bad1fbc786f5a9fb7feebf350b0961d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "3623390516c6712a6b7b039c2d2768624940fe81e3c7c670d2b538dd4923412c"
             },
             {
-              "bytes": 41579,
+              "bytes": 42170,
               "path": "claude-code/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "b7572c91f096668350382b16fe80d82a03c321fe4e7f2514169203e991e0891b",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "5f1783a4d69cabf3b1ee527978076e737392fcf079ba8a59a2019679ac1d8e1d"
             },
             {
-              "bytes": 34324,
+              "bytes": 34915,
               "path": "claude-code/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "c168f211a93afce3340c012e24a714930116821bf4312f62605e26563c634b81"
             },
             {
-              "bytes": 41585,
+              "bytes": 42176,
               "path": "claude-code/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "cc03988614428ac52a25d4d833708db9d404254b7a0f518fee8f4f9471b7a95f",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "2299c4a8c9f1bfe5824add746019cf0e3435f65abe7940967b810cfba30355df"
             },
             {
               "bytes": 34235,
@@ -1340,7 +1340,7 @@
             {
               "bytes": 16392,
               "path": "claude-code/troubleshooting/troubleshooting-diagnose.md",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
@@ -1395,26 +1395,26 @@
               "sha256": "50da5c98a42305a1aff01d3a082d1211b3650ac6c492753130110c2d60bf47f5"
             },
             {
-              "bytes": 3119,
+              "bytes": 3619,
               "path": "claude-code/vulnerability-explainer/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "cbd6a6978eb48e4eb0d6faf28a8810f52adabf10924361f630385b032ca4dd3a",
+              "profile_contract_digest": "84060198748845845ccb8d727fa12ac811fb85830fab4e561ea0698dfd665abe",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "c8cceab234bd6920f15e06962928ab560b36a0e8bf1e539a79e8b137df2afbf0"
+              "sha256": "3e6e0e9090135cfce91a86e3ca5132951cd0ad0ba5fa8d51810d7e6fc31af359"
             },
             {
-              "bytes": 3111,
+              "bytes": 3611,
               "path": "claude-code/vulnerability-explainer/profile-contracts/explain.json",
-              "profile_contract_digest": "64619784ae48e1a045bce88097edbae93825c7497d485cee8cb64dfd2f4a812a",
+              "profile_contract_digest": "eb24fecd472700cfa5dd46590fce208d44a296ae34a0b26f8294fcf9adaf45cf",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "61ea5e6025c42a02ffceeede022ff3b5956803c4c3520fb1652e73c2f5c6497c"
+              "sha256": "a7ca737e3f0e7f524a7125c58a6f18210a1e9de9b56b5c72f578a51f5f4a2d25"
             },
             {
               "bytes": 34235,
@@ -1424,7 +1424,7 @@
             {
               "bytes": 27412,
               "path": "claude-code/vulnerability-explainer/vulnerability-explainer-explain.md",
-              "profile_contract_digest": "64619784ae48e1a045bce88097edbae93825c7497d485cee8cb64dfd2f4a812a",
+              "profile_contract_digest": "eb24fecd472700cfa5dd46590fce208d44a296ae34a0b26f8294fcf9adaf45cf",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
@@ -1493,39 +1493,39 @@
             {
               "bytes": 10413,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "86652a2e01ca29732b33a612312c5189c69523c6cf4ae76c850f1d05f9663f87",
+              "evidence_plan_digest": "140155ecbbaf1e1186387325476db4ff79a6fe696a642feb79de394ec6cec7c2",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/cicd-posture/evidence-plans/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "84652553e9d293099b88839984b1e98da01ea20faf5733a707ecf5828d1c0312"
+              "sha256": "55df5e382d839a8c8dd8d4cd4fe7d5b2204482b5fd883d7d48ddc36586dd59da"
             },
             {
-              "bytes": 57811,
+              "bytes": 58304,
               "path": "claude-managed-agents/cicd-posture/profile-contracts/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "26a4b08b46134ff703876936b503fa5b88f839e3bc60c64ce2ba56ad50887de5"
+              "sha256": "864741881204d3e0b35d0125b8c6361cb1366b2de124fe079b55eb7d25fff36b"
             },
             {
-              "bytes": 57818,
+              "bytes": 58311,
               "path": "claude-managed-agents/cicd-posture/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "9aab6a67a139048c815ba7c50c02acceafa912cab0809a29c249307b52cee231",
+              "profile_contract_digest": "773dff83ab413c2771a33ba3b6607f2b6df05cf63f495c384adb22a54dc978c4",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f9ea36ed9d44eb7c3d3402006f95ba415e2cab8fb7dfd49a94ac808bde4ae66f"
+              "sha256": "53ee8f02dd2fc9c65c8fb166130465eec33e9ee48eb221b5338c018fcf1045db"
             },
             {
               "bytes": 34235,
@@ -1593,50 +1593,50 @@
             {
               "bytes": 16426,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "3aa181c7ec5fabff37aa36a1fec06f9149a753a1531afbd2f927fb3403f3def8",
+              "evidence_plan_digest": "b29bdf81e7f4d438a9b3c387b7998837ef462a8fa1c573be62fd9d553556e4dc",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/configuration-automation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "f372ad2effbb2bb73a7f6155da69dd81c1f41ff6a6f543b7df84504cf1d9823e"
+              "sha256": "b05113320e4cf5be0a8f2d0804dc400222097e7053ce430f4bb3942afd48bdaf"
             },
             {
-              "bytes": 69418,
+              "bytes": 69831,
               "path": "claude-managed-agents/configuration-automation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "4ea626eafa7d969c060b8eed054e09e9cf83050641aa1a2df724cd15621fd5d6"
+              "sha256": "fc93fd98182abdf2c2edf253f3dfedd0a55ac4f6da15982ccdf465c92e44dac7"
             },
             {
-              "bytes": 94201,
+              "bytes": 94614,
               "path": "claude-managed-agents/configuration-automation/profile-contracts/prescribe-actions.json",
-              "profile_contract_digest": "1f9e8c57e76f20b5114f5f00058d5df22962e097758b9e3c6a3d78dc546298e0",
+              "profile_contract_digest": "dbe87fc961ef474b6fcb182bffe046cf8d2d640a1e9004d60a6ebc1b921bfa3f",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "prescribe-actions",
-              "sha256": "736c75bf582728f350bb57e4fb291032e157287a3bf2fbe59e544429d0f8deca"
+              "sha256": "f4c7f2007c3036bc0b534db8ca71c17d897a339e3acd482179627da0bd0a3a79"
             },
             {
-              "bytes": 94197,
+              "bytes": 94610,
               "path": "claude-managed-agents/configuration-automation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "c90aeea2849dea3c8c102b5f2852e04f616bda8359c0960b1b32bb8c28a8400d",
+              "profile_contract_digest": "4f3777c703b9d2fc9ee723d27d698347dfa9cbe2e15c3015177675194047c4ba",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f528389d6e736415030f4b2c7927f5834b7a937f723fc39288a67f5b35437703"
+              "sha256": "10cec99d3ac4e6ff2e8118f7f2c45f425a089c93101de0e87c3a13967c1051b2"
             },
             {
               "bytes": 34235,
@@ -1707,50 +1707,50 @@
             {
               "bytes": 5082,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "caeb7dabed0f062b63b9d6faf1fa596854cc8d9dde491b9eab0d88a9be6a75a7",
+              "evidence_plan_digest": "b9ad8f5cffd4484257e02fb240aaf4ca0b9b7e0c8c9b258442abb15267cf0cc4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/dependency-reviewer/evidence-plans/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "9b9b85203f3b548ed598453a0aa84247984e4217d84ce44ac6fe38d86ee47a93"
+              "sha256": "874d59469b06a045650db7af382b11eabbc55eb001bb88c3517d8e66c5e1869f"
             },
             {
-              "bytes": 3226,
+              "bytes": 3639,
               "path": "claude-managed-agents/dependency-reviewer/profile-contracts/package-decision.json",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "298506ac58bf15c8d0791a2015fa76e7c29bf6c61dd6299724cdb87133942710"
+              "sha256": "33cf84c8d292f5eb3cf693afd2504645450f98ba8c77d52af3606e39e68e01b1"
             },
             {
-              "bytes": 9310,
+              "bytes": 9723,
               "path": "claude-managed-agents/dependency-reviewer/profile-contracts/package-risk.json",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "42a8db6cc4eff11cfd2e4274547ab852df5492ded917ec16d3fd90347cb35ddd"
+              "sha256": "841126c15c6b743d507cdf6ab48c7421b6f6e0167a7b9cab76055056b4eac7e0"
             },
             {
-              "bytes": 21490,
+              "bytes": 21903,
               "path": "claude-managed-agents/dependency-reviewer/profile-contracts/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "69ec06a72c6f5b8b741d71dbeb7b0c4fef74a0f88d9b906155edec2d607ccf8c"
+              "sha256": "ac57762c531a3cbf2f733bbe7abb952c2d257eaf144e7320ffdbdd1d15a0d757"
             },
             {
               "bytes": 34235,
@@ -1823,50 +1823,50 @@
             {
               "bytes": 5295,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "125667144e75f4fd5b89860702be8a999f7b137abb378ead1a7f4098fb7cb307",
+              "evidence_plan_digest": "7b3de6929e3a83ff5745853acc5eb1a6f04d42737ea345406b44563d769ee8f5",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/findings-browser/evidence-plans/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "3ae8f672452dae3cc813e4e9af5c202bc1917088e94f9d187cf36ddfbdd9cc66"
+              "sha256": "dec8e2a1aca4c48dc1f82a86d4adb51a6d4ca64ca38adec58982c956a73bee26"
             },
             {
-              "bytes": 6352,
+              "bytes": 6881,
               "path": "claude-managed-agents/findings-browser/profile-contracts/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "1bc016a15c694e01df13e23e14d955c445166b2ad12e07020f941399b0c817bb"
+              "sha256": "a39eaf679f7dc74293114922ed7d1616f3ce2f149c3d02cf86852438618c3a46"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "claude-managed-agents/findings-browser/profile-contracts/exact-finding.json",
-              "profile_contract_digest": "ed2dd3e60a3a10b4205e5c258868d7fd75bbf86e1031b26919b8039c5d43ad41",
+              "profile_contract_digest": "9d9db3f52241a2381702b6fc8bad431cc9da507256c6db1548dd69bedde0aa1a",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "exact-finding",
-              "sha256": "852719232df90d9bab019898c4a6a3a68eb5f7015cd46323ed8051ba2f68249d"
+              "sha256": "87e4946c050d2eed56ff15fce675fd482a564cc249b30cbc13c1b26c95d7533f"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "claude-managed-agents/findings-browser/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "14ddf3ca58fdfa47cc4b187fb72b06b7043d4a466235e0f93026a4a3bfb0a070",
+              "profile_contract_digest": "6754841ff50593ca53628e892c57f10f722d8abfae3ea1816649498889d3a4df",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "b1a41ab4ce906b1088590430f06d77281ae1b58c4b2db9aa205b7135b20a7bad"
+              "sha256": "e56d69a38291c32b4994807cfa09ab34f9bd1a9b1540fa4c39b5978049a98074"
             },
             {
               "bytes": 34235,
@@ -1934,50 +1934,50 @@
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "627ec7956ad022b382ceff49ca66b1aa8531c77c8a2463359ccf78033fe466cf",
+              "evidence_plan_digest": "66a7dc514dcf6de65278c567a30459450fdeb3292bfa3c9656ae09089a3d1038",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "e84f251384f419f06a601d456bc1a6ae2cee422f6834095add8f972909c2da87"
+              "sha256": "e25a834e97cbb7493445606fc64b696285c77fac6fe3874d2185a0a72da932b3"
             },
             {
-              "bytes": 33481,
+              "bytes": 33979,
               "path": "claude-managed-agents/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "a1d576d0bdb01f45e22e603dff0a1e6692acb5cd3128c7146c20d4035643f839"
+              "sha256": "31f202ec1ed7e1e92aec026051aeadb17dd5b5a055f6aeb9d2d4f8faffc43fa6"
             },
             {
-              "bytes": 70238,
+              "bytes": 70736,
               "path": "claude-managed-agents/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "1d3386b48320493ce4002109bde3537da978fc36eec96cd568be194fc9cc0436",
+              "profile_contract_digest": "ebbd95190b0d1821b71732d1cc3d1ebe827884b87bc2ea976689b7dbd44a10b6",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "008f60e29f74ad256450761e0fb2093f872f983fc229570d855e6c0170d55c99"
+              "sha256": "3a6b680a89691df13bf0b8417b1485dee10c31c80078b9dd3f8a9961ece5ff63"
             },
             {
-              "bytes": 70239,
+              "bytes": 70737,
               "path": "claude-managed-agents/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "990da0678fd895c4ec81fb7a662ef3516f9deeb59ea859d5aa1756a977e4cc56",
+              "profile_contract_digest": "f4775cfeab0f4d1071cf4d72b315532e9d28d7779ea1db7959a9e120ba64a562",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "c3f59143ae37efc57bb9115e2bdd815c27467409a9bdd95acbf73ed1da2c74ba"
+              "sha256": "96d039738afff71206e8a95071fac72afc88c5c8991271631c3b1a338639bf80"
             },
             {
               "bytes": 34235,
@@ -2048,50 +2048,50 @@
             {
               "bytes": 9167,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "33e934adbfb354f4a68ace6fce1d381a1b98d84180054ff6bb92b71c21af8b72",
+              "evidence_plan_digest": "6d27903e85b4ad187d2f3b33516a1e36eb5c7ab06e180c8fc516b634ca1cf96f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/oss-upgrade-investigator/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "981c01c0ac72a7a331c4db5d58f43869a1276e3ee0d130a5d034bb8dc160968b"
+              "sha256": "5bc15a4164b4b4a64c6a4f7df19f9d0ec024c657b17788075838817a5b658794"
             },
             {
-              "bytes": 5061,
+              "bytes": 5591,
               "path": "claude-managed-agents/oss-upgrade-investigator/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6476926802eebbd7056d73b6c1e68c38caf699b05ac64c8adda82471b40bfd63"
+              "sha256": "260608de1f8c399c8dff2a60c946d2065fcdea210b3b59492e3ecc953e0bdaf9"
             },
             {
-              "bytes": 12102,
+              "bytes": 12632,
               "path": "claude-managed-agents/oss-upgrade-investigator/profile-contracts/explain.json",
-              "profile_contract_digest": "db62111f8d5efac260d9c75fecec4079f6486d11c5616c2962f29ad49b98ac10",
+              "profile_contract_digest": "464050e4e1ed9fd0e9644072bb7105af9fbdcbec582de3fb0f66194b96e3ec44",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "0e2b410248a10103f6cc11123f08b32f4c3d63ab8c8168dfe2fafaadd15291eb"
+              "sha256": "e2b49159cbe47ad98758dcfbcde360ab26abbe2125d711b2d6b02472950b8b06"
             },
             {
-              "bytes": 12108,
+              "bytes": 12638,
               "path": "claude-managed-agents/oss-upgrade-investigator/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "bc41a9d3c1ec1ddd661ae129067ebce11df118492e7ceb9c9c09b9c4e232c014",
+              "profile_contract_digest": "b26c9c0900fb0436962f128079fed667b511ce882c64298c9f64466d1af3f47c",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "aee60697884676b4978a3d95c3a206d86b6b9241a1faeef4f7758f0f1676e6ff"
+              "sha256": "808bcfc84d278c765efcc5b38fb0a5c6e4229ff8e996d50df08207f1e001bdc3"
             },
             {
               "bytes": 34235,
@@ -2162,50 +2162,50 @@
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "24811002f9f1c0c78fab5768ae7f669a9bad1fbc786f5a9fb7feebf350b0961d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "3623390516c6712a6b7b039c2d2768624940fe81e3c7c670d2b538dd4923412c"
             },
             {
-              "bytes": 41579,
+              "bytes": 42170,
               "path": "claude-managed-agents/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "b7572c91f096668350382b16fe80d82a03c321fe4e7f2514169203e991e0891b",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "5f1783a4d69cabf3b1ee527978076e737392fcf079ba8a59a2019679ac1d8e1d"
             },
             {
-              "bytes": 34324,
+              "bytes": 34915,
               "path": "claude-managed-agents/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "c168f211a93afce3340c012e24a714930116821bf4312f62605e26563c634b81"
             },
             {
-              "bytes": 41585,
+              "bytes": 42176,
               "path": "claude-managed-agents/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "cc03988614428ac52a25d4d833708db9d404254b7a0f518fee8f4f9471b7a95f",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "2299c4a8c9f1bfe5824add746019cf0e3435f65abe7940967b810cfba30355df"
             },
             {
               "bytes": 34235,
@@ -2269,26 +2269,26 @@
               "sha256": "c2dd5046a5707877c1704f6cd5377375e82392161fcb93573c777744f1b3438f"
             },
             {
-              "bytes": 3119,
+              "bytes": 3619,
               "path": "claude-managed-agents/vulnerability-explainer/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "cbd6a6978eb48e4eb0d6faf28a8810f52adabf10924361f630385b032ca4dd3a",
+              "profile_contract_digest": "84060198748845845ccb8d727fa12ac811fb85830fab4e561ea0698dfd665abe",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "c8cceab234bd6920f15e06962928ab560b36a0e8bf1e539a79e8b137df2afbf0"
+              "sha256": "3e6e0e9090135cfce91a86e3ca5132951cd0ad0ba5fa8d51810d7e6fc31af359"
             },
             {
-              "bytes": 3111,
+              "bytes": 3611,
               "path": "claude-managed-agents/vulnerability-explainer/profile-contracts/explain.json",
-              "profile_contract_digest": "64619784ae48e1a045bce88097edbae93825c7497d485cee8cb64dfd2f4a812a",
+              "profile_contract_digest": "eb24fecd472700cfa5dd46590fce208d44a296ae34a0b26f8294fcf9adaf45cf",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "61ea5e6025c42a02ffceeede022ff3b5956803c4c3520fb1652e73c2f5c6497c"
+              "sha256": "a7ca737e3f0e7f524a7125c58a6f18210a1e9de9b56b5c72f578a51f5f4a2d25"
             },
             {
               "bytes": 34235,
@@ -2356,65 +2356,65 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "5d85acedd7096e89d8e3ee13bde118521222ba275d2bf7fcd1fdbb54e1f05f7d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "19be6f4fd75bcbf40090e609b4f89072fdf76cadbfde0acf5c6f607d80788930"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "72f9eb7e3af9ca2e15e7b92a7ceeaa746c03b544a2f109c582c508bbe0a70ad3",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "4ad604e67bd99946a8a87f258061faac8161e825d76deaa5ee59b127e156ae57"
             },
             {
-              "bytes": 5463,
+              "bytes": 5876,
               "path": "codex/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "ce20166370c89850e20571ee8fe6c1dc8b7b286b5aec4265089950adbb617e2e"
             },
             {
-              "bytes": 3914,
+              "bytes": 4327,
               "path": "codex/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "2204635f75a0814b22c710109c8aad477f1ead181e89306cdbcc4ac0e8388fda",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "1cd1e9d808449fb5ab4b80d2618e1cc15f6732eadfd9b9e51d985ddab290227a"
             },
             {
-              "bytes": 53161,
+              "bytes": 53574,
               "path": "codex/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "d38bcdba7c1b145ce56dd8756e138b1b005a3ec254481406c1bec8811aaaa110"
             },
             {
               "bytes": 34235,
@@ -2475,39 +2475,39 @@
             {
               "bytes": 10413,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "86652a2e01ca29732b33a612312c5189c69523c6cf4ae76c850f1d05f9663f87",
+              "evidence_plan_digest": "140155ecbbaf1e1186387325476db4ff79a6fe696a642feb79de394ec6cec7c2",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/cicd-posture/evidence-plans/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "84652553e9d293099b88839984b1e98da01ea20faf5733a707ecf5828d1c0312"
+              "sha256": "55df5e382d839a8c8dd8d4cd4fe7d5b2204482b5fd883d7d48ddc36586dd59da"
             },
             {
-              "bytes": 57811,
+              "bytes": 58304,
               "path": "codex/cicd-posture/profile-contracts/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "26a4b08b46134ff703876936b503fa5b88f839e3bc60c64ce2ba56ad50887de5"
+              "sha256": "864741881204d3e0b35d0125b8c6361cb1366b2de124fe079b55eb7d25fff36b"
             },
             {
-              "bytes": 57818,
+              "bytes": 58311,
               "path": "codex/cicd-posture/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "9aab6a67a139048c815ba7c50c02acceafa912cab0809a29c249307b52cee231",
+              "profile_contract_digest": "773dff83ab413c2771a33ba3b6607f2b6df05cf63f495c384adb22a54dc978c4",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f9ea36ed9d44eb7c3d3402006f95ba415e2cab8fb7dfd49a94ac808bde4ae66f"
+              "sha256": "53ee8f02dd2fc9c65c8fb166130465eec33e9ee48eb221b5338c018fcf1045db"
             },
             {
               "bytes": 34235,
@@ -2565,50 +2565,50 @@
             {
               "bytes": 16426,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "3aa181c7ec5fabff37aa36a1fec06f9149a753a1531afbd2f927fb3403f3def8",
+              "evidence_plan_digest": "b29bdf81e7f4d438a9b3c387b7998837ef462a8fa1c573be62fd9d553556e4dc",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/configuration-automation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "f372ad2effbb2bb73a7f6155da69dd81c1f41ff6a6f543b7df84504cf1d9823e"
+              "sha256": "b05113320e4cf5be0a8f2d0804dc400222097e7053ce430f4bb3942afd48bdaf"
             },
             {
-              "bytes": 69418,
+              "bytes": 69831,
               "path": "codex/configuration-automation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "4ea626eafa7d969c060b8eed054e09e9cf83050641aa1a2df724cd15621fd5d6"
+              "sha256": "fc93fd98182abdf2c2edf253f3dfedd0a55ac4f6da15982ccdf465c92e44dac7"
             },
             {
-              "bytes": 94201,
+              "bytes": 94614,
               "path": "codex/configuration-automation/profile-contracts/prescribe-actions.json",
-              "profile_contract_digest": "1f9e8c57e76f20b5114f5f00058d5df22962e097758b9e3c6a3d78dc546298e0",
+              "profile_contract_digest": "dbe87fc961ef474b6fcb182bffe046cf8d2d640a1e9004d60a6ebc1b921bfa3f",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "prescribe-actions",
-              "sha256": "736c75bf582728f350bb57e4fb291032e157287a3bf2fbe59e544429d0f8deca"
+              "sha256": "f4c7f2007c3036bc0b534db8ca71c17d897a339e3acd482179627da0bd0a3a79"
             },
             {
-              "bytes": 94197,
+              "bytes": 94610,
               "path": "codex/configuration-automation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "c90aeea2849dea3c8c102b5f2852e04f616bda8359c0960b1b32bb8c28a8400d",
+              "profile_contract_digest": "4f3777c703b9d2fc9ee723d27d698347dfa9cbe2e15c3015177675194047c4ba",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f528389d6e736415030f4b2c7927f5834b7a937f723fc39288a67f5b35437703"
+              "sha256": "10cec99d3ac4e6ff2e8118f7f2c45f425a089c93101de0e87c3a13967c1051b2"
             },
             {
               "bytes": 34235,
@@ -2669,50 +2669,50 @@
             {
               "bytes": 5082,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "caeb7dabed0f062b63b9d6faf1fa596854cc8d9dde491b9eab0d88a9be6a75a7",
+              "evidence_plan_digest": "b9ad8f5cffd4484257e02fb240aaf4ca0b9b7e0c8c9b258442abb15267cf0cc4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/dependency-reviewer/evidence-plans/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "9b9b85203f3b548ed598453a0aa84247984e4217d84ce44ac6fe38d86ee47a93"
+              "sha256": "874d59469b06a045650db7af382b11eabbc55eb001bb88c3517d8e66c5e1869f"
             },
             {
-              "bytes": 3226,
+              "bytes": 3639,
               "path": "codex/dependency-reviewer/profile-contracts/package-decision.json",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "298506ac58bf15c8d0791a2015fa76e7c29bf6c61dd6299724cdb87133942710"
+              "sha256": "33cf84c8d292f5eb3cf693afd2504645450f98ba8c77d52af3606e39e68e01b1"
             },
             {
-              "bytes": 9310,
+              "bytes": 9723,
               "path": "codex/dependency-reviewer/profile-contracts/package-risk.json",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "42a8db6cc4eff11cfd2e4274547ab852df5492ded917ec16d3fd90347cb35ddd"
+              "sha256": "841126c15c6b743d507cdf6ab48c7421b6f6e0167a7b9cab76055056b4eac7e0"
             },
             {
-              "bytes": 21490,
+              "bytes": 21903,
               "path": "codex/dependency-reviewer/profile-contracts/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "69ec06a72c6f5b8b741d71dbeb7b0c4fef74a0f88d9b906155edec2d607ccf8c"
+              "sha256": "ac57762c531a3cbf2f733bbe7abb952c2d257eaf144e7320ffdbdd1d15a0d757"
             },
             {
               "bytes": 34235,
@@ -2775,50 +2775,50 @@
             {
               "bytes": 5295,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "125667144e75f4fd5b89860702be8a999f7b137abb378ead1a7f4098fb7cb307",
+              "evidence_plan_digest": "7b3de6929e3a83ff5745853acc5eb1a6f04d42737ea345406b44563d769ee8f5",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/findings-browser/evidence-plans/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "3ae8f672452dae3cc813e4e9af5c202bc1917088e94f9d187cf36ddfbdd9cc66"
+              "sha256": "dec8e2a1aca4c48dc1f82a86d4adb51a6d4ca64ca38adec58982c956a73bee26"
             },
             {
-              "bytes": 6352,
+              "bytes": 6881,
               "path": "codex/findings-browser/profile-contracts/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "1bc016a15c694e01df13e23e14d955c445166b2ad12e07020f941399b0c817bb"
+              "sha256": "a39eaf679f7dc74293114922ed7d1616f3ce2f149c3d02cf86852438618c3a46"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "codex/findings-browser/profile-contracts/exact-finding.json",
-              "profile_contract_digest": "ed2dd3e60a3a10b4205e5c258868d7fd75bbf86e1031b26919b8039c5d43ad41",
+              "profile_contract_digest": "9d9db3f52241a2381702b6fc8bad431cc9da507256c6db1548dd69bedde0aa1a",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "exact-finding",
-              "sha256": "852719232df90d9bab019898c4a6a3a68eb5f7015cd46323ed8051ba2f68249d"
+              "sha256": "87e4946c050d2eed56ff15fce675fd482a564cc249b30cbc13c1b26c95d7533f"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "codex/findings-browser/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "14ddf3ca58fdfa47cc4b187fb72b06b7043d4a466235e0f93026a4a3bfb0a070",
+              "profile_contract_digest": "6754841ff50593ca53628e892c57f10f722d8abfae3ea1816649498889d3a4df",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "b1a41ab4ce906b1088590430f06d77281ae1b58c4b2db9aa205b7135b20a7bad"
+              "sha256": "e56d69a38291c32b4994807cfa09ab34f9bd1a9b1540fa4c39b5978049a98074"
             },
             {
               "bytes": 34235,
@@ -2876,50 +2876,50 @@
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "627ec7956ad022b382ceff49ca66b1aa8531c77c8a2463359ccf78033fe466cf",
+              "evidence_plan_digest": "66a7dc514dcf6de65278c567a30459450fdeb3292bfa3c9656ae09089a3d1038",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "e84f251384f419f06a601d456bc1a6ae2cee422f6834095add8f972909c2da87"
+              "sha256": "e25a834e97cbb7493445606fc64b696285c77fac6fe3874d2185a0a72da932b3"
             },
             {
-              "bytes": 33481,
+              "bytes": 33979,
               "path": "codex/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "a1d576d0bdb01f45e22e603dff0a1e6692acb5cd3128c7146c20d4035643f839"
+              "sha256": "31f202ec1ed7e1e92aec026051aeadb17dd5b5a055f6aeb9d2d4f8faffc43fa6"
             },
             {
-              "bytes": 70238,
+              "bytes": 70736,
               "path": "codex/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "1d3386b48320493ce4002109bde3537da978fc36eec96cd568be194fc9cc0436",
+              "profile_contract_digest": "ebbd95190b0d1821b71732d1cc3d1ebe827884b87bc2ea976689b7dbd44a10b6",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "008f60e29f74ad256450761e0fb2093f872f983fc229570d855e6c0170d55c99"
+              "sha256": "3a6b680a89691df13bf0b8417b1485dee10c31c80078b9dd3f8a9961ece5ff63"
             },
             {
-              "bytes": 70239,
+              "bytes": 70737,
               "path": "codex/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "990da0678fd895c4ec81fb7a662ef3516f9deeb59ea859d5aa1756a977e4cc56",
+              "profile_contract_digest": "f4775cfeab0f4d1071cf4d72b315532e9d28d7779ea1db7959a9e120ba64a562",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "c3f59143ae37efc57bb9115e2bdd815c27467409a9bdd95acbf73ed1da2c74ba"
+              "sha256": "96d039738afff71206e8a95071fac72afc88c5c8991271631c3b1a338639bf80"
             },
             {
               "bytes": 34235,
@@ -2980,50 +2980,50 @@
             {
               "bytes": 9167,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "33e934adbfb354f4a68ace6fce1d381a1b98d84180054ff6bb92b71c21af8b72",
+              "evidence_plan_digest": "6d27903e85b4ad187d2f3b33516a1e36eb5c7ab06e180c8fc516b634ca1cf96f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/oss-upgrade-investigator/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "981c01c0ac72a7a331c4db5d58f43869a1276e3ee0d130a5d034bb8dc160968b"
+              "sha256": "5bc15a4164b4b4a64c6a4f7df19f9d0ec024c657b17788075838817a5b658794"
             },
             {
-              "bytes": 5061,
+              "bytes": 5591,
               "path": "codex/oss-upgrade-investigator/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6476926802eebbd7056d73b6c1e68c38caf699b05ac64c8adda82471b40bfd63"
+              "sha256": "260608de1f8c399c8dff2a60c946d2065fcdea210b3b59492e3ecc953e0bdaf9"
             },
             {
-              "bytes": 12102,
+              "bytes": 12632,
               "path": "codex/oss-upgrade-investigator/profile-contracts/explain.json",
-              "profile_contract_digest": "db62111f8d5efac260d9c75fecec4079f6486d11c5616c2962f29ad49b98ac10",
+              "profile_contract_digest": "464050e4e1ed9fd0e9644072bb7105af9fbdcbec582de3fb0f66194b96e3ec44",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "0e2b410248a10103f6cc11123f08b32f4c3d63ab8c8168dfe2fafaadd15291eb"
+              "sha256": "e2b49159cbe47ad98758dcfbcde360ab26abbe2125d711b2d6b02472950b8b06"
             },
             {
-              "bytes": 12108,
+              "bytes": 12638,
               "path": "codex/oss-upgrade-investigator/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "bc41a9d3c1ec1ddd661ae129067ebce11df118492e7ceb9c9c09b9c4e232c014",
+              "profile_contract_digest": "b26c9c0900fb0436962f128079fed667b511ce882c64298c9f64466d1af3f47c",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "aee60697884676b4978a3d95c3a206d86b6b9241a1faeef4f7758f0f1676e6ff"
+              "sha256": "808bcfc84d278c765efcc5b38fb0a5c6e4229ff8e996d50df08207f1e001bdc3"
             },
             {
               "bytes": 34235,
@@ -3084,50 +3084,50 @@
             {
               "bytes": 8201,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "bc534785e9617a3d695116248f1cceadf8bf3e3f3e8d7c3b0ffb303f55d1fd85",
+              "evidence_plan_digest": "bc2902d7723a6e27a615548e629390aaa6e9d9eb38e703ad17623eeb14cae34f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/remediation-planning/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "c181957a81a6de552507131622e2ee5e111e916c0b386f207626a52ae24a33d4"
+              "sha256": "ba9187a90971de735f18229421d7b233ab7ab9e655fca84c5350e27431354d35"
             },
             {
-              "bytes": 4674,
+              "bytes": 5087,
               "path": "codex/remediation-planning/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e68c5e96e493c0d1b2c1d9eb3160130b4091faefc425d763ac3d5e9d6731118a",
+              "profile_contract_digest": "c5c95d8c329f1c13138e1604de9d6ab1d7ad68b4ec698fb6c0bdf8b37026b973",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "64c677205cf34851f3237a8de415f363c5149271ae8d54531f02e2148c24d566"
+              "sha256": "cbe84da452586e38e8f5cb0ec3a518db3ffc62bd47ee0ddfa9ef7107d8c22e15"
             },
             {
-              "bytes": 3917,
+              "bytes": 4330,
               "path": "codex/remediation-planning/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "75acd4baf0e6995ebb4dace9093c0a09b2058e9231cf76d74f4c2340bd13e314",
+              "profile_contract_digest": "21bcef3cf54e3071e3ed63e6a2b682b1202dfebb91651b81410c2fe2916db648",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f82e3074f9a107e179cee18ca5dacb31fe8c720258845976d5dc7440f98aed65"
+              "sha256": "7d7cb47c33559b4311f80715d39fd5690a6a0ffe94165c8fdc5e7ff2136b1618"
             },
             {
-              "bytes": 6183,
+              "bytes": 6596,
               "path": "codex/remediation-planning/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "4508075fa7b3e6771f0f244e245727e1f1a3e1e07b6cbeaba01628339ddaec9c"
+              "sha256": "c4131c699c05659bcbcebd8c4dbb1e9503fabc5d95f2d2ef8cfa64b6f1f59cd7"
             },
             {
               "bytes": 34235,
@@ -3193,65 +3193,65 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "12ff2cd141839f01b080eb6e6fcdca9575a971cbc3fc23c1b9e0eee00e940594",
+              "evidence_plan_digest": "b041817bf0407eb3df3f7240dfa237ed3fa885e21c21e4ac3e9fd8f370992555",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "cb0c9a49becb1fd86d1e136c2404cc29d9674703324f8054b0667ee865edccef"
+              "sha256": "8735316ecf0f5560a801f300e7c6f475c2647b996d4a019b3fa3009303616ee0"
             },
             {
               "bytes": 11074,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "d6e473e9366027d9efe5a7709681d9300c33db57087c78d7cc02195804a04713",
+              "evidence_plan_digest": "affc7991e972c35066e3fdb6942c5d232bf5958510d4b0d3b752b4f3eae1a65e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b7e0fa2a8a67ff26376a74a30aec16bded028cd1f150c5ba5e1dc711dd606529"
+              "sha256": "e57f13bddef94ae40468ad10efc1cb4f783dcf552f8e2303c247805df1f01b1b"
             },
             {
-              "bytes": 4671,
+              "bytes": 5084,
               "path": "codex/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "039e5e3847e69e2ff8054b5889cce5e0b82f9f7daf49d599c7d3a29f36e64aa6"
+              "sha256": "fcf48a4ab08cb38b478ea96513608c5ff9e7117e2d9b568e08d798082652456a"
             },
             {
-              "bytes": 4670,
+              "bytes": 5083,
               "path": "codex/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "febefbfda5ec63c6256993a70e420d0254e9c0ed71cee99a983d7c6aaf3c7e8f",
+              "profile_contract_digest": "8152db22e0c7a364f39dd42764fd1e58057bb99b78f8cca93976b776d5d600c5",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f90f1aeba61a76adddf3b9c14d7e8e2fa357af9bc0c4ae910e2978c9d5838e3d"
+              "sha256": "5f0398afb4e51548612044bfd6afc1388da25c552c9a214e55d1dce6578273db"
             },
             {
-              "bytes": 12565,
+              "bytes": 12978,
               "path": "codex/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "5ff9f859251844430971254d1e3253cb0d1c954b308e61f4b973969046b3ea0b"
+              "sha256": "bd5e50358a65c9a0f410fe0a5ae629015503d0427d6e9b6bf2943d5bda39c90a"
             },
             {
               "bytes": 34235,
@@ -3309,50 +3309,50 @@
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "24811002f9f1c0c78fab5768ae7f669a9bad1fbc786f5a9fb7feebf350b0961d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "3623390516c6712a6b7b039c2d2768624940fe81e3c7c670d2b538dd4923412c"
             },
             {
-              "bytes": 41579,
+              "bytes": 42170,
               "path": "codex/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "b7572c91f096668350382b16fe80d82a03c321fe4e7f2514169203e991e0891b",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "5f1783a4d69cabf3b1ee527978076e737392fcf079ba8a59a2019679ac1d8e1d"
             },
             {
-              "bytes": 34324,
+              "bytes": 34915,
               "path": "codex/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "c168f211a93afce3340c012e24a714930116821bf4312f62605e26563c634b81"
             },
             {
-              "bytes": 41585,
+              "bytes": 42176,
               "path": "codex/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "cc03988614428ac52a25d4d833708db9d404254b7a0f518fee8f4f9471b7a95f",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "2299c4a8c9f1bfe5824add746019cf0e3435f65abe7940967b810cfba30355df"
             },
             {
               "bytes": 34235,
@@ -3406,26 +3406,26 @@
               "sha256": "50da5c98a42305a1aff01d3a082d1211b3650ac6c492753130110c2d60bf47f5"
             },
             {
-              "bytes": 3119,
+              "bytes": 3619,
               "path": "codex/vulnerability-explainer/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "cbd6a6978eb48e4eb0d6faf28a8810f52adabf10924361f630385b032ca4dd3a",
+              "profile_contract_digest": "84060198748845845ccb8d727fa12ac811fb85830fab4e561ea0698dfd665abe",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "c8cceab234bd6920f15e06962928ab560b36a0e8bf1e539a79e8b137df2afbf0"
+              "sha256": "3e6e0e9090135cfce91a86e3ca5132951cd0ad0ba5fa8d51810d7e6fc31af359"
             },
             {
-              "bytes": 3111,
+              "bytes": 3611,
               "path": "codex/vulnerability-explainer/profile-contracts/explain.json",
-              "profile_contract_digest": "64619784ae48e1a045bce88097edbae93825c7497d485cee8cb64dfd2f4a812a",
+              "profile_contract_digest": "eb24fecd472700cfa5dd46590fce208d44a296ae34a0b26f8294fcf9adaf45cf",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "61ea5e6025c42a02ffceeede022ff3b5956803c4c3520fb1652e73c2f5c6497c"
+              "sha256": "a7ca737e3f0e7f524a7125c58a6f18210a1e9de9b56b5c72f578a51f5f4a2d25"
             },
             {
               "bytes": 34235,
@@ -3493,65 +3493,65 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "5d85acedd7096e89d8e3ee13bde118521222ba275d2bf7fcd1fdbb54e1f05f7d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "19be6f4fd75bcbf40090e609b4f89072fdf76cadbfde0acf5c6f607d80788930"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "72f9eb7e3af9ca2e15e7b92a7ceeaa746c03b544a2f109c582c508bbe0a70ad3",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "4ad604e67bd99946a8a87f258061faac8161e825d76deaa5ee59b127e156ae57"
             },
             {
-              "bytes": 5463,
+              "bytes": 5876,
               "path": "gemini/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "ce20166370c89850e20571ee8fe6c1dc8b7b286b5aec4265089950adbb617e2e"
             },
             {
-              "bytes": 3914,
+              "bytes": 4327,
               "path": "gemini/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "2204635f75a0814b22c710109c8aad477f1ead181e89306cdbcc4ac0e8388fda",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "1cd1e9d808449fb5ab4b80d2618e1cc15f6732eadfd9b9e51d985ddab290227a"
             },
             {
-              "bytes": 53161,
+              "bytes": 53574,
               "path": "gemini/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "d38bcdba7c1b145ce56dd8756e138b1b005a3ec254481406c1bec8811aaaa110"
             },
             {
               "bytes": 34235,
@@ -3617,39 +3617,39 @@
             {
               "bytes": 10413,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "86652a2e01ca29732b33a612312c5189c69523c6cf4ae76c850f1d05f9663f87",
+              "evidence_plan_digest": "140155ecbbaf1e1186387325476db4ff79a6fe696a642feb79de394ec6cec7c2",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/cicd-posture/evidence-plans/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "84652553e9d293099b88839984b1e98da01ea20faf5733a707ecf5828d1c0312"
+              "sha256": "55df5e382d839a8c8dd8d4cd4fe7d5b2204482b5fd883d7d48ddc36586dd59da"
             },
             {
-              "bytes": 57811,
+              "bytes": 58304,
               "path": "gemini/cicd-posture/profile-contracts/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "26a4b08b46134ff703876936b503fa5b88f839e3bc60c64ce2ba56ad50887de5"
+              "sha256": "864741881204d3e0b35d0125b8c6361cb1366b2de124fe079b55eb7d25fff36b"
             },
             {
-              "bytes": 57818,
+              "bytes": 58311,
               "path": "gemini/cicd-posture/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "9aab6a67a139048c815ba7c50c02acceafa912cab0809a29c249307b52cee231",
+              "profile_contract_digest": "773dff83ab413c2771a33ba3b6607f2b6df05cf63f495c384adb22a54dc978c4",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f9ea36ed9d44eb7c3d3402006f95ba415e2cab8fb7dfd49a94ac808bde4ae66f"
+              "sha256": "53ee8f02dd2fc9c65c8fb166130465eec33e9ee48eb221b5338c018fcf1045db"
             },
             {
               "bytes": 34235,
@@ -3712,50 +3712,50 @@
             {
               "bytes": 16426,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "3aa181c7ec5fabff37aa36a1fec06f9149a753a1531afbd2f927fb3403f3def8",
+              "evidence_plan_digest": "b29bdf81e7f4d438a9b3c387b7998837ef462a8fa1c573be62fd9d553556e4dc",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/configuration-automation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "f372ad2effbb2bb73a7f6155da69dd81c1f41ff6a6f543b7df84504cf1d9823e"
+              "sha256": "b05113320e4cf5be0a8f2d0804dc400222097e7053ce430f4bb3942afd48bdaf"
             },
             {
-              "bytes": 69418,
+              "bytes": 69831,
               "path": "gemini/configuration-automation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "4ea626eafa7d969c060b8eed054e09e9cf83050641aa1a2df724cd15621fd5d6"
+              "sha256": "fc93fd98182abdf2c2edf253f3dfedd0a55ac4f6da15982ccdf465c92e44dac7"
             },
             {
-              "bytes": 94201,
+              "bytes": 94614,
               "path": "gemini/configuration-automation/profile-contracts/prescribe-actions.json",
-              "profile_contract_digest": "1f9e8c57e76f20b5114f5f00058d5df22962e097758b9e3c6a3d78dc546298e0",
+              "profile_contract_digest": "dbe87fc961ef474b6fcb182bffe046cf8d2d640a1e9004d60a6ebc1b921bfa3f",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "prescribe-actions",
-              "sha256": "736c75bf582728f350bb57e4fb291032e157287a3bf2fbe59e544429d0f8deca"
+              "sha256": "f4c7f2007c3036bc0b534db8ca71c17d897a339e3acd482179627da0bd0a3a79"
             },
             {
-              "bytes": 94197,
+              "bytes": 94610,
               "path": "gemini/configuration-automation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "c90aeea2849dea3c8c102b5f2852e04f616bda8359c0960b1b32bb8c28a8400d",
+              "profile_contract_digest": "4f3777c703b9d2fc9ee723d27d698347dfa9cbe2e15c3015177675194047c4ba",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f528389d6e736415030f4b2c7927f5834b7a937f723fc39288a67f5b35437703"
+              "sha256": "10cec99d3ac4e6ff2e8118f7f2c45f425a089c93101de0e87c3a13967c1051b2"
             },
             {
               "bytes": 34235,
@@ -3821,50 +3821,50 @@
             {
               "bytes": 5082,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "caeb7dabed0f062b63b9d6faf1fa596854cc8d9dde491b9eab0d88a9be6a75a7",
+              "evidence_plan_digest": "b9ad8f5cffd4484257e02fb240aaf4ca0b9b7e0c8c9b258442abb15267cf0cc4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/dependency-reviewer/evidence-plans/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "9b9b85203f3b548ed598453a0aa84247984e4217d84ce44ac6fe38d86ee47a93"
+              "sha256": "874d59469b06a045650db7af382b11eabbc55eb001bb88c3517d8e66c5e1869f"
             },
             {
-              "bytes": 3226,
+              "bytes": 3639,
               "path": "gemini/dependency-reviewer/profile-contracts/package-decision.json",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "298506ac58bf15c8d0791a2015fa76e7c29bf6c61dd6299724cdb87133942710"
+              "sha256": "33cf84c8d292f5eb3cf693afd2504645450f98ba8c77d52af3606e39e68e01b1"
             },
             {
-              "bytes": 9310,
+              "bytes": 9723,
               "path": "gemini/dependency-reviewer/profile-contracts/package-risk.json",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "42a8db6cc4eff11cfd2e4274547ab852df5492ded917ec16d3fd90347cb35ddd"
+              "sha256": "841126c15c6b743d507cdf6ab48c7421b6f6e0167a7b9cab76055056b4eac7e0"
             },
             {
-              "bytes": 21490,
+              "bytes": 21903,
               "path": "gemini/dependency-reviewer/profile-contracts/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "69ec06a72c6f5b8b741d71dbeb7b0c4fef74a0f88d9b906155edec2d607ccf8c"
+              "sha256": "ac57762c531a3cbf2f733bbe7abb952c2d257eaf144e7320ffdbdd1d15a0d757"
             },
             {
               "bytes": 34235,
@@ -3927,17 +3927,17 @@
             {
               "bytes": 5295,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "125667144e75f4fd5b89860702be8a999f7b137abb378ead1a7f4098fb7cb307",
+              "evidence_plan_digest": "7b3de6929e3a83ff5745853acc5eb1a6f04d42737ea345406b44563d769ee8f5",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/findings-browser/evidence-plans/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "3ae8f672452dae3cc813e4e9af5c202bc1917088e94f9d187cf36ddfbdd9cc66"
+              "sha256": "dec8e2a1aca4c48dc1f82a86d4adb51a6d4ca64ca38adec58982c956a73bee26"
             },
             {
               "bytes": 36416,
@@ -3945,37 +3945,37 @@
               "sha256": "ad9e3de63ebd98075887caecb99608948c801c240d9387a2b873445eae7f3d96"
             },
             {
-              "bytes": 6352,
+              "bytes": 6881,
               "path": "gemini/findings-browser/profile-contracts/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "1bc016a15c694e01df13e23e14d955c445166b2ad12e07020f941399b0c817bb"
+              "sha256": "a39eaf679f7dc74293114922ed7d1616f3ce2f149c3d02cf86852438618c3a46"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "gemini/findings-browser/profile-contracts/exact-finding.json",
-              "profile_contract_digest": "ed2dd3e60a3a10b4205e5c258868d7fd75bbf86e1031b26919b8039c5d43ad41",
+              "profile_contract_digest": "9d9db3f52241a2381702b6fc8bad431cc9da507256c6db1548dd69bedde0aa1a",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "exact-finding",
-              "sha256": "852719232df90d9bab019898c4a6a3a68eb5f7015cd46323ed8051ba2f68249d"
+              "sha256": "87e4946c050d2eed56ff15fce675fd482a564cc249b30cbc13c1b26c95d7533f"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "gemini/findings-browser/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "14ddf3ca58fdfa47cc4b187fb72b06b7043d4a466235e0f93026a4a3bfb0a070",
+              "profile_contract_digest": "6754841ff50593ca53628e892c57f10f722d8abfae3ea1816649498889d3a4df",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "b1a41ab4ce906b1088590430f06d77281ae1b58c4b2db9aa205b7135b20a7bad"
+              "sha256": "e56d69a38291c32b4994807cfa09ab34f9bd1a9b1540fa4c39b5978049a98074"
             },
             {
               "bytes": 34235,
@@ -4033,17 +4033,17 @@
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "627ec7956ad022b382ceff49ca66b1aa8531c77c8a2463359ccf78033fe466cf",
+              "evidence_plan_digest": "66a7dc514dcf6de65278c567a30459450fdeb3292bfa3c9656ae09089a3d1038",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "e84f251384f419f06a601d456bc1a6ae2cee422f6834095add8f972909c2da87"
+              "sha256": "e25a834e97cbb7493445606fc64b696285c77fac6fe3874d2185a0a72da932b3"
             },
             {
               "bytes": 57595,
@@ -4051,37 +4051,37 @@
               "sha256": "1784673ed357f999ea6e89b01569dd37efaa2d7c8dac78ce1133304d39f3664d"
             },
             {
-              "bytes": 33481,
+              "bytes": 33979,
               "path": "gemini/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "a1d576d0bdb01f45e22e603dff0a1e6692acb5cd3128c7146c20d4035643f839"
+              "sha256": "31f202ec1ed7e1e92aec026051aeadb17dd5b5a055f6aeb9d2d4f8faffc43fa6"
             },
             {
-              "bytes": 70238,
+              "bytes": 70736,
               "path": "gemini/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "1d3386b48320493ce4002109bde3537da978fc36eec96cd568be194fc9cc0436",
+              "profile_contract_digest": "ebbd95190b0d1821b71732d1cc3d1ebe827884b87bc2ea976689b7dbd44a10b6",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "008f60e29f74ad256450761e0fb2093f872f983fc229570d855e6c0170d55c99"
+              "sha256": "3a6b680a89691df13bf0b8417b1485dee10c31c80078b9dd3f8a9961ece5ff63"
             },
             {
-              "bytes": 70239,
+              "bytes": 70737,
               "path": "gemini/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "990da0678fd895c4ec81fb7a662ef3516f9deeb59ea859d5aa1756a977e4cc56",
+              "profile_contract_digest": "f4775cfeab0f4d1071cf4d72b315532e9d28d7779ea1db7959a9e120ba64a562",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "c3f59143ae37efc57bb9115e2bdd815c27467409a9bdd95acbf73ed1da2c74ba"
+              "sha256": "96d039738afff71206e8a95071fac72afc88c5c8991271631c3b1a338639bf80"
             },
             {
               "bytes": 34235,
@@ -4142,17 +4142,17 @@
             {
               "bytes": 9167,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "33e934adbfb354f4a68ace6fce1d381a1b98d84180054ff6bb92b71c21af8b72",
+              "evidence_plan_digest": "6d27903e85b4ad187d2f3b33516a1e36eb5c7ab06e180c8fc516b634ca1cf96f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/oss-upgrade-investigator/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "981c01c0ac72a7a331c4db5d58f43869a1276e3ee0d130a5d034bb8dc160968b"
+              "sha256": "5bc15a4164b4b4a64c6a4f7df19f9d0ec024c657b17788075838817a5b658794"
             },
             {
               "bytes": 59260,
@@ -4160,37 +4160,37 @@
               "sha256": "fa7816e1053bf9bb33aa621546e3f513124bb2b1ce802836ff40f5a33143d91e"
             },
             {
-              "bytes": 5061,
+              "bytes": 5591,
               "path": "gemini/oss-upgrade-investigator/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6476926802eebbd7056d73b6c1e68c38caf699b05ac64c8adda82471b40bfd63"
+              "sha256": "260608de1f8c399c8dff2a60c946d2065fcdea210b3b59492e3ecc953e0bdaf9"
             },
             {
-              "bytes": 12102,
+              "bytes": 12632,
               "path": "gemini/oss-upgrade-investigator/profile-contracts/explain.json",
-              "profile_contract_digest": "db62111f8d5efac260d9c75fecec4079f6486d11c5616c2962f29ad49b98ac10",
+              "profile_contract_digest": "464050e4e1ed9fd0e9644072bb7105af9fbdcbec582de3fb0f66194b96e3ec44",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "0e2b410248a10103f6cc11123f08b32f4c3d63ab8c8168dfe2fafaadd15291eb"
+              "sha256": "e2b49159cbe47ad98758dcfbcde360ab26abbe2125d711b2d6b02472950b8b06"
             },
             {
-              "bytes": 12108,
+              "bytes": 12638,
               "path": "gemini/oss-upgrade-investigator/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "bc41a9d3c1ec1ddd661ae129067ebce11df118492e7ceb9c9c09b9c4e232c014",
+              "profile_contract_digest": "b26c9c0900fb0436962f128079fed667b511ce882c64298c9f64466d1af3f47c",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "aee60697884676b4978a3d95c3a206d86b6b9241a1faeef4f7758f0f1676e6ff"
+              "sha256": "808bcfc84d278c765efcc5b38fb0a5c6e4229ff8e996d50df08207f1e001bdc3"
             },
             {
               "bytes": 34235,
@@ -4251,50 +4251,50 @@
             {
               "bytes": 8201,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "bc534785e9617a3d695116248f1cceadf8bf3e3f3e8d7c3b0ffb303f55d1fd85",
+              "evidence_plan_digest": "bc2902d7723a6e27a615548e629390aaa6e9d9eb38e703ad17623eeb14cae34f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/remediation-planning/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "c181957a81a6de552507131622e2ee5e111e916c0b386f207626a52ae24a33d4"
+              "sha256": "ba9187a90971de735f18229421d7b233ab7ab9e655fca84c5350e27431354d35"
             },
             {
-              "bytes": 4674,
+              "bytes": 5087,
               "path": "gemini/remediation-planning/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e68c5e96e493c0d1b2c1d9eb3160130b4091faefc425d763ac3d5e9d6731118a",
+              "profile_contract_digest": "c5c95d8c329f1c13138e1604de9d6ab1d7ad68b4ec698fb6c0bdf8b37026b973",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "64c677205cf34851f3237a8de415f363c5149271ae8d54531f02e2148c24d566"
+              "sha256": "cbe84da452586e38e8f5cb0ec3a518db3ffc62bd47ee0ddfa9ef7107d8c22e15"
             },
             {
-              "bytes": 3917,
+              "bytes": 4330,
               "path": "gemini/remediation-planning/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "75acd4baf0e6995ebb4dace9093c0a09b2058e9231cf76d74f4c2340bd13e314",
+              "profile_contract_digest": "21bcef3cf54e3071e3ed63e6a2b682b1202dfebb91651b81410c2fe2916db648",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f82e3074f9a107e179cee18ca5dacb31fe8c720258845976d5dc7440f98aed65"
+              "sha256": "7d7cb47c33559b4311f80715d39fd5690a6a0ffe94165c8fdc5e7ff2136b1618"
             },
             {
-              "bytes": 6183,
+              "bytes": 6596,
               "path": "gemini/remediation-planning/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "4508075fa7b3e6771f0f244e245727e1f1a3e1e07b6cbeaba01628339ddaec9c"
+              "sha256": "c4131c699c05659bcbcebd8c4dbb1e9503fabc5d95f2d2ef8cfa64b6f1f59cd7"
             },
             {
               "bytes": 35790,
@@ -4365,65 +4365,65 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "12ff2cd141839f01b080eb6e6fcdca9575a971cbc3fc23c1b9e0eee00e940594",
+              "evidence_plan_digest": "b041817bf0407eb3df3f7240dfa237ed3fa885e21c21e4ac3e9fd8f370992555",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "cb0c9a49becb1fd86d1e136c2404cc29d9674703324f8054b0667ee865edccef"
+              "sha256": "8735316ecf0f5560a801f300e7c6f475c2647b996d4a019b3fa3009303616ee0"
             },
             {
               "bytes": 11074,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "d6e473e9366027d9efe5a7709681d9300c33db57087c78d7cc02195804a04713",
+              "evidence_plan_digest": "affc7991e972c35066e3fdb6942c5d232bf5958510d4b0d3b752b4f3eae1a65e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b7e0fa2a8a67ff26376a74a30aec16bded028cd1f150c5ba5e1dc711dd606529"
+              "sha256": "e57f13bddef94ae40468ad10efc1cb4f783dcf552f8e2303c247805df1f01b1b"
             },
             {
-              "bytes": 4671,
+              "bytes": 5084,
               "path": "gemini/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "039e5e3847e69e2ff8054b5889cce5e0b82f9f7daf49d599c7d3a29f36e64aa6"
+              "sha256": "fcf48a4ab08cb38b478ea96513608c5ff9e7117e2d9b568e08d798082652456a"
             },
             {
-              "bytes": 4670,
+              "bytes": 5083,
               "path": "gemini/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "febefbfda5ec63c6256993a70e420d0254e9c0ed71cee99a983d7c6aaf3c7e8f",
+              "profile_contract_digest": "8152db22e0c7a364f39dd42764fd1e58057bb99b78f8cca93976b776d5d600c5",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f90f1aeba61a76adddf3b9c14d7e8e2fa357af9bc0c4ae910e2978c9d5838e3d"
+              "sha256": "5f0398afb4e51548612044bfd6afc1388da25c552c9a214e55d1dce6578273db"
             },
             {
-              "bytes": 12565,
+              "bytes": 12978,
               "path": "gemini/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "5ff9f859251844430971254d1e3253cb0d1c954b308e61f4b973969046b3ea0b"
+              "sha256": "bd5e50358a65c9a0f410fe0a5ae629015503d0427d6e9b6bf2943d5bda39c90a"
             },
             {
               "bytes": 34235,
@@ -4486,50 +4486,50 @@
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "24811002f9f1c0c78fab5768ae7f669a9bad1fbc786f5a9fb7feebf350b0961d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "3623390516c6712a6b7b039c2d2768624940fe81e3c7c670d2b538dd4923412c"
             },
             {
-              "bytes": 41579,
+              "bytes": 42170,
               "path": "gemini/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "b7572c91f096668350382b16fe80d82a03c321fe4e7f2514169203e991e0891b",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "5f1783a4d69cabf3b1ee527978076e737392fcf079ba8a59a2019679ac1d8e1d"
             },
             {
-              "bytes": 34324,
+              "bytes": 34915,
               "path": "gemini/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "c168f211a93afce3340c012e24a714930116821bf4312f62605e26563c634b81"
             },
             {
-              "bytes": 41585,
+              "bytes": 42176,
               "path": "gemini/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "cc03988614428ac52a25d4d833708db9d404254b7a0f518fee8f4f9471b7a95f",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "2299c4a8c9f1bfe5824add746019cf0e3435f65abe7940967b810cfba30355df"
             },
             {
               "bytes": 34235,
@@ -4588,26 +4588,26 @@
               "sha256": "50da5c98a42305a1aff01d3a082d1211b3650ac6c492753130110c2d60bf47f5"
             },
             {
-              "bytes": 3119,
+              "bytes": 3619,
               "path": "gemini/vulnerability-explainer/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "cbd6a6978eb48e4eb0d6faf28a8810f52adabf10924361f630385b032ca4dd3a",
+              "profile_contract_digest": "84060198748845845ccb8d727fa12ac811fb85830fab4e561ea0698dfd665abe",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "c8cceab234bd6920f15e06962928ab560b36a0e8bf1e539a79e8b137df2afbf0"
+              "sha256": "3e6e0e9090135cfce91a86e3ca5132951cd0ad0ba5fa8d51810d7e6fc31af359"
             },
             {
-              "bytes": 3111,
+              "bytes": 3611,
               "path": "gemini/vulnerability-explainer/profile-contracts/explain.json",
-              "profile_contract_digest": "64619784ae48e1a045bce88097edbae93825c7497d485cee8cb64dfd2f4a812a",
+              "profile_contract_digest": "eb24fecd472700cfa5dd46590fce208d44a296ae34a0b26f8294fcf9adaf45cf",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "61ea5e6025c42a02ffceeede022ff3b5956803c4c3520fb1652e73c2f5c6497c"
+              "sha256": "a7ca737e3f0e7f524a7125c58a6f18210a1e9de9b56b5c72f578a51f5f4a2d25"
             },
             {
               "bytes": 34235,
@@ -4680,32 +4680,32 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "5d85acedd7096e89d8e3ee13bde118521222ba275d2bf7fcd1fdbb54e1f05f7d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "19be6f4fd75bcbf40090e609b4f89072fdf76cadbfde0acf5c6f607d80788930"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "72f9eb7e3af9ca2e15e7b92a7ceeaa746c03b544a2f109c582c508bbe0a70ad3",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "4ad604e67bd99946a8a87f258061faac8161e825d76deaa5ee59b127e156ae57"
             },
             {
               "bytes": 9605,
@@ -4713,37 +4713,37 @@
               "sha256": "76ad2cde07263ce9919ff4ac226811a02d4edc7819519cc69573c83ffc117641"
             },
             {
-              "bytes": 5463,
+              "bytes": 5876,
               "path": "portable/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "590fc5fc9c3946a4c0fa9a41138b442693f2a724577534849d38ad9400f4f1f9",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "ce20166370c89850e20571ee8fe6c1dc8b7b286b5aec4265089950adbb617e2e"
             },
             {
-              "bytes": 3914,
+              "bytes": 4327,
               "path": "portable/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "2204635f75a0814b22c710109c8aad477f1ead181e89306cdbcc4ac0e8388fda",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "1cd1e9d808449fb5ab4b80d2618e1cc15f6732eadfd9b9e51d985ddab290227a"
             },
             {
-              "bytes": 53161,
+              "bytes": 53574,
               "path": "portable/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "44c607982ccf18ace95e76dc7faaab8bd13bafbd997ff49b319a1f4cdf15b46d",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "d38bcdba7c1b145ce56dd8756e138b1b005a3ec254481406c1bec8811aaaa110"
             },
             {
               "bytes": 34235,
@@ -4809,17 +4809,17 @@
             {
               "bytes": 10413,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "86652a2e01ca29732b33a612312c5189c69523c6cf4ae76c850f1d05f9663f87",
+              "evidence_plan_digest": "140155ecbbaf1e1186387325476db4ff79a6fe696a642feb79de394ec6cec7c2",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/cicd-posture/evidence-plans/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "84652553e9d293099b88839984b1e98da01ea20faf5733a707ecf5828d1c0312"
+              "sha256": "55df5e382d839a8c8dd8d4cd4fe7d5b2204482b5fd883d7d48ddc36586dd59da"
             },
             {
               "bytes": 6339,
@@ -4827,26 +4827,26 @@
               "sha256": "38b0aed419ee4af6bae6da99d0a894c6031f7c77ca3fc0ac149b6b3b9a69b69b"
             },
             {
-              "bytes": 57811,
+              "bytes": 58304,
               "path": "portable/cicd-posture/profile-contracts/posture.json",
-              "profile_contract_digest": "7159a4c5e1044f5213f22fb7c7e8c688a0d42da3bcd3c81db4d9002458d3c155",
+              "profile_contract_digest": "a305fb3544f6c1d1376fe2c26dcef7612818f40bcc9d65cfdb868438813eedea",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "posture",
-              "sha256": "26a4b08b46134ff703876936b503fa5b88f839e3bc60c64ce2ba56ad50887de5"
+              "sha256": "864741881204d3e0b35d0125b8c6361cb1366b2de124fe079b55eb7d25fff36b"
             },
             {
-              "bytes": 57818,
+              "bytes": 58311,
               "path": "portable/cicd-posture/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "9aab6a67a139048c815ba7c50c02acceafa912cab0809a29c249307b52cee231",
+              "profile_contract_digest": "773dff83ab413c2771a33ba3b6607f2b6df05cf63f495c384adb22a54dc978c4",
               "profile_gate_validator": {
                 "id": "cicd-posture.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f9ea36ed9d44eb7c3d3402006f95ba415e2cab8fb7dfd49a94ac808bde4ae66f"
+              "sha256": "53ee8f02dd2fc9c65c8fb166130465eec33e9ee48eb221b5338c018fcf1045db"
             },
             {
               "bytes": 34235,
@@ -4909,17 +4909,17 @@
             {
               "bytes": 16426,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "3aa181c7ec5fabff37aa36a1fec06f9149a753a1531afbd2f927fb3403f3def8",
+              "evidence_plan_digest": "b29bdf81e7f4d438a9b3c387b7998837ef462a8fa1c573be62fd9d553556e4dc",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/configuration-automation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "f372ad2effbb2bb73a7f6155da69dd81c1f41ff6a6f543b7df84504cf1d9823e"
+              "sha256": "b05113320e4cf5be0a8f2d0804dc400222097e7053ce430f4bb3942afd48bdaf"
             },
             {
               "bytes": 8829,
@@ -4927,37 +4927,37 @@
               "sha256": "5323e2b432cc48bf8038af548176d8439a49cf0d599b33ebc644bf6eab44e20d"
             },
             {
-              "bytes": 69418,
+              "bytes": 69831,
               "path": "portable/configuration-automation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e061b7718b5b5f799a586519367f12a15128b8b42144a0c44fe09f6084a5365e",
+              "profile_contract_digest": "6b00d18de16f390bef1fa6aae9ea5a6bef1903cbde8359ff638ba4f94958c173",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "4ea626eafa7d969c060b8eed054e09e9cf83050641aa1a2df724cd15621fd5d6"
+              "sha256": "fc93fd98182abdf2c2edf253f3dfedd0a55ac4f6da15982ccdf465c92e44dac7"
             },
             {
-              "bytes": 94201,
+              "bytes": 94614,
               "path": "portable/configuration-automation/profile-contracts/prescribe-actions.json",
-              "profile_contract_digest": "1f9e8c57e76f20b5114f5f00058d5df22962e097758b9e3c6a3d78dc546298e0",
+              "profile_contract_digest": "dbe87fc961ef474b6fcb182bffe046cf8d2d640a1e9004d60a6ebc1b921bfa3f",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "prescribe-actions",
-              "sha256": "736c75bf582728f350bb57e4fb291032e157287a3bf2fbe59e544429d0f8deca"
+              "sha256": "f4c7f2007c3036bc0b534db8ca71c17d897a339e3acd482179627da0bd0a3a79"
             },
             {
-              "bytes": 94197,
+              "bytes": 94610,
               "path": "portable/configuration-automation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "c90aeea2849dea3c8c102b5f2852e04f616bda8359c0960b1b32bb8c28a8400d",
+              "profile_contract_digest": "4f3777c703b9d2fc9ee723d27d698347dfa9cbe2e15c3015177675194047c4ba",
               "profile_gate_validator": {
                 "id": "configuration-automation.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f528389d6e736415030f4b2c7927f5834b7a937f723fc39288a67f5b35437703"
+              "sha256": "10cec99d3ac4e6ff2e8118f7f2c45f425a089c93101de0e87c3a13967c1051b2"
             },
             {
               "bytes": 34235,
@@ -5023,17 +5023,17 @@
             {
               "bytes": 5082,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "caeb7dabed0f062b63b9d6faf1fa596854cc8d9dde491b9eab0d88a9be6a75a7",
+              "evidence_plan_digest": "b9ad8f5cffd4484257e02fb240aaf4ca0b9b7e0c8c9b258442abb15267cf0cc4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/dependency-reviewer/evidence-plans/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "9b9b85203f3b548ed598453a0aa84247984e4217d84ce44ac6fe38d86ee47a93"
+              "sha256": "874d59469b06a045650db7af382b11eabbc55eb001bb88c3517d8e66c5e1869f"
             },
             {
               "bytes": 5467,
@@ -5041,37 +5041,37 @@
               "sha256": "2e1d54bdd9af563fac3893c6f21ac9765fcaa65f654defd1f271a23546e47cf3"
             },
             {
-              "bytes": 3226,
+              "bytes": 3639,
               "path": "portable/dependency-reviewer/profile-contracts/package-decision.json",
-              "profile_contract_digest": "3efd04c1248807dd3ff8756ba73b4bd0ec0938d6bbe56e02816633b95e119730",
+              "profile_contract_digest": "a1bd9b7bad9f0f17342e065ba6d2bbfc310ca07f0ce48f4914c1296fc75acae9",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-decision",
-              "sha256": "298506ac58bf15c8d0791a2015fa76e7c29bf6c61dd6299724cdb87133942710"
+              "sha256": "33cf84c8d292f5eb3cf693afd2504645450f98ba8c77d52af3606e39e68e01b1"
             },
             {
-              "bytes": 9310,
+              "bytes": 9723,
               "path": "portable/dependency-reviewer/profile-contracts/package-risk.json",
-              "profile_contract_digest": "7a21a8536ae3728493eacbe91693da979a2b7e59a642174d7952b55f5b0b1ce2",
+              "profile_contract_digest": "518e92a4e5011ce7dbff4119945958aa49660e09a97aaf94f789c2f736dc89ee",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "package-risk",
-              "sha256": "42a8db6cc4eff11cfd2e4274547ab852df5492ded917ec16d3fd90347cb35ddd"
+              "sha256": "841126c15c6b743d507cdf6ab48c7421b6f6e0167a7b9cab76055056b4eac7e0"
             },
             {
-              "bytes": 21490,
+              "bytes": 21903,
               "path": "portable/dependency-reviewer/profile-contracts/repository-review.json",
-              "profile_contract_digest": "c3f709341f7e6304878589cddbc14a4e064fa59304dd7a2c038c1728d61578d3",
+              "profile_contract_digest": "ca3c6a6be8ba8232e11840eab9a13967afd5614a158e8f650f081cafc55cae2c",
               "profile_gate_validator": {
                 "id": "dependency-reviewer.structured-output",
                 "version": "1"
               },
               "profile_id": "repository-review",
-              "sha256": "69ec06a72c6f5b8b741d71dbeb7b0c4fef74a0f88d9b906155edec2d607ccf8c"
+              "sha256": "ac57762c531a3cbf2f733bbe7abb952c2d257eaf144e7320ffdbdd1d15a0d757"
             },
             {
               "bytes": 34235,
@@ -5139,17 +5139,17 @@
             {
               "bytes": 5295,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "125667144e75f4fd5b89860702be8a999f7b137abb378ead1a7f4098fb7cb307",
+              "evidence_plan_digest": "7b3de6929e3a83ff5745853acc5eb1a6f04d42737ea345406b44563d769ee8f5",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/findings-browser/evidence-plans/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "3ae8f672452dae3cc813e4e9af5c202bc1917088e94f9d187cf36ddfbdd9cc66"
+              "sha256": "dec8e2a1aca4c48dc1f82a86d4adb51a6d4ca64ca38adec58982c956a73bee26"
             },
             {
               "bytes": 6333,
@@ -5157,37 +5157,37 @@
               "sha256": "b7aea096ef69cc55e40a4d2d3f4d18bb08998581afaec7bdc9573b5d9e519096"
             },
             {
-              "bytes": 6352,
+              "bytes": 6881,
               "path": "portable/findings-browser/profile-contracts/browse.json",
-              "profile_contract_digest": "d042c6ebc5db16a7e5a97e4fa237ff88f808d4d48f3fa4e0352840683988c143",
+              "profile_contract_digest": "8fe25add23c05033cf6eae1c5f86b19800771dd6507397b73ae07447897c676c",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "browse",
-              "sha256": "1bc016a15c694e01df13e23e14d955c445166b2ad12e07020f941399b0c817bb"
+              "sha256": "a39eaf679f7dc74293114922ed7d1616f3ce2f149c3d02cf86852438618c3a46"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "portable/findings-browser/profile-contracts/exact-finding.json",
-              "profile_contract_digest": "ed2dd3e60a3a10b4205e5c258868d7fd75bbf86e1031b26919b8039c5d43ad41",
+              "profile_contract_digest": "9d9db3f52241a2381702b6fc8bad431cc9da507256c6db1548dd69bedde0aa1a",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "exact-finding",
-              "sha256": "852719232df90d9bab019898c4a6a3a68eb5f7015cd46323ed8051ba2f68249d"
+              "sha256": "87e4946c050d2eed56ff15fce675fd482a564cc249b30cbc13c1b26c95d7533f"
             },
             {
-              "bytes": 33414,
+              "bytes": 33943,
               "path": "portable/findings-browser/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "14ddf3ca58fdfa47cc4b187fb72b06b7043d4a466235e0f93026a4a3bfb0a070",
+              "profile_contract_digest": "6754841ff50593ca53628e892c57f10f722d8abfae3ea1816649498889d3a4df",
               "profile_gate_validator": {
                 "id": "findings-browser.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "b1a41ab4ce906b1088590430f06d77281ae1b58c4b2db9aa205b7135b20a7bad"
+              "sha256": "e56d69a38291c32b4994807cfa09ab34f9bd1a9b1540fa4c39b5978049a98074"
             },
             {
               "bytes": 34235,
@@ -5250,17 +5250,17 @@
             {
               "bytes": 10661,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "627ec7956ad022b382ceff49ca66b1aa8531c77c8a2463359ccf78033fe466cf",
+              "evidence_plan_digest": "66a7dc514dcf6de65278c567a30459450fdeb3292bfa3c9656ae09089a3d1038",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/malware-responder/evidence-plans/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "e84f251384f419f06a601d456bc1a6ae2cee422f6834095add8f972909c2da87"
+              "sha256": "e25a834e97cbb7493445606fc64b696285c77fac6fe3874d2185a0a72da932b3"
             },
             {
               "bytes": 6584,
@@ -5268,37 +5268,37 @@
               "sha256": "030971256e2b174bcf9eca184c46a1b334cfb18a3751be052eb9cf4f1ed751f3"
             },
             {
-              "bytes": 33481,
+              "bytes": 33979,
               "path": "portable/malware-responder/profile-contracts/exposure-check.json",
-              "profile_contract_digest": "48655cd81f01d7122971eb8cbc541b50788cf0c95f51e0de168b7f9fd440c8cb",
+              "profile_contract_digest": "731a8298097ba379339ea110e257f2858a2bbcf0619ee26255be2431a9703979",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "exposure-check",
-              "sha256": "a1d576d0bdb01f45e22e603dff0a1e6692acb5cd3128c7146c20d4035643f839"
+              "sha256": "31f202ec1ed7e1e92aec026051aeadb17dd5b5a055f6aeb9d2d4f8faffc43fa6"
             },
             {
-              "bytes": 70238,
+              "bytes": 70736,
               "path": "portable/malware-responder/profile-contracts/intake-brief.json",
-              "profile_contract_digest": "1d3386b48320493ce4002109bde3537da978fc36eec96cd568be194fc9cc0436",
+              "profile_contract_digest": "ebbd95190b0d1821b71732d1cc3d1ebe827884b87bc2ea976689b7dbd44a10b6",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "intake-brief",
-              "sha256": "008f60e29f74ad256450761e0fb2093f872f983fc229570d855e6c0170d55c99"
+              "sha256": "3a6b680a89691df13bf0b8417b1485dee10c31c80078b9dd3f8a9961ece5ff63"
             },
             {
-              "bytes": 70239,
+              "bytes": 70737,
               "path": "portable/malware-responder/profile-contracts/response-plan.json",
-              "profile_contract_digest": "990da0678fd895c4ec81fb7a662ef3516f9deeb59ea859d5aa1756a977e4cc56",
+              "profile_contract_digest": "f4775cfeab0f4d1071cf4d72b315532e9d28d7779ea1db7959a9e120ba64a562",
               "profile_gate_validator": {
                 "id": "malware-responder.structured-output",
                 "version": "1"
               },
               "profile_id": "response-plan",
-              "sha256": "c3f59143ae37efc57bb9115e2bdd815c27467409a9bdd95acbf73ed1da2c74ba"
+              "sha256": "96d039738afff71206e8a95071fac72afc88c5c8991271631c3b1a338639bf80"
             },
             {
               "bytes": 34235,
@@ -5364,17 +5364,17 @@
             {
               "bytes": 9167,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "33e934adbfb354f4a68ace6fce1d381a1b98d84180054ff6bb92b71c21af8b72",
+              "evidence_plan_digest": "6d27903e85b4ad187d2f3b33516a1e36eb5c7ab06e180c8fc516b634ca1cf96f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/oss-upgrade-investigator/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "981c01c0ac72a7a331c4db5d58f43869a1276e3ee0d130a5d034bb8dc160968b"
+              "sha256": "5bc15a4164b4b4a64c6a4f7df19f9d0ec024c657b17788075838817a5b658794"
             },
             {
               "bytes": 6545,
@@ -5382,37 +5382,37 @@
               "sha256": "6d9888d25dc9f546ec58382706f699f986e8991dfe38d139e49b4fdb437aca9e"
             },
             {
-              "bytes": 5061,
+              "bytes": 5591,
               "path": "portable/oss-upgrade-investigator/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "92e7c5ee305fa1caecd49835438608abb18442282da7c158ba68f4187db4550b",
+              "profile_contract_digest": "bab6aa8250e5d66004a5fd699aa88ea6f755faba42001f03772f0bfea516f5f3",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "6476926802eebbd7056d73b6c1e68c38caf699b05ac64c8adda82471b40bfd63"
+              "sha256": "260608de1f8c399c8dff2a60c946d2065fcdea210b3b59492e3ecc953e0bdaf9"
             },
             {
-              "bytes": 12102,
+              "bytes": 12632,
               "path": "portable/oss-upgrade-investigator/profile-contracts/explain.json",
-              "profile_contract_digest": "db62111f8d5efac260d9c75fecec4079f6486d11c5616c2962f29ad49b98ac10",
+              "profile_contract_digest": "464050e4e1ed9fd0e9644072bb7105af9fbdcbec582de3fb0f66194b96e3ec44",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "0e2b410248a10103f6cc11123f08b32f4c3d63ab8c8168dfe2fafaadd15291eb"
+              "sha256": "e2b49159cbe47ad98758dcfbcde360ab26abbe2125d711b2d6b02472950b8b06"
             },
             {
-              "bytes": 12108,
+              "bytes": 12638,
               "path": "portable/oss-upgrade-investigator/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "bc41a9d3c1ec1ddd661ae129067ebce11df118492e7ceb9c9c09b9c4e232c014",
+              "profile_contract_digest": "b26c9c0900fb0436962f128079fed667b511ce882c64298c9f64466d1af3f47c",
               "profile_gate_validator": {
                 "id": "oss-upgrade-investigator.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "aee60697884676b4978a3d95c3a206d86b6b9241a1faeef4f7758f0f1676e6ff"
+              "sha256": "808bcfc84d278c765efcc5b38fb0a5c6e4229ff8e996d50df08207f1e001bdc3"
             },
             {
               "bytes": 34235,
@@ -5478,17 +5478,17 @@
             {
               "bytes": 8201,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "bc534785e9617a3d695116248f1cceadf8bf3e3f3e8d7c3b0ffb303f55d1fd85",
+              "evidence_plan_digest": "bc2902d7723a6e27a615548e629390aaa6e9d9eb38e703ad17623eeb14cae34f",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/remediation-planning/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "c181957a81a6de552507131622e2ee5e111e916c0b386f207626a52ae24a33d4"
+              "sha256": "ba9187a90971de735f18229421d7b233ab7ab9e655fca84c5350e27431354d35"
             },
             {
               "bytes": 4251,
@@ -5496,37 +5496,37 @@
               "sha256": "28670bf200c35ae5869d40826d97bee2cfd7ccc10f075e5f99573da3db746c41"
             },
             {
-              "bytes": 4674,
+              "bytes": 5087,
               "path": "portable/remediation-planning/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "e68c5e96e493c0d1b2c1d9eb3160130b4091faefc425d763ac3d5e9d6731118a",
+              "profile_contract_digest": "c5c95d8c329f1c13138e1604de9d6ab1d7ad68b4ec698fb6c0bdf8b37026b973",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "64c677205cf34851f3237a8de415f363c5149271ae8d54531f02e2148c24d566"
+              "sha256": "cbe84da452586e38e8f5cb0ec3a518db3ffc62bd47ee0ddfa9ef7107d8c22e15"
             },
             {
-              "bytes": 3917,
+              "bytes": 4330,
               "path": "portable/remediation-planning/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "75acd4baf0e6995ebb4dace9093c0a09b2058e9231cf76d74f4c2340bd13e314",
+              "profile_contract_digest": "21bcef3cf54e3071e3ed63e6a2b682b1202dfebb91651b81410c2fe2916db648",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f82e3074f9a107e179cee18ca5dacb31fe8c720258845976d5dc7440f98aed65"
+              "sha256": "7d7cb47c33559b4311f80715d39fd5690a6a0ffe94165c8fdc5e7ff2136b1618"
             },
             {
-              "bytes": 6183,
+              "bytes": 6596,
               "path": "portable/remediation-planning/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "9060878d5111cb06592cfe956eb32e0f334cf642f0a09f3cf92cbd1afdab2d85",
+              "profile_contract_digest": "d4612b09b5edd559a13e3b69aa1d777854174e01e0f5563a59f490116aeb42df",
               "profile_gate_validator": {
                 "id": "remediation-planning.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "4508075fa7b3e6771f0f244e245727e1f1a3e1e07b6cbeaba01628339ddaec9c"
+              "sha256": "c4131c699c05659bcbcebd8c4dbb1e9503fabc5d95f2d2ef8cfa64b6f1f59cd7"
             },
             {
               "bytes": 34235,
@@ -5597,32 +5597,32 @@
             {
               "bytes": 5291,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "12ff2cd141839f01b080eb6e6fcdca9575a971cbc3fc23c1b9e0eee00e940594",
+              "evidence_plan_digest": "b041817bf0407eb3df3f7240dfa237ed3fa885e21c21e4ac3e9fd8f370992555",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/sca-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "cb0c9a49becb1fd86d1e136c2404cc29d9674703324f8054b0667ee865edccef"
+              "sha256": "8735316ecf0f5560a801f300e7c6f475c2647b996d4a019b3fa3009303616ee0"
             },
             {
               "bytes": 11074,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "d6e473e9366027d9efe5a7709681d9300c33db57087c78d7cc02195804a04713",
+              "evidence_plan_digest": "affc7991e972c35066e3fdb6942c5d232bf5958510d4b0d3b752b4f3eae1a65e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/sca-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b7e0fa2a8a67ff26376a74a30aec16bded028cd1f150c5ba5e1dc711dd606529"
+              "sha256": "e57f13bddef94ae40468ad10efc1cb4f783dcf552f8e2303c247805df1f01b1b"
             },
             {
               "bytes": 10301,
@@ -5630,37 +5630,37 @@
               "sha256": "63d6e3ced12bf1fe04cb58ed79c89b7201b1f58a0f4c5b27b7d07f66dd7271ad"
             },
             {
-              "bytes": 4671,
+              "bytes": 5084,
               "path": "portable/sca-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "bcd08a3041577090e1c6b6ed6c3df3a2f971219980fceb7a89e5051c08117f73",
+              "profile_contract_digest": "5af4db00dde2d4f0a213d312c800fc804485d9b59956d1477683438fa983123b",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "039e5e3847e69e2ff8054b5889cce5e0b82f9f7daf49d599c7d3a29f36e64aa6"
+              "sha256": "fcf48a4ab08cb38b478ea96513608c5ff9e7117e2d9b568e08d798082652456a"
             },
             {
-              "bytes": 4670,
+              "bytes": 5083,
               "path": "portable/sca-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "febefbfda5ec63c6256993a70e420d0254e9c0ed71cee99a983d7c6aaf3c7e8f",
+              "profile_contract_digest": "8152db22e0c7a364f39dd42764fd1e58057bb99b78f8cca93976b776d5d600c5",
               "profile_gate_validator": {
                 "id": "sca-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "f90f1aeba61a76adddf3b9c14d7e8e2fa357af9bc0c4ae910e2978c9d5838e3d"
+              "sha256": "5f0398afb4e51548612044bfd6afc1388da25c552c9a214e55d1dce6578273db"
             },
             {
-              "bytes": 12565,
+              "bytes": 12978,
               "path": "portable/sca-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "f9f051bb033a1ba47f582b0bb14072a9b111763c5280be1930b9e3bf03781fdf",
+              "profile_contract_digest": "2a61dd517e334344b0e1ed1543244124450dbebd9848f16744e600f7d3def189",
               "profile_gate_validator": {
                 "id": "sca-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "5ff9f859251844430971254d1e3253cb0d1c954b308e61f4b973969046b3ea0b"
+              "sha256": "bd5e50358a65c9a0f410fe0a5ae629015503d0427d6e9b6bf2943d5bda39c90a"
             },
             {
               "bytes": 34235,
@@ -5723,17 +5723,17 @@
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "24811002f9f1c0c78fab5768ae7f669a9bad1fbc786f5a9fb7feebf350b0961d",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "3623390516c6712a6b7b039c2d2768624940fe81e3c7c670d2b538dd4923412c"
             },
             {
               "bytes": 7206,
@@ -5741,37 +5741,37 @@
               "sha256": "796cf2b0964840538eeca3b6a068cbe7efd967810ed313f2b687d0cedf862359"
             },
             {
-              "bytes": 41579,
+              "bytes": 42170,
               "path": "portable/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "b7572c91f096668350382b16fe80d82a03c321fe4e7f2514169203e991e0891b",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "5f1783a4d69cabf3b1ee527978076e737392fcf079ba8a59a2019679ac1d8e1d"
             },
             {
-              "bytes": 34324,
+              "bytes": 34915,
               "path": "portable/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "80a526be7d704aeab7f398c82d69b0a0990373ec55c877fb5cf5fcb177ea92d7",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "c168f211a93afce3340c012e24a714930116821bf4312f62605e26563c634b81"
             },
             {
-              "bytes": 41585,
+              "bytes": 42176,
               "path": "portable/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "cc03988614428ac52a25d4d833708db9d404254b7a0f518fee8f4f9471b7a95f",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "2299c4a8c9f1bfe5824add746019cf0e3435f65abe7940967b810cfba30355df"
             },
             {
               "bytes": 34235,
@@ -5835,26 +5835,26 @@
               "sha256": "a555d1a848d4531ee7a085c86b64fb53b0178342c91112c3ba06085701274dfc"
             },
             {
-              "bytes": 3119,
+              "bytes": 3619,
               "path": "portable/vulnerability-explainer/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "cbd6a6978eb48e4eb0d6faf28a8810f52adabf10924361f630385b032ca4dd3a",
+              "profile_contract_digest": "84060198748845845ccb8d727fa12ac811fb85830fab4e561ea0698dfd665abe",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "c8cceab234bd6920f15e06962928ab560b36a0e8bf1e539a79e8b137df2afbf0"
+              "sha256": "3e6e0e9090135cfce91a86e3ca5132951cd0ad0ba5fa8d51810d7e6fc31af359"
             },
             {
-              "bytes": 3111,
+              "bytes": 3611,
               "path": "portable/vulnerability-explainer/profile-contracts/explain.json",
-              "profile_contract_digest": "64619784ae48e1a045bce88097edbae93825c7497d485cee8cb64dfd2f4a812a",
+              "profile_contract_digest": "eb24fecd472700cfa5dd46590fce208d44a296ae34a0b26f8294fcf9adaf45cf",
               "profile_gate_validator": {
                 "id": "vulnerability-explainer.structured-output",
                 "version": "1"
               },
               "profile_id": "explain",
-              "sha256": "61ea5e6025c42a02ffceeede022ff3b5956803c4c3520fb1652e73c2f5c6497c"
+              "sha256": "a7ca737e3f0e7f524a7125c58a6f18210a1e9de9b56b5c72f578a51f5f4a2d25"
             },
             {
               "bytes": 34235,
