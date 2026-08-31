@@ -422,7 +422,20 @@ def test_dependency_reviewer_schema_and_validator_enforce_declared_enums():
         "conditions": [],
         "alternatives": [],
         "summary": "The package is not recommended.",
-        "evidence_queries": [],
+        # A decisive verdict now requires at least one ledger row.
+        "evidence_queries": [
+            {
+                "name": "exact package version lookup",
+                "resource": "PackageVersion",
+                "source": "endorctl_agent_api",
+                "status": "succeeded",
+                "query_template_id": "package-version-exact",
+                "filter_summary": "named package and version",
+                "field_mask_summary": "uuid,meta.name",
+                "result_count": 0,
+                "reason": "Verified absence in the tenant inventory.",
+            }
+        ],
         "data_gaps": ["No exact package evidence was returned."],
         "policy_context": {},
         "policy_evaluations": [],
@@ -938,4 +951,165 @@ def test_evidence_queries_schema_pins_status_and_new_fields():
         "bytes",
         "row_count",
     }
+
+
+def test_resolved_project_resolution_requires_uuid_and_namespace():
+    payload = {
+        "project_resolution": {
+            "status": "resolved",
+            "project_uuid": None,
+            "namespace": "",
+            "namespace_provenance": "stated in the current request",
+        },
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "sca-remediation",
+        payload,
+        ("project_resolution", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "project_resolution.project_uuid: required when status is resolved",
+        "project_resolution.namespace: required when status is resolved; record "
+        "the namespace the project was found in (namespace or endor_namespace)",
+    ]
+
+
+def test_resolved_scope_accepts_endor_namespace_alias():
+    payload = {
+        "report_scope": {
+            "status": "resolved",
+            "project_uuid": "6a08" + "0" * 28,
+            "endor_namespace": "auri.gitlab.endor-labs-se",
+        },
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "configuration-automation",
+        payload,
+        ("report_scope", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_unresolved_scope_does_not_require_uuid_or_namespace():
+    payload = {
+        "project_resolution": {"status": "not_found", "project_uuid": None},
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": ["unavailable: no Endor project matched the repository"],
+    }
+    assert validate_structured_output_payload(
+        "sca-remediation",
+        payload,
+        ("project_resolution", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_available_claim_with_all_null_counts_rejected():
+    payload = {
+        "summary": "Finding and upgrade evidence is available for this project.",
+        "evidence_queries": [
+            _succeeded_row(result_count=None),
+            _succeeded_row(name="upgrade summary", result_count=None),
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "summary: claims available evidence but no evidence_queries row records "
+        "an integer result_count; copy the integer counts from the executed "
+        "queries or describe the gap in data_gaps"
+    ]
+
+
+def test_summary_unavailable_wording_is_not_an_availability_claim():
+    payload = {
+        "summary": "VersionUpgrade evidence is unavailable for this project.",
+        "evidence_queries": [_succeeded_row(status="unavailable", result_count=None)],
+        "data_gaps": ["unavailable: VersionUpgrade lookup returned no data"],
+    }
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_negated_available_wording_is_not_a_claim():
+    payload = {
+        "summary": "No worthwhile upgrades available for this package.",
+        "evidence_queries": [_succeeded_row(result_count=None)],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_available_claim_passes_with_one_integer_count():
+    payload = {
+        "summary": "Upgrade evidence is available: 63 worthwhile upgrades.",
+        "evidence_queries": [
+            _succeeded_row(result_count=63),
+            _succeeded_row(name="finding groups", result_count=None),
+        ],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_decisive_verdict_with_empty_ledger_rejected():
+    payload = {
+        "incident_verdict": "NOT_OBSERVED",
+        "evidence_queries": [],
+        "data_gaps": ["out_of_scope: campaign scope limited to npm"],
+    }
+    errors = validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: required when current Endor or repository evidence is claimed"
+    ]
+
+
+def test_nondecisive_verdict_with_empty_ledger_and_gaps_passes():
+    payload = {
+        "incident_verdict": "INSUFFICIENT_DATA",
+        "evidence_queries": [],
+        "data_gaps": ["unavailable: endorctl authentication failed"],
+    }
+    assert validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_widened_claim_fields_require_nonempty_ledger():
+    payload = {
+        "finding_results": [{"uuid": "f" * 32}],
+        "evidence_queries": [],
+        "data_gaps": ["out_of_scope: pagination not exhausted"],
+    }
+    errors = validate_structured_output_payload(
+        "findings-browser",
+        payload,
+        ("finding_results", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: required when current Endor or repository evidence is claimed"
+    ]
 

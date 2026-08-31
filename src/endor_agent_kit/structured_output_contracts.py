@@ -380,6 +380,8 @@ def validate_structured_output_payload(
                 f"{field.name}: must be one of {', '.join(enum_values)}"
             )
     errors.extend(_evidence_query_ledger_errors(payload))
+    errors.extend(_project_scope_resolution_errors(payload))
+    errors.extend(_summary_count_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
 
@@ -1754,20 +1756,100 @@ def _artifact_metadata_errors(index: int, artifact: Any) -> list[str]:
     return errors
 
 
+def _project_scope_resolution_errors(payload: dict[str, Any]) -> list[str]:
+    """A claimed resolution must carry the identifiers that prove it."""
+
+    errors: list[str] = []
+    for field in ("project_resolution", "report_scope"):
+        value = payload.get(field)
+        if not isinstance(value, dict):
+            continue
+        if _text(value.get("status")).lower() != "resolved":
+            continue
+        if not _text(value.get("project_uuid")):
+            errors.append(f"{field}.project_uuid: required when status is resolved")
+        if not _text(value.get("namespace")) and not _text(value.get("endor_namespace")):
+            errors.append(
+                f"{field}.namespace: required when status is resolved; record "
+                "the namespace the project was found in (namespace or endor_namespace)"
+            )
+    return errors
+
+
+_AVAILABLE_CLAIM_RE = re.compile(r"\bavailable\b")
+_AVAILABLE_NEGATION_RE = re.compile(
+    r"\b(?:no|not|none|never|without|isn't|aren't|wasn't|weren't)\b[^.;:!?]{0,40}$"
+)
+
+
+def _summary_count_errors(payload: dict[str, Any]) -> list[str]:
+    """An availability claim in the summary needs at least one integer count."""
+
+    summary = payload.get("summary")
+    evidence_queries = payload.get("evidence_queries")
+    if not isinstance(summary, str) or not isinstance(evidence_queries, list):
+        return []
+    rows = [row for row in evidence_queries if isinstance(row, dict)]
+    if not rows:
+        return []
+    for row in rows:
+        count = row.get("result_count")
+        if isinstance(count, int) and not isinstance(count, bool):
+            return []
+    lowered = summary.lower()
+    for match in _AVAILABLE_CLAIM_RE.finditer(lowered):
+        prefix = lowered[max(0, match.start() - 40) : match.start()]
+        if not _AVAILABLE_NEGATION_RE.search(prefix):
+            return [
+                "summary: claims available evidence but no evidence_queries row "
+                "records an integer result_count; copy the integer counts from "
+                "the executed queries or describe the gap in data_gaps"
+            ]
+    return []
+
+
+EVIDENCE_CLAIM_LIST_FIELDS = (
+    "findings",
+    "sca_findings",
+    "remediation_candidates",
+    "remediation_options",
+    "uia_evidence",
+    "version_upgrades",
+    "upgrade_candidates",
+    "verdicts",
+    "dependencies_reviewed",
+    "affected_resources",
+    "affected_package_set",
+    "finding_results",
+    "github_evidence",
+    "impacted_projects",
+    "manifests",
+)
+VERDICT_CLAIM_FIELDS = (
+    "posture_verdict",
+    "troubleshooting_verdict",
+    "findings_verdict",
+    "incident_verdict",
+    "onboarding_verdict",
+    "upgrade_recommendation",
+    "risk_delta",
+    "verdict",
+    "action",
+)
+NONDECISIVE_VERDICT_VALUES = frozenset({"INSUFFICIENT_DATA", "UNKNOWN"})
+
+
 def _claims_current_evidence(payload: dict[str, Any]) -> bool:
-    for field in (
-        "findings",
-        "sca_findings",
-        "remediation_candidates",
-        "remediation_options",
-        "uia_evidence",
-        "version_upgrades",
-        "upgrade_candidates",
-        "verdicts",
-        "dependencies_reviewed",
-        "affected_resources",
-    ):
+    for field in EVIDENCE_CLAIM_LIST_FIELDS:
         if isinstance(payload.get(field), list) and payload[field]:
+            return True
+    for field in VERDICT_CLAIM_FIELDS:
+        value = payload.get(field)
+        if (
+            isinstance(value, str)
+            and value.strip()
+            and value.strip() not in NONDECISIVE_VERDICT_VALUES
+        ):
             return True
     for field in ("project_resolution", "report_scope"):
         value = payload.get(field)

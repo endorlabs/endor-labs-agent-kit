@@ -32,6 +32,20 @@ package metadata.
     or a large-result query template) now requires validated artifact
     metadata; `list_all: false` bypasses the legacy prose heuristic entirely,
     and negated prose such as "no --list-all used" no longer false-positives.
+- Contract hardening (agent-excellence PR 1, items 4-6):
+  - `project_resolution` / `report_scope` with `status: "resolved"` now
+    require a non-empty `project_uuid` and a namespace (`namespace` or
+    `endor_namespace`); a resolution claim without its identifiers is
+    rejected.
+  - New summary-vs-count lint: a summary claiming evidence is available while
+    every evidence-ledger row has a null `result_count` is rejected
+    (negation-safe — "unavailable" and "no ... available" do not trip it).
+  - Decisive verdict values (anything outside `INSUFFICIENT_DATA`/`UNKNOWN`
+    across the pinned verdict fields) now count as an evidence claim, so a
+    decisive verdict with an empty evidence ledger is rejected; the
+    evidence-claim field list also gained `affected_package_set`,
+    `finding_results`, `github_evidence`, `impacted_projects`, and
+    `manifests`.
 ## 2.2.2 - 2026-08-27
 
 ### Fixed
