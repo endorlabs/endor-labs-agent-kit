@@ -65,6 +65,20 @@ package metadata.
     longer changes wording based on unrelated unsupported fields in the same
     row (the accidental `required` / `must be a non-empty string` coupling is
     removed).
+- Contract hardening (agent-excellence PR 1, item 9):
+  - New `AGENT_FIELD_SCHEMA_OVERRIDES` table (consulted between the profile
+    and shared field-name override tables) replaces the 6,019-character
+    generic row blob with purpose-built row schemas on seven (agent, field)
+    pairs: dependency-reviewer `findings`/`manifests`/`dependencies_reviewed`
+    (the findings rows are also where the EPSS/KEV fields land in the
+    intelligence-lanes PR), malware-responder `affected_package_set` and
+    `impacted_projects` (mirroring the instruction templates), and
+    configuration-automation `onboarded_healthy_repositories` (retaining the
+    pinned branch keys) and `excluded_repositories`. Measured transport-schema
+    reductions locked in by test: dependency-reviewer 21,360 -> 4,671,
+    malware-responder 69,404 -> 58,338, configuration-automation
+    92,869 -> 81,606 characters. cicd-posture rows and the remaining
+    configuration-automation repository rows are a documented follow-up.
 ## 2.2.2 - 2026-08-27
 
 ### Fixed

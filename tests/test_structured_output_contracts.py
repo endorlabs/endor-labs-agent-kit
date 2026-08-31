@@ -1189,3 +1189,113 @@ def test_query_template_ids_allowlist_accepts_known_and_null_ids():
         allowed_query_template_ids={"project-by-git"},
     ) == []
 
+
+def test_dependency_reviewer_row_schemas_are_slimmed():
+    dep = json_schema_for_agent("dependency-reviewer")
+    finding_row = dep["properties"]["findings"]["items"]
+    assert finding_row["additionalProperties"] is False
+    assert set(finding_row["properties"]) == {
+        "package_name",
+        "ecosystem",
+        "version",
+        "finding_uuid",
+        "evidence_type",
+        "severity",
+        "posture_effect",
+        "source",
+        "explanation",
+    }
+    manifest_row = dep["properties"]["manifests"]["items"]
+    assert set(manifest_row["properties"]) == {
+        "path",
+        "ecosystem",
+        "package_manager",
+        "tier",
+        "direct_dependency_count",
+        "notes",
+    }
+    reviewed_row = dep["properties"]["dependencies_reviewed"]["items"]
+    assert set(reviewed_row["properties"]) == {
+        "package_name",
+        "ecosystem",
+        "version",
+        "manifest_path",
+        "direct",
+        "scope",
+        "notes",
+    }
+
+
+def test_malware_exposure_rows_mirror_instruction_templates():
+    schema = json_schema_for_agent("malware-responder")
+    package_row = schema["properties"]["affected_package_set"]["items"]
+    assert package_row["additionalProperties"] is False
+    assert set(package_row["properties"]) == {
+        "ecosystem",
+        "package_name",
+        "version",
+        "version_range",
+        "source",
+        "confidence",
+    }
+    project_row = schema["properties"]["impacted_projects"]["items"]
+    assert set(project_row["properties"]) == {
+        "status",
+        "project_uuid",
+        "project_name",
+        "namespace",
+        "repo_full_name",
+        "ecosystem",
+        "package_name",
+        "version",
+        "path",
+        "source",
+    }
+
+
+def test_configuration_automation_repository_rows_slimmed_with_pinned_keys():
+    schema = json_schema_for_agent("configuration-automation")
+    healthy_row = schema["properties"]["onboarded_healthy_repositories"]["items"]
+    assert set(healthy_row["properties"]) == {
+        "repository",
+        "endor_project_uuid",
+        "github_default_branch",
+        "endor_monitored_branch",
+        "healthy_reason",
+        "confidence",
+        "confidence_reason",
+    }
+    excluded_row = schema["properties"]["excluded_repositories"]["items"]
+    assert set(excluded_row["properties"]) == {"repository", "reason", "evidence"}
+
+
+def test_profile_override_still_wins_over_agent_field_override():
+    from endor_agent_kit.structured_output_contracts import (
+        AGENT_FIELD_SCHEMA_OVERRIDES,
+        PROFILE_FIELD_SCHEMA_OVERRIDES,
+    )
+
+    agent_field_pairs = set(AGENT_FIELD_SCHEMA_OVERRIDES)
+    profile_pairs = {
+        (agent_id, field)
+        for (agent_id, _profile_id, field) in PROFILE_FIELD_SCHEMA_OVERRIDES
+    }
+    assert not agent_field_pairs & profile_pairs
+
+
+def test_slimmed_agent_contracts_stay_within_measured_budgets():
+    # Measured after replacing the 6,019-character generic row blob on seven
+    # (agent, field) pairs: dependency-reviewer 21,360 -> 4,671,
+    # malware-responder 69,404 -> 58,338, and configuration-automation
+    # 92,869 -> 81,606. Bounded headroom on top of each measurement locks the
+    # reduction in; raise only with a new measured delta.
+    budgets = {
+        "dependency-reviewer": 5_100,
+        "malware-responder": 59_000,
+        "configuration-automation": 82_500,
+    }
+    for agent_id, budget in budgets.items():
+        schema_json = json.dumps(
+            strict_transport_schema_for_agent(agent_id), separators=(",", ":")
+        )
+        assert len(schema_json) < budget, (agent_id, len(schema_json))

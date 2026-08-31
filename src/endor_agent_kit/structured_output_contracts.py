@@ -470,6 +470,9 @@ def _json_schema_for_field(
     )
     if profile_override is not None:
         return _with_nullable(profile_override(), nullable=nullable)
+    agent_override = AGENT_FIELD_SCHEMA_OVERRIDES.get((agent_id, field.name))
+    if agent_override is not None:
+        return _with_nullable(agent_override(), nullable=nullable)
     if field.name in FIELD_SCHEMA_OVERRIDES:
         return _with_nullable(FIELD_SCHEMA_OVERRIDES[field.name](), nullable=nullable)
     enum_values = ENUM_FIELD_VALUES.get((agent_id, field.name))
@@ -1510,6 +1513,133 @@ PROFILE_FIELD_SCHEMA_OVERRIDES = {
         "browse",
         "pagination",
     ): _findings_browse_pagination_schema,
+}
+
+
+def _slim_row_array_schema(properties: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    return {"type": "array", "items": _strict_object_schema(properties)}
+
+
+def _dependency_reviewer_findings_schema() -> dict[str, Any]:
+    # Taught shape: package coordinate, evidence type, severity or posture
+    # effect, evidence source, and concise explanation. EPSS/KEV slots land
+    # here in the intelligence-lanes PR.
+    return _slim_row_array_schema(
+        {
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "finding_uuid": _nullable_string(),
+            "evidence_type": _nullable_string(),
+            "severity": _nullable_string(),
+            "posture_effect": _nullable_string(),
+            "source": _nullable_string(),
+            "explanation": _nullable_string(),
+        }
+    )
+
+
+def _dependency_reviewer_manifests_schema() -> dict[str, Any]:
+    return _slim_row_array_schema(
+        {
+            "path": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "package_manager": _nullable_string(),
+            "tier": _nullable_string(),
+            "direct_dependency_count": _nullable_integer(),
+            "notes": _nullable_string(),
+        }
+    )
+
+
+def _dependency_reviewer_dependencies_schema() -> dict[str, Any]:
+    return _slim_row_array_schema(
+        {
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "manifest_path": _nullable_string(),
+            "direct": _nullable_boolean(),
+            "scope": _nullable_string(),
+            "notes": _nullable_string(),
+        }
+    )
+
+
+def _malware_affected_package_schema() -> dict[str, Any]:
+    # Mirrors the affected_package_set row template in the instructions.
+    return _slim_row_array_schema(
+        {
+            "ecosystem": _nullable_string(),
+            "package_name": _nullable_string(),
+            "version": _nullable_string(),
+            "version_range": _nullable_string(),
+            "source": _nullable_string(),
+            "confidence": _nullable_string(),
+        }
+    )
+
+
+def _malware_impacted_projects_schema() -> dict[str, Any]:
+    # Mirrors the impacted_projects row template in the instructions.
+    return _slim_row_array_schema(
+        {
+            "status": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "project_name": _nullable_string(),
+            "namespace": _nullable_string(),
+            "repo_full_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "package_name": _nullable_string(),
+            "version": _nullable_string(),
+            "path": _nullable_string(),
+            "source": _nullable_string(),
+        }
+    )
+
+
+def _configuration_healthy_repository_schema() -> dict[str, Any]:
+    # Template keys plus the branch keys pinned by the nested-output smoke test.
+    return _slim_row_array_schema(
+        {
+            "repository": _nullable_string(),
+            "endor_project_uuid": _nullable_string(),
+            "github_default_branch": _nullable_string(),
+            "endor_monitored_branch": _nullable_string(),
+            "healthy_reason": _nullable_string(),
+            "confidence": _nullable_string(),
+            "confidence_reason": _nullable_string(),
+        }
+    )
+
+
+def _configuration_excluded_repository_schema() -> dict[str, Any]:
+    return _slim_row_array_schema(
+        {
+            "repository": _nullable_string(),
+            "reason": _nullable_string(),
+            "evidence": _nullable_string_array(),
+        }
+    )
+
+
+# Per-(agent, field) row schemas replacing the generic object blob, consulted
+# after profile overrides and before the shared field-name table so slim rows
+# apply on the full contract (profile_id None) without colliding across agents
+# that share a field name. Bounded scope: dependency-reviewer, the
+# malware-responder exposure rows, and the two simple configuration-automation
+# repository row shapes. Documented follow-up: cicd-posture rows and the
+# remaining configuration-automation rows (not_onboarded_repositories,
+# onboarded_repositories_with_gaps, and friends carry nested evidence shapes
+# that need their own design pass).
+AGENT_FIELD_SCHEMA_OVERRIDES = {
+    ("dependency-reviewer", "findings"): _dependency_reviewer_findings_schema,
+    ("dependency-reviewer", "manifests"): _dependency_reviewer_manifests_schema,
+    ("dependency-reviewer", "dependencies_reviewed"): _dependency_reviewer_dependencies_schema,
+    ("malware-responder", "affected_package_set"): _malware_affected_package_schema,
+    ("malware-responder", "impacted_projects"): _malware_impacted_projects_schema,
+    ("configuration-automation", "onboarded_healthy_repositories"): _configuration_healthy_repository_schema,
+    ("configuration-automation", "excluded_repositories"): _configuration_excluded_repository_schema,
 }
 
 
