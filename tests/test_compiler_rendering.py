@@ -441,7 +441,11 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
     assert "current claims need >=1 row" in rendered
-    assert "/filter_summary/field_mask_summary/result_count/reason" in rendered
+    assert "/filter_summary/field_mask_summary/result_count/list_all/artifact/reason" in rendered
+    assert "status is exactly succeeded|failed|skipped|unavailable" in rendered
+    assert "skipped requires a reason" in rendered
+    assert '"list_all": false' in rendered
+    assert '"artifact": null' in rendered
     assert "/filter/field_mask/result_count/reason" not in rendered
     assert "source=endorctl_agent_api for Endor CLI API reads" in rendered
     assert "source=adapter" not in rendered

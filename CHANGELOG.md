@@ -79,6 +79,18 @@ package metadata.
     malware-responder 69,404 -> 58,338, configuration-automation
     92,869 -> 81,606 characters. cicd-posture rows and the remaining
     configuration-automation repository rows are a documented follow-up.
+- Contract hardening (agent-excellence PR 1, item 10):
+  - The taught evidence-ledger prose now speaks the hardened vocabulary in
+    lockstep with the contracts: the shared ledger guidance and the JSON row
+    placeholder teach the `list_all` and `artifact` row fields, the closed
+    status set, and the skipped-requires-reason rule; the compact and full
+    large-result-delivery rules (knowledge_pack.py and pack.yaml) teach
+    `list_all: true` plus the structured `evidence_queries[].artifact` object
+    as the primary delivery route with the legacy `reason` metadata string as
+    fallback. Ten per-agent prompt budgets were raised by measured deltas
+    (+18 to +405 characters on the largest host artifact, codex TOML escaping
+    largest) and the dependency-reviewer golden hash was re-pinned.
+
 ## 2.2.2 - 2026-08-27
 
 ### Fixed
