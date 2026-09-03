@@ -137,9 +137,10 @@ PROFILE_SELECTION_RULE_COMPACT = (
 )
 COMPACT_LARGE_RESULT_DELIVERY_RULE = (
     "`runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run "
-    "`python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put "
-    "`artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in "
-    "`evidence_queries[].reason` with `result_count`."
+    "`python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; set "
+    "`list_all: true` and copy helper output into `evidence_queries[].artifact` "
+    "{artifact_ref, sha256, format, bytes, row_count} with `result_count` "
+    "(legacy fallback: `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason`)."
 )
 
 

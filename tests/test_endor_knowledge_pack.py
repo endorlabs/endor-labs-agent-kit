@@ -220,6 +220,8 @@ def test_large_result_artifact_delivery_contract_renders_for_every_workflow():
         assert "runtime.large_result_artifact_required" in full
         assert "runtime.large_result_artifact_required" in compact
         assert "artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>" in compact
+        assert "`evidence_queries[].artifact`" in compact
+        assert "`list_all: true`" in compact
         assert "evidence_queries[].reason" in compact
         assert "`python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once" in compact
         assert "no separate API/artifact check/`--count`" in compact

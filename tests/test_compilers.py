@@ -22,7 +22,7 @@ from endor_agent_kit.recipe import HostCapabilities, EndorAgentRecipe
 from conftest import GeneratedCatalog, repo_root
 
 
-ENTERPRISE_EDITION_SHA256 = "cf57c08bb3be3ac976ef487287319d10bc184c28726a965dea162bd887ccfc30"
+ENTERPRISE_EDITION_SHA256 = "ba6f7939473e65db3ab152b60f3af05133244e38d45f6cf96524240695043415"
 
 
 def _copy_agent(tmp_path: Path) -> Path:
@@ -513,35 +513,42 @@ def _prompt_budget(relative_path: str) -> int:
         return 11_000
     if agent_id == "dependency-reviewer":
         # Preserve the evidence ledger and dual human/structured response modes.
-        return 20_050
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact (codex TOML) now 20,249 characters.
+        return 20_450
     if agent_id == "oss-upgrade-investigator":
         # Exact compact VersionUpgrade candidate/detail masks add source-level
         # prompt bytes while avoiding much larger unbounded response bodies.
-        return 18_450
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 18,612 characters.
+        return 18_800
     if agent_id == "findings-browser":
         # Traversal, completeness, filter, and query-ledger rules are required
         # safety behavior. The largest generated host projection is 15,305
         # characters; retain it with small, agent-specific headroom.
-        return 16_600
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 16,779 characters.
+        return 17_000
     if agent_id == "malware-responder":
         # The exact Finding-to-DependencyMetadata route prevents broad tenant
         # inventory reads and incorrect PackageVersion target lookups. The
         # exposure-verdict contract adds bounded customer-facing guidance;
         # retain modest headroom above the largest generated host artifact.
-        return 15_400
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 15,559 characters.
+        return 15_750
     if agent_id == "remediation-planning":
         # The selected-package fallback and evidence-ledger contract add useful
         # source-level bytes while keeping the normal route to three reads. The
         # shared exact-project preflight adds a small bounded identity contract.
-        return 16_250
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 16,435 characters.
+        return 16_650
     if agent_id == "configuration-automation":
         # Adaptive single-, selected-, and fleet-scope readiness routing adds
         # complete-inventory artifact contracts without per-repository fanout.
-        return 30_250
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 30,413 characters.
+        return 30_650
     if agent_id == "troubleshooting":
         # Diagnostic-lane selection and targeted fallback rules are retained
         # because they prevent speculative cross-lane calls.
-        return 30_000
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 30,084 characters.
+        return 30_300
     if agent_id == "cicd-posture":
         return 26_000
     if agent_id == "sca-remediation":
@@ -566,12 +573,15 @@ def _prompt_budget(relative_path: str) -> int:
         # characters on the largest generated host artifact (the codex
         # plugin TOML variant, whose escaping adds to the raw markdown's
         # 67,406); retain bounded headroom. Scoped profiles retain separate
-        # <70% checks.
-        return 68_350
+        # <70% checks. The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface;
+        # largest artifact now 68,755 characters.
+        return 68_950
     if agent_id == "ai-sast-remediation":
-        return 36_000
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 36,024 characters.
+        return 36_250
     if agent_id == "vulnerability-explainer":
-        return 14_750
+        # The closed ledger-status vocabulary and structured list_all/artifact row guidance add measured bytes on every host surface; largest artifact now 14,912 characters.
+        return 15_100
     return 13_000
 
 

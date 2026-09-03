@@ -118,7 +118,16 @@ def test_json_schema_for_agent_preserves_required_fields_and_shapes():
         "filter_summary",
         "field_mask_summary",
         "result_count",
+        "list_all",
+        "artifact",
         "reason",
+    ]
+    assert evidence_query["properties"]["status"]["enum"] == [
+        "succeeded",
+        "failed",
+        "skipped",
+        "unavailable",
+        None,
     ]
     assert evidence_query["properties"]["source"]["enum"] == [
         "endorctl_agent_api",
@@ -413,7 +422,20 @@ def test_dependency_reviewer_schema_and_validator_enforce_declared_enums():
         "conditions": [],
         "alternatives": [],
         "summary": "The package is not recommended.",
-        "evidence_queries": [],
+        # A decisive verdict now requires at least one ledger row.
+        "evidence_queries": [
+            {
+                "name": "exact package version lookup",
+                "resource": "PackageVersion",
+                "source": "endorctl_agent_api",
+                "status": "succeeded",
+                "query_template_id": "package-version-exact",
+                "filter_summary": "named package and version",
+                "field_mask_summary": "uuid,meta.name",
+                "result_count": 0,
+                "reason": "Verified absence in the tenant inventory.",
+            }
+        ],
         "data_gaps": ["No exact package evidence was returned."],
         "policy_context": {},
         "policy_evaluations": [],
@@ -473,9 +495,33 @@ def test_structured_output_contract_rejects_incomplete_evidence_query_rows():
         },
     )
 
-    assert "evidence_queries[0].query: unsupported ledger field" in errors
-    assert "evidence_queries[0].name: required" in errors
-    assert "evidence_queries[0].source: required" in errors
+    assert (
+        "evidence_queries[0].query: unsupported ledger field; supported fields "
+        "are name, resource, source, status, query_template_id, filter_summary, "
+        "field_mask_summary, result_count, list_all, artifact, reason"
+    ) in errors
+    assert "evidence_queries[0].name: must be a non-empty string" in errors
+    assert "evidence_queries[0].source: must be a non-empty string" in errors
+
+
+def test_required_text_field_error_is_identical_with_and_without_unsupported_fields():
+    def errors_for(row: dict) -> list[str]:
+        return [
+            error
+            for error in validate_structured_output_payload(
+                "remediation-planning",
+                {"evidence_queries": [row], "data_gaps": []},
+                ("evidence_queries", "data_gaps"),
+            )
+            if ".name:" in error
+        ]
+
+    clean_row = _succeeded_row(name="")
+    noisy_row = _succeeded_row(name="")
+    noisy_row["query"] = "raw query text"
+    assert errors_for(clean_row) == errors_for(noisy_row) == [
+        "evidence_queries[0].name: must be a non-empty string"
+    ]
 
 
 def test_structured_output_contract_requires_canonical_evidence_source():
@@ -499,7 +545,8 @@ def test_structured_output_contract_requires_canonical_evidence_source():
 
     assert errors == [
         "evidence_queries[0].source: must be one of endorctl_agent_api, "
-        "endor_mcp, local_repository, user_input, public_docs"
+        "endor_mcp, local_repository, user_input, public_docs "
+        "(received 'endorctl_api')"
     ]
 
     row["source"] = "endorctl_agent_api"
@@ -533,8 +580,10 @@ def test_large_result_evidence_requires_authoritative_artifact_metadata():
     )
 
     assert errors == [
-        "evidence_queries[0].reason: successful large-result route requires "
-        "artifact_ref, sha256, format, and bytes metadata"
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
     ]
 
 
@@ -547,7 +596,7 @@ def test_large_result_evidence_accepts_authoritative_artifact_metadata():
                     "name": "complete package inventory",
                     "resource": "PackageVersion",
                     "source": "endorctl_agent_api",
-                    "status": "success",
+                    "status": "succeeded",
                     "query_template_id": "tenant-package-inventory",
                     "filter_summary": "named package inventory",
                     "field_mask_summary": "uuid,meta.name",
@@ -683,3 +732,570 @@ def test_dependency_graph_audit_schema_matches_audit_engine_constants() -> None:
         == MAX_VALIDATION_REQUIREMENTS
     )
     assert manipulation["properties"]["evidence"]["maxItems"] == MAX_EVIDENCE_ITEMS
+
+
+def _minimal_ledger_payload(row: dict) -> dict:
+    return {"evidence_queries": [row], "data_gaps": []}
+
+
+def _succeeded_row(**overrides) -> dict:
+    row = {
+        "name": "scoped finding groups",
+        "resource": "Finding",
+        "source": "endorctl_agent_api",
+        "status": "succeeded",
+        "query_template_id": "finding-package-severity-groups",
+        "filter_summary": "project-scoped severity groups",
+        "field_mask_summary": "uuid,spec.level",
+        "result_count": 3,
+        "reason": "Scoped severity groups returned.",
+    }
+    row.update(overrides)
+    return row
+
+
+def test_pinned_verdict_enums_reject_unlisted_values():
+    cases = {
+        ("cicd-posture", "posture_verdict"): ("HEALTHY", "MOSTLY_HEALTHY"),
+        ("troubleshooting", "troubleshooting_verdict"): (
+            "ACTIONABLE_FIX_IDENTIFIED",
+            "using_skill",
+        ),
+        ("findings-browser", "findings_verdict"): (
+            "ACTIVE_FINDINGS_FOUND",
+            "FINDINGS_PRESENT",
+        ),
+        ("malware-responder", "incident_verdict"): (
+            "NOT_OBSERVED",
+            "CLEAN",
+        ),
+        ("oss-upgrade-investigator", "upgrade_recommendation"): (
+            "UPGRADE_NOW",
+            "RECOMMENDED",
+        ),
+        ("oss-upgrade-investigator", "risk_delta"): ("LOWER", "REDUCED"),
+        ("vulnerability-explainer", "action"): ("MONITOR", "WATCH"),
+    }
+    from endor_agent_kit.structured_output_contracts import ENUM_FIELD_VALUES
+
+    for (agent_id, field_name), (valid, invalid) in cases.items():
+        allowed = ENUM_FIELD_VALUES[(agent_id, field_name)]
+        assert valid in allowed
+        errors = validate_structured_output_payload(
+            agent_id, {field_name: invalid}, (field_name,)
+        )
+        assert errors == [
+            f"{field_name}: must be one of {', '.join(allowed)}"
+        ]
+        assert validate_structured_output_payload(
+            agent_id, {field_name: valid}, (field_name,)
+        ) == []
+
+
+def test_cicd_posture_verdict_enum_locksteps_with_gate_verdict_bands():
+    from endor_agent_kit.structured_output_contracts import ENUM_FIELD_VALUES
+    from endor_agent_kit.workflow_output_contracts.cicd_posture._implementation import (
+        VERDICT_BANDS,
+    )
+
+    assert set(ENUM_FIELD_VALUES[("cicd-posture", "posture_verdict")]) == VERDICT_BANDS
+
+
+def test_json_schema_pins_posture_verdict_enum_values():
+    schema = json_schema_for_agent("cicd-posture")
+    verdict_schema = schema["properties"]["posture_verdict"]
+    assert verdict_schema["type"] == "string"
+    assert set(verdict_schema["enum"]) == {
+        "HEALTHY",
+        "NEEDS_ATTENTION",
+        "HIGH_RISK",
+        "CRITICAL",
+        "INSUFFICIENT_DATA",
+    }
+
+
+def test_evidence_query_status_must_use_closed_vocabulary():
+    for invalid in ("ok", "success", "completed", "confirmed", "zero_results", "no_results"):
+        errors = validate_structured_output_payload(
+            "remediation-planning",
+            _minimal_ledger_payload(_succeeded_row(status=invalid)),
+            ("evidence_queries", "data_gaps"),
+        )
+        assert errors == [
+            "evidence_queries[0].status: must be one of succeeded, failed, "
+            f"skipped, unavailable (received {invalid!r})"
+        ]
+    for valid in ("succeeded", "failed", "skipped", "unavailable"):
+        errors = validate_structured_output_payload(
+            "remediation-planning",
+            _minimal_ledger_payload(
+                _succeeded_row(status=valid, reason="Scoped lookup attempted.")
+            ),
+            ("evidence_queries", "data_gaps"),
+        )
+        assert errors == []
+
+
+def test_skipped_evidence_query_requires_reason_even_with_data_gaps():
+    payload = _minimal_ledger_payload(_succeeded_row(status="skipped", reason=None))
+    payload["data_gaps"] = ["out_of_scope: source_provider_access was not tested"]
+    errors = validate_structured_output_payload(
+        "remediation-planning", payload, ("evidence_queries", "data_gaps")
+    )
+    assert errors == [
+        "evidence_queries[0].reason: required when status is skipped"
+    ]
+
+
+def test_failed_evidence_query_accepts_data_gaps_in_place_of_reason():
+    payload = _minimal_ledger_payload(_succeeded_row(status="failed", reason=None))
+    payload["data_gaps"] = ["unavailable: Finding lookup failed after retry"]
+    assert validate_structured_output_payload(
+        "remediation-planning", payload, ("evidence_queries", "data_gaps")
+    ) == []
+
+
+def test_list_all_true_requires_artifact_metadata():
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(_succeeded_row(list_all=True)),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
+    ]
+
+
+def test_list_all_true_accepts_structured_artifact_object():
+    row = _succeeded_row(
+        list_all=True,
+        artifact={
+            "artifact_ref": "/tmp/endor-agent-artifacts/result.json",
+            "sha256": "a" * 64,
+            "format": "json",
+            "bytes": 2048,
+            "row_count": 177,
+        },
+    )
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_list_all_false_never_consults_filter_summary_prose():
+    row = _succeeded_row(
+        list_all=False,
+        filter_summary="bounded page of five; list-all delivery not used",
+    )
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_negated_list_all_prose_no_longer_false_positives():
+    row = _succeeded_row(filter_summary="scoped page of 5; no --list-all used")
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_legacy_affirmative_list_all_prose_still_requires_artifact():
+    row = _succeeded_row(filter_summary="complete inventory via --list-all")
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
+    ]
+
+
+def test_artifact_object_fields_are_validated_individually():
+    row = _succeeded_row(
+        list_all=True,
+        artifact={
+            "artifact_ref": "",
+            "sha256": "not-a-digest",
+            "format": "json",
+            "bytes": 0,
+            "row_count": -1,
+            "pages": 3,
+        },
+    )
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact.pages: unsupported artifact field; supported "
+        "fields are artifact_ref, sha256, format, bytes, row_count",
+        "evidence_queries[0].artifact.artifact_ref: must be a non-empty string",
+        "evidence_queries[0].artifact.sha256: must be a 64-character lowercase hex digest",
+        "evidence_queries[0].artifact.bytes: must be a positive integer",
+        "evidence_queries[0].artifact.row_count: must be a non-negative integer",
+    ]
+
+
+def test_list_all_must_be_boolean_or_null():
+    row = _succeeded_row(list_all="yes")
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].list_all: must be true, false, or null"
+    ]
+
+
+def test_evidence_queries_schema_pins_status_and_new_fields():
+    schema = json_schema_for_agent("remediation-planning")
+    row_schema = schema["properties"]["evidence_queries"]["items"]
+    assert set(row_schema["properties"]["status"]["enum"]) == {
+        "succeeded",
+        "failed",
+        "skipped",
+        "unavailable",
+        None,
+    }
+    assert row_schema["properties"]["list_all"]["type"] == ["boolean", "null"]
+    artifact_schema = row_schema["properties"]["artifact"]
+    assert artifact_schema["additionalProperties"] is False
+    assert set(artifact_schema["required"]) == {
+        "artifact_ref",
+        "sha256",
+        "format",
+        "bytes",
+        "row_count",
+    }
+
+
+def test_resolved_project_resolution_requires_uuid_and_namespace():
+    payload = {
+        "project_resolution": {
+            "status": "resolved",
+            "project_uuid": None,
+            "namespace": "",
+            "namespace_provenance": "stated in the current request",
+        },
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "sca-remediation",
+        payload,
+        ("project_resolution", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "project_resolution.project_uuid: required when status is resolved",
+        "project_resolution.namespace: required when status is resolved; record "
+        "the namespace the project was found in (namespace or endor_namespace)",
+    ]
+
+
+def test_resolved_scope_accepts_endor_namespace_alias():
+    payload = {
+        "report_scope": {
+            "status": "resolved",
+            "project_uuid": "6a08" + "0" * 28,
+            "endor_namespace": "auri.gitlab.endor-labs-se",
+        },
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "configuration-automation",
+        payload,
+        ("report_scope", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_unresolved_scope_does_not_require_uuid_or_namespace():
+    payload = {
+        "project_resolution": {"status": "not_found", "project_uuid": None},
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": ["unavailable: no Endor project matched the repository"],
+    }
+    assert validate_structured_output_payload(
+        "sca-remediation",
+        payload,
+        ("project_resolution", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_available_claim_with_all_null_counts_rejected():
+    payload = {
+        "summary": "Finding and upgrade evidence is available for this project.",
+        "evidence_queries": [
+            _succeeded_row(result_count=None),
+            _succeeded_row(name="upgrade summary", result_count=None),
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "summary: claims available evidence but no evidence_queries row records "
+        "an integer result_count; copy the integer counts from the executed "
+        "queries or describe the gap in data_gaps"
+    ]
+
+
+def test_summary_unavailable_wording_is_not_an_availability_claim():
+    payload = {
+        "summary": "VersionUpgrade evidence is unavailable for this project.",
+        "evidence_queries": [_succeeded_row(status="unavailable", result_count=None)],
+        "data_gaps": ["unavailable: VersionUpgrade lookup returned no data"],
+    }
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_negated_available_wording_is_not_a_claim():
+    payload = {
+        "summary": "No worthwhile upgrades available for this package.",
+        "evidence_queries": [_succeeded_row(result_count=None)],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_available_claim_passes_with_one_integer_count():
+    payload = {
+        "summary": "Upgrade evidence is available: 63 worthwhile upgrades.",
+        "evidence_queries": [
+            _succeeded_row(result_count=63),
+            _succeeded_row(name="finding groups", result_count=None),
+        ],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_decisive_verdict_with_empty_ledger_rejected():
+    payload = {
+        "incident_verdict": "NOT_OBSERVED",
+        "evidence_queries": [],
+        "data_gaps": ["out_of_scope: campaign scope limited to npm"],
+    }
+    errors = validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: required when current Endor or repository evidence is claimed"
+    ]
+
+
+def test_nondecisive_verdict_with_empty_ledger_and_gaps_passes():
+    payload = {
+        "incident_verdict": "INSUFFICIENT_DATA",
+        "evidence_queries": [],
+        "data_gaps": ["unavailable: endorctl authentication failed"],
+    }
+    assert validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_widened_claim_fields_require_nonempty_ledger():
+    payload = {
+        "finding_results": [{"uuid": "f" * 32}],
+        "evidence_queries": [],
+        "data_gaps": ["out_of_scope: pagination not exhausted"],
+    }
+    errors = validate_structured_output_payload(
+        "findings-browser",
+        payload,
+        ("finding_results", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: required when current Endor or repository evidence is claimed"
+    ]
+
+
+def test_query_template_ids_unchecked_without_allowlist():
+    payload = _minimal_ledger_payload(
+        _succeeded_row(query_template_id="completely-made-up-id")
+    )
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_query_template_ids_validated_against_allowlist():
+    payload = _minimal_ledger_payload(
+        _succeeded_row(query_template_id="completely-made-up-id")
+    )
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("evidence_queries", "data_gaps"),
+        allowed_query_template_ids={"project-by-git", "version-upgrade-summary"},
+    )
+    assert errors == [
+        "evidence_queries[0].query_template_id: 'completely-made-up-id' is not "
+        "a known query recipe id for this workflow; copy the id of the recipe "
+        "that was actually executed or set it to null"
+    ]
+
+
+def test_query_template_ids_allowlist_accepts_known_and_null_ids():
+    known = _succeeded_row(query_template_id="project-by-git")
+    unattributed = _succeeded_row(
+        name="local manifest scan",
+        resource="repository",
+        source="local_repository",
+        query_template_id=None,
+    )
+    payload = {"evidence_queries": [known, unattributed], "data_gaps": []}
+    assert validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("evidence_queries", "data_gaps"),
+        allowed_query_template_ids={"project-by-git"},
+    ) == []
+
+
+def test_dependency_reviewer_row_schemas_are_slimmed():
+    dep = json_schema_for_agent("dependency-reviewer")
+    finding_row = dep["properties"]["findings"]["items"]
+    assert finding_row["additionalProperties"] is False
+    assert set(finding_row["properties"]) == {
+        "package_name",
+        "ecosystem",
+        "version",
+        "finding_uuid",
+        "evidence_type",
+        "severity",
+        "posture_effect",
+        "source",
+        "explanation",
+    }
+    manifest_row = dep["properties"]["manifests"]["items"]
+    assert set(manifest_row["properties"]) == {
+        "path",
+        "ecosystem",
+        "package_manager",
+        "tier",
+        "direct_dependency_count",
+        "notes",
+    }
+    reviewed_row = dep["properties"]["dependencies_reviewed"]["items"]
+    assert set(reviewed_row["properties"]) == {
+        "package_name",
+        "ecosystem",
+        "version",
+        "manifest_path",
+        "direct",
+        "scope",
+        "notes",
+    }
+
+
+def test_malware_exposure_rows_mirror_instruction_templates():
+    schema = json_schema_for_agent("malware-responder")
+    package_row = schema["properties"]["affected_package_set"]["items"]
+    assert package_row["additionalProperties"] is False
+    assert set(package_row["properties"]) == {
+        "ecosystem",
+        "package_name",
+        "version",
+        "version_range",
+        "source",
+        "confidence",
+    }
+    project_row = schema["properties"]["impacted_projects"]["items"]
+    assert set(project_row["properties"]) == {
+        "status",
+        "project_uuid",
+        "project_name",
+        "namespace",
+        "repo_full_name",
+        "ecosystem",
+        "package_name",
+        "version",
+        "path",
+        "source",
+    }
+
+
+def test_configuration_automation_repository_rows_slimmed_with_pinned_keys():
+    schema = json_schema_for_agent("configuration-automation")
+    healthy_row = schema["properties"]["onboarded_healthy_repositories"]["items"]
+    assert set(healthy_row["properties"]) == {
+        "repository",
+        "endor_project_uuid",
+        "github_default_branch",
+        "endor_monitored_branch",
+        "healthy_reason",
+        "confidence",
+        "confidence_reason",
+    }
+    excluded_row = schema["properties"]["excluded_repositories"]["items"]
+    assert set(excluded_row["properties"]) == {"repository", "reason", "evidence"}
+
+
+def test_profile_override_still_wins_over_agent_field_override():
+    from endor_agent_kit.structured_output_contracts import (
+        AGENT_FIELD_SCHEMA_OVERRIDES,
+        PROFILE_FIELD_SCHEMA_OVERRIDES,
+    )
+
+    agent_field_pairs = set(AGENT_FIELD_SCHEMA_OVERRIDES)
+    profile_pairs = {
+        (agent_id, field)
+        for (agent_id, _profile_id, field) in PROFILE_FIELD_SCHEMA_OVERRIDES
+    }
+    assert not agent_field_pairs & profile_pairs
+
+
+def test_slimmed_agent_contracts_stay_within_measured_budgets():
+    # Measured after replacing the 6,019-character generic row blob on seven
+    # (agent, field) pairs: dependency-reviewer 21,360 -> 4,671,
+    # malware-responder 69,404 -> 58,338, and configuration-automation
+    # 92,869 -> 81,606. Bounded headroom on top of each measurement locks the
+    # reduction in; raise only with a new measured delta.
+    budgets = {
+        "dependency-reviewer": 5_100,
+        "malware-responder": 59_000,
+        "configuration-automation": 82_500,
+    }
+    for agent_id, budget in budgets.items():
+        schema_json = json.dumps(
+            strict_transport_schema_for_agent(agent_id), separators=(",", ":")
+        )
+        assert len(schema_json) < budget, (agent_id, len(schema_json))

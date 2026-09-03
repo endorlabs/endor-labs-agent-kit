@@ -9,6 +9,83 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
+## Unreleased
+
+### Changed
+
+- Pinned seven previously free-text verdict vocabularies as closed enums in
+  `ENUM_FIELD_VALUES`: `cicd-posture.posture_verdict` (locksteps with the
+  posture gate's `VERDICT_BANDS`), `troubleshooting.troubleshooting_verdict`,
+  `findings-browser.findings_verdict`, `malware-responder.incident_verdict`,
+  `oss-upgrade-investigator.upgrade_recommendation` and `.risk_delta`, and
+  `vulnerability-explainer.action`. Unlisted verdict values are now rejected
+  with the allowed list in the error.
+- Closed the evidence-ledger `status` vocabulary to exactly
+  `succeeded | failed | skipped | unavailable` (matching the taught ledger
+  guidance); substring status matching and the legacy success aliases
+  (`ok`, `success`, `completed`, `confirmed`) are gone, and `skipped` rows
+  now always require a `reason`.
+- Added structured `list_all` (boolean) and `artifact`
+  (`artifact_ref`/`sha256`/`format`/`bytes`/`row_count`) evidence-ledger row
+  fields. A successful complete-inventory route (explicit `list_all: true`
+  or a large-result query template) now requires validated artifact
+  metadata; `list_all: false` bypasses the legacy prose heuristic entirely,
+  and negated prose such as "no --list-all used" no longer false-positives.
+- Required `project_resolution` / `report_scope` with `status: "resolved"`
+  to carry a non-empty `project_uuid` and a namespace (`namespace` or
+  `endor_namespace`); a resolution claim without its identifiers is
+  rejected.
+- Added a summary-vs-count lint: a summary claiming evidence is available
+  while every evidence-ledger row has a null `result_count` is rejected
+  (negation-safe — "unavailable" and "no ... available" do not trip it).
+- Counted decisive verdict values (anything outside
+  `INSUFFICIENT_DATA`/`UNKNOWN` across the pinned verdict fields) as an
+  evidence claim, so a decisive verdict with an empty evidence ledger is
+  rejected; the evidence-claim field list also gained
+  `affected_package_set`, `finding_results`, `github_evidence`,
+  `impacted_projects`, and `manifests`.
+- Validated `evidence_queries[].query_template_id` against the real
+  knowledge-pack recipe inventory when payloads are checked through a task
+  profile: `profile_contracts.validate_profile_output_payload` computes the
+  allowed set (canonical recipe ids plus the agent workflow's recipe ids)
+  and passes it to the contract validator via the new optional
+  `allowed_query_template_ids` argument, keeping
+  `structured_output_contracts` a leaf module. Fabricated template ids are
+  rejected with the received value echoed; null ids (for local or
+  user-input evidence) remain allowed.
+- Made evidence-ledger validation errors uniformly actionable: the
+  unsupported-field errors list the supported field names, the `source`
+  error echoes the received value, the required-artifact error includes
+  both accepted formats (the structured `artifact` object and the legacy
+  `reason` metadata template), and the required-text-field message no
+  longer changes wording based on unrelated unsupported fields in the same
+  row (the accidental `required` / `must be a non-empty string` coupling is
+  removed).
+- Added an `AGENT_FIELD_SCHEMA_OVERRIDES` table (consulted between the
+  profile and shared field-name override tables) that replaces the
+  6,019-character generic row blob with purpose-built row schemas on seven
+  (agent, field) pairs: dependency-reviewer
+  `findings`/`manifests`/`dependencies_reviewed` (the findings rows are
+  also where the EPSS/KEV fields land in the intelligence-lanes PR),
+  malware-responder `affected_package_set` and `impacted_projects`
+  (mirroring the instruction templates), and configuration-automation
+  `onboarded_healthy_repositories` (retaining the pinned branch keys) and
+  `excluded_repositories`. Measured transport-schema reductions locked in
+  by test: dependency-reviewer 21,360 -> 4,671, malware-responder
+  69,404 -> 58,338, configuration-automation 92,869 -> 81,606 characters.
+  cicd-posture rows and the remaining configuration-automation repository
+  rows are a documented follow-up.
+- Taught the evidence-ledger prose the hardened vocabulary in lockstep with
+  the contracts: the shared ledger guidance and the JSON row placeholder
+  teach the `list_all` and `artifact` row fields, the closed status set,
+  and the skipped-requires-reason rule; the compact and full
+  large-result-delivery rules (knowledge_pack.py and pack.yaml) teach
+  `list_all: true` plus the structured `evidence_queries[].artifact` object
+  as the primary delivery route with the legacy `reason` metadata string as
+  fallback. Ten per-agent prompt budgets were raised by measured deltas
+  (+18 to +405 characters on the largest host artifact, codex TOML escaping
+  largest) and the dependency-reviewer golden hash was re-pinned.
+
 ## 2.2.2 - 2026-08-27
 
 ### Fixed

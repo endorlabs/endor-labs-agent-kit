@@ -29,6 +29,15 @@ POLICY_OUTPUT_FIELDS = (
 
 
 ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
+    # Must stay set-equal to workflow_output_contracts.cicd_posture VERDICT_BANDS;
+    # this module is a leaf, so a lockstep test enforces the pairing instead of an import.
+    ("cicd-posture", "posture_verdict"): (
+        "HEALTHY",
+        "NEEDS_ATTENTION",
+        "HIGH_RISK",
+        "CRITICAL",
+        "INSUFFICIENT_DATA",
+    ),
     ("configuration-automation", "onboarding_verdict"): (
         "READY_TO_ONBOARD",
         "PARTIAL_COVERAGE",
@@ -52,6 +61,48 @@ ENUM_FIELD_VALUES: dict[tuple[str, str], tuple[str, ...]] = {
         "HIGH",
         "CRITICAL",
         "UNKNOWN",
+    ),
+    ("findings-browser", "findings_verdict"): (
+        "EXACT_FINDING_FOUND",
+        "ACTIVE_FINDINGS_FOUND",
+        "NO_MATCHING_FINDINGS",
+        "PARTIAL_RESULTS",
+        "INSUFFICIENT_DATA",
+    ),
+    ("malware-responder", "incident_verdict"): (
+        "CONFIRMED_EXPOSURE",
+        "POSSIBLE_EXPOSURE",
+        "NOT_OBSERVED",
+        "INSUFFICIENT_DATA",
+    ),
+    ("oss-upgrade-investigator", "upgrade_recommendation"): (
+        "UPGRADE_NOW",
+        "UPGRADE_WITH_CAUTION",
+        "DEFER",
+        "INSUFFICIENT_DATA",
+    ),
+    ("oss-upgrade-investigator", "risk_delta"): (
+        "LOWER",
+        "SAME",
+        "HIGHER",
+        "UNKNOWN",
+    ),
+    # PROJECT_NOT_FOUND is commanded by the zero-match rule in the troubleshooting
+    # instructions even though the verdict list there omits it; both are honored here.
+    ("troubleshooting", "troubleshooting_verdict"): (
+        "ACTIONABLE_FIX_IDENTIFIED",
+        "LIKELY_ROOT_CAUSE_IDENTIFIED",
+        "PARTIAL_DIAGNOSIS",
+        "PROJECT_NOT_FOUND",
+        "INSUFFICIENT_DATA",
+        "SUPPORT_ESCALATION_RECOMMENDED",
+        "NO_ISSUE_FOUND",
+    ),
+    ("vulnerability-explainer", "action"): (
+        "CRITICAL_ACTION_REQUIRED",
+        "ACTION_RECOMMENDED",
+        "MONITOR",
+        "INSUFFICIENT_DATA",
     ),
 }
 
@@ -301,8 +352,15 @@ def validate_structured_output_payload(
     agent_id: str,
     payload: dict[str, Any],
     output_fields: tuple[str, ...] | None = None,
+    *,
+    allowed_query_template_ids: frozenset[str] | set[str] | None = None,
 ) -> list[str]:
-    """Validate top-level field presence and basic JSON value shapes."""
+    """Validate top-level field presence and basic JSON value shapes.
+
+    ``allowed_query_template_ids`` is supplied by callers that know the
+    knowledge-pack recipe inventory (see ``profile_contracts``); this module
+    stays a leaf and never computes the set itself. ``None`` disables the check.
+    """
 
     contract = _contract_for_output_fields(agent_id, output_fields)
     if not contract:
@@ -328,7 +386,13 @@ def validate_structured_output_payload(
             errors.append(
                 f"{field.name}: must be one of {', '.join(enum_values)}"
             )
-    errors.extend(_evidence_query_ledger_errors(payload))
+    errors.extend(
+        _evidence_query_ledger_errors(
+            payload, allowed_query_template_ids=allowed_query_template_ids
+        )
+    )
+    errors.extend(_project_scope_resolution_errors(payload))
+    errors.extend(_summary_count_errors(payload))
     errors.extend(_evidence_gap_contract_errors(contract, payload))
     return errors
 
@@ -406,6 +470,9 @@ def _json_schema_for_field(
     )
     if profile_override is not None:
         return _with_nullable(profile_override(), nullable=nullable)
+    agent_override = AGENT_FIELD_SCHEMA_OVERRIDES.get((agent_id, field.name))
+    if agent_override is not None:
+        return _with_nullable(agent_override(), nullable=nullable)
     if field.name in FIELD_SCHEMA_OVERRIDES:
         return _with_nullable(FIELD_SCHEMA_OVERRIDES[field.name](), nullable=nullable)
     enum_values = ENUM_FIELD_VALUES.get((agent_id, field.name))
@@ -987,11 +1054,27 @@ def _evidence_queries_schema() -> dict[str, Any]:
                     "type": ["string", "null"],
                     "enum": [*EVIDENCE_QUERY_SOURCE_VALUES, None],
                 },
-                "status": _nullable_string(),
+                "status": {
+                    "type": ["string", "null"],
+                    "enum": [*EVIDENCE_QUERY_STATUS_VALUES, None],
+                },
                 "query_template_id": _nullable_string(),
                 "filter_summary": _nullable_string(),
                 "field_mask_summary": _nullable_string(),
                 "result_count": _nullable_integer(),
+                "list_all": _nullable_boolean(),
+                "artifact": _with_nullable(
+                    _strict_object_schema(
+                        {
+                            "artifact_ref": {"type": "string"},
+                            "sha256": {"type": "string"},
+                            "format": {"type": "string"},
+                            "bytes": {"type": "integer"},
+                            "row_count": {"type": "integer"},
+                        }
+                    ),
+                    nullable=True,
+                ),
                 "reason": _nullable_string(),
             }
         ),
@@ -1433,6 +1516,133 @@ PROFILE_FIELD_SCHEMA_OVERRIDES = {
 }
 
 
+def _slim_row_array_schema(properties: dict[str, dict[str, Any]]) -> dict[str, Any]:
+    return {"type": "array", "items": _strict_object_schema(properties)}
+
+
+def _dependency_reviewer_findings_schema() -> dict[str, Any]:
+    # Taught shape: package coordinate, evidence type, severity or posture
+    # effect, evidence source, and concise explanation. EPSS/KEV slots land
+    # here in the intelligence-lanes PR.
+    return _slim_row_array_schema(
+        {
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "finding_uuid": _nullable_string(),
+            "evidence_type": _nullable_string(),
+            "severity": _nullable_string(),
+            "posture_effect": _nullable_string(),
+            "source": _nullable_string(),
+            "explanation": _nullable_string(),
+        }
+    )
+
+
+def _dependency_reviewer_manifests_schema() -> dict[str, Any]:
+    return _slim_row_array_schema(
+        {
+            "path": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "package_manager": _nullable_string(),
+            "tier": _nullable_string(),
+            "direct_dependency_count": _nullable_integer(),
+            "notes": _nullable_string(),
+        }
+    )
+
+
+def _dependency_reviewer_dependencies_schema() -> dict[str, Any]:
+    return _slim_row_array_schema(
+        {
+            "package_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "version": _nullable_string(),
+            "manifest_path": _nullable_string(),
+            "direct": _nullable_boolean(),
+            "scope": _nullable_string(),
+            "notes": _nullable_string(),
+        }
+    )
+
+
+def _malware_affected_package_schema() -> dict[str, Any]:
+    # Mirrors the affected_package_set row template in the instructions.
+    return _slim_row_array_schema(
+        {
+            "ecosystem": _nullable_string(),
+            "package_name": _nullable_string(),
+            "version": _nullable_string(),
+            "version_range": _nullable_string(),
+            "source": _nullable_string(),
+            "confidence": _nullable_string(),
+        }
+    )
+
+
+def _malware_impacted_projects_schema() -> dict[str, Any]:
+    # Mirrors the impacted_projects row template in the instructions.
+    return _slim_row_array_schema(
+        {
+            "status": _nullable_string(),
+            "project_uuid": _nullable_string(),
+            "project_name": _nullable_string(),
+            "namespace": _nullable_string(),
+            "repo_full_name": _nullable_string(),
+            "ecosystem": _nullable_string(),
+            "package_name": _nullable_string(),
+            "version": _nullable_string(),
+            "path": _nullable_string(),
+            "source": _nullable_string(),
+        }
+    )
+
+
+def _configuration_healthy_repository_schema() -> dict[str, Any]:
+    # Template keys plus the branch keys pinned by the nested-output smoke test.
+    return _slim_row_array_schema(
+        {
+            "repository": _nullable_string(),
+            "endor_project_uuid": _nullable_string(),
+            "github_default_branch": _nullable_string(),
+            "endor_monitored_branch": _nullable_string(),
+            "healthy_reason": _nullable_string(),
+            "confidence": _nullable_string(),
+            "confidence_reason": _nullable_string(),
+        }
+    )
+
+
+def _configuration_excluded_repository_schema() -> dict[str, Any]:
+    return _slim_row_array_schema(
+        {
+            "repository": _nullable_string(),
+            "reason": _nullable_string(),
+            "evidence": _nullable_string_array(),
+        }
+    )
+
+
+# Per-(agent, field) row schemas replacing the generic object blob, consulted
+# after profile overrides and before the shared field-name table so slim rows
+# apply on the full contract (profile_id None) without colliding across agents
+# that share a field name. Bounded scope: dependency-reviewer, the
+# malware-responder exposure rows, and the two simple configuration-automation
+# repository row shapes. Documented follow-up: cicd-posture rows and the
+# remaining configuration-automation rows (not_onboarded_repositories,
+# onboarded_repositories_with_gaps, and friends carry nested evidence shapes
+# that need their own design pass).
+AGENT_FIELD_SCHEMA_OVERRIDES = {
+    ("dependency-reviewer", "findings"): _dependency_reviewer_findings_schema,
+    ("dependency-reviewer", "manifests"): _dependency_reviewer_manifests_schema,
+    ("dependency-reviewer", "dependencies_reviewed"): _dependency_reviewer_dependencies_schema,
+    ("malware-responder", "affected_package_set"): _malware_affected_package_schema,
+    ("malware-responder", "impacted_projects"): _malware_impacted_projects_schema,
+    ("configuration-automation", "onboarded_healthy_repositories"): _configuration_healthy_repository_schema,
+    ("configuration-automation", "excluded_repositories"): _configuration_excluded_repository_schema,
+}
+
+
 FIELD_SCHEMA_OVERRIDES = {
     "executive_report": _executive_report_schema,
     "executive_summary": _executive_summary_schema,
@@ -1512,6 +1722,8 @@ EVIDENCE_QUERY_LEDGER_FIELDS = (
     "filter_summary",
     "field_mask_summary",
     "result_count",
+    "list_all",
+    "artifact",
     "reason",
 )
 
@@ -1523,13 +1735,16 @@ EVIDENCE_QUERY_SOURCE_VALUES = (
     "user_input",
     "public_docs",
 )
-EVIDENCE_QUERY_GAP_STATUSES = (
-    "blocked",
-    "error",
-    "failed",
-    "lookup_unavailable",
-    "no_results",
-    "unavailable",
+# Must stay identical to the taught ledger vocabulary in compilers/rendering.py.
+EVIDENCE_QUERY_STATUS_VALUES = ("succeeded", "failed", "skipped", "unavailable")
+EVIDENCE_QUERY_SUCCESS_STATUSES = frozenset({"succeeded"})
+EVIDENCE_QUERY_GAP_STATUSES = frozenset({"failed", "skipped", "unavailable"})
+EVIDENCE_QUERY_ARTIFACT_FIELDS = (
+    "artifact_ref",
+    "sha256",
+    "format",
+    "bytes",
+    "row_count",
 )
 LARGE_RESULT_ARTIFACT_QUERY_IDS = frozenset(
     {
@@ -1538,16 +1753,23 @@ LARGE_RESULT_ARTIFACT_QUERY_IDS = frozenset(
         "tenant-package-inventory",
     }
 )
-EVIDENCE_QUERY_SUCCESS_STATUSES = frozenset(
-    {"completed", "confirmed", "ok", "success", "succeeded"}
-)
 ARTIFACT_METADATA_RE = re.compile(
     r"artifact_ref=[^;\s]+;sha256=[0-9a-f]{64};"
     r"format=[A-Za-z0-9._+-]+;bytes=[1-9][0-9]*"
 )
+_SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
+_LEGACY_LIST_ALL_NEGATION_RE = re.compile(
+    r"(?:\b(?:no|not|without|omit\w*|skip\w*)\b[^.;]{0,40}list-all)"
+    r"|(?:list-all\s*(?:==|=|:)\s*false\b)"
+    r"|(?:list-all[^.;]{0,20}\bnot\b)"
+)
 
 
-def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
+def _evidence_query_ledger_errors(
+    payload: dict[str, Any],
+    *,
+    allowed_query_template_ids: frozenset[str] | set[str] | None = None,
+) -> list[str]:
     evidence_queries = payload.get("evidence_queries")
     if not isinstance(evidence_queries, list):
         return []
@@ -1557,71 +1779,234 @@ def _evidence_query_ledger_errors(payload: dict[str, Any]) -> list[str]:
         if not isinstance(item, dict):
             errors.append(f"evidence_queries[{index}]: must be an object")
             continue
-        has_unsupported_fields = False
         for field in item:
             if field not in EVIDENCE_QUERY_LEDGER_FIELDS:
-                has_unsupported_fields = True
-                errors.append(f"evidence_queries[{index}].{field}: unsupported ledger field")
+                errors.append(
+                    f"evidence_queries[{index}].{field}: unsupported ledger field; "
+                    f"supported fields are {', '.join(EVIDENCE_QUERY_LEDGER_FIELDS)}"
+                )
         for field in EVIDENCE_QUERY_REQUIRED_TEXT_FIELDS:
             if not _text(item.get(field)):
-                suffix = (
-                    "required"
-                    if has_unsupported_fields and field in {"name", "source"}
-                    else "must be a non-empty string"
+                errors.append(
+                    f"evidence_queries[{index}].{field}: must be a non-empty string"
                 )
-                errors.append(f"evidence_queries[{index}].{field}: {suffix}")
         source = _text(item.get("source"))
         if source and source not in EVIDENCE_QUERY_SOURCE_VALUES:
             errors.append(
                 f"evidence_queries[{index}].source: must be one of "
-                f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)}"
+                f"{', '.join(EVIDENCE_QUERY_SOURCE_VALUES)} (received {source!r})"
             )
         for field in EVIDENCE_QUERY_LEDGER_FIELDS:
-            if field == "result_count" or field not in item or item[field] is None:
+            if (
+                field in {"result_count", "list_all", "artifact"}
+                or field not in item
+                or item[field] is None
+            ):
                 continue
             if not isinstance(item[field], str):
                 errors.append(f"evidence_queries[{index}].{field}: must be a string or null")
         if "result_count" in item and item["result_count"] is not None:
             if isinstance(item["result_count"], bool) or not isinstance(item["result_count"], int):
                 errors.append(f"evidence_queries[{index}].result_count: must be an integer or null")
-        status = _text(item.get("status")).lower()
-        if any(marker in status for marker in EVIDENCE_QUERY_GAP_STATUSES):
-            if not _text(item.get("reason")) and not data_gaps:
+        list_all = item.get("list_all")
+        if "list_all" in item and list_all is not None and not isinstance(list_all, bool):
+            errors.append(
+                f"evidence_queries[{index}].list_all: must be true, false, or null"
+            )
+            list_all = None
+        artifact = item.get("artifact")
+        artifact_valid = False
+        if "artifact" in item and artifact is not None:
+            artifact_errors = _artifact_metadata_errors(index, artifact)
+            errors.extend(artifact_errors)
+            artifact_valid = not artifact_errors
+        status = _text(item.get("status"))
+        if status and status not in EVIDENCE_QUERY_STATUS_VALUES:
+            errors.append(
+                f"evidence_queries[{index}].status: must be one of "
+                f"{', '.join(EVIDENCE_QUERY_STATUS_VALUES)} (received {status!r})"
+            )
+        if status in EVIDENCE_QUERY_GAP_STATUSES:
+            if status == "skipped":
+                if not _text(item.get("reason")):
+                    errors.append(
+                        f"evidence_queries[{index}].reason: required when status is skipped"
+                    )
+            elif not _text(item.get("reason")) and not data_gaps:
                 errors.append(f"evidence_queries[{index}].reason: required for unavailable or failed evidence")
         query_template_id = _text(item.get("query_template_id"))
-        filter_summary = _text(item.get("filter_summary")).lower()
-        list_all_delivery = "list-all" in filter_summary and not re.search(
-            r"list-all\s*(?:==|=|:)\s*false\b", filter_summary
+        if (
+            allowed_query_template_ids is not None
+            and query_template_id
+            and query_template_id not in allowed_query_template_ids
+        ):
+            errors.append(
+                f"evidence_queries[{index}].query_template_id: "
+                f"{query_template_id!r} is not a known query recipe id for this "
+                "workflow; copy the id of the recipe that was actually executed "
+                "or set it to null"
+            )
+        complete_route = (
+            list_all is True
+            or query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
+            or (list_all is None and _legacy_list_all_delivery(item.get("filter_summary")))
         )
         if (
             status in EVIDENCE_QUERY_SUCCESS_STATUSES
-            and (
-                query_template_id in LARGE_RESULT_ARTIFACT_QUERY_IDS
-                or list_all_delivery
-            )
+            and complete_route
+            and not artifact_valid
+            and "artifact" not in item
             and not ARTIFACT_METADATA_RE.search(_text(item.get("reason")))
         ):
             errors.append(
-                f"evidence_queries[{index}].reason: successful large-result route "
-                "requires artifact_ref, sha256, format, and bytes metadata"
+                f"evidence_queries[{index}].artifact: required for a successful "
+                "complete-inventory route; copy the artifact summarizer output "
+                "into artifact {artifact_ref, sha256, format, bytes, row_count} "
+                "or into reason as "
+                '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
             )
     return errors
 
 
+def _legacy_list_all_delivery(filter_summary: Any) -> bool:
+    """Prose fallback for rows that predate the structured `list_all` boolean."""
+
+    summary = _text(filter_summary).lower()
+    if "list-all" not in summary:
+        return False
+    return not _LEGACY_LIST_ALL_NEGATION_RE.search(summary)
+
+
+def _artifact_metadata_errors(index: int, artifact: Any) -> list[str]:
+    if not isinstance(artifact, dict):
+        return [f"evidence_queries[{index}].artifact: must be an object or null"]
+    errors: list[str] = []
+    for field in artifact:
+        if field not in EVIDENCE_QUERY_ARTIFACT_FIELDS:
+            errors.append(
+                f"evidence_queries[{index}].artifact.{field}: unsupported artifact "
+                f"field; supported fields are {', '.join(EVIDENCE_QUERY_ARTIFACT_FIELDS)}"
+            )
+    if not _text(artifact.get("artifact_ref")):
+        errors.append(
+            f"evidence_queries[{index}].artifact.artifact_ref: must be a non-empty string"
+        )
+    sha256 = artifact.get("sha256")
+    if not isinstance(sha256, str) or not _SHA256_HEX_RE.fullmatch(sha256):
+        errors.append(
+            f"evidence_queries[{index}].artifact.sha256: must be a 64-character lowercase hex digest"
+        )
+    if not _text(artifact.get("format")):
+        errors.append(
+            f"evidence_queries[{index}].artifact.format: must be a non-empty string"
+        )
+    size = artifact.get("bytes")
+    if isinstance(size, bool) or not isinstance(size, int) or size <= 0:
+        errors.append(
+            f"evidence_queries[{index}].artifact.bytes: must be a positive integer"
+        )
+    row_count = artifact.get("row_count")
+    if isinstance(row_count, bool) or not isinstance(row_count, int) or row_count < 0:
+        errors.append(
+            f"evidence_queries[{index}].artifact.row_count: must be a non-negative integer"
+        )
+    return errors
+
+
+def _project_scope_resolution_errors(payload: dict[str, Any]) -> list[str]:
+    """A claimed resolution must carry the identifiers that prove it."""
+
+    errors: list[str] = []
+    for field in ("project_resolution", "report_scope"):
+        value = payload.get(field)
+        if not isinstance(value, dict):
+            continue
+        if _text(value.get("status")).lower() != "resolved":
+            continue
+        if not _text(value.get("project_uuid")):
+            errors.append(f"{field}.project_uuid: required when status is resolved")
+        if not _text(value.get("namespace")) and not _text(value.get("endor_namespace")):
+            errors.append(
+                f"{field}.namespace: required when status is resolved; record "
+                "the namespace the project was found in (namespace or endor_namespace)"
+            )
+    return errors
+
+
+_AVAILABLE_CLAIM_RE = re.compile(r"\bavailable\b")
+_AVAILABLE_NEGATION_RE = re.compile(
+    r"\b(?:no|not|none|never|without|isn't|aren't|wasn't|weren't)\b[^.;:!?]{0,40}$"
+)
+
+
+def _summary_count_errors(payload: dict[str, Any]) -> list[str]:
+    """An availability claim in the summary needs at least one integer count."""
+
+    summary = payload.get("summary")
+    evidence_queries = payload.get("evidence_queries")
+    if not isinstance(summary, str) or not isinstance(evidence_queries, list):
+        return []
+    rows = [row for row in evidence_queries if isinstance(row, dict)]
+    if not rows:
+        return []
+    for row in rows:
+        count = row.get("result_count")
+        if isinstance(count, int) and not isinstance(count, bool):
+            return []
+    lowered = summary.lower()
+    for match in _AVAILABLE_CLAIM_RE.finditer(lowered):
+        prefix = lowered[max(0, match.start() - 40) : match.start()]
+        if not _AVAILABLE_NEGATION_RE.search(prefix):
+            return [
+                "summary: claims available evidence but no evidence_queries row "
+                "records an integer result_count; copy the integer counts from "
+                "the executed queries or describe the gap in data_gaps"
+            ]
+    return []
+
+
+EVIDENCE_CLAIM_LIST_FIELDS = (
+    "findings",
+    "sca_findings",
+    "remediation_candidates",
+    "remediation_options",
+    "uia_evidence",
+    "version_upgrades",
+    "upgrade_candidates",
+    "verdicts",
+    "dependencies_reviewed",
+    "affected_resources",
+    "affected_package_set",
+    "finding_results",
+    "github_evidence",
+    "impacted_projects",
+    "manifests",
+)
+VERDICT_CLAIM_FIELDS = (
+    "posture_verdict",
+    "troubleshooting_verdict",
+    "findings_verdict",
+    "incident_verdict",
+    "onboarding_verdict",
+    "upgrade_recommendation",
+    "risk_delta",
+    "verdict",
+    "action",
+)
+NONDECISIVE_VERDICT_VALUES = frozenset({"INSUFFICIENT_DATA", "UNKNOWN"})
+
+
 def _claims_current_evidence(payload: dict[str, Any]) -> bool:
-    for field in (
-        "findings",
-        "sca_findings",
-        "remediation_candidates",
-        "remediation_options",
-        "uia_evidence",
-        "version_upgrades",
-        "upgrade_candidates",
-        "verdicts",
-        "dependencies_reviewed",
-        "affected_resources",
-    ):
+    for field in EVIDENCE_CLAIM_LIST_FIELDS:
         if isinstance(payload.get(field), list) and payload[field]:
+            return True
+    for field in VERDICT_CLAIM_FIELDS:
+        value = payload.get(field)
+        if (
+            isinstance(value, str)
+            and value.strip()
+            and value.strip() not in NONDECISIVE_VERDICT_VALUES
+        ):
             return True
     for field in ("project_resolution", "report_scope"):
         value = payload.get(field)
