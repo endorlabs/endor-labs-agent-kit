@@ -21,42 +21,42 @@
               "sha256": "e2d7779cc225d248c72d355a9ff31d822e3f016cd44c2189f6f6d0f9d5a8606a"
             },
             {
-              "bytes": 27015,
+              "bytes": 26987,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-evidence-check.md",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "8d5c6e22203a525e2b95a5b39e0a850caa84e3fc01c8a5b3ba4c58e276255265"
+              "sha256": "2e3430d478ed358b30cb5581cc2cb9f5d00fa20248df7ad60caf23a3a3bda9e5"
             },
             {
-              "bytes": 26718,
+              "bytes": 26690,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-resolve-scope.md",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "55f0d01563bd41ccf1adf88fc34637e1e5b7279e4a6c8cd557d4b9554c7802d3",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "bbda69cdcbd53b5ef856a15b4ad1df65b60fcf28b94833cf700e139a9d0717b4"
+              "sha256": "c8e4af37d886f54ddb9eb62a9988c7822c527690d4389670bc8a008e80e22047"
             },
             {
-              "bytes": 39095,
+              "bytes": 39067,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation-selection-plan.md",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "788263d26373945c86f209edf5b4e37d1bfb1391ccc09b0f49f51411ec9f6dac"
+              "sha256": "e5232eddf5dbbdba049d8d809000e24b01b460fd17e4d4d3cab5334c7b598def"
             },
             {
-              "bytes": 82237,
+              "bytes": 82209,
               "path": "claude-code/ai-sast-remediation/ai-sast-remediation.md",
-              "sha256": "f8a9d56c0e1a37ef475a71b1c8cb25658db2493d3dc8a1e3447c1b2d0753dc33"
+              "sha256": "9580cb595d4f6c98c676f1393ee0bcc05bec104176c2254eed2aea8d815984a4"
             },
             {
               "bytes": 10807,
@@ -71,65 +71,65 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "fcd74fb064c39b2fd027c4f66f6aba03ab0243ac4a031edfa20ab65d67745812",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "6a106dd2e2e49c0b39f45f5d12242c1c2ce1fec867b92dd36646d205f38e2e4f"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "6b47ae346b1bb773e78ae94104b5360bda7e267c3c49ba892676c354ae86f4c4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "764d0b7b3f5a997917bda72b1d6fb8313d4a35d722b50d60e13250fce9cde4a0"
             },
             {
               "bytes": 5463,
               "path": "claude-code/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "a7702cbacd6f7a30e5f496bb856547807511678ca05020878ffdb9e66e9fe786"
             },
             {
               "bytes": 3914,
               "path": "claude-code/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "55f0d01563bd41ccf1adf88fc34637e1e5b7279e4a6c8cd557d4b9554c7802d3",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "b33f7a39996d152c7e273c0f8d9453c38ef3ed604258dba89199aac9435ab2ed"
             },
             {
               "bytes": 53161,
               "path": "claude-code/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "6ba8b80a7cb105c710a1106134aec1b4cb9a88dfa7adc107496b6acc3bf72b4d"
             },
             {
               "bytes": 34235,
@@ -2334,9 +2334,9 @@
               "sha256": "e15593b3df0c950c4c5ec0c1aa605f4b9c44e1f3cf1cf68dcce369577cb60156"
             },
             {
-              "bytes": 82975,
+              "bytes": 82947,
               "path": "codex/ai-sast-remediation/SKILL.md",
-              "sha256": "8d20c8280a98ec482140b6a3ede23640237fa7f22e11f105f6bc7436e258d23a"
+              "sha256": "baa4cf22aaf08d52a59d8d2b1cd92fb7b40fb81725915cdf9cde9b4ccc43bb8e"
             },
             {
               "bytes": 6563,
@@ -2356,65 +2356,65 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "fcd74fb064c39b2fd027c4f66f6aba03ab0243ac4a031edfa20ab65d67745812",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "6a106dd2e2e49c0b39f45f5d12242c1c2ce1fec867b92dd36646d205f38e2e4f"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "6b47ae346b1bb773e78ae94104b5360bda7e267c3c49ba892676c354ae86f4c4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "764d0b7b3f5a997917bda72b1d6fb8313d4a35d722b50d60e13250fce9cde4a0"
             },
             {
               "bytes": 5463,
               "path": "codex/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "a7702cbacd6f7a30e5f496bb856547807511678ca05020878ffdb9e66e9fe786"
             },
             {
               "bytes": 3914,
               "path": "codex/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "55f0d01563bd41ccf1adf88fc34637e1e5b7279e4a6c8cd557d4b9554c7802d3",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "b33f7a39996d152c7e273c0f8d9453c38ef3ed604258dba89199aac9435ab2ed"
             },
             {
               "bytes": 53161,
               "path": "codex/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "6ba8b80a7cb105c710a1106134aec1b4cb9a88dfa7adc107496b6acc3bf72b4d"
             },
             {
               "bytes": 34235,
@@ -3466,9 +3466,9 @@
               "sha256": "9b651e5ef90f2411fa98399de5cb0c3099dd4c880bf0993a8ed5a2a95bf639b8"
             },
             {
-              "bytes": 83009,
+              "bytes": 82981,
               "path": "gemini/ai-sast-remediation/SKILL.md",
-              "sha256": "1f51aee22c42d2e3e8a2a13ba01aa0335d1714e61039d0690a8da48904b11844"
+              "sha256": "5ae79f758866221ed5f4c753676a9c23f4de543ab3289396eff1746da08f492d"
             },
             {
               "bytes": 6563,
@@ -3476,9 +3476,9 @@
               "sha256": "e2d7779cc225d248c72d355a9ff31d822e3f016cd44c2189f6f6d0f9d5a8606a"
             },
             {
-              "bytes": 83317,
+              "bytes": 83289,
               "path": "gemini/ai-sast-remediation/ai-sast-remediation.md",
-              "sha256": "211d4abc006d150ffa7e91b0f1d3ecb5f9774b41613b026d0232e1d3fb42be95"
+              "sha256": "dfa2b0d61e71e64b61cfa3480897ac5b2f956e759144bf51c95fa48e3e88d53e"
             },
             {
               "bytes": 10806,
@@ -3493,65 +3493,65 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "fcd74fb064c39b2fd027c4f66f6aba03ab0243ac4a031edfa20ab65d67745812",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "6a106dd2e2e49c0b39f45f5d12242c1c2ce1fec867b92dd36646d205f38e2e4f"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "6b47ae346b1bb773e78ae94104b5360bda7e267c3c49ba892676c354ae86f4c4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "764d0b7b3f5a997917bda72b1d6fb8313d4a35d722b50d60e13250fce9cde4a0"
             },
             {
               "bytes": 5463,
               "path": "gemini/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "a7702cbacd6f7a30e5f496bb856547807511678ca05020878ffdb9e66e9fe786"
             },
             {
               "bytes": 3914,
               "path": "gemini/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "55f0d01563bd41ccf1adf88fc34637e1e5b7279e4a6c8cd557d4b9554c7802d3",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "b33f7a39996d152c7e273c0f8d9453c38ef3ed604258dba89199aac9435ab2ed"
             },
             {
               "bytes": 53161,
               "path": "gemini/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "6ba8b80a7cb105c710a1106134aec1b4cb9a88dfa7adc107496b6acc3bf72b4d"
             },
             {
               "bytes": 34235,
@@ -4663,9 +4663,9 @@
               "sha256": "864afc3d9e2d8e0263a90fe621198ee0d3af4b2b864ac1119b6c58693660b716"
             },
             {
-              "bytes": 82975,
+              "bytes": 82947,
               "path": "portable/ai-sast-remediation/agent.md",
-              "sha256": "d50364848ad551baa011c74967f750ff06c029245f29b0ee02ad8470831e0ba5"
+              "sha256": "6aad11086879108994a7f2f533002f043cc60ee40023c0f98fe046cc519c8b05"
             },
             {
               "bytes": 10819,
@@ -4680,32 +4680,32 @@
             {
               "bytes": 7597,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "7e4adc2087cc9270d6dfa709f762c2097ab20d6d1876d31cb5406906da4384d7",
+              "evidence_plan_digest": "fcd74fb064c39b2fd027c4f66f6aba03ab0243ac4a031edfa20ab65d67745812",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/ai-sast-remediation/evidence-plans/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "92974f105b406fef06e6b3c5ba247df3e6b7108beabdf34cf5c199742018b95d"
+              "sha256": "6a106dd2e2e49c0b39f45f5d12242c1c2ce1fec867b92dd36646d205f38e2e4f"
             },
             {
               "bytes": 8409,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "b2be955e8a326162fc7e6e634c4255b3de7b86482cfc9a3a677541ae409ac5fc",
+              "evidence_plan_digest": "6b47ae346b1bb773e78ae94104b5360bda7e267c3c49ba892676c354ae86f4c4",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/ai-sast-remediation/evidence-plans/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "b0667e0e3aa0185f97a914d112334846a810f15e58870435695246ae4feb4fd1"
+              "sha256": "764d0b7b3f5a997917bda72b1d6fb8313d4a35d722b50d60e13250fce9cde4a0"
             },
             {
               "bytes": 9605,
@@ -4715,35 +4715,35 @@
             {
               "bytes": 5463,
               "path": "portable/ai-sast-remediation/profile-contracts/evidence-check.json",
-              "profile_contract_digest": "efb7c853f30e1b6814e5562c080d6f166be40a98d0e5e04a93e72c70a174c4a6",
+              "profile_contract_digest": "afed6ba098ad5594c62b0004012369a0b96786c2991c6036b7b8a2e905406447",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "evidence-check",
-              "sha256": "a1ff7beee05212eb966f1276f44f0dd1cb370f71f565ca2508a3f6c2b0e226b4"
+              "sha256": "a7702cbacd6f7a30e5f496bb856547807511678ca05020878ffdb9e66e9fe786"
             },
             {
               "bytes": 3914,
               "path": "portable/ai-sast-remediation/profile-contracts/resolve-scope.json",
-              "profile_contract_digest": "b640416cf30b6f1cbe993bb6492a7e214c9ec10e7812a9ab6564e5d16d4f04ef",
+              "profile_contract_digest": "55f0d01563bd41ccf1adf88fc34637e1e5b7279e4a6c8cd557d4b9554c7802d3",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.read-only-profile",
                 "version": "1"
               },
               "profile_id": "resolve-scope",
-              "sha256": "440da8f7cd734a23ba44f2babd18305e48c8c22c7c3a6246e8aeb0902cdd00d8"
+              "sha256": "b33f7a39996d152c7e273c0f8d9453c38ef3ed604258dba89199aac9435ab2ed"
             },
             {
               "bytes": 53161,
               "path": "portable/ai-sast-remediation/profile-contracts/selection-plan.json",
-              "profile_contract_digest": "4f95de1dfa6451c03fef68d4b27fd725fe6de5abce8b116bfa18a6c4ce4fce65",
+              "profile_contract_digest": "34e3ede56a9c0942bc045da40d0c319d0dbaa34fc6e385d4e74e5272297fd17a",
               "profile_gate_validator": {
                 "id": "ai-sast-remediation.structured-output",
                 "version": "1"
               },
               "profile_id": "selection-plan",
-              "sha256": "d20ac100a608b83110bd7cac4b5490ae13a50abb12df1787ac3c35193c844431"
+              "sha256": "6ba8b80a7cb105c710a1106134aec1b4cb9a88dfa7adc107496b6acc3bf72b4d"
             },
             {
               "bytes": 34235,
@@ -5890,9 +5890,9 @@
           "sha256": "dbba818b5f478526e0ca002d83a1ba0c3aaab03f2c7d40dd0218b73ff7c4b9c3"
         },
         {
-          "bytes": 35638,
+          "bytes": 35610,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/ai-sast-remediation.md",
-          "sha256": "9aecffa9852cca3064565aa4ac02d43552b3f5e4e0535444562f3b7895c201bc"
+          "sha256": "4e16848b68cba3dbe2004e269fbb9c180acf055f3ea669d05938f2664815c382"
         },
         {
           "bytes": 23982,
@@ -5985,9 +5985,9 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 35281,
+          "bytes": 35253,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/ai-sast-remediation/SKILL.md",
-          "sha256": "2879c55a2372366b2cd1c87f0cba6d7d5f416b71d18ba1c759cb1699b0db1900"
+          "sha256": "5082270e183644b51bcfef5a1d2435cc1d3c3929b2fb518c3584997aaa54836f"
         },
         {
           "bytes": 23706,
@@ -6083,9 +6083,9 @@
           "sha256": "2dfc27caf92a93010cd622aeb6e5f3587749dcfb782bf94842a2ed9c9dc9a6da"
         },
         {
-          "bytes": 34585,
+          "bytes": 34557,
           "path": "plugins/claude/ai-plugins/agents/ai-sast-remediation.md",
-          "sha256": "39787fb4103f34e45061fede3c7bea5504fefd0d516c1883cf0a3058f6094696"
+          "sha256": "1b0647921c865b2d90ed60ade2c830a3505776fbd73de52766878bfad8d2da92"
         },
         {
           "bytes": 23048,
@@ -6217,9 +6217,9 @@
           "sha256": "284be25fa9e438a56c78e220af54d19f1684da1fca44bf3e0fc5f58096d825c8"
         },
         {
-          "bytes": 34585,
+          "bytes": 34557,
           "path": "plugins/claude/endor-labs-agent-kit/agents/ai-sast-remediation.md",
-          "sha256": "39787fb4103f34e45061fede3c7bea5504fefd0d516c1883cf0a3058f6094696"
+          "sha256": "1b0647921c865b2d90ed60ade2c830a3505776fbd73de52766878bfad8d2da92"
         },
         {
           "bytes": 23048,
@@ -6381,9 +6381,9 @@
           "sha256": "3bc1cce0aa35f12d7de7c537726305f6125692ef5f147774abd683a7b269917e"
         },
         {
-          "bytes": 34790,
+          "bytes": 34762,
           "path": "plugins/codex-directory/endor-labs-agent-kit/skills/ai-sast-remediation/SKILL.md",
-          "sha256": "71fb6f1775b584416da5242f5c9e56cd635ac5a4cb5d141858c4bcddf14abb7b"
+          "sha256": "e26f329683925f95ddf8d81ccdd39efe741eb732df057dbd069fc70299e529a4"
         },
         {
           "bytes": 326,
@@ -6599,9 +6599,9 @@
           "sha256": "1282757eb772c72276196bb4ccc7d0811d2e7751e6de17de479920ea2c48612b"
         },
         {
-          "bytes": 35457,
+          "bytes": 35429,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-ai-sast-remediation-agent.toml",
-          "sha256": "a173c74082625a372f5762256deae00f8f3b196b6f97ee79d3247154d5ce9b9d"
+          "sha256": "b6bc4a52d3f51cb2e8ba5a779e54a23ea3512f5bbb1823d2b7a9457182bc13ac"
         },
         {
           "bytes": 24214,
@@ -6659,9 +6659,9 @@
           "sha256": "3bc1cce0aa35f12d7de7c537726305f6125692ef5f147774abd683a7b269917e"
         },
         {
-          "bytes": 34481,
+          "bytes": 34453,
           "path": "plugins/codex/endor-labs-agent-kit/bundled-skills/ai-sast-remediation/SKILL.md",
-          "sha256": "60f5c4645d69ad82a90596deed9b9cb2893f1272effba11f7a4206bf908d8af8"
+          "sha256": "97903a28787aae946e5e27d10f513e86266ea24e1f71d28e1302d8f5daf68b3f"
         },
         {
           "bytes": 23127,
@@ -6808,9 +6808,9 @@
           "sha256": "813e1f311ddb033b44911e62547de5fa69f4da782d5ce45eb73534502a2c7cd0"
         },
         {
-          "bytes": 35493,
+          "bytes": 35465,
           "path": "agents/endor-ai-sast-remediation-agent.md",
-          "sha256": "a4a995abc009d4849195fa2224e48bf62517b3fd16862f9aac1d298201ab6491"
+          "sha256": "4e6610dd9314ed6bc72166480e762d3c9a4672b9cddcad7c9e23f7e5723bd9da"
         },
         {
           "bytes": 23896,
@@ -6898,9 +6898,9 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 35172,
+          "bytes": 35144,
           "path": "skills/ai-sast-remediation/SKILL.md",
-          "sha256": "9024715890725bb7f13a56bf2e89764d93a2acbf949581fd84ba4be918739045"
+          "sha256": "f026f7ea412bf309f3041668592202b5015eb0f2a38423c7a29e16e8afc44347"
         },
         {
           "bytes": 6563,
@@ -7067,9 +7067,9 @@
           "sha256": "0867fd58c9da99506a6e515339e593e88e0a1b6c29e9fdb8127d0eb589e9636d"
         },
         {
-          "bytes": 34754,
+          "bytes": 34726,
           "path": "cursor-sdk/agents/endor-ai-sast-remediation-agent.md",
-          "sha256": "6b0d44d3d999baf821d2338951e1d3a1fc72340a17d72e49989691da8c79d783"
+          "sha256": "782e19c7f22c1c40a843bf0f75f94d696d3c7535a905ab9d471e7273c8ba6525"
         },
         {
           "bytes": 8281,
@@ -7220,9 +7220,9 @@
           "sha256": "ccf469aa85dd5a13f22fe85f9445c11b0c859a63abb8b9621b7548b363d94000"
         },
         {
-          "bytes": 35243,
+          "bytes": 35215,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/ai-sast-remediation.md",
-          "sha256": "f0779d4e904801a92ba9339e52441b47fe4552d5579d20460a5aebbcb3167b23"
+          "sha256": "c2f823f6818805d8b6ed00ccdc8c35aaf0e5a910669d801201d24ec0f14c4ea5"
         },
         {
           "bytes": 23646,
@@ -7315,9 +7315,9 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 34935,
+          "bytes": 34907,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/ai-sast-remediation/SKILL.md",
-          "sha256": "d7d7e81ee1574c86c3da4ab03503d77731f77280b698fe425dd619f1e1949a12"
+          "sha256": "f6005e4ae004a6fa6c0129edd6c6de6d166798f2c8c8e03c7a2f77b2e927a71e"
         },
         {
           "bytes": 23360,
