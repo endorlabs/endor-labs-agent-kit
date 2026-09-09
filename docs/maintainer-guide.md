@@ -18,6 +18,24 @@ shape, or release validation.
 | Mirror `plugins/cursor/endor-labs-agent-kit/` | Self-contained public Cursor package generated during `ai-plugins` synchronization. |
 | `cursor-sdk/` | Generated Cursor Python SDK automation package with prompt definitions and launcher. |
 | `manifest.json` | Generated checksum and provenance catalog. |
+| `gemini-enterprise/` | Hand-written, continuously-deployed A2A agent service for the Gemini Enterprise Marketplace. Not generated, not part of the recipe catalog. |
+
+## Gemini Enterprise Service
+
+`gemini-enterprise/` is a **hand-written service**, not a generated artifact. It
+hosts the [A2A](https://a2a-protocol.org/) agents published to the Google
+**Gemini Enterprise Marketplace** (currently a read-only SCA Remediation agent).
+
+Do not confuse it with `gemini/`, which is the **generated Gemini CLI** extension
+catalog owned by `endor-agent-kit publish ... --prune`. The two are unrelated
+surfaces: `gemini/` = the Gemini CLI dev tool; `gemini-enterprise/` = the Google
+Gemini Enterprise product.
+
+Because it is not recipe-driven, it is excluded from the publish/prune pipeline
+and has its own CI at `.github/workflows/gemini-enterprise-ci.yml`
+(path-filtered to `gemini-enterprise/**`). See
+`gemini-enterprise/README.md` for its architecture, run/test instructions, and
+roadmap. Editing it does not require regenerating the catalog.
 
 ## Change An Agent
 
