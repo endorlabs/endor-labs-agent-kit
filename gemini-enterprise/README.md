@@ -15,7 +15,53 @@ the Google **Gemini Enterprise** product this service integrates with.
 > Design source of truth: *SCA Remediation Agent — Gemini Enterprise
 > Marketplace (v1)*. Section references (§N) below point at that doc.
 
+> **Heads up — two agents live in this directory now.** The project split into
+> two (see [docs/architecture-decisions.md](docs/architecture-decisions.md)):
+> - **Endor OSS Intelligence (Option A) — the current MVP.** Public open-source
+>   answers (vulnerabilities, package risk, CVEs); no login, no customer data.
+>   Shipped as a Google **ADK agent** (customer-hosted) and an A2A app. **Start
+>   here → [`adk/README.md`](adk/README.md)** and the quickstart just below.
+> - **SCA Remediation (Option B) — parked.** Tenant-scoped findings over a
+>   customer's own repos (the rest of *this* document). Kept, not the active path.
+
+## Try it out (Gemini or Anthropic)
+
+Fastest way to see it working is the **OSS Intelligence** ADK agent — a local
+chat UI with managed sessions, on either model provider. Short version (full
+detail, deploy, and provider-switch notes in [`adk/README.md`](adk/README.md)):
+
+**On Gemini (Vertex):**
+```bash
+cd gemini-enterprise && python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]" google-adk google-genai
+gcloud auth application-default login
+export GOOGLE_GENAI_USE_VERTEXAI=1
+export GOOGLE_CLOUD_PROJECT=<your-project>
+export GOOGLE_CLOUD_LOCATION=global          # current Gemini models serve from global
+cd adk && adk web                            # http://localhost:8000
+```
+
+**On Anthropic (no Google/GCP needed):**
+```bash
+cd gemini-enterprise && python -m venv .venv && . .venv/bin/activate
+pip install -e ".[dev]" google-adk litellm
+export ANTHROPIC_API_KEY=sk-ant-...
+export ADK_MODEL=anthropic/claude-sonnet-5   # a model your key can access
+cd adk && adk web
+```
+
+Ask *"What is CVE-2021-44228?"*, then *"Is `mvn://org.apache.logging.log4j:log4j-core@2.14.1`
+affected by it?"* (multi-turn sessions). Default data is an offline mock; add
+`OSS_CLIENT=rest ENDOR_ALLOW_ENDORCTL_CONFIG=1` for live Endor OSS data. Ask
+*"what model are you running?"* to confirm the provider.
+
+---
+
 ## Status — build-order step 3 (real Endor data, direct REST)
+
+> The status/sections below describe the **parked SCA Remediation (Option B)**
+> service, not the OSS agent above.
+
 
 | Build-order step (§7) | State |
 | --- | --- |
