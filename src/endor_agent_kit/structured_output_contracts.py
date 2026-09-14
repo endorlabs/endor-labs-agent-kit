@@ -1522,8 +1522,7 @@ def _slim_row_array_schema(properties: dict[str, dict[str, Any]]) -> dict[str, A
 
 def _dependency_reviewer_findings_schema() -> dict[str, Any]:
     # Taught shape: package coordinate, evidence type, severity or posture
-    # effect, evidence source, and concise explanation. EPSS/KEV slots land
-    # here in the intelligence-lanes PR.
+    # effect, evidence source, and concise explanation.
     return _slim_row_array_schema(
         {
             "package_name": _nullable_string(),
@@ -1599,7 +1598,7 @@ def _malware_impacted_projects_schema() -> dict[str, Any]:
 
 
 def _configuration_healthy_repository_schema() -> dict[str, Any]:
-    # Template keys plus the branch keys pinned by the nested-output smoke test.
+    # Taught row template plus the pinned monitored-branch keys.
     return _slim_row_array_schema(
         {
             "repository": _nullable_string(),
@@ -1626,12 +1625,7 @@ def _configuration_excluded_repository_schema() -> dict[str, Any]:
 # Per-(agent, field) row schemas replacing the generic object blob, consulted
 # after profile overrides and before the shared field-name table so slim rows
 # apply on the full contract (profile_id None) without colliding across agents
-# that share a field name. Bounded scope: dependency-reviewer, the
-# malware-responder exposure rows, and the two simple configuration-automation
-# repository row shapes. Documented follow-up: cicd-posture rows and the
-# remaining configuration-automation rows (not_onboarded_repositories,
-# onboarded_repositories_with_gaps, and friends carry nested evidence shapes
-# that need their own design pass).
+# that share a field name.
 AGENT_FIELD_SCHEMA_OVERRIDES = {
     ("dependency-reviewer", "findings"): _dependency_reviewer_findings_schema,
     ("dependency-reviewer", "manifests"): _dependency_reviewer_manifests_schema,

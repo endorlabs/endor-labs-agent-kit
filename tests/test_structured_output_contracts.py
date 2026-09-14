@@ -8,7 +8,10 @@ from conftest import repo_root
 from endor_agent_kit.cli import main
 from endor_agent_kit.recipe import load_recipe
 from endor_agent_kit.structured_output_contracts import (
+    ENUM_FIELD_VALUES,
+    NONDECISIVE_VERDICT_VALUES,
     STRUCTURED_OUTPUT_CONTRACTS,
+    VERDICT_CLAIM_FIELDS,
     json_schema_for_agent,
     normalize_structured_output_payload,
     required_fields_for,
@@ -752,6 +755,27 @@ def _succeeded_row(**overrides) -> dict:
     }
     row.update(overrides)
     return row
+
+
+def test_verdict_claim_fields_lockstep_with_enum_table():
+    enum_field_names = {field for _, field in ENUM_FIELD_VALUES}
+    # Enum-pinned selector/rating fields that are deliberately not verdicts.
+    non_verdict_enum_fields = {"profile", "risk_posture"}
+    assert set(VERDICT_CLAIM_FIELDS) == enum_field_names - non_verdict_enum_fields
+
+    verdict_enum_values = {
+        value
+        for (_, field), values in ENUM_FIELD_VALUES.items()
+        if field in VERDICT_CLAIM_FIELDS
+        for value in values
+    }
+    assert NONDECISIVE_VERDICT_VALUES <= verdict_enum_values
+
+    # dependency-reviewer has no abstain token on purpose: every legal verdict
+    # (SAFE included) is a claim about a package and must be evidence-backed.
+    assert not NONDECISIVE_VERDICT_VALUES & set(
+        ENUM_FIELD_VALUES[("dependency-reviewer", "verdict")]
+    )
 
 
 def test_pinned_verdict_enums_reject_unlisted_values():
