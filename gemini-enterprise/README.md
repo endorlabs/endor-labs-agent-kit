@@ -23,6 +23,12 @@ the Google **Gemini Enterprise** product this service integrates with.
 >   here → [`adk/README.md`](adk/README.md)** and the quickstart just below.
 > - **SCA Remediation (Option B) — parked.** Tenant-scoped findings over a
 >   customer's own repos (the rest of *this* document). Kept, not the active path.
+>
+> Hosting/runtime options from the Google CSE session (incl. the code-access
+> sandbox architecture) are in [docs/hosting-options.md](docs/hosting-options.md);
+> the listing feasibility + path forward is in
+> [docs/progress-and-hosting-readiness.md](docs/progress-and-hosting-readiness.md)
+> and [docs/architecture-decisions.md](docs/architecture-decisions.md).
 
 ## Try it out (Gemini or Anthropic)
 
