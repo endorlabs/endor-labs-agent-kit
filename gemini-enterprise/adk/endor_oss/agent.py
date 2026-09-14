@@ -32,9 +32,29 @@ from service.oss.adk_tools import (
 )
 from service.oss.model import SYSTEM_PROMPT
 
+
+def _select_model():
+    """Pick the model provider from env — Gemini by default, or Anthropic.
+
+    Set ADK_MODEL_PROVIDER=anthropic (or just have ANTHROPIC_API_KEY set) to run
+    on Claude via LiteLLM — no Google/Vertex needed. Override the exact model id
+    with ADK_MODEL. Otherwise default to Gemini (OSS_MODEL, gemini-3.6-flash).
+    """
+
+    provider = os.environ.get("ADK_MODEL_PROVIDER", "").strip().lower()
+    use_anthropic = provider == "anthropic" or (
+        not provider and os.environ.get("ANTHROPIC_API_KEY")
+    )
+    if use_anthropic:
+        from google.adk.models.lite_llm import LiteLlm  # needs: pip install litellm
+
+        return LiteLlm(model=os.environ.get("ADK_MODEL", "anthropic/claude-sonnet-5"))
+    return os.environ.get("OSS_MODEL", "gemini-3.6-flash")
+
+
 root_agent = Agent(
     name="endor_oss",
-    model=os.environ.get("OSS_MODEL", "gemini-3.6-flash"),
+    model=_select_model(),
     description=(
         "Endor Labs open-source intelligence: answers questions about open-source "
         "vulnerabilities, package risk, and CVEs. Public data only — no login, no "

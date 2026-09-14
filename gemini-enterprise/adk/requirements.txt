@@ -1,0 +1,7 @@
+# Runtime deps for the Endor OSS agent on Vertex AI Agent Engine.
+# (The local `service` package is bundled via extra_packages in the deploy
+#  script, not listed here.)
+google-adk
+google-genai
+httpx>=0.27
+pydantic>=2.6,<3
