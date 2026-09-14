@@ -1,0 +1,33 @@
+{
+  "name": "Endor Open Source Intelligence",
+  "protocolVersion": "1.0",
+  "description": "Answers open-source vulnerability, package-risk, and CVE questions from Endor's public data. No login, no customer data.",
+  "url": "https://agents.endorlabs.com/oss",
+  "preferredTransport": "JSONRPC",
+  "provider": {
+    "organization": "Endor Labs",
+    "url": "https://www.endorlabs.com"
+  },
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "oss_intelligence",
+      "name": "Open Source Intelligence",
+      "description": "Look up a CVE/GHSA, list known vulnerabilities for a package version, or get Endor risk scores for an open-source package.",
+      "tags": ["security", "oss", "vulnerabilities", "cve", "package-risk"],
+      "examples": [
+        "What is CVE-2021-44228?",
+        "Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable?",
+        "What's the risk score for npm://lodash@4.17.20?"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "iconUrl": "https://www.endorlabs.com/assets/agent-icon.png"
+}

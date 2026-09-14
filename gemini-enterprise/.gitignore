@@ -8,3 +8,7 @@ venv/
 *.egg-info/
 dist/
 build/
+
+# ADK local runtime (managed sessions from `adk web`)
+.adk/
+*.db
