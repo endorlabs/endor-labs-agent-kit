@@ -34,6 +34,22 @@ Model / Vertex configuration is read from the environment:
 (default `gemini-3.6-flash`). On Vertex, use `GOOGLE_CLOUD_LOCATION=global` — the
 current Gemini models are served from the `global` endpoint, not regional ones.
 
+### Run it with an Anthropic key instead (no Google/Vertex needed)
+
+Easiest path for a teammate who has a Claude API key — zero GCP setup:
+
+```bash
+pip install litellm                 # ADK talks to Claude via LiteLLM
+export ANTHROPIC_API_KEY=sk-ant-...
+# optional: pick the exact model your key can use
+export ADK_MODEL=anthropic/claude-sonnet-5
+cd adk && adk web
+```
+
+The agent auto-selects Anthropic when `ANTHROPIC_API_KEY` is set (or force it
+with `ADK_MODEL_PROVIDER=anthropic`). Tool-calling and sessions work the same;
+only the model differs.
+
 ## Deploy to Agent Engine (acts like a customer tenant)
 
 ```bash
