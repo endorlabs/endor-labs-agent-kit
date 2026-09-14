@@ -1895,6 +1895,7 @@ def test_cli_publish_accepts_multiple_recipes(tmp_path, capsys):
     ]
     root_readme = (dest / "README.md").read_text()
     assert "## Start Here" in root_readme
+    assert "gemini-enterprise/README.md" in root_readme
     assert "docs/getting-started.md" in root_readme
     assert "docs/for-agents.md" in root_readme
     assert "docs/maintainer-guide.md" in root_readme
