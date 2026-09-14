@@ -869,6 +869,38 @@ def test_list_all_true_requires_artifact_metadata():
     ]
 
 
+def test_list_all_true_rejects_explicit_null_artifact():
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(_succeeded_row(list_all=True, artifact=None)),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
+    ]
+
+
+def test_large_result_query_rejects_explicit_null_artifact():
+    row = _succeeded_row(
+        query_template_id="tenant-package-inventory",
+        artifact=None,
+    )
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        _minimal_ledger_payload(row),
+        ("evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries[0].artifact: required for a successful complete-inventory "
+        "route; copy the artifact summarizer output into artifact "
+        "{artifact_ref, sha256, format, bytes, row_count} or into reason as "
+        '"artifact_ref=<path>;sha256=<64-hex>;format=<format>;bytes=<bytes>"'
+    ]
+
+
 def test_list_all_true_accepts_structured_artifact_object():
     row = _succeeded_row(
         list_all=True,
@@ -906,6 +938,37 @@ def test_negated_list_all_prose_no_longer_false_positives():
         _minimal_ledger_payload(row),
         ("evidence_queries", "data_gaps"),
     ) == []
+
+
+def test_unrelated_negation_near_list_all_prose_still_requires_artifact():
+    for prose in (
+        "no filter, list-all export",
+        "skipped pagination and used --list-all",
+        "--list-all was used, not paginated",
+        "not scoped; list-all export",
+    ):
+        row = _succeeded_row(filter_summary=prose)
+        errors = validate_structured_output_payload(
+            "remediation-planning",
+            _minimal_ledger_payload(row),
+            ("evidence_queries", "data_gaps"),
+        )
+        assert errors and "artifact: required" in errors[0], prose
+
+
+def test_negations_anchored_to_list_all_prose_still_pass():
+    for prose in (
+        "did not use list-all",
+        "list-all not used",
+        "skipped the list-all export",
+        "list-all: false",
+    ):
+        row = _succeeded_row(filter_summary=prose)
+        assert validate_structured_output_payload(
+            "remediation-planning",
+            _minimal_ledger_payload(row),
+            ("evidence_queries", "data_gaps"),
+        ) == [], prose
 
 
 def test_legacy_affirmative_list_all_prose_still_requires_artifact():
@@ -1112,7 +1175,8 @@ def test_decisive_verdict_with_empty_ledger_rejected():
         ("incident_verdict", "evidence_queries", "data_gaps"),
     )
     assert errors == [
-        "evidence_queries: required when current Endor or repository evidence is claimed"
+        "evidence_queries: at least one succeeded row is required when "
+        "current Endor or repository evidence is claimed"
     ]
 
 
@@ -1129,6 +1193,64 @@ def test_nondecisive_verdict_with_empty_ledger_and_gaps_passes():
     ) == []
 
 
+def test_decisive_verdict_with_only_skipped_rows_rejected():
+    payload = {
+        "incident_verdict": "CONFIRMED_EXPOSURE",
+        "evidence_queries": [
+            _succeeded_row(status="skipped", result_count=None, reason="not run")
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: at least one succeeded row is required when "
+        "current Endor or repository evidence is claimed"
+    ]
+
+
+def test_nondecisive_verdict_with_only_skipped_rows_passes():
+    payload = {
+        "incident_verdict": "INSUFFICIENT_DATA",
+        "evidence_queries": [
+            _succeeded_row(
+                status="skipped",
+                result_count=None,
+                reason="endorctl authentication failed",
+            )
+        ],
+        "data_gaps": ["unavailable: endorctl authentication failed"],
+    }
+    assert validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_summary_available_claim_with_only_skipped_counts_rejected():
+    payload = {
+        "summary": "Full upgrade evidence is available.",
+        "evidence_queries": [
+            _succeeded_row(status="skipped", result_count=0, reason="not run")
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "remediation-planning",
+        payload,
+        ("summary", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "summary: claims available evidence but no evidence_queries row records "
+        "an integer result_count; copy the integer counts from the executed "
+        "queries or describe the gap in data_gaps"
+    ]
+
+
 def test_widened_claim_fields_require_nonempty_ledger():
     payload = {
         "finding_results": [{"uuid": "f" * 32}],
@@ -1141,7 +1263,8 @@ def test_widened_claim_fields_require_nonempty_ledger():
         ("finding_results", "evidence_queries", "data_gaps"),
     )
     assert errors == [
-        "evidence_queries: required when current Endor or repository evidence is claimed"
+        "evidence_queries: at least one succeeded row is required when "
+        "current Endor or repository evidence is claimed"
     ]
 
 

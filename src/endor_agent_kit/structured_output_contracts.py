@@ -1708,8 +1708,17 @@ def _evidence_gap_contract_errors(
     if isinstance(evidence_queries, list) and isinstance(data_gaps, list):
         if not evidence_queries and not data_gaps:
             return ["data_gaps: required when evidence_queries is empty"]
-        if not evidence_queries and _claims_current_evidence(payload):
-            return ["evidence_queries: required when current Endor or repository evidence is claimed"]
+        succeeded_rows = [
+            row
+            for row in evidence_queries
+            if isinstance(row, dict)
+            and _text(row.get("status")) in EVIDENCE_QUERY_SUCCESS_STATUSES
+        ]
+        if not succeeded_rows and _claims_current_evidence(payload):
+            return [
+                "evidence_queries: at least one succeeded row is required when "
+                "current Endor or repository evidence is claimed"
+            ]
     return []
 
 
@@ -1759,9 +1768,11 @@ ARTIFACT_METADATA_RE = re.compile(
 )
 _SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 _LEGACY_LIST_ALL_NEGATION_RE = re.compile(
-    r"(?:\b(?:no|not|without|omit\w*|skip\w*)\b[^.;]{0,40}list-all)"
+    r"(?:\b(?:no|not|without|omit\w*|skip\w*)\b"
+    r"(?:\s+(?:a|an|any|the|use|uses|used|using|of|run|running|flag|option))*"
+    r"[\s:=-]*(?:--)?list-all)"
     r"|(?:list-all\s*(?:==|=|:)\s*false\b)"
-    r"|(?:list-all[^.;]{0,20}\bnot\b)"
+    r"|(?:list-all\b[^.;,]{0,20}\bnot\b)"
 )
 
 
@@ -1815,11 +1826,8 @@ def _evidence_query_ledger_errors(
             )
             list_all = None
         artifact = item.get("artifact")
-        artifact_valid = False
-        if "artifact" in item and artifact is not None:
-            artifact_errors = _artifact_metadata_errors(index, artifact)
-            errors.extend(artifact_errors)
-            artifact_valid = not artifact_errors
+        if artifact is not None:
+            errors.extend(_artifact_metadata_errors(index, artifact))
         status = _text(item.get("status"))
         if status and status not in EVIDENCE_QUERY_STATUS_VALUES:
             errors.append(
@@ -1854,8 +1862,7 @@ def _evidence_query_ledger_errors(
         if (
             status in EVIDENCE_QUERY_SUCCESS_STATUSES
             and complete_route
-            and not artifact_valid
-            and "artifact" not in item
+            and item.get("artifact") is None
             and not ARTIFACT_METADATA_RE.search(_text(item.get("reason")))
         ):
             errors.append(
@@ -1950,6 +1957,8 @@ def _summary_count_errors(payload: dict[str, Any]) -> list[str]:
     if not rows:
         return []
     for row in rows:
+        if _text(row.get("status")) not in EVIDENCE_QUERY_SUCCESS_STATUSES:
+            continue
         count = row.get("result_count")
         if isinstance(count, int) and not isinstance(count, bool):
             return []
