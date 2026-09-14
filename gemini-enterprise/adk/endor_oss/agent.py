@@ -21,9 +21,12 @@ The class/import path may vary slightly across google-adk versions.
 
 from __future__ import annotations
 
+import logging
 import os
 
 from google.adk.agents import Agent
+
+logger = logging.getLogger(__name__)
 
 from service.oss.adk_tools import (
     dependency_vulnerabilities,
@@ -52,14 +55,59 @@ def _select_model():
     return os.environ.get("OSS_MODEL", "gemini-3.6-flash")
 
 
+_MODEL = _select_model()
+
+
+def describe_model() -> dict[str, str]:
+    """The provider/model this ADK agent actually resolved to (what adk web runs).
+
+    Inspects the resolved model object, so it reflects reality, not just env.
+    """
+
+    if isinstance(_MODEL, str):
+        vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in (
+            "1", "true", "yes",
+        )
+        return {"provider": "gemini", "model": _MODEL,
+                "transport": "vertex" if vertex else "ai_studio"}
+    return {"provider": "anthropic", "model": getattr(_MODEL, "model", str(_MODEL))}
+
+
+def agent_info() -> dict[str, object]:
+    """Report which model/provider this agent runs on, and what it can do.
+
+    Use this to answer meta questions such as "what model are you running?",
+    "which provider is this?", or "what can you do?".
+    """
+
+    return {
+        "agent": "Endor Open Source Intelligence",
+        "model": describe_model(),
+        "tools": [
+            "vulnerability_details",
+            "dependency_vulnerabilities",
+            "package_risk",
+        ],
+        "data_scope": "public open-source data only; no customer data, no login",
+    }
+
+
 root_agent = Agent(
     name="endor_oss",
-    model=_select_model(),
+    model=_MODEL,
     description=(
         "Endor Labs open-source intelligence: answers questions about open-source "
         "vulnerabilities, package risk, and CVEs. Public data only — no login, no "
         "customer data."
     ),
     instruction=SYSTEM_PROMPT,
-    tools=[vulnerability_details, dependency_vulnerabilities, package_risk],
+    tools=[
+        vulnerability_details,
+        dependency_vulnerabilities,
+        package_risk,
+        agent_info,
+    ],
 )
+
+# Printed to the adk web / adk run console at startup.
+logger.info("endor_oss active model: %s", describe_model())
