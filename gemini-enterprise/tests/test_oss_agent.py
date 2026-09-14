@@ -16,7 +16,8 @@ _ids = itertools.count(1)
 
 @pytest.fixture(autouse=True)
 def _hermetic(monkeypatch):
-    for key in ("OSS_CLIENT", "OSS_ROUTER", "OSS_MODEL"):
+    for key in ("OSS_CLIENT", "OSS_ROUTER", "OSS_MODEL", "OSS_MODEL_PROVIDER",
+                "OSS_INFO_TOKEN", "GOOGLE_GENAI_USE_VERTEXAI"):
         monkeypatch.delenv(key, raising=False)
     from service.oss.factory import build_oss_router
 
@@ -78,3 +79,36 @@ def test_unknown_method():
         "/", json={"jsonrpc": "2.0", "id": 1, "method": "message/stream", "params": {}}
     ).json()
     assert r["error"]["code"] == errors.METHOD_NOT_FOUND
+
+
+# -- health + token-gated model info ------------------------------------------
+
+def test_healthz_is_public_and_minimal():
+    r = client.get("/healthz")
+    assert r.status_code == 200 and r.json() == {"status": "ok"}
+
+
+def test_model_info_disabled_without_token_env():
+    # OSS_INFO_TOKEN unset (hermetic) -> endpoint does not exist.
+    assert client.get("/internal/model").status_code == 404
+
+
+def test_model_info_requires_matching_token(monkeypatch):
+    monkeypatch.setenv("OSS_INFO_TOKEN", "s3cret")
+    assert client.get("/internal/model").status_code == 404  # missing header
+    assert client.get("/internal/model", headers={"x-info-token": "wrong"}).status_code == 404
+    r = client.get("/internal/model", headers={"x-info-token": "s3cret"})
+    assert r.status_code == 200
+    assert "router" in r.json()
+
+
+def test_model_info_reflects_config(monkeypatch):
+    monkeypatch.setenv("OSS_INFO_TOKEN", "tok")
+    monkeypatch.setenv("OSS_ROUTER", "model")
+    monkeypatch.setenv("OSS_MODEL_PROVIDER", "gemini")
+    monkeypatch.setenv("GOOGLE_GENAI_USE_VERTEXAI", "1")
+    body = client.get("/internal/model", headers={"x-info-token": "tok"}).json()
+    assert body["router"] == "model"
+    assert body["providers"] == ["gemini"]
+    assert body["transport"] == "vertex"
+    assert body["model"]  # a non-empty default

@@ -309,3 +309,31 @@ def build_model_backend() -> ModelBackend:
 
 def max_turns() -> int:
     return _MAX_TURNS
+
+
+def active_model() -> dict[str, object]:
+    """Side-effect-free view of the selected router/provider/model (from env).
+
+    Reads configuration only — never constructs an SDK client or a credential —
+    so it is safe to call from a health/info endpoint. Contains no secrets.
+    """
+
+    router = os.environ.get("OSS_ROUTER", "rule").strip().lower()
+    if router != "model":
+        return {"router": router}  # deterministic rule-based router, no model
+
+    providers = [
+        p.strip() for p in os.environ.get("OSS_MODEL_PROVIDER", "gemini").split(",") if p.strip()
+    ] or ["gemini"]
+    primary = providers[0]
+    info: dict[str, object] = {
+        "router": "model",
+        "providers": providers,
+        "model": os.environ.get("OSS_MODEL") or _DEFAULT_MODELS.get(primary, ""),
+    }
+    if primary == "gemini":
+        vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in (
+            "1", "true", "yes",
+        )
+        info["transport"] = "vertex" if vertex else "ai_studio"
+    return info
