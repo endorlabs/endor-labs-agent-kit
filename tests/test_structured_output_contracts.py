@@ -1072,11 +1072,24 @@ def test_resolved_project_resolution_requires_uuid_and_namespace():
 
 def test_resolved_scope_accepts_endor_namespace_alias():
     payload = {
-        "report_scope": {
+        "project_resolution": {
             "status": "resolved",
             "project_uuid": "6a08" + "0" * 28,
             "endor_namespace": "auri.gitlab.endor-labs-se",
         },
+        "evidence_queries": [_succeeded_row()],
+        "data_gaps": [],
+    }
+    assert validate_structured_output_payload(
+        "sca-remediation",
+        payload,
+        ("project_resolution", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_report_scope_is_not_a_resolution_claim():
+    payload = {
+        "report_scope": {"github_org": "acme", "mode": "org-wide"},
         "evidence_queries": [_succeeded_row()],
         "data_gaps": [],
     }

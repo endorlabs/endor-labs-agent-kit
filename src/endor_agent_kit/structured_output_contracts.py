@@ -1924,7 +1924,7 @@ def _project_scope_resolution_errors(payload: dict[str, Any]) -> list[str]:
     """A claimed resolution must carry the identifiers that prove it."""
 
     errors: list[str] = []
-    for field in ("project_resolution", "report_scope"):
+    for field in ("project_resolution",):
         value = payload.get(field)
         if not isinstance(value, dict):
             continue
@@ -2017,7 +2017,7 @@ def _claims_current_evidence(payload: dict[str, Any]) -> bool:
             and value.strip() not in NONDECISIVE_VERDICT_VALUES
         ):
             return True
-    for field in ("project_resolution", "report_scope"):
+    for field in ("project_resolution",):
         value = payload.get(field)
         if isinstance(value, dict):
             status = _text(value.get("status")).lower()
