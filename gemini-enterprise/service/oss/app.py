@@ -13,8 +13,10 @@ Marketplace order" gate (P3) will wrap this; it is not built yet.
 
 from __future__ import annotations
 
+import hmac
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -45,7 +47,26 @@ def _load_agent_card() -> dict[str, Any]:
 
 @app.get("/healthz")
 def healthz() -> dict[str, str]:
+    # Public liveness probe — intentionally reveals nothing.
     return {"status": "ok"}
+
+
+@app.get("/internal/model")
+def model_info(request: Request) -> JSONResponse:
+    """Token-gated model/provider info (no secrets).
+
+    Disabled unless ``OSS_INFO_TOKEN`` is set (fail-closed). Requires a matching
+    ``X-Info-Token`` header; any miss returns 404 so the endpoint does not
+    advertise its existence.
+    """
+
+    expected = os.environ.get("OSS_INFO_TOKEN")
+    provided = request.headers.get("x-info-token", "")
+    if not expected or not hmac.compare_digest(provided, expected):
+        return JSONResponse({"error": "not found"}, status_code=404)
+    from .model import active_model
+
+    return JSONResponse(active_model())
 
 
 @app.get("/.well-known/agent-card.json")
