@@ -55,14 +55,91 @@ only the model differs.
 
 ## Deploy to Agent Engine (acts like a customer tenant)
 
+Deploying is **three separate planes** — the deploy only does the first. Miss
+plane 2 or 3 and the agent either never appears in the Gemini Enterprise app, or
+appears ENABLED but errors on chat.
+
 ```bash
-adk deploy agent_engine \
-  --project <your-gcp-project> \
-  --region us-central1 \
-  endor_oss
+export PROJECT=<your-gcp-project>
+export PROJECT_NUMBER=$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')
 ```
-Then query it via the Agent Engine SDK/REST, or register it in a Gemini
-Enterprise (test) tenant.
+
+### Plane 1 — deploy the runtime (Vertex AI Agent Engine)
+
+One-time prereqs, then deploy with the script (not `adk deploy` — the script
+bundles the shared `service`/`endor_oss` packages and runs a preflight):
+
+```bash
+pip install -r adk/requirements-deploy.txt          # deploy-host libs (vertexai, ...)
+gcloud services enable aiplatform.googleapis.com storage.googleapis.com --project="$PROJECT"
+gcloud storage buckets create "gs://$PROJECT-agent-staging" --project="$PROJECT" --location=us-central1
+
+export GOOGLE_CLOUD_PROJECT="$PROJECT"
+export STAGING_BUCKET="gs://$PROJECT-agent-staging"
+export GOOGLE_GENAI_USE_VERTEXAI=1 GOOGLE_CLOUD_LOCATION=global AGENT_ENGINE_LOCATION=us-central1
+
+# live Endor data (public `oss` namespace still needs a token — 401 without one):
+export OSS_CLIENT=rest ENDOR_ALLOW_ENDORCTL_CONFIG=1   # or set ENDOR_API_CREDENTIALS_KEY/SECRET
+# or offline demo data: export OSS_CLIENT=mock
+
+python adk/deploy_agent_engine.py                     # prints the reasoningEngine resource_name
+```
+
+Note the printed `resource_name`
+(`projects/<num>/locations/us-central1/reasoningEngines/<id>`). You can already
+query it directly with `adk/query_agent_engine.py` — **planes 2 and 3 are only
+needed to use it *inside a Gemini Enterprise app*.**
+
+> Version pinning matters: the agent is pickled locally and unpickled in the
+> runtime, so `adk/requirements.txt` and `adk/requirements-deploy.txt` pin
+> `google-adk`/`aiplatform`/`genai`/`pydantic` to the **same** versions. A skew
+> shows up as `'LlmAgent' object has no attribute 'mode'` at query time.
+
+### Plane 2 — register the agent into your Gemini Enterprise app
+
+Deploying does **not** list the agent in a Gemini Enterprise app. Either click
+**➕ Add agent** in the app UI (choose an existing Agent Engine / ADK agent and
+paste the `resource_name`), or register via the Discovery Engine API:
+
+```bash
+export APP_ENGINE=<your-gemini-enterprise-engine-id>   # e.g. from the app URL / an agent's SPIFFE ID
+export REASONING_ENGINE=<resource_name from plane 1>
+TOKEN=$(gcloud auth application-default print-access-token)
+curl -s -X POST \
+  -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
+  -H "X-Goog-User-Project: $PROJECT" \
+  "https://discoveryengine.googleapis.com/v1alpha/projects/$PROJECT_NUMBER/locations/global/collections/default_collection/engines/$APP_ENGINE/assistants/default_assistant/agents" \
+  -d '{
+    "displayName": "Endor OSS Intelligence",
+    "description": "Open-source vulnerability, package-risk, CVE, and upgrade answers (public data).",
+    "adkAgentDefinition": {
+      "toolSettings": { "toolDescription": "Answers OSS vulnerability / package-risk / CVE questions and recommends safe upgrade versions." },
+      "provisionedReasoningEngine": { "reasoningEngine": "'"$REASONING_ENGINE"'" }
+    }
+  }'
+```
+
+### Plane 3 — grant the app permission to invoke the engine (once per project)
+
+The Gemini Enterprise app calls the reasoning engine through the **Discovery
+Engine service agent**, which needs `aiplatform.user`. Without this the agent
+shows ENABLED but every chat errors. Required for **every** project that
+registers the agent into a Gemini Enterprise app (skip it if you only call the
+engine directly). One-time and idempotent:
+
+```bash
+gcloud projects add-iam-policy-binding "$PROJECT" \
+  --member="serviceAccount:service-$PROJECT_NUMBER@gcp-sa-discoveryengine.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user" --condition=None
+```
+
+Then open the agent under **"Our agents"** in the app and chat — e.g. *"known
+vulnerabilities and recommended upgrade for
+mvn://org.apache.logging.log4j:log4j-core@2.14.1"*.
+
+> **Credential posture:** with `OSS_CLIENT=rest` the deploy stores the Endor
+> API key/secret as **plaintext env vars** on the engine. For anything beyond a
+> personal MVP, move to Secret Manager + `SecretRef` (design §8.4/§11).
 
 ## Layout
 
