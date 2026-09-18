@@ -19,6 +19,9 @@ from service.oss.model import (
     ModelResponse,
     MockBackend,
     ToolCall,
+    _generate_with_fallback,
+    _is_model_unavailable,
+    active_model,
     build_model_backend,
 )
 from service.oss.router import ModelRouter
@@ -120,3 +123,72 @@ def test_unknown_provider_raises(monkeypatch):
 def test_backend_classes_are_backends():
     assert issubclass(GeminiBackend, ModelBackend)
     assert issubclass(AnthropicBackend, ModelBackend)
+
+
+# -- model latest + fallback --------------------------------------------------
+
+@pytest.mark.parametrize("msg", [
+    "404 NOT_FOUND: model gemini-x was not found",
+    "Publisher model ... is not available or your project does not have access",
+    "This model is no longer available; not supported",
+])
+def test_is_model_unavailable_true(msg):
+    assert _is_model_unavailable(Exception(msg)) is True
+
+
+@pytest.mark.parametrize("msg", [
+    "429 RESOURCE_EXHAUSTED: quota",
+    "403 PERMISSION_DENIED",
+    "connection reset",
+])
+def test_is_model_unavailable_false(msg):
+    assert _is_model_unavailable(Exception(msg)) is False
+
+
+def test_fallback_uses_primary_when_ok():
+    seen = []
+    resp, effective = _generate_with_fallback(
+        "gemini-flash-latest", "gemini-3.5-flash",
+        lambda m: (seen.append(m), ModelResponse(text="ok"))[1],
+    )
+    assert effective == "gemini-flash-latest" and seen == ["gemini-flash-latest"]
+
+
+def test_fallback_switches_on_unavailable():
+    def call(m):
+        if m == "gemini-flash-latest":
+            raise Exception("404 model not found")
+        return ModelResponse(text="ok")
+
+    resp, effective = _generate_with_fallback("gemini-flash-latest", "gemini-3.5-flash", call)
+    assert effective == "gemini-3.5-flash"
+
+
+def test_fallback_reraises_non_availability_errors():
+    def call(m):
+        raise Exception("429 RESOURCE_EXHAUSTED")
+
+    with pytest.raises(Exception, match="RESOURCE_EXHAUSTED"):
+        _generate_with_fallback("gemini-flash-latest", "gemini-3.5-flash", call)
+
+
+def test_fallback_does_not_retry_when_same_model():
+    seen = []
+
+    def call(m):
+        seen.append(m)
+        raise Exception("404 not found")
+
+    with pytest.raises(Exception):
+        _generate_with_fallback("x", "x", call)
+    assert seen == ["x"]  # only tried once
+
+
+def test_active_model_reports_latest_default_and_fallback(monkeypatch):
+    monkeypatch.setenv("OSS_ROUTER", "model")
+    monkeypatch.delenv("OSS_MODEL", raising=False)
+    monkeypatch.delenv("OSS_MODEL_PROVIDER", raising=False)
+    monkeypatch.delenv("OSS_MODEL_FALLBACK", raising=False)
+    info = active_model()
+    assert info["model"] == "gemini-flash-latest"
+    assert info["fallback"] == "gemini-3.5-flash"

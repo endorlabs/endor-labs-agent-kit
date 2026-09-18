@@ -36,12 +36,44 @@ from service.oss.adk_tools import (
 from service.oss.model import SYSTEM_PROMPT
 
 
+_GEMINI_LATEST = "gemini-flash-latest"  # Google alias for the newest flash
+
+
+def _resolve_gemini_model() -> str:
+    """Default to the latest Gemini; fall back to the stable model if the latest
+    is unavailable in this project/region.
+
+    ``OSS_MODEL`` pins an explicit id (no probe). Otherwise use the latest alias,
+    and probe once (cheap countTokens); only downgrade to ``OSS_MODEL_FALLBACK``
+    (default gemini-3.5-flash) on a genuine model-unavailable error — never on a
+    quota/auth/network hiccup.
+    """
+
+    explicit = os.environ.get("OSS_MODEL")
+    if explicit:
+        return explicit
+    latest = _GEMINI_LATEST
+    fallback = os.environ.get("OSS_MODEL_FALLBACK", "gemini-3.5-flash")
+    try:
+        from google import genai
+
+        genai.Client().models.count_tokens(model=latest, contents="ping")
+        return latest
+    except Exception as exc:  # noqa: BLE001
+        text = str(exc).lower()
+        if any(m in text for m in ("not_found", "not found", "not available", "not supported", "404")):
+            logger.warning("Gemini '%s' unavailable; falling back to '%s' (%s)", latest, fallback, exc)
+            return fallback
+        return latest  # transient/config error — keep latest, let runtime surface it
+
+
 def _select_model():
     """Pick the model provider from env — Gemini by default, or Anthropic.
 
     Set ADK_MODEL_PROVIDER=anthropic (or just have ANTHROPIC_API_KEY set) to run
     on Claude via LiteLLM — no Google/Vertex needed. Override the exact model id
-    with ADK_MODEL. Otherwise default to Gemini (OSS_MODEL, gemini-3.6-flash).
+    with ADK_MODEL. Otherwise use Gemini: latest by default, fallback to the
+    stable model (see _resolve_gemini_model).
     """
 
     provider = os.environ.get("ADK_MODEL_PROVIDER", "").strip().lower()
@@ -52,7 +84,7 @@ def _select_model():
         from google.adk.models.lite_llm import LiteLlm  # needs: pip install litellm
 
         return LiteLlm(model=os.environ.get("ADK_MODEL", "anthropic/claude-sonnet-5"))
-    return os.environ.get("OSS_MODEL", "gemini-3.6-flash")
+    return _resolve_gemini_model()
 
 
 _MODEL = _select_model()
