@@ -31,8 +31,11 @@ OSS_CLIENT=rest ENDOR_ALLOW_ENDORCTL_CONFIG=1 adk web
 Model / Vertex configuration is read from the environment:
 `GOOGLE_GENAI_USE_VERTEXAI=1` + `GOOGLE_CLOUD_PROJECT` / `GOOGLE_CLOUD_LOCATION`
 (Vertex), or `GOOGLE_API_KEY` (AI Studio). Override the model with `OSS_MODEL`
-(default `gemini-3.6-flash`). On Vertex, use `GOOGLE_CLOUD_LOCATION=global` — the
-current Gemini models are served from the `global` endpoint, not regional ones.
+(default: **latest** via the `gemini-flash-latest` alias, with automatic
+fallback to `gemini-3.5-flash` if the latest is unavailable — override the
+fallback with `OSS_MODEL_FALLBACK`). On Vertex, use `GOOGLE_CLOUD_LOCATION=global`
+— the current Gemini models are served from the `global` endpoint, not regional
+ones.
 
 ### Run it with an Anthropic key instead (no Google/Vertex needed)
 

@@ -31,15 +31,52 @@ SYSTEM_PROMPT = (
     "answers concise."
 )
 
+# Gemini model policy: default to the *latest* (a Google-maintained alias that
+# always points at the newest flash), and fall back to a stable GA floor if the
+# latest is unavailable in a given project/region. Both overridable via env
+# (OSS_MODEL / OSS_MODEL_FALLBACK).
+_GEMINI_LATEST = "gemini-flash-latest"
+_GEMINI_FALLBACK = "gemini-3.5-flash"
+
 # Provider-default model ids (overridable via OSS_MODEL). These are release-QA
 # targets, not hard requirements; confirm the exact id available in your project.
 _DEFAULT_MODELS = {
-    # gemini-3.6-flash verified live on Vertex (v1beta1/global) and AI Studio.
-    # gemini-2.5-flash is retired for new accounts, so don't default to it.
-    "gemini": "gemini-3.6-flash",
+    "gemini": _GEMINI_LATEST,
     "anthropic": "claude-sonnet-5",
 }
 _MAX_TURNS = 4
+
+
+def gemini_fallback_model() -> str:
+    """The stable Gemini model to use when the latest is unavailable."""
+
+    return os.environ.get("OSS_MODEL_FALLBACK", _GEMINI_FALLBACK)
+
+
+# Substrings that mark a "this model id is not usable here" error (vs. a
+# transient/quota/permission error, which must NOT trigger a model downgrade).
+_MODEL_UNAVAILABLE_MARKERS = (
+    "not_found", "not found", "was not found", "is not available",
+    "not available", "not supported", "404",
+)
+
+
+def _is_model_unavailable(exc: Exception) -> bool:
+    text = f"{getattr(exc, 'code', '')} {getattr(exc, 'status_code', '')} {exc}".lower()
+    return any(marker in text for marker in _MODEL_UNAVAILABLE_MARKERS)
+
+
+def _generate_with_fallback(primary: str, fallback: str, call):
+    """Run ``call(model)``; if the primary model is unavailable, retry the
+    fallback once. Returns ``(response, effective_model)``. Non-availability
+    errors (quota, auth, network) propagate unchanged — no downgrade."""
+
+    try:
+        return call(primary), primary
+    except Exception as exc:  # noqa: BLE001
+        if fallback and fallback != primary and _is_model_unavailable(exc):
+            return call(fallback), fallback
+        raise
 
 
 class ModelBackendUnavailable(RuntimeError):
@@ -133,8 +170,11 @@ class GeminiBackend(ModelBackend):
 
     provider = "gemini"
 
-    def __init__(self, model: str | None = None) -> None:
+    def __init__(self, model: str | None = None, fallback_model: str | None = None) -> None:
         self.model = model or _DEFAULT_MODELS["gemini"]
+        self.fallback_model = fallback_model or gemini_fallback_model()
+        # The model id that actually served the last call (set after generate()).
+        self.effective_model = self.model
         try:
             from google import genai
         except Exception as exc:  # noqa: BLE001
@@ -152,10 +192,9 @@ class GeminiBackend(ModelBackend):
                 "+ GOOGLE_CLOUD_PROJECT/LOCATION, or GOOGLE_API_KEY."
             ) from exc
 
-    def generate(self, *, system, transcript, tools) -> ModelResponse:
+    def _call(self, model, *, system, transcript, tools) -> ModelResponse:
         from google.genai import types
 
-        client = self._client
         declarations = [
             types.FunctionDeclaration(
                 name=t["name"], description=t["description"], parameters=t["input_schema"]
@@ -163,8 +202,8 @@ class GeminiBackend(ModelBackend):
             for t in tools
         ]
         contents = _to_gemini_contents(transcript, types)
-        resp = client.models.generate_content(
-            model=self.model,
+        resp = self._client.models.generate_content(
+            model=model,
             contents=contents,
             config=types.GenerateContentConfig(
                 system_instruction=system,
@@ -182,6 +221,15 @@ class GeminiBackend(ModelBackend):
         if calls:
             return ModelResponse(tool_calls=calls)
         return ModelResponse(text="".join(text_parts).strip() or None)
+
+    def generate(self, *, system, transcript, tools) -> ModelResponse:
+        resp, effective = _generate_with_fallback(
+            self.model,
+            self.fallback_model,
+            lambda m: self._call(m, system=system, transcript=transcript, tools=tools),
+        )
+        self.effective_model = effective
+        return resp
 
 
 class AnthropicBackend(ModelBackend):
@@ -332,6 +380,7 @@ def active_model() -> dict[str, object]:
         "model": os.environ.get("OSS_MODEL") or _DEFAULT_MODELS.get(primary, ""),
     }
     if primary == "gemini":
+        info["fallback"] = gemini_fallback_model()
         vertex = os.environ.get("GOOGLE_GENAI_USE_VERTEXAI", "").strip().lower() in (
             "1", "true", "yes",
         )
