@@ -35,6 +35,7 @@ def _handler(request: httpx.Request) -> httpx.Response:
                 "cvss_v3_severity": {"level": "CRITICAL", "score": 10.0},
                 "epss_score": {"probability": 0.94},
                 "references": [{"url": "https://nvd.nist.gov/vuln/detail/CVE-2021-44228"}],
+                "affected": [{"ranges": [{"type": "SEMVER", "fixed": "2.15.0"}]}],
             },
         }])
     if path.endswith("/package-versions"):
@@ -82,6 +83,7 @@ def test_vulnerability_details():
     assert v.severity == "CRITICAL" and v.cvss_score == 10.0
     assert v.epss_score == 0.94
     assert v.references == ["https://nvd.nist.gov/vuln/detail/CVE-2021-44228"]
+    assert v.fixed_versions == ["2.15.0"]
 
 
 def test_package_risk_flattens_scores():
@@ -103,10 +105,38 @@ def test_package_not_found():
     assert r.found is False and r.scores == {}
 
 
+def test_recommend_upgrades_rest():
+    r = _client().recommend_upgrades(PURL)
+    assert r.found and r.current_version == "2.14.1"
+    assert r.current_vulnerabilities == ["CVE-2021-44228"]
+    # The single advisory is fixed by 2.15.0 (a minor jump); it is the recommended option.
+    assert [o.version for o in r.options] == ["2.15.0"]
+    rec = r.options[0]
+    assert rec.recommended and rec.fixes_all
+    assert rec.fixes == ["CVE-2021-44228"] and rec.jump == "minor"
+
+
+def test_recommend_upgrades_mock_ranks_options():
+    r = OssMockClient().recommend_upgrades(PURL)
+    assert r.found and r.current_version == "2.14.1"
+    versions = [o.version for o in r.options]
+    assert versions == ["2.15.0", "2.16.0", "2.17.1"]
+    top = next(o for o in r.options if o.recommended)
+    assert top.version == "2.17.1" and top.fixes_all
+    # The lowest option fixes only the earliest advisory.
+    assert r.options[0].fixes == ["CVE-2021-44228"] and not r.options[0].fixes_all
+
+
 def test_dispatch_tool_via_mock():
     client = OssMockClient()
-    assert TOOL_NAMES == {"vulnerability_details", "dependency_vulnerabilities", "package_risk"}
+    assert TOOL_NAMES == {
+        "vulnerability_details",
+        "dependency_vulnerabilities",
+        "package_risk",
+        "recommend_upgrades",
+    }
     assert dispatch_tool(client, "vulnerability_details", {"advisory_id": "CVE-2021-44228"}).found
     assert dispatch_tool(client, "package_risk", {"purl": PURL}).scores
+    assert dispatch_tool(client, "recommend_upgrades", {"purl": PURL}).options
     with pytest.raises(ValueError):
         dispatch_tool(client, "bogus", {})

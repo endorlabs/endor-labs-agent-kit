@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 from service.oss.adk_tools import (
     dependency_vulnerabilities,
     package_risk,
+    recommend_upgrades,
     vulnerability_details,
 )
 from service.oss.model import SYSTEM_PROMPT
@@ -119,6 +120,7 @@ def agent_info() -> dict[str, object]:
             "vulnerability_details",
             "dependency_vulnerabilities",
             "package_risk",
+            "recommend_upgrades",
         ],
         "data_scope": "public open-source data only; no customer data, no login",
     }
@@ -137,6 +139,7 @@ root_agent = Agent(
         vulnerability_details,
         dependency_vulnerabilities,
         package_risk,
+        recommend_upgrades,
         agent_info,
     ],
 )

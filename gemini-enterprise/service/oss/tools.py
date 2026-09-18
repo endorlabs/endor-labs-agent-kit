@@ -44,6 +44,22 @@ TOOL_SPECS: list[dict[str, Any]] = [
             "required": ["purl"],
         },
     },
+    {
+        "name": "recommend_upgrades",
+        "description": (
+            "Recommend upgrade versions that fix the known vulnerabilities in an "
+            "open-source package version. Returns ranked upgrade choices (the "
+            "smallest fix per advisory and the version that fixes everything), each "
+            "with the advisories it resolves and the jump size (patch/minor/major)."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "purl": {"type": "string", "description": "e.g. mvn://group:artifact@1.2.3 or npm://name@1.2.3"}
+            },
+            "required": ["purl"],
+        },
+    },
 ]
 
 TOOL_NAMES = frozenset(spec["name"] for spec in TOOL_SPECS)
@@ -58,6 +74,8 @@ def dispatch_tool(client: "OssIntelClient", name: str, args: dict[str, Any]) -> 
         return client.dependency_vulnerabilities(args["purl"])
     if name == "package_risk":
         return client.package_risk(args["purl"])
+    if name == "recommend_upgrades":
+        return client.recommend_upgrades(args["purl"])
     raise ValueError(f"Unknown OSS tool: {name!r}")
 
 

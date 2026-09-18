@@ -57,3 +57,17 @@ def package_risk(purl: str) -> dict[str, Any]:
         The package name and a map of Endor score names to values.
     """
     return _client().package_risk(purl).model_dump(mode="json")
+
+
+def recommend_upgrades(purl: str) -> dict[str, Any]:
+    """Recommend upgrade versions that fix a package version's known vulnerabilities.
+
+    Args:
+        purl: A package URL, e.g. "mvn://org.apache.logging.log4j:log4j-core@2.14.1".
+
+    Returns:
+        The current version, its known vulnerabilities, and ranked upgrade options
+        (each with the advisories it fixes and the jump size), for the
+        "pick an upgrade" choice UI.
+    """
+    return _client().recommend_upgrades(purl).model_dump(mode="json")
