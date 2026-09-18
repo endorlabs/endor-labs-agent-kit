@@ -1,0 +1,17 @@
+# Runtime deps for the Endor OSS agent on Vertex AI Agent Engine.
+# (The local `service` + `endor_oss` packages are bundled via extra_packages in
+#  the deploy script, not listed here.)
+#
+# google-cloud-aiplatform[adk,agent_engines] is REQUIRED in the runtime: the
+# Agent Engine harness imports `vertexai` to reconstruct the app at startup.
+#
+# These versions are PINNED to match the deploy host exactly. The agent is
+# pickled locally and unpickled in the remote runtime, so a version skew in
+# google-adk / aiplatform / genai / pydantic breaks deserialization with errors
+# like "'LlmAgent' object has no attribute 'mode'". Keep these in lockstep with
+# adk/requirements-deploy.txt (and re-pin if you upgrade the deploy host).
+google-cloud-aiplatform[adk,agent_engines]==1.148.1
+google-adk==1.14.1
+google-genai==1.75.0
+pydantic==2.13.4
+httpx==0.28.1

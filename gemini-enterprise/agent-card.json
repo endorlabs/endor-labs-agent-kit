@@ -1,0 +1,52 @@
+{
+  "name": "Endor Labs SCA Remediation",
+  "protocolVersion": "1.0",
+  "description": "Identifies high-severity open source vulnerability findings and proposes safe remediation paths.",
+  "url": "https://agents.endorlabs.com/sca-remediation",
+  "preferredTransport": "JSONRPC",
+  "provider": {
+    "organization": "Endor Labs",
+    "url": "https://www.endorlabs.com"
+  },
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extensions": [
+      {
+        "uri": "https://cloud.google.com/marketplace/docs/partners/ai-agents/setup-dcr",
+        "params": { "target_url": "https://agents.endorlabs.com/oauth/dcr" }
+      }
+    ]
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "sca_remediation_readonly",
+      "name": "SCA Remediation Analysis",
+      "description": "Finds P0/P1 open source vulnerabilities in a repository and proposes remediation paths without making any changes.",
+      "tags": ["security", "sca", "vulnerabilities", "remediation"],
+      "examples": [
+        "Check this repository for P0 SCA findings I can start remediating",
+        "What's the safest upgrade path for the vulnerable dependencies in acme/service-api?"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "iconUrl": "https://www.endorlabs.com/assets/agent-icon.png",
+  "security": [{ "oauth2": ["sca:read"] }],
+  "securitySchemes": {
+    "oauth2": {
+      "type": "oauth2",
+      "flows": {
+        "authorizationCode": {
+          "authorizationUrl": "https://auth.endorlabs.com/oauth/authorize",
+          "tokenUrl": "https://auth.endorlabs.com/oauth/token",
+          "refreshUrl": "https://auth.endorlabs.com/oauth/token",
+          "scopes": { "sca:read": "Read SCA findings and remediation data for authorized namespaces" }
+        }
+      }
+    }
+  }
+}

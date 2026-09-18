@@ -1,0 +1,21 @@
+# Deploy-HOST dependencies for running adk/deploy_agent_engine.py.
+#
+# These are NOT part of the deployed agent runtime (that's requirements.txt) —
+# they are only needed on the machine that performs the Agent Engine deploy.
+#
+#     pip install -r adk/requirements-deploy.txt
+#
+# google-cloud-aiplatform provides `vertexai`, `vertexai.agent_engines`, and
+# `vertexai.preview.reasoning_engines.AdkApp`; the extras pull the Agent Engine
+# packaging + ADK support. google-cloud-storage powers the staging-bucket
+# preflight check.
+#
+# PINNED to match adk/requirements.txt: the agent is pickled here and unpickled
+# in the remote runtime, so the two must run the SAME google-adk / aiplatform /
+# genai / pydantic versions or deserialization fails. If you bump a version,
+# bump it in BOTH files.
+google-cloud-aiplatform[agent_engines,adk]==1.148.1
+google-adk==1.14.1
+google-genai==1.75.0
+pydantic==2.13.4
+google-cloud-storage>=2.16
