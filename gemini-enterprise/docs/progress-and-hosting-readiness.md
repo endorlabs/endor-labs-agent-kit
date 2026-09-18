@@ -118,3 +118,13 @@ artifact: **Dockerfile + Cloud Run** (produces the live URL Step 4 hard-requires
    region constraints?
 8. **DCR:** confirm Dynamic Client Registration is **not** required for the
    Public-Access path (only for OAuth 2.0), so Option A can skip it.
+9. **Interactive UI protocol (the "A2-UI" ask):** for the interactive
+   upgrade-choice elements Gemini Enterprise should render (the "pick an
+   upgrade" options from `recommend_upgrades`), what is the exact protocol the
+   frontend consumes — **AG-UI** events, **A2A** structured message parts (e.g.
+   a `DataPart` / typed content block), or a Gemini-specific schema? Concretely:
+   (a) which event/part types render as selectable choices, (b) the expected
+   JSON schema for a choice list and for the user's selection coming back, and
+   (c) is there a reference agent or renderer we can validate against so the
+   content layer we already built (`UpgradeRecommendations` / `UpgradeOption`)
+   maps cleanly onto the wire format without a second redesign?
