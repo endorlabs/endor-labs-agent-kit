@@ -38,7 +38,9 @@ Notes:
 from __future__ import annotations
 
 import os
+import shutil
 import sys
+import tempfile
 
 _HERE = os.path.dirname(os.path.abspath(__file__))       # .../gemini-enterprise/adk
 _ROOT = os.path.dirname(_HERE)                            # .../gemini-enterprise
@@ -140,13 +142,28 @@ def main() -> int:
     vertexai.init(project=project, location=engine_location, staging_bucket=staging)
 
     app = AdkApp(agent=root_agent, enable_tracing=True)
+
+    # Both `service` (shared core) and `endor_oss` (the agent module) must be
+    # importable in the remote runtime, because the pickled agent references its
+    # tool functions by module path. The SDK tars each extra_packages entry with
+    # `tar.add(path)` and NO arcname, so an absolute path lands at a nested,
+    # non-importable location — the entries MUST be paths relative to a common
+    # root that becomes `/code`. The two packages live under different parents,
+    # so stage them into one temp root and hand over relative names.
+    build_root = tempfile.mkdtemp(prefix="endor-agent-engine-")
+    _ignore = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo", ".pytest_cache")
+    shutil.copytree(os.path.join(_ROOT, "service"), os.path.join(build_root, "service"), ignore=_ignore)
+    shutil.copytree(os.path.join(_HERE, "endor_oss"), os.path.join(build_root, "endor_oss"), ignore=_ignore)
+
+    prev_cwd = os.getcwd()
+    os.chdir(build_root)  # so `tar.add("service")` stores an importable arcname
     try:
         remote = agent_engines.create(
             agent_engine=app,
             display_name="Endor OSS Intelligence",
             description="Open-source vulnerability, package-risk, and CVE answers (public data).",
             requirements=os.path.join(_HERE, "requirements.txt"),
-            extra_packages=[os.path.join(_ROOT, "service")],   # bundle the shared core
+            extra_packages=["service", "endor_oss"],  # relative -> /code/service, /code/endor_oss
             env_vars=env_vars,
         )
     except Exception as exc:  # noqa: BLE001 - translate the common misconfig
@@ -158,6 +175,9 @@ def main() -> int:
             )
             return 2
         raise
+    finally:
+        os.chdir(prev_cwd)
+        shutil.rmtree(build_root, ignore_errors=True)
 
     print("\nDeployed Agent Engine:")
     print("  resource_name:", remote.resource_name)

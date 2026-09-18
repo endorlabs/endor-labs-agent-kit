@@ -9,5 +9,13 @@
 # `vertexai.preview.reasoning_engines.AdkApp`; the extras pull the Agent Engine
 # packaging + ADK support. google-cloud-storage powers the staging-bucket
 # preflight check.
-google-cloud-aiplatform[agent_engines,adk]>=1.95
+#
+# PINNED to match adk/requirements.txt: the agent is pickled here and unpickled
+# in the remote runtime, so the two must run the SAME google-adk / aiplatform /
+# genai / pydantic versions or deserialization fails. If you bump a version,
+# bump it in BOTH files.
+google-cloud-aiplatform[agent_engines,adk]==1.148.1
+google-adk==1.14.1
+google-genai==1.75.0
+pydantic==2.13.4
 google-cloud-storage>=2.16
