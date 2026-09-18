@@ -43,6 +43,18 @@ def test_package_risk_returns_scores():
     assert d["scores"]
 
 
+def test_recommend_upgrades_returns_ranked_options():
+    d = adk_tools.recommend_upgrades(
+        "mvn://org.apache.logging.log4j:log4j-core@2.14.1"
+    )
+    assert d["found"] is True
+    assert d["current_version"] == "2.14.1"
+    assert [o["version"] for o in d["options"]] == ["2.15.0", "2.16.0", "2.17.1"]
+    recommended = [o for o in d["options"] if o["recommended"]]
+    assert len(recommended) == 1 and recommended[0]["version"] == "2.17.1"
+    assert recommended[0]["fixes_all"] is True
+
+
 def test_bad_identifier_is_rejected():
     from service.a2a.errors import InvalidParamsError
 

@@ -25,9 +25,14 @@ from .models import (
     DependencyVulnerabilities,
     DependencyVulnerability,
     PackageRisk,
+    UpgradeRecommendations,
     VulnerabilityDetail,
 )
 from .refs import normalize_advisory_id, validate_purl
+from .upgrades import compute_upgrade_options
+
+# Cap advisory detail lookups per recommend_upgrades call.
+_MAX_ADVISORIES = 25
 
 OSS_NAMESPACE = "oss"
 _LEVEL = "FINDING_LEVEL_"
@@ -42,6 +47,9 @@ class OssIntelClient(ABC):
 
     @abstractmethod
     def dependency_vulnerabilities(self, purl: str) -> DependencyVulnerabilities: ...
+
+    @abstractmethod
+    def recommend_upgrades(self, purl: str) -> UpgradeRecommendations: ...
 
 
 def _flatten_numbers(obj: Any, prefix: str = "") -> dict[str, float]:
@@ -91,7 +99,8 @@ class OssRestClient(OssIntelClient):
         objects = self._list(
             "vulnerabilities",
             filter=f'spec.aliases contains ["{vid}"]',
-            mask="uuid,meta.name,spec.summary,spec.aliases,spec.cvss_v3_severity,spec.epss_score,spec.references",
+            mask="uuid,meta.name,spec.summary,spec.aliases,spec.cvss_v3_severity,"
+            "spec.epss_score,spec.references,spec.affected",
         )
         if not objects:
             return VulnerabilityDetail(id=vid, found=False)
@@ -107,6 +116,7 @@ class OssRestClient(OssIntelClient):
             cvss_score=(cvss.get("score") if isinstance(cvss, dict) else None),
             epss_score=_first_number(spec.get("epss_score")),
             references=_reference_urls(spec.get("references")),
+            fixed_versions=_fixed_versions(spec.get("affected")),
         )
 
     def _resolve_package(self, purl: str) -> tuple[str | None, str | None]:
@@ -174,6 +184,50 @@ class OssRestClient(OssIntelClient):
         return DependencyVulnerabilities(
             purl=p, package_name=package_name, vulnerabilities=vulns
         )
+
+    def recommend_upgrades(self, purl: str) -> UpgradeRecommendations:
+        p = validate_purl(purl)
+        current_version = _purl_version(p)
+        deps = self.dependency_vulnerabilities(p)
+        if not deps.found:
+            return UpgradeRecommendations(purl=p, found=False)
+        advisory_ids = [v.id for v in deps.vulnerabilities][:_MAX_ADVISORIES]
+        vulns: list[tuple[str, list[str]]] = []
+        for advisory_id in advisory_ids:
+            detail = self.vulnerability_details(advisory_id)
+            vulns.append((advisory_id, list(detail.fixed_versions) if detail else []))
+        options, data_gaps = compute_upgrade_options(current_version, vulns)
+        if len(deps.vulnerabilities) > _MAX_ADVISORIES:
+            data_gaps.append(f"advisories_truncated_at_{_MAX_ADVISORIES}")
+        return UpgradeRecommendations(
+            purl=p,
+            package_name=deps.package_name,
+            current_version=current_version,
+            current_vulnerabilities=advisory_ids,
+            options=options,
+            data_gaps=data_gaps,
+        )
+
+
+def _purl_version(purl: str) -> str | None:
+    """The ``@version`` suffix of a purl, or None if it carries no version."""
+
+    _, sep, version = purl.rpartition("@")
+    return version if sep and version else None
+
+
+def _fixed_versions(affected: Any) -> list[str]:
+    """Collect fixed versions from a vulnerability's ``spec.affected[].ranges[]``."""
+
+    out: list[str] = []
+    for entry in affected or []:
+        if not isinstance(entry, dict):
+            continue
+        for rng in entry.get("ranges") or []:
+            fixed = rng.get("fixed") if isinstance(rng, dict) else None
+            if isinstance(fixed, str) and fixed:
+                out.append(fixed)
+    return out
 
 
 def _clean_level(value: Any) -> str | None:

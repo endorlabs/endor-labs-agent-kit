@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from .client import OssIntelClient
+from .client import OssIntelClient, _purl_version
 from .models import (
     DependencyVulnerabilities,
     DependencyVulnerability,
     PackageRisk,
+    UpgradeRecommendations,
     VulnerabilityDetail,
 )
 from .refs import normalize_advisory_id, validate_purl
+from .upgrades import compute_upgrade_options
 
 
 class OssMockClient(OssIntelClient):
@@ -24,6 +26,7 @@ class OssMockClient(OssIntelClient):
                 cvss_score=10.0,
                 epss_score=0.94,
                 references=["https://nvd.nist.gov/vuln/detail/CVE-2021-44228"],
+                fixed_versions=["2.15.0"],
             )
         return VulnerabilityDetail(id=vid, found=False)
 
@@ -49,4 +52,22 @@ class OssMockClient(OssIntelClient):
                     summary="Remote code injection in Log4j",
                 )
             ],
+        )
+
+    def recommend_upgrades(self, purl: str) -> UpgradeRecommendations:
+        p = validate_purl(purl)
+        current = _purl_version(p)
+        vulns = [
+            ("CVE-2021-44228", ["2.15.0"]),
+            ("CVE-2021-45046", ["2.16.0"]),
+            ("CVE-2021-44832", ["2.17.1"]),
+        ]
+        options, data_gaps = compute_upgrade_options(current, vulns)
+        return UpgradeRecommendations(
+            purl=p,
+            package_name=p.split("://", 1)[-1].split("@", 1)[0],
+            current_version=current,
+            current_vulnerabilities=[v[0] for v in vulns],
+            options=options,
+            data_gaps=data_gaps,
         )
