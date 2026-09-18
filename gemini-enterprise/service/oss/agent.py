@@ -13,6 +13,7 @@ from typing import Any, Mapping, Sequence
 from ..a2a.errors import InvalidParamsError, TaskNotFoundError
 from ..a2a.task_store import TaskStore
 from .router import QuestionRouter
+from .ui import build_upgrade_element, to_a2a_parts, to_ag_ui_events, ui_protocol
 
 
 def _new_id() -> str:
@@ -32,21 +33,40 @@ def _message_text(message: Mapping[str, Any]) -> str:
 
 
 def _task_result(answer, *, context_id: str, task_id: str) -> dict[str, Any]:
+    parts: list[dict[str, Any]] = [
+        {"kind": "data", "data": answer.model_dump(mode="json")},
+        {"kind": "text", "text": answer.answer},
+    ]
+    metadata: dict[str, Any] = {}
+
+    # If the answer offers upgrade choices, emit the interactive "pick an
+    # upgrade" element in the configured wire protocol (OSS_UI_PROTOCOL): A2A
+    # structured parts (default), AG-UI events (task metadata), or both. One
+    # canonical element, adapters per protocol — see service/oss/ui.py.
+    element = build_upgrade_element(answer.upgrades) if answer.upgrades else None
+    if element is not None:
+        protocol = ui_protocol()
+        if protocol in ("a2a", "both"):
+            parts.extend(to_a2a_parts(element))
+        if protocol in ("ag_ui", "both"):
+            metadata["endor/ag_ui_events"] = to_ag_ui_events(
+                element, thread_id=context_id, run_id=task_id
+            )
+
+    artifact: dict[str, Any] = {
+        "artifactId": "oss-intelligence-answer",
+        "name": "Open Source Intelligence",
+        "parts": parts,
+    }
+    if metadata:
+        artifact["metadata"] = metadata
+
     return {
         "kind": "task",
         "id": task_id,
         "contextId": context_id,
         "status": {"state": "completed"},
-        "artifacts": [
-            {
-                "artifactId": "oss-intelligence-answer",
-                "name": "Open Source Intelligence",
-                "parts": [
-                    {"kind": "data", "data": answer.model_dump(mode="json")},
-                    {"kind": "text", "text": answer.answer},
-                ],
-            }
-        ],
+        "artifacts": [artifact],
     }
 
 

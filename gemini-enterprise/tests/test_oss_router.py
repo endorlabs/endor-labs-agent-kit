@@ -28,6 +28,21 @@ def test_risk_wording_pulls_package_risk():
     assert a.risk is not None and a.risk.scores
 
 
+def test_upgrade_intent_pulls_recommend_upgrades():
+    a = router.answer(
+        "How do I fix mvn://org.apache.logging.log4j:log4j-core@2.14.1?"
+    )
+    assert "recommend_upgrades" in a.tools_used
+    assert a.upgrades is not None and a.upgrades.options
+    assert "Recommended upgrade" in a.answer
+
+
+def test_no_upgrade_intent_skips_recommend_upgrades():
+    a = router.answer("Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable?")
+    assert "recommend_upgrades" not in a.tools_used
+    assert a.upgrades is None
+
+
 def test_advisory_and_package_together():
     a = router.answer(
         "Does mvn://org.apache.logging.log4j:log4j-core@2.14.1 have CVE-2021-44228?"

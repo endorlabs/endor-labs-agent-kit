@@ -17,7 +17,7 @@ _ids = itertools.count(1)
 @pytest.fixture(autouse=True)
 def _hermetic(monkeypatch):
     for key in ("OSS_CLIENT", "OSS_ROUTER", "OSS_MODEL", "OSS_MODEL_PROVIDER",
-                "OSS_INFO_TOKEN", "GOOGLE_GENAI_USE_VERTEXAI"):
+                "OSS_INFO_TOKEN", "OSS_UI_PROTOCOL", "GOOGLE_GENAI_USE_VERTEXAI"):
         monkeypatch.delenv(key, raising=False)
     from service.oss.factory import build_oss_router
 
@@ -59,6 +59,49 @@ def test_ask_about_package_end_to_end():
     result = _ask("Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable?")
     data = _data(result)
     assert "dependency_vulnerabilities" in data["tools_used"]
+
+
+def _parts(result: dict) -> list[dict]:
+    return result["result"]["artifacts"][0]["parts"]
+
+
+def test_upgrade_question_emits_a2a_interactive_element_by_default():
+    # OSS_UI_PROTOCOL unset (hermetic) -> A2A structured parts.
+    result = _ask("How do I fix mvn://org.apache.logging.log4j:log4j-core@2.14.1?")
+    ui_parts = [
+        p for p in _parts(result)
+        if p["kind"] == "data" and (p.get("metadata") or {}).get("endor/ui")
+    ]
+    assert len(ui_parts) == 1
+    element = ui_parts[0]["data"]
+    assert element["type"] == "endor.upgrade_choices"
+    assert any(c["recommended"] for c in element["choices"])
+    # No AG-UI events in metadata on the default A2A path.
+    meta = result["result"]["artifacts"][0].get("metadata") or {}
+    assert "endor/ag_ui_events" not in meta
+
+
+def test_upgrade_question_emits_ag_ui_events_when_selected(monkeypatch):
+    monkeypatch.setenv("OSS_UI_PROTOCOL", "ag_ui")
+    result = _ask("How do I fix mvn://org.apache.logging.log4j:log4j-core@2.14.1?")
+    events = result["result"]["artifacts"][0]["metadata"]["endor/ag_ui_events"]
+    assert [e["type"] for e in events] == ["RUN_STARTED", "CUSTOM", "RUN_FINISHED"]
+    assert events[1]["name"] == "endor.upgrade_choices"
+    # And no A2A interactive data part on the AG-UI-only path.
+    assert not [
+        p for p in _parts(result)
+        if p["kind"] == "data" and (p.get("metadata") or {}).get("endor/ui")
+    ]
+
+
+def test_plain_question_has_no_interactive_element():
+    result = _ask("What is CVE-2021-44228?")
+    assert not [
+        p for p in _parts(result)
+        if p["kind"] == "data" and (p.get("metadata") or {}).get("endor/ui")
+    ]
+    meta = result["result"]["artifacts"][0].get("metadata") or {}
+    assert "endor/ag_ui_events" not in meta
 
 
 def test_tasks_get_roundtrip():

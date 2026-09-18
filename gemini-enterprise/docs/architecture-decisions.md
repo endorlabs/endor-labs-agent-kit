@@ -68,6 +68,17 @@ customer-hosted agent is the thing we've asked Google. The **runtime** choice
 (AD-1) is safe regardless; only the *listing/distribution* wrapper depends on
 their answer.
 
+## AD-8 — Interactive "pick an upgrade" element: **one canonical element, protocol-neutral emission**  ·  Accepted
+**Decision.** The "A2-UI" ask (interactive upgrade choices) is built as a single
+content layer (`recommend_upgrades` → `UpgradeRecommendations`) plus one
+canonical UI element (`UpgradeChoiceElement`) with **two adapters** — A2A
+structured message parts and AG-UI events — selected at runtime by
+`OSS_UI_PROTOCOL` (`a2a` default, `ag_ui`, or `both`). See `service/oss/ui.py`.
+**Why.** Which wire format Gemini Enterprise renders is still an open question to
+Google (progress doc, Q9). Keeping the content as the single source of truth and
+the protocol as a thin, swappable adapter means confirming AG-UI vs A2A is a
+config flip, not a redesign — and we can demo either today.
+
 ---
 
 ## The MVP, in one sentence

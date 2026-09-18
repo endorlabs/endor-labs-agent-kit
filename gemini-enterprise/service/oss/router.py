@@ -22,7 +22,12 @@ from pydantic import BaseModel, Field
 from ..a2a.errors import InvalidParamsError
 from .client import OssIntelClient
 from .model import SYSTEM_PROMPT, ModelBackend, max_turns
-from .models import DependencyVulnerabilities, PackageRisk, VulnerabilityDetail
+from .models import (
+    DependencyVulnerabilities,
+    PackageRisk,
+    UpgradeRecommendations,
+    VulnerabilityDetail,
+)
 from .refs import normalize_advisory_id, validate_purl
 from .tools import TOOL_SPECS, dispatch_tool
 
@@ -33,6 +38,7 @@ _ADVISORY_TOKEN = re.compile(
 )
 _PURL_TOKEN = re.compile(r"([a-z][a-z0-9+.-]*://[A-Za-z0-9._:@/+~-]+)")
 _RISK_WORDS = re.compile(r"\b(risk|score|health|healthy|safe|trust|quality|maintain)", re.I)
+_UPGRADE_WORDS = re.compile(r"\b(upgrade|update|fix|remediat|patch|bump|resolve|safe version)", re.I)
 
 
 class OssAnswer(BaseModel):
@@ -43,6 +49,7 @@ class OssAnswer(BaseModel):
     advisory: VulnerabilityDetail | None = None
     dependency: DependencyVulnerabilities | None = None
     risk: PackageRisk | None = None
+    upgrades: UpgradeRecommendations | None = None
     data_gaps: list[str] = Field(default_factory=list)
 
 
@@ -94,6 +101,11 @@ class RuleBasedRouter(QuestionRouter):
             tools.append("dependency_vulnerabilities")
             result.dependency = dep
             parts.append(_describe_dependency(dep))
+            if _UPGRADE_WORDS.search(text) and dep.found and dep.vulnerabilities:
+                upgrades = self._client.recommend_upgrades(purl)
+                tools.append("recommend_upgrades")
+                result.upgrades = upgrades
+                parts.append(_describe_upgrades(upgrades))
             if _RISK_WORDS.search(text) or not advisory_id:
                 risk = self._client.package_risk(purl)
                 tools.append("package_risk")
@@ -136,6 +148,8 @@ class ModelRouter(QuestionRouter):
             result.dependency = out
         elif isinstance(out, PackageRisk):
             result.risk = out
+        elif isinstance(out, UpgradeRecommendations):
+            result.upgrades = out
 
     def answer(self, question: str) -> OssAnswer:
         transcript: list[dict] = [{"role": "user", "text": question or ""}]
@@ -197,6 +211,20 @@ def _describe_dependency(d: DependencyVulnerabilities) -> str:
     ids = ", ".join(f"{v.id} ({v.severity})" for v in d.vulnerabilities[:5])
     more = "" if n <= 5 else f" and {n - 5} more"
     return f"{d.package_name or d.purl} has {n} known vulnerabilit{'y' if n == 1 else 'ies'}: {ids}{more}."
+
+
+def _describe_upgrades(u: UpgradeRecommendations) -> str:
+    if not u.found or not u.options:
+        return (
+            f"No known upgrade fixes the vulnerabilities in {u.package_name or u.purl}."
+        )
+    rec = next((o for o in u.options if o.recommended), u.options[-1])
+    scope = "all known vulnerabilities" if rec.fixes_all else f"{len(rec.fixes)} of them"
+    others = [o.version for o in u.options if o.version != rec.version]
+    tail = f" Other options: {', '.join(others)}." if others else ""
+    return (
+        f"Recommended upgrade: {rec.version} ({rec.jump}), which fixes {scope}.{tail}"
+    )
 
 
 def _describe_risk(r: PackageRisk) -> str:
