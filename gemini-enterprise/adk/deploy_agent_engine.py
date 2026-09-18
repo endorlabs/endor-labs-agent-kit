@@ -139,6 +139,24 @@ def main() -> int:
         if os.environ.get(optional):
             env_vars[optional] = os.environ[optional]
 
+    # For the live (rest) client the remote runtime has no ~/.endorctl/config.yaml,
+    # so the Endor credential must travel as env vars. Resolve it HERE via the
+    # normal loader (env, or the endorctl config when ENDOR_ALLOW_ENDORCTL_CONFIG=1)
+    # and inject it. The secret is read inside load_credentials and never printed.
+    # NOTE: this stores the key/secret as PLAINTEXT env vars on the engine; the
+    # §8.4/§11 posture is Secret Manager + SecretRef — switch to that before any
+    # non-throwaway deployment.
+    if env_vars["OSS_CLIENT"] == "rest":
+        from service.endor_client.auth import load_credentials
+
+        creds = load_credentials()
+        env_vars["ENDOR_API_CREDENTIALS_KEY"] = creds.key
+        env_vars["ENDOR_API_CREDENTIALS_SECRET"] = creds.secret
+        env_vars["ENDOR_API_BASE_URL"] = creds.base_url
+        if creds.namespace:
+            env_vars["ENDOR_NAMESPACE"] = creds.namespace
+        print("  [rest] injected Endor credential into engine env (value not shown)")
+
     vertexai.init(project=project, location=engine_location, staging_bucket=staging)
 
     app = AdkApp(agent=root_agent, enable_tracing=True)
