@@ -71,7 +71,9 @@ bundles the shared `service`/`endor_oss` packages and runs a preflight):
 
 ```bash
 pip install -r adk/requirements-deploy.txt          # deploy-host libs (vertexai, ...)
-gcloud services enable aiplatform.googleapis.com storage.googleapis.com --project="$PROJECT"
+# secretmanager.googleapis.com only needed for the default rest credential path (below)
+gcloud services enable aiplatform.googleapis.com storage.googleapis.com \
+    secretmanager.googleapis.com --project="$PROJECT"
 gcloud storage buckets create "gs://$PROJECT-agent-staging" --project="$PROJECT" --location=us-central1
 
 export GOOGLE_CLOUD_PROJECT="$PROJECT"
@@ -90,10 +92,28 @@ Note the printed `resource_name`
 query it directly with `adk/query_agent_engine.py` — **planes 2 and 3 are only
 needed to use it *inside a Gemini Enterprise app*.**
 
+#### Credential storage (`OSS_CLIENT=rest`)
+
+The remote runtime has no `~/.endorctl/config.yaml`, so the Endor credential is
+resolved at deploy time (from env, or the endorctl config when
+`ENDOR_ALLOW_ENDORCTL_CONFIG=1`) and stored on the engine per `OSS_SECRET_BACKEND`:
+
+| `OSS_SECRET_BACKEND` | Where the key/secret live | Use when |
+|---|---|---|
+| **`secretmanager`** *(default)* | GCP **Secret Manager** (`endor-oss-api-key`, `endor-oss-api-secret`); the engine reads them at runtime via a `SecretRef`, and only non-secret config (`ENDOR_API_BASE_URL`, `ENDOR_NAMESPACE`) is plain `env`. The script creates the secrets and grants the engine's service agent (`service-<num>@gcp-sa-aiplatform-re.iam.gserviceaccount.com`) `secretmanager.secretAccessor` on just those secrets. | Anything real (matches §8.4/§11). Needs `secretmanager.googleapis.com`. |
+| **`env`** | **Plaintext env vars** on the engine — readable by anyone with viewer on the reasoning engine. | Throwaway/dev smoke test only. |
+
+The deploy never prints the secret value in either mode.
+
 > Version pinning matters: the agent is pickled locally and unpickled in the
 > runtime, so `adk/requirements.txt` and `adk/requirements-deploy.txt` pin
 > `google-adk`/`aiplatform`/`genai`/`pydantic` to the **same** versions. A skew
 > shows up as `'LlmAgent' object has no attribute 'mode'` at query time.
+>
+> Restricted networks: if your gRPC (c-ares) resolver can't resolve
+> `*-aiplatform.googleapis.com` / `secretmanager.googleapis.com` (deploy fails
+> with "Could not contact DNS servers"), set `export OSS_API_TRANSPORT=rest` to
+> force the HTTPS/REST transport.
 
 ### Plane 2 — register the agent into your Gemini Enterprise app
 
@@ -138,8 +158,8 @@ vulnerabilities and recommended upgrade for
 mvn://org.apache.logging.log4j:log4j-core@2.14.1"*.
 
 > **Credential posture:** with `OSS_CLIENT=rest` the deploy stores the Endor
-> API key/secret as **plaintext env vars** on the engine. For anything beyond a
-> personal MVP, move to Secret Manager + `SecretRef` (design §8.4/§11).
+> credential per `OSS_SECRET_BACKEND` — **Secret Manager by default** (§8.4/§11),
+> or plaintext `env` for a throwaway smoke test. See *Credential storage* above.
 
 ## Layout
 
