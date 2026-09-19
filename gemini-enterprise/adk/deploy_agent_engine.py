@@ -8,7 +8,8 @@ isolation. Run it with YOUR gcloud/ADC credentials; it deploys to your project.
 Prereqs (once):
     pip install -r adk/requirements-deploy.txt   # deploy-host libs (vertexai, etc.)
     gcloud auth application-default login
-    gcloud services enable aiplatform.googleapis.com --project=$GOOGLE_CLOUD_PROJECT
+    gcloud services enable aiplatform.googleapis.com storage.googleapis.com \
+        secretmanager.googleapis.com --project=$GOOGLE_CLOUD_PROJECT   # secretmanager: rest+SM only
     gsutil mb -l us-central1 gs://$GOOGLE_CLOUD_PROJECT-agent-staging   # any bucket
 
 The script runs a preflight (env vars, gs:// bucket, and — if a deploy dep or the
@@ -31,8 +32,13 @@ Notes:
   exporting OSS_MODEL — it is not hardcoded here.
 * The one thing to expect to tweak on first run is bundling the local `service`
   package (extra_packages). If the remote import of `service` fails, adjust the
-  path below. Default client is the offline mock; set OSS_CLIENT=rest + the Endor
-  credential as env_vars to serve live Endor OSS data.
+  path below.
+* Client: default is the offline mock. Set OSS_CLIENT=rest for live Endor OSS
+  data; the Endor credential is resolved here (env or the endorctl config when
+  ENDOR_ALLOW_ENDORCTL_CONFIG=1) and stored per OSS_SECRET_BACKEND:
+    - secretmanager (default) — value kept in Secret Manager, read by the engine
+      via a SecretRef (needs secretmanager.googleapis.com enabled). Recommended.
+    - env — value baked in as a PLAINTEXT env var (throwaway/dev only).
 """
 
 from __future__ import annotations
@@ -48,14 +54,14 @@ sys.path.insert(0, _ROOT)                                 # import `service`
 sys.path.insert(0, _HERE)                                 # import `endor_oss`
 
 # Markers that mean "the Vertex AI API is not enabled on this project" — so we
-# can turn an opaque stack trace into the one command that fixes it.
+# can turn an opaque stack trace into the one command that fixes it. Kept
+# SPECIFIC on purpose: the bare hostname appears in unrelated aiplatform errors
+# (DNS, quota, permission), so matching it would mislabel those as "not enabled".
 _API_DISABLED_MARKERS = (
-    "aiplatform.googleapis.com",
     "service_disabled",
     "has not been used in project",
     "api has not been used",
     "accessnotconfigured",
-    "it is disabled",
 )
 
 
@@ -96,6 +102,75 @@ def _check_staging_bucket(staging: str, project: str) -> None:
             f"Create it once:\n    gsutil mb -l us-central1 gs://{bucket}"
         )
     print(f"  [preflight] staging bucket gs://{bucket}: OK")
+
+
+def _project_number(project: str) -> str:
+    """Resolve a project's number (needed for the built-in service-agent emails).
+
+    Prefer an explicit PROJECT_NUMBER / GOOGLE_CLOUD_PROJECT_NUMBER env var (the
+    README computes it with gcloud), and only fall back to the Resource Manager
+    API — which some restricted networks cannot reach.
+    """
+
+    explicit = os.environ.get("PROJECT_NUMBER") or os.environ.get("GOOGLE_CLOUD_PROJECT_NUMBER")
+    if explicit and explicit.strip().isdigit():
+        return explicit.strip()
+    try:
+        from google.cloud import resourcemanager_v3
+
+        proj = resourcemanager_v3.ProjectsClient().get_project(name=f"projects/{project}")
+        return proj.name.split("/")[-1]
+    except Exception as exc:  # noqa: BLE001
+        raise PreflightError(
+            f"Could not resolve the project number for {project!r} ({exc}). "
+            f"Set it explicitly:\n"
+            f"    export PROJECT_NUMBER=$(gcloud projects describe {project} --format='value(projectNumber)')"
+        ) from exc
+
+
+def _provision_secret(project: str, secret_id: str, value: str, accessor_members: list[str]) -> None:
+    """Create/version a Secret Manager secret and grant read access to the engine SA.
+
+    Idempotent: creates the secret if absent, always adds a new version with the
+    current value, and ensures each ``accessor_members`` principal has
+    ``secretmanager.secretAccessor`` on just this secret (least privilege). The
+    secret value is never printed.
+    """
+
+    from google.api_core.exceptions import Conflict
+    from google.cloud import secretmanager
+
+    # Use the REST transport: some environments' gRPC (c-ares) resolver cannot
+    # resolve *.googleapis.com even when plain HTTPS can. REST is equivalent here
+    # and avoids that failure mode.
+    client = secretmanager.SecretManagerServiceClient(transport="rest")
+    parent = f"projects/{project}"
+    name = f"{parent}/secrets/{secret_id}"
+    try:
+        client.create_secret(request={
+            "parent": parent,
+            "secret_id": secret_id,
+            "secret": {"replication": {"automatic": {}}},
+        })
+    except Conflict:
+        # Already exists (AlreadyExists subclasses Conflict; the REST transport
+        # surfaces a plain 409 Conflict) — reuse it and just add a new version.
+        pass
+    client.add_secret_version(request={"parent": name, "payload": {"data": value.encode("utf-8")}})
+
+    role = "roles/secretmanager.secretAccessor"
+    policy = client.get_iam_policy(request={"resource": name})
+    binding = next((b for b in policy.bindings if b.role == role), None)
+    if binding is None:
+        binding = policy.bindings.add()
+        binding.role = role
+    changed = False
+    for member in accessor_members:
+        if member not in binding.members:
+            binding.members.append(member)
+            changed = True
+    if changed:
+        client.set_iam_policy(request={"resource": name, "policy": policy})
 
 
 def _looks_like_api_disabled(exc: Exception) -> bool:
@@ -140,24 +215,60 @@ def main() -> int:
             env_vars[optional] = os.environ[optional]
 
     # For the live (rest) client the remote runtime has no ~/.endorctl/config.yaml,
-    # so the Endor credential must travel as env vars. Resolve it HERE via the
-    # normal loader (env, or the endorctl config when ENDOR_ALLOW_ENDORCTL_CONFIG=1)
-    # and inject it. The secret is read inside load_credentials and never printed.
-    # NOTE: this stores the key/secret as PLAINTEXT env vars on the engine; the
-    # §8.4/§11 posture is Secret Manager + SecretRef — switch to that before any
-    # non-throwaway deployment.
+    # so the Endor credential must travel to the engine. Resolve it HERE via the
+    # normal loader (env, or the endorctl config when ENDOR_ALLOW_ENDORCTL_CONFIG=1);
+    # the secret is read inside load_credentials and never printed.
+    #
+    # OSS_SECRET_BACKEND selects how it is stored on the engine:
+    #   secretmanager (default) — value lives in Secret Manager; the engine reads
+    #     it at runtime via a SecretRef. Access-controlled, rotatable, not in
+    #     plain config. This is the §8.4/§11 posture.
+    #   env — value is baked into the engine as a PLAINTEXT env var. Simplest, but
+    #     readable by anyone with viewer on the reasoning engine. Throwaway only.
     if env_vars["OSS_CLIENT"] == "rest":
         from service.endor_client.auth import load_credentials
 
         creds = load_credentials()
-        env_vars["ENDOR_API_CREDENTIALS_KEY"] = creds.key
-        env_vars["ENDOR_API_CREDENTIALS_SECRET"] = creds.secret
-        env_vars["ENDOR_API_BASE_URL"] = creds.base_url
+        env_vars["ENDOR_API_BASE_URL"] = creds.base_url  # not secret
         if creds.namespace:
-            env_vars["ENDOR_NAMESPACE"] = creds.namespace
-        print("  [rest] injected Endor credential into engine env (value not shown)")
+            env_vars["ENDOR_NAMESPACE"] = creds.namespace  # not secret
 
-    vertexai.init(project=project, location=engine_location, staging_bucket=staging)
+        backend = os.environ.get("OSS_SECRET_BACKEND", "secretmanager").strip().lower()
+        if backend == "secretmanager":
+            from google.cloud.aiplatform_v1 import types as aip_types
+
+            key_id = os.environ.get("OSS_SECRET_ID_KEY", "endor-oss-api-key")
+            secret_id = os.environ.get("OSS_SECRET_ID_SECRET", "endor-oss-api-secret")
+            # The reasoning engine resolves env SecretRefs as the AI Platform
+            # Reasoning Engine service agent — grant it read on just these secrets.
+            number = _project_number(project)
+            engine_sa = (
+                f"serviceAccount:service-{number}@gcp-sa-aiplatform-re.iam.gserviceaccount.com"
+            )
+            _provision_secret(project, key_id, creds.key, [engine_sa])
+            _provision_secret(project, secret_id, creds.secret, [engine_sa])
+            env_vars["ENDOR_API_CREDENTIALS_KEY"] = aip_types.SecretRef(secret=key_id, version="latest")
+            env_vars["ENDOR_API_CREDENTIALS_SECRET"] = aip_types.SecretRef(secret=secret_id, version="latest")
+            print(f"  [rest] credential in Secret Manager ({key_id}, {secret_id}); "
+                  f"engine reads via SecretRef (value not shown)")
+        elif backend == "env":
+            env_vars["ENDOR_API_CREDENTIALS_KEY"] = creds.key
+            env_vars["ENDOR_API_CREDENTIALS_SECRET"] = creds.secret
+            print("  [rest] injected Endor credential as PLAINTEXT env "
+                  "(OSS_SECRET_BACKEND=env; value not shown)")
+        else:
+            raise PreflightError(
+                f"Unknown OSS_SECRET_BACKEND: {backend!r} (expected 'secretmanager' or 'env')"
+            )
+
+    # Transport for the aiplatform client. Default gRPC; set OSS_API_TRANSPORT=rest
+    # on networks whose gRPC (c-ares) resolver can't resolve *-aiplatform.googleapis.com
+    # even though plain HTTPS can.
+    init_kwargs = {}
+    transport = os.environ.get("OSS_API_TRANSPORT", "").strip().lower()
+    if transport in ("rest", "grpc"):
+        init_kwargs["api_transport"] = transport
+    vertexai.init(project=project, location=engine_location, staging_bucket=staging, **init_kwargs)
 
     app = AdkApp(agent=root_agent, enable_tracing=True)
 
@@ -190,6 +301,7 @@ def main() -> int:
                 f"\nPreflight failed: the Vertex AI API is not enabled on {project}.\n"
                 f"Enable it once, wait ~1 min, then re-run:\n"
                 f"    gcloud services enable aiplatform.googleapis.com --project={project}\n"
+                f"(underlying error: {exc!r})\n"
             )
             return 2
         raise
