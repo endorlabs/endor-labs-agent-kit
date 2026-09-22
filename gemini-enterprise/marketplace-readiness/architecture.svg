@@ -1,0 +1,169 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 930" font-family="'Google Sans','Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#202124"/>
+    </marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1a73e8"/>
+    </marker>
+    <style>
+      .z{rx:14;stroke-width:1.5;fill-opacity:.5}
+      .zt{font-size:14px;font-weight:700;letter-spacing:.02em}
+      .tile{rx:9;fill:#ffffff;stroke:#dadce0;stroke-width:1.2}
+      .nm{font-size:13.5px;font-weight:600;fill:#202124}
+      .sub{font-size:11.5px;fill:#5f6368}
+      .flow{stroke:#202124;stroke-width:2;fill:none}
+      .dep{stroke:#1a73e8;stroke-width:2;stroke-dasharray:6 5;fill:none}
+      .badge{fill:#202124}
+      .badge.dep{fill:#1a73e8}
+      .bt{fill:#fff;font-size:11px;font-weight:700}
+      .lg{font-size:12px;fill:#3c4043}
+      .hd{font-size:22px;font-weight:700;fill:#202124}
+      .subhd{font-size:13px;fill:#5f6368}
+    </style>
+  </defs>
+
+  <rect width="1320" height="930" fill="#ffffff"/>
+  <text x="660" y="38" text-anchor="middle" class="hd">Endor AURI Agent — Deployment &amp; Runtime Architecture</text>
+  <text x="660" y="60" text-anchor="middle" class="subhd">Customer-tenant deployment model · single-tenant (a dedicated Agent Engine instance per customer) · agent is free (public OSS data)</text>
+
+  <!-- ===================== PARTNER ZONE ===================== -->
+  <rect class="z" x="28" y="86" width="356" height="352" fill="#e8f0fe" stroke="#1a73e8"/>
+  <text x="46" y="110" class="zt" fill="#1a56c4">Endor Labs — Partner</text>
+
+  <!-- Producer Portal -->
+  <rect class="tile" x="46" y="122" width="320" height="58"/>
+  <rect x="46" y="122" width="6" height="58" rx="3" fill="#4285F4"/>
+  <text x="64" y="146" class="nm">Google Cloud Marketplace — Producer Portal</text>
+  <text x="64" y="164" class="sub">Creates and publishes the two listings</text>
+
+  <!-- AAAS listing -->
+  <rect class="tile" x="46" y="192" width="320" height="58"/>
+  <rect x="46" y="192" width="6" height="58" rx="3" fill="#34A853"/>
+  <text x="64" y="216" class="nm">Listing 1 · AI Agent as a Service (public)</text>
+  <text x="64" y="234" class="sub">Free · storefront + entitlement / private offer</text>
+
+  <!-- VM listing -->
+  <rect class="tile" x="46" y="262" width="320" height="66"/>
+  <rect x="46" y="262" width="6" height="66" rx="3" fill="#FBBC04"/>
+  <text x="64" y="286" class="nm">Listing 2 · VM listing (hidden)</text>
+  <text x="64" y="304" class="sub">Terraform bundle + agent source (source.tar.gz)</text>
+  <text x="64" y="320" class="sub">deploys Agent Engine + placeholder VM</text>
+
+  <!-- ===================== PARTNER SaaS (external, public) ===================== -->
+  <rect class="z" x="28" y="470" width="356" height="150" fill="#fce8e6" stroke="#ea4335"/>
+  <text x="46" y="494" class="zt" fill="#c5221f">Endor Labs SaaS — public</text>
+  <rect class="tile" x="46" y="506" width="320" height="92"/>
+  <rect x="46" y="506" width="6" height="92" rx="3" fill="#EA4335"/>
+  <text x="64" y="530" class="nm">Endor OSS Intelligence API</text>
+  <text x="64" y="548" class="sub">Public endpoints (no customer data):</text>
+  <text x="64" y="566" class="sub">vulnerabilities · package risk · CVE details</text>
+  <text x="64" y="584" class="sub">· upgrade recommendations</text>
+
+  <!-- ===================== MARKETPLACE / GE DISCOVERY BAND ===================== -->
+  <rect class="z" x="410" y="86" width="882" height="96" fill="#fef7e0" stroke="#f9ab00"/>
+  <text x="428" y="110" class="zt" fill="#b06000">Google Cloud Marketplace · Gemini Enterprise Agent Gallery</text>
+  <rect class="tile" x="428" y="120" width="410" height="50"/>
+  <rect x="428" y="120" width="6" height="50" rx="3" fill="#FBBC04"/>
+  <text x="446" y="149" class="nm">Marketplace catalog — AaaS listing (public)</text>
+  <rect class="tile" x="862" y="120" width="410" height="50"/>
+  <rect x="862" y="120" width="6" height="50" rx="3" fill="#FBBC04"/>
+  <text x="880" y="143" class="nm">Agent Gallery — discover &amp; request deploy</text>
+  <text x="880" y="160" class="sub">Customer admin clicks deploy</text>
+
+  <!-- ===================== CUSTOMER TENANT ===================== -->
+  <rect class="z" x="410" y="210" width="882" height="600" fill="#e6f4ea" stroke="#34A853"/>
+  <text x="428" y="236" class="zt" fill="#137333">Customer tenant — Google Cloud project (single-tenant)</text>
+
+  <!-- Users -->
+  <rect class="tile" x="428" y="252" width="220" height="62"/>
+  <rect x="428" y="252" width="6" height="62" rx="3" fill="#5f6368"/>
+  <text x="446" y="278" class="nm">Enterprise users</text>
+  <text x="446" y="296" class="sub">Developers · security engineers</text>
+
+  <!-- Gemini Enterprise (customer org) -->
+  <rect class="tile" x="428" y="360" width="250" height="74"/>
+  <rect x="428" y="360" width="6" height="74" rx="3" fill="#4285F4"/>
+  <text x="446" y="386" class="nm">Gemini Enterprise</text>
+  <text x="446" y="404" class="sub">Customer org app + assistant</text>
+  <text x="446" y="421" class="sub">Registers agent over A2A</text>
+
+  <!-- Agent Engine -->
+  <rect class="tile" x="726" y="352" width="330" height="90"/>
+  <rect x="726" y="352" width="6" height="90" rx="3" fill="#4285F4"/>
+  <text x="744" y="380" class="nm">Vertex AI — Agent Engine</text>
+  <text x="744" y="400" class="sub">Endor AURI Agent (Google ADK)</text>
+  <text x="744" y="418" class="sub">managed sessions · autoscaled runtime</text>
+  <text x="744" y="435" class="sub">the actual workload</text>
+
+  <!-- Vertex model -->
+  <rect class="tile" x="1088" y="352" width="184" height="72"/>
+  <rect x="1088" y="352" width="6" height="72" rx="3" fill="#4285F4"/>
+  <text x="1106" y="378" class="nm">Vertex AI</text>
+  <text x="1106" y="396" class="sub">Gemini model</text>
+  <text x="1106" y="413" class="sub">(global endpoint)</text>
+
+  <!-- Secret Manager -->
+  <rect class="tile" x="726" y="486" width="300" height="70"/>
+  <rect x="726" y="486" width="6" height="70" rx="3" fill="#34A853"/>
+  <text x="744" y="512" class="nm">Secret Manager</text>
+  <text x="744" y="530" class="sub">Endor API key + secret (SecretRef)</text>
+  <text x="744" y="547" class="sub">read by the agent's service account</text>
+
+  <!-- Placeholder VM -->
+  <rect class="tile" x="726" y="600" width="330" height="70" stroke-dasharray="6 5"/>
+  <rect x="726" y="600" width="6" height="70" rx="3" fill="#9aa0a6"/>
+  <text x="744" y="626" class="nm" fill="#5f6368">Compute Engine — placeholder VM</text>
+  <text x="744" y="644" class="sub">idle · required by VM-listing validation only</text>
+  <text x="744" y="661" class="sub">e2-standard-2 (default) · agent does NOT run here</text>
+
+  <!-- ===================== FLOWS ===================== -->
+  <!-- Deployment (dashed blue) -->
+  <!-- Gallery -> Agent Engine (deploy) -->
+  <path class="dep" d="M1067 170 C 1120 250, 980 300, 900 350"/>
+  <!-- VM listing -> Agent Engine (terraform provisions), long arrow across -->
+  <path class="dep" d="M366 292 C 560 300, 600 470, 724 410"/>
+  <!-- Agent Engine provisions Secret Manager + VM -->
+  <path class="dep" d="M820 442 L 830 484"/>
+  <path class="dep" d="M980 442 C 1010 520, 980 560, 900 598"/>
+
+  <!-- Runtime (solid) -->
+  <!-- users -> GE -->
+  <path class="flow" d="M538 314 L 545 358" marker-end="url(#arr)"/>
+  <!-- GE -> Agent Engine (A2A) -->
+  <path class="flow" d="M678 397 L 724 397" marker-end="url(#arr)"/>
+  <!-- Agent Engine -> Vertex model -->
+  <path class="flow" d="M1056 388 L 1086 388" marker-end="url(#arr)"/>
+  <!-- Agent Engine -> Secret Manager -->
+  <path class="flow" d="M876 442 L 876 484" marker-end="url(#arr)"/>
+  <!-- Agent Engine -> Endor OSS API (public), long arrow to left SaaS -->
+  <path class="flow" d="M726 415 C 470 430, 470 470, 368 528" marker-end="url(#arr)"/>
+
+  <!-- numbered badges -->
+  <g font-family="inherit">
+    <!-- deploy badges -->
+    <circle class="badge dep" cx="900" cy="350" r="11"/><text x="900" y="354" text-anchor="middle" class="bt">D</text>
+    <circle class="badge dep" cx="545" cy="360" r="11"/><text x="545" y="364" text-anchor="middle" class="bt">D</text>
+    <!-- runtime badges -->
+    <circle class="badge" cx="541" cy="336" r="11"/><text x="541" y="340" text-anchor="middle" class="bt">1</text>
+    <circle class="badge" cx="701" cy="397" r="11"/><text x="701" y="401" text-anchor="middle" class="bt">2</text>
+    <circle class="badge" cx="1071" cy="388" r="11"/><text x="1071" y="392" text-anchor="middle" class="bt">3</text>
+    <circle class="badge" cx="876" cy="463" r="11"/><text x="876" y="467" text-anchor="middle" class="bt">4</text>
+    <circle class="badge" cx="470" cy="452" r="11"/><text x="470" y="456" text-anchor="middle" class="bt">5</text>
+  </g>
+
+  <!-- ===================== LEGEND ===================== -->
+  <rect x="410" y="828" width="882" height="86" rx="10" fill="#f8f9fa" stroke="#dadce0"/>
+  <line x1="428" y1="850" x2="470" y2="850" class="flow" marker-end="url(#arr)"/>
+  <text x="478" y="854" class="lg">Runtime request</text>
+  <line x1="600" y1="850" x2="642" y2="850" class="dep"/>
+  <text x="650" y="854" class="lg">One-time deployment (Terraform)</text>
+
+  <text x="428" y="878" class="lg" font-size="11">Runtime: 1) ask in Gemini Enterprise · 2) GE → Agent Engine (A2A) · 3) call Gemini · 4) read Endor cred (Secret Manager) · 5) call public Endor OSS API</text>
+  <text x="428" y="896" class="lg" font-size="11">Deploy (D): admin deploys from the Agent Gallery; Terraform then provisions Agent Engine, Secret Manager, and the placeholder VM.</text>
+
+  <!-- cost / tenancy note -->
+  <text x="28" y="656" class="sub" fill="#3c4043">Cost: Agent Engine + placeholder VM run in the</text>
+  <text x="28" y="672" class="sub" fill="#3c4043">customer's project (customer-billed). Endor charges $0.</text>
+  <text x="28" y="700" class="sub" fill="#9aa0a6">Note: swap tiles for official Google Cloud icons before final submission.</text>
+</svg>
