@@ -64,10 +64,37 @@ zip -r endor-auri-agent.zip \
   README.md assets/source.tar.gz modules/
 ```
 
-Upload the zip as the **VM listing** product in the Producer Portal, set the
-service-account configuration, run validations, test deploy, and publish. Pair it
-with the public **AI Agent as a Service** listing (pricing + private offers) per
-the onboarding deck.
+## Stage in Cloud Storage
+
+Create a GCS bucket in the publishing project, **enable Object Versioning**, and
+upload the zip. The Producer Portal references its GCS URL.
+
+## Publish via Producer Portal ("Agent as a Deployment" flow)
+
+Google Cloud Console → Marketplace → Producer Portal:
+
+| Step | Setting |
+|---|---|
+| Product type | **Add Product → Virtual Machine** |
+| Metadata | Product name, description, docs links, support contacts, category |
+| Pricing | **Free ($0)** — leave unconfigured; keep default trial settings |
+| Deployment package | Create a **Licensed VM Image** → **Manual Configuration → Custom UI Deployment** → set image variable to `source_image` → provide the **GCS URL** of the uploaded zip |
+| Required IAM roles (deployment SA) | Service Account Admin · Cloud Infrastructure Manager Agent · Vertex AI Administrator · Security Admin · Project IAM Admin · Compute Admin · Service Account User |
+| Validation & launch | **Validate** → **Deployment Preview** test → submit for review → **Publish** |
+
+The "Required IAM roles" above are the roles the customer's **deployment**
+service account needs to run this Terraform in their tenant (distinct from the
+agent's own runtime SA, which `main.tf` creates with least privilege). Pair this
+hidden VM listing with the public **AI Agent as a Service** listing (free;
+carries the entitlement / private offer).
+
+## Customer registration in Gemini Enterprise
+
+After the customer subscribes and the vendor approves the order: the customer
+admin runs the Terraform, then in **Gemini Enterprise → Governance → Agents →
+Add Agent → Agents via Marketplace** selects the listing, grants user access, and
+the agent appears for users under "From your organization". (Our agent uses
+public OSS data, so there is no per-user OAuth step.)
 
 ## Files
 

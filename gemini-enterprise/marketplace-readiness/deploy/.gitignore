@@ -2,6 +2,8 @@
 assets/source.tar.gz
 agent_config.auto.tfvars
 _temp_package/
+# Generated Marketplace bundle
+*.zip
 # Terraform working files
 .terraform/
 .terraform.lock.hcl
