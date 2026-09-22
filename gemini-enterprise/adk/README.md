@@ -1,4 +1,4 @@
-# Endor OSS Intelligence — ADK agent (customer-hosted MVP)
+# Endor AURI Agent — ADK agent (customer-hosted MVP)
 
 The **customer-hosted** shape of the Option-A agent (see
 `../docs/architecture-decisions.md`, AD-1). A Google **ADK** agent whose runtime
@@ -130,7 +130,7 @@ curl -s -X POST \
   -H "X-Goog-User-Project: $PROJECT" \
   "https://discoveryengine.googleapis.com/v1alpha/projects/$PROJECT_NUMBER/locations/global/collections/default_collection/engines/$APP_ENGINE/assistants/default_assistant/agents" \
   -d '{
-    "displayName": "Endor OSS Intelligence",
+    "displayName": "Endor AURI Agent",
     "description": "Open-source vulnerability, package-risk, CVE, and upgrade answers (public data).",
     "adkAgentDefinition": {
       "toolSettings": { "toolDescription": "Answers OSS vulnerability / package-risk / CVE questions and recommends safe upgrade versions." },
