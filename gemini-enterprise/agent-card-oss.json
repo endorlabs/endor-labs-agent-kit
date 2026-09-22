@@ -1,5 +1,5 @@
 {
-  "name": "Endor Open Source Intelligence",
+  "name": "Endor AURI Agent",
   "protocolVersion": "1.0",
   "description": "Answers open-source vulnerability, package-risk, and CVE questions from Endor's public data. No login, no customer data.",
   "url": "https://agents.endorlabs.com/oss",

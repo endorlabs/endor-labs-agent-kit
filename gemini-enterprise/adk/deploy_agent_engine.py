@@ -289,7 +289,7 @@ def main() -> int:
     try:
         remote = agent_engines.create(
             agent_engine=app,
-            display_name="Endor OSS Intelligence",
+            display_name="Endor AURI Agent",
             description="Open-source vulnerability, package-risk, and CVE answers (public data).",
             requirements=os.path.join(_HERE, "requirements.txt"),
             extra_packages=["service", "endor_oss"],  # relative -> /code/service, /code/endor_oss
