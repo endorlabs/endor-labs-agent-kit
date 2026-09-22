@@ -13,7 +13,14 @@ Enterprise, per the Agent Factory onboarding deck (Sept 2026).
 - Access request (A2UI + customer-tenant-deployable Preview) sent to the PDM; awaiting grant.
 - Target listing structure (deck + Sunny Walia email): a public **AI Agent as a Service** listing (pricing/transactions) + a hidden **VM listing** (Terraform bundle that deploys to Agent Engine in the customer's tenant).
 
+## Pricing
+The agent is **free ($0)**: it queries public OSS intelligence, so Endor incurs
+no per-query or data cost. The AAAS listing is a free listing (still required as
+the public storefront and the entitlement gate for the hidden VM listing). GTV
+and sales-volume estimates are not applicable (those are for paid agents). In the
+customer-tenant model, the only costs are Agent Engine runtime and the
+placeholder VM, which run in the customer's own project on their billing.
+
 ## Still to produce
-- Architecture diagram (GCP icons) + infrastructure estimate + Pricing Calculator link (Solution Validation Step 1).
-- Pricing model decision for the AAAS listing.
+- Architecture diagram (GCP icons) + infrastructure estimate + Pricing Calculator link (Solution Validation Step 1). Infra estimate covers the customer-borne Agent Engine + placeholder VM only.
 - In-project test of the `deploy/` Terraform (Google validation requires a working deploy), then zip + upload to the Producer Portal.
