@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import base64
 import json
-import logging
 import os
 import uuid
 from typing import Any, Mapping, Sequence
@@ -30,21 +29,19 @@ from .ui import (
 )
 
 
-logger = logging.getLogger(__name__)
-
-
 def _new_id() -> str:
     return uuid.uuid4().hex
 
 
 def _select_context(data: Mapping[str, Any]) -> Mapping[str, Any] | None:
     """If ``data`` (a DataPart body) is the A2UI select_upgrade event, return its
-    context; the event may be top-level or wrapped under an ``event`` key."""
+    context. GE delivers it under an ``action`` key (``{"action": {"name",
+    "context", ...}}``); also accept ``event`` or a top-level event for safety."""
 
-    event = data.get("event") if isinstance(data.get("event"), Mapping) else data
-    if isinstance(event, Mapping) and event.get("name") == A2UI_SELECT_EVENT:
-        ctx = event.get("context")
-        return ctx if isinstance(ctx, Mapping) else {}
+    for node in (data.get("action"), data.get("event"), data):
+        if isinstance(node, Mapping) and node.get("name") == A2UI_SELECT_EVENT:
+            ctx = node.get("context")
+            return ctx if isinstance(ctx, Mapping) else {}
     return None
 
 
@@ -186,21 +183,6 @@ def handle_oss_message(
     context_id = message.get("contextId")
     context_id = context_id if isinstance(context_id, str) and context_id else _new_id()
     task_id = _new_id()
-
-    # Debug aid: log the shape of incoming parts (helps confirm how GE delivers
-    # A2UI button-click events). Low volume; safe to keep.
-    logger.info(
-        "incoming parts: %s",
-        [
-            {
-                "kind": p.get("kind") or p.get("type"),
-                "mime": (p.get("metadata") or {}).get("mimeType"),
-                "data_keys": list(p["data"].keys()) if isinstance(p.get("data"), Mapping) else None,
-            }
-            for p in (message.get("parts") or [])
-            if isinstance(p, Mapping)
-        ],
-    )
 
     # A clicked upgrade button comes back as the A2UI select_upgrade event; answer
     # with a confirmation instead of routing it as a new question.
