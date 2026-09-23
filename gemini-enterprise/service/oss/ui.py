@@ -154,7 +154,145 @@ def to_ag_ui_events(
 
 
 def ui_protocol() -> str:
-    """Which interactive protocol to emit: ``a2a`` (default), ``ag_ui``, or ``both``."""
+    """Which interactive protocol to emit: ``a2a`` (default), ``ag_ui``, ``a2ui``, or ``both``."""
 
     value = os.environ.get("OSS_UI_PROTOCOL", "a2a").strip().lower()
-    return value if value in ("a2a", "ag_ui", "both") else "a2a"
+    return value if value in ("a2a", "ag_ui", "a2ui", "both") else "a2a"
+
+
+# -- A2UI (Gemini Enterprise's GA interactive-UI protocol) --------------------
+# GE renders A2UI: the agent returns a JSON UI tree (Card/Text/Button/List/…)
+# plus a data model, embedded in the A2A response as DataParts with mimeType
+# ``application/json+a2ui``. The user's selection returns as a Button
+# ``action.event`` (name + context) on the next turn. GE supports v0.9 and v0.8;
+# we target v0.9 with the basic component catalog.
+
+A2UI_MIME = "application/json+a2ui"
+A2UI_VERSION = "v0.9"
+A2UI_BASIC_CATALOG = "https://a2ui.org/specification/v0_9/basic_catalog.json"
+A2UI_SURFACE_ID = "endor-upgrade-choices"
+# Event GE sends back when the user picks an option; context carries the choice.
+A2UI_SELECT_EVENT = "select_upgrade"
+
+
+def _a2ui_components() -> list[dict]:
+    """The component tree: a heading + a templated list of upgrade cards, each with
+    a select button whose action.event returns the chosen version/purl."""
+
+    return [
+        {"id": "root", "component": "Column", "children": ["heading", "options-list"]},
+        {"id": "heading", "component": "Text", "variant": "h2", "text": {"path": "/title"}},
+        {
+            "id": "options-list",
+            "component": "List",
+            "direction": "vertical",
+            "children": {"componentId": "option-card", "path": "/options"},
+        },
+        {"id": "option-card", "component": "Card", "child": "option-col"},
+        {
+            "id": "option-col",
+            "component": "Column",
+            "children": ["opt-version", "opt-summary", "opt-jump", "opt-button-row"],
+        },
+        {"id": "opt-version", "component": "Text", "variant": "h3", "text": {"path": "version"}},
+        {"id": "opt-summary", "component": "Text", "text": {"path": "summary"}},
+        {"id": "opt-jump", "component": "Text", "variant": "caption", "text": {"path": "jump"}},
+        {"id": "opt-button-row", "component": "Row", "justify": "end", "children": ["opt-button"]},
+        {
+            "id": "opt-button",
+            "component": "Button",
+            "variant": "primary",
+            "child": "opt-button-text",
+            "action": {
+                "event": {
+                    "name": A2UI_SELECT_EVENT,
+                    "context": {"version": {"path": "version"}, "purl": {"path": "purl"}},
+                }
+            },
+        },
+        {"id": "opt-button-text", "component": "Text", "text": {"path": "buttonLabel"}},
+    ]
+
+
+def _a2ui_data_model(element: UpgradeChoiceElement) -> dict:
+    name = element.package_name or element.purl
+    current = f" {element.current_version}" if element.current_version else ""
+    total = len(element.choices)
+    options = []
+    for c in element.choices:
+        scope = (
+            f"Fixes all {len(c.fixes)} known vulnerabilities"
+            if c.fixes_all
+            else f"Fixes {len(c.fixes)} of {total}: {', '.join(c.fixes)}"
+        )
+        jump = f"{c.jump} upgrade" + (" · recommended" if c.recommended else "")
+        options.append({
+            "version": c.version,
+            "purl": element.purl,
+            "summary": scope,
+            "jump": jump,
+            "buttonLabel": f"Upgrade to {c.version}",
+        })
+    return {
+        "title": f"Choose an upgrade for {name}{current}",
+        "purl": element.purl,
+        "options": options,
+    }
+
+
+def to_a2ui_messages(element: UpgradeChoiceElement) -> list[dict]:
+    """The A2UI v0.9 message list: create the surface, send components, send data."""
+
+    return [
+        {
+            "version": A2UI_VERSION,
+            "createSurface": {"surfaceId": A2UI_SURFACE_ID, "catalogId": A2UI_BASIC_CATALOG},
+        },
+        {
+            "version": A2UI_VERSION,
+            "updateComponents": {"surfaceId": A2UI_SURFACE_ID, "components": _a2ui_components()},
+        },
+        {
+            "version": A2UI_VERSION,
+            "updateDataModel": {
+                "surfaceId": A2UI_SURFACE_ID,
+                "path": "/",
+                "value": _a2ui_data_model(element),
+            },
+        },
+    ]
+
+
+def to_a2ui_parts(element: UpgradeChoiceElement) -> list[dict]:
+    """Wrap each A2UI message as an A2A ``DataPart`` tagged with the A2UI mimeType."""
+
+    return [
+        {"kind": "data", "data": msg, "metadata": {"mimeType": A2UI_MIME}}
+        for msg in to_a2ui_messages(element)
+    ]
+
+
+# -- Gemini Enterprise native suggestion chips --------------------------------
+# GE renders a typed part (mimeType ``application/json+suggestions``) as clickable
+# suggestion chips. We can piggy-back on that supported widget to surface the
+# upgrade choices as interactive chips, since GE does not render arbitrary parts.
+
+GE_SUGGESTIONS_MIME = "application/json+suggestions"
+
+
+def to_ge_suggestion_questions(element: UpgradeChoiceElement) -> list[str]:
+    """Phrase each upgrade option as a short, distinctive suggestion chip."""
+
+    name = element.package_name or element.purl
+    out: list[str] = []
+    for c in element.choices:
+        scope = "fixes all" if c.fixes_all else f"fixes {len(c.fixes)}"
+        tag = " — recommended" if c.recommended else ""
+        out.append(f"Upgrade {name} to {c.version} ({scope}, {c.jump}){tag}")
+    return out
+
+
+def to_ge_suggestions_payload(element: UpgradeChoiceElement) -> dict:
+    """The GE ``application/json+suggestions`` body carrying our upgrade chips."""
+
+    return {"recommendedQuestionsResponse": {"questions": to_ge_suggestion_questions(element)}}

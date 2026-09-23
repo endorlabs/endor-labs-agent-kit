@@ -7,13 +7,24 @@ an A2A ``Task`` carrying the answer. No customer tenant, no per-user identity.
 
 from __future__ import annotations
 
+import base64
+import json
+import os
 import uuid
 from typing import Any, Mapping, Sequence
 
 from ..a2a.errors import InvalidParamsError, TaskNotFoundError
 from ..a2a.task_store import TaskStore
 from .router import QuestionRouter
-from .ui import build_upgrade_element, to_a2a_parts, to_ag_ui_events, ui_protocol
+from .ui import (
+    GE_SUGGESTIONS_MIME,
+    build_upgrade_element,
+    to_a2a_parts,
+    to_a2ui_parts,
+    to_ag_ui_events,
+    to_ge_suggestions_payload,
+    ui_protocol,
+)
 
 
 def _new_id() -> str:
@@ -48,10 +59,34 @@ def _task_result(answer, *, context_id: str, task_id: str) -> dict[str, Any]:
         protocol = ui_protocol()
         if protocol in ("a2a", "both"):
             parts.extend(to_a2a_parts(element))
+        if protocol == "a2ui":
+            # Gemini Enterprise's GA interactive-UI protocol: emit the A2UI surface
+            # as application/json+a2ui DataParts (GE renders the ChoicePicker cards).
+            parts.extend(to_a2ui_parts(element))
         if protocol in ("ag_ui", "both"):
             metadata["endor/ag_ui_events"] = to_ag_ui_events(
                 element, thread_id=context_id, run_id=task_id
             )
+        # Experiment: also emit the choices as Gemini Enterprise native suggestion
+        # chips (the one interactive widget GE is confirmed to render). Gated by
+        # OSS_GE_SUGGESTIONS; we emit both a mimeType-tagged `file` part and a
+        # `data` part so whichever mapping GE uses for A2A -> typed content hits.
+        if os.environ.get("OSS_GE_SUGGESTIONS", "").strip().lower() in ("1", "true", "yes"):
+            payload = to_ge_suggestions_payload(element)
+            parts.append({
+                "kind": "file",
+                "file": {
+                    "mimeType": GE_SUGGESTIONS_MIME,
+                    "bytes": base64.b64encode(
+                        json.dumps(payload).encode("utf-8")
+                    ).decode("ascii"),
+                },
+            })
+            parts.append({
+                "kind": "data",
+                "data": payload,
+                "metadata": {"mimeType": GE_SUGGESTIONS_MIME},
+            })
 
     artifact: dict[str, Any] = {
         "artifactId": "oss-intelligence-answer",
