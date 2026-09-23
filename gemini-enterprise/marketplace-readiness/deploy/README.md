@@ -1,129 +1,90 @@
-# Endor AURI Agent — customer-tenant deployment package
+# Endor AURI Agent (A2UI) — customer-tenant deployment package
 
 Terraform bundle for the **customer-tenant-deployable** Marketplace path (the
-hidden **VM listing**). The customer's admin clicks deploy in the Marketplace and
-this Terraform stands up the Endor AURI Agent on **Vertex AI Agent Engine** in
-their own project.
-
-Adapted from Google's `marketplace-agents-package` reference. The `modules/`
-directory is Google's vendored Cloud Foundation Fabric `agent-engine` module,
-included as-is so the deployment runs on Terraform 1.5.7.
+hidden **VM listing**). The customer's admin deploys it and the agent runs in
+their own Google Cloud project, rendering the **A2UI** interactive upgrade-choice
+cards in Gemini Enterprise.
 
 ## What it deploys
 
-- **Endor AURI Agent on Agent Engine** — the actual workload (managed, autoscaled).
-  Uses `google-adk`, reads the Endor credential from Secret Manager at runtime.
-- **A placeholder compute instance** — required by the current Marketplace
-  VM-listing validation. The agent does **not** run on it; it is small and idle
-  (`e2-standard-2` by default). Do not oversize it.
+- **Endor AURI Agent (A2UI) on Cloud Run** — the A2A endpoint Gemini Enterprise
+  talks to. It emits the A2UI v0.9 surface (upgrade cards); a card click returns
+  the `select_upgrade` event. Reads the Endor credential from Secret Manager.
+- **A placeholder Compute Engine VM** — required only by the Marketplace
+  VM-listing validation. The agent does **not** run on it (it's small and idle).
+
+> The earlier Agent Engine variant is retired: Agent Engine returns text only,
+> and A2UI renders through the A2A/Cloud Run path. See ../../adk/ for the
+> Agent Engine (text) agent if you need it.
 
 ## Prerequisites (in the customer project)
 
-1. Enable `aiplatform.googleapis.com` and `secretmanager.googleapis.com`.
-2. Create two Secret Manager secrets holding the Endor API credential, e.g.:
+1. Enable `run.googleapis.com`, `compute.googleapis.com`, `secretmanager.googleapis.com`.
+2. Create two Secret Manager secrets with the Endor API credential:
    ```bash
    printf '%s' "$ENDOR_KEY"    | gcloud secrets create endor-oss-api-key    --data-file=- --project "$PROJECT"
    printf '%s' "$ENDOR_SECRET" | gcloud secrets create endor-oss-api-secret --data-file=- --project "$PROJECT"
    ```
    Pass their names as `endor_api_key_secret_id` / `endor_api_secret_secret_id`.
-   The credential value never enters Terraform state.
+   The values never enter Terraform state.
 
-## Package the agent source (before terraform)
+## Publish the agent image (once per release, by Endor)
 
-`package_agent.py` bundles the agent (`endor_oss`) and the shared core
-(`service`) into `assets/source.tar.gz` and writes `agent_config.auto.tfvars`:
-
+The Terraform runs a pre-built container (`var.container_image`). Publish it to a
+registry the customer projects can pull from (public Artifact Registry, or the
+Marketplace container path):
 ```bash
-python3 package_agent.py
+PROJECT=endor-labs-marketplace-public TAG=v1 ./build_and_push_image.sh
 ```
+Then set that image as the `container_image` default (variables.tf) or pass it in.
 
-## Test the deployment in your own project first
+## Deploy + test in your own project first
 
-Google's validation requires a working deploy. Verify before zipping:
-
+Google's validation requires a working deploy. Verify before publishing:
 ```bash
 terraform init
 terraform apply \
   -var project_id="$PROJECT" \
   -var goog_cm_deployment_name="endor-auri-test" \
+  -var container_image="us-central1-docker.pkg.dev/$PROJECT/endor-agents/oss-a2ui:v1" \
   -var endor_api_key_secret_id="endor-oss-api-key" \
   -var endor_api_secret_secret_id="endor-oss-api-secret"
 ```
+`terraform output agent_card_url` gives the URL to register in Gemini Enterprise.
+Sanity check: `curl <agent_url>/.well-known/agent-card.json` should show the A2UI
+extension and the card `url` self-set to the Cloud Run URL.
 
-Then query the resulting Agent Engine resource (see `../../adk/query_agent_engine.py`).
-
-This bundle was verified end-to-end this way: `terraform apply` created all 8
-resources, the deployed agent answered a live upgrade query (calling
-`recommend_upgrades` against the real Endor OSS API via the Secret Manager
-SecretRef), and `terraform destroy` removed everything.
-
-### Teardown note
-
-Once the agent has been queried, the reasoning engine holds **child sessions**,
-and `terraform destroy` fails with *"contains child resources: sessions … set
-force to true"*. Force-delete the engine first, then re-run destroy:
-
-```bash
-TOKEN=$(gcloud auth print-access-token)
-curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
-  "https://us-central1-aiplatform.googleapis.com/v1/$(terraform output -raw agent_engine_id)?force=true"
-terraform destroy   # cleans up the service account, VM, IAM, bucket
-```
-Customers undeploying via Marketplace will hit the same constraint.
+Teardown is a plain `terraform destroy` (the Cloud Run service sets
+`deletion_protection = false`, and the VM sets `allow_stopping_for_update`, so it
+tears down cleanly).
 
 ## Build the Marketplace zip
-
-Include `modules/` and the packaged assets:
 
 ```bash
 zip -r endor-auri-agent.zip \
   main.tf variables.tf outputs.tf \
-  metadata.yaml metadata.display.yaml \
-  marketplace_test.tfvars agent_config.auto.tfvars \
-  README.md assets/source.tar.gz modules/
+  metadata.yaml metadata.display.yaml marketplace_test.tfvars README.md
 ```
-
-## Stage in Cloud Storage
-
-Create a GCS bucket in the publishing project, **enable Object Versioning**, and
-upload the zip. The Producer Portal references its GCS URL.
-
-## Publish via Producer Portal ("Agent as a Deployment" flow)
-
-Google Cloud Console → Marketplace → Producer Portal:
-
-| Step | Setting |
-|---|---|
-| Product type | **Add Product → Virtual Machine** |
-| Metadata | Product name, description, docs links, support contacts, category |
-| Pricing | **Free ($0)** — leave unconfigured; keep default trial settings |
-| Deployment package | Create a **Licensed VM Image** → **Manual Configuration → Custom UI Deployment** → set image variable to `source_image` → provide the **GCS URL** of the uploaded zip |
-| Required IAM roles (deployment SA) | Service Account Admin · Cloud Infrastructure Manager Agent · Vertex AI Administrator · Security Admin · Project IAM Admin · Compute Admin · Service Account User |
-| Validation & launch | **Validate** → **Deployment Preview** test → submit for review → **Publish** |
-
-The "Required IAM roles" above are the roles the customer's **deployment**
-service account needs to run this Terraform in their tenant (distinct from the
-agent's own runtime SA, which `main.tf` creates with least privilege). Pair this
-hidden VM listing with the public **AI Agent as a Service** listing (free;
-carries the entitlement / private offer).
+Upload to a versioned GCS bucket and reference it as the **VM listing** product in
+the Producer Portal (Deployment package → Licensed VM Image → Custom UI
+Deployment → `source_image` var → GCS zip URL). Deployment-SA roles to grant:
+Service Account Admin, Cloud Run Admin, Vertex AI Administrator, Security Admin,
+Project IAM Admin, Compute Admin, Service Account User.
 
 ## Customer registration in Gemini Enterprise
 
-After the customer subscribes and the vendor approves the order: the customer
-admin runs the Terraform, then in **Gemini Enterprise → Governance → Agents →
-Add Agent → Agents via Marketplace** selects the listing, grants user access, and
-the agent appears for users under "From your organization". (Our agent uses
-public OSS data, so there is no per-user OAuth step.)
+After the customer runs the Terraform: **Gemini Enterprise → Governance → Agents
+→ Add Agent → Agents via Marketplace**, using the `agent_card_url` output. Grant
+users access; the agent appears under "From your organization" and renders the
+A2UI upgrade cards. (Public OSS data, so no per-user OAuth.)
 
 ## Files
 
 | File | Purpose |
 |---|---|
-| `main.tf` | Agent Engine deployment + placeholder compute instance |
-| `variables.tf` | Inputs (project, region, Endor secret IDs, machine_type, …) |
-| `outputs.tf` | Agent Engine id/name/region + instance info |
-| `metadata.yaml` | Marketplace technical metadata (variables/outputs) |
-| `metadata.display.yaml` | Marketplace UI for the input form |
+| `main.tf` | Cloud Run A2UI service + runtime SA + secret access + invoker IAM + placeholder VM |
+| `variables.tf` | Inputs (project, region, container_image, Endor secret IDs, machine_type, …) |
+| `outputs.tf` | `agent_url`, `agent_card_url`, service account, instance info |
+| `metadata.yaml` / `metadata.display.yaml` | Marketplace technical + UI metadata |
 | `marketplace_test.tfvars` | Sample test values |
-| `package_agent.py` | Builds `assets/source.tar.gz` + `agent_config.auto.tfvars` |
-| `modules/agent-engine/` | Vendored Google CFF agent-engine module |
+| `build_and_push_image.sh` | Build + publish the agent container image |

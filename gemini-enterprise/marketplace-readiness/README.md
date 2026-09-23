@@ -8,7 +8,7 @@ Enterprise, per the Agent Factory onboarding deck (Sept 2026).
 - [eval-plan.md](eval-plan.md) — end-to-end eval set: metrics, targets, and cases (tool selection, grounded correctness, upgrade correctness, no-hallucination, scope).
 - [wireframes.html](wireframes.html) — low-fidelity A2UI "pick an upgrade" flow (ask → choose → confirm). Open in a browser.
 - [architecture.svg](architecture.svg) / [architecture.png](architecture.png) — GCP architecture diagram (Solution Validation Step 1): partner vs customer tenant, GCP services used, single-tenant, deploy + runtime flows. Swap tiles for official Google Cloud icons before final submission.
-- [deploy/](deploy/) — Terraform bundle for the customer-tenant (VM-listing) path: Agent Engine deployment + placeholder VM, Endor credential via Secret Manager, packaging script, and vendored Google module. See [deploy/README.md](deploy/README.md).
+- [deploy/](deploy/) — Terraform bundle for the customer-tenant (VM-listing) path: **Cloud Run A2UI agent** + placeholder VM, Endor credential via Secret Manager, image-build helper. This is the A2UI (interactive) shape — apply/destroy-verified end-to-end. See [deploy/README.md](deploy/README.md).
 
 ## Status
 - Access request (A2UI + customer-tenant-deployable Preview) sent to the PDM; awaiting grant.

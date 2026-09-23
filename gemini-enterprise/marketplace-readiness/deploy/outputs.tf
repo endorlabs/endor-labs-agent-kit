@@ -1,11 +1,16 @@
-output "agent_engine_id" {
-  description = "The resource ID of the deployed Endor AURI Agent (Agent Engine)."
-  value       = module.agent_engine.id
+output "agent_url" {
+  description = "The Cloud Run URL of the Endor AURI Agent (A2UI). Register this in Gemini Enterprise."
+  value       = google_cloud_run_v2_service.agent.uri
 }
 
-output "agent_name" {
-  description = "The name of the deployed agent."
-  value       = var.agent_engine_name
+output "agent_card_url" {
+  description = "The A2A agent card URL to give Gemini Enterprise when adding the agent."
+  value       = "${google_cloud_run_v2_service.agent.uri}/.well-known/agent-card.json"
+}
+
+output "agent_service_account" {
+  description = "The Cloud Run runtime service account."
+  value       = google_service_account.agent.email
 }
 
 output "region" {
@@ -14,19 +19,9 @@ output "region" {
 }
 
 # -- Placeholder compute instance ---------------------------------------------
-locals {
-  network_interface = google_compute_instance.instance.network_interface[0]
-  instance_nat_ip   = length(local.network_interface.access_config) > 0 ? local.network_interface.access_config[0].nat_ip : null
-}
-
 output "instance_self_link" {
   description = "Self-link for the placeholder compute instance."
   value       = google_compute_instance.instance.self_link
-}
-
-output "instance_zone" {
-  description = "Zone for the placeholder compute instance."
-  value       = var.zone
 }
 
 output "instance_machine_type" {

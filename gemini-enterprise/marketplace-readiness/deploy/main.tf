@@ -1,7 +1,6 @@
 terraform {
   required_providers {
-    google   = { source = "hashicorp/google" }
-    external = { source = "hashicorp/external" }
+    google = { source = "hashicorp/google" }
   }
 }
 
@@ -11,73 +10,105 @@ provider "google" {
 }
 
 # ---------------------------------------------------------------------------
-# 1. Endor AURI Agent on Vertex AI Agent Engine
-#    (the actual, managed workload; autoscaled by Agent Engine)
+# 1. Endor AURI Agent (A2UI) on Cloud Run
+#    The A2A endpoint Gemini Enterprise talks to. It emits the A2UI v0.9
+#    interactive surface (upgrade-choice cards). GE reaches it over HTTPS and
+#    renders the cards; a click returns the select_upgrade event.
 # ---------------------------------------------------------------------------
-module "agent_engine" {
-  # Vendored locally to relax the Terraform version constraint to >= 1.5.7,
-  # matching the Marketplace deployment runtime. Upstream:
-  # github.com/GoogleCloudPlatform/cloud-foundation-fabric//modules/agent-engine
-  source     = "./modules/agent-engine"
-  name       = var.agent_engine_name
-  project_id = var.project_id
-  region     = var.region
+resource "google_service_account" "agent" {
+  account_id   = "endor-auri-a2ui"
+  display_name = "Endor AURI Agent (A2UI) runtime"
+}
 
-  agent_engine_config = {
-    agent_framework = "google-adk"
+# The runtime SA reads the Endor credential from Secret Manager (least privilege).
+resource "google_secret_manager_secret_iam_member" "key" {
+  secret_id = var.endor_api_key_secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.agent.email}"
+}
 
-    # Non-secret configuration. Models serve from the `global` endpoint, so the
-    # agent uses GOOGLE_CLOUD_LOCATION=global regardless of the Agent Engine region.
-    environment_variables = {
-      GOOGLE_GENAI_USE_VERTEXAI = "1"
-      GOOGLE_CLOUD_LOCATION     = "global"
-      OSS_CLIENT                = "rest"
-      OSS_ROUTER                = var.oss_router
-      ENDOR_API_BASE_URL        = var.endor_api_base_url
-    }
+resource "google_secret_manager_secret_iam_member" "secret" {
+  secret_id = var.endor_api_secret_secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.agent.email}"
+}
 
-    # The Endor API credential is injected from the customer's Secret Manager at
-    # runtime (SecretRef), never stored in plain config or Terraform state. The
-    # agent reads these env vars via its normal credential loader.
-    secret_environment_variables = {
-      ENDOR_API_CREDENTIALS_KEY = {
-        secret_id = var.endor_api_key_secret_id
-        version   = "latest"
+resource "google_cloud_run_v2_service" "agent" {
+  name                = "${var.goog_cm_deployment_name}-a2ui"
+  location            = var.region
+  ingress             = "INGRESS_TRAFFIC_ALL"
+  deletion_protection = false  # allow `terraform destroy` to undeploy cleanly
+
+  template {
+    service_account = google_service_account.agent.email
+
+    containers {
+      image = var.container_image
+      ports { container_port = 8080 }
+
+      env {
+        name  = "OSS_ROUTER"
+        value = var.oss_router
       }
-      ENDOR_API_CREDENTIALS_SECRET = {
-        secret_id = var.endor_api_secret_secret_id
-        version   = "latest"
+      env {
+        name  = "OSS_CLIENT"
+        value = "rest"
+      }
+      env {
+        name  = "OSS_UI_PROTOCOL"
+        value = "a2ui"
+      }
+      env {
+        name  = "ENDOR_API_BASE_URL"
+        value = var.endor_api_base_url
+      }
+      # Endor credential from Secret Manager (never in plain config/state).
+      env {
+        name = "ENDOR_API_CREDENTIALS_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = var.endor_api_key_secret_id
+            version = "latest"
+          }
+        }
+      }
+      env {
+        name = "ENDOR_API_CREDENTIALS_SECRET"
+        value_source {
+          secret_key_ref {
+            secret  = var.endor_api_secret_secret_id
+            version = "latest"
+          }
+        }
+      }
+      resources {
+        limits = {
+          cpu    = "1"
+          memory = "512Mi"
+        }
       }
     }
   }
 
-  # The agent engine runs as a dedicated service account with least-privilege
-  # roles, including read access to the Endor credential secrets.
-  service_account_config = {
-    create = true
-    roles = [
-      "roles/aiplatform.user",
-      "roles/serviceusage.serviceUsageConsumer",
-      "roles/cloudtrace.agent",
-      "roles/secretmanager.secretAccessor",
-    ]
-  }
+  depends_on = [
+    google_secret_manager_secret_iam_member.key,
+    google_secret_manager_secret_iam_member.secret,
+  ]
+}
 
-  deployment_files = {
-    source_config = {
-      source_path       = "assets/source.tar.gz"
-      entrypoint_module = "${var.agent_package_name}.app"
-      entrypoint_object = "agent"
-      requirements_path = "${var.agent_package_name}/requirements.txt"
-    }
-  }
+# Public invoker so Gemini Enterprise can reach the A2A endpoint. If the
+# customer's org policy forbids allUsers, replace with GE's service identity.
+resource "google_cloud_run_v2_service_iam_member" "invoker" {
+  name     = google_cloud_run_v2_service.agent.name
+  location = var.region
+  role     = "roles/run.invoker"
+  member   = "allUsers"
 }
 
 # ---------------------------------------------------------------------------
 # 2. Placeholder compute instance
-#    Google's current Marketplace VM-listing validation requires a compute
-#    instance in the deployment. The Endor AURI Agent does NOT run here (it runs
-#    on Agent Engine above); this is a minimal, idle placeholder. Keep it small.
+#    Required only by the Marketplace VM-listing validation. The agent runs on
+#    Cloud Run above, NOT here. Keep it small and idle.
 # ---------------------------------------------------------------------------
 locals {
   network_interfaces = [for i, n in var.networks : {
@@ -96,6 +127,10 @@ resource "google_compute_instance" "instance" {
   name         = "${var.goog_cm_deployment_name}-vm"
   machine_type = var.machine_type
   zone         = var.zone
+
+  # Allow in-place updates (the default network auto-populates a subnetwork,
+  # which otherwise trips "requires stopping it" on re-apply).
+  allow_stopping_for_update = true
 
   tags = ["${var.goog_cm_deployment_name}-deployment"]
 

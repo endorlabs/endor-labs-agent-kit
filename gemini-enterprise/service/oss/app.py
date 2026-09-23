@@ -70,8 +70,20 @@ def model_info(request: Request) -> JSONResponse:
 
 
 @app.get("/.well-known/agent-card.json")
-def agent_card() -> JSONResponse:
-    return JSONResponse(_load_agent_card())
+def agent_card(request: Request) -> JSONResponse:
+    card = _load_agent_card()
+    # Self-reference the deployed public URL so A2A clients (Gemini Enterprise)
+    # POST back to this exact service, not the static placeholder in the file.
+    # Overridable with AGENT_PUBLIC_URL; otherwise derived from the request host.
+    public_url = os.environ.get("AGENT_PUBLIC_URL")
+    if not public_url:
+        host = request.headers.get("host")
+        if host:
+            scheme = request.headers.get("x-forwarded-proto", "https")
+            public_url = f"{scheme}://{host}"
+    if public_url:
+        card["url"] = public_url.rstrip("/")
+    return JSONResponse(card)
 
 
 def _error(request_id: Any, code: int, message: str, *, data: Any | None = None) -> JSONResponse:

@@ -5,36 +5,36 @@ variable "project_id" {
 
 # Marketplace requires this variable name to be declared.
 variable "goog_cm_deployment_name" {
-  description = "The name of the Marketplace deployment."
+  description = "The name of the Marketplace deployment (used to name the Cloud Run service + VM)."
   type        = string
-}
-
-variable "agent_engine_name" {
-  description = "The name of the Agent Engine application."
-  type        = string
-  default     = "endor-auri-agent"
 }
 
 variable "region" {
-  description = "The GCP region for the Agent Engine deployment."
+  description = "The GCP region for the Cloud Run service."
   type        = string
   default     = "us-central1"
 }
 
-variable "agent_package_name" {
-  description = "The name of the Python package inside assets/source.tar.gz (set by package_agent.py)."
+variable "container_image" {
+  description = "The published Endor AURI Agent (A2UI) container image to run on Cloud Run."
   type        = string
-  default     = "endor_oss"
+  default     = "us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui:v1"
 }
 
-# -- Endor credential (injected via Secret Manager, never stored in state) -----
+variable "oss_router" {
+  description = "Question router: 'rule' (deterministic, no model key) or 'model' (Gemini tool-calling)."
+  type        = string
+  default     = "rule"
+}
+
+# -- Endor credential (from the customer's Secret Manager; never in state) ------
 variable "endor_api_key_secret_id" {
-  description = "Secret Manager secret ID (in the deployment project) holding the Endor API key."
+  description = "Secret Manager secret ID (in this project) holding the Endor API key."
   type        = string
 }
 
 variable "endor_api_secret_secret_id" {
-  description = "Secret Manager secret ID (in the deployment project) holding the Endor API secret."
+  description = "Secret Manager secret ID (in this project) holding the Endor API secret."
   type        = string
 }
 
@@ -44,16 +44,10 @@ variable "endor_api_base_url" {
   default     = "https://api.endorlabs.com"
 }
 
-variable "oss_router" {
-  description = "Question router: 'rule' (deterministic, no model key) or 'model' (Gemini tool-calling)."
-  type        = string
-  default     = "model"
-}
-
 # -- Placeholder compute instance (Marketplace validation requirement) ---------
-# The agent runs on Agent Engine, not here. Keep this small; it is idle.
+# The agent runs on Cloud Run, not here. Keep this small; it is idle.
 variable "machine_type" {
-  description = "Machine type for the placeholder compute instance. The agent does not run on it, so a small type is sufficient (e.g. e2-standard-2 = 2 vCPU / 8 GB). Use e2-standard-4 (4 vCPU / 16 GB) or e2-custom-4-8192 (4 vCPU / 8 GB) only if a larger placeholder is required."
+  description = "Machine type for the placeholder compute instance (the agent does not run on it)."
   type        = string
   default     = "e2-standard-2"
 }
