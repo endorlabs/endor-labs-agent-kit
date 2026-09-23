@@ -1,4 +1,4 @@
-# Endor AURI Agent — customer-tenant deployment package
+# Endor AURI for Developers — customer-tenant deployment package
 
 Terraform bundle for the **customer-tenant-deployable** Marketplace path (the
 hidden **VM listing**). The customer's admin deploys it and the agent runs in
@@ -7,7 +7,7 @@ cards in Gemini Enterprise.
 
 ## What it deploys
 
-- **Endor AURI Agent on Cloud Run** — the A2A endpoint Gemini Enterprise
+- **Endor AURI for Developers on Cloud Run** — the A2A endpoint Gemini Enterprise
   talks to. It emits the A2UI v0.9 surface (upgrade cards); a card click returns
   the `select_upgrade` event. Reads the Endor credential from Secret Manager.
 - **A placeholder Compute Engine VM** — required only by the Marketplace

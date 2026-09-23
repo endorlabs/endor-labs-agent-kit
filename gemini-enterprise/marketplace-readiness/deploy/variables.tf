@@ -1,5 +1,5 @@
 variable "project_id" {
-  description = "The customer project ID in which to deploy the Endor AURI Agent."
+  description = "The customer project ID in which to deploy the Endor AURI for Developers."
   type        = string
 }
 
@@ -16,7 +16,7 @@ variable "region" {
 }
 
 variable "container_image" {
-  description = "The published Endor AURI Agent container image to run on Cloud Run."
+  description = "The published Endor AURI for Developers container image to run on Cloud Run."
   type        = string
   default     = "us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui:v1"
 }

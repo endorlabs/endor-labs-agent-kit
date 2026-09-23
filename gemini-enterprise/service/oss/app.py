@@ -35,7 +35,7 @@ _TASK_STORE = TaskStore()
 _AGENT_CARD_PATH = Path(__file__).resolve().parents[2] / "agent-card-oss.json"
 
 app = FastAPI(
-    title="Endor AURI Agent (Gemini Enterprise)",
+    title="Endor AURI for Developers (Gemini Enterprise)",
     version="1.0.0",
     description="Public-access OSS vulnerability / package-risk / CVE agent (Option A).",
 )

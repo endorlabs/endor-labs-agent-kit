@@ -1,4 +1,4 @@
-# Endor AURI Agent — infrastructure estimate
+# Endor AURI for Developers — infrastructure estimate
 
 Solution Validation (Step 1) infrastructure estimate for a **typical customer
 deployment**, matching [architecture.svg](architecture.svg). All resources run in
