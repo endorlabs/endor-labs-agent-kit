@@ -6,12 +6,24 @@ from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import
     AUDIT_STATUSES,
     CLASSIFICATIONS,
     GRAPH_RUNTIME_KINDS,
+    MAX_DEPENDENCY_PATH,
+    MAX_EVIDENCE_ITEMS,
+    MAX_MANIPULATIONS,
+    MAX_VALIDATION_REQUIREMENTS,
     SEMANTIC_EFFECTS,
     PackageManagerAuditProfile,
     PackageManagerDetection,
+    _fold_disguises,
+    _normalize_version_token,
     detect_package_managers,
     validate_dependency_graph_audit,
 )
+
+# Public aliases: consumers outside this package normalize model-controlled
+# tokens with the same disguise folding and version normalization the audit
+# engine applies internally, so the seam is part of the package surface.
+fold_disguises = _fold_disguises
+normalize_version_token = _normalize_version_token
 from endor_agent_kit.workflow_output_contracts.sca.package_managers.bundler import (
     BUNDLER_PROFILE,
 )
@@ -67,6 +79,10 @@ __all__ = [
     "GRADLE_PROFILE",
     "GRAPH_RUNTIME_KINDS",
     "MAVEN_PROFILE",
+    "MAX_DEPENDENCY_PATH",
+    "MAX_EVIDENCE_ITEMS",
+    "MAX_MANIPULATIONS",
+    "MAX_VALIDATION_REQUIREMENTS",
     "NPM_PROFILE",
     "NUGET_PROFILE",
     "PIP_PROFILE",
@@ -80,5 +96,7 @@ __all__ = [
     "PackageManagerAuditProfile",
     "PackageManagerDetection",
     "detect_package_managers",
+    "fold_disguises",
+    "normalize_version_token",
     "validate_dependency_graph_audit",
 ]

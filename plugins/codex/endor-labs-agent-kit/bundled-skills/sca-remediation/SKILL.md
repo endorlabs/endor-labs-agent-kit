@@ -11,7 +11,7 @@ description: |
 
 # SCA Remediation
 
-Generated from Endor Agent Kit recipe `sca-remediation` v0.1.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v2.2.1.
+Generated from Endor Agent Kit recipe `sca-remediation` v0.1.0 for Endor Labs Agent Kit Codex plugin; package `endor-labs-agent-kit` v2.2.2.
 Source-first generated artifact; update source and republish instead of hand-editing installed copies.
 
 ## Codex Host Contract
@@ -389,6 +389,13 @@ Python, `module@version` Go, `package@version` NuGet, `gem@version`
 Bundler, or `crate@version` Cargo coordinate, never a `mvn://`, `npm://`,
 `pypi://`, `go://`, `nuget://`, `gem://`, `cargo://`, or other
 scheme-prefixed form, or null), and `evidence` (at most 3 strings).
+
+A package manager without an audit profile (Composer, Swift, or any manager
+outside the thirteen above) still returns the audit: `package_manager: null`,
+`status: "unavailable"`, empty `manipulations`, null `manifest`. Remediation
+proceeds normally, but an unavailable audit deliberately caps certification at
+`approved_with_validation_required` — never `approved_low_risk` — because no
+manager-specific graph-safety audit backs the change.
 
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
 `replacement_declared`, `replacement_verified`, `not_needed_verified`,

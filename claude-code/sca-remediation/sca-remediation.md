@@ -455,6 +455,13 @@ Bundler, or `crate@version` Cargo coordinate, never a `mvn://`, `npm://`,
 `pypi://`, `go://`, `nuget://`, `gem://`, `cargo://`, or other
 scheme-prefixed form, or null), and `evidence` (at most 3 strings).
 
+A package manager without an audit profile (Composer, Swift, or any manager
+outside the thirteen above) still returns the audit: `package_manager: null`,
+`status: "unavailable"`, empty `manipulations`, null `manifest`. Remediation
+proceeds normally, but an unavailable audit deliberately caps certification at
+`approved_with_validation_required` — never `approved_low_risk` — because no
+manager-specific graph-safety audit backs the change.
+
 Classify with `version_control`, `mediation_declared`, `mediation_verified`,
 `replacement_declared`, `replacement_verified`, `not_needed_verified`,
 `unverified`, or `replacement_conflict_or_incomplete`. Prefer an existing
@@ -915,7 +922,7 @@ table, or other prose outside the object.
     "validation_requirements": []
   },
   "dependency_graph_audit": {
-    "package_manager": "maven | gradle",
+    "package_manager": "maven | gradle | npm | yarn | pnpm | pip | poetry | pipenv | uv | go | nuget | bundler | cargo",
     "status": "clear | validation_required | validated | blocked | unavailable",
     "manifest": "string or null",
     "dependency_path": [],
