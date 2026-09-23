@@ -290,6 +290,18 @@ def profile_contract_from_dict(
     )
 
 
+@lru_cache(maxsize=None)
+def allowed_query_template_ids_for(agent_id: str) -> frozenset[str]:
+    """Canonical knowledge-pack recipe ids plus the agent's workflow recipe ids."""
+
+    pack = load_knowledge_pack(default_knowledge_pack_root())
+    allowed = set(pack.query_recipes)
+    workflow = pack.workflow_for(agent_id)
+    if workflow is not None:
+        allowed.update(recipe.id for recipe in workflow.evidence_query_recipes)
+    return frozenset(allowed)
+
+
 def validate_profile_output_payload(
     agent_id: str,
     profile_id: str,
@@ -298,7 +310,12 @@ def validate_profile_output_payload(
     """Validate output against one compiled task-profile boundary."""
 
     contract = compile_profile_contract(agent_id, profile_id)
-    errors = validate_structured_output_payload(agent_id, payload, contract.output_fields)
+    errors = validate_structured_output_payload(
+        agent_id,
+        payload,
+        contract.output_fields,
+        allowed_query_template_ids=allowed_query_template_ids_for(agent_id),
+    )
     allowed = set(contract.output_fields)
     errors.extend(
         f"{field}: not allowed by task profile {profile_id}"

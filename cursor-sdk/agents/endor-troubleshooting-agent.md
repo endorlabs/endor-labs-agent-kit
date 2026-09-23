@@ -407,7 +407,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 ### Global Rules
 
 - Context first; Namespace provenance; Efficient Endor queries; Large result delivery; Verified evidence only; Evidence ledger; Data gaps.
-- `runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run `python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason` with `result_count`.
+- `runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run `python3 runtime/summarize_endor_artifact.py capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; set `list_all: true` and copy helper output into `evidence_queries[].artifact` {artifact_ref, sha256, format, bytes, row_count} with `result_count` (legacy fallback: `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason`).
 
 ### Evidence Gate Contract
 
@@ -481,7 +481,7 @@ Use structured JSON mode only when the user or calling runtime explicitly reques
 The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
 enum: `troubleshooting_verdict`; object: `executive_summary`, `intake_classification`, `evidence_summary`, `support_escalation_packet`, `policy_context`; list[object]: `issue_lanes`, `affected_resources`, `evidence_queries`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `future_action_contracts`, `policy_evaluations`; list[string]: `data_gaps`, `future_scope`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/reason; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/list_all/artifact/reason; status is exactly succeeded|failed|skipped|unavailable and skipped requires a reason; set `list_all` true only for complete-inventory reads and copy the summarizer output into `artifact` {artifact_ref, sha256, format, bytes, row_count}, else leave both null; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

@@ -3,11 +3,13 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
 
 from conftest import repo_root
 from endor_agent_kit.compilers import claude_code
 from endor_agent_kit.compilers.rendering import (
     ENDOR_NAMESPACE_PREFLIGHT,
+    EVIDENCE_LEDGER_GUIDANCE,
     STRUCTURED_OUTPUT_HEADING,
     indent,
     instructions_for_edition,
@@ -16,6 +18,7 @@ from endor_agent_kit.compilers.rendering import (
     render_structured_output_contract,
 )
 from endor_agent_kit.knowledge_pack import PACK_SECTION_HEADING
+from endor_agent_kit.structured_output_contracts import EVIDENCE_QUERY_STATUS_VALUES
 from endor_agent_kit.recipe import ActionContract, EndorAgentRecipe, HostCapabilities, RecipeField
 
 
@@ -441,7 +444,11 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
     assert "current claims need >=1 row" in rendered
-    assert "/filter_summary/field_mask_summary/result_count/reason" in rendered
+    assert "/filter_summary/field_mask_summary/result_count/list_all/artifact/reason" in rendered
+    assert f"status is exactly {'|'.join(EVIDENCE_QUERY_STATUS_VALUES)}" in rendered
+    assert "skipped requires a reason" in rendered
+    assert '"list_all": false' in rendered
+    assert '"artifact": null' in rendered
     assert "/filter/field_mask/result_count/reason" not in rendered
     assert "source=endorctl_agent_api for Endor CLI API reads" in rendered
     assert "source=adapter" not in rendered
@@ -451,6 +458,23 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert "gaps -> `data_gaps`" in rendered
     assert "no raw shell, `endorctl agent api --agent-id <agent-id>`, `endorctl scan`, `git`, or `gh` command strings" in rendered
     assert "Record every missing evidence source or blocked lookup in `data_gaps`" in rendered
+
+
+def test_evidence_status_vocabulary_locksteps_with_taught_guidance():
+    piped = "|".join(EVIDENCE_QUERY_STATUS_VALUES)
+    assert f"status is exactly {piped}" in EVIDENCE_LEDGER_GUIDANCE
+
+    pack = yaml.safe_load(
+        (repo_root() / "source" / "endor-knowledge-pack" / "pack.yaml").read_text(
+            encoding="utf-8"
+        )
+    )
+    guidance = {rule["id"]: rule["guidance"] for rule in pack["global_rules"]}
+    spoken = (
+        ", ".join(EVIDENCE_QUERY_STATUS_VALUES[:-1])
+        + f", or {EVIDENCE_QUERY_STATUS_VALUES[-1]}"
+    )
+    assert f"Status is exactly {spoken}" in guidance["evidence-ledger"]
 
 
 def test_shared_compiler_rendering_renders_compact_structured_output_contract():
