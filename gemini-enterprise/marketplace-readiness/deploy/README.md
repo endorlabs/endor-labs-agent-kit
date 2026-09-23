@@ -52,6 +52,25 @@ terraform apply \
 
 Then query the resulting Agent Engine resource (see `../../adk/query_agent_engine.py`).
 
+This bundle was verified end-to-end this way: `terraform apply` created all 8
+resources, the deployed agent answered a live upgrade query (calling
+`recommend_upgrades` against the real Endor OSS API via the Secret Manager
+SecretRef), and `terraform destroy` removed everything.
+
+### Teardown note
+
+Once the agent has been queried, the reasoning engine holds **child sessions**,
+and `terraform destroy` fails with *"contains child resources: sessions … set
+force to true"*. Force-delete the engine first, then re-run destroy:
+
+```bash
+TOKEN=$(gcloud auth print-access-token)
+curl -s -X DELETE -H "Authorization: Bearer $TOKEN" \
+  "https://us-central1-aiplatform.googleapis.com/v1/$(terraform output -raw agent_engine_id)?force=true"
+terraform destroy   # cleans up the service account, VM, IAM, bucket
+```
+Customers undeploying via Marketplace will hit the same constraint.
+
 ## Build the Marketplace zip
 
 Include `modules/` and the packaged assets:
