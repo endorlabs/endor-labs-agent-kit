@@ -1,4 +1,4 @@
-# Endor AURI Agent — Evaluation plan
+# Endor AURI for Developers — Evaluation plan
 
 Eval set for the Gemini Enterprise Marketplace submission (deck Step 1/2 asks
 "evals"). It measures whether the agent picks the right tool, answers from real

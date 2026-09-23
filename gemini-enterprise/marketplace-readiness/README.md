@@ -1,6 +1,6 @@
-# Marketplace readiness — Endor AURI Agent
+# Marketplace readiness — Endor AURI for Developers
 
-Assets for listing the Endor AURI Agent on the Google Cloud Marketplace / Gemini
+Assets for listing the Endor AURI for Developers on the Google Cloud Marketplace / Gemini
 Enterprise, per the Agent Factory onboarding deck (Sept 2026).
 
 ## Contents

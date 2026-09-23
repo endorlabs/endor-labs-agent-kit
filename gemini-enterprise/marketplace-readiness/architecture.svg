@@ -30,7 +30,7 @@
   </defs>
 
   <rect width="1320" height="930" fill="#ffffff"/>
-  <text x="660" y="38" text-anchor="middle" class="hd">Endor AURI Agent — Deployment &amp; Runtime Architecture</text>
+  <text x="660" y="38" text-anchor="middle" class="hd">Endor AURI for Developers — Deployment &amp; Runtime Architecture</text>
   <text x="660" y="60" text-anchor="middle" class="subhd">Customer-tenant deployment model · single-tenant (a dedicated Cloud Run agent per customer) · A2UI interactive UI · agent is free (public OSS data)</text>
 
   <!-- ===================== PARTNER ZONE ===================== -->
@@ -97,7 +97,7 @@
   <!-- Agent Engine -->
   <rect class="tile" x="726" y="352" width="330" height="90"/>
   <rect x="726" y="352" width="6" height="90" rx="3" fill="#4285F4"/>
-  <text x="744" y="380" class="nm">Cloud Run — Endor AURI Agent</text>
+  <text x="744" y="380" class="nm">Cloud Run — Endor AURI for Developers</text>
   <text x="744" y="400" class="sub">A2A endpoint · emits A2UI cards</text>
   <text x="744" y="418" class="sub">autoscaled · the actual workload</text>
   <text x="744" y="435" class="sub">renders interactive upgrades in GE</text>

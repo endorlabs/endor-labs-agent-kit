@@ -1,10 +1,10 @@
-# Endor AURI Agent — Marketplace listing copy
+# Endor AURI for Developers — Marketplace listing copy
 
 Draft listing/description content for the Gemini Enterprise Marketplace submission.
 Written to Endor Labs brand voice (evidence over claims, developer-first, no hype).
 
 ## Name
-Endor AURI Agent
+Endor AURI for Developers
 
 ## One-line tagline
 Find and fix vulnerable open-source dependencies from inside Gemini Enterprise.
@@ -14,7 +14,7 @@ Ask about a CVE, check whether a package version is vulnerable, and get the exac
 
 ## Full description
 
-Endor AURI Agent answers open-source software supply-chain questions inside Gemini
+Endor AURI for Developers answers open-source software supply-chain questions inside Gemini
 Enterprise. Ask about a CVE or GHSA advisory, check whether a specific package
 version is vulnerable, review a dependency's risk, and get the exact upgrade that
 resolves its known vulnerabilities.

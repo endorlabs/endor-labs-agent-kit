@@ -1,4 +1,4 @@
-"""Endor AURI Agent — Google ADK agent for OSS intelligence (customer-hosted MVP).
+"""Endor AURI for Developers — Google ADK agent for OSS intelligence (customer-hosted MVP).
 
 This is the customer-hosted shape (AD-1): a Google ADK agent whose managed
 runtime (Vertex AI Agent Engine) provides sessions, resume, and per-customer
@@ -114,7 +114,7 @@ def agent_info() -> dict[str, object]:
     """
 
     return {
-        "agent": "Endor AURI Agent",
+        "agent": "Endor AURI for Developers",
         "model": describe_model(),
         "tools": [
             "vulnerability_details",

@@ -17,7 +17,7 @@ the Google **Gemini Enterprise** product this service integrates with.
 
 > **Heads up — two agents live in this directory now.** The project split into
 > two (see [docs/architecture-decisions.md](docs/architecture-decisions.md)):
-> - **Endor AURI Agent (Option A) — the current MVP.** Public open-source
+> - **Endor AURI for Developers (Option A) — the current MVP.** Public open-source
 >   answers (vulnerabilities, package risk, CVEs); no login, no customer data.
 >   Shipped as a Google **ADK agent** (customer-hosted) and an A2A app. **Start
 >   here → [`adk/README.md`](adk/README.md)** and the quickstart just below.
