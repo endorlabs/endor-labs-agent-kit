@@ -85,6 +85,21 @@ def _result(request_id: Any, result: Any) -> JSONResponse:
     return JSONResponse({"jsonrpc": "2.0", "id": request_id, "result": result})
 
 
+# A2UI (v0.9) A2A extension. When a client (Gemini Enterprise) requests it via the
+# X-A2A-Extensions header, the agent activates it by echoing the URI back. The
+# agent card also advertises it (agent-card-oss.json capabilities.extensions).
+A2UI_EXTENSION_URI = "https://a2ui.org/a2a-extension/a2ui/v0.9"
+
+
+def _activate_a2ui(request: Request, response: JSONResponse) -> JSONResponse:
+    """Echo the A2UI extension activation header when the client requested it."""
+
+    requested = request.headers.get("x-a2a-extensions", "")
+    if A2UI_EXTENSION_URI in requested:
+        response.headers["X-A2A-Extensions"] = A2UI_EXTENSION_URI
+    return response
+
+
 @app.post("/")
 async def jsonrpc_entrypoint(request: Request) -> JSONResponse:
     try:
@@ -105,9 +120,11 @@ async def jsonrpc_entrypoint(request: Request) -> JSONResponse:
             result = handle_oss_message(
                 params, router=build_oss_router(), task_store=_TASK_STORE
             )
-            return _result(request_id, result)
+            return _activate_a2ui(request, _result(request_id, result))
         if method == "tasks/get":
-            return _result(request_id, handle_tasks_get(params, task_store=_TASK_STORE))
+            return _activate_a2ui(
+                request, _result(request_id, handle_tasks_get(params, task_store=_TASK_STORE))
+            )
         raise MethodNotFoundError(f"Unknown method: {method!r}")
     except AgentError as exc:
         return JSONResponse({"jsonrpc": "2.0", "id": request_id, "error": exc.to_jsonrpc()})

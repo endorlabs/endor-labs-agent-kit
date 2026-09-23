@@ -109,6 +109,29 @@ def test_upgrade_question_emits_a2ui_surface_when_selected(monkeypatch):
     assert versions == ["2.15.0", "2.16.0", "2.17.1"]
 
 
+def test_agent_card_declares_a2ui_extension():
+    card = client.get("/.well-known/agent-card.json").json()
+    exts = card["capabilities"].get("extensions") or []
+    a2ui = [e for e in exts if e["uri"].endswith("a2a-extension/a2ui/v0.9")]
+    assert a2ui, "agent card must advertise the A2UI v0.9 extension"
+    assert a2ui[0]["params"]["supportedCatalogIds"] == [
+        "https://a2ui.org/specification/v0_9/basic_catalog.json"
+    ]
+
+
+def test_a2ui_extension_activation_is_echoed():
+    body = {
+        "jsonrpc": "2.0", "id": 1, "method": "message/send",
+        "params": {"message": {"role": "user", "parts": [{"kind": "text", "text": "What is CVE-2021-44228?"}]}},
+    }
+    uri = "https://a2ui.org/a2a-extension/a2ui/v0.9"
+    r = client.post("/", json=body, headers={"X-A2A-Extensions": uri})
+    assert r.headers.get("X-A2A-Extensions") == uri
+    # Not echoed when the client didn't request it.
+    r2 = client.post("/", json=body)
+    assert "X-A2A-Extensions" not in r2.headers
+
+
 def test_plain_question_has_no_interactive_element():
     result = _ask("What is CVE-2021-44228?")
     assert not [
