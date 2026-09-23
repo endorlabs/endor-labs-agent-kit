@@ -58,6 +58,7 @@ class UpgradeChoiceElement(BaseModel):
     purl: str
     package_name: str | None = None
     current_version: str | None = None
+    total_vulnerabilities: int = 0  # count of known vulns (the "of N" denominator)
     prompt: str
     choices: list[UpgradeChoice] = Field(default_factory=list)
     data_gaps: list[str] = Field(default_factory=list)
@@ -103,6 +104,7 @@ def build_upgrade_element(recs: UpgradeRecommendations) -> UpgradeChoiceElement 
         purl=recs.purl,
         package_name=recs.package_name,
         current_version=recs.current_version,
+        total_vulnerabilities=total,
         prompt=prompt,
         choices=choices,
         data_gaps=list(recs.data_gaps),
@@ -217,14 +219,16 @@ def _a2ui_components() -> list[dict]:
 def _a2ui_data_model(element: UpgradeChoiceElement) -> dict:
     name = element.package_name or element.purl
     current = f" {element.current_version}" if element.current_version else ""
-    total = len(element.choices)
+    total = element.total_vulnerabilities or len(element.choices)
     options = []
     for c in element.choices:
-        scope = (
-            f"Fixes all {len(c.fixes)} known vulnerabilities"
-            if c.fixes_all
-            else f"Fixes {len(c.fixes)} of {total}: {', '.join(c.fixes)}"
-        )
+        n = len(c.fixes)
+        if n >= total and total > 0:
+            scope = f"Fixes all {total} known vulnerabilities"
+        else:
+            shown = ", ".join(c.fixes[:4])
+            more = f" +{n - 4} more" if n > 4 else ""
+            scope = f"Fixes {n} of {total}: {shown}{more}"
         jump = f"{c.jump} upgrade" + (" · recommended" if c.recommended else "")
         options.append({
             "version": c.version,
