@@ -10,14 +10,14 @@ provider "google" {
 }
 
 # ---------------------------------------------------------------------------
-# 1. Endor AURI Agent (A2UI) on Cloud Run
+# 1. Endor AURI Agent on Cloud Run
 #    The A2A endpoint Gemini Enterprise talks to. It emits the A2UI v0.9
 #    interactive surface (upgrade-choice cards). GE reaches it over HTTPS and
 #    renders the cards; a click returns the select_upgrade event.
 # ---------------------------------------------------------------------------
 resource "google_service_account" "agent" {
   account_id   = "endor-auri-a2ui"
-  display_name = "Endor AURI Agent (A2UI) runtime"
+  display_name = "Endor AURI Agent runtime"
 }
 
 # The runtime SA reads the Endor credential from Secret Manager (least privilege).
@@ -37,7 +37,7 @@ resource "google_cloud_run_v2_service" "agent" {
   name                = "${var.goog_cm_deployment_name}-a2ui"
   location            = var.region
   ingress             = "INGRESS_TRAFFIC_ALL"
-  deletion_protection = false  # allow `terraform destroy` to undeploy cleanly
+  deletion_protection = false # allow `terraform destroy` to undeploy cleanly
 
   template {
     service_account = google_service_account.agent.email

@@ -1,5 +1,5 @@
 output "agent_url" {
-  description = "The Cloud Run URL of the Endor AURI Agent (A2UI). Register this in Gemini Enterprise."
+  description = "The Cloud Run URL of the Endor AURI Agent. Register this in Gemini Enterprise."
   value       = google_cloud_run_v2_service.agent.uri
 }
 

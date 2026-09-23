@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build and publish the Endor AURI Agent (A2UI) container image that the
+# Build and publish the Endor AURI Agent container image that the
 # Marketplace Terraform (main.tf, var.container_image) deploys to Cloud Run.
 #
 # Run once per release from a machine with gcloud + access to the publishing
