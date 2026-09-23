@@ -132,6 +132,31 @@ def test_a2ui_extension_activation_is_echoed():
     assert "X-A2A-Extensions" not in r2.headers
 
 
+def test_select_upgrade_event_returns_confirmation(monkeypatch):
+    monkeypatch.setenv("OSS_UI_PROTOCOL", "a2ui")
+    purl = "mvn://org.apache.logging.log4j:log4j-core@2.14.1"
+    body = {
+        "jsonrpc": "2.0", "id": 1, "method": "message/send",
+        "params": {"message": {"role": "user", "parts": [
+            {"kind": "data", "data": {
+                "name": "select_upgrade",
+                "context": {"version": "2.17.1", "purl": purl},
+            }},
+        ]}},
+    }
+    result = client.post("/", json=body).json()
+    data = _data(result)
+    # Confirms the chosen version and how to apply it.
+    assert "2.17.1" in data["answer"]
+    assert "recommend_upgrades" in data["tools_used"]
+    # Does NOT re-render the choice cards on a selection.
+    a2ui = [
+        p for p in _parts(result)
+        if p["kind"] == "data" and (p.get("metadata") or {}).get("mimeType") == "application/json+a2ui"
+    ]
+    assert not a2ui
+
+
 def test_plain_question_has_no_interactive_element():
     result = _ask("What is CVE-2021-44228?")
     assert not [

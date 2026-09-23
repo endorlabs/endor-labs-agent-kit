@@ -9,13 +9,16 @@ from __future__ import annotations
 
 import base64
 import json
+import logging
 import os
 import uuid
 from typing import Any, Mapping, Sequence
 
 from ..a2a.errors import InvalidParamsError, TaskNotFoundError
 from ..a2a.task_store import TaskStore
-from .router import QuestionRouter
+from .factory import build_oss_client
+from .router import OssAnswer, QuestionRouter
+from .ui import A2UI_SELECT_EVENT
 from .ui import (
     GE_SUGGESTIONS_MIME,
     build_upgrade_element,
@@ -27,8 +30,71 @@ from .ui import (
 )
 
 
+logger = logging.getLogger(__name__)
+
+
 def _new_id() -> str:
     return uuid.uuid4().hex
+
+
+def _select_context(data: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """If ``data`` (a DataPart body) is the A2UI select_upgrade event, return its
+    context; the event may be top-level or wrapped under an ``event`` key."""
+
+    event = data.get("event") if isinstance(data.get("event"), Mapping) else data
+    if isinstance(event, Mapping) and event.get("name") == A2UI_SELECT_EVENT:
+        ctx = event.get("context")
+        return ctx if isinstance(ctx, Mapping) else {}
+    return None
+
+
+def _extract_select_upgrade(message: Mapping[str, Any]) -> tuple[str, str] | None:
+    """Detect a clicked upgrade button: the A2UI ``select_upgrade`` event with a
+    ``version`` + ``purl`` context (values resolved to literals by the client)."""
+
+    for part in message.get("parts") or []:
+        if not isinstance(part, Mapping):
+            continue
+        data = part.get("data")
+        candidates = [data] if isinstance(data, Mapping) else []
+        # Some clients deliver the event JSON as text rather than a data part.
+        if isinstance(part.get("text"), str) and A2UI_SELECT_EVENT in part["text"]:
+            try:
+                candidates.append(json.loads(part["text"]))
+            except Exception:  # noqa: BLE001
+                pass
+        for cand in candidates:
+            if not isinstance(cand, Mapping):
+                continue
+            ctx = _select_context(cand)
+            if ctx is not None:
+                version, purl = ctx.get("version"), ctx.get("purl")
+                if isinstance(version, str) and isinstance(purl, str):
+                    return version, purl
+    return None
+
+
+def _select_upgrade_answer(version: str, purl: str) -> OssAnswer:
+    """Confirm a chosen upgrade with what it fixes and how to apply it (text only,
+    so it does not re-render the choice cards)."""
+
+    name = purl.split("://", 1)[-1].split("@", 1)[0]
+    fixes: list[str] = []
+    try:
+        recs = build_oss_client().recommend_upgrades(purl)
+        opt = next((o for o in recs.options if o.version == version), None)
+        if opt:
+            fixes = list(opt.fixes)
+    except Exception:  # noqa: BLE001 - the confirmation still works without the detail
+        pass
+    resolves = f"resolves {', '.join(fixes)}" if fixes else "is the recommended fix"
+    return OssAnswer(
+        answer=(
+            f"Upgrading {name} to {version} {resolves}. Update the dependency to "
+            f"version {version} in your build file, then rebuild and re-scan to confirm."
+        ),
+        tools_used=["recommend_upgrades"],
+    )
 
 
 def _message_text(message: Mapping[str, Any]) -> str:
@@ -121,7 +187,28 @@ def handle_oss_message(
     context_id = context_id if isinstance(context_id, str) and context_id else _new_id()
     task_id = _new_id()
 
-    answer = router.answer(_message_text(message))
+    # Debug aid: log the shape of incoming parts (helps confirm how GE delivers
+    # A2UI button-click events). Low volume; safe to keep.
+    logger.info(
+        "incoming parts: %s",
+        [
+            {
+                "kind": p.get("kind") or p.get("type"),
+                "mime": (p.get("metadata") or {}).get("mimeType"),
+                "data_keys": list(p["data"].keys()) if isinstance(p.get("data"), Mapping) else None,
+            }
+            for p in (message.get("parts") or [])
+            if isinstance(p, Mapping)
+        ],
+    )
+
+    # A clicked upgrade button comes back as the A2UI select_upgrade event; answer
+    # with a confirmation instead of routing it as a new question.
+    selection = _extract_select_upgrade(message)
+    if selection is not None:
+        answer = _select_upgrade_answer(*selection)
+    else:
+        answer = router.answer(_message_text(message))
     task = _task_result(answer, context_id=context_id, task_id=task_id)
     if task_store is not None:
         task_store.put(task)
