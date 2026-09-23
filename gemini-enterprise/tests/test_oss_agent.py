@@ -135,12 +135,20 @@ def test_a2ui_extension_activation_is_echoed():
 def test_select_upgrade_event_returns_confirmation(monkeypatch):
     monkeypatch.setenv("OSS_UI_PROTOCOL", "a2ui")
     purl = "mvn://org.apache.logging.log4j:log4j-core@2.14.1"
+    # Exact shape Gemini Enterprise sends on a button click (a text placeholder
+    # plus an application/json+a2ui DataPart whose data.action is the event).
     body = {
         "jsonrpc": "2.0", "id": 1, "method": "message/send",
         "params": {"message": {"role": "user", "parts": [
-            {"kind": "data", "data": {
-                "name": "select_upgrade",
-                "context": {"version": "2.17.1", "purl": purl},
+            {"kind": "text", "text": "User action triggered."},
+            {"kind": "data", "metadata": {"mimeType": "application/json+a2ui"}, "data": {
+                "version": "v0.9",
+                "action": {
+                    "name": "select_upgrade",
+                    "context": {"version": "2.17.1", "purl": purl},
+                    "sourceComponentId": "opt-button",
+                    "surfaceId": "endor-upgrade-choices",
+                },
             }},
         ]}},
     }
