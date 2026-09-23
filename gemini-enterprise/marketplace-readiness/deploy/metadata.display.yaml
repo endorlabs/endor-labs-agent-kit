@@ -16,18 +16,14 @@ spec:
           name: goog_cm_deployment_name
           title: Goog Cm Deployment Name
           invisible: true
-        agent_package_name:
-          name: agent_package_name
-          title: Agent Package Name
+        container_image:
+          name: container_image
+          title: Agent container image
           invisible: true
-        agent_engine_name:
-          name: agent_engine_name
-          title: Agent name
-          tooltip: The name of your Endor AURI Agent application in Vertex AI Agent Engine.
         region:
           name: region
           title: Region
-          tooltip: The Google Cloud region to deploy the agent to.
+          tooltip: The Google Cloud region to deploy the Cloud Run agent to.
           xGoogleProperty:
             type: ET_GCE_REGION
         endor_api_key_secret_id:
@@ -45,8 +41,8 @@ spec:
         oss_router:
           name: oss_router
           title: Router
-          tooltip: "'model' uses Gemini tool-calling (recommended). 'rule' is deterministic and needs no model."
+          tooltip: "'rule' is deterministic (no model key). 'model' uses Gemini tool-calling."
         machine_type:
           name: machine_type
           title: Placeholder VM machine type
-          tooltip: The agent runs on Agent Engine, not on a VM. This small instance exists only to satisfy the Marketplace VM-listing requirement; the default is sufficient.
+          tooltip: The agent runs on Cloud Run, not on a VM. This small instance exists only to satisfy the Marketplace VM-listing requirement.

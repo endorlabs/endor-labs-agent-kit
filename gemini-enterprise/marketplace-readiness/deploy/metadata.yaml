@@ -6,7 +6,7 @@ metadata:
     config.kubernetes.io/local-config: "true"
 spec:
   info:
-    title: Endor AURI Agent Deployer
+    title: Endor AURI Agent (A2UI) Deployer
     version: "1.0.0"
     actuationTool:
       flavor: Terraform
@@ -15,7 +15,7 @@ spec:
     softwareGroups:
       - type: SG_OS
         software:
-          - title: Endor AURI Agent
+          - title: Endor AURI Agent (A2UI)
             version: "1.0.0"
   content: {}
   interfaces:
@@ -28,18 +28,14 @@ spec:
         description: The name of the deployment.
         varType: string
         required: true
-      - name: agent_engine_name
-        description: The name of the Agent Engine application.
-        varType: string
-        defaultValue: endor-auri-agent
       - name: region
-        description: The GCP region to deploy to.
+        description: The GCP region for the Cloud Run service.
         varType: string
         defaultValue: us-central1
-      - name: agent_package_name
-        description: The name of the Python package inside the source archive.
+      - name: container_image
+        description: The published Endor AURI Agent (A2UI) container image.
         varType: string
-        defaultValue: endor_oss
+        defaultValue: us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui:v1
       - name: endor_api_key_secret_id
         description: Secret Manager secret ID (in this project) holding the Endor API key.
         varType: string
@@ -53,17 +49,17 @@ spec:
         varType: string
         defaultValue: https://api.endorlabs.com
       - name: oss_router
-        description: Question router - 'model' (Gemini tool-calling) or 'rule' (deterministic).
+        description: Question router - 'rule' (deterministic) or 'model' (Gemini tool-calling).
         varType: string
-        defaultValue: model
+        defaultValue: rule
       - name: machine_type
-        description: Machine type for the placeholder compute instance (the agent runs on Agent Engine, not here).
+        description: Machine type for the placeholder compute instance (the agent runs on Cloud Run, not here).
         varType: string
         defaultValue: e2-standard-2
     outputs:
-      - name: agent_engine_id
-        description: The resource ID of the deployed Endor AURI Agent.
-      - name: agent_name
-        description: The name of the deployed agent.
+      - name: agent_url
+        description: The Cloud Run URL of the deployed Endor AURI Agent (A2UI).
+      - name: agent_card_url
+        description: The A2A agent card URL to register in Gemini Enterprise.
       - name: region
         description: The region the agent was deployed to.
