@@ -907,87 +907,70 @@ def _risk_decision_schema() -> dict[str, Any]:
 
 
 def _dependency_graph_audit_schema() -> dict[str, Any]:
+    # Derived from the audit engine's own vocabulary so the transport schema
+    # and the runtime validator can never drift apart. Imported lazily: this
+    # module stays a leaf at import time, and schema builders only run inside
+    # json_schema_for_agent(), after package initialization. Frozenset-backed
+    # vocabularies are sorted so generated contract JSON stays deterministic.
+    from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+        AUDIT_STATUSES,
+        CLASSIFICATIONS,
+        GRAPH_RUNTIME_KINDS,
+        MAVEN_PROFILE,
+        MAX_DEPENDENCY_PATH,
+        MAX_EVIDENCE_ITEMS,
+        MAX_MANIPULATIONS,
+        MAX_VALIDATION_REQUIREMENTS,
+        SEMANTIC_EFFECTS,
+        SUPPORTED_PROFILES,
+    )
+
+    # `type` carries only the type-driven (Maven) vocabulary; every
+    # mechanism-driven manager keeps `type` null and expresses its construct
+    # through the free-string `mechanism`, whose per-manager enforcement is
+    # owned by the runtime validator — strict transport schemas cannot
+    # express per-manager conditionals.
+    maven_types = sorted(
+        MAVEN_PROFILE.native_types
+        | MAVEN_PROFILE.override_types
+        | MAVEN_PROFILE.removal_types
+    )
     manipulation = _strict_object_schema(
         {
-            "type": _nullable_enum(
-                (
-                    "version_property",
-                    "dependency_management",
-                    "bom",
-                    "direct_dependency_override",
-                    "exclusion",
-                )
-            ),
+            "type": _nullable_enum(tuple(maven_types)),
             "coordinate": _nullable_string(),
-            "classification": _nullable_enum(
-                (
-                    "version_control",
-                    "mediation_declared",
-                    "mediation_verified",
-                    "replacement_declared",
-                    "replacement_verified",
-                    "not_needed_verified",
-                    "unverified",
-                    "replacement_conflict_or_incomplete",
-                )
-            ),
-            "semantic_effect": _nullable_enum(
-                (
-                    "native_version_control",
-                    "forced_version_mediation",
-                    "dependency_removal",
-                    "dependency_substitution",
-                    "asset_or_feature_suppression",
-                    "source_override",
-                    "lockfile_override",
-                )
-            ),
+            "classification": _nullable_enum(CLASSIFICATIONS),
+            "semantic_effect": _nullable_enum(SEMANTIC_EFFECTS),
             "mechanism": _nullable_string(),
             "replacement": _nullable_string(),
             "evidence": {
                 "type": ["array", "null"],
                 "items": {"type": "string"},
-                "maxItems": 3,
+                "maxItems": MAX_EVIDENCE_ITEMS,
             },
         }
     )
     return _strict_object_schema(
         {
             "package_manager": _nullable_enum(
-                (
-                    "maven",
-                    "gradle",
-                    "npm",
-                    "yarn",
-                    "pnpm",
-                    "pip",
-                    "poetry",
-                    "pipenv",
-                    "uv",
-                    "go",
-                    "nuget",
-                    "bundler",
-                    "cargo",
-                )
+                tuple(profile.name for profile in SUPPORTED_PROFILES)
             ),
-            "status": _nullable_enum(
-                ("clear", "validation_required", "validated", "blocked", "unavailable")
-            ),
+            "status": _nullable_enum(AUDIT_STATUSES),
             "manifest": _nullable_string(),
             "dependency_path": {
                 "type": ["array", "null"],
                 "items": {"type": "string"},
-                "maxItems": 12,
+                "maxItems": MAX_DEPENDENCY_PATH,
             },
             "manipulations": {
                 "type": ["array", "null"],
                 "items": manipulation,
-                "maxItems": 8,
+                "maxItems": MAX_MANIPULATIONS,
             },
             "validation_requirements": {
                 "type": ["array", "null"],
-                "items": {"type": "string", "enum": ["resolved_graph", "runtime_linkage"]},
-                "maxItems": 2,
+                "items": {"type": "string", "enum": sorted(GRAPH_RUNTIME_KINDS)},
+                "maxItems": MAX_VALIDATION_REQUIREMENTS,
             },
         }
     )

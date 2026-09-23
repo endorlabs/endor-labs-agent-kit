@@ -476,3 +476,25 @@ def test_sca_remediation_agent_eval_cases_cover_v1_risks(tmp_path):
         "maven-declared-bridge-validation-required",
         "maven-unrelated-exclusion-ignored",
     }.issubset(ids)
+
+
+def test_audit_skeleton_package_manager_tokens_match_supported_profiles():
+    # PR 51 review: the JSON skeleton's package_manager line went stale at
+    # "maven | gradle" while the prose enum listed all 13 managers, and the
+    # skeleton is what prompt-only hosts copy. Pin the skeleton tokens to the
+    # profile registry so the two can never drift again.
+    from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+        SUPPORTED_PROFILES,
+    )
+
+    instructions = (
+        repo_root() / "source" / "agents" / "sca-remediation" / "instructions.md"
+    ).read_text(encoding="utf-8")
+    marker = '"package_manager": "'
+    start = instructions.index(marker) + len(marker)
+    skeleton_tokens = {
+        token.strip()
+        for token in instructions[start : instructions.index('"', start)].split("|")
+    }
+
+    assert skeleton_tokens == {profile.name for profile in SUPPORTED_PROFILES}

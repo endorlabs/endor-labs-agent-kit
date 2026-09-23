@@ -283,6 +283,10 @@ SCA gate checks include:
 - risk decision status
 - source usage summary when risk is elevated or compatibility is uncertain
 - validation requirements for risky solver decisions
+- dependency graph audit for every selected remediation: per-manager
+  manipulation classification, status forcing, audited-manifest anchoring,
+  and graph/runtime validation coupling across the 13 supported package
+  managers, failing closed on unrecognized manager tokens
 - remediation branch naming
 - PR body linting at the PR gate
 

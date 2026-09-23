@@ -1,17 +1,17 @@
 {
   "schema_version": 1,
-  "checked_at": "2026-07-30",
+  "checked_at": "2026-08-27",
   "openapi": {
     "url": "https://api.endorlabs.com/download/openapiv2.swagger.json",
-    "sha256": "9191b104bf5bbf4ec094eda5c721963c5f59f36000e325f33f350833d325ee8f",
-    "bytes": 4415557,
+    "sha256": "c00d85e001d35ac21a2aa111168d2110e88a834f135314d6a69cc249ba5b3e02",
+    "bytes": 4563170,
     "failure_mode": "blocking"
   },
   "meta_version": {
     "url": "https://api.endorlabs.com/meta/version",
-    "client_version": "v1.7.1088",
-    "service_version": "v1.7.1088",
-    "service_sha": "133d34a8c3c0b3556c49911943c0df19501f33ae",
+    "client_version": "v1.7.1128",
+    "service_version": "v1.7.1128",
+    "service_sha": "d854a3a7e7673ca872a5b41684228f9f371d0d26",
     "failure_mode": "warning"
   },
   "docs": [

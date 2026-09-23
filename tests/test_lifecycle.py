@@ -5,6 +5,7 @@ import json
 from conftest import repo_root
 
 from endor_agent_kit import lifecycle
+from endor_agent_kit.publication.plugin_package_common import package_version
 from endor_agent_kit.cli import main
 
 
@@ -45,7 +46,7 @@ def test_prepare_validation_request_writes_public_neutral_agent_handoff(tmp_path
     agent = persisted["agents"][0]
     assert request == persisted
     assert persisted["kind"] == lifecycle.VALIDATION_REQUEST_KIND
-    assert persisted["source"]["package_version"] == "2.2.1"
+    assert persisted["source"]["package_version"] == package_version()
     assert persisted["request"]["scope"] == "explicit"
     assert persisted["request"]["publishable"] is True
     assert agent["id"] == "sca-remediation"

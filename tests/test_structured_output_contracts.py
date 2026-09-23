@@ -627,3 +627,59 @@ def _assert_value_matches_schema(value, schema):
         assert value in schema["enum"]
     if isinstance(value, str) and "pattern" in schema:
         assert re.fullmatch(schema["pattern"], value)
+
+
+def test_dependency_graph_audit_schema_matches_audit_engine_constants() -> None:
+    # PR 51 review: the audit schema and the engine constants in
+    # package_managers/_base.py are two sources of truth for the same
+    # vocabulary, and nothing cross-checked them. Lock the schema to the
+    # constants so a vocabulary change in either place fails here until the
+    # schema is derived from the constants outright.
+    from endor_agent_kit.workflow_output_contracts.sca.package_managers import (
+        AUDIT_STATUSES,
+        CLASSIFICATIONS,
+        GRAPH_RUNTIME_KINDS,
+        MAVEN_PROFILE,
+        SEMANTIC_EFFECTS,
+        SUPPORTED_PROFILES,
+    )
+    from endor_agent_kit.workflow_output_contracts.sca.package_managers._base import (
+        MAX_DEPENDENCY_PATH,
+        MAX_EVIDENCE_ITEMS,
+        MAX_MANIPULATIONS,
+        MAX_VALIDATION_REQUIREMENTS,
+    )
+
+    audit = json_schema_for_agent("sca-remediation")["properties"][
+        "dependency_graph_audit"
+    ]
+    manipulation = audit["properties"]["manipulations"]["items"]
+
+    def _enum_values(schema):
+        return {value for value in schema["enum"] if value is not None}
+
+    assert _enum_values(audit["properties"]["status"]) == set(AUDIT_STATUSES)
+    assert _enum_values(audit["properties"]["package_manager"]) == {
+        profile.name for profile in SUPPORTED_PROFILES
+    }
+    assert _enum_values(manipulation["properties"]["classification"]) == set(
+        CLASSIFICATIONS
+    )
+    assert _enum_values(manipulation["properties"]["semantic_effect"]) == set(
+        SEMANTIC_EFFECTS
+    )
+    assert _enum_values(manipulation["properties"]["type"]) == (
+        MAVEN_PROFILE.native_types
+        | MAVEN_PROFILE.override_types
+        | MAVEN_PROFILE.removal_types
+    )
+    assert set(
+        audit["properties"]["validation_requirements"]["items"]["enum"]
+    ) == GRAPH_RUNTIME_KINDS
+    assert audit["properties"]["manipulations"]["maxItems"] == MAX_MANIPULATIONS
+    assert audit["properties"]["dependency_path"]["maxItems"] == MAX_DEPENDENCY_PATH
+    assert (
+        audit["properties"]["validation_requirements"]["maxItems"]
+        == MAX_VALIDATION_REQUIREMENTS
+    )
+    assert manipulation["properties"]["evidence"]["maxItems"] == MAX_EVIDENCE_ITEMS
