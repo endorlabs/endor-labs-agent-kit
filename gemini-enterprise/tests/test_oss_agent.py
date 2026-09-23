@@ -94,6 +94,21 @@ def test_upgrade_question_emits_ag_ui_events_when_selected(monkeypatch):
     ]
 
 
+def test_upgrade_question_emits_a2ui_surface_when_selected(monkeypatch):
+    monkeypatch.setenv("OSS_UI_PROTOCOL", "a2ui")
+    result = _ask("How do I fix mvn://org.apache.logging.log4j:log4j-core@2.14.1?")
+    a2ui = [
+        p for p in _parts(result)
+        if p["kind"] == "data" and (p.get("metadata") or {}).get("mimeType") == "application/json+a2ui"
+    ]
+    # createSurface + updateComponents + updateDataModel
+    assert len(a2ui) == 3
+    kinds = [next(iter(p["data"].keys() - {"version"})) for p in a2ui]
+    assert kinds == ["createSurface", "updateComponents", "updateDataModel"]
+    versions = [o["version"] for o in a2ui[2]["data"]["updateDataModel"]["value"]["options"]]
+    assert versions == ["2.15.0", "2.16.0", "2.17.1"]
+
+
 def test_plain_question_has_no_interactive_element():
     result = _ask("What is CVE-2021-44228?")
     assert not [

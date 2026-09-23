@@ -5,9 +5,13 @@ from __future__ import annotations
 from service.oss.mock import OssMockClient
 from service.oss.models import UpgradeRecommendations
 from service.oss.ui import (
+    A2UI_MIME,
+    A2UI_SELECT_EVENT,
     ELEMENT_TYPE,
     build_upgrade_element,
     to_a2a_parts,
+    to_a2ui_messages,
+    to_a2ui_parts,
     to_ag_ui_events,
     ui_protocol,
 )
@@ -71,7 +75,54 @@ def test_ui_protocol_env(monkeypatch):
     assert ui_protocol() == "a2a"
     monkeypatch.setenv("OSS_UI_PROTOCOL", "AG_UI")
     assert ui_protocol() == "ag_ui"
+    monkeypatch.setenv("OSS_UI_PROTOCOL", "A2UI")
+    assert ui_protocol() == "a2ui"
     monkeypatch.setenv("OSS_UI_PROTOCOL", "both")
     assert ui_protocol() == "both"
     monkeypatch.setenv("OSS_UI_PROTOCOL", "nonsense")
     assert ui_protocol() == "a2a"  # unknown value falls back to the default
+
+
+# -- A2UI (Gemini Enterprise interactive protocol) ----------------------------
+
+def test_a2ui_messages_structure():
+    el = build_upgrade_element(_recs())
+    msgs = to_a2ui_messages(el)
+    assert [next(iter(m.keys() - {"version"})) for m in msgs] == [
+        "createSurface", "updateComponents", "updateDataModel",
+    ]
+    assert all(m["version"] == "v0.9" for m in msgs)
+    create, comps, data = msgs
+    assert create["createSurface"]["surfaceId"] == comps["updateComponents"]["surfaceId"]
+    assert "basic_catalog" in create["createSurface"]["catalogId"]
+
+
+def test_a2ui_components_have_templated_list_and_select_button():
+    el = build_upgrade_element(_recs())
+    comps = to_a2ui_messages(el)[1]["updateComponents"]["components"]
+    by_id = {c["id"]: c for c in comps}
+    # A templated list over the /options data path.
+    assert by_id["options-list"]["component"] == "List"
+    assert by_id["options-list"]["children"] == {"componentId": "option-card", "path": "/options"}
+    # The button emits the select event with version + purl context.
+    ev = by_id["opt-button"]["action"]["event"]
+    assert ev["name"] == A2UI_SELECT_EVENT
+    assert ev["context"] == {"version": {"path": "version"}, "purl": {"path": "purl"}}
+
+
+def test_a2ui_data_model_carries_the_options():
+    el = build_upgrade_element(_recs())
+    value = to_a2ui_messages(el)[2]["updateDataModel"]["value"]
+    assert [o["version"] for o in value["options"]] == ["2.15.0", "2.16.0", "2.17.1"]
+    rec = value["options"][-1]
+    assert rec["version"] == "2.17.1"
+    assert "recommended" in rec["jump"] and rec["buttonLabel"] == "Upgrade to 2.17.1"
+    assert rec["purl"] == el.purl and value["purl"] == el.purl
+
+
+def test_a2ui_parts_are_tagged_datapart_messages():
+    el = build_upgrade_element(_recs())
+    parts = to_a2ui_parts(el)
+    assert len(parts) == 3
+    assert all(p["kind"] == "data" and p["metadata"]["mimeType"] == A2UI_MIME for p in parts)
+    assert A2UI_MIME == "application/json+a2ui"
