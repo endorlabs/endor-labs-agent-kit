@@ -32,11 +32,20 @@ cards in Gemini Enterprise.
 
 The Terraform runs a pre-built container (`var.container_image`). Publish it to a
 registry the customer projects can pull from (public Artifact Registry, or the
-Marketplace container path):
+Marketplace container path). The image is built from a **committed git ref**
+(`GIT_REF`, default `HEAD`) — not the working tree — so the artifact is
+reproducible and no uncommitted work-in-progress can leak in. Tag a release
+first (this repo uses `agents-vX.Y.Z`), then build from that tag:
 ```bash
-PROJECT=endor-labs-marketplace-public TAG=v1 ./build_and_push_image.sh
+git tag agents-v2.3.0            # tag the release commit on the feature branch
+PROJECT=endor-labs-marketplace-public GIT_REF=agents-v2.3.0 TAG=v1 ./build_and_push_image.sh
 ```
-Then set that image as the `container_image` default (variables.tf) or pass it in.
+The script prints the image's **immutable `@sha256` digest**. Pin that digest as
+the `container_image` default in [variables.tf](variables.tf) (not the mutable
+`:v1` tag) so customers always pull the exact validated bits:
+```hcl
+default = "us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui@sha256:<hex>"
+```
 
 ## Deploy + test in your own project first
 
