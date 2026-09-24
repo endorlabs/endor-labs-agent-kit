@@ -1,0 +1,43 @@
+{
+  "name": "Endor AURI for Developers",
+  "protocolVersion": "1.0",
+  "description": "Answers open-source vulnerability, package-risk, and CVE questions from Endor's public data. No login, no customer data. DEPLOYMENT: this agent runs in your own Google Cloud project, provisioned via the 'Endor AURI for Developers' Google Cloud Marketplace listing (Terraform/VM), which stands up the Cloud Run service and sets this card's live 'url' automatically. If you are viewing this as a static template (its 'url' still points to the agents.endorlabs.com placeholder), the agent will NOT respond until you deploy it via the Marketplace listing — do not register the template card directly. See documentationUrl for setup.",
+  "url": "https://agents.endorlabs.com/oss",
+  "documentationUrl": "https://docs.endorlabs.com/",
+  "preferredTransport": "JSONRPC",
+  "provider": {
+    "organization": "Endor Labs",
+    "url": "https://www.endorlabs.com"
+  },
+  "version": "1.0.0",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extensions": [
+      {
+        "uri": "https://a2ui.org/a2a-extension/a2ui/v0.9",
+        "description": "Provides agent driven UI using the A2UI JSON format.",
+        "params": {
+          "supportedCatalogIds": ["https://a2ui.org/specification/v0_9/basic_catalog.json"]
+        }
+      }
+    ]
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "skills": [
+    {
+      "id": "oss_intelligence",
+      "name": "Open Source Intelligence",
+      "description": "Look up a CVE/GHSA, list known vulnerabilities for a package version, or get Endor risk scores for an open-source package.",
+      "tags": ["security", "oss", "vulnerabilities", "cve", "package-risk"],
+      "examples": [
+        "What is CVE-2021-44228?",
+        "Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable?",
+        "What's the risk score for npm://lodash@4.17.20?"
+      ]
+    }
+  ],
+  "supportsAuthenticatedExtendedCard": false,
+  "iconUrl": "https://www.endorlabs.com/assets/agent-icon.png"
+}

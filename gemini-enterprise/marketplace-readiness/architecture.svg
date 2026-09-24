@@ -1,0 +1,184 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1320 930" font-family="'Google Sans','Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#202124"/>
+    </marker>
+    <marker id="arrb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#1a73e8"/>
+    </marker>
+    <style>
+      .z{rx:14;stroke-width:1.5;fill-opacity:.5}
+      .zt{font-size:14px;font-weight:700;letter-spacing:.02em}
+      .tile{rx:9;fill:#ffffff;stroke:#dadce0;stroke-width:1.2}
+      .nm{font-size:13.5px;font-weight:600;fill:#202124}
+      .sub{font-size:11.5px;fill:#5f6368}
+      .flow{stroke:#202124;stroke-width:2;fill:none}
+      .dep{stroke:#1a73e8;stroke-width:2;stroke-dasharray:6 5;fill:none}
+      .badge{fill:#202124}
+      .badge.dep{fill:#1a73e8}
+      .bt{fill:#fff;font-size:11px;font-weight:700}
+      .lg{font-size:12px;fill:#3c4043}
+      .hd{font-size:22px;font-weight:700;fill:#202124}
+      .subhd{font-size:13px;fill:#5f6368}
+    </style>
+      <image id="ic-marketplace" width="26" height="26" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMCBCdWlsZCAxNDIpICAtLT4KICA8ZyBpZD0iYm91bmRpbmdfYm94Ij4KICAgIDxyZWN0IHk9IjAiIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSJub25lIi8+CiAgPC9nPgogIDxnIGlkPSJhcnQiPgogICAgPHBhdGggZD0iTTQyMy41NzMsMzYyLjgxM0gxNDYuNjExYy01Ljc1OSwwLTExLjA3LTMuMTA1LTEzLjg5OC04LjEyMy0yLjgyOS01LjAxOS0yLjczNS0xMS4xNzQuMjQ0LTE2LjEwM2w1NS44LTkyLjMyMWM0LjU2LTcuNTQ0LDE0LjM2OS05Ljk2MywyMS45MTEtNS40LDcuNTQxLDQuNTYzLDkuOTU3LDE0LjM3OCw1LjM5NywyMS45MjNsLTQxLjE1OCw2OC4wOTVoMjQ4LjY2NWM4LjgxMywwLDE1Ljk1Niw3LjE0NywxNS45NTYsMTUuOTY1cy03LjE0NCwxNS45NjUtMTUuOTU2LDE1Ljk2NWguMDAxWiIgZmlsbD0iIzlhYTBhNiIvPgogICAgPHBhdGggZD0iTTQ1NS4xNiw5Ny43N2MtMi45OC00LjMtNy44OS02Ljg3LTEzLjEyLTYuODdIMTUzLjY4M2wtMTAuMTE5LTI2LjY4Yy0yLjM1MS02LjItOC4yOS0xMC4zMDEtMTQuOTE4LTEwLjMwMWgtNTguNjg5Yy04LjgxMywwLTE1Ljk1Niw3LjE0Ny0xNS45NTYsMTUuOTY1czcuMTQ0LDE1Ljk2NSwxNS45NTYsMTUuOTY1aDQ3LjY3N2wxMC4xMTgsMjYuNjc3Yy4wMjEuMDU0LjA0Ni4xMDQuMDY3LjE1OC4wMjEuMDU1LjAzOS4xMTEuMDYxLjE2Ni4wMy4wOS4wNy4xOC4xMS4yN2w1Ni42MywxMzkuOTksMyw3LjQxYzIuNDQsNi4wMyw4LjI5LDkuOTcsMTQuNzksOS45N2gxODQuMjFjNi42NSwwLDEyLjYtNC4xMiwxNC45NC0xMC4zNWw1NS40Mi0xNDcuNjdjLjExLS4yOS4yMS0uNTguMjktLjg3LjA3LS4yMS4xNC0uNDIuMTktLjY0LjA2LS4xOS4xMS0uMzguMTQtLjU3Ljk5LTQuMzMuMTMtOC45MS0yLjQ0LTEyLjYyaDBaTTM3NS41NywyMzguNTZoLTE2Mi40bC00Ni44My0xMTUuNzNoMjUyLjY2bC00My40MywxMTUuNzNaIiBmaWxsPSIjOWFhMGE2Ii8+CiAgICA8ZWxsaXBzZSBjeD0iMTY1LjI5NSIgY3k9IjQyMC45NjMiIHJ4PSIzNi45MzYiIHJ5PSIzNi45NTYiIGZpbGw9IiMyYjgwZjgiLz4KICAgIDxlbGxpcHNlIGN4PSI0MDUuMzc2IiBjeT0iNDIwLjk2MyIgcng9IjM2LjkzNiIgcnk9IjM2Ljk1NiIgZmlsbD0iIzJiODBmOCIvPgogICAgPHBhdGggZD0iTTQ1Ny42LDExMC4zOWMtLjAzLjE5LS4wOC4zOC0uMTQuNTctLjA1LjIyLS4xMi40My0uMTkuNjQtLjA4LjI5LS4xOC41OC0uMjkuODdsLTU1LjQyLDE0Ny42N2MtMi4zNCw2LjIzLTguMjksMTAuMzUtMTQuOTQsMTAuMzVoLTE3NS4yMWwtMzYuNSw2MC4zOS0xOS4yOTUsMzEuOTM0Yy00LjUwMiwwLTMuNjA1LS4wMDQtOS4wMDYtLjAwNGgtLjAxYy0uNjUsMC0xLjMtLjA0LTEuOTQtLjEyLS40MS0uMDUtLjgyLS4xMS0xLjIzLS4yLS42OC0uMTMtMS4zNi0uMzItMi4wMy0uNTUtLjY1LS4yMi0xLjI5LS40OS0xLjkyLS44MS0uMjctLjE0LS41NC0uMjgtLjgtLjQzLS4wNS0uMDMtLjEtLjA1LS4xNS0uMDktLjA2LS4wMy0uMTItLjA2LS4xOC0uMS0uMTItLjA4LS4yNS0uMTUtLjM3LS4yNC0uMTQtLjA4LS4yOC0uMTctLjQyLS4yOC0uMjgtLjE4LS41NS0uMzgtLjgyLS42MS0uMTgtLjEzLS4zNi0uMjctLjUzLS40My0uMDgtLjA1LS4xNS0uMTItLjIzLS4yLS4yLS4xNy0uMzktLjM1LS41Ny0uNTMtLjA2LS4wNS0uMTMtLjEyLS4xOS0uMTktLjIzLS4yNC0uNDYtLjQ4LS42Ny0uNzMtLjIzLS4yNi0uNDYtLjU0LS42Ny0uODItLjIxLS4yOC0uNDItLjU3LS42MS0uODctLjItLjMtLjM4LS42MS0uNTYtLjkyLS4xNy0uMjktLjMyLS41OS0uNDYtLjg5LS40Ni0uOTUtLjgzLTEuOTUtMS4wOS0yLjk3LS4wOS0uMzItLjE2LS42NS0uMjItLjk4LS4yNi0xLjMzLS4zNC0yLjctLjI1LTQuMDcuMDQtLjcxLjE0LTEuNDIuMjktMi4xMy4wNy0uMzUuMTUtLjcuMjUtMS4wNS4xOS0uNjguNDItMS4zNi43MS0yLjAzLjI5LS42Ny42My0xLjMzLDEuMDItMS45OGw1MS42Ni04NS40OCw0LjE0LTYuODRjLjkxLTEuNSwyLjA0LTIuODIsMy4zMy0zLjkxLjI2LS4yMi41Mi0uNDMuNzktLjYzcy41NS0uNC44My0uNThjLjE4LS4xMi4zNi0uMjMuNTUtLjMzLjE0LS4xLjI5LS4xOC40NC0uMjYuNjUtLjM3LDEuMzQtLjY5LDIuMDQtLjk1LjI0LS4wOS40OS0uMTguNzMtLjI2LjMyLS4xLjY0LS4yLjk3LS4yOC4zMi0uMDkuNjUtLjE2Ljk4LS4yMi42NC0uMTMsMS4yOS0uMjEsMS45NS0uMjYuMzQtLjAyLjY5LS4wMywxLjA0LS4wM2gxNzMuMTZsNDMuNDMtMTE1LjczLDExLjk5LTMxLjkzaDExLjA1YzUuMjMsMCwxMC4xNCwyLjU3LDEzLjEyLDYuODcsMi41NywzLjcxLDMuNDMsOC4yOSwyLjQ0LDEyLjYyaC4wMDFaIiBmaWxsPSIjMmI4MGY4Ii8+CiAgPC9nPgo8L3N2Zz4="/>
+    <image id="ic-agents" width="26" height="26" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS42LjEsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMSBCdWlsZCA5KSAgLS0+CiAgPGcgaWQ9ImJvdW5kaW5nX2JveCI+CiAgICA8cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0ibm9uZSIvPgogIDwvZz4KICA8ZyBpZD0iYXJ0Ij4KICAgIDxwYXRoIGQ9Ik0yNTYuMDgzLDQzOC45NThoLS4wMjVjLTYuNTMxLS4wMS0xMi40MDMtMy45ODItMTQuODMxLTEwLjA0Ni0uMjEtLjUyMS0yMS45ODktNTMuOTE4LTYzLjIzMy05NC45NjYtNDEuMjY5LTQxLjA3Mi05NC4zMzYtNjIuNjg4LTk0Ljg2Ny02Mi45MDItNi4wNjYtMi40MzgtMTAuMDQ2LTguMzI2LTEwLjAzOS0xNC44NjUuMDA3LTYuNTM3LDMuOTgzLTEyLjQxNSwxMC4wNTMtMTQuODQyLjk2NC0uMzksNTMuNTA0LTIxLjg4Myw5NC44NTQtNjMuMDM2LDQxLjQ3Ni00MS4yNzgsNjMtOTQuNjk3LDYzLjIxMy05NS4yMzEsMi40MjItNi4wOTIsOC4zMTYtMTAuMDk4LDE0Ljg3MS0xMC4wOThoLjAxN2M2LjU2Mi4wMDcsMTIuNDU2LDQuMDEyLDE0Ljg2NywxMC4xMTMuMjA2LjUyMSwyMS43MTYsNTMuOTI0LDYzLjIwNiw5NS4yMTYsNDEuNTM4LDQxLjM0MSw5NC4zMzMsNjIuODI3LDk0Ljg2MSw2My4wMzksNi4wNjQsMi40MzYsMTAuMDQ1LDguMzE2LDEwLjA0NSwxNC44NTJzLTMuOTY5LDEyLjQxNi0xMC4wMzMsMTQuODUxYy0uNTIuMjA5LTUzLjczNywyMS45NjUtOTQuODc0LDYyLjkwNC00MS4xMSw0MC45MTYtNjMuMDI5LDk0LjQ2My02My4yNDUsOTQuOTk5LTIuNDQ0LDYuMDQ4LTguMzE3LDEwLjAxMy0xNC44MzgsMTAuMDEzaC0uMDAyWk0xMjUuNTUxLDI1Ni4xODNjMjEuMDY5LDExLjU2Niw0OS43MTIsMjkuODk5LDc1LjAxNiw1NS4wODIsMjUuMzk5LDI1LjI3OCw0My44ODYsNTQuMDkzLDU1LjUyNCw3NS4yNjcsMTEuNjU5LTIxLjE5OCwzMC4xNjItNTAuMDQ2LDU1LjUwMi03NS4yNjcsMjUuMjUyLTI1LjEzMSw1My45MzktNDMuNDg0LDc1LjAzNS01NS4wNjktMjEuMDIxLTExLjU2My00OS42MTEtMjkuOTExLTc1LjAzNS01NS4yMTMtMjUuNDctMjUuMzQ5LTQzLjkwNy01NC4xNC01NS41MTQtNzUuMzQ4LTExLjYwOCwyMS4yMS0zMC4wNDgsNTAuMDA1LTU1LjUxMiw3NS4zNDgtMjUuNDA5LDI1LjI4OC01My45OTYsNDMuNjM1LTc1LjAxNyw1NS4yaDBaIiBmaWxsPSIjNDI4NWY0Ii8+CiAgICA8cGF0aCBkPSJNMzk0LjUsMTgxYy00LjA5NSwwLTguMTg5LTEuNTYyLTExLjMxMy00LjY4N2wtNDcuNS00Ny41Yy02LjI0OS02LjI0OC02LjI0OS0xNi4zNzksMC0yMi42MjdsNDcuNS00Ny41YzYuMjQ4LTYuMjQ5LDE2LjM3OS02LjI0OSwyMi42MjcsMGw0Ny41LDQ3LjVjNi4yNDksNi4yNDgsNi4yNDksMTYuMzc5LDAsMjIuNjI3bC00Ny41LDQ3LjVjLTMuMTI0LDMuMTI0LTcuMjE5LDQuNjg3LTExLjMxMyw0LjY4N2gtLjAwMVpNMzY5LjYyNywxMTcuNWwyNC44NzMsMjQuODczLDI0Ljg3My0yNC44NzMtMjQuODczLTI0Ljg3My0yNC44NzMsMjQuODczWiIgZmlsbD0iIzlhYTBhNiIvPgogICAgPHBhdGggZD0iTTExNy41LDE4MWMtNC4wOTUsMC04LjE4OS0xLjU2Mi0xMS4zMTMtNC42ODdsLTQ3LjUtNDcuNWMtNi4yNDktNi4yNDgtNi4yNDktMTYuMzc5LDAtMjIuNjI3bDQ3LjUtNDcuNWM2LjI0OC02LjI0OSwxNi4zNzktNi4yNDksMjIuNjI3LDBsNDcuNSw0Ny41YzYuMjQ5LDYuMjQ4LDYuMjQ5LDE2LjM3OSwwLDIyLjYyN2wtNDcuNSw0Ny41Yy0zLjEyNCwzLjEyNC03LjIxOSw0LjY4Ny0xMS4zMTMsNC42ODdoMFpNOTIuNjI3LDExNy41bDI0Ljg3MywyNC44NzMsMjQuODczLTI0Ljg3My0yNC44NzMtMjQuODczLTI0Ljg3MywyNC44NzNaIiBmaWxsPSIjNDI4NWY0Ii8+CiAgICA8cGF0aCBkPSJNMzk0LjUsNDU4Yy00LjA5NSwwLTguMTg5LTEuNTYyLTExLjMxMy00LjY4N2wtNDcuNS00Ny41Yy02LjI0OS02LjI0OC02LjI0OS0xNi4zNzksMC0yMi42MjdsNDcuNS00Ny41YzYuMjQ4LTYuMjQ4LDE2LjM3OS02LjI0OCwyMi42MjcsMGw0Ny41LDQ3LjVjNi4yNDksNi4yNDgsNi4yNDksMTYuMzc5LDAsMjIuNjI3bC00Ny41LDQ3LjVjLTMuMTI0LDMuMTI0LTcuMjE5LDQuNjg3LTExLjMxMyw0LjY4N2gtLjAwMVpNMzY5LjYyNywzOTQuNWwyNC44NzMsMjQuODczLDI0Ljg3My0yNC44NzMtMjQuODczLTI0Ljg3My0yNC44NzMsMjQuODczWiIgZmlsbD0iIzQyODVmNCIvPgogICAgPHBhdGggZD0iTTExNy41LDQ1OGMtNC4wOTUsMC04LjE4OS0xLjU2Mi0xMS4zMTMtNC42ODdsLTQ3LjUtNDcuNWMtNi4yNDktNi4yNDgtNi4yNDktMTYuMzc5LDAtMjIuNjI3bDQ3LjUtNDcuNWM2LjI0OC02LjI0OCwxNi4zNzktNi4yNDgsMjIuNjI3LDBsNDcuNSw0Ny41YzYuMjQ5LDYuMjQ4LDYuMjQ5LDE2LjM3OSwwLDIyLjYyN2wtNDcuNSw0Ny41Yy0zLjEyNCwzLjEyNC03LjIxOSw0LjY4Ny0xMS4zMTMsNC42ODdoMFpNOTIuNjI3LDM5NC41bDI0Ljg3MywyNC44NzMsMjQuODczLTI0Ljg3My0yNC44NzMtMjQuODczLTI0Ljg3MywyNC44NzNaIiBmaWxsPSIjOWFhMGE2Ii8+CiAgICA8cGF0aCBkPSJNMzM0LjE2NiwzMzMuOTQ2YzQxLjEzNy00MC45NCw5NC4zNTQtNjIuNjk1LDk0Ljg3NC02Mi45MDQsNi4wNjQtMi40MzUsMTAuMDMyLTguMzE1LDEwLjAzMy0xNC44NTEsMC02LjUzNS0zLjk4LTEyLjQxNi0xMC4wNDUtMTQuODUxLS41MjgtLjIxMi01My4zMjMtMjEuNjk4LTk0Ljg2MS02My4wMzktLjA3Mi0uMDcxLS4xNS0uMTMxLS4yMjMtLjJsLTIyLjYwNCwyMi42MDRjLjA4Ny4wOTEuMTYzLjE4OS4yNTMuMjc4LDI1LjQyNCwyNS4zMDIsNTQuMDE1LDQzLjY0OSw3NS4wMzUsNTUuMjEzLTIxLjA5NiwxMS41ODUtNDkuNzgzLDI5LjkzOS03NS4wMzUsNTUuMDY5LTI1LjM0LDI1LjIyMS00My44NDMsNTQuMDY4LTU1LjUwMiw3NS4yNjctMTEuNjIyLTIxLjE0NC0zMC4wNzQtNDkuOTA3LTU1LjQxOC03NS4xNmwtMjIuNjI4LDIyLjYyOGM0MS4yMSw0MS4wNDEsNjIuOTcxLDk0LjM5Miw2My4xODEsOTQuOTEzLDIuNDI4LDYuMDY0LDguMywxMC4wMzUsMTQuODMxLDEwLjA0NmguMDI1YzYuNTIxLDAsMTIuMzkzLTMuOTY2LDE0LjgzOC0xMC4wMTMuMjE2LS41MzYsMjIuMTM1LTU0LjA4Myw2My4yNDUtOTQuOTk5aC4wMDFaIiBmaWxsPSIjOWFhMGE2Ii8+CiAgPC9nPgo8L3N2Zz4="/>
+    <image id="ic-serverless" width="26" height="26" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMCBCdWlsZCAxNDIpICAtLT4KICA8ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uMSIgZGF0YS1uYW1lPSJzdGFuZGFyZF9wcm9kdWN0X2ljb24iPgogICAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9Im5vbmUiLz4KICA8L2c+CiAgPGcgaWQ9ImFydCI+CiAgICA8cGF0aCBkPSJNMTMxLjIzMSwyMzEuMzI3Yy04LjYyNCwwLTE1LjYxNS02Ljk5MS0xNS42MTUtMTUuNjE1LDAtNzcuNjY0LDYzLjE4NC0xNDAuODQ4LDE0MC44NDgtMTQwLjg0OCw1MC4xMjEsMCw5Ni44NjUsMjYuOTc3LDEyMS45ODksNzAuNDAzLDQuMzE5LDcuNDY1LDEuNzY5LDE3LjAxNy01LjY5NiwyMS4zMzYtNy40NjMsNC4zMTgtMTcuMDE4LDEuNzY5LTIxLjMzNi01LjY5Ni0xOS41NjEtMzMuODA5LTU1Ljk0Ny01NC44MTItOTQuOTU4LTU0LjgxMi02MC40NDMsMC0xMDkuNjE3LDQ5LjE3NS0xMDkuNjE3LDEwOS42MTcsMCw4LjYyNC02Ljk5MSwxNS42MTUtMTUuNjE1LDE1LjYxNWgwWiIgZmlsbD0iIzlhYTBhNiIvPgogICAgPHBhdGggZD0iTTM2Ny4wNDMsMzk2LjU0SDk5Ljg0NmMtOC42MjQsMC0xNS42MTUtNi45OTEtMTUuNjE1LTE1LjYxNXM2Ljk5MS0xNS42MTUsMTUuNjE1LTE1LjYxNWgyNjcuMTk3YzMzLjQ4NSwwLDYwLjcyNi0yNy4yNDEsNjAuNzI2LTYwLjcyNiwwLTE1LjUyMS01Ljg4Mi0zMC4zMDQtMTYuNTYxLTQxLjYyOC01LjkxOC02LjI3My01LjYyOC0xNi4xNTcuNjQ2LTIyLjA3NCw2LjI3My01LjkxOCwxNi4xNTgtNS42MjgsMjIuMDc0LjY0NiwxNi4xNjgsMTcuMTQyLDI1LjA3MiwzOS41MzYsMjUuMDcyLDYzLjA1NSwwLDUwLjcwNS00MS4yNTIsOTEuOTU3LTkxLjk1Nyw5MS45NTdaIiBmaWxsPSIjOWFhMGE2Ii8+CiAgICA8cGF0aCBkPSJNMjg3LjIyOSwxNzcuOTIzYy04LjYyNCwwLTE1LjYxNS02Ljk5MS0xNS42MTUtMTUuNjE1czYuOTkxLTE1LjYxNSwxNS42MTUtMTUuNjE1aDc4LjA3N3YtNzguMDc3YzAtOC42MjQsNi45OTEtMTUuNjE1LDE1LjYxNS0xNS42MTVzMTUuNjE1LDYuOTkxLDE1LjYxNSwxNS42MTV2OTMuNjkxYzAsOC42MjQtNi45OTEsMTUuNjE1LTE1LjYxNSwxNS42MTVoLTkzLjY5MloiIGZpbGw9IiM0Mjg1ZjQiLz4KICAgIDxwYXRoIGQ9Ik0xNjIuMzA2LDQ1OWMtMy45OTcsMC03Ljk5My0xLjUyNC0xMS4wNDItNC41NzRsLTYyLjQ2LTYyLjQ2MmMtNi4wOTktNi4wOTgtNi4wOTgtMTUuOTg1LDAtMjIuMDgzbDYyLjQ2Mi02Mi40NjJjNi4wOTgtNi4wOTgsMTUuOTg1LTYuMDk4LDIyLjA4MywwLDYuMDk5LDYuMDk4LDYuMDk5LDE1Ljk4NSwwLDIyLjA4M2wtNTEuNDIsNTEuNDIsNTEuNDE4LDUxLjQyYzYuMDk5LDYuMDk4LDYuMDk4LDE1Ljk4NSwwLDIyLjA4My0zLjA0OSwzLjA0OS03LjA0NSw0LjU3NC0xMS4wNDIsNC41NzRoLjAwMVoiIGZpbGw9IiM0Mjg1ZjQiLz4KICAgIDxwYXRoIGQ9Ik00MzMuOTI4LDI0MS41MjdjLTUuOTE4LTYuMjc2LTE1LjgwMS02LjU2My0yMi4wNzQtLjY0NC02LjI3NCw1LjkxOC02LjU2MiwxNS44LS42NDQsMjIuMDczLDEwLjY3OCwxMS4zMjEsMTYuNTU5LDI2LjEwNCwxNi41NTksNDEuNjI3LDAsMzMuNDg1LTI3LjI0LDYwLjcyNi02MC43MjMsNjAuNzI2bC0zMi45NjctLjAwMi0uMDA0LDMxLjIzMSwzMi45NzEuMDAyYzUwLjcwMywwLDkxLjk1NC00MS4yNTEsOTEuOTU0LTkxLjk1NywwLTIzLjUyMi04LjkwNC00NS45MTctMjUuMDcyLTYzLjA1NmgwWiIgZmlsbD0iIzQyODVmNCIvPgogICAgPHBhdGggZD0iTTE0Ny44NTMsMjAwLjgzOXMtMTguMDI1LTIuNDA1LTMxLjc0MSwzLjAxM2MtLjA2Mi4wMjQtLjExNC4wNDktLjE3My4wNzMtMTUuNzgyLDQuNzkxLTMwLjA0NSwxMy45MjktNDEuMDQ4LDI2LjUxNC0xNC4xMTYsMTYuMTQ2LTIxLjg5MSwzNi44Ni0yMS44OTEsNTguMzI0djE0LjAzNGMwLDguNjI1LDYuOTkxLDE1LjYxNSwxNS42MTUsMTUuNjE1czE1LjYxNS02Ljk5MSwxNS42MTUtMTUuNjE1di0xNC4wMzRjMC0yOC4zODYsMjEuMTU4LTUyLjgyNiw0OS4yMTgtNTYuODUxLDguMDQ0LTEuMTU0LDEzLjc2Ny04LjI0NywxMy4zNzYtMTYuMjA1LjAxLjAwMS4wMjIuMDAzLjAyMi4wMDMsMCwwLC4yNDgtMTAuMDk2LDEuMDA3LTE0Ljg3M3YuMDAyWiIgZmlsbD0iIzQyODVmNCIvPgogIDwvZz4KPC9zdmc+"/>
+    <image id="ic-aiml" width="26" height="26" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMCBCdWlsZCAxNDIpICAtLT4KICA8ZGVmcz4KICAgIDxzdHlsZT4KICAgICAgLnN0MCB7CiAgICAgICAgZmlsbDogbm9uZTsKICAgICAgfQoKICAgICAgLnN0MSB7CiAgICAgICAgZmlsbDogIzQyODVmNDsKICAgICAgfQoKICAgICAgLnN0MiB7CiAgICAgICAgZmlsbDogIzlhYTBhNjsKICAgICAgfQogICAgPC9zdHlsZT4KICA8L2RlZnM+CiAgPGcgaWQ9ImJvdW5kaW5nX2JveCI+CiAgICA8cmVjdCBjbGFzcz0ic3QwIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIvPgogIDwvZz4KICA8ZyBpZD0iYXJ0Ij4KICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0zNzcuMiwyMTYuMWMtNC4xLDAtOC4yLTEuNi0xMS4zLTQuN2wtNjUuMy02NS4zYy0zLTMtNC43LTcuMS00LjctMTEuM3MxLjctOC4zLDQuNy0xMS4zbDY1LjMtNjUuM2MzLTMsNy4xLTQuNywxMS4zLTQuN3M4LjMsMS43LDExLjMsNC43bDY1LjMsNjUuM2M2LjIsNi4yLDYuMiwxNi40LDAsMjIuNmwtNjUuMyw2NS4zYy0zLjEsMy4xLTcuMiw0LjctMTEuMyw0LjdoMFpNMzM0LjYsMTM0LjhsNDIuNiw0Mi42LDQyLjYtNDIuNi00Mi42LTQyLjctNDIuNiw0Mi43WiIvPgogICAgPHBhdGggY2xhc3M9InN0MiIgZD0iTTMwMC43LDE0Ni4xYy02LjItNi4yLTYuMi0xNi40LDAtMjIuNmw2NS4zLTY1LjNjNi4yLTYuMiwxNi40LTYuMiwyMi42LDBsNTMuOSw1NC0yMi42LDIyLjYtNDIuNi00Mi43LTY1LjMsNjUuM3MtOC4xLTguMi0xMS4zLTExLjRoMFoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDEiIGQ9Ik0yMjgsNDU4LjVoMGMtNi41LDAtMTIuNC00LTE0LjgtMTAtLjItLjUtMjAuOC01MS01OS44LTg5LjktMzkuMS0zOC45LTg5LjMtNTkuMy04OS44LTU5LjUtNi4xLTIuNC0xMC04LjMtMTAtMTQuOSwwLTYuNSw0LTEyLjQsMTAtMTQuOGgwYy41LS4yLDUwLjUtMjAuNiw4OS44LTU5LjcsMzkuMi0zOS4xLDU5LjYtODkuNiw1OS44LTkwLjEsMi40LTYuMSw4LjMtMTAuMSwxNC45LTEwLjFoMGM2LjYsMCwxMi41LDQsMTQuOSwxMC4xLjIuNSwyMC42LDUxLDU5LjgsOTAuMSwzOS4zLDM5LjEsODkuMyw1OS41LDg5LjgsNTkuNyw2LjEsMi40LDEwLDguMywxMCwxNC45cy00LDEyLjQtMTAsMTQuOWMtLjUuMi01MC45LDIwLjgtODkuOCw1OS41LTM4LjksMzguNy01OS42LDg5LjQtNTkuOSw4OS45LTIuNCw2LTguMywxMC0xNC44LDEwaDBaTTEwNS44LDI4NC4yYzE5LjksMTEsNDYuNSwyOC4zLDcwLjEsNTEuNywyMy43LDIzLjUsNDEsNTAuMyw1Mi4xLDcwLjQsMTEuMS0yMCwyOC41LTQ2LjksNTIuMS03MC40LDIzLjUtMjMuNCw1MC4yLTQwLjYsNzAuMS01MS43LTE5LjktMTEtNDYuNS0yOC4zLTcwLjEtNTEuOC0yMy43LTIzLjYtNDEtNTAuNC01Mi4xLTcwLjQtMTEuMSwyMC4xLTI4LjQsNDYuOC01Mi4xLDcwLjQtMjMuNywyMy42LTUwLjIsNDAuOC03MC4xLDUxLjhoMFoiLz4KICAgIDxwYXRoIGNsYXNzPSJzdDIiIGQ9Ik0zOTIuNSwyNjkuM2MtLjUtLjItNTAuNS0yMC42LTg5LjgtNTkuNywwLDAsMCwwLS4xLS4xbC0yMi42LDIyLjZjMCwwLC4xLjEuMi4yLDIzLjcsMjMuNiw1MC4yLDQwLjgsNzAuMSw1MS44LTIwLDExLjEtNDYuNiwyOC4zLTcwLjEsNTEuNy0yMy42LDIzLjUtNDEsNTAuMy01Mi4xLDcwLjQtMTEuMS0yMC0yOC40LTQ2LjctNTItNzAuMmwtMjIuNiwyMi42YzM4LjksMzguOCw1OS41LDg5LjMsNTkuNyw4OS44LDIuNCw2LjEsOC4zLDEwLDE0LjgsMTBoMGM2LjUsMCwxMi40LTQsMTQuOC0xMCwuMi0uNSwyMS01MS4yLDU5LjktODkuOSwzOC45LTM4LjcsODkuMy01OS4zLDg5LjgtNTkuNSw2LjEtMi40LDEwLTguMywxMC0xNC45cy00LTEyLjQtMTAtMTQuOWgwWiIvPgogIDwvZz4KPC9zdmc+"/>
+    <image id="ic-security" width="26" height="26" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS4yLjEsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMCBCdWlsZCAxMTYpICAtLT4KICA8ZyBpZD0iYm91bmRpbmdfYm94Ij4KICAgIDxyZWN0IHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiBmaWxsPSJub25lIi8+CiAgPC9nPgogIDxnIGlkPSJhcnQiPgogICAgPHBhdGggZD0iTTI1Ni4wMDQsMjg3LjU0MmMtNDMuMDgsMC03OC4xMjgtMzUuMDY1LTc4LjEyOC03OC4xNjdzMzUuMDQ4LTc4LjE2Nyw3OC4xMjgtNzguMTY3LDc4LjEyOSwzNS4wNjUsNzguMTI5LDc4LjE2Ny0zNS4wNDksNzguMTY3LTc4LjEyOSw3OC4xNjdaTTI1Ni4wMDQsMTYzLjIwOGMtMjUuNDM1LDAtNDYuMTI4LDIwLjcxLTQ2LjEyOCw0Ni4xNjdzMjAuNjkzLDQ2LjE2Nyw0Ni4xMjgsNDYuMTY3LDQ2LjEyOS0yMC43MSw0Ni4xMjktNDYuMTY3LTIwLjY5My00Ni4xNjctNDYuMTI5LTQ2LjE2N2gwWiIgZmlsbD0iIzQyODVmNCIvPgogICAgPHBhdGggZD0iTTE1My41MDUsMzc2LjQxNmMtLjc1MiwwLTEuNTExLS4wNTMtMi4yNzYtLjE2Mi04Ljc0OC0xLjI0NS0xNC44My05LjM0Ny0xMy41ODQtMTguMDk2LDQuMDIxLTI4LjI0NCwxOC4xMS01NC4xOTEsMzkuNjcyLTczLjA2MiwyMS43NzYtMTkuMDU5LDQ5LjcyLTI5LjU1NSw3OC42ODItMjkuNTU1LDguODM3LDAsMTYsNy4xNjMsMTYsMTZzLTcuMTYzLDE2LTE2LDE2Yy0yMS4yMDcsMC00MS42NjYsNy42ODQtNTcuNjA3LDIxLjYzNi0xNS44MDEsMTMuODI4LTI2LjEyMywzMi44MjUtMjkuMDY2LDUzLjQ5Mi0xLjEzNyw3Ljk4Mi03Ljk4MywxMy43NDYtMTUuODE5LDEzLjc0NmgtLjAwMloiIGZpbGw9IiM5YWEwYTYiLz4KICAgIDxwYXRoIGQ9Ik0zNTguNDkzLDM3Ni40MjdjLTcuODM4LDAtMTQuNjg1LTUuNzY0LTE1LjgyLTEzLjc0OC0yLjk0LTIwLjY2OS0xMy4yNjItMzkuNjY4LTI5LjA2My01My40OTktMTUuOTQxLTEzLjk1My0zNi40MDEtMjEuNjM4LTU3LjYxLTIxLjYzOC04LjgzNywwLTE2LTcuMTYzLTE2LTE2czcuMTYzLTE2LDE2LTE2YzI4Ljk2NCwwLDU2LjkwOSwxMC40OTcsNzguNjg3LDI5LjU1OSwyMS41NjIsMTguODczLDM1LjY1LDQ0LjgyMywzOS42NjksNzMuMDcsMS4yNDQsOC43NDktNC44MzksMTYuODUtMTMuNTg3LDE4LjA5NS0uNzY1LjEwOC0xLjUyMy4xNjEtMi4yNzQuMTYxaC0uMDAyWiIgZmlsbD0iIzQyODVmNCIvPgogICAgPHBhdGggZD0iTTI1Ni4wMDQsMjg3LjU0MmMtNDMuMDgsMC03OC4xMjgtMzUuMDY1LTc4LjEyOC03OC4xNjdzMzUuMDQ4LTc4LjE2Nyw3OC4xMjgtNzguMTY3djMyYy0yNS40MzUsMC00Ni4xMjgsMjAuNzEtNDYuMTI4LDQ2LjE2N3MyMC42OTMsNDYuMTY3LDQ2LjEyOCw0Ni4xNjd2MzJaIiBmaWxsPSIjOWFhMGE2Ii8+CiAgICA8cGF0aCBkPSJNNDM3Ljk1LDE1MS4wOWMtLjAxLS4xMy0uMDMtLjI2LS4wNC0uMzktLjAyLS4xOC0uMDQtLjM3LS4wNy0uNTUtLjA1LS4zNy0uMTItLjc0LS4xOS0xLjEtLjA4LS4zNi0uMTctLjcyLS4yNy0xLjA3LS4xNS0uNTMtLjMzLTEuMDUtLjU0LTEuNTYtLjA2LS4xNS0uMTItLjMtLjE4LS40NC0uMjMtLjU1LS41LTEuMDgtLjgtMS41OS0uMDgtLjE0LS4xNi0uMjgtLjI1LS40Mi0uMTktLjMxLS40LS42MS0uNjEtLjkxLS4yMS0uMjktLjQyLS41Ny0uNjUtLjg1bC0uMDItLjAyYy0uMjMtLjI4LS40Ny0uNTUtLjcyLS44MS0uMDEtLjAxLS4wMi0uMDItLjAyLS4wMi0uMTktLjIxLS4zOS0uNDEtLjYtLjYtLjI3LS4yNi0uNTUtLjUtLjgzLS43My0uMTMtLjExLS4yNi0uMjEtLjM5LS4zMS0uMTQtLjExLS4yOC0uMjItLjQyLS4zMS0uMTMtLjEtLjI1LS4xOS0uMzgtLjI4LS4zMy0uMjItLjY3LS40My0xLjAyLS42Mi0uMjEtLjEzLS40MS0uMjQtLjYzLS4zNS0uMTMtLjA3LS4yNS0uMTMtLjM4LS4xOWwtMTM3LjEzLTY4LjQ3LS4wNy0uMDMtMjguNTktMTQuMjhjLTQuMTctMi4wOS05LjAzLTIuMjQtMTMuMy0uNDYtLjMzLjE0LS42Ni4yOS0xLC40NmwtMTY2LDgyLjg4Yy01LjQyLDIuNzEtOC44NSw4LjI2LTguODUsMTQuMzJ2MTAzLjEzYzAsNDQuMjQsMjEuMTYsODYuNSw1Ni41OSwxMTMuMDRsOTguNzIsNzMuOTR2LjAxbDE3LjEsMTIuOGMxLjQzLDEuMDcsMi45OSwxLjg3LDQuNiwyLjM5LjYxLjIxLDEuMjMuMzcsMS44NS40OS43OC4xNiwxLjU3LjI1LDIuMzUuMjkuMjguMDEuNTUuMDIuOC4wMi4zLDAsLjU5LS4wMS44OS0uMDMuMjEtLjAxLjQxLS4wMi42Mi0uMDQuNDItLjA0Ljg1LS4xLDEuMjctLjE4LjI1LS4wNC41LS4wOS43NC0uMTUuMDctLjAxLjE1LS4wMy4yMi0uMDQuMDEsMCwuMDItLjAxLjAyLS4wMS4yNC0uMDYuNDgtLjEyLjcxLS4xOS4yNi0uMDcuNTItLjE1Ljc4LS4yNS4zLS4xMS42MS0uMjIuOTEtLjM1aC4wMWMuMjgtLjExLjU1LS4yNC44Mi0uMzcuNTktLjI4LDEuMTctLjYxLDEuNzMtLjk5LjE4LS4xMS4zNy0uMjMuNTQtLjM2LjExLS4wNy4yMS0uMTUuMzItLjIzbDExNS44Mi04Ni43NWMzNS40My0yNi41NCw1Ni41OS02OC44LDU2LjU5LTExMy4wNHYtMTAzLjEzYzAtLjQ0LS4wMi0uODctLjA1LTEuM2gwWk00MDYsMjU1LjUyYzAsMzQuMjEtMTYuMzcsNjYuOS00My43OCw4Ny40M2wtMTA2LjIyLDc5LjU2LTEwNi4yMi03OS41NmMtMjcuNDEtMjAuNTMtNDMuNzgtNTMuMjItNDMuNzgtODcuNDN2LTkzLjI0bDE1MC03NC45LDE1MCw3NC45djkzLjI0aDBaIiBmaWxsPSIjOWFhMGE2Ii8+CiAgICA8cGF0aCBkPSJNMjY4LjgxLDQ1Mi4wOWMtLjk0LDEuMjUtMi4wMywyLjMzLTMuMjIsMy4yMi0uMTEuMDgtLjIxLjE2LS4zMi4yMy0uMTcuMTMtLjM2LjI1LS41NC4zNi0uNTYuMzgtMS4xNC43MS0xLjczLjk5LS4yNy4xMy0uNTQuMjYtLjgyLjM3aC0uMDFjLS4zLjEzLS42MS4yNC0uOTEuMzUtLjI2LjA5LS41Mi4xNy0uNzguMjUtLjIzLjA3LS40Ny4xMy0uNzEuMTksMCwwLS4wMS4wMS0uMDIuMDEtLjA3LjAxLS4xNS4wMy0uMjIuMDQtLjI0LjA2LS40OS4xMS0uNzQuMTUtLjQyLjA4LS44NS4xNC0xLjI3LjE4LS4yMS4wMi0uNDEuMDMtLjYyLjA0LS4zLjAyLS41OS4wMy0uODkuMDMtLjI1LDAtLjUyLS4wMS0uOC0uMDItLjc4LS4wNC0xLjU3LS4xMy0yLjM1LS4yOS0uNjItLjEyLTEuMjQtLjI4LTEuODUtLjQ5LTEuNjEtLjUyLTMuMTctMS4zMi00LjYtMi4zOWwtMTcuMS0xMi44di0uMDFsLTk4LjcyLTczLjk0Yy0zNS40My0yNi41NC01Ni41OS02OC44LTU2LjU5LTExMy4wNHYtMTAzLjEzYzAtNi4wNiwzLjQzLTExLjYxLDguODUtMTQuMzJMMjQ4Ljg1LDU1LjE5Yy4zNC0uMTcuNjctLjMyLDEtLjQ2LDQuMjctMS43OCw5LjEzLTEuNjMsMTMuMy40NmwyOC41OSwxNC4yOC4wNy4wMy0zNS44MSwxNy44OC0xNTAsNzQuOXY5My4yNGMwLDM0LjIxLDE2LjM3LDY2LjksNDMuNzgsODcuNDNsMTA2LjIyLDc5LjU2LDkuNTksNy4xOGM3LjA3LDUuMyw4LjUxLDE1LjMzLDMuMjIsMjIuNGgwWiIgZmlsbD0iIzQyODVmNCIvPgogICAgPHBhdGggZD0iTTQzOCwxNTIuMzl2MTAzLjEzYzAsNDQuMjQtMjEuMTYsODYuNS01Ni41OSwxMTMuMDRsLTExNS44Miw4Ni43NWMtLjExLjA4LS4yMS4xNi0uMzIuMjMtLjE3LjEzLS4zNi4yNS0uNTQuMzYtLjU2LjM4LTEuMTQuNzEtMS43My45OS0uMjcuMTMtLjU0LjI2LS44Mi4zN2gtLjAxYy0uMy4xMy0uNjEuMjQtLjkxLjM1LS4yNi4xLS41Mi4xOC0uNzguMjUtLjIzLjA3LS40Ny4xMy0uNzEuMTksMCwwLS4wMS4wMS0uMDIuMDEtLjMyLjA3LS42NC4xNC0uOTYuMTktLjQyLjA4LS44NS4xNC0xLjI3LjE4LS4yMS4wMi0uNDEuMDMtLjYyLjA0LS4zLjAyLS41OS4wMy0uODkuMDMtLjI1LDAtLjUyLS4wMS0uOC0uMDItLjc4LS4wNC0xLjU3LS4xMy0yLjM1LS4yOS0uNjItLjEyLTEuMjQtLjI4LTEuODUtLjQ5LTEuNjEtLjUyLTMuMTctMS4zMi00LjYtMi4zOWwtMTcuMS0xMi44di0uMDFsMjYuNjktMTkuOTksMTA2LjIyLTc5LjU2YzI3LjQxLTIwLjUzLDQzLjc4LTUzLjIyLDQzLjc4LTg3LjQzdi0xMDMuMTNjMC04Ljg0LDcuMTYtMTYsMTYtMTYsMi40OSwwLDQuODQuNTcsNi45NCwxLjU4LjEzLjA2LjI1LjEyLjM4LjE5LjIyLjExLjQyLjIyLjYzLjM1LjM1LjE5LjY5LjQsMS4wMi42Mi4xMy4wOS4yNS4xOC4zOC4yOC4xNC4wOS4yOC4yLjQyLjMxLjEzLjEuMjYuMi4zOS4zMS4yOC4yMy41Ni40Ny44My43My4yMS4xOS40MS4zOS42LjYsMCwwLC4wMS4wMS4wMi4wMi4yNS4yNi40OS41My43Mi44MWwuMDIuMDJjLjIzLjI4LjQ0LjU2LjY1Ljg1LjIxLjMuNDIuNi42MS45MS4wOS4xNC4xNy4yOC4yNS40Mi4zLjUxLjU3LDEuMDQuOCwxLjU5LjA2LjE0LjEyLjI5LjE4LjQ0LjIxLjUxLjM5LDEuMDMuNTQsMS41Ni4xLjM1LjE5LjcxLjI3LDEuMDcuMDcuMzYuMTQuNzMuMTksMS4xLjAzLjE4LjA1LjM3LjA3LjU1LjAxLjEzLjAzLjI2LjA0LjM5LjAzLjQzLjA1Ljg2LjA1LDEuM2gwWiIgZmlsbD0iIzlhYTBhNiIvPgogIDwvZz4KPC9zdmc+"/>
+    <image id="ic-compute" width="26" height="26" href="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyBpZD0ic3RhbmRhcmRfcHJvZHVjdF9pY29uIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZlcnNpb249IjEuMSIgdmlld0JveD0iMCAwIDUxMiA1MTIiPgogIDwhLS0gR2VuZXJhdG9yOiBBZG9iZSBJbGx1c3RyYXRvciAyOS4xLjAsIFNWRyBFeHBvcnQgUGx1Zy1JbiAuIFNWRyBWZXJzaW9uOiAyLjEuMCBCdWlsZCAxNDIpICAtLT4KICA8cmVjdCBpZD0iYm91bmRpbmdfYm94IiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0ibm9uZSIvPgogIDxnIGlkPSJhcnQiPgogICAgPHBhdGggZD0iTTIzOS44NSw0OTBjLTEuNTQsMC0zLjExLS4yMi00LjY0LS42OS02LjczLTIuMDQtMTEuMzMtOC4yNS0xMS4zMy0xNS4yOHYtMTY1Ljc5aC0xMjEuOWMtNS45LDAtMTEuMzEtMy4yNS0xNC4wOS04LjQ1LTIuNzgtNS4yLTIuNDYtMTEuNTEuODItMTYuNDFMMjU4Ljk2LDI5LjA5YzMuOTEtNS44NCwxMS4xOS04LjQ0LDE3LjkyLTYuNHMxMS4zMyw4LjI1LDExLjMzLDE1LjI4djE2NS43OGgxMjEuODJjNS45LDAsMTEuMzEsMy4yNSwxNC4wOSw4LjQ1czIuNDYsMTEuNTEtLjgxLDE2LjQxbC0xNzAuMTgsMjU0LjNjLTMuMDIsNC41MS04LjA1LDcuMDktMTMuMjgsNy4wOVpNMTMxLjg5LDI3Ni4yOWgxMDcuOTZjOC44MiwwLDE1Ljk3LDcuMTUsMTUuOTcsMTUuOTd2MTI5LjE3bDEyNC4zLTE4NS43NGgtMTA3Ljg5Yy04LjgyLDAtMTUuOTctNy4xNS0xNS45Ny0xNS45N1Y5MC41NGwtMTI0LjM3LDE4NS43NWgwWiIgZmlsbD0iIzlhYTBhNiIvPgogICAgPHBhdGggZD0iTTQxOC41NiwyMzUuN2gtMTQ2LjMzYy04LjgyLDAtMTUuOTctNy4xNS0xNS45Ny0xNS45N1YzMy4xMmMxLjQtMi4wOSwzLjAxLTUuMTIsNS42OS03LjM3LDIuNTItMi4xMSw2LjEzLTMuNzQsMTAuMjgtMy43NCw4LjgyLDAsMTUuOTcsNy4xNSwxNS45NywxNS45N3YxNjUuNzhoMTIxLjgyYzguODIsMCwxNS45Nyw3LjE1LDE1Ljk3LDE1Ljk3LDAsNS4zMy0yLjQsOC40Ni00LjEyLDEwLjk4LTEuNDYsMi4xNC0yLjM0LDMuNTItMy4zMyw0Ljk5aC4wMloiIGZpbGw9IiMyYjgwZjgiLz4KICAgIDxwYXRoIGQ9Ik0yMzkuODUsNDkwYy04LjgyLDAtMTUuOTctNy4xNS0xNS45Ny0xNS45N3YtMTk3LjczaDE1Ljk3YzguODIsMCwxNS45Nyw3LjE1LDE1Ljk3LDE1Ljk3djE4Ni42MWMtMS43NSwyLjctMy4yOCw1LjMzLTUuNDksNy4yLTIuNzMsMi4zMS02LjIxLDMuOTItMTAuNDksMy45MmguMDFaIiBmaWxsPSIjMmI4MGY4Ii8+CiAgPC9nPgo8L3N2Zz4="/>
+  </defs>
+
+  <rect width="1320" height="930" fill="#ffffff"/>
+  <text x="660" y="38" text-anchor="middle" class="hd">Endor AURI for Developers — Deployment &amp; Runtime Architecture</text>
+  <text x="660" y="60" text-anchor="middle" class="subhd">Customer-tenant deployment model · single-tenant (a dedicated Cloud Run agent per customer) · A2UI interactive UI · agent is free (public OSS data)</text>
+
+  <!-- ===================== PARTNER ZONE ===================== -->
+  <rect class="z" x="28" y="86" width="356" height="352" fill="#e8f0fe" stroke="#1a73e8"/>
+  <text x="46" y="110" class="zt" fill="#1a56c4">Endor Labs — Partner</text>
+
+  <!-- Producer Portal -->
+  <rect class="tile" x="46" y="122" width="320" height="58"/>
+  <rect x="46" y="122" width="6" height="58" rx="3" fill="#4285F4"/>
+  <text x="64" y="146" class="nm">Marketplace Producer Portal</text>
+  <text x="64" y="164" class="sub">Creates and publishes the two listings</text>
+
+  <!-- AAAS listing -->
+  <rect class="tile" x="46" y="192" width="320" height="58"/>
+  <rect x="46" y="192" width="6" height="58" rx="3" fill="#34A853"/>
+  <text x="64" y="216" class="nm">Listing 1 · AI Agent as a Service (public)</text>
+  <text x="64" y="234" class="sub">Free · storefront + entitlement / private offer</text>
+
+  <!-- VM listing -->
+  <rect class="tile" x="46" y="262" width="320" height="66"/>
+  <rect x="46" y="262" width="6" height="66" rx="3" fill="#FBBC04"/>
+  <text x="64" y="286" class="nm">Listing 2 · VM listing (hidden)</text>
+  <text x="64" y="304" class="sub">Terraform + container image;</text>
+  <text x="64" y="320" class="sub">deploys Cloud Run agent + placeholder VM</text>
+
+  <!-- ===================== PARTNER SaaS (external, public) ===================== -->
+  <rect class="z" x="28" y="470" width="356" height="150" fill="#fce8e6" stroke="#ea4335"/>
+  <text x="46" y="494" class="zt" fill="#c5221f">Endor Labs SaaS — public</text>
+  <rect class="tile" x="46" y="506" width="320" height="92"/>
+  <rect x="46" y="506" width="6" height="92" rx="3" fill="#EA4335"/>
+  <text x="64" y="530" class="nm">Endor OSS Intelligence API</text>
+  <text x="64" y="548" class="sub">Public endpoints (no customer data):</text>
+  <text x="64" y="566" class="sub">vulnerabilities · package risk · CVE details</text>
+  <text x="64" y="584" class="sub">· upgrade recommendations</text>
+
+  <!-- ===================== MARKETPLACE / GE DISCOVERY BAND ===================== -->
+  <rect class="z" x="410" y="86" width="882" height="96" fill="#fef7e0" stroke="#f9ab00"/>
+  <text x="428" y="110" class="zt" fill="#b06000">Google Cloud Marketplace · Gemini Enterprise Agent Gallery</text>
+  <rect class="tile" x="428" y="120" width="410" height="50"/>
+  <rect x="428" y="120" width="6" height="50" rx="3" fill="#FBBC04"/>
+  <text x="446" y="149" class="nm">Marketplace catalog — AaaS listing (public)</text>
+  <rect class="tile" x="862" y="120" width="410" height="50"/>
+  <rect x="862" y="120" width="6" height="50" rx="3" fill="#FBBC04"/>
+  <text x="880" y="143" class="nm">Agent Gallery — discover &amp; request deploy</text>
+  <text x="880" y="160" class="sub">Customer admin clicks deploy</text>
+
+  <!-- ===================== CUSTOMER TENANT ===================== -->
+  <rect class="z" x="410" y="210" width="882" height="600" fill="#e6f4ea" stroke="#34A853"/>
+  <text x="428" y="236" class="zt" fill="#137333">Customer tenant — Google Cloud project (single-tenant)</text>
+
+  <!-- Users -->
+  <rect class="tile" x="428" y="252" width="220" height="62"/>
+  <rect x="428" y="252" width="6" height="62" rx="3" fill="#5f6368"/>
+  <text x="446" y="278" class="nm">Enterprise users</text>
+  <text x="446" y="296" class="sub">Developers · security engineers</text>
+
+  <!-- Gemini Enterprise (customer org) -->
+  <rect class="tile" x="428" y="360" width="250" height="74"/>
+  <rect x="428" y="360" width="6" height="74" rx="3" fill="#4285F4"/>
+  <text x="446" y="386" class="nm">Gemini Enterprise</text>
+  <text x="446" y="404" class="sub">Customer org app + assistant</text>
+  <text x="446" y="421" class="sub">Registers agent over A2A</text>
+
+  <!-- Agent Engine -->
+  <rect class="tile" x="726" y="352" width="330" height="90"/>
+  <rect x="726" y="352" width="6" height="90" rx="3" fill="#4285F4"/>
+  <text x="744" y="380" class="nm">Cloud Run — Endor AURI for Developers</text>
+  <text x="744" y="400" class="sub">A2A endpoint · emits A2UI cards</text>
+  <text x="744" y="418" class="sub">autoscaled · the actual workload</text>
+  <text x="744" y="435" class="sub">renders interactive upgrades in GE</text>
+
+  <!-- Vertex model -->
+  <rect class="tile" x="1088" y="352" width="184" height="72"/>
+  <rect x="1088" y="352" width="6" height="72" rx="3" fill="#4285F4"/>
+  <text x="1106" y="378" class="nm">Vertex AI</text>
+  <text x="1106" y="396" class="sub">Gemini model</text>
+  <text x="1106" y="413" class="sub">(optional: model router)</text>
+
+  <!-- Secret Manager -->
+  <rect class="tile" x="726" y="486" width="300" height="70"/>
+  <rect x="726" y="486" width="6" height="70" rx="3" fill="#34A853"/>
+  <text x="744" y="512" class="nm">Secret Manager</text>
+  <text x="744" y="530" class="sub">Endor API key + secret (SecretRef)</text>
+  <text x="744" y="547" class="sub">read by the agent's service account</text>
+
+  <!-- Placeholder VM -->
+  <rect class="tile" x="726" y="600" width="330" height="70" stroke-dasharray="6 5"/>
+  <rect x="726" y="600" width="6" height="70" rx="3" fill="#9aa0a6"/>
+  <text x="744" y="626" class="nm" fill="#5f6368">Compute Engine — placeholder VM</text>
+  <text x="744" y="644" class="sub">idle · required by VM-listing validation only</text>
+  <text x="744" y="661" class="sub">e2-standard-2 (default) · agent does NOT run here</text>
+
+  <!-- ===================== FLOWS ===================== -->
+  <!-- Deployment (dashed blue) -->
+  <!-- Gallery -> Agent Engine (deploy) -->
+  <path class="dep" d="M1067 170 C 1120 250, 980 300, 900 350"/>
+  <!-- VM listing -> Agent Engine (terraform provisions), long arrow across -->
+  <path class="dep" d="M366 292 C 560 300, 600 470, 724 410"/>
+  <!-- Agent Engine provisions Secret Manager + VM -->
+  <path class="dep" d="M820 442 L 830 484"/>
+  <path class="dep" d="M980 442 C 1010 520, 980 560, 900 598"/>
+
+  <!-- Runtime (solid) -->
+  <!-- users -> GE -->
+  <path class="flow" d="M538 314 L 545 358" marker-end="url(#arr)"/>
+  <!-- GE -> Agent Engine (A2A) -->
+  <path class="flow" d="M678 397 L 724 397" marker-end="url(#arr)"/>
+  <!-- Agent Engine -> Vertex model -->
+  <path class="flow" d="M1056 388 L 1086 388" marker-end="url(#arr)"/>
+  <!-- Agent Engine -> Secret Manager -->
+  <path class="flow" d="M876 442 L 876 484" marker-end="url(#arr)"/>
+  <!-- Agent Engine -> Endor OSS API (public), long arrow to left SaaS -->
+  <path class="flow" d="M726 415 C 470 430, 470 470, 368 528" marker-end="url(#arr)"/>
+
+  <!-- numbered badges -->
+  <g font-family="inherit">
+    <!-- deploy badges -->
+    <circle class="badge dep" cx="900" cy="350" r="11"/><text x="900" y="354" text-anchor="middle" class="bt">D</text>
+    <circle class="badge dep" cx="545" cy="360" r="11"/><text x="545" y="364" text-anchor="middle" class="bt">D</text>
+    <!-- runtime badges -->
+    <circle class="badge" cx="541" cy="336" r="11"/><text x="541" y="340" text-anchor="middle" class="bt">1</text>
+    <circle class="badge" cx="701" cy="397" r="11"/><text x="701" y="401" text-anchor="middle" class="bt">2</text>
+    <circle class="badge" cx="1071" cy="388" r="11"/><text x="1071" y="392" text-anchor="middle" class="bt">3</text>
+    <circle class="badge" cx="876" cy="463" r="11"/><text x="876" y="467" text-anchor="middle" class="bt">4</text>
+    <circle class="badge" cx="470" cy="452" r="11"/><text x="470" y="456" text-anchor="middle" class="bt">5</text>
+  </g>
+
+  <!-- ===================== LEGEND ===================== -->
+  <rect x="410" y="828" width="882" height="86" rx="10" fill="#f8f9fa" stroke="#dadce0"/>
+  <line x1="428" y1="850" x2="470" y2="850" class="flow" marker-end="url(#arr)"/>
+  <text x="478" y="854" class="lg">Runtime request</text>
+  <line x1="600" y1="850" x2="642" y2="850" class="dep"/>
+  <text x="650" y="854" class="lg">One-time deployment (Terraform)</text>
+
+  <text x="428" y="878" class="lg" font-size="11">Runtime: 1) ask in GE · 2) GE → Cloud Run agent (A2A) · 3) optional Gemini call · 4) read Endor cred (Secret Manager) · 5) call public Endor OSS API</text>
+  <text x="428" y="896" class="lg" font-size="11">Deploy (D): admin deploys from the Agent Gallery; Terraform then provisions the Cloud Run agent, Secret Manager access, and the placeholder VM.</text>
+
+  <!-- cost / tenancy note -->
+  <text x="28" y="656" class="sub" fill="#3c4043">Cost: Cloud Run + placeholder VM run in the</text>
+  <text x="28" y="672" class="sub" fill="#3c4043">customer's project (customer-billed). Endor charges $0.</text>
+  <use href="#ic-marketplace" x="332" y="128"/>
+  <use href="#ic-marketplace" x="332" y="198"/>
+  <use href="#ic-marketplace" x="332" y="268"/>
+  <use href="#ic-marketplace" x="804" y="128"/>
+  <use href="#ic-agents" x="1238" y="128"/>
+  <use href="#ic-agents" x="644" y="366"/>
+  <use href="#ic-serverless" x="1022" y="360"/>
+  <use href="#ic-aiml" x="1240" y="358"/>
+  <use href="#ic-security" x="992" y="492"/>
+  <use href="#ic-compute" x="1022" y="606"/>
+</svg>

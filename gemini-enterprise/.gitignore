@@ -1,0 +1,14 @@
+# gemini-enterprise service
+.env
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+
+# ADK local runtime (managed sessions from `adk web`)
+.adk/
+*.db

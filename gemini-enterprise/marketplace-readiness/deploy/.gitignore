@@ -1,0 +1,7 @@
+# Terraform working files
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+# Generated Marketplace bundle
+*.zip

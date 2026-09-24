@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Endor AURI for Developers — A2UI Wireframes</title>
+<style>
+  :root{
+    --ink:#1f2328; --muted:#6b7280; --line:#c4c8ce; --paper:#ffffff;
+    --wire:#eceef1; --accent:#2563eb; --rec:#0f8a4d; --chip:#f4f5f7;
+    --note:#7c3aed;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#f7f8fa;color:var(--ink);padding:28px}
+  header.top{max-width:1180px;margin:0 auto 22px}
+  header.top h1{font-size:20px;margin:0 0 4px}
+  header.top p{margin:0;color:var(--muted);font-size:13px}
+  .row{max-width:1180px;margin:0 auto;display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .screen{flex:1 1 340px;min-width:320px;background:var(--paper);border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+  .cap{display:flex;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);background:#fbfbfc}
+  .cap .step{width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:600}
+  .cap .t{font-size:13px;font-weight:600}
+  .cap .t small{display:block;font-weight:400;color:var(--muted)}
+  .chat{padding:14px;display:flex;flex-direction:column;gap:12px;min-height:430px}
+  .msg{max-width:88%;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5}
+  .user{align-self:flex-end;background:#e8eefc;border:1px solid #d4e0fb}
+  .bot{align-self:flex-start;background:var(--wire);border:1px solid var(--line)}
+  .bot .h{font-weight:600;margin-bottom:4px}
+  .vulns{margin:6px 0 0;padding-left:16px;color:var(--muted);font-size:12px}
+  .vulns li{margin:2px 0}
+  /* interactive upgrade element */
+  .a2ui{align-self:flex-start;max-width:96%;border:1.5px dashed var(--accent);border-radius:12px;padding:10px;background:#fbfdff}
+  .a2ui .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);font-weight:700;margin-bottom:8px}
+  .cards{display:flex;flex-direction:column;gap:8px}
+  .card{border:1px solid var(--line);border-radius:10px;padding:9px 11px;background:#fff;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}
+  .card .v{font-weight:700;font-size:14px}
+  .card .d{font-size:11.5px;color:var(--muted)}
+  .card .jump{font-size:11px;color:var(--muted);white-space:nowrap}
+  .card.rec{border-color:var(--rec);background:#f2fbf6}
+  .card.rec .v{color:var(--rec)}
+  .badge{display:inline-block;font-size:10px;font-weight:700;color:#fff;background:var(--rec);border-radius:20px;padding:1px 7px;margin-left:6px;vertical-align:middle}
+  .card.chosen{outline:2px solid var(--rec);outline-offset:1px}
+  .btnrow{display:flex;gap:8px;margin-top:6px}
+  .btn{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;background:var(--chip)}
+  .note{position:relative;align-self:flex-start;max-width:92%;font-size:11.5px;color:var(--note);border-left:3px solid var(--note);background:#faf7ff;padding:6px 10px;border-radius:0 8px 8px 0}
+  .composer{border-top:1px solid var(--line);padding:10px 12px;display:flex;gap:8px;align-items:center}
+  .composer .box{flex:1;border:1px solid var(--line);border-radius:20px;padding:8px 12px;color:var(--muted);font-size:12.5px;background:#fff}
+  .send{width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+  footer{max-width:1180px;margin:22px auto 0;color:var(--muted);font-size:12px;line-height:1.6}
+  code{background:#eceef1;padding:1px 5px;border-radius:4px;font-size:12px}
+</style>
+</head>
+<body>
+<header class="top">
+  <h1>Endor AURI for Developers — A2UI wireframes</h1>
+  <p>Low-fidelity flow for the interactive "pick an upgrade" element in Gemini Enterprise. Dashed blue = the A2UI element; purple notes = annotations.</p>
+</header>
+
+<div class="row">
+
+  <!-- Screen 1 -->
+  <section class="screen">
+    <div class="cap"><span class="step">1</span><span class="t">Ask<small>User asks how to fix a vulnerable dependency</small></span></div>
+    <div class="chat">
+      <div class="msg user">How do I fix <code>mvn://org.apache.logging.log4j:log4j-core@2.14.1</code>?</div>
+      <div class="msg bot">
+        <div class="h">Endor AURI for Developers</div>
+        Checking known vulnerabilities and available upgrades…
+      </div>
+      <div class="note">Agent calls <code>dependency_vulnerabilities</code> then <code>recommend_upgrades</code>.</div>
+      <div class="composer"><div class="box">Message Endor AURI for Developers…</div><div class="send">↑</div></div>
+    </div>
+  </section>
+
+  <!-- Screen 2 -->
+  <section class="screen">
+    <div class="cap"><span class="step">2</span><span class="t">Choose<small>Agent shows vulns + selectable upgrades</small></span></div>
+    <div class="chat">
+      <div class="msg bot">
+        <div class="h">log4j-core 2.14.1 is affected by 3 known vulnerabilities</div>
+        <ul class="vulns">
+          <li>CVE-2021-44228 — Critical (10.0), Log4Shell RCE</li>
+          <li>CVE-2021-45046 — Critical (9.0)</li>
+          <li>CVE-2021-44832 — Medium (6.6)</li>
+        </ul>
+      </div>
+      <div class="a2ui">
+        <div class="lbl">Pick an upgrade</div>
+        <div class="cards">
+          <div class="card">
+            <div><div class="v">2.15.0</div><div class="d">Fixes 1 of 3 (CVE-2021-44228)</div></div>
+            <div class="jump">minor</div>
+          </div>
+          <div class="card">
+            <div><div class="v">2.16.0</div><div class="d">Fixes 2 of 3</div></div>
+            <div class="jump">minor</div>
+          </div>
+          <div class="card rec">
+            <div><div class="v">2.17.1 <span class="badge">Recommended</span></div><div class="d">Fixes all 3</div></div>
+            <div class="jump">minor</div>
+          </div>
+        </div>
+      </div>
+      <div class="note">A2UI element: each option is selectable. Selecting one sends the choice back to the agent.</div>
+      <div class="composer"><div class="box">Message Endor AURI for Developers…</div><div class="send">↑</div></div>
+    </div>
+  </section>
+
+  <!-- Screen 3 -->
+  <section class="screen">
+    <div class="cap"><span class="step">3</span><span class="t">Confirm<small>User picks 2.17.1; agent confirms the fix</small></span></div>
+    <div class="chat">
+      <div class="a2ui" style="border-style:solid;border-color:var(--rec);background:#f2fbf6">
+        <div class="lbl" style="color:var(--rec)">Selected</div>
+        <div class="cards">
+          <div class="card rec chosen">
+            <div><div class="v">2.17.1</div><div class="d">Fixes all 3 known vulnerabilities</div></div>
+            <div class="jump">minor</div>
+          </div>
+        </div>
+      </div>
+      <div class="msg bot">
+        <div class="h">Upgrade to 2.17.1</div>
+        This resolves CVE-2021-44228, CVE-2021-45046, and CVE-2021-44832. It is a
+        minor version change from 2.14.1.
+        <div class="btnrow">
+          <div class="btn">Show release notes</div>
+          <div class="btn">Check another package</div>
+        </div>
+      </div>
+      <div class="note">Follow-ups stay text-based today. Applying the change (PR) is out of scope for this read-only agent.</div>
+      <div class="composer"><div class="box">Message Endor AURI for Developers…</div><div class="send">↑</div></div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  Backing data is real: the versions, advisories, and "fixes N of 3" counts come from
+  <code>recommend_upgrades</code> (Endor open-source intelligence). Only the rendering of the
+  choices as selectable elements depends on A2UI. Rendering contract (event/part schema) to be
+  confirmed with Google once A2UI access is granted.
+</footer>
+</body>
+</html>
