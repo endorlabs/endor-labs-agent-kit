@@ -15,8 +15,14 @@ variable "region" {
   default     = "us-central1"
 }
 
+# Pin to an IMMUTABLE @sha256 digest at release, not a mutable tag, so customers
+# always pull the exact validated bits. `build_and_push_image.sh` prints the
+# digest to paste here, e.g.:
+#   us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui@sha256:<hex>
+# The :v1 tag below is a placeholder for pre-publish testing only — replace it
+# with the digest before publishing the VM listing.
 variable "container_image" {
-  description = "The published Endor AURI for Developers container image to run on Cloud Run."
+  description = "The published Endor AURI for Developers container image (pin to an @sha256 digest for release)."
   type        = string
   default     = "us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui:v1"
 }
