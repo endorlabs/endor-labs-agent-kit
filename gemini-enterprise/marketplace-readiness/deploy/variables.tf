@@ -75,9 +75,12 @@ variable "boot_disk_type" {
 }
 
 variable "source_image" {
-  description = "Source image for the boot disk."
+  description = "Source image for the boot disk (a Marketplace-licensed VM image)."
   type        = string
-  default     = "projects/debian-cloud/global/images/family/debian-12"
+  # Licensed VM image (debian-12 base + Marketplace license
+  # cloud-marketplace-303f7b3cea0e3946-df1ebeb69c0ba664), required for the VM
+  # listing. The Producer Portal injects this via the `source_image` image variable.
+  default = "projects/marketplace-458521/global/images/endor-auri-vm-licensed"
 }
 
 variable "networks" {
