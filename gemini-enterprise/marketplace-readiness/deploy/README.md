@@ -74,11 +74,34 @@ zip -r endor-auri-agent.zip \
   main.tf variables.tf outputs.tf \
   metadata.yaml metadata.display.yaml marketplace_test.tfvars README.md
 ```
-Upload to a versioned GCS bucket and reference it as the **VM listing** product in
-the Producer Portal (Deployment package → Licensed VM Image → Custom UI
-Deployment → `source_image` var → GCS zip URL). Deployment-SA roles to grant:
-Service Account Admin, Cloud Run Admin, Vertex AI Administrator, Security Admin,
-Project IAM Admin, Compute Admin, Service Account User.
+Upload to a GCS bucket **with object versioning enabled** (Google requires it) and
+reference it as the **VM listing** product in the Producer Portal (Deployment
+package → **manual configuration** → **custom UI deployment** → Image variable
+`source_image` → GCS Object Location = the uploaded zip).
+
+**Deployment-SA roles to grant** (Google's baseline list for VM listings, plus
+**Cloud Run Admin** which our Terraform additionally needs because it creates a
+Cloud Run service + invoker IAM):
+- Service Account Admin
+- Cloud Infrastructure Manager Agent  ← runs the Terraform via Infra Manager
+- **Cloud Run Admin**  ← our addition (Cloud Run service + `allUsers` invoker)
+- Vertex AI Administrator
+- Security Admin
+- Project IAM Admin
+- Compute Admin
+- Service Account User
+
+> **Marketplace Terraform runtime is 1.5.7** (Infra Manager). Our config uses only
+> the `hashicorp/google` provider and no local modules, so it is compatible; there
+> is no `modules/` dir to bundle (unlike Google's Agent-Engine example). Validate
+> against 1.5.7 before publishing if you change the config.
+>
+> **Packaging note:** Google's `HOW_TO_PACKAGE.md` targets the *Agent Engine*
+> model (source packaged into `assets/source.tar.gz` + `agent_package_name`). This
+> bundle uses the **Cloud Run + pre-built image** model instead — the agent image
+> is published to Artifact Registry and pinned by digest in `var.container_image`,
+> so the zip carries **only** Terraform + metadata (no source tar, no
+> `agent_config.auto.tfvars`).
 
 ## Customer registration in Gemini Enterprise
 
