@@ -17,16 +17,49 @@ cards in Gemini Enterprise.
 > and A2UI renders through the A2A/Cloud Run path. See ../../adk/ for the
 > Agent Engine (text) agent if you need it.
 
-## Prerequisites (in the customer project)
+## Before you deploy — get and store your Endor credential
 
-1. Enable `run.googleapis.com`, `compute.googleapis.com`, `secretmanager.googleapis.com`.
-2. Create two Secret Manager secrets with the Endor API credential:
-   ```bash
-   printf '%s' "$ENDOR_KEY"    | gcloud secrets create endor-oss-api-key    --data-file=- --project "$PROJECT"
-   printf '%s' "$ENDOR_SECRET" | gcloud secrets create endor-oss-api-secret --data-file=- --project "$PROJECT"
-   ```
-   Pass their names as `endor_api_key_secret_id` / `endor_api_secret_secret_id`.
-   The values never enter Terraform state.
+The agent calls the Endor Labs API to answer open-source questions, so it needs an
+**Endor Labs API key + secret**. You supply these through **your own Secret
+Manager** — the values never appear in Terraform state, in the container image, or
+in the Marketplace deployment form (the form only takes the secret *names*).
+
+> **You need an active Endor Labs account with API access.** The agent authenticates
+> as your Endor API key; it reads public open-source intelligence, but the API call
+> itself is authenticated. If you don't have a key, get one from Endor Labs first.
+
+**Step 1 — Create an Endor API key.**
+In the Endor Labs app: **Settings → API Keys → Create API Key**. Copy the **key**
+and **secret** (the secret is shown only once).
+
+**Step 2 — Enable the required Google Cloud APIs** in the project you'll deploy into:
+```bash
+gcloud services enable \
+  run.googleapis.com compute.googleapis.com secretmanager.googleapis.com \
+  --project "$PROJECT"
+```
+
+**Step 3 — Store the credential in Secret Manager** (in the same project):
+```bash
+printf '%s' "$ENDOR_KEY"    | gcloud secrets create endor-oss-api-key    --data-file=- --project "$PROJECT"
+printf '%s' "$ENDOR_SECRET" | gcloud secrets create endor-oss-api-secret --data-file=- --project "$PROJECT"
+```
+`$ENDOR_KEY` / `$ENDOR_SECRET` are the values from Step 1. You can name the secrets
+anything; the defaults above match the sample tfvars.
+
+**Step 4 — Reference the secrets by name at deploy time** (Marketplace UI or
+`terraform apply`):
+- `endor_api_key_secret_id`    → `endor-oss-api-key`
+- `endor_api_secret_secret_id` → `endor-oss-api-secret`
+
+Terraform grants the agent's Cloud Run service account `secretAccessor` on those two
+secrets and injects them at runtime via `secret_key_ref`. **The credential values
+never enter Terraform state or the image** — only the secret names are passed.
+
+> **Rotating the credential:** add a new version to the secret
+> (`gcloud secrets versions add …`); the agent picks it up on its next start (the
+> Cloud Run service references the secret, not a pinned version). No redeploy needed
+> if you use the `latest` alias.
 
 ## Publish the agent image (once per release, by Endor)
 
