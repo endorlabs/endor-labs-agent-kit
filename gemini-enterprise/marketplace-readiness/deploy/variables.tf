@@ -16,13 +16,13 @@ variable "region" {
 }
 
 # Pinned to an IMMUTABLE @sha256 digest so customers always pull the exact
-# validated bits. Built from release tag agents-v2.3.0 via build_and_push_image.sh
+# validated bits. Built from release tag agents-v2.3.1 via build_and_push_image.sh
 # and published to the marketplace-458521 project's Artifact Registry.
 # To cut a new release: re-run the build script and replace the digest below.
 variable "container_image" {
   description = "The published Endor AURI for Developers container image (immutable @sha256 digest)."
   type        = string
-  default     = "us-central1-docker.pkg.dev/marketplace-458521/endor-agents/oss-a2ui@sha256:22e2a6ec5dca051e8414eacfd2cc96e77c3ecd649602127823eda543c2e143c2"
+  default     = "us-central1-docker.pkg.dev/marketplace-458521/endor-agents/oss-a2ui@sha256:66d3bd228ccbc74066b5819914a60886e16e73a74363fd9e92bb27d0f577737d"
 }
 
 variable "oss_router" {
