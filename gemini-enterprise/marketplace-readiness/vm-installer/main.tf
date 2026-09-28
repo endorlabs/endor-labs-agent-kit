@@ -9,6 +9,22 @@ provider "google" {
   region  = var.region
 }
 
+# Enable the APIs this bundle needs, so it deploys cleanly on a vanilla project.
+resource "google_project_service" "apis" {
+  for_each = toset([
+    "compute.googleapis.com",
+    "run.googleapis.com",
+    "secretmanager.googleapis.com",
+    "iam.googleapis.com",
+    "cloudresourcemanager.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "discoveryengine.googleapis.com",
+  ])
+  project            = var.project_id
+  service            = each.value
+  disable_on_destroy = false
+}
+
 locals {
   service_name = "${var.goog_cm_deployment_name}-a2ui"
 
@@ -37,12 +53,14 @@ locals {
 resource "google_service_account" "installer" {
   account_id   = "${var.goog_cm_deployment_name}-inst"
   display_name = "Endor AURI installer (VM bootstrap)"
+  depends_on   = [google_project_service.apis]
 }
 
 # Runtime SA: the Cloud Run service runs as this (least privilege: only reads secrets).
 resource "google_service_account" "runtime" {
   account_id   = "${var.goog_cm_deployment_name}-run"
   display_name = "Endor AURI for Developers runtime (Cloud Run)"
+  depends_on   = [google_project_service.apis]
 }
 
 # Installer SA needs to deploy Cloud Run, register in GE, and act as the runtime SA.
@@ -72,6 +90,7 @@ resource "google_secret_manager_secret" "key" {
   replication {
     auto {}
   }
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_secret_manager_secret" "secret" {
@@ -79,6 +98,7 @@ resource "google_secret_manager_secret" "secret" {
   replication {
     auto {}
   }
+  depends_on = [google_project_service.apis]
 }
 
 resource "google_secret_manager_secret_version" "key" {

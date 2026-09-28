@@ -44,13 +44,33 @@ Admin** in addition to the usual set:
 - `roles/iam.serviceAccountUser` — Service Account User (attach installer SA to the VM)
 - `roles/resourcemanager.projectIamAdmin` — **Project IAM Admin** (grant the installer SA `run.admin`/`discoveryengine.admin`)
 - `roles/secretmanager.admin` — Secret Manager Admin (create the secrets + grant the runtime SA)
+- `roles/serviceusage.serviceUsageAdmin` — **Service Usage Admin** (enable the required APIs on a vanilla project)
 
 > **Cloud Run Admin** and **Discovery Engine Admin** are held by the **installer SA**
 > (granted by this Terraform), NOT by the deployment SA.
 
-## APIs to enable
-`compute.googleapis.com`, `run.googleapis.com`, `secretmanager.googleapis.com`,
-`discoveryengine.googleapis.com`, `iam.googleapis.com`, `config.googleapis.com`.
+## APIs
+The bundle **auto-enables** `compute`, `run`, `secretmanager`, `iam`,
+`cloudresourcemanager`, `artifactregistry`, and `discoveryengine` — so it deploys
+cleanly on a vanilla project. Only **`config.googleapis.com`** (Cloud Infrastructure
+Manager) must be enabled *beforehand*, since it runs the deployment itself.
+
+## Customer deployment — vanilla project, step by step
+1. **Enable Infra Manager** (the one API needed before the deploy runs):
+   `gcloud services enable config.googleapis.com --project <PROJECT>`
+2. **Deploy** from the Marketplace listing (or `terraform apply`), setting at least
+   `project_id` and `goog_cm_deployment_name`. To auto-register in Gemini Enterprise,
+   also set `ge_engine_id`. The bundle enables the rest of the APIs, creates the
+   service accounts, secrets (placeholder), the VM, deploys the agent to Cloud Run,
+   and registers it in GE.
+3. **Add the real Endor API key** (see above), then restart the service.
+4. **Grant users** access to the agent in Gemini Enterprise.
+
+> The **container image** is pulled from Endor's registry. Via the **published
+> Marketplace listing** this is mirrored/served by Google automatically. For a
+> **manual `terraform apply`** test outside Marketplace, ensure the deploying
+> project can pull `var.container_image` (publish it to a registry that project can
+> read, or grant its Cloud Run service agent read on Endor's Artifact Registry).
 
 ## Verify
 `terraform output cloud_run_service_name`, then find its HTTPS URL:
