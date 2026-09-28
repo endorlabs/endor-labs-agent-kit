@@ -48,9 +48,9 @@ echo "[endor-auri] Cloud Run URL: $${URL}"
 # 3. Register in Gemini Enterprise (idempotent) when a GE engine is provided.
 if [ -n "${ge_engine_id}" ]; then
   CARD=$(curl -s "$${URL}/.well-known/agent-card.json")
-  python3 - "$${TOKEN}" "${ge_engine_id}" "${agent_display_name}" "$${CARD}" <<'PYEOF'
+  python3 - "$${TOKEN}" "${ge_engine_id}" "${agent_display_name}" "$${CARD}" "${agent_icon_b64}" <<'PYEOF'
 import sys, json, urllib.request, urllib.error
-token, engine, display, card = sys.argv[1:5]
+token, engine, display, card, icon = sys.argv[1:6]
 base = f"https://discoveryengine.googleapis.com/v1alpha/{engine}/assistants/default_assistant/agents"
 def http(method, url, body=None):
     req = urllib.request.Request(url,
@@ -63,8 +63,11 @@ try:
     if any(a.get("displayName") == display for a in existing):
         print("[endor-auri] agent already registered"); sys.exit()
     desc = json.loads(card).get("description", "")[:900]
-    r = http("POST", base, {"displayName": display, "description": desc,
-                            "a2aAgentDefinition": {"jsonAgentCard": card}})
+    body = {"displayName": display, "description": desc,
+            "a2aAgentDefinition": {"jsonAgentCard": card}}
+    if icon:
+        body["icon"] = {"content": icon}  # inline icon so GE renders it reliably
+    r = http("POST", base, body)
     print("[endor-auri] registered:", r.get("name"))
 except urllib.error.HTTPError as e:
     print("[endor-auri] register error", e.code, e.read().decode()[:300])
