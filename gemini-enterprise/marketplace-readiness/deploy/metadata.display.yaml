@@ -16,8 +16,8 @@ spec:
           name: goog_cm_deployment_name
           title: Goog Cm Deployment Name
           invisible: true
-        container_image:
-          name: container_image
+        ENDOR_OSS_VM:
+          name: ENDOR_OSS_VM
           title: Agent container image
           invisible: true
         region:

@@ -19,8 +19,8 @@ variable "region" {
 # validated bits. Built from release tag agents-v2.3.1 via build_and_push_image.sh
 # and published to the YOUR_PUBLISHER_PROJECT project's Artifact Registry.
 # To cut a new release: re-run the build script and replace the digest below.
-variable "container_image" {
-  description = "The published Endor AURI for Developers container image (immutable @sha256 digest)."
+variable "ENDOR_OSS_VM" {
+  description = "The published Endor AURI for Developers container image (immutable @sha256 digest) that Cloud Run runs."
   type        = string
   default     = "us-central1-docker.pkg.dev/YOUR_PUBLISHER_PROJECT/endor-agents/oss-a2ui@sha256:REPLACE_WITH_PUBLISHED_DIGEST"
 }

@@ -43,7 +43,7 @@ resource "google_cloud_run_v2_service" "agent" {
     service_account = google_service_account.agent.email
 
     containers {
-      image = var.container_image
+      image = var.ENDOR_OSS_VM
       ports { container_port = 8080 }
 
       env {

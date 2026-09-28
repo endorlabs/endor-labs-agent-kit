@@ -32,10 +32,10 @@ spec:
         description: The GCP region for the Cloud Run service.
         varType: string
         defaultValue: us-central1
-      - name: container_image
-        description: The published Endor AURI for Developers container image.
+      - name: ENDOR_OSS_VM
+        description: The published Endor AURI for Developers container image (Cloud Run).
         varType: string
-        defaultValue: us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui:v1
+        defaultValue: us-central1-docker.pkg.dev/YOUR_PUBLISHER_PROJECT/endor-agents/oss-a2ui@sha256:REPLACE_WITH_PUBLISHED_DIGEST
       - name: endor_api_key_secret_id
         description: Secret Manager secret ID (in this project) holding the Endor API key.
         varType: string

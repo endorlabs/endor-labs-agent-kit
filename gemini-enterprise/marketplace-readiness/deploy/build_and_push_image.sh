@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Build and publish the Endor AURI for Developers container image that the
-# Marketplace Terraform (main.tf, var.container_image) deploys to Cloud Run.
+# Marketplace Terraform (main.tf, var.ENDOR_OSS_VM) deploys to Cloud Run.
 #
 # The image is built from a COMMITTED git ref (default HEAD), not the working
 # tree, so the published artifact is reproducible and no uncommitted work-in-
 # progress can leak in. After publishing, the script resolves and prints the
-# image's immutable @sha256 digest — pin that in variables.tf (var.container_image).
+# image's immutable @sha256 digest — pin that in variables.tf (var.ENDOR_OSS_VM).
 #
 # Run once per release from a machine with gcloud + access to the publishing
 # project. The image must be readable by the customer projects that deploy it
@@ -60,5 +60,5 @@ echo "Published:"
 echo "  tag:    $IMAGE"
 echo "  digest: $PINNED"
 echo
-echo "Pin the DIGEST as var.container_image (edit the default in variables.tf):"
+echo "Pin the DIGEST as var.ENDOR_OSS_VM (edit the default in variables.tf):"
 echo "  default = \"$PINNED\""

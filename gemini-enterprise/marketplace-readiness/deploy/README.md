@@ -63,7 +63,7 @@ never enter Terraform state or the image** — only the secret names are passed.
 
 ## Publish the agent image (once per release, by Endor)
 
-The Terraform runs a pre-built container (`var.container_image`). Publish it to a
+The Terraform runs a pre-built container (`var.ENDOR_OSS_VM`). Publish it to a
 registry the customer projects can pull from (public Artifact Registry, or the
 Marketplace container path). The image is built from a **committed git ref**
 (`GIT_REF`, default `HEAD`) — not the working tree — so the artifact is
@@ -74,7 +74,7 @@ git tag agents-v2.3.0            # tag the release commit on the feature branch
 PROJECT=endor-labs-marketplace-public GIT_REF=agents-v2.3.0 TAG=v1 ./build_and_push_image.sh
 ```
 The script prints the image's **immutable `@sha256` digest**. Pin that digest as
-the `container_image` default in [variables.tf](variables.tf) (not the mutable
+the `ENDOR_OSS_VM` default in [variables.tf](variables.tf) (not the mutable
 `:v1` tag) so customers always pull the exact validated bits:
 ```hcl
 default = "us-central1-docker.pkg.dev/endor-labs-marketplace-public/endor-agents/oss-a2ui@sha256:<hex>"
@@ -88,7 +88,7 @@ terraform init
 terraform apply \
   -var project_id="$PROJECT" \
   -var goog_cm_deployment_name="endor-auri-test" \
-  -var container_image="us-central1-docker.pkg.dev/$PROJECT/endor-agents/oss-a2ui:v1" \
+  -var ENDOR_OSS_VM="us-central1-docker.pkg.dev/$PROJECT/endor-agents/oss-a2ui:v1" \
   -var endor_api_key_secret_id="endor-oss-api-key" \
   -var endor_api_secret_secret_id="endor-oss-api-secret"
 ```
@@ -132,7 +132,7 @@ Cloud Run service + invoker IAM):
 > **Packaging note:** Google's `HOW_TO_PACKAGE.md` targets the *Agent Engine*
 > model (source packaged into `assets/source.tar.gz` + `agent_package_name`). This
 > bundle uses the **Cloud Run + pre-built image** model instead — the agent image
-> is published to Artifact Registry and pinned by digest in `var.container_image`,
+> is published to Artifact Registry and pinned by digest in `var.ENDOR_OSS_VM`,
 > so the zip carries **only** Terraform + metadata (no source tar, no
 > `agent_config.auto.tfvars`).
 
@@ -148,7 +148,7 @@ A2UI upgrade cards. (Public OSS data, so no per-user OAuth.)
 | File | Purpose |
 |---|---|
 | `main.tf` | Cloud Run A2UI service + runtime SA + secret access + invoker IAM + placeholder VM |
-| `variables.tf` | Inputs (project, region, container_image, Endor secret IDs, machine_type, …) |
+| `variables.tf` | Inputs (project, region, ENDOR_OSS_VM image, Endor secret IDs, machine_type, …) |
 | `outputs.tf` | `agent_url`, `agent_card_url`, service account, instance info |
 | `metadata.yaml` / `metadata.display.yaml` | Marketplace technical + UI metadata |
 | `marketplace_test.tfvars` | Sample test values |
