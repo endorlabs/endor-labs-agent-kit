@@ -1,0 +1,81 @@
+apiVersion: blueprints.cloud.google.com/v1alpha1
+kind: BlueprintMetadata
+metadata:
+  name: endor-auri-vm-installer-display
+  annotations:
+    config.kubernetes.io/local-config: "true"
+spec:
+  ui:
+    input:
+      variables:
+        project_id:
+          name: project_id
+          title: Project ID
+          invisible: true
+        goog_cm_deployment_name:
+          name: goog_cm_deployment_name
+          title: Deployment name
+          invisible: true
+        region:
+          name: region
+          title: Region
+        container_image:
+          name: container_image
+          title: Agent container image
+          invisible: true
+        ge_engine_id:
+          name: ge_engine_id
+          title: Gemini Enterprise engine (for auto-registration)
+          tooltip: Full GE engine resource path (projects/<num>/locations/global/collections/default_collection/engines/<engine>). Leave empty to register the agent manually.
+          section: gemini
+        agent_display_name:
+          name: agent_display_name
+          title: Agent display name
+          section: gemini
+        endor_api_key_secret_id:
+          name: endor_api_key_secret_id
+          title: Endor API key secret name
+          section: endor
+        endor_api_secret_secret_id:
+          name: endor_api_secret_secret_id
+          title: Endor API secret name
+          section: endor
+        endor_api_base_url:
+          name: endor_api_base_url
+          title: Endor API base URL
+          section: endor
+        oss_router:
+          name: oss_router
+          title: Question router (rule or model)
+          section: endor
+        machine_type:
+          name: machine_type
+          title: Installer VM machine type
+          section: vm
+        zone:
+          name: zone
+          title: Zone
+          section: vm
+        boot_disk_size:
+          name: boot_disk_size
+          title: Boot disk size (GB)
+          section: vm
+        boot_disk_type:
+          name: boot_disk_type
+          title: Boot disk type
+          section: vm
+        source_image:
+          name: source_image
+          title: VM image
+          invisible: true
+        networks:
+          name: networks
+          title: Network
+          section: vm
+      sections:
+        - name: gemini
+          title: Gemini Enterprise
+        - name: endor
+          title: Endor AURI Agent
+        - name: vm
+          title: Installer VM
