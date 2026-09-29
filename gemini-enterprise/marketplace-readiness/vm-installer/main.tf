@@ -77,6 +77,16 @@ resource "google_project_iam_member" "installer_discoveryengine" {
   member  = "serviceAccount:${google_service_account.installer.email}"
 }
 
+# The installer deploys Cloud Run referencing var.container_image; the deploy-time
+# image check requires the deploying identity to read it. Needed for a same-project
+# image (or a manual apply). Via the published Marketplace listing the mirrored image
+# is entitled to the deployer, so this is harmless there.
+resource "google_project_iam_member" "installer_artifactregistry" {
+  project = var.project_id
+  role    = "roles/artifactregistry.reader"
+  member  = "serviceAccount:${google_service_account.installer.email}"
+}
+
 resource "google_service_account_iam_member" "installer_actas_runtime" {
   service_account_id = google_service_account.runtime.name
   role               = "roles/iam.serviceAccountUser"
@@ -157,6 +167,7 @@ resource "google_compute_instance" "installer" {
   depends_on = [
     google_project_iam_member.installer_run,
     google_project_iam_member.installer_discoveryengine,
+    google_project_iam_member.installer_artifactregistry,
     google_service_account_iam_member.installer_actas_runtime,
     google_secret_manager_secret_iam_member.key,
     google_secret_manager_secret_iam_member.secret,

@@ -7,7 +7,8 @@ the agent runs on Cloud Run — so no custom domain, DNS, or load balancer is ne
 
 ## What it creates
 - An **installer service account** (the VM runs as this) with `run.admin`,
-  `discoveryengine.admin`, and `serviceAccountUser` on the runtime SA.
+  `discoveryengine.admin`, `artifactregistry.reader` (to pull the image at deploy),
+  and `serviceAccountUser` on the runtime SA.
 - A **runtime service account** for Cloud Run (least privilege: reads the two secrets).
 - The two **Endor credential secrets** (created with a placeholder so the deploy
   succeeds before a real key exists — see below).
@@ -67,10 +68,11 @@ Manager) must be enabled *beforehand*, since it runs the deployment itself.
 4. **Grant users** access to the agent in Gemini Enterprise.
 
 > The **container image** is pulled from Endor's registry. Via the **published
-> Marketplace listing** this is mirrored/served by Google automatically. For a
-> **manual `terraform apply`** test outside Marketplace, ensure the deploying
-> project can pull `var.container_image` (publish it to a registry that project can
-> read, or grant its Cloud Run service agent read on Endor's Artifact Registry).
+> Marketplace listing** this is mirrored/served by Google automatically. The bundle
+> grants the installer SA `roles/artifactregistry.reader` on the deploy project, so a
+> **same-project image** (or a manual `terraform apply` test) pulls cleanly. For an
+> image in a *different* project's registry, also grant that installer SA read on that
+> repo (`gcloud artifacts repositories add-iam-policy-binding …`).
 
 ## Verify
 `terraform output cloud_run_service_name`, then find its HTTPS URL:

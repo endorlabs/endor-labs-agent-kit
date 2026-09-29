@@ -1,0 +1,8 @@
+# Terraform working files
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+# Built Marketplace bundle (regenerate by zipping this directory)
+endor-auri-vm-installer.zip
