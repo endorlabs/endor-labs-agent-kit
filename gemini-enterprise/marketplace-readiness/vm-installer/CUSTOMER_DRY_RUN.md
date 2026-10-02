@@ -1,0 +1,175 @@
+# Customer dry run — Endor AURI for Developers on Gemini Enterprise
+
+A faithful, **manual** walkthrough of what a customer does to stand up the agent,
+run in the project **`endor-solutions-eng`** (# `735146059697`). You run every
+step yourself (API or UI); nothing is auto-driven.
+
+## Ground rules / honesty notes
+The published Marketplace listing isn't live yet, so two things Marketplace
+normally provides are stood up here as **explicit stand-ins** (flagged 🟡). Everything
+else is exactly what a real customer does.
+
+- 🟡 **Image delivery** — GA Marketplace mirrors the container image to a Google
+  registry entitled to the customer. Here we instead **build the image into this
+  project's own Artifact Registry** (Phase 1). Same end state: the deploy pulls a
+  same-project image.
+- 🟡 **VM boot image** — GA uses the Marketplace-licensed VM image. Here we use
+  **public `debian-12`** (the installer only needs a plain Linux box).
+- ✅ Everything else — Infra Manager deploy, deployment service account + roles,
+  API enablement, secrets, GE registration, user grant, test — is the real flow.
+
+## Inputs (fill these once)
+```
+PROJECT=endor-solutions-eng
+PROJECT_NUM=735146059697
+REGION=us-central1
+DEPLOYMENT=endor-auri-test
+GE_ENGINE=projects/735146059697/locations/global/collections/default_collection/engines/endor-labs-ge-agent-179096_1790966735671
+IMAGE_DIGEST=us-central1-docker.pkg.dev/endor-solutions-eng/endor-agents/oss-a2ui@sha256:e57cad5a7771b38b9c43c44ca26e14744ffc5c46f94643bebb0bd9b5d3edbd4a
+```
+
+---
+
+## Phase 0 — Prerequisites (confirm; already true here)
+- A GCP project with **billing enabled** — ✅ `endor-solutions-eng` has billing.
+- A **Gemini Enterprise app** provisioned — ✅ engine `endor-labs-ge-agent-179096_1790966735671`.
+- You deploying with an account that can create a deployment SA and grant it roles.
+
+---
+
+## Phase 1 — 🟡 Make the image available (Endor/Marketplace's job; stand-in)
+Build the agent image from the committed source into this project's Artifact
+Registry via Cloud Build (policy-allowed; no `docker push`).
+
+```bash
+gcloud services enable artifactregistry.googleapis.com cloudbuild.googleapis.com --project=endor-solutions-eng
+```
+
+```bash
+cd /Users/rdhakne/Documents/rd/git/gemini/endor-labs-agent-kit/gemini-enterprise && PROJECT=endor-solutions-eng REGION=us-central1 REPO=endor-agents TAG=v1 ./marketplace-readiness/deploy/build_and_push_image.sh
+```
+
+The script creates the `endor-agents` repo, builds from the committed ref, and
+prints a **pinned `@sha256:` digest**. Copy that full digest — it's `IMAGE_DIGEST`
+for Phase 4. (e.g. `us-central1-docker.pkg.dev/endor-solutions-eng/endor-agents/oss-a2ui@sha256:...`)
+
+---
+
+## Phase 2 — Enable the one pre-deploy API (Infra Manager)
+Everything else is auto-enabled by the deployment package. Infra Manager runs the
+deploy itself, so it must be on first.
+
+```bash
+gcloud services enable config.googleapis.com --project=endor-solutions-eng
+```
+
+---
+
+## Phase 3 — Create the deployment service account + grant its roles
+This is the real customer step: Infra Manager runs the Terraform **as** this SA, so
+it needs the roles to create the resources (and to grant the installer SA its roles).
+
+```bash
+gcloud iam service-accounts create auri-deployer --project=endor-solutions-eng --display-name="Endor AURI Marketplace deployer (Infra Manager)"
+```
+
+```bash
+P=endor-solutions-eng; SA="auri-deployer@$P.iam.gserviceaccount.com"; for R in roles/config.agent roles/compute.admin roles/iam.serviceAccountAdmin roles/iam.serviceAccountUser roles/resourcemanager.projectIamAdmin roles/secretmanager.admin roles/serviceusage.serviceUsageAdmin; do gcloud projects add-iam-policy-binding $P --member="serviceAccount:$SA" --role="$R" --condition=None >/dev/null && echo "granted $R"; done
+```
+
+> Why each role: `config.agent` (Infra Manager runs as it), `compute.admin` (the VM),
+> `iam.serviceAccountAdmin` (create the installer/runtime SAs), `iam.serviceAccountUser`
+> (attach installer SA to the VM), `resourcemanager.projectIamAdmin` (grant the installer
+> SA run/discoveryengine/artifactregistry roles), `secretmanager.admin` (create the two
+> secrets + grant the runtime SA), `serviceusage.serviceUsageAdmin` (enable the rest of
+> the APIs on this project).
+
+---
+
+## Phase 4 — Deploy via Cloud Infrastructure Manager
+This is how Marketplace runs the package. Replace `IMAGE_DIGEST` with the Phase‑1 value.
+
+```bash
+gcloud infra-manager deployments apply projects/endor-solutions-eng/locations/us-central1/deployments/endor-auri-test --service-account=projects/endor-solutions-eng/serviceAccounts/auri-deployer@endor-solutions-eng.iam.gserviceaccount.com --local-source=/Users/rdhakne/Documents/rd/git/gemini/endor-labs-agent-kit/gemini-enterprise/marketplace-readiness/vm-installer --input-values=project_id=endor-solutions-eng,goog_cm_deployment_name=endor-auri-test,region=us-central1,container_image=us-central1-docker.pkg.dev/endor-solutions-eng/endor-agents/oss-a2ui@sha256:e57cad5a7771b38b9c43c44ca26e14744ffc5c46f94643bebb0bd9b5d3edbd4a,source_image=projects/debian-cloud/global/images/family/debian-12,ge_engine_id=projects/735146059697/locations/global/collections/default_collection/engines/endor-labs-ge-agent-179096_1790966735671
+```
+
+Watch it reach `ACTIVE`:
+```bash
+gcloud infra-manager deployments describe projects/endor-solutions-eng/locations/us-central1/deployments/endor-auri-test --format='value(state,latestRevision)'
+```
+
+---
+
+## Phase 5 — Watch the installer do its job
+The VM boots, deploys the agent to Cloud Run, and registers it in GE. Watch:
+```bash
+gcloud compute instances get-serial-port-output endor-auri-test-vm --zone=us-central1-a --project=endor-solutions-eng 2>/dev/null | grep endor-auri
+```
+Then confirm the Cloud Run service exists and get its URL:
+```bash
+gcloud run services describe endor-auri-test-a2ui --region=us-central1 --project=endor-solutions-eng --format='value(status.url)'
+```
+
+---
+
+## Phase 6 — Add the real Endor API key (customer step)
+The deploy seeds **placeholder** credentials so it registers immediately; until a
+real key is set, queries return "Endor rejected the service credentials."
+
+```bash
+P=endor-solutions-eng
+printf '%s' 'YOUR_ENDOR_API_KEY'    | gcloud secrets versions add endor-oss-api-key    --data-file=- --project=$P
+printf '%s' 'YOUR_ENDOR_API_SECRET' | gcloud secrets versions add endor-oss-api-secret --data-file=- --project=$P
+gcloud run services update endor-auri-test-a2ui --region=us-central1 --project=$P --update-env-vars=RESTART_TS=$(date +%s)
+```
+
+---
+
+## Phase 7 — Grant users + test in the Gemini Enterprise UI
+1. In the **Gemini Enterprise** console (the `endor-labs-ge-agent-...` app), grant
+   your user access to the agent **Endor AURI for Developers**.
+2. Open the GE chat, pick the agent (logo + short description should render), and run:
+   - `What is CVE-2021-44228?`
+   - `Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable? Recommend a safe upgrade.` (interactive A2UI upgrade card)
+   - `What's the risk score for npm://lodash@4.17.20?`
+
+---
+
+## Phase 8 — Verify (optional, from CLI)
+```bash
+URL=$(gcloud run services describe endor-auri-test-a2ui --region=us-central1 --project=endor-solutions-eng --format='value(status.url)')
+curl -s "$URL/.well-known/agent-card.json" | head -c 300
+```
+
+---
+
+## Phase 9 — Teardown (when done)
+```bash
+# 1) remove the GE agent registration (in the console, or via the Discovery Engine API)
+# 2) destroy the deployment:
+gcloud infra-manager deployments delete projects/endor-solutions-eng/locations/us-central1/deployments/endor-auri-test --quiet
+# 3) the Cloud Run service is created imperatively by the installer, so delete it too:
+gcloud run services delete endor-auri-test-a2ui --region=us-central1 --project=endor-solutions-eng --quiet
+# 4) optional: delete the built image + deployer SA
+```
+
+---
+
+## Results (dry run 2026-10-02, project endor-solutions-eng) — ✅ PASSED
+- ✅ Infra Manager + the deployment SA role set deployed **cleanly on a vanilla
+  project** (API enablement, SA creation, secrets, VM all via the package).
+- ✅ The installer's `gcloud run deploy` pulled the image with only same-project
+  permissions (the AR-reader self-grant in the bundle) — no manual AR grant needed.
+- ✅ GE registration landed with the **167-char short description + rendered logo**
+  (confirmed the GitHub raw PNG `icon.uri` renders in the GE UI — closes the icon issue).
+- ✅ Real Endor data returned (log4j-core vulns + risk scores); only manual post-deploy
+  steps were **adding the Endor key + granting users**, as documented.
+
+### Findings folded into the docs
+1. Image build needs the Cloud Build SA (`<num>-compute@developer`) to have
+   `roles/cloudbuild.builds.builder` (see README).
+2. Infra Manager `--local-source` needs the deploy SA to have
+   `roles/storage.objectViewer`, and the active gcloud project must be the deploy
+   project (else `--local-source` stages into the wrong bucket).
+3. Minor UX polish (not a blocker): the package-risk answer surfaces raw internal
+   field names (e.g. `pkg_version_stats...`) — candidate for cleaner formatting.

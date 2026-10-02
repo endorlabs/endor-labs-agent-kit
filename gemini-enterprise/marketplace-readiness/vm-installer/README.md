@@ -50,6 +50,17 @@ Admin** in addition to the usual set:
 > **Cloud Run Admin** and **Discovery Engine Admin** are held by the **installer SA**
 > (granted by this Terraform), NOT by the deployment SA.
 
+> **Testing via Infra Manager `--local-source`:** also grant the deployment SA
+> `roles/storage.objectViewer`, so it can fetch the staged bundle from the project's
+> Infra Manager staging bucket. (Not needed for the published Marketplace path, where
+> the package is served from Marketplace's own bucket.) Make sure your active gcloud
+> project (`gcloud config get-value project`) is the deploy project, or `--local-source`
+> stages into the wrong project's bucket.
+
+> **Building the image yourself** (when not using Marketplace mirroring) needs the
+> Cloud Build service account (`<project-number>-compute@developer.gserviceaccount.com`
+> on new projects) to have `roles/cloudbuild.builds.builder`.
+
 ## APIs
 The bundle **auto-enables** `compute`, `run`, `secretmanager`, `iam`,
 `cloudresourcemanager`, `artifactregistry`, and `discoveryengine` — so it deploys
