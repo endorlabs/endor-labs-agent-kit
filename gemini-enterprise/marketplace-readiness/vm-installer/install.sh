@@ -46,11 +46,15 @@ URL=$(gcloud run services describe "${service_name}" --region="${region}" --proj
 echo "[endor-auri] Cloud Run URL: $${URL}"
 
 # 3. Register in Gemini Enterprise (idempotent) when a GE engine is provided.
+#    The GE display description and icon come from Terraform vars (NOT the image's
+#    card), so a stale card in the image can't leak a long description or a dead
+#    icon URL into the console. GE's agent UI renders a public icon URI (inline
+#    base64 content is accepted by the API but not rendered), so we pass a uri.
 if [ -n "${ge_engine_id}" ]; then
   CARD=$(curl -s "$${URL}/.well-known/agent-card.json")
-  python3 - "$${TOKEN}" "${ge_engine_id}" "${agent_display_name}" "$${CARD}" "${agent_icon_b64}" <<'PYEOF'
+  python3 - "$${TOKEN}" "${ge_engine_id}" "${agent_display_name}" "$${CARD}" "${agent_icon_uri}" "${agent_description}" <<'PYEOF'
 import sys, json, urllib.request, urllib.error
-token, engine, display, card, icon = sys.argv[1:6]
+token, engine, display, card, icon_uri, desc = sys.argv[1:7]
 base = f"https://discoveryengine.googleapis.com/v1alpha/{engine}/assistants/default_assistant/agents"
 def http(method, url, body=None):
     req = urllib.request.Request(url,
@@ -62,11 +66,13 @@ try:
     existing = http("GET", base).get("agents", [])
     if any(a.get("displayName") == display for a in existing):
         print("[endor-auri] agent already registered"); sys.exit()
-    desc = json.loads(card).get("description", "")[:900]
+    # Prefer the fixed short description; fall back to the card's if unset.
+    if not desc:
+        desc = json.loads(card).get("description", "")[:900]
     body = {"displayName": display, "description": desc,
             "a2aAgentDefinition": {"jsonAgentCard": card}}
-    if icon:
-        body["icon"] = {"content": icon}  # inline icon so GE renders it reliably
+    if icon_uri:
+        body["icon"] = {"uri": icon_uri}  # public URI — GE renders this in the UI
     r = http("POST", base, body)
     print("[endor-auri] registered:", r.get("name"))
 except urllib.error.HTTPError as e:

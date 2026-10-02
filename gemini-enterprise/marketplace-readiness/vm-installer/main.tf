@@ -39,7 +39,8 @@ locals {
     endor_api_secret_secret_id = var.endor_api_secret_secret_id
     ge_engine_id               = var.ge_engine_id
     agent_display_name         = var.agent_display_name
-    agent_icon_b64             = filebase64("${path.module}/icon.png")
+    agent_description          = var.agent_description
+    agent_icon_uri             = var.agent_icon_uri
   })
 
   metadata = {

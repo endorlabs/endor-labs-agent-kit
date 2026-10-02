@@ -34,6 +34,18 @@ variable "agent_display_name" {
   default     = "Endor AURI for Developers"
 }
 
+variable "agent_description" {
+  description = "Short description shown in the Gemini Enterprise agent list (kept independent of the image's card so a stale card can't leak a long description)."
+  type        = string
+  default     = "Answers open-source vulnerability, package-risk, and CVE questions and recommends safe upgrades — from Endor Labs' public OSS intelligence. No login, no customer data."
+}
+
+variable "agent_icon_uri" {
+  description = "Public HTTPS URL of the agent logo (GE renders a URI, not inline base64). Must be a reachable image; keep it modestly sized."
+  type        = string
+  default     = "https://raw.githubusercontent.com/endorlabs/ai-plugins/main/plugins/antigravity/endor-labs-agent-kit/assets/logo.png"
+}
+
 # --- Endor credential --------------------------------------------------------
 variable "endor_api_key_secret_id" {
   description = "Secret Manager secret ID to hold the Endor API key (created by this bundle)."
