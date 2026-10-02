@@ -128,10 +128,37 @@ gcloud run services update endor-auri-test-a2ui --region=us-central1 --project=$
 ## Phase 7 — Grant users + test in the Gemini Enterprise UI
 1. In the **Gemini Enterprise** console (the `endor-labs-ge-agent-...` app), grant
    your user access to the agent **Endor AURI for Developers**.
-2. Open the GE chat, pick the agent (logo + short description should render), and run:
-   - `What is CVE-2021-44228?`
-   - `Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable? Recommend a safe upgrade.` (interactive A2UI upgrade card)
-   - `What's the risk score for npm://lodash@4.17.20?`
+2. Open the GE chat, pick the agent (logo + short description should render), and run
+   the **Sample prompts** below.
+
+---
+
+## Sample prompts (test in the GE UI, then confirm)
+The agent answers open-source vulnerability, package-risk, CVE, and safe-upgrade
+questions from Endor's public OSS intelligence. Packages use purl form
+(`mvn://group:artifact@version`, `npm://pkg@version`, `pypi://pkg@version`,
+`go://module@version`). Curated set:
+
+**CVE / advisory explanation**
+- `What is CVE-2021-44228?`
+- `Explain CVE-2021-45046 — how severe is it and what's affected?`
+- `Compare CVE-2021-44228 and CVE-2021-45046.`
+
+**Package vulnerabilities (multiple ecosystems)**
+- `What are the vulnerabilities in mvn://org.apache.logging.log4j:log4j-core@2.14.1?`
+- `Is npm://lodash@4.17.20 vulnerable?`
+- `Does pypi://requests@2.19.1 have known CVEs?`
+- `Any known vulnerabilities in mvn://com.fasterxml.jackson.core:jackson-databind@2.9.10?`
+
+**Endor package risk score**
+- `What's the Endor risk score for npm://lodash@4.17.20?`
+- `Give me the package risk for mvn://org.apache.logging.log4j:log4j-core@2.14.1.`
+
+**Safe-upgrade recommendation (should emit the interactive A2UI upgrade card)**
+- `Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable? Recommend a safe upgrade.`
+- `What version should I upgrade npm://lodash@4.17.20 to?`
+
+> Finalized demo/POV script (confirmed 2026-10-02, verified live in endor-solutions-eng).
 
 ---
 
