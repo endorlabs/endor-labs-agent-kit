@@ -22,7 +22,7 @@ variable "region" {
 variable "ENDOR_OSS_VM" {
   description = "The published Endor AURI for Developers container image (immutable @sha256 digest) that Cloud Run runs."
   type        = string
-  default     = "us-central1-docker.pkg.dev/YOUR_PUBLISHER_PROJECT/endor-agents/oss-a2ui@sha256:REPLACE_WITH_PUBLISHED_DIGEST"
+  default     = "us-central1-docker.pkg.dev/marketplace-458521/endor-agents/oss-a2ui@sha256:a716862321e85038d2187772410789eb677acfd98f162a7c934c9581c22c5bd1"
 }
 
 variable "oss_router" {
