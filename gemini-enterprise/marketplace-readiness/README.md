@@ -16,6 +16,31 @@ Enterprise, per the Agent Factory onboarding deck (Sept 2026).
 - **AAAS listing exists** in the Producer Portal ("Endor AURI AI Agent", in progress; GCP team assisted).
 - **VM listing** remaining: publish the container image + upload the zip to the corp project, then create the VM product in the Producer Portal.
 
+## Sample prompts (demo / POV script)
+Run these in the Gemini Enterprise chat against the registered agent. It answers
+open-source vulnerability, package-risk, CVE, and safe-upgrade questions from
+Endor's public OSS intelligence (packages use purl form: `mvn://group:artifact@version`,
+`npm://pkg@version`, `pypi://pkg@version`, `go://module@version`). Verified live.
+
+**CVE / advisory explanation**
+- `What is CVE-2021-44228?`
+- `Explain CVE-2021-45046 — how severe is it and what's affected?`
+- `Compare CVE-2021-44228 and CVE-2021-45046.`
+
+**Package vulnerabilities (multiple ecosystems)**
+- `What are the vulnerabilities in mvn://org.apache.logging.log4j:log4j-core@2.14.1?`
+- `Is npm://lodash@4.17.20 vulnerable?`
+- `Does pypi://requests@2.19.1 have known CVEs?`
+- `Any known vulnerabilities in mvn://com.fasterxml.jackson.core:jackson-databind@2.9.10?`
+
+**Endor package risk score**
+- `What's the Endor risk score for npm://lodash@4.17.20?`
+- `Give me the package risk for mvn://org.apache.logging.log4j:log4j-core@2.14.1.`
+
+**Safe-upgrade recommendation (emits the interactive A2UI upgrade card)**
+- `Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable? Recommend a safe upgrade.`
+- `What version should I upgrade npm://lodash@4.17.20 to?`
+
 ## Pricing
 The agent is **free ($0)**: it queries public OSS intelligence, so Endor incurs
 no per-query or data cost. The AAAS listing is a free listing (still required as
