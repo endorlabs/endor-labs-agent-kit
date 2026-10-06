@@ -35,7 +35,7 @@ Endor's public OSS intelligence (packages use purl form: `mvn://group:artifact@v
 
 **Endor package risk score**
 - `What's the Endor risk score for npm://lodash@4.17.20?`
-- `Give me the package risk for mvn://org.apache.logging.log4j:log4j-core@2.14.1.`
+- `Give me the Endor package risk for mvn://org.apache.logging.log4j:log4j-core@2.14.1`
 
 **Safe-upgrade recommendation (emits the interactive A2UI upgrade card)**
 - `Is mvn://org.apache.logging.log4j:log4j-core@2.14.1 vulnerable? Recommend a safe upgrade.`
