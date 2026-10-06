@@ -35,7 +35,7 @@ spec:
       - name: container_image
         description: The published Endor AURI for Developers container image (immutable @sha256 digest).
         varType: string
-        defaultValue: us-central1-docker.pkg.dev/YOUR_PUBLISHER_PROJECT/endor-agents/oss-a2ui@sha256:REPLACE_WITH_PUBLISHED_DIGEST
+        defaultValue: us-central1-docker.pkg.dev/marketplace-458521/endor-agents/oss-a2ui@sha256:a716862321e85038d2187772410789eb677acfd98f162a7c934c9581c22c5bd1
       - name: ge_engine_id
         description: Gemini Enterprise engine resource path to auto-register into. Leave empty to register manually.
         varType: string
