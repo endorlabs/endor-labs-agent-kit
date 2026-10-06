@@ -30,6 +30,11 @@ def normalize_advisory_id(value: str) -> str:
 
 def validate_purl(value: str) -> str:
     v = (value or "").strip()
+    # TODO (future agent version): also strip trailing sentence punctuation (e.g. a
+    # trailing '.') before matching. A purl at the end of a user's sentence — e.g.
+    # "...log4j-core@2.14.1." — keeps the '.' in the version ("2.14.1."), which
+    # PURL_RE accepts but Endor then reports as "not found". A trailing '?' already
+    # parses fine. Verified 2026-10-06; deferred (do not fix now).
     if not PURL_RE.match(v):
         raise InvalidParamsError(
             "Invalid package URL: expected e.g. 'mvn://group:artifact@1.2.3' or "
