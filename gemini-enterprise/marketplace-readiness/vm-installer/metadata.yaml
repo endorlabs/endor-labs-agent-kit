@@ -79,7 +79,7 @@ spec:
       - name: source_image
         description: Boot image for the installer VM (Marketplace-licensed VM image).
         varType: string
-        defaultValue: projects/marketplace-458521/global/images/endor-auri-vm-licensed
+        defaultValue: projects/marketplace-458521/global/images/endor-auri-vm-licensed-v2
       - name: networks
         description: Network(s) to attach the VM to.
         varType: list(string)
