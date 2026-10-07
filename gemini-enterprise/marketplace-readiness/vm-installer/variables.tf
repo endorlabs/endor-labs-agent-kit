@@ -113,7 +113,7 @@ variable "boot_disk_type" {
 variable "source_image" {
   description = "Boot image for the installer VM (Marketplace-licensed VM image)."
   type        = string
-  default     = "projects/YOUR_PUBLISHER_PROJECT/global/images/endor-auri-vm-licensed"
+  default     = "projects/marketplace-458521/global/images/endor-auri-vm-licensed"
 }
 
 variable "networks" {
