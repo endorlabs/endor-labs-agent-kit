@@ -396,6 +396,85 @@ def to_a2ui_comparison_parts(details: list) -> list[dict]:
     return [{"kind": "data", "data": m, "metadata": {"mimeType": A2UI_MIME}} for m in messages]
 
 
+### A2UI vulnerability list (Google feedback #4 — organized + clickable) #########
+# A package's known vulnerabilities, one card each (severity + summary) with an
+# "Explain" button whose action.event re-asks "What is <CVE>". Basic catalog, so GE
+# renders it inline and the buttons work (same proven path as the ChoicePicker).
+
+A2UI_VULN_SURFACE_ID = "endor-vuln-list"
+VULN_EXPLAIN_EVENT = "explain_cve"
+_SEV_ORDER = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2, "LOW": 3}
+
+
+def _vuln_list_data_model(dep, limit: int = 8) -> dict:
+    vulns = sorted(
+        dep.vulnerabilities,
+        key=lambda v: (_SEV_ORDER.get((v.severity or "").upper(), 9), v.id),
+    )
+    cards = []
+    for v in vulns[:limit]:
+        meta = v.severity or "severity unknown"
+        if v.summary:
+            meta = f"{meta} — {v.summary[:90]}"
+        cards.append({"id": v.id, "meta": meta, "explainLabel": "Explain"})
+    total = len(dep.vulnerabilities)
+    title = (
+        f"{dep.package_name or dep.purl}: {total} known "
+        f"vulnerabilit{'y' if total == 1 else 'ies'}"
+    )
+    if total > limit:
+        title += f" (top {limit} by severity)"
+    return {"title": title, "vulns": cards}
+
+
+def _vuln_list_components() -> list[dict]:
+    return [
+        {"id": "root", "component": "Column", "children": ["vheading", "vuln-list"]},
+        {"id": "vheading", "component": "Text", "variant": "h2", "text": {"path": "/title"}},
+        {
+            "id": "vuln-list", "component": "List", "direction": "vertical",
+            "children": {"componentId": "vuln-card", "path": "/vulns"},
+        },
+        {"id": "vuln-card", "component": "Card", "child": "vuln-col"},
+        {
+            "id": "vuln-col", "component": "Column",
+            "children": ["vuln-id", "vuln-meta", "vuln-btn-row"],
+        },
+        {"id": "vuln-id", "component": "Text", "variant": "h3", "text": {"path": "id"}},
+        {"id": "vuln-meta", "component": "Text", "text": {"path": "meta"}},
+        {"id": "vuln-btn-row", "component": "Row", "justify": "end", "children": ["vuln-btn"]},
+        {
+            "id": "vuln-btn", "component": "Button", "variant": "primary",
+            "child": "vuln-btn-text",
+            "action": {"event": {"name": VULN_EXPLAIN_EVENT, "context": {"cve": {"path": "id"}}}},
+        },
+        {"id": "vuln-btn-text", "component": "Text", "text": {"path": "explainLabel"}},
+    ]
+
+
+def to_a2ui_vuln_list_parts(dep) -> list[dict]:
+    """A2UI messages (basic catalog) rendering each known vulnerability as a card with
+    a clickable Explain button, as A2A DataParts tagged ``application/json+a2ui``."""
+
+    if not dep or not dep.found or not dep.vulnerabilities:
+        return []
+    messages = [
+        {
+            "version": A2UI_VERSION,
+            "createSurface": {"surfaceId": A2UI_VULN_SURFACE_ID, "catalogId": A2UI_BASIC_CATALOG},
+        },
+        {
+            "version": A2UI_VERSION,
+            "updateComponents": {"surfaceId": A2UI_VULN_SURFACE_ID, "components": _vuln_list_components()},
+        },
+        {
+            "version": A2UI_VERSION,
+            "updateDataModel": {"surfaceId": A2UI_VULN_SURFACE_ID, "path": "/", "value": _vuln_list_data_model(dep)},
+        },
+    ]
+    return [{"kind": "data", "data": m, "metadata": {"mimeType": A2UI_MIME}} for m in messages]
+
+
 def to_ge_suggestion_parts(questions: list[str]) -> list[dict]:
     """Emit suggestion chips as a single A2A ``data`` part. GE renders a
     ``data`` part tagged ``application/json+suggestions`` as clickable "recommended

@@ -17,13 +17,14 @@ from ..a2a.errors import InvalidParamsError, TaskNotFoundError
 from ..a2a.task_store import TaskStore
 from .factory import build_oss_client
 from .router import OssAnswer, QuestionRouter
-from .ui import A2UI_SELECT_EVENT
+from .ui import A2UI_SELECT_EVENT, VULN_EXPLAIN_EVENT
 from .ui import (
     GE_SUGGESTIONS_MIME,
     build_upgrade_element,
     to_a2a_parts,
     to_a2ui_comparison_parts,
     to_a2ui_parts,
+    to_a2ui_vuln_list_parts,
     to_ag_ui_events,
     to_ge_suggestion_parts,
     to_ge_suggestions_payload,
@@ -96,6 +97,37 @@ def _select_upgrade_answer(version: str, purl: str) -> OssAnswer:
     )
 
 
+def _explain_context(data: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """If ``data`` is the A2UI explain_cve event, return its context ({"cve": ...})."""
+    for node in (data.get("action"), data.get("event"), data):
+        if isinstance(node, Mapping) and node.get("name") == VULN_EXPLAIN_EVENT:
+            ctx = node.get("context")
+            return ctx if isinstance(ctx, Mapping) else {}
+    return None
+
+
+def _extract_explain_cve(message: Mapping[str, Any]) -> str | None:
+    """Detect a clicked 'Explain' button on a vulnerability card: the A2UI
+    ``explain_cve`` event with a ``cve`` context (Google feedback #4)."""
+    for part in message.get("parts") or []:
+        if not isinstance(part, Mapping):
+            continue
+        data = part.get("data")
+        candidates = [data] if isinstance(data, Mapping) else []
+        if isinstance(part.get("text"), str) and VULN_EXPLAIN_EVENT in part["text"]:
+            try:
+                candidates.append(json.loads(part["text"]))
+            except Exception:  # noqa: BLE001
+                pass
+        for cand in candidates:
+            if not isinstance(cand, Mapping):
+                continue
+            ctx = _explain_context(cand)
+            if ctx is not None and isinstance(ctx.get("cve"), str) and ctx["cve"]:
+                return ctx["cve"]
+    return None
+
+
 def _message_text(message: Mapping[str, Any]) -> str:
     parts = message.get("parts")
     if not isinstance(parts, Sequence):
@@ -153,11 +185,22 @@ def _task_result(answer, *, context_id: str, task_id: str) -> dict[str, Any]:
                 "metadata": {"mimeType": GE_SUGGESTIONS_MIME},
             })
 
-    # CVE comparison table (Google feedback #3): render as an A2UI Canvas +
-    # IFrameSrcdoc surface when A2UI is active. The text comparison above remains the
-    # fallback if GE doesn't render it.
+    # CVE comparison cards (Google feedback #3) when A2UI is active. The text
+    # comparison above remains the fallback.
     if answer.comparison and ui_protocol() == "a2ui":
         parts.extend(to_a2ui_comparison_parts(answer.comparison))
+
+    # Clickable, organized vulnerability list (Google feedback #4): one card per known
+    # vuln with an "Explain" button. Skipped when the upgrade ChoicePicker is shown
+    # (that flow is upgrade-focused). The text list above remains the fallback.
+    if (
+        answer.dependency
+        and answer.dependency.found
+        and answer.dependency.vulnerabilities
+        and answer.upgrades is None
+        and ui_protocol() == "a2ui"
+    ):
+        parts.extend(to_a2ui_vuln_list_parts(answer.dependency))
 
     # Discoverability + follow-ups (Google feedback #1, #2): a greeting offers
     # clickable example queries; answers offer contextual next steps. Rendered as GE
@@ -201,8 +244,13 @@ def handle_oss_message(
     # A clicked upgrade button comes back as the A2UI select_upgrade event; answer
     # with a confirmation instead of routing it as a new question.
     selection = _extract_select_upgrade(message)
+    explain_cve = _extract_explain_cve(message)
     if selection is not None:
         answer = _select_upgrade_answer(*selection)
+    elif explain_cve is not None:
+        # A clicked "Explain" button on a vulnerability card -> answer as if the user
+        # asked about that CVE.
+        answer = router.answer(f"What is {explain_cve}?")
     else:
         answer = router.answer(_message_text(message))
     task = _task_result(answer, context_id=context_id, task_id=task_id)
