@@ -176,6 +176,25 @@ A2UI_SURFACE_ID = "endor-upgrade-choices"
 # Event GE sends back when the user picks an option; context carries the choice.
 A2UI_SELECT_EVENT = "select_upgrade"
 
+# Endor brand theming (Google feedback #5). GE's createSurface accepts a theme;
+# we tint our surfaces with Endor's green. Env-tunable (OSS_BRAND_COLOR) so the
+# exact brand hex can be set on the deployment without a rebuild. Empty disables.
+_DEFAULT_BRAND_COLOR = "#28C76F"
+
+
+def _brand_theme() -> dict:
+    color = os.environ.get("OSS_BRAND_COLOR", _DEFAULT_BRAND_COLOR).strip()
+    return {"primaryColor": color} if color else {}
+
+
+def _create_surface(surface_id: str, catalog_id: str | None = None) -> dict:
+    """A createSurface payload with the Endor theme applied."""
+    surface = {"surfaceId": surface_id, "catalogId": catalog_id or A2UI_BASIC_CATALOG}
+    theme = _brand_theme()
+    if theme:
+        surface["theme"] = theme
+    return surface
+
 
 def _a2ui_components() -> list[dict]:
     """The component tree: a heading + a templated list of upgrade cards, each with
@@ -250,7 +269,7 @@ def to_a2ui_messages(element: UpgradeChoiceElement) -> list[dict]:
     return [
         {
             "version": A2UI_VERSION,
-            "createSurface": {"surfaceId": A2UI_SURFACE_ID, "catalogId": A2UI_BASIC_CATALOG},
+            "createSurface": _create_surface(A2UI_SURFACE_ID),
         },
         {
             "version": A2UI_VERSION,
@@ -382,7 +401,7 @@ def to_a2ui_comparison_parts(details: list) -> list[dict]:
     messages = [
         {
             "version": A2UI_VERSION,
-            "createSurface": {"surfaceId": A2UI_COMPARE_SURFACE_ID, "catalogId": A2UI_BASIC_CATALOG},
+            "createSurface": _create_surface(A2UI_COMPARE_SURFACE_ID),
         },
         {
             "version": A2UI_VERSION,
@@ -461,7 +480,7 @@ def to_a2ui_vuln_list_parts(dep) -> list[dict]:
     messages = [
         {
             "version": A2UI_VERSION,
-            "createSurface": {"surfaceId": A2UI_VULN_SURFACE_ID, "catalogId": A2UI_BASIC_CATALOG},
+            "createSurface": _create_surface(A2UI_VULN_SURFACE_ID),
         },
         {
             "version": A2UI_VERSION,
