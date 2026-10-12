@@ -56,6 +56,9 @@ class OssAnswer(BaseModel):
     # suggestion chips — clicking one re-asks that question through the router.
     is_welcome: bool = False
     suggestions: list[str] = Field(default_factory=list)
+    # Two-or-more advisories asked together -> a side-by-side comparison (Google #3,
+    # rendered as a table). Each entry is one looked-up advisory.
+    comparison: list[VulnerabilityDetail] = Field(default_factory=list)
 
 
 # Clickable example queries shown on a greeting ("hello", "hello auri", etc.).
@@ -92,7 +95,7 @@ def _followups(advisory_id: str | None, purl: str | None, result: "OssAnswer") -
             out.append(f"What's the Endor risk score for {purl}?")
         if result.upgrades is not None:
             out.append(f"Show the Endor risk score for {purl}")
-    if advisory_id:
+    if advisory_id and not result.comparison:
         out.append(f"Compare {advisory_id} with CVE-2021-45046")
     seen: set[str] = set()
     uniq: list[str] = []
@@ -123,6 +126,18 @@ class RuleBasedRouter(QuestionRouter):
                 continue
         return None
 
+    def _all_advisories(self, text: str) -> list[str]:
+        """Every distinct advisory id in the question, in order (for comparisons)."""
+        out: list[str] = []
+        for m in _ADVISORY_TOKEN.finditer(text):
+            try:
+                aid = normalize_advisory_id(m.group(1))
+            except InvalidParamsError:
+                continue
+            if aid not in out:
+                out.append(aid)
+        return out
+
     def _first_purl(self, text: str) -> str | None:
         for m in _PURL_TOKEN.finditer(text):
             try:
@@ -133,14 +148,21 @@ class RuleBasedRouter(QuestionRouter):
 
     def answer(self, question: str) -> OssAnswer:
         text = question or ""
-        advisory_id = self._first_advisory(text)
+        advisories = self._all_advisories(text)
+        advisory_id = advisories[0] if advisories else None
         purl = self._first_purl(text)
 
         tools: list[str] = []
         parts: list[str] = []
         result = OssAnswer(answer="")
 
-        if advisory_id:
+        if len(advisories) >= 2:
+            # Two or more CVEs/GHSAs: compare them side by side (Google #3).
+            details = [(a, self._client.vulnerability_details(a)) for a in advisories]
+            tools.append("vulnerability_details")
+            result.comparison = [d for _, d in details]
+            parts.append(_describe_comparison(details))
+        elif advisory_id:
             detail = self._client.vulnerability_details(advisory_id)
             tools.append("vulnerability_details")
             result.advisory = detail
@@ -252,6 +274,14 @@ def _describe_advisory(advisory_id: str, d: VulnerabilityDetail | None) -> str:
     return f"{head}. {d.summary or ''}".strip()
 
 
+def _describe_comparison(details: list[tuple[str, VulnerabilityDetail | None]]) -> str:
+    ids = " vs ".join(a for a, _ in details)
+    lines = [f"Comparing {ids}:"]
+    for aid, d in details:
+        lines.append("• " + _describe_advisory(aid, d))
+    return "\n".join(lines)
+
+
 def _describe_dependency(d: DependencyVulnerabilities) -> str:
     if not d.found:
         return f"{d.package_name or d.purl}: not found in Endor's open-source data."
@@ -277,8 +307,40 @@ def _describe_upgrades(u: UpgradeRecommendations) -> str:
     )
 
 
+def _risk_summary(scores: dict[str, float]) -> str:
+    """Human-readable summary from Endor's metric paths (e.g.
+    ``package_version_scorecard.scorecard.score_card.overall_score`` or
+    ``...vulnerability_stats.critical_vulnerabilities``). Pull the overall score and
+    per-severity vuln counts; never surface the raw metric path names (Google #6)."""
+
+    def find(suffix: str) -> float | None:
+        for k, v in scores.items():
+            if k.endswith(suffix):
+                return v
+        return None
+
+    overall = find("overall_score")
+    if overall is None:
+        for k, v in scores.items():
+            if "overall" in k.lower() or k.lower().endswith(".score"):
+                overall = v
+                break
+    counts = [(sev, find(f"{sev}_vulnerabilities")) for sev in ("critical", "high", "medium", "low")]
+
+    bits: list[str] = []
+    if overall is not None:
+        bits.append(f"overall risk {overall:g}/10")
+    present = [(sev, int(n)) for sev, n in counts if n is not None]
+    if present:
+        bits.append("known vulnerabilities — " + ", ".join(f"{n} {sev}" for sev, n in present))
+    if bits:
+        return " · ".join(bits)
+    # Fallback: cleaned leaf labels for metrics we didn't specifically recognize.
+    clean = [(k.split(".")[-1].replace("_", " "), v) for k, v in list(scores.items())[:3]]
+    return ", ".join(f"{label} {v:g}" for label, v in clean)
+
+
 def _describe_risk(r: PackageRisk) -> str:
     if not r.found or not r.scores:
         return ""
-    top = ", ".join(f"{k}={v}" for k, v in list(r.scores.items())[:4])
-    return f"Endor risk scores for {r.package_name or r.purl}: {top}."
+    return f"Endor risk for {r.package_name or r.purl}: {_risk_summary(r.scores)}."

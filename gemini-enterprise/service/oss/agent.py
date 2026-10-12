@@ -22,6 +22,7 @@ from .ui import (
     GE_SUGGESTIONS_MIME,
     build_upgrade_element,
     to_a2a_parts,
+    to_a2ui_comparison_parts,
     to_a2ui_parts,
     to_ag_ui_events,
     to_ge_suggestion_parts,
@@ -151,6 +152,12 @@ def _task_result(answer, *, context_id: str, task_id: str) -> dict[str, Any]:
                 "data": payload,
                 "metadata": {"mimeType": GE_SUGGESTIONS_MIME},
             })
+
+    # CVE comparison table (Google feedback #3): render as an A2UI Canvas +
+    # IFrameSrcdoc surface when A2UI is active. The text comparison above remains the
+    # fallback if GE doesn't render it.
+    if answer.comparison and ui_protocol() == "a2ui":
+        parts.extend(to_a2ui_comparison_parts(answer.comparison))
 
     # Discoverability + follow-ups (Google feedback #1, #2): a greeting offers
     # clickable example queries; answers offer contextual next steps. Rendered as GE

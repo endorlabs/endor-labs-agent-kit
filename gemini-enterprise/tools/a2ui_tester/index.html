@@ -116,6 +116,13 @@ function renderComponent(id, comps, scope, root, onEvent) {
     kids(c.children || (c.child ? [c.child] : [])).forEach(n => card.appendChild(n));
     return card;
   }
+  if (base === "Canvas") {
+    const box = el("div", "a2ui-Card");
+    if (c.cardTitle) box.appendChild(el("div", "a2ui-h3", c.cardTitle));
+    if (c.cardDescription) box.appendChild(el("div", "a2ui-caption", c.cardDescription));
+    kids(c.children || (c.child ? [c.child] : [])).forEach(n => box.appendChild(n));
+    return box;
+  }
   if (base === "Divider") return el("div", "a2ui-Divider");
   if (base === "Text") {
     const variant = c.variant ? "a2ui-" + c.variant : "";
@@ -148,8 +155,9 @@ function renderComponent(id, comps, scope, root, onEvent) {
   }
   if (base === "IFrameSrcdoc" || c.component === "WebFrameSrcdoc") {
     const f = el("iframe", "a2ui-frame");
-    f.setAttribute("sandbox", "allow-scripts");
-    f.srcdoc = resolve(c.html || c.srcdoc, scope, root) || "";
+    f.setAttribute("sandbox", "allow-scripts allow-same-origin");
+    if (c.height) f.style.minHeight = c.height + "px";
+    f.srcdoc = resolve(c.htmlContent || c.html || c.srcdoc, scope, root) || "";
     return f;
   }
   if (base === "IFrameUrl" || c.component === "WebFrameUrl") {

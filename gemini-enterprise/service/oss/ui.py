@@ -309,6 +309,113 @@ def suggestions_payload(questions: list[str]) -> dict:
     return {"recommendedQuestionsResponse": {"questions": list(questions)}}
 
 
+### A2UI rich surfaces (Gemini Enterprise composite catalog) #####################
+# GE's composite catalog supports a Canvas root + IFrameSrcdoc (inline HTML). We
+# use it for a real comparison *table* (Google feedback #3). Network is blocked in
+# srcdoc (CSP connect-src 'none'), so everything is inlined; autoOpen shows it in
+# GE's side panel. The text answer always remains as the fallback.
+
+A2UI_COMPOSITE_CATALOG = (
+    "https://www.gstatic.com/vertexaisearch/a2ui/v0_9/gemini_enterprise_composite_catalog.json"
+)
+A2UI_COMPARE_SURFACE_ID = "endor-vuln-comparison"
+
+
+def _esc(value: object) -> str:
+    s = str(value if value is not None else "")
+    return (
+        s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+    )
+
+
+def build_comparison_html(details: list) -> str:
+    """A transposed HTML comparison table: rows are attributes, one column per CVE.
+    ``details`` is a list of VulnerabilityDetail. Inline CSS only (srcdoc blocks net)."""
+
+    cves = [d.id for d in details]
+
+    def row(label: str, fn) -> str:
+        cells = "".join(f"<td>{_esc(fn(d))}</td>" for d in details)
+        return f"<tr><th>{_esc(label)}</th>{cells}</tr>"
+
+    def sev(d):
+        return (d.severity or "—") if d.found else "not found"
+
+    def num(attr):
+        def get(d):
+            v = getattr(d, attr, None)
+            return v if (d.found and v is not None) else "—"
+        return get
+
+    def fixed(d):
+        return ", ".join(d.fixed_versions) if (d.found and d.fixed_versions) else "—"
+
+    def summ(d):
+        return (d.summary or "—") if d.found else "—"
+
+    header = "".join(f"<th>{_esc(c)}</th>" for c in cves)
+    body = "".join([
+        row("Severity", sev),
+        row("CVSS", num("cvss_score")),
+        row("EPSS", num("epss_score")),
+        row("Fixed in", fixed),
+        row("Summary", summ),
+    ])
+    return (
+        "<!DOCTYPE html><html><head>"
+        "<meta http-equiv=\"Content-Security-Policy\" content=\"connect-src 'none'\">"
+        "<style>"
+        "body{margin:0;font-family:Roboto,-apple-system,Segoe UI,Arial,sans-serif;color:#1f2430;}"
+        "table{border-collapse:collapse;width:100%;font-size:13px;}"
+        "th,td{border:1px solid #e3e7ee;padding:8px 10px;text-align:left;vertical-align:top;}"
+        "thead th{background:#0b7261;color:#fff;}"
+        "tbody th{background:#f4f6f9;width:110px;font-weight:600;}"
+        "caption{caption-side:top;text-align:left;font-weight:700;padding:6px 2px;font-size:14px;}"
+        "</style></head><body>"
+        "<table><caption>Vulnerability comparison</caption>"
+        f"<thead><tr><th>Attribute</th>{header}</tr></thead>"
+        f"<tbody>{body}</tbody></table></body></html>"
+    )
+
+
+def to_a2ui_comparison_parts(details: list) -> list[dict]:
+    """A2UI messages (composite catalog) that render the comparison HTML table in a
+    Canvas side panel, as A2A DataParts tagged ``application/json+a2ui``."""
+
+    if not details:
+        return []
+    html = build_comparison_html(details)
+    messages = [
+        {
+            "version": A2UI_VERSION,
+            "createSurface": {
+                "surfaceId": A2UI_COMPARE_SURFACE_ID,
+                "catalogId": A2UI_COMPOSITE_CATALOG,
+            },
+        },
+        {
+            "version": A2UI_VERSION,
+            "updateComponents": {
+                "surfaceId": A2UI_COMPARE_SURFACE_ID,
+                "components": [
+                    {
+                        "id": "root", "component": "Canvas",
+                        "cardTitle": "Vulnerability comparison",
+                        "cardDescription": "Side-by-side CVE comparison",
+                        "cardIcon": "table_chart", "autoOpen": True,
+                        "children": ["compare-frame"],
+                    },
+                    {
+                        "id": "compare-frame", "component": "IFrameSrcdoc",
+                        "htmlContent": html, "height": 320,
+                    },
+                ],
+            },
+        },
+    ]
+    return [{"kind": "data", "data": m, "metadata": {"mimeType": A2UI_MIME}} for m in messages]
+
+
 def to_ge_suggestion_parts(questions: list[str]) -> list[dict]:
     """Emit suggestion chips as a single A2A ``data`` part. GE renders a
     ``data`` part tagged ``application/json+suggestions`` as clickable "recommended
