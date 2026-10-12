@@ -18,7 +18,7 @@ variable "region" {
 variable "container_image" {
   description = "The published Endor AURI for Developers container image (immutable @sha256 digest)."
   type        = string
-  default     = "us-central1-docker.pkg.dev/marketplace-458521/endor-agents/oss-a2ui@sha256:a716862321e85038d2187772410789eb677acfd98f162a7c934c9581c22c5bd1"
+  default     = "us-central1-docker.pkg.dev/marketplace-458521/endor-agents/oss-a2ui@sha256:07ee8d2d7d55e525c9185b37fe9b7fefccfa33ebf3db182ac101c0d6a77b358d"
 }
 
 # --- Gemini Enterprise registration -----------------------------------------
