@@ -15,7 +15,7 @@ from fastapi.testclient import TestClient
 from service.oss.app import app
 from service.oss.mock import OssMockClient
 from service.oss.router import RuleBasedRouter, _risk_summary
-from service.oss.ui import build_comparison_html
+from service.oss.ui import to_a2ui_comparison_parts
 
 client = TestClient(app)
 _ids = itertools.count(1)
@@ -89,16 +89,20 @@ def test_single_cve_is_not_a_comparison():
     assert ans.advisory is not None
 
 
-def test_comparison_html_is_a_table():
+def test_comparison_surface_cards_carry_both_cves():
     r = RuleBasedRouter(OssMockClient())
     details = r.answer("Compare CVE-2021-44228 with CVE-2021-45046").comparison
-    html = build_comparison_html(details)
-    assert "<table" in html and "</table>" in html
-    assert "CVE-2021-44228" in html and "CVE-2021-45046" in html
-    assert "Severity" in html and "CVSS" in html and "EPSS" in html
+    parts = to_a2ui_comparison_parts(details)
+    data_model = next(p["data"]["updateDataModel"]["value"] for p in parts if "updateDataModel" in p["data"])
+    ids = [c["id"] for c in data_model["cves"]]
+    assert ids == ["CVE-2021-44228", "CVE-2021-45046"]
+    first = data_model["cves"][0]
+    assert "CRITICAL" in first["meta"] and "CVSS 10" in first["meta"]
 
 
-def test_comparison_emits_a2ui_canvas_iframe_surface(monkeypatch):
+def test_comparison_emits_a2ui_card_surface(monkeypatch):
+    """Rendered with the proven basic catalog (inline), not an IFrameSrcdoc — GE
+    leaves the composite-catalog iframe blank."""
     monkeypatch.setenv("OSS_UI_PROTOCOL", "a2ui")
     result = _ask("Compare CVE-2021-44228 with CVE-2021-45046")
     a2ui = [
@@ -106,12 +110,11 @@ def test_comparison_emits_a2ui_canvas_iframe_surface(monkeypatch):
         if p.get("kind") == "data" and (p.get("metadata") or {}).get("mimeType") == A2UI_MIME
     ]
     kinds = [next(iter(m.keys() - {"version"})) for m in a2ui]
-    assert kinds == ["createSurface", "updateComponents"]
-    assert a2ui[0]["createSurface"]["catalogId"].endswith("gemini_enterprise_composite_catalog.json")
-    comps = a2ui[1]["updateComponents"]["components"]
-    assert comps[0]["component"] == "Canvas" and comps[0]["autoOpen"] is True
-    frame = next(c for c in comps if c["component"] == "IFrameSrcdoc")
-    assert "<table" in frame["htmlContent"]
+    assert kinds == ["createSurface", "updateComponents", "updateDataModel"]
+    assert a2ui[0]["createSurface"]["catalogId"].endswith("basic_catalog.json")
+    ids = {c["id"] for c in a2ui[1]["updateComponents"]["components"]}
+    assert {"root", "heading", "cve-list", "cve-card", "cve-id"} <= ids
+    assert not any(c["component"] == "IFrameSrcdoc" for c in a2ui[1]["updateComponents"]["components"])
     # the plain-text comparison must still be present (fallback)
     assert "Comparing" in _text(result)
 

@@ -309,108 +309,80 @@ def suggestions_payload(questions: list[str]) -> dict:
     return {"recommendedQuestionsResponse": {"questions": list(questions)}}
 
 
-### A2UI rich surfaces (Gemini Enterprise composite catalog) #####################
-# GE's composite catalog supports a Canvas root + IFrameSrcdoc (inline HTML). We
-# use it for a real comparison *table* (Google feedback #3). Network is blocked in
-# srcdoc (CSP connect-src 'none'), so everything is inlined; autoOpen shows it in
-# GE's side panel. The text answer always remains as the fallback.
+### A2UI comparison surface (Google feedback #3) ################################
+# Rendered with the SAME basic catalog as the upgrade ChoicePicker, which GE
+# renders inline and reliably. (GE's composite catalog opens a Canvas side panel
+# but leaves an IFrameSrcdoc blank — inline HTML isn't supported there — so we use
+# the proven inline-card path instead of an iframe table.) The text comparison in
+# the answer is always present as the fallback.
 
-A2UI_COMPOSITE_CATALOG = (
-    "https://www.gstatic.com/vertexaisearch/a2ui/v0_9/gemini_enterprise_composite_catalog.json"
-)
 A2UI_COMPARE_SURFACE_ID = "endor-vuln-comparison"
 
 
-def _esc(value: object) -> str:
-    s = str(value if value is not None else "")
-    return (
-        s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+def _comparison_card(detail) -> dict:
+    """One CVE's row of the comparison, flattened to display strings."""
+    if not detail.found:
+        return {"id": detail.id, "meta": "not found in Endor's open-source data",
+                "summary": "", "fixed": ""}
+    meta_bits = [detail.severity or "—"]
+    if detail.cvss_score is not None:
+        meta_bits.append(f"CVSS {detail.cvss_score:g}")
+    if detail.epss_score is not None:
+        meta_bits.append(f"EPSS {detail.epss_score:g}")
+    fixed = (
+        f"Fixed in {', '.join(detail.fixed_versions)}"
+        if detail.fixed_versions else "No fixed version listed"
     )
+    return {
+        "id": detail.id,
+        "meta": " · ".join(meta_bits),
+        "summary": detail.summary or "",
+        "fixed": fixed,
+    }
 
 
-def build_comparison_html(details: list) -> str:
-    """A transposed HTML comparison table: rows are attributes, one column per CVE.
-    ``details`` is a list of VulnerabilityDetail. Inline CSS only (srcdoc blocks net)."""
-
-    cves = [d.id for d in details]
-
-    def row(label: str, fn) -> str:
-        cells = "".join(f"<td>{_esc(fn(d))}</td>" for d in details)
-        return f"<tr><th>{_esc(label)}</th>{cells}</tr>"
-
-    def sev(d):
-        return (d.severity or "—") if d.found else "not found"
-
-    def num(attr):
-        def get(d):
-            v = getattr(d, attr, None)
-            return v if (d.found and v is not None) else "—"
-        return get
-
-    def fixed(d):
-        return ", ".join(d.fixed_versions) if (d.found and d.fixed_versions) else "—"
-
-    def summ(d):
-        return (d.summary or "—") if d.found else "—"
-
-    header = "".join(f"<th>{_esc(c)}</th>" for c in cves)
-    body = "".join([
-        row("Severity", sev),
-        row("CVSS", num("cvss_score")),
-        row("EPSS", num("epss_score")),
-        row("Fixed in", fixed),
-        row("Summary", summ),
-    ])
-    return (
-        "<!DOCTYPE html><html><head>"
-        "<meta http-equiv=\"Content-Security-Policy\" content=\"connect-src 'none'\">"
-        "<style>"
-        "body{margin:0;font-family:Roboto,-apple-system,Segoe UI,Arial,sans-serif;color:#1f2430;}"
-        "table{border-collapse:collapse;width:100%;font-size:13px;}"
-        "th,td{border:1px solid #e3e7ee;padding:8px 10px;text-align:left;vertical-align:top;}"
-        "thead th{background:#0b7261;color:#fff;}"
-        "tbody th{background:#f4f6f9;width:110px;font-weight:600;}"
-        "caption{caption-side:top;text-align:left;font-weight:700;padding:6px 2px;font-size:14px;}"
-        "</style></head><body>"
-        "<table><caption>Vulnerability comparison</caption>"
-        f"<thead><tr><th>Attribute</th>{header}</tr></thead>"
-        f"<tbody>{body}</tbody></table></body></html>"
-    )
+def _comparison_components() -> list[dict]:
+    return [
+        {"id": "root", "component": "Column", "children": ["heading", "cve-list"]},
+        {"id": "heading", "component": "Text", "variant": "h2", "text": {"path": "/title"}},
+        {
+            "id": "cve-list", "component": "List", "direction": "vertical",
+            "children": {"componentId": "cve-card", "path": "/cves"},
+        },
+        {"id": "cve-card", "component": "Card", "child": "cve-col"},
+        {
+            "id": "cve-col", "component": "Column",
+            "children": ["cve-id", "cve-meta", "cve-summary", "cve-fixed"],
+        },
+        {"id": "cve-id", "component": "Text", "variant": "h3", "text": {"path": "id"}},
+        {"id": "cve-meta", "component": "Text", "text": {"path": "meta"}},
+        {"id": "cve-summary", "component": "Text", "text": {"path": "summary"}},
+        {"id": "cve-fixed", "component": "Text", "variant": "caption", "text": {"path": "fixed"}},
+    ]
 
 
 def to_a2ui_comparison_parts(details: list) -> list[dict]:
-    """A2UI messages (composite catalog) that render the comparison HTML table in a
-    Canvas side panel, as A2A DataParts tagged ``application/json+a2ui``."""
+    """A2UI messages (basic catalog) rendering one card per CVE — severity, CVSS,
+    EPSS, fix, summary — as A2A DataParts tagged ``application/json+a2ui``."""
 
     if not details:
         return []
-    html = build_comparison_html(details)
+    data_model = {
+        "title": "Vulnerability comparison",
+        "cves": [_comparison_card(d) for d in details],
+    }
     messages = [
         {
             "version": A2UI_VERSION,
-            "createSurface": {
-                "surfaceId": A2UI_COMPARE_SURFACE_ID,
-                "catalogId": A2UI_COMPOSITE_CATALOG,
-            },
+            "createSurface": {"surfaceId": A2UI_COMPARE_SURFACE_ID, "catalogId": A2UI_BASIC_CATALOG},
         },
         {
             "version": A2UI_VERSION,
-            "updateComponents": {
-                "surfaceId": A2UI_COMPARE_SURFACE_ID,
-                "components": [
-                    {
-                        "id": "root", "component": "Canvas",
-                        "cardTitle": "Vulnerability comparison",
-                        "cardDescription": "Side-by-side CVE comparison",
-                        "cardIcon": "table_chart", "autoOpen": True,
-                        "children": ["compare-frame"],
-                    },
-                    {
-                        "id": "compare-frame", "component": "IFrameSrcdoc",
-                        "htmlContent": html, "height": 320,
-                    },
-                ],
-            },
+            "updateComponents": {"surfaceId": A2UI_COMPARE_SURFACE_ID, "components": _comparison_components()},
+        },
+        {
+            "version": A2UI_VERSION,
+            "updateDataModel": {"surfaceId": A2UI_COMPARE_SURFACE_ID, "path": "/", "value": data_model},
         },
     ]
     return [{"kind": "data", "data": m, "metadata": {"mimeType": A2UI_MIME}} for m in messages]
