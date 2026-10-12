@@ -100,6 +100,19 @@ def test_comparison_surface_cards_carry_both_cves():
     assert "CRITICAL" in first["meta"] and "CVSS 10" in first["meta"]
 
 
+def test_comparison_card_dedups_and_caps_fixed_versions():
+    from service.oss.models import VulnerabilityDetail
+    from service.oss.ui import _comparison_card
+
+    d = VulnerabilityDetail(
+        id="CVE-x", found=True, severity="CRITICAL",
+        fixed_versions=["2.15.0", "2.15.0", "1.9.2", "2.15.0", "a", "b", "c", "d", "e"],
+    )
+    card = _comparison_card(d)
+    assert card["fixed"].count("2.15.0") == 1   # de-duplicated
+    assert "(+1 more)" in card["fixed"]          # 7 unique -> 6 shown + 1 more
+
+
 def test_comparison_emits_a2ui_card_surface(monkeypatch):
     """Rendered with the proven basic catalog (inline), not an IFrameSrcdoc — GE
     leaves the composite-catalog iframe blank."""

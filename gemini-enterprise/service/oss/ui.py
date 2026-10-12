@@ -329,10 +329,18 @@ def _comparison_card(detail) -> dict:
         meta_bits.append(f"CVSS {detail.cvss_score:g}")
     if detail.epss_score is not None:
         meta_bits.append(f"EPSS {detail.epss_score:g}")
-    fixed = (
-        f"Fixed in {', '.join(detail.fixed_versions)}"
-        if detail.fixed_versions else "No fixed version listed"
-    )
+    # Endor aggregates fixed versions across every affected branch, with repeats —
+    # dedup (preserve order) and cap so the card stays readable.
+    if detail.fixed_versions:
+        uniq: list[str] = []
+        for v in detail.fixed_versions:
+            if v not in uniq:
+                uniq.append(v)
+        shown = ", ".join(uniq[:6])
+        more = f" (+{len(uniq) - 6} more)" if len(uniq) > 6 else ""
+        fixed = f"Fixed in {shown}{more}"
+    else:
+        fixed = "No fixed version listed"
     return {
         "id": detail.id,
         "meta": " · ".join(meta_bits),
