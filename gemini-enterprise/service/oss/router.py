@@ -51,6 +51,56 @@ class OssAnswer(BaseModel):
     risk: PackageRisk | None = None
     upgrades: UpgradeRecommendations | None = None
     data_gaps: list[str] = Field(default_factory=list)
+    # Discoverability (Google/Veer feedback): a greeting/"what can you do" turn is
+    # a welcome; answers carry contextual follow-up suggestions. Both render as GE
+    # suggestion chips — clicking one re-asks that question through the router.
+    is_welcome: bool = False
+    suggestions: list[str] = Field(default_factory=list)
+
+
+# Clickable example queries shown on a greeting ("hello", "hello auri", etc.).
+_EXAMPLE_QUERIES = [
+    "What is CVE-2021-44228?",
+    "What are the vulnerabilities in mvn://org.apache.logging.log4j:log4j-core@2.14.1?",
+    "What's the Endor risk score for npm://lodash@4.17.20?",
+    "Recommend a safe upgrade for mvn://org.apache.logging.log4j:log4j-core@2.14.1",
+]
+
+_WELCOME_TEXT = (
+    "Hi, I'm Endor AURI for Developers — I answer open-source security questions "
+    "from Endor Labs' public intelligence. I can:\n"
+    "• Explain a CVE/GHSA — severity, CVSS, EPSS, and the fix\n"
+    "• List the known vulnerabilities for a package version\n"
+    "• Give an Endor package risk score\n"
+    "• Recommend a safe upgrade that fixes the vulnerabilities\n"
+    "Pick an example below, or ask about any CVE (e.g. CVE-2021-44228) or package "
+    "(e.g. npm://lodash@4.17.20)."
+)
+
+
+def _followups(advisory_id: str | None, purl: str | None, result: "OssAnswer") -> list[str]:
+    """Contextual next-step chips — "compare with X", "recommend an upgrade", "risk
+    score" — phrased so clicking one is a valid follow-up question (Google feedback #2)."""
+
+    out: list[str] = []
+    if purl:
+        dep = result.dependency
+        has_vulns = bool(dep and dep.found and dep.vulnerabilities)
+        if has_vulns and result.upgrades is None:
+            out.append(f"Recommend a safe upgrade for {purl}")
+        if result.risk is None:
+            out.append(f"What's the Endor risk score for {purl}?")
+        if result.upgrades is not None:
+            out.append(f"Show the Endor risk score for {purl}")
+    if advisory_id:
+        out.append(f"Compare {advisory_id} with CVE-2021-45046")
+    seen: set[str] = set()
+    uniq: list[str] = []
+    for s in out:
+        if s and s not in seen:
+            seen.add(s)
+            uniq.append(s)
+    return uniq[:3]
 
 
 class QuestionRouter(ABC):
@@ -113,17 +163,17 @@ class RuleBasedRouter(QuestionRouter):
                 parts.append(_describe_risk(risk))
 
         if not advisory_id and not purl:
+            # A greeting or an unrecognized question: introduce the agent and offer
+            # clickable example queries (Google feedback #1 — discoverability).
             result.data_gaps.append("no_package_or_advisory_identified")
-            result.answer = (
-                "I can answer open-source questions about a specific vulnerability "
-                "(e.g. CVE-2021-44228) or a package version "
-                "(e.g. mvn://org.apache.logging.log4j:log4j-core@2.14.1). "
-                "Please include one of those."
-            )
+            result.is_welcome = True
+            result.answer = _WELCOME_TEXT
+            result.suggestions = list(_EXAMPLE_QUERIES)
             return result
 
         result.tools_used = tools
         result.answer = " ".join(parts)
+        result.suggestions = _followups(advisory_id, purl, result)
         return result
 
 

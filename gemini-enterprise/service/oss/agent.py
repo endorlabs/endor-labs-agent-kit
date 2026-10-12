@@ -24,6 +24,7 @@ from .ui import (
     to_a2a_parts,
     to_a2ui_parts,
     to_ag_ui_events,
+    to_ge_suggestion_parts,
     to_ge_suggestions_payload,
     ui_protocol,
 )
@@ -150,6 +151,12 @@ def _task_result(answer, *, context_id: str, task_id: str) -> dict[str, Any]:
                 "data": payload,
                 "metadata": {"mimeType": GE_SUGGESTIONS_MIME},
             })
+
+    # Discoverability + follow-ups (Google feedback #1, #2): a greeting offers
+    # clickable example queries; answers offer contextual next steps. Rendered as GE
+    # suggestion chips. Additive only — the text + data answer above always remain.
+    if answer.suggestions:
+        parts.extend(to_ge_suggestion_parts(answer.suggestions))
 
     artifact: dict[str, Any] = {
         "artifactId": "oss-intelligence-answer",

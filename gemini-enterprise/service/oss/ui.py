@@ -15,6 +15,8 @@ or ``both``).
 
 from __future__ import annotations
 
+import base64
+import json
 import os
 
 from pydantic import BaseModel, Field
@@ -300,3 +302,31 @@ def to_ge_suggestions_payload(element: UpgradeChoiceElement) -> dict:
     """The GE ``application/json+suggestions`` body carrying our upgrade chips."""
 
     return {"recommendedQuestionsResponse": {"questions": to_ge_suggestion_questions(element)}}
+
+
+def suggestions_payload(questions: list[str]) -> dict:
+    """The GE ``application/json+suggestions`` body for an arbitrary chip list
+    (welcome example queries, or contextual follow-ups)."""
+
+    return {"recommendedQuestionsResponse": {"questions": list(questions)}}
+
+
+def to_ge_suggestion_parts(questions: list[str]) -> list[dict]:
+    """Emit suggestion chips as A2A parts. GE renders ``application/json+suggestions``
+    as clickable "recommended questions"; clicking one re-asks that question. We emit
+    both a mimeType-tagged ``file`` part and a ``data`` part so whichever mapping GE
+    uses for A2A -> typed content is covered. Additive only — never replaces the answer."""
+
+    if not questions:
+        return []
+    payload = suggestions_payload(questions)
+    return [
+        {
+            "kind": "file",
+            "file": {
+                "mimeType": GE_SUGGESTIONS_MIME,
+                "bytes": base64.b64encode(json.dumps(payload).encode("utf-8")).decode("ascii"),
+            },
+        },
+        {"kind": "data", "data": payload, "metadata": {"mimeType": GE_SUGGESTIONS_MIME}},
+    ]
