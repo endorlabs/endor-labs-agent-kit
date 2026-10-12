@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Endor AURI — A2UI local tester</title>
+<style>
+  :root { --bg:#0b1220; --panel:#121a2b; --ink:#e7edf6; --muted:#9fb0c7; --line:#243049;
+          --accent:#5b8cff; --card:#162134; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:14px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;
+         background:var(--bg); color:var(--ink); }
+  header { padding:14px 18px; border-bottom:1px solid var(--line); display:flex; gap:10px; align-items:center; }
+  header b { font-size:15px; } header span { color:var(--muted); font-size:12px; }
+  .wrap { display:grid; grid-template-columns:1fr 1fr; gap:0; height:calc(100vh - 53px); }
+  .col { padding:16px 18px; overflow:auto; }
+  .col + .col { border-left:1px solid var(--line); }
+  h3 { margin:0 0 10px; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  form { display:flex; gap:8px; margin-bottom:12px; }
+  input[type=text] { flex:1; padding:9px 11px; border-radius:8px; border:1px solid var(--line);
+                     background:var(--panel); color:var(--ink); }
+  button.send { padding:9px 14px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .chip { font-size:12px; padding:5px 10px; border:1px solid var(--line); border-radius:999px;
+          background:var(--panel); color:var(--muted); cursor:pointer; }
+  .chip:hover { color:var(--ink); border-color:var(--accent); }
+  .answer { white-space:pre-wrap; background:var(--panel); border:1px solid var(--line);
+            border-radius:8px; padding:12px; }
+  pre.raw { font:12px/1.45 ui-monospace,Menlo,monospace; background:#0a0f1a; border:1px solid var(--line);
+            border-radius:8px; padding:12px; overflow:auto; color:#b9c7dd; }
+  /* A2UI render primitives */
+  .a2ui-Card, .a2ui-MaterialCard { background:var(--card); border:1px solid var(--line);
+            border-radius:12px; padding:12px; margin:8px 0; }
+  .a2ui-Column, .a2ui-MaterialColumn { display:flex; flex-direction:column; gap:6px; }
+  .a2ui-Row, .a2ui-MaterialRow { display:flex; flex-direction:row; gap:8px; align-items:center; }
+  .a2ui-Row.justify-end { justify-content:flex-end; }
+  .a2ui-Divider { height:1px; background:var(--line); margin:8px 0; }
+  .a2ui-h2 { font-size:17px; font-weight:700; }
+  .a2ui-h3 { font-size:15px; font-weight:700; }
+  .a2ui-caption { font-size:12px; color:var(--muted); }
+  .a2ui-btn { padding:7px 12px; border:0; border-radius:8px; background:var(--accent); color:#fff; cursor:pointer; }
+  .a2ui-unknown { border:1px dashed #c0392b; color:#e89; padding:6px; border-radius:6px; font-size:12px; }
+  iframe.a2ui-frame { width:100%; border:1px solid var(--line); border-radius:10px; background:#fff; min-height:220px; }
+  .muted { color:var(--muted); }
+  .err { color:#ff8a8a; }
+</style>
+</head>
+<body>
+<header>
+  <b>Endor AURI · A2UI local tester</b>
+  <span id="status">mock client · OSS_UI_PROTOCOL=a2ui</span>
+</header>
+<div class="wrap">
+  <div class="col">
+    <h3>Ask</h3>
+    <form id="ask">
+      <input type="text" id="q" placeholder="e.g. How do I fix mvn://org.apache.logging.log4j:log4j-core@2.14.1?" autofocus />
+      <button class="send" type="submit">Send</button>
+    </form>
+    <div class="chips" id="examples"></div>
+    <h3>Rendered A2UI</h3>
+    <div id="render"><div class="muted">Send a prompt to see the agent's A2UI surface.</div></div>
+    <h3 style="margin-top:16px">Text answer (fallback)</h3>
+    <div class="answer" id="answer"></div>
+  </div>
+  <div class="col">
+    <h3>Raw response parts</h3>
+    <pre class="raw" id="raw"></pre>
+  </div>
+</div>
+
+<script>
+const EXAMPLES = [
+  "How do I fix mvn://org.apache.logging.log4j:log4j-core@2.14.1?",
+  "What is CVE-2021-44228?",
+  "What are the vulnerabilities in mvn://org.apache.logging.log4j:log4j-core@2.14.1?",
+  "What version should I upgrade npm://lodash@4.17.20 to?",
+];
+const A2UI_MIME = "application/json+a2ui";
+const SUGG_MIME = "application/json+suggestions";
+let msgId = 1;
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+// Resolve an A2UI text/value spec ({path:"/abs"} or {path:"rel"} or literal) against a scope object.
+function resolve(spec, scope, root) {
+  if (spec == null) return "";
+  if (typeof spec !== "object") return spec;
+  if ("path" in spec) {
+    const p = spec.path;
+    const base = p.startsWith("/") ? root : scope;
+    const segs = p.replace(/^\//, "").split("/").filter(Boolean);
+    let v = base;
+    for (const s of segs) { if (v == null) return ""; v = v[s]; }
+    return v == null ? "" : v;
+  }
+  return spec;
+}
+
+// Render one component (by id) from the components adjacency map, within a data scope.
+function renderComponent(id, comps, scope, root, onEvent) {
+  const c = comps[id];
+  if (!c) return el("div", "a2ui-unknown", "missing component: " + id);
+  const base = (c.component || "").replace(/^Material/, "");  // treat MaterialX like X
+
+  const kids = (list) => (list || []).map(k => renderComponent(k, comps, scope, root, onEvent));
+
+  if (base === "Column" || base === "Row") {
+    const box = el("div", "a2ui-" + (c.component || base) + (c.justify === "end" ? " justify-end" : ""));
+    const childIds = c.children || (c.child ? [c.child] : []);
+    kids(childIds).forEach(n => box.appendChild(n));
+    return box;
+  }
+  if (base === "Card") {
+    const card = el("div", "a2ui-" + (c.component || "Card"));
+    kids(c.children || (c.child ? [c.child] : [])).forEach(n => card.appendChild(n));
+    return card;
+  }
+  if (base === "Divider") return el("div", "a2ui-Divider");
+  if (base === "Text") {
+    const variant = c.variant ? "a2ui-" + c.variant : "";
+    return el("div", ("a2ui-Text " + variant).trim(), String(resolve(c.text, scope, root)));
+  }
+  if (base === "List") {
+    const wrap = el("div", "a2ui-" + (c.component || "List"));
+    const tmpl = c.children;  // { componentId, path }
+    if (tmpl && tmpl.componentId) {
+      const items = resolve({ path: tmpl.path }, scope, root) || [];
+      (Array.isArray(items) ? items : []).forEach(item =>
+        wrap.appendChild(renderComponent(tmpl.componentId, comps, item, root, onEvent)));
+    } else {
+      kids(c.children).forEach(n => wrap.appendChild(n));
+    }
+    return wrap;
+  }
+  if (base === "Button") {
+    const label = c.child ? comps[c.child] : null;
+    const text = label ? String(resolve(label.text, scope, root)) : (c.label || "Select");
+    const b = el("button", "a2ui-btn", text);
+    b.onclick = () => {
+      const ev = c.action && c.action.event;
+      if (!ev) return;
+      const ctx = {};
+      for (const [k, v] of Object.entries(ev.context || {})) ctx[k] = resolve(v, scope, root);
+      onEvent({ name: ev.name, context: ctx, surfaceId: c._surfaceId });
+    };
+    return b;
+  }
+  if (base === "IFrameSrcdoc" || c.component === "WebFrameSrcdoc") {
+    const f = el("iframe", "a2ui-frame");
+    f.setAttribute("sandbox", "allow-scripts");
+    f.srcdoc = resolve(c.html || c.srcdoc, scope, root) || "";
+    return f;
+  }
+  if (base === "IFrameUrl" || c.component === "WebFrameUrl") {
+    const f = el("iframe", "a2ui-frame");
+    f.src = resolve(c.url, scope, root) || "about:blank";
+    return f;
+  }
+  return el("div", "a2ui-unknown", "unhandled component: " + (c.component || id));
+}
+
+// Apply the A2UI message list (createSurface/updateComponents/updateDataModel) and render.
+function renderA2ui(messages, mount, onEvent) {
+  const surfaces = {};
+  for (const m of messages) {
+    if (m.createSurface) surfaces[m.createSurface.surfaceId] = { comps: {}, model: {} };
+    if (m.updateComponents) {
+      const s = surfaces[m.updateComponents.surfaceId] || (surfaces[m.updateComponents.surfaceId] = { comps: {}, model: {} });
+      for (const c of m.updateComponents.components) { c._surfaceId = m.updateComponents.surfaceId; s.comps[c.id] = c; }
+    }
+    if (m.updateDataModel) {
+      const s = surfaces[m.updateDataModel.surfaceId] || (surfaces[m.updateDataModel.surfaceId] = { comps: {}, model: {} });
+      s.model = m.updateDataModel.value;
+    }
+  }
+  mount.innerHTML = "";
+  for (const [sid, s] of Object.entries(surfaces)) {
+    if (!s.comps.root) continue;
+    mount.appendChild(renderComponent("root", s.comps, s.model, s.model, onEvent));
+  }
+  if (!mount.childNodes.length) mount.appendChild(el("div", "muted", "(no A2UI surface in this response)"));
+}
+
+async function send(text) {
+  document.getElementById("answer").textContent = "";
+  document.getElementById("render").innerHTML = '<div class="muted">…</div>';
+  const body = { jsonrpc: "2.0", id: msgId++, method: "message/send",
+    params: { message: { role: "user", parts: [{ kind: "text", text }] } } };
+  let res;
+  try {
+    res = await (await fetch("/agent/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })).json();
+  } catch (e) {
+    document.getElementById("render").innerHTML = '<div class="err">request failed: ' + e + '</div>';
+    return;
+  }
+  const parts = (((res.result || {}).artifacts || [{}])[0] || {}).parts || [];
+  document.getElementById("raw").textContent = JSON.stringify(parts, null, 2);
+
+  // text answer (fallback)
+  const txt = parts.find(p => p.kind === "text");
+  document.getElementById("answer").textContent = txt ? txt.text : "(no text part!)";
+
+  // A2UI surface
+  const a2ui = parts.filter(p => p.kind === "data" && (p.metadata || {}).mimeType === A2UI_MIME).map(p => p.data);
+  renderA2ui(a2ui, document.getElementById("render"), (ev) => {
+    // Echo a GE-style select event back to the agent.
+    const back = { jsonrpc: "2.0", id: msgId++, method: "message/send", params: { message: { role: "user", parts: [
+      { kind: "text", text: "User action triggered." },
+      { kind: "data", metadata: { mimeType: A2UI_MIME }, data: { version: "v0.9", action: { name: ev.name, context: ev.context, surfaceId: ev.surfaceId } } },
+    ] } } };
+    fetch("/agent/", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(back) })
+      .then(r => r.json()).then(r => {
+        const p = (((r.result || {}).artifacts || [{}])[0] || {}).parts || [];
+        const t = p.find(x => x.kind === "text");
+        document.getElementById("answer").textContent = "↳ " + (t ? t.text : "(no answer)");
+      });
+  });
+
+  // suggestion chips (follow-ups)
+  const sugg = parts.filter(p => p.kind === "data" && (p.metadata || {}).mimeType === SUGG_MIME);
+  if (sugg.length) {
+    const qs = (((sugg[0].data || {}).recommendedQuestionsResponse || {}).questions) || [];
+    const box = el("div", "chips");
+    qs.forEach(q => { const c = el("button", "chip", q); c.onclick = () => { document.getElementById("q").value = q; send(q); }; box.appendChild(c); });
+    document.getElementById("render").appendChild(el("h3", null, "Suggested follow-ups"));
+    document.getElementById("render").appendChild(box);
+  }
+}
+
+// wire up
+const exBox = document.getElementById("examples");
+EXAMPLES.forEach(q => { const c = el("button", "chip", q); c.onclick = () => { document.getElementById("q").value = q; send(q); }; exBox.appendChild(c); });
+document.getElementById("ask").onsubmit = (e) => { e.preventDefault(); const q = document.getElementById("q").value.trim(); if (q) send(q); };
+</script>
+</body>
+</html>
