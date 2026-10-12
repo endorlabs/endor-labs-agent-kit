@@ -7,9 +7,7 @@ All additive: the plain-text answer is always still present.
 
 from __future__ import annotations
 
-import base64
 import itertools
-import json
 
 import pytest
 from fastapi.testclient import TestClient
@@ -101,11 +99,18 @@ def test_hello_end_to_end_welcome_and_chips(greeting):
     assert any("CVE-2021-44228" in q for q in qs)
 
 
-def test_chips_file_and_data_parts_match():
+def test_chips_are_data_part_only_no_file_attachment():
+    """GE renders the data part as chips but errors on a file part with this
+    mimeType ("Unsupported attachment", seen live 2026-10-12). Lock: chips are a
+    single data part, and no file part carries the suggestions mimeType."""
     result = _ask("Hello")
-    file_part = next(p for p in _parts(result) if p.get("kind") == "file")
-    decoded = json.loads(base64.b64decode(file_part["file"]["bytes"]))
-    assert decoded == {"recommendedQuestionsResponse": {"questions": _suggestions(result)}}
+    sugg = [
+        p for p in _parts(result)
+        if (p.get("metadata") or {}).get("mimeType") == SUGG_MIME
+        or (p.get("kind") == "file" and (p.get("file") or {}).get("mimeType") == SUGG_MIME)
+    ]
+    assert len(sugg) == 1 and sugg[0]["kind"] == "data"
+    assert not any(p.get("kind") == "file" for p in _parts(result))
 
 
 def test_answer_still_has_text_with_chips():

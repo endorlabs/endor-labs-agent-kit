@@ -15,8 +15,6 @@ or ``both``).
 
 from __future__ import annotations
 
-import base64
-import json
 import os
 
 from pydantic import BaseModel, Field
@@ -312,21 +310,18 @@ def suggestions_payload(questions: list[str]) -> dict:
 
 
 def to_ge_suggestion_parts(questions: list[str]) -> list[dict]:
-    """Emit suggestion chips as A2A parts. GE renders ``application/json+suggestions``
-    as clickable "recommended questions"; clicking one re-asks that question. We emit
-    both a mimeType-tagged ``file`` part and a ``data`` part so whichever mapping GE
-    uses for A2A -> typed content is covered. Additive only — never replaces the answer."""
+    """Emit suggestion chips as a single A2A ``data`` part. GE renders a
+    ``data`` part tagged ``application/json+suggestions`` as clickable "recommended
+    questions" (clicking one re-asks it). Confirmed live in the GE UI, 2026-10-12.
+
+    We intentionally do NOT also emit a ``file`` part with this mimeType: GE treats
+    that as an attachment and shows a "Unsupported attachment" error. Additive only —
+    never replaces the answer."""
 
     if not questions:
         return []
-    payload = suggestions_payload(questions)
-    return [
-        {
-            "kind": "file",
-            "file": {
-                "mimeType": GE_SUGGESTIONS_MIME,
-                "bytes": base64.b64encode(json.dumps(payload).encode("utf-8")).decode("ascii"),
-            },
-        },
-        {"kind": "data", "data": payload, "metadata": {"mimeType": GE_SUGGESTIONS_MIME}},
-    ]
+    return [{
+        "kind": "data",
+        "data": suggestions_payload(questions),
+        "metadata": {"mimeType": GE_SUGGESTIONS_MIME},
+    }]
