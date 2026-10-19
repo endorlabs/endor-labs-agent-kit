@@ -1092,13 +1092,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     antigravity_hooks = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "hooks.json").read_text()
     )
-    assert set(antigravity_hooks) == {"endor-labs-agent-kit"}
-    assert set(antigravity_hooks["endor-labs-agent-kit"]) == {
+    assert set(antigravity_hooks) == {"hooks"}
+    assert set(antigravity_hooks["hooks"]) == {
         "PreInvocation",
         "PreToolUse",
         "PostToolUse",
     }
     assert "run_command" in json.dumps(antigravity_hooks)
+    assert 'bash \\"${PLUGIN_ROOT:-.}/hooks/' in json.dumps(antigravity_hooks)
+    assert 'bash ./hooks/' not in json.dumps(antigravity_hooks)
     claude_discovery_terms = {
         "agentic remediation",
         "SAST remediation",
@@ -1150,11 +1152,15 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     antigravity_plugin_manifest = json.loads(
         (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "plugin.json").read_text()
     )
-    assert antigravity_plugin_manifest == {
-        "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-        "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
-        "name": "endor-labs-agent-kit",
-    }
+    assert antigravity_plugin_manifest["$schema"] == "https://antigravity.google/schemas/v1/plugin.json"
+    assert antigravity_plugin_manifest["name"] == "endor-labs-agent-kit"
+    assert antigravity_plugin_manifest["displayName"] == "Endor Labs Agent Kit"
+    assert antigravity_plugin_manifest["version"] == package_version()
+    assert antigravity_plugin_manifest["logo"] == "assets/logo.png"
+    assert (dest / "plugins" / "antigravity" / "endor-labs-agent-kit" / "assets" / "logo.png").is_file()
+    assert len(antigravity_plugin_manifest["suggestedPrompts"]) == 3
+    assert antigravity_plugin_manifest["author"]["name"] == "Endor Labs"
+    assert antigravity_plugin_manifest["category"] == "Security"
     codex_directory_manifest = json.loads(
         (
             dest

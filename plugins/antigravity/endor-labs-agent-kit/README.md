@@ -34,12 +34,26 @@ Agent Kit does not block compatible customer-selected host models.
 
 ## Host Metadata
 
-- Manifest: `plugin.json`.
+- Manifest: `plugin.json` with Antigravity Marketplace metadata (display name, logo, suggested prompts, version, author, category, keywords).
 - Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.
 - Subagents: `agents/<agent>.md`.
-- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.
+- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits. Hook commands resolve scripts through `${PLUGIN_ROOT}` when the host injects it and otherwise through the hook working directory, which Antigravity sets to the plugin root.
 - Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.
 - MCP: no plugin-wide MCP server is declared by default.
+
+## Install From The Antigravity Marketplace
+
+In the Antigravity app, open **Customizations** in the left sidebar, select
+**Plugins**, and search **Discover** for `Endor Labs Agent Kit`. To install
+from the public repository instead, click **+ Install from URL** and enter
+the plugin directory URL:
+
+```text
+https://github.com/endorlabs/ai-plugins/tree/2.2.2/plugins/antigravity/endor-labs-agent-kit
+```
+
+Every published update increments `version` in `plugin.json`, so installed
+clients detect and download the new release.
 
 ## Install From The Public Release
 

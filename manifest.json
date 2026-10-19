@@ -5885,64 +5885,64 @@
     {
       "artifacts": [
         {
-          "bytes": 6002,
+          "bytes": 6815,
           "path": "plugins/antigravity/endor-labs-agent-kit/README.md",
-          "sha256": "dbba818b5f478526e0ca002d83a1ba0c3aaab03f2c7d40dd0218b73ff7c4b9c3"
+          "sha256": "40df78d425b5f95d6fe15cb513347e668fc5a65a4f908cc81680e9d39fe64356"
         },
         {
-          "bytes": 35638,
+          "bytes": 35654,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/ai-sast-remediation.md",
-          "sha256": "9aecffa9852cca3064565aa4ac02d43552b3f5e4e0535444562f3b7895c201bc"
+          "sha256": "4e1e37ab466a44080378a6e2435cdceb154182502caaeef4f20c30ba1907100b"
         },
         {
-          "bytes": 23982,
+          "bytes": 23998,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/cicd-posture.md",
-          "sha256": "4ef33662acdcb23ba54543f75495fd61a96310b520916c8a99c3a130225fe7d8"
+          "sha256": "f4dfc1f2e5b6639954a5d7ef9a8ff2445bd0e0f39c455500cf160e179736046c"
         },
         {
-          "bytes": 29592,
+          "bytes": 29608,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/configuration-automation.md",
-          "sha256": "c20dec67ab87263d2ea1ea1e19a5cad3bc6156666fe54b532e65911d93cfe85e"
+          "sha256": "0c49e4adfb96cadad66eea25f21eee3817ee8b36e31cf0e02d0f5dec2190d3dc"
         },
         {
-          "bytes": 19746,
+          "bytes": 19762,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/dependency-reviewer.md",
-          "sha256": "fe361d3ee8acc495303b3338fc716fdd62f9f9f8b4d49a2193af56d3fa96d640"
+          "sha256": "5e0ae86462bfe4a5700a907c3d82f9d0a2629bd7cf8c67b71fa30cf07c04d19f"
         },
         {
-          "bytes": 16219,
+          "bytes": 16235,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/findings-browser.md",
-          "sha256": "028568bb97f6faa0ecb8e7375c2fe5df16b28ae058d63b9d4c685e70e8bcd182"
+          "sha256": "557cea77459359abb9e1fe16066c889fd7ce5ba10fdfcafa9312f46005f84e3f"
         },
         {
-          "bytes": 15020,
+          "bytes": 15036,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/malware-responder.md",
-          "sha256": "7db335a9e2d5fa9c04015004fa8c73fa553c48d06061768bbb44836a4137227a"
+          "sha256": "72b66a0e08302ca6b22dbb6c66a3a8216552be78e6c55668a1b57b722521df97"
         },
         {
-          "bytes": 18007,
+          "bytes": 18023,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/oss-upgrade-investigator.md",
-          "sha256": "4a0d71a6d504d22951bc06cc30990f0623d879f218678724d2d79f828682dee3"
+          "sha256": "2c9597aae731bbca201444bf3f77fd04d9eced7d4b8c479eadb397b4d6660b8a"
         },
         {
-          "bytes": 15897,
+          "bytes": 15913,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/remediation-planning.md",
-          "sha256": "24b78f5709b2b9b8de3375edc3c39b279c4dfc37930d4422138bacfac8db6ada"
+          "sha256": "5d4207aa154ab248f6de06a1d1cb4940d4c6b66b8d320abdad29afc5e21cb25a"
         },
         {
-          "bytes": 68067,
+          "bytes": 68083,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/sca-remediation.md",
-          "sha256": "9175b4071b1288d3bc24d7d09064626e3440474a6f82114f73c293ab2c5a7d5c"
+          "sha256": "1d14fa7ff585814442a7d2a8f0c6986d298658362eecb2badb20beb8edd91d11"
         },
         {
-          "bytes": 29037,
+          "bytes": 29053,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/troubleshooting.md",
-          "sha256": "dae93193d041468392acd870e4175485482208b37292ee1109066d0b580ab838"
+          "sha256": "711567e10261ee4ac6e84a8382d9120dbbe3d7d39a7cee19bf285134c4d5b6cc"
         },
         {
-          "bytes": 14454,
+          "bytes": 14470,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/vulnerability-explainer.md",
-          "sha256": "40d707cc42ce3856217550cf3c86f878a3db191c73f5e448f0eb341ba209912c"
+          "sha256": "7d0b46960186b7d56e87befd2d6239b16c16358332bffcc8615c6b12d43db557"
         },
         {
           "bytes": 188527,
@@ -5970,14 +5970,14 @@
           "sha256": "c0c72c265fdcb22ffb48ba81c41fb6dc9aa708ba27ba8847b530e6b8b0eab35d"
         },
         {
-          "bytes": 925,
+          "bytes": 990,
           "path": "plugins/antigravity/endor-labs-agent-kit/hooks.json",
-          "sha256": "bea400b422b5c09cde69f9d941dbd87711f3ce24430bf4decdb9c928d777ee64"
+          "sha256": "bb085fde99fdca510b3c07b4be23e38e3418ee56779df694b66d16e21ab68d35"
         },
         {
-          "bytes": 185,
+          "bytes": 1046,
           "path": "plugins/antigravity/endor-labs-agent-kit/plugin.json",
-          "sha256": "247704758b158ea098075fe64c1779395eec31df5ee74c54e03eacf625f92e80"
+          "sha256": "0842270a3c5124b75bce5b46f1017ac2674d4c7445b3ff52c5da81e3dc73b803"
         },
         {
           "bytes": 34235,
@@ -5985,24 +5985,24 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 35281,
+          "bytes": 35297,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/ai-sast-remediation/SKILL.md",
-          "sha256": "2879c55a2372366b2cd1c87f0cba6d7d5f416b71d18ba1c759cb1699b0db1900"
+          "sha256": "e1a75afd34e15fc5605f16b83c9defc8bfb784ce84b97b6053ad20cff61ac65e"
         },
         {
-          "bytes": 23706,
+          "bytes": 23722,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/cicd-posture/SKILL.md",
-          "sha256": "91ae610305c56d69f353ba9aec23e4f3298e1544d7e8883f19586511660da9a3"
+          "sha256": "4b666faa47620276bd67c9585d4f402497b197a4a78f67a8217ef0118c5cd60f"
         },
         {
-          "bytes": 29334,
+          "bytes": 29350,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/configuration-automation/SKILL.md",
-          "sha256": "9b5239bcfa48c7168547246cbde4a6b0618a25966cb8005053352bdbd933be68"
+          "sha256": "ff84ede1a1052d5d0a344fc8e1e637e1b77fd94443a0decfcd8ae5debf2cb55d"
         },
         {
-          "bytes": 19463,
+          "bytes": 19479,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/dependency-reviewer/SKILL.md",
-          "sha256": "d46eb57888a4078cb8ebfd94141295c1b49250c4af2af9b9d9fbdb867155f6ea"
+          "sha256": "549bf48a52c594e8c1903f36c1e5ab66448a939f6606cf7a2753ee9035381e07"
         },
         {
           "bytes": 9985,
@@ -6010,39 +6010,39 @@
           "sha256": "f2e6c27aac42da78519b48e527f947db2342760513f4a739065d1c0fb141722f"
         },
         {
-          "bytes": 15969,
+          "bytes": 15985,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/findings-browser/SKILL.md",
-          "sha256": "84a03b5463eba30c6f3fb7de56d6a2900bfecfc9e52dd9d1275321fdf3185721"
+          "sha256": "f5665c67a1d7c5487c9401f603f147de1cfc28ecad480168ba43724316cebd0f"
         },
         {
-          "bytes": 14769,
+          "bytes": 14785,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/malware-responder/SKILL.md",
-          "sha256": "9367e83ca19857f813772d393868f3ea109c00efb1eb2b20d1a678894fb7c5fc"
+          "sha256": "d3c31ae59089c110a4187c4040c062891ce8d35e0e5b5001e12c0c73b338d836"
         },
         {
-          "bytes": 17749,
+          "bytes": 17765,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/oss-upgrade-investigator/SKILL.md",
-          "sha256": "1347f4d016fd0c167bf890850d555878633daf82bdb2308615304d4622f2ff17"
+          "sha256": "4b29668c16854bddfd47d13f87809ee1664f86d72f14e425668c2aec50c417ca"
         },
         {
-          "bytes": 15643,
+          "bytes": 15659,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/remediation-planning/SKILL.md",
-          "sha256": "b83f2bec2af66c52317ca09cfaa364814535cf7dcc32802d1702749e66643ea4"
+          "sha256": "0d174dd73f7dce2430b6a8dc8a398070017bcab93a480a5f56e1d5c47137d109"
         },
         {
-          "bytes": 67714,
+          "bytes": 67730,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/sca-remediation/SKILL.md",
-          "sha256": "9bd566be76150dd25da6bf2f28917d43477163a0626ad43947a460b6d46a23ad"
+          "sha256": "099ef397ecdf46296590ac1cc4beb772b348b3c43459142d245cbd5d6987dc4b"
         },
         {
-          "bytes": 28788,
+          "bytes": 28804,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/troubleshooting/SKILL.md",
-          "sha256": "58f70b570762cc36079c797873fcca0c9d69aa8acf01532697934cd270ca1b8b"
+          "sha256": "448f317e13ba672b98126448d866e7dc47df4ca8b442dd4747a0e2aa18c22d50"
         },
         {
-          "bytes": 14197,
+          "bytes": 14213,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/vulnerability-explainer/SKILL.md",
-          "sha256": "93c3e90baf2dc01ad3d30d6162ffecb8a64b2107cb3df77eaa0b6f2976d81da6"
+          "sha256": "fbf437e3061e79d8291ef35b39932fdd2c4018283c399efd3238979e7982f4e4"
         },
         {
           "bytes": 4509,

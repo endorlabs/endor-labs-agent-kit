@@ -1,5 +1,32 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
-  "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
-  "name": "endor-labs-agent-kit"
+  "author": {
+    "email": "support@endor.ai",
+    "name": "Endor Labs",
+    "url": "https://www.endorlabs.com/"
+  },
+  "category": "Security",
+  "description": "Packaged workflows for SCA remediation, AI SAST triage, CI/CD posture, malware response, findings review, Endor Labs setup, and more.",
+  "displayName": "Endor Labs Agent Kit",
+  "homepage": "https://github.com/endorlabs/ai-plugins",
+  "keywords": [
+    "endor-labs",
+    "security",
+    "dependencies",
+    "endorctl",
+    "sca",
+    "sast",
+    "agentic remediation",
+    "appsec"
+  ],
+  "license": "MIT",
+  "logo": "assets/logo.png",
+  "name": "endor-labs-agent-kit",
+  "repository": "https://github.com/endorlabs/ai-plugins",
+  "suggestedPrompts": [
+    "Use the SCA remediation agent to fix the P0 findings in this repo for my tenant",
+    "Triage the top AI SAST findings for my repo and propose a PR to fix them",
+    "Plan a safe dependency remediation using Endor Labs evidence"
+  ],
+  "version": "2.2.2"
 }
