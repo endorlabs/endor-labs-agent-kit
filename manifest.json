@@ -5885,9 +5885,9 @@
     {
       "artifacts": [
         {
-          "bytes": 6819,
+          "bytes": 6109,
           "path": "plugins/antigravity/endor-labs-agent-kit/README.md",
-          "sha256": "bd99be323e6c1a8a6ba3e1c8d490da40972cdcd39c44b6b52345f5ca458bdeb3"
+          "sha256": "f9d1ced1f3021d2fcea1086d13d217fbc3921ef3a443a6dd1ed07a4bfb3453ea"
         },
         {
           "bytes": 35586,
