@@ -529,25 +529,25 @@ Gemini uses `gemini-extension.json` and installs from the generated extension
 directory or tagged GitHub repository, while Antigravity uses `plugin.json` and
 installs from the generated plugin directory.
 
-### Antigravity Marketplace
+### Antigravity Plugin Release
 
-The generated `plugin.json` carries the metadata an Antigravity Marketplace
-listing requires: `displayName`, `version`, `logo`, `suggestedPrompts` (at most
-three), and `author`, plus the recommended `category`, `keywords`, `homepage`,
-`repository`, and `license` fields.
+The generated `plugin.json` carries the Antigravity plugin manifest's display
+and attribution metadata: `displayName`, `version`, `logo`, `suggestedPrompts`
+(at most three), and `author`, plus `category`, `keywords`, `homepage`,
+`repository`, and `license`.
 `endor-agent-kit check-guardrails --catalog-root .` enforces the field set, the
 120-160 character description, and that `version` matches `pyproject.toml`.
 
-Before each Marketplace release:
+Before each Antigravity plugin release:
 
 - `agy plugin validate plugins/antigravity/endor-labs-agent-kit` passes. Two
   informational notes from agy 1.4.3 are expected and do not block: it reports
-  `category` as an unknown field it ignores (the Marketplace listing metadata
-  still carries it), and it notes that the documented top-level `hooks` key
-  loads the handlers as one named hook. Any other `plugin.json` or
-  `hooks.json` warning needs investigation. The validator is lenient about
-  hook execution, so also install the package locally and run one prompt with
-  `--log-file`; the log must show no `exit status 127` from `hooks/*.sh`.
+  `category` as an unknown field it ignores, and it notes that the documented
+  top-level `hooks` key loads the handlers as one named hook. Any other
+  `plugin.json` or `hooks.json` warning needs investigation. The validator is
+  lenient about hook execution, so also install the package locally and run
+  one prompt with `--log-file`; the log must show no `exit status 127` from
+  `hooks/*.sh`.
 - Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths, and skill
   text keeps the package-relative artifact helper path, the same as the Gemini
   package. Antigravity documents that hooks run with cwd at the plugin root,
@@ -559,12 +559,6 @@ Before each Marketplace release:
   tagged in `ai-plugins`. Antigravity clients only detect updates on a version
   increment, so a changed package under an existing tag is never picked up.
   Every content release needs a package version bump before the sync.
-- Once the plugin is listed, the Marketplace entry points at the tagged
-  `ai-plugins` plugin directory, not the multi-host repository root:
-  `https://github.com/endorlabs/ai-plugins/tree/$VERSION/plugins/antigravity/endor-labs-agent-kit`.
-- In the Antigravity app, confirm the plugin installs from **Customizations →
-  Plugins → + Install from URL** with that URL, the logo renders on Light and
-  Dark themes, and the three starter prompt chips appear on the detail page.
 
 ## Documentation Freshness
 
