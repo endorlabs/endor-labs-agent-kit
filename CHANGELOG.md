@@ -3,11 +3,29 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `2.2.2`. Merging to `main` does not
+The current generated package version is `2.2.3`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
+
+## 2.2.3 - 2026-10-20
+
+### Changed
+
+- The generated Antigravity `plugin.json` now carries the metadata an
+  Antigravity Marketplace listing requires (`displayName`, `version`, `logo`,
+  `suggestedPrompts`, `author`) and recommends (`category`, `keywords`,
+  `homepage`, `repository`, `license`). The guardrails check enforces the
+  field set, the 120-160 character description, the bundled logo, and the
+  three-prompt limit.
+- The Antigravity `hooks.json` uses the documented top-level `hooks` key.
+  Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths and skill
+  text keeps the package-relative artifact helper path, matching the Gemini
+  package, because Antigravity runs hooks with cwd at the plugin root and
+  agy 1.3.2, 1.3.3, and 1.4.3 do not inject `${PLUGIN_ROOT}`.
+- The package version is bumped so Antigravity clients that installed the
+  earlier `2.2.2` package detect the changed manifest and hooks.
 
 ## 2.2.2 - 2026-08-27
 

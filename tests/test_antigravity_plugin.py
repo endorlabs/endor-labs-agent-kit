@@ -11,7 +11,7 @@ from endor_agent_kit.publication.antigravity_plugin import (
 )
 
 
-def test_antigravity_hooks_use_documented_hooks_schema_and_plugin_root_placeholder():
+def test_antigravity_hooks_use_documented_hooks_schema_and_cwd_relative_paths():
     config = _antigravity_hooks_config()
 
     assert set(config) == {"hooks"}
@@ -20,7 +20,7 @@ def test_antigravity_hooks_use_documented_hooks_schema_and_plugin_root_placehold
     assert hook["PreInvocation"] == [
         {
             "type": "command",
-            "command": 'bash "${PLUGIN_ROOT:-.}/hooks/suggest-endor-tools.sh" PreInvocation',
+            "command": "bash ./hooks/suggest-endor-tools.sh PreInvocation",
             "timeout": 10,
         }
     ]
@@ -34,10 +34,12 @@ def test_antigravity_hooks_use_documented_hooks_schema_and_plugin_root_placehold
     for event in ("PreToolUse", "PostToolUse"):
         for entry in hook[event]:
             commands.extend(item["command"] for item in entry["hooks"])
-    # agy 1.3.2 runs hooks with cwd at the plugin root and no PLUGIN_ROOT in
-    # the environment, so the "." default is what makes the scripts resolve.
-    assert all(command.startswith('bash "${PLUGIN_ROOT:-.}/hooks/') for command in commands)
-    assert not any('"${PLUGIN_ROOT}/' in command for command in commands)
+    # Antigravity documents that hook commands run with cwd at the plugin root,
+    # and agy 1.3.2, 1.3.3, and 1.4.3 honor that while leaving PLUGIN_ROOT unset, so
+    # the scripts resolve through cwd-relative paths and never through the
+    # generic environment variable.
+    assert all(command.startswith("bash ./hooks/") for command in commands)
+    assert not any("PLUGIN_ROOT" in command for command in commands)
 
 
 def test_antigravity_manifest_declares_marketplace_metadata():
@@ -99,20 +101,18 @@ def test_antigravity_hook_scripts_emit_native_event_responses():
     assert post_tool == {}
 
 
-def test_antigravity_text_uses_installed_plugin_artifact_helper():
+def test_antigravity_text_keeps_relative_artifact_helper_path():
     rendered = antigravity_text(
         "Run `python3 runtime/summarize_endor_artifact.py capture -- <argv>` once."
     )
 
-    # agy 1.3.2 does not substitute ${PLUGIN_ROOT} in skill text, so the
-    # helper path must carry the installed-plugin fallback.
-    assert (
-        '`python3 "${PLUGIN_ROOT:-$HOME/.gemini/config/plugins/endor-labs-agent-kit}'
-        '/runtime/summarize_endor_artifact.py" capture -- <argv>`'
-        in rendered
-    )
-    assert "python3 runtime/summarize_endor_artifact.py" not in rendered
-    assert '"${PLUGIN_ROOT}/' not in rendered
+    # The Antigravity package matches Claude, Codex, and Gemini: the skill
+    # text keeps the package-relative helper path and the PreInvocation hook
+    # injects the verified absolute path at runtime. No host-specific install
+    # location or ${PLUGIN_ROOT} placeholder is baked into the text.
+    assert "`python3 runtime/summarize_endor_artifact.py capture -- <argv>`" in rendered
+    assert "PLUGIN_ROOT" not in rendered
+    assert ".gemini/config/plugins" not in rendered
 
 
 def _run_hook(path, event: str, payload: dict[str, object]) -> dict[str, object]:

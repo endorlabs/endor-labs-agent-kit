@@ -531,29 +531,36 @@ installs from the generated plugin directory.
 
 ### Antigravity Marketplace
 
-The generated `plugin.json` carries the Marketplace-required metadata from the
-Antigravity Plugin Marketplace publishing guide: `displayName`, `version`,
-`logo`, `suggestedPrompts` (at most three), and `author`, plus the recommended
-`category`, `keywords`, `homepage`, `repository`, and `license` fields.
+The generated `plugin.json` carries the metadata an Antigravity Marketplace
+listing requires: `displayName`, `version`, `logo`, `suggestedPrompts` (at most
+three), and `author`, plus the recommended `category`, `keywords`, `homepage`,
+`repository`, and `license` fields.
 `endor-agent-kit check-guardrails --catalog-root .` enforces the field set, the
 120-160 character description, and that `version` matches `pyproject.toml`.
 
 Before each Marketplace release:
 
-- `agy plugin validate plugins/antigravity/endor-labs-agent-kit` passes with no
-  warnings about `plugin.json` or `hooks.json`. The validator is lenient, so
-  also install the package locally and run one prompt with `--log-file`; the
-  log must show no `exit status 127` from `hooks/*.sh`.
-- Hook commands and the artifact helper path use `${PLUGIN_ROOT:-...}` with a
-  fallback because agy 1.3.2 runs hooks with cwd at the plugin root and does
-  not inject `${PLUGIN_ROOT}` or substitute it in skill text (verified
-  2026-10-12). Re-check this on each agy release; once the host injects the
-  variable, the fallback is harmless.
-- `version` in the generated `plugin.json` is higher than the currently listed
-  Marketplace version. Antigravity clients only detect updates on a version
-  increment, so every content release needs a package version bump.
-- The Marketplace listing points at the tagged `ai-plugins` plugin directory,
-  not the multi-host repository root:
+- `agy plugin validate plugins/antigravity/endor-labs-agent-kit` passes. Two
+  informational notes from agy 1.4.3 are expected and do not block: it reports
+  `category` as an unknown field it ignores (the Marketplace listing metadata
+  still carries it), and it notes that the documented top-level `hooks` key
+  loads the handlers as one named hook. Any other `plugin.json` or
+  `hooks.json` warning needs investigation. The validator is lenient about
+  hook execution, so also install the package locally and run one prompt with
+  `--log-file`; the log must show no `exit status 127` from `hooks/*.sh`.
+- Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths, and skill
+  text keeps the package-relative artifact helper path, the same as the Gemini
+  package. Antigravity documents that hooks run with cwd at the plugin root,
+  and agy 1.3.2, 1.3.3, and 1.4.3 honor that (verified 2026-10-12 and
+  2026-10-20). None of those versions injects `${PLUGIN_ROOT}` into hook
+  environments or substitutes it in skill text, so the generated package does
+  not depend on that placeholder. Re-check on each agy release.
+- `version` in the generated `plugin.json` is higher than every version already
+  tagged in `ai-plugins`. Antigravity clients only detect updates on a version
+  increment, so a changed package under an existing tag is never picked up.
+  Every content release needs a package version bump before the sync.
+- Once the plugin is listed, the Marketplace entry points at the tagged
+  `ai-plugins` plugin directory, not the multi-host repository root:
   `https://github.com/endorlabs/ai-plugins/tree/$VERSION/plugins/antigravity/endor-labs-agent-kit`.
 - In the Antigravity app, confirm the plugin installs from **Customizations →
   Plugins → + Install from URL** with that URL, the logo renders on Light and

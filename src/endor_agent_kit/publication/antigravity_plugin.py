@@ -37,19 +37,15 @@ ANTIGRAVITY_HOOK_FILENAMES = (
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
-# Antigravity documents a ${PLUGIN_ROOT} runtime placeholder for hooks and
-# skill text, but agy 1.3.2 does not substitute it in SKILL.md or inject it
-# into hook environments (verified 2026-10-12). Hooks do run with cwd set to
-# the plugin root, and local installs land in
-# ~/.gemini/config/plugins/<plugin-name>. Generated commands therefore use the
-# placeholder with a shell default so they work today and keep working once
-# the host injects the variable.
-ANTIGRAVITY_INSTALLED_PLUGIN_ROOT = f"$HOME/.gemini/config/plugins/{PLUGIN_NAME}"
-ANTIGRAVITY_HOOK_PLUGIN_ROOT = "${PLUGIN_ROOT:-.}"
-ANTIGRAVITY_TEXT_PLUGIN_ROOT = f"${{PLUGIN_ROOT:-{ANTIGRAVITY_INSTALLED_PLUGIN_ROOT}}}"
-ANTIGRAVITY_ARTIFACT_HELPER = (
-    f'"{ANTIGRAVITY_TEXT_PLUGIN_ROOT}/runtime/summarize_endor_artifact.py"'
-)
+# Antigravity documents that hook commands run with cwd set to the plugin
+# root, so hook commands use cwd-relative script paths and skill text keeps
+# the package-relative artifact helper path, the same as the Gemini package.
+# The PreInvocation hook injects the verified absolute helper path at runtime.
+# Antigravity also documents a ${PLUGIN_ROOT} placeholder, but agy 1.3.2,
+# 1.3.3, and 1.4.3 do not inject it into hook environments or substitute it
+# in skill text (verified 2026-10-12 and 2026-10-20), and the generic name
+# could be shadowed by a user's own shell export, so the package does not
+# depend on it.
 ANTIGRAVITY_MARKETPLACE_DESCRIPTION = (
     "Packaged workflows for SCA remediation, AI SAST triage, CI/CD posture, "
     "malware response, findings review, Endor Labs setup, and more."
@@ -231,14 +227,12 @@ def _hook_source() -> Path:
 
 def _antigravity_hooks_config() -> dict[str, object]:
     # Antigravity's documented hooks.json shape nests events under a top-level
-    # "hooks" key. Scripts resolve through ${PLUGIN_ROOT} when the host injects
-    # it, and fall back to the hook cwd, which agy sets to the plugin root.
+    # "hooks" key and runs commands with cwd at the plugin root, so scripts
+    # resolve through cwd-relative paths.
     def command(filename: str, event_name: str) -> dict[str, object]:
         return {
             "type": "command",
-            "command": (
-                f'bash "{ANTIGRAVITY_HOOK_PLUGIN_ROOT}/hooks/{filename}" {event_name}'
-            ),
+            "command": f"bash ./hooks/{filename} {event_name}",
             "timeout": 10,
         }
 
@@ -393,16 +387,17 @@ def _antigravity_plugin_readme(
         "- Manifest: `plugin.json` with Antigravity Marketplace metadata (display name, logo, suggested prompts, version, author, category, keywords).",
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Subagents: `agents/<agent>.md`.",
-        "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits. Hook commands resolve scripts through `${PLUGIN_ROOT}` when the host injects it and otherwise through the hook working directory, which Antigravity sets to the plugin root.",
+        "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits. Hook commands use paths relative to the hook working directory, which Antigravity sets to the plugin root.",
         "- Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
         "## Install From The Antigravity Marketplace",
         "",
-        "In the Antigravity app, open **Customizations** in the left sidebar, select",
-        "**Plugins**, and search **Discover** for `Endor Labs Agent Kit`. To install",
-        "from the public repository instead, click **+ Install from URL** and enter",
-        "the plugin directory URL:",
+        "Once Endor Labs Agent Kit is listed in the Antigravity Marketplace, open",
+        "**Customizations** in the left sidebar of the Antigravity app, select",
+        "**Plugins**, and search **Discover** for `Endor Labs Agent Kit`. After a",
+        "release tag is published, you can instead click **+ Install from URL** and",
+        "enter the plugin directory URL:",
         "",
         "```text",
         f"https://github.com/endorlabs/ai-plugins/tree/{version}/{ANTIGRAVITY_PLUGIN_PACKAGE_ROOT.as_posix()}",
@@ -500,10 +495,6 @@ def antigravity_text(text: str) -> str:
         .replace("Gemini-specific", "Antigravity-specific")
         .replace("host=gemini", "host=antigravity")
         .replace("Gemini CLI", "Antigravity CLI")
-        .replace(
-            "python3 runtime/summarize_endor_artifact.py",
-            f"python3 {ANTIGRAVITY_ARTIFACT_HELPER}",
-        )
     )
     host_contract = "Antigravity CLI Host Contract\n"
     if host_contract in adapted and "Invoke workflow subagents as `@agent-name`" not in adapted:

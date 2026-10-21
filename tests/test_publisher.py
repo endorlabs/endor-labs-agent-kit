@@ -1099,8 +1099,8 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
         "PostToolUse",
     }
     assert "run_command" in json.dumps(antigravity_hooks)
-    assert 'bash \\"${PLUGIN_ROOT:-.}/hooks/' in json.dumps(antigravity_hooks)
-    assert 'bash ./hooks/' not in json.dumps(antigravity_hooks)
+    assert 'bash ./hooks/' in json.dumps(antigravity_hooks)
+    assert "PLUGIN_ROOT" not in json.dumps(antigravity_hooks)
     claude_discovery_terms = {
         "agentic remediation",
         "SAST remediation",

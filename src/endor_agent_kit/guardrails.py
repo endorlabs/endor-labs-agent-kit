@@ -1355,17 +1355,12 @@ def _check_advisory_plugin_hooks(
     errors: list[str],
     host_label: str,
     command_uses_quoted_script: bool = False,
-    hook_namespace: str | None = None,
 ) -> None:
     hooks = _load_json_mapping(root, hooks_json_path, errors)
     if not hooks:
         return
 
-    if hook_namespace is not None and set(hooks) != {hook_namespace}:
-        errors.append(
-            f"{_rel(root, hooks_json_path)}: {host_label} hooks must be nested under {hook_namespace!r}"
-        )
-    hook_events = _dict(hooks.get(hook_namespace or "hooks"))
+    hook_events = _dict(hooks.get("hooks"))
     if set(hook_events) != expected_events:
         errors.append(
             f"{_rel(root, hooks_json_path)}: {host_label} hook events must be {sorted(expected_events)}"
@@ -1737,15 +1732,17 @@ def _check_antigravity_plugin_package(
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
     # Antigravity's documented hooks.json nests events under a top-level
-    # "hooks" key. agy 1.3.2 runs hooks with cwd at the plugin root and does
-    # not inject ${PLUGIN_ROOT}, so commands must keep the "." default.
+    # "hooks" key and runs hook commands with cwd set to the plugin root, so
+    # commands use cwd-relative script paths like the Gemini package. agy
+    # 1.3.2, 1.3.3, and 1.4.3 honor the cwd contract but do not inject
+    # ${PLUGIN_ROOT} (verified 2026-10-12 and 2026-10-20), so the placeholder
+    # is not used.
     _check_advisory_plugin_hooks(
         root,
         hooks_json_path=antigravity_package / "hooks.json",
         hooks_dir=antigravity_package / "hooks",
         expected_events=ANTIGRAVITY_PLUGIN_HOOK_EVENTS,
-        command_prefix='bash "${PLUGIN_ROOT:-.}/hooks/',
-        command_uses_quoted_script=True,
+        command_prefix='bash ./hooks/',
         errors=errors,
         host_label="Antigravity",
     )
