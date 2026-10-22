@@ -9,7 +9,7 @@ intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
 
-## 2.2.3 - 2026-10-20
+## 2.2.3 - 2026-10-22
 
 ### Changed
 
