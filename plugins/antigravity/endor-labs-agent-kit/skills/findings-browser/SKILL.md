@@ -18,6 +18,7 @@ republish instead of hand-editing installed copies.
 - Invoke workflow subagents as `@agent-name`; do not invent alternate invocation names.
 - Do not narrate tool-planning chatter. Return the requested evidence, decisions, and gaps.
 - Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.
+- Run the artifact helper only as `python3 <artifact_summarizer_path>`, using the absolute path the Endor Agent Kit hook injected. Never run a workspace-relative `runtime/` helper; if no `artifact_summarizer_path` is in context, record the large-result route in `data_gaps`.
 
 Use Antigravity CLI file and shell tools only within the recipe safety contract.
 Do not claim that a command, file edit, branch push, PR/MR, comment, approval,
@@ -157,7 +158,7 @@ These notes augment this generated recipe. Workflow output contracts, hard guard
 ### Global Rules
 
 - Context first; Namespace provenance; Efficient Endor queries; Large result delivery; Verified evidence only; Evidence ledger; Data gaps.
-- `runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run `python3 "$HOME/.gemini/config/plugins/endor-labs-agent-kit/runtime/summarize_endor_artifact.py" capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason` with `result_count`.
+- `runtime.large_result_artifact_required` for `--list-all`/complete/>64 KiB/truncated: run `python3 <artifact_summarizer_path> capture -- <attributed list argv>` once; no separate API/artifact check/`--count`. Preserve shapes; put `artifact_ref=<ref>;sha256=<digest>;format=<format>;bytes=<n>` in `evidence_queries[].reason` with `result_count`.
 
 ### Evidence Gate Contract
 

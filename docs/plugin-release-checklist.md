@@ -529,6 +529,40 @@ Gemini uses `gemini-extension.json` and installs from the generated extension
 directory or tagged GitHub repository, while Antigravity uses `plugin.json` and
 installs from the generated plugin directory.
 
+### Antigravity Plugin Release
+
+The generated `plugin.json` carries the Antigravity plugin manifest's display
+and attribution metadata: `displayName`, `version`, `logo`, `suggestedPrompts`
+(at most three), and `author`, plus `category`, `keywords`, `homepage`,
+`repository`, and `license`.
+`endor-agent-kit check-guardrails --catalog-root .` enforces the field set, the
+120-160 character description, and that `version` matches `pyproject.toml`.
+
+Before each Antigravity plugin release:
+
+- `agy plugin validate plugins/antigravity/endor-labs-agent-kit` passes. Two
+  informational notes from agy 1.4.3 are expected and do not block: it reports
+  `category` as an unknown field it ignores, and it notes that the documented
+  top-level `hooks` key loads the handlers as one named hook. Any other
+  `plugin.json` or `hooks.json` warning needs investigation. The validator is
+  lenient about hook execution, so also install the package locally and run
+  one prompt with `--log-file`; the log must show no `exit status 127` from
+  `hooks/*.sh`.
+- Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths. Skill and
+  agent text names the artifact helper only as
+  `python3 <artifact_summarizer_path>`, the absolute path the PreInvocation
+  hook injects on every model call, because Antigravity runs shell commands
+  from the user's workspace. agy 1.3.2, 1.3.3, and 1.4.3 run hooks with cwd at
+  the plugin root (verified 2026-10-12 and 2026-10-20). None of those versions
+  injects `${PLUGIN_ROOT}` into hook environments or substitutes it in skill
+  text, so the generated package does not depend on that placeholder. This is
+  the only place that records the versions checked; re-check on each agy
+  release.
+- `version` in the generated `plugin.json` is higher than every version already
+  tagged in `ai-plugins`. Antigravity clients only detect updates on a version
+  increment, so a changed package under an existing tag is never picked up.
+  Every content release needs a package version bump before the sync.
+
 ## Documentation Freshness
 
 Before each release, manually re-check these provider docs because marketplace,

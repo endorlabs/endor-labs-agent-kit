@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import re
 from typing import Any
 
 import yaml
@@ -1354,17 +1355,12 @@ def _check_advisory_plugin_hooks(
     errors: list[str],
     host_label: str,
     command_uses_quoted_script: bool = False,
-    hook_namespace: str | None = None,
 ) -> None:
     hooks = _load_json_mapping(root, hooks_json_path, errors)
     if not hooks:
         return
 
-    if hook_namespace is not None and set(hooks) != {hook_namespace}:
-        errors.append(
-            f"{_rel(root, hooks_json_path)}: {host_label} hooks must be nested under {hook_namespace!r}"
-        )
-    hook_events = _dict(hooks.get(hook_namespace or "hooks"))
+    hook_events = _dict(hooks.get("hooks"))
     if set(hook_events) != expected_events:
         errors.append(
             f"{_rel(root, hooks_json_path)}: {host_label} hook events must be {sorted(expected_events)}"
@@ -1617,21 +1613,70 @@ def _check_antigravity_plugin_package(
     errors: list[str],
 ) -> None:
     manifest_path = antigravity_package / "plugin.json"
+    manifest_label = "plugins/antigravity/endor-labs-agent-kit/plugin.json"
     manifest = _load_json_mapping(root, manifest_path, errors)
     if manifest:
-        allowed_fields = {"$schema", "name", "description"}
+        # Field set follows the Antigravity Plugin Marketplace publishing guide.
+        # Component path overrides ("skills", "mcpServers") stay out so the
+        # package keeps the documented default layout, and "disabled" stays out
+        # so the plugin installs enabled.
+        allowed_fields = {
+            "$schema",
+            "name",
+            "description",
+            "displayName",
+            "version",
+            "logo",
+            "suggestedPrompts",
+            "category",
+            "keywords",
+            "author",
+            "homepage",
+            "repository",
+            "license",
+        }
         unsupported_fields = sorted(set(manifest) - allowed_fields)
         if unsupported_fields:
             errors.append(
-                "plugins/antigravity/endor-labs-agent-kit/plugin.json: unsupported fields: "
-                + ", ".join(unsupported_fields)
+                f"{manifest_label}: unsupported fields: " + ", ".join(unsupported_fields)
             )
         if manifest.get("$schema") != "https://antigravity.google/schemas/v1/plugin.json":
             errors.append(
-                "plugins/antigravity/endor-labs-agent-kit/plugin.json: $schema must use the official Antigravity plugin schema"
+                f"{manifest_label}: $schema must use the official Antigravity plugin schema"
             )
         if manifest.get("name") != "endor-labs-agent-kit":
-            errors.append("plugins/antigravity/endor-labs-agent-kit/plugin.json: name must be endor-labs-agent-kit")
+            errors.append(f"{manifest_label}: name must be endor-labs-agent-kit")
+        # Marketplace-required fields.
+        for field in ("displayName", "version", "logo", "suggestedPrompts", "author"):
+            if field not in manifest:
+                errors.append(f"{manifest_label}: missing Marketplace-required field {field}")
+        if manifest.get("displayName") != "Endor Labs Agent Kit":
+            errors.append(f"{manifest_label}: displayName must be Endor Labs Agent Kit")
+        version = str(manifest.get("version") or "")
+        if version != package_version():
+            errors.append(
+                f"{manifest_label}: version must match the source package version {package_version()}"
+            )
+        if not re.fullmatch(r"\d+\.\d+\.\d+", version):
+            errors.append(f"{manifest_label}: version must be MAJOR.MINOR.PATCH")
+        description = str(manifest.get("description") or "")
+        if not 120 <= len(description) <= 160:
+            errors.append(
+                f"{manifest_label}: description should be 120-160 characters for Marketplace cards (got {len(description)})"
+            )
+        logo = str(manifest.get("logo") or "")
+        if logo != "assets/logo.png" or not (antigravity_package / logo).is_file():
+            errors.append(f"{manifest_label}: logo must reference the bundled assets/logo.png")
+        prompts = _list(manifest.get("suggestedPrompts"))
+        if not 1 <= len(prompts) <= 3 or any(
+            not isinstance(prompt, str) or not prompt.strip() for prompt in prompts
+        ):
+            errors.append(
+                f"{manifest_label}: suggestedPrompts must contain 1-3 non-empty strings"
+            )
+        author = _dict(manifest.get("author"))
+        if author.get("name") != "Endor Labs" or not author.get("email") or not author.get("url"):
+            errors.append(f"{manifest_label}: author must declare Endor Labs name, email, and url")
 
     setup = antigravity_package / "skills" / "endor-agent-kit-setup" / "SKILL.md"
     if not setup.is_file():
@@ -1686,6 +1731,8 @@ def _check_antigravity_plugin_package(
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
+    # agy runs hook commands with cwd at the plugin root and does not inject
+    # ${PLUGIN_ROOT}; docs/plugin-release-checklist.md records the versions checked.
     _check_advisory_plugin_hooks(
         root,
         hooks_json_path=antigravity_package / "hooks.json",
@@ -1694,7 +1741,6 @@ def _check_antigravity_plugin_package(
         command_prefix='bash ./hooks/',
         errors=errors,
         host_label="Antigravity",
-        hook_namespace="endor-labs-agent-kit",
     )
 
 

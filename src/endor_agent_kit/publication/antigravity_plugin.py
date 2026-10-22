@@ -15,6 +15,7 @@ from endor_agent_kit.compilers.gemini import (
 )
 from endor_agent_kit.prepared_source_recipe import PreparedSourceRecipe
 from endor_agent_kit.publication.plugin_package_common import (
+    LOGO_PATH,
     PLUGIN_DISPLAY_NAME,
     PLUGIN_NAME,
     package_version,
@@ -36,9 +37,26 @@ ANTIGRAVITY_HOOK_FILENAMES = (
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
-ANTIGRAVITY_ARTIFACT_HELPER = (
-    '"$HOME/.gemini/config/plugins/endor-labs-agent-kit/'
-    'runtime/summarize_endor_artifact.py"'
+ANTIGRAVITY_MARKETPLACE_DESCRIPTION = (
+    "Packaged workflows for SCA remediation, AI SAST triage, CI/CD posture, "
+    "malware response, findings review, Endor Labs setup, and more."
+)
+# Antigravity Marketplace renders at most three starter prompt chips.
+ANTIGRAVITY_SUGGESTED_PROMPTS = (
+    "Use the SCA remediation agent to fix the P0 findings in this repo for my tenant",
+    "Triage the top AI SAST findings for my repo and propose a PR to fix them",
+    "Plan a safe dependency remediation using Endor Labs evidence",
+)
+ANTIGRAVITY_MARKETPLACE_CATEGORY = "Security"
+ANTIGRAVITY_MARKETPLACE_KEYWORDS = (
+    "endor-labs",
+    "security",
+    "dependencies",
+    "endorctl",
+    "sca",
+    "sast",
+    "agentic remediation",
+    "appsec",
 )
 ANTIGRAVITY_TOOL_MAP: dict[str, tuple[str, ...]] = {
     "read_file": ("view_file",),
@@ -134,7 +152,7 @@ def publish_antigravity_plugin_package(
 
     manifest = package_dir / "plugin.json"
     manifest.write_text(
-        json.dumps(_antigravity_plugin_manifest(), indent=2, sort_keys=True) + "\n",
+        json.dumps(_antigravity_plugin_manifest(version), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     written.append(manifest)
@@ -199,6 +217,10 @@ def _hook_source() -> Path:
 
 
 def _antigravity_hooks_config() -> dict[str, object]:
+    # agy accepts hook events nested under a top-level "hooks" key, runs hook
+    # commands with cwd at the plugin root, and does not inject ${PLUGIN_ROOT},
+    # so scripts resolve through cwd-relative paths.
+    # docs/plugin-release-checklist.md records the agy versions checked.
     def command(filename: str, event_name: str) -> dict[str, object]:
         return {
             "type": "command",
@@ -207,7 +229,7 @@ def _antigravity_hooks_config() -> dict[str, object]:
         }
 
     return {
-        PLUGIN_NAME: {
+        "hooks": {
             "PreInvocation": [
                 command("suggest-endor-tools.sh", "PreInvocation")
             ],
@@ -230,11 +252,31 @@ def _antigravity_hooks_config() -> dict[str, object]:
     }
 
 
-def _antigravity_plugin_manifest() -> dict[str, object]:
+def _antigravity_plugin_manifest(version: str) -> dict[str, object]:
+    # Field set follows the Antigravity Plugin Marketplace publishing guide:
+    # name/description are required core fields; displayName, logo,
+    # suggestedPrompts, version, and author are required for a Marketplace
+    # listing; category, keywords, homepage, repository, and license are
+    # recommended. Component paths use the documented defaults, so "skills"
+    # and "mcpServers" overrides are intentionally omitted.
     return {
         "$schema": ANTIGRAVITY_PLUGIN_SCHEMA,
         "name": PLUGIN_NAME,
-        "description": "Endor Labs workflow skills and subagents for Antigravity CLI.",
+        "displayName": PLUGIN_DISPLAY_NAME,
+        "version": version,
+        "description": ANTIGRAVITY_MARKETPLACE_DESCRIPTION,
+        "logo": LOGO_PATH,
+        "suggestedPrompts": list(ANTIGRAVITY_SUGGESTED_PROMPTS),
+        "category": ANTIGRAVITY_MARKETPLACE_CATEGORY,
+        "keywords": list(ANTIGRAVITY_MARKETPLACE_KEYWORDS),
+        "author": {
+            "name": "Endor Labs",
+            "email": "support@endor.ai",
+            "url": "https://www.endorlabs.com/",
+        },
+        "homepage": "https://github.com/endorlabs/ai-plugins",
+        "repository": "https://github.com/endorlabs/ai-plugins",
+        "license": "MIT",
     }
 
 
@@ -337,7 +379,7 @@ def _antigravity_plugin_readme(
         "- Manifest: `plugin.json`.",
         "- Skills: `skills/<agent>/SKILL.md`, including `endor-agent-kit-setup`.",
         "- Subagents: `agents/<agent>.md`.",
-        "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits.",
+        "- Hooks: `hooks.json` plus fail-open advisory scripts for prompt routing, dependency installs, and manifest edits. Hook commands use paths relative to the hook working directory, which Antigravity sets to the plugin root.",
         "- Model/runtime: pin `Gemini 3.6 Flash (Low)` under Antigravity Model Usage. Antigravity plugins cannot set a per-agent model, so explicit customer changes remain authoritative.",
         "- MCP: no plugin-wide MCP server is declared by default.",
         "",
@@ -430,9 +472,14 @@ def antigravity_text(text: str) -> str:
         .replace("Gemini-specific", "Antigravity-specific")
         .replace("host=gemini", "host=antigravity")
         .replace("Gemini CLI", "Antigravity CLI")
+        # Antigravity runs shell commands from the user's workspace, so a
+        # package-relative helper path cannot resolve. The PreInvocation hook
+        # injects the installed helper's absolute path as
+        # `artifact_summarizer_path` on every model call; the text names only
+        # that placeholder.
         .replace(
             "python3 runtime/summarize_endor_artifact.py",
-            f"python3 {ANTIGRAVITY_ARTIFACT_HELPER}",
+            "python3 <artifact_summarizer_path>",
         )
     )
     host_contract = "Antigravity CLI Host Contract\n"
@@ -443,7 +490,8 @@ def antigravity_text(text: str) -> str:
             + "\n"
             + "- Invoke workflow subagents as `@agent-name`; do not invent alternate invocation names.\n"
             + "- Do not narrate tool-planning chatter. Return the requested evidence, decisions, and gaps.\n"
-            + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n",
+            + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n"
+            + "- Run the artifact helper only as `python3 <artifact_summarizer_path>`, using the absolute path the Endor Agent Kit hook injected. Never run a workspace-relative `runtime/` helper; if no `artifact_summarizer_path` is in context, record the large-result route in `data_gaps`.\n",
             1,
         )
     return _adapt_antigravity_frontmatter_tools(adapted)
