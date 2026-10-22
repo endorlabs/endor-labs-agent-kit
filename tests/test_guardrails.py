@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import shutil
 from pathlib import Path
 
+import pytest
 import yaml
 
 from conftest import repo_root
@@ -11,7 +13,10 @@ from endor_agent_kit.ai_sast_remediation import (
     lint_ai_sast_pr_body,
 )
 from endor_agent_kit.cli import main
-from endor_agent_kit.guardrails import check_catalog_guardrails
+from endor_agent_kit.guardrails import (
+    _check_antigravity_plugin_package,
+    check_catalog_guardrails,
+)
 from endor_agent_kit.portable_runtime_conformance import (
     UNTRUSTED_CONTENT_BOUNDARY_PREFIX,
     required_runtime_control_ids,
@@ -473,3 +478,86 @@ def _disallowed_tools(frontmatter: str) -> set[str]:
             values = line.split(":", 1)[1].strip()
             return {item.strip() for item in values.split(",") if item.strip()}
     raise AssertionError("missing disallowedTools frontmatter")
+
+
+_ANTIGRAVITY_PACKAGE = Path("plugins") / "antigravity" / "endor-labs-agent-kit"
+_DROP = object()
+
+
+def _antigravity_manifest_errors(
+    tmp_path: Path, overrides: dict, *, drop_logo: bool = False
+) -> list[str]:
+    package = tmp_path / _ANTIGRAVITY_PACKAGE
+    shutil.copytree(repo_root() / _ANTIGRAVITY_PACKAGE, package)
+    manifest_path = package / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    for key, value in overrides.items():
+        if value is _DROP:
+            manifest.pop(key)
+        else:
+            manifest[key] = value
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    if drop_logo:
+        (package / "assets" / "logo.png").unlink()
+    errors: list[str] = []
+    _check_antigravity_plugin_package(tmp_path, package, errors)
+    return errors
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        pytest.param({}, id="unchanged"),
+        pytest.param({"description": "x" * 120}, id="description-120"),
+        pytest.param({"description": "x" * 160}, id="description-160"),
+        pytest.param({"suggestedPrompts": ["one"]}, id="one-prompt"),
+    ],
+)
+def test_antigravity_manifest_guardrail_accepts(tmp_path, overrides):
+    assert _antigravity_manifest_errors(tmp_path, overrides) == []
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        pytest.param({"skills": ["./skills"]}, "unsupported fields: skills", id="unsupported-field"),
+        *[
+            pytest.param(
+                {field: _DROP},
+                f"missing Marketplace-required field {field}",
+                id=f"missing-{field}",
+            )
+            for field in ("displayName", "version", "logo", "suggestedPrompts", "author")
+        ],
+        pytest.param({"displayName": "Endor"}, "displayName must be", id="display-name"),
+        pytest.param({"version": "9.9.9"}, "version must match", id="version-mismatch"),
+        pytest.param({"version": "2.2"}, "MAJOR.MINOR.PATCH", id="version-not-semver"),
+        pytest.param({"description": "x" * 119}, "(got 119)", id="description-119"),
+        pytest.param({"description": "x" * 161}, "(got 161)", id="description-161"),
+        pytest.param({"logo": "assets/other.png"}, "logo must reference", id="logo-path"),
+        pytest.param({"suggestedPrompts": []}, "suggestedPrompts must", id="no-prompts"),
+        pytest.param({"suggestedPrompts": ["a", "b", "c", "d"]}, "suggestedPrompts must", id="four-prompts"),
+        pytest.param({"suggestedPrompts": ["a", "  "]}, "suggestedPrompts must", id="blank-prompt"),
+        pytest.param({"suggestedPrompts": ["a", 1]}, "suggestedPrompts must", id="non-string-prompt"),
+        pytest.param(
+            {"author": {"name": "Endor Labs", "url": "https://www.endorlabs.com/"}},
+            "author must declare",
+            id="author-no-email",
+        ),
+        pytest.param(
+            {"author": {"name": "Someone", "email": "someone@example.com", "url": "https://example.com"}},
+            "author must declare",
+            id="author-name",
+        ),
+    ],
+)
+def test_antigravity_manifest_guardrail_rejects(tmp_path, overrides, expected):
+    errors = _antigravity_manifest_errors(tmp_path, overrides)
+
+    assert any(expected in error for error in errors), errors
+
+
+def test_antigravity_manifest_guardrail_rejects_missing_logo_file(tmp_path):
+    errors = _antigravity_manifest_errors(tmp_path, {}, drop_logo=True)
+
+    assert any("logo must reference" in error for error in errors), errors

@@ -37,15 +37,6 @@ ANTIGRAVITY_HOOK_FILENAMES = (
     "check-dep-install.sh",
     "check-manifest-edit.sh",
 )
-# Antigravity documents that hook commands run with cwd set to the plugin
-# root, so hook commands use cwd-relative script paths and skill text keeps
-# the package-relative artifact helper path, the same as the Gemini package.
-# The PreInvocation hook injects the verified absolute helper path at runtime.
-# Antigravity also documents a ${PLUGIN_ROOT} placeholder, but agy 1.3.2,
-# 1.3.3, and 1.4.3 do not inject it into hook environments or substitute it
-# in skill text (verified 2026-10-12 and 2026-10-20), and the generic name
-# could be shadowed by a user's own shell export, so the package does not
-# depend on it.
 ANTIGRAVITY_MARKETPLACE_DESCRIPTION = (
     "Packaged workflows for SCA remediation, AI SAST triage, CI/CD posture, "
     "malware response, findings review, Endor Labs setup, and more."
@@ -226,9 +217,10 @@ def _hook_source() -> Path:
 
 
 def _antigravity_hooks_config() -> dict[str, object]:
-    # Antigravity's documented hooks.json shape nests events under a top-level
-    # "hooks" key and runs commands with cwd at the plugin root, so scripts
-    # resolve through cwd-relative paths.
+    # agy accepts hook events nested under a top-level "hooks" key, runs hook
+    # commands with cwd at the plugin root, and does not inject ${PLUGIN_ROOT},
+    # so scripts resolve through cwd-relative paths.
+    # docs/plugin-release-checklist.md records the agy versions checked.
     def command(filename: str, event_name: str) -> dict[str, object]:
         return {
             "type": "command",
@@ -480,6 +472,15 @@ def antigravity_text(text: str) -> str:
         .replace("Gemini-specific", "Antigravity-specific")
         .replace("host=gemini", "host=antigravity")
         .replace("Gemini CLI", "Antigravity CLI")
+        # Antigravity runs shell commands from the user's workspace, so a
+        # package-relative helper path cannot resolve. The PreInvocation hook
+        # injects the installed helper's absolute path as
+        # `artifact_summarizer_path` on every model call; the text names only
+        # that placeholder.
+        .replace(
+            "python3 runtime/summarize_endor_artifact.py",
+            "python3 <artifact_summarizer_path>",
+        )
     )
     host_contract = "Antigravity CLI Host Contract\n"
     if host_contract in adapted and "Invoke workflow subagents as `@agent-name`" not in adapted:
@@ -489,7 +490,8 @@ def antigravity_text(text: str) -> str:
             + "\n"
             + "- Invoke workflow subagents as `@agent-name`; do not invent alternate invocation names.\n"
             + "- Do not narrate tool-planning chatter. Return the requested evidence, decisions, and gaps.\n"
-            + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n",
+            + "- Include `evidence_queries` and non-empty `data_gaps` when required Endor evidence is missing.\n"
+            + "- Run the artifact helper only as `python3 <artifact_summarizer_path>`, using the absolute path the Endor Agent Kit hook injected. Never run a workspace-relative `runtime/` helper; if no `artifact_summarizer_path` is in context, record the large-result route in `data_gaps`.\n",
             1,
         )
     return _adapt_antigravity_frontmatter_tools(adapted)

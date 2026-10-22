@@ -34,10 +34,10 @@ def test_antigravity_hooks_use_documented_hooks_schema_and_cwd_relative_paths():
     for event in ("PreToolUse", "PostToolUse"):
         for entry in hook[event]:
             commands.extend(item["command"] for item in entry["hooks"])
-    # Antigravity documents that hook commands run with cwd at the plugin root,
-    # and agy 1.3.2, 1.3.3, and 1.4.3 honor that while leaving PLUGIN_ROOT unset, so
-    # the scripts resolve through cwd-relative paths and never through the
-    # generic environment variable.
+    # agy runs hook commands with cwd at the plugin root and does not inject
+    # PLUGIN_ROOT, so scripts resolve through cwd-relative paths and never
+    # through the generic environment variable. The release checklist records
+    # the agy versions checked.
     assert all(command.startswith("bash ./hooks/") for command in commands)
     assert not any("PLUGIN_ROOT" in command for command in commands)
 
@@ -101,18 +101,23 @@ def test_antigravity_hook_scripts_emit_native_event_responses():
     assert post_tool == {}
 
 
-def test_antigravity_text_keeps_relative_artifact_helper_path():
+def test_antigravity_text_uses_hook_injected_artifact_helper_placeholder():
     rendered = antigravity_text(
+        "## Gemini CLI Host Contract\n\n"
         "Run `python3 runtime/summarize_endor_artifact.py capture -- <argv>` once."
     )
 
-    # The Antigravity package matches Claude, Codex, and Gemini: the skill
-    # text keeps the package-relative helper path and the PreInvocation hook
-    # injects the verified absolute path at runtime. No host-specific install
-    # location or ${PLUGIN_ROOT} placeholder is baked into the text.
-    assert "`python3 runtime/summarize_endor_artifact.py capture -- <argv>`" in rendered
+    # Antigravity runs shell commands from the user's workspace, so the text
+    # names only the `artifact_summarizer_path` placeholder that the
+    # PreInvocation hook fills with the installed helper's absolute path. No
+    # package-relative path, install location, or ${PLUGIN_ROOT} placeholder
+    # is baked into the text.
+    assert "`python3 <artifact_summarizer_path> capture -- <argv>`" in rendered
+    assert "python3 runtime/" not in rendered
     assert "PLUGIN_ROOT" not in rendered
     assert ".gemini/config/plugins" not in rendered
+    assert "Never run a workspace-relative `runtime/` helper" in rendered
+    assert "record the large-result route in `data_gaps`" in rendered
 
 
 def _run_hook(path, event: str, payload: dict[str, object]) -> dict[str, object]:

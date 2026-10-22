@@ -1101,6 +1101,19 @@ def test_publish_recipes_with_plugins_writes_all_generated_plugin_packages(tmp_p
     assert "run_command" in json.dumps(antigravity_hooks)
     assert 'bash ./hooks/' in json.dumps(antigravity_hooks)
     assert "PLUGIN_ROOT" not in json.dumps(antigravity_hooks)
+    # Antigravity shell commands run from the user's workspace, so no generated
+    # Antigravity text may point at a package-relative runtime helper.
+    antigravity_text_files = [
+        path
+        for path in (dest / "plugins" / "antigravity" / "endor-labs-agent-kit").rglob("*.md")
+        if path.is_file()
+    ]
+    assert antigravity_text_files
+    assert not [
+        path
+        for path in antigravity_text_files
+        if "python3 runtime/" in path.read_text(encoding="utf-8")
+    ]
     claude_discovery_terms = {
         "agentic remediation",
         "SAST remediation",

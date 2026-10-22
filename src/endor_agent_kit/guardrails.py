@@ -1731,12 +1731,8 @@ def _check_antigravity_plugin_package(
         if path.is_file() and path.name in forbidden_names:
             errors.append(f"{_rel(root, path)}: source-only file leaked into plugin package")
 
-    # Antigravity's documented hooks.json nests events under a top-level
-    # "hooks" key and runs hook commands with cwd set to the plugin root, so
-    # commands use cwd-relative script paths like the Gemini package. agy
-    # 1.3.2, 1.3.3, and 1.4.3 honor the cwd contract but do not inject
-    # ${PLUGIN_ROOT} (verified 2026-10-12 and 2026-10-20), so the placeholder
-    # is not used.
+    # agy runs hook commands with cwd at the plugin root and does not inject
+    # ${PLUGIN_ROOT}; docs/plugin-release-checklist.md records the versions checked.
     _check_advisory_plugin_hooks(
         root,
         hooks_json_path=antigravity_package / "hooks.json",

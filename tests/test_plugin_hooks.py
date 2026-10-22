@@ -120,7 +120,13 @@ def test_antigravity_pre_invocation_injects_helper_without_prompt_fields(
     first_output = json.loads(first.stdout)
     assert len(first_output["injectSteps"]) == 1
     assert str(helper) in first_output["injectSteps"][0]["ephemeralMessage"]
-    assert json.loads(later.stdout) == {"injectSteps": []}
+    # ephemeralMessage is transient, so every later invocation restates the
+    # absolute helper path in one short line.
+    later_output = json.loads(later.stdout)
+    assert len(later_output["injectSteps"]) == 1
+    later_message = later_output["injectSteps"][0]["ephemeralMessage"]
+    assert f"artifact_summarizer_path={helper}" in later_message
+    assert len(later_message) < len(first_output["injectSteps"][0]["ephemeralMessage"])
 
 
 def test_prompt_hook_omits_runtime_helper_for_unrelated_prompts(tmp_path: Path):

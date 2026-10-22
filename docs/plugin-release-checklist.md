@@ -548,13 +548,16 @@ Before each Antigravity plugin release:
   lenient about hook execution, so also install the package locally and run
   one prompt with `--log-file`; the log must show no `exit status 127` from
   `hooks/*.sh`.
-- Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths, and skill
-  text keeps the package-relative artifact helper path, the same as the Gemini
-  package. Antigravity documents that hooks run with cwd at the plugin root,
-  and agy 1.3.2, 1.3.3, and 1.4.3 honor that (verified 2026-10-12 and
-  2026-10-20). None of those versions injects `${PLUGIN_ROOT}` into hook
-  environments or substitutes it in skill text, so the generated package does
-  not depend on that placeholder. Re-check on each agy release.
+- Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths. Skill and
+  agent text names the artifact helper only as
+  `python3 <artifact_summarizer_path>`, the absolute path the PreInvocation
+  hook injects on every model call, because Antigravity runs shell commands
+  from the user's workspace. agy 1.3.2, 1.3.3, and 1.4.3 run hooks with cwd at
+  the plugin root (verified 2026-10-12 and 2026-10-20). None of those versions
+  injects `${PLUGIN_ROOT}` into hook environments or substitutes it in skill
+  text, so the generated package does not depend on that placeholder. This is
+  the only place that records the versions checked; re-check on each agy
+  release.
 - `version` in the generated `plugin.json` is higher than every version already
   tagged in `ai-plugins`. Antigravity clients only detect updates on a version
   increment, so a changed package under an existing tag is never picked up.

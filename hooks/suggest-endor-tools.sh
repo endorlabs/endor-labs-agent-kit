@@ -307,11 +307,17 @@ try:
     helper = os.environ.get("ENDOR_ARTIFACT_SUMMARIZER", "")
     if event == "PreInvocation":
         invocation_num = payload.get("invocationNum")
-        message = (
-            helper_context(helper)
-            if helper and invocation_num in (None, 0, "0")
-            else ""
-        )
+        if not helper:
+            message = ""
+        elif invocation_num in (None, 0, "0"):
+            message = helper_context(helper)
+        else:
+            # ephemeralMessage is transient, so later invocations get the
+            # path again in one line.
+            message = (
+                f"Endor Agent Kit `artifact_summarizer_path={helper}` "
+                "(large-result route only)."
+            )
         emit(event, message)
         raise SystemExit(0)
     if not prompt_lc or "endor_agent_kit_managed" in prompt_lc:

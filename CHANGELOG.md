@@ -19,11 +19,13 @@ package metadata.
   `homepage`, `repository`, `license`). The guardrails check enforces the
   field set, the 120-160 character description, the bundled logo, and the
   three-prompt limit.
-- The Antigravity `hooks.json` uses the documented top-level `hooks` key.
-  Hook commands use cwd-relative `bash ./hooks/<script>.sh` paths and skill
-  text keeps the package-relative artifact helper path, matching the Gemini
-  package, because Antigravity runs hooks with cwd at the plugin root and
-  agy 1.3.2, 1.3.3, and 1.4.3 do not inject `${PLUGIN_ROOT}`.
+- The Antigravity `hooks.json` nests its events under a top-level `hooks` key
+  instead of `endor-labs-agent-kit`. Hook commands are unchanged from `2.2.2`.
+- Antigravity skill and agent text no longer hard-codes the
+  `$HOME/.gemini/config/plugins/...` artifact helper path. It points the model
+  at the absolute `artifact_summarizer_path` the PreInvocation hook injects,
+  which the hook now sends on every model call, and records a data gap when
+  that path is missing.
 - The package version is bumped so Antigravity clients that installed the
   earlier `2.2.2` package detect the changed manifest and hooks.
 
