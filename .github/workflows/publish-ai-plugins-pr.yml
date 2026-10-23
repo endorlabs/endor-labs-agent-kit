@@ -170,15 +170,36 @@ jobs:
           artifact_name: ${{ env.ENDOR_AGENT_KIT_ARTIFACT_NAME }}
           certificate_oidc_issuer: "https://token.actions.githubusercontent.com"
 
-      - name: Check ai-plugins sync token
+      - name: Resolve ai-plugins repository
+        id: ai-plugins-repo
+        run: |
+          echo "owner=${AI_PLUGINS_REPOSITORY%%/*}" >> "$GITHUB_OUTPUT"
+          echo "name=${AI_PLUGINS_REPOSITORY#*/}" >> "$GITHUB_OUTPUT"
+
+      - name: Check ai-plugins sync app credentials
         if: ${{ env.DRY_RUN != 'true' }}
         env:
-          AI_PLUGINS_SYNC_TOKEN: ${{ secrets.AI_PLUGINS_SYNC_TOKEN }}
+          AI_PLUGINS_APP_CLIENT_ID: ${{ vars.AI_PLUGINS_APP_CLIENT_ID }}
+          AI_PLUGINS_APP_PRIVATE_KEY: ${{ secrets.AI_PLUGINS_APP_PRIVATE_KEY }}
         run: |
-          if [ -z "${AI_PLUGINS_SYNC_TOKEN:-}" ]; then
-            echo "AI_PLUGINS_SYNC_TOKEN must have contents:write and pull-requests:write on ${AI_PLUGINS_REPOSITORY}."
+          if [ -z "${AI_PLUGINS_APP_CLIENT_ID:-}" ] || [ -z "${AI_PLUGINS_APP_PRIVATE_KEY:-}" ]; then
+            echo "Set the AI_PLUGINS_APP_CLIENT_ID variable and AI_PLUGINS_APP_PRIVATE_KEY secret for a GitHub App installed on ${AI_PLUGINS_REPOSITORY} with contents, pull-requests, and workflows write access."
             exit 1
           fi
+
+      - name: Create ai-plugins sync token
+        id: ai-plugins-token
+        if: ${{ env.DRY_RUN != 'true' }}
+        uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        with:
+          client-id: ${{ vars.AI_PLUGINS_APP_CLIENT_ID }}
+          private-key: ${{ secrets.AI_PLUGINS_APP_PRIVATE_KEY }}
+          owner: ${{ steps.ai-plugins-repo.outputs.owner }}
+          repositories: ${{ steps.ai-plugins-repo.outputs.name }}
+          permission-contents: write
+          permission-pull-requests: write
+          # The sync writes .github/workflows/build-codex-directory-submission.yml.
+          permission-workflows: write
 
       - name: Check out ai-plugins
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -186,7 +207,7 @@ jobs:
           repository: ${{ env.AI_PLUGINS_REPOSITORY }}
           ref: ${{ env.AI_PLUGINS_BASE_BRANCH }}
           path: ai-plugins
-          token: ${{ secrets.AI_PLUGINS_SYNC_TOKEN }}
+          token: ${{ steps.ai-plugins-token.outputs.token || github.token }}
 
       - name: Sync generated distribution
         run: |
@@ -341,7 +362,7 @@ jobs:
         if: ${{ env.DRY_RUN != 'true' }}
         working-directory: ai-plugins
         env:
-          GH_TOKEN: ${{ secrets.AI_PLUGINS_SYNC_TOKEN }}
+          GH_TOKEN: ${{ steps.ai-plugins-token.outputs.token }}
         run: |
           if git diff --quiet; then
             echo "No ai-plugins changes to publish."

@@ -154,11 +154,13 @@ The workflow:
 13. validates the mirror
 14. opens or updates an `ai-plugins` PR
 
-Required secret:
+Required GitHub App credentials (see `docs/distribution-sync.md` for app setup
+and key rotation):
 
-| Secret | Purpose |
-| --- | --- |
-| `AI_PLUGINS_SYNC_TOKEN` | Fine-grained token or GitHub App installation token with `contents:write` and `pull-requests:write` on `endorlabs/ai-plugins`. |
+| Name | Kind | Purpose |
+| --- | --- | --- |
+| `AI_PLUGINS_APP_CLIENT_ID` | Variable | Client ID of the GitHub App installed on `endorlabs/ai-plugins` with `contents:write`, `pull-requests:write`, and `workflows:write`. |
+| `AI_PLUGINS_APP_PRIVATE_KEY` | Secret | Private key for that app, used to mint a per-run installation token. |
 
 Optional repository variables:
 
