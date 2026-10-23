@@ -29,14 +29,42 @@ generated distribution surfaces into `ai-plugins`, and opens or updates an
 `ai-plugins` PR. This does not auto-increment package versions; maintainers bump
 `pyproject.toml` intentionally when a release version should change.
 
-Required GitHub secret in `endor-labs-agent-kit`:
+Required GitHub App credentials in `endor-labs-agent-kit`:
 
 ```text
-AI_PLUGINS_SYNC_TOKEN
+AI_PLUGINS_APP_CLIENT_ID      (repository variable)
+AI_PLUGINS_APP_PRIVATE_KEY    (repository secret)
 ```
 
-The token must be a fine-grained PAT or GitHub App installation token with
-`contents:write` and `pull-requests:write` on `endorlabs/ai-plugins`.
+The workflow uses `actions/create-github-app-token` to mint a short-lived
+installation token scoped to `endorlabs/ai-plugins` with `contents:write`,
+`pull-requests:write`, and `workflows:write`. The workflows permission is needed
+because the sync writes `.github/workflows/build-codex-directory-submission.yml`
+into the mirror, and GitHub rejects workflow file pushes from app tokens without
+it. The token is used to check out `ai-plugins`, push the
+sync branch, and open or update the PR, and is revoked when the job ends. Manual
+dry runs skip token creation and check out `ai-plugins` read-only with the
+workflow's `GITHUB_TOKEN`, which only works for a public target repository.
+Non-dry-run publication only works for repositories the app is installed on.
+
+### GitHub App Setup
+
+An `endorlabs` org owner creates the app once:
+
+1. Org settings → Developer settings → GitHub Apps → New GitHub App. Disable
+   the webhook. Repository permissions: Contents read and write, Pull requests
+   read and write, Workflows read and write (Metadata read-only is added
+   automatically).
+2. Install the app on the `endorlabs` org with access to only the
+   `ai-plugins` repository.
+3. Copy the app's Client ID into the `AI_PLUGINS_APP_CLIENT_ID` repository
+   variable of `endor-labs-agent-kit`.
+4. Generate a private key and store the full `.pem` contents in the
+   `AI_PLUGINS_APP_PRIVATE_KEY` repository secret.
+
+Installation tokens expire after one hour and are minted per run, so nothing
+expires between releases. To rotate, generate a new private key on the app,
+update `AI_PLUGINS_APP_PRIVATE_KEY`, then delete the old key from the app.
 
 Private QA artifacts and backend telemetry acceptance bundles are not inputs to
 the automated source-to-mirror publication workflow.

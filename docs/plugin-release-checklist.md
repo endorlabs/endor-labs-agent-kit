@@ -177,8 +177,9 @@ and opens or updates the mirror PR.
 
 Before release, verify:
 
-- `AI_PLUGINS_SYNC_TOKEN` is configured with `contents:write` and
-  `pull-requests:write` on `endorlabs/ai-plugins`.
+- The `AI_PLUGINS_APP_CLIENT_ID` variable and `AI_PLUGINS_APP_PRIVATE_KEY`
+  secret are configured for a GitHub App installed on `endorlabs/ai-plugins`
+  with `contents:write`, `pull-requests:write`, and `workflows:write`.
 - Endor signing variables are configured when signing is required:
   `ENDOR_ARTIFACT_SIGNING_ENABLED=true`, `ENDOR_NAMESPACE`, and optional
   `ENDOR_ARTIFACT_NAME_PREFIX`.

@@ -79,6 +79,25 @@ def test_ai_plugins_publication_has_no_external_release_evidence_dependency() ->
     assert "scripts/validate_release_evidence.py" not in workflow
 
 
+def test_ai_plugins_publication_uses_github_app_installation_token() -> None:
+    workflow = (
+        repo_root() / ".github" / "workflows" / "publish-ai-plugins-pr.yml"
+    ).read_text()
+
+    assert "AI_PLUGINS_SYNC_TOKEN" not in workflow
+    assert "actions/create-github-app-token@" in workflow
+    assert "vars.AI_PLUGINS_APP_CLIENT_ID" in workflow
+    assert "secrets.AI_PLUGINS_APP_PRIVATE_KEY" in workflow
+    assert "permission-contents: write" in workflow
+    assert "permission-pull-requests: write" in workflow
+    assert "permission-workflows: write" in workflow
+    assert (
+        "token: ${{ steps.ai-plugins-token.outputs.token || github.token }}"
+        in workflow
+    )
+    assert "GH_TOKEN: ${{ steps.ai-plugins-token.outputs.token }}" in workflow
+
+
 def test_codex_directory_submission_workflow_requires_immutable_mirror_sha():
     workflow = (
         repo_root()
