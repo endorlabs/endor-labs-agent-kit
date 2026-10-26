@@ -31,19 +31,28 @@ package metadata.
   or a large-result query template) now requires validated artifact
   metadata; `list_all: false` bypasses the legacy prose heuristic entirely,
   and negated prose such as "no --list-all used" no longer false-positives.
-- Required `project_resolution` / `report_scope` with `status: "resolved"`
-  to carry a non-empty `project_uuid` and a namespace (`namespace` or
+- Required `project_resolution` with `status: "resolved"` to carry a
+  non-empty `project_uuid` and a namespace (`namespace` or
   `endor_namespace`); a resolution claim without its identifiers is
   rejected.
 - Added a summary-vs-count lint: a summary claiming evidence is available
-  while every evidence-ledger row has a null `result_count` is rejected
-  (negation-safe — "unavailable" and "no ... available" do not trip it).
+  while no succeeded evidence-ledger row records an integer `result_count`
+  is rejected (negation-safe — "unavailable" and "no ... available" do not
+  trip it).
 - Counted decisive verdict values (anything outside
   `INSUFFICIENT_DATA`/`UNKNOWN` across the pinned verdict fields) as an
-  evidence claim, so a decisive verdict with an empty evidence ledger is
-  rejected; the evidence-claim field list also gained
+  evidence claim, so a decisive verdict without at least one succeeded
+  evidence-ledger row is rejected; the evidence-claim field list also gained
   `affected_package_set`, `finding_results`, `github_evidence`,
-  `impacted_projects`, and `manifests`.
+  `impacted_projects`, and `manifests`. Fail-closed verdicts are exempt
+  through the new `FAIL_CLOSED_VERDICT_VALUES` table (seeded with
+  dependency-reviewer's `NOT_RECOMMENDED`, the taught answer when the risk
+  lookup is unavailable) — but only while `data_gaps` records what was
+  missing, so the exemption can never produce an unexplained verdict.
+- Fixed three instruction templates (malware-responder,
+  configuration-automation, troubleshooting) that still taught `partial` as
+  an evidence-ledger status; a new test scans every agent's taught
+  `evidence_queries` examples against the closed status vocabulary.
 - Validated `evidence_queries[].query_template_id` against the real
   knowledge-pack recipe inventory when payloads are checked through a task
   profile: `profile_contracts.validate_profile_output_payload` computes the

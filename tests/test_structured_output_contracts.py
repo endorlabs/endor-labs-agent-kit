@@ -772,7 +772,11 @@ def test_verdict_claim_fields_lockstep_with_enum_table():
     assert NONDECISIVE_VERDICT_VALUES <= verdict_enum_values
 
     # dependency-reviewer has no abstain token on purpose: every legal verdict
-    # (SAFE included) is a claim about a package and must be evidence-backed.
+    # (SAFE included) is a claim about a package and must be evidence-backed,
+    # except its fail-closed NOT_RECOMMENDED lane, which
+    # FAIL_CLOSED_VERDICT_VALUES exempts when data_gaps records what was
+    # missing (the package-decision instructions direct that answer when the
+    # risk lookup is unavailable).
     assert not NONDECISIVE_VERDICT_VALUES & set(
         ENUM_FIELD_VALUES[("dependency-reviewer", "verdict")]
     )
@@ -983,6 +987,9 @@ def test_unrelated_negation_near_list_all_prose_still_requires_artifact():
 def test_negations_anchored_to_list_all_prose_still_pass():
     for prose in (
         "did not use list-all",
+        "did not run with --list-all",
+        "did not need --list-all",
+        "never used --list-all",
         "list-all not used",
         "skipped the list-all export",
         "list-all: false",
@@ -1152,9 +1159,9 @@ def test_summary_available_claim_with_all_null_counts_rejected():
         ("summary", "evidence_queries", "data_gaps"),
     )
     assert errors == [
-        "summary: claims available evidence but no evidence_queries row records "
-        "an integer result_count; copy the integer counts from the executed "
-        "queries or describe the gap in data_gaps"
+        "summary: claims available evidence but no succeeded evidence_queries "
+        "row records an integer result_count; copy the integer counts from the "
+        "executed queries or describe the gap in data_gaps"
     ]
 
 
@@ -1268,6 +1275,91 @@ def test_nondecisive_verdict_with_only_skipped_rows_passes():
     ) == []
 
 
+def test_fail_closed_verdict_with_gaps_passes_for_dependency_reviewer():
+    # package-decision instructions: an unavailable risk lookup returns
+    # NOT_RECOMMENDED with the gap recorded — an abstention, not a claim.
+    payload = {
+        "verdict": "NOT_RECOMMENDED",
+        "evidence_queries": [
+            _succeeded_row(
+                status="unavailable",
+                source="endor_mcp",
+                result_count=None,
+                reason="endor_mcp package risk lookup unavailable",
+            )
+        ],
+        "data_gaps": ["unavailable: endor_mcp_package_risk_unavailable"],
+    }
+    assert validate_structured_output_payload(
+        "dependency-reviewer",
+        payload,
+        ("verdict", "evidence_queries", "data_gaps"),
+    ) == []
+
+
+def test_fail_closed_verdict_without_gaps_still_rejected():
+    payload = {
+        "verdict": "NOT_RECOMMENDED",
+        "evidence_queries": [
+            _succeeded_row(
+                status="unavailable",
+                source="endor_mcp",
+                result_count=None,
+                reason="endor_mcp package risk lookup unavailable",
+            )
+        ],
+        "data_gaps": [],
+    }
+    errors = validate_structured_output_payload(
+        "dependency-reviewer",
+        payload,
+        ("verdict", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: at least one succeeded row is required when "
+        "current Endor or repository evidence is claimed"
+    ]
+
+
+def test_fail_closed_exemption_is_scoped_to_its_agent():
+    # The same shape on another agent keeps the hard gate: CONFIRMED_EXPOSURE
+    # is never an abstention, gaps or not.
+    payload = {
+        "incident_verdict": "CONFIRMED_EXPOSURE",
+        "evidence_queries": [
+            _succeeded_row(
+                status="unavailable",
+                result_count=None,
+                reason="tenant lookup unavailable",
+            )
+        ],
+        "data_gaps": ["unavailable: tenant lookup unavailable"],
+    }
+    errors = validate_structured_output_payload(
+        "malware-responder",
+        payload,
+        ("incident_verdict", "evidence_queries", "data_gaps"),
+    )
+    assert errors == [
+        "evidence_queries: at least one succeeded row is required when "
+        "current Endor or repository evidence is claimed"
+    ]
+
+
+def test_fail_closed_table_locksteps_with_enum_registry():
+    from endor_agent_kit.structured_output_contracts import (
+        FAIL_CLOSED_VERDICT_VALUES,
+    )
+
+    for (agent_id, field), values in FAIL_CLOSED_VERDICT_VALUES.items():
+        assert field in VERDICT_CLAIM_FIELDS, (agent_id, field)
+        enum_values = ENUM_FIELD_VALUES[(agent_id, field)]
+        assert values <= set(enum_values), (agent_id, field)
+        # A fail-closed value is an exemption from the claim gate, not an
+        # abstain token: it must not also be listed as non-decisive.
+        assert not values & NONDECISIVE_VERDICT_VALUES, (agent_id, field)
+
+
 def test_summary_available_claim_with_only_skipped_counts_rejected():
     payload = {
         "summary": "Full upgrade evidence is available.",
@@ -1282,9 +1374,9 @@ def test_summary_available_claim_with_only_skipped_counts_rejected():
         ("summary", "evidence_queries", "data_gaps"),
     )
     assert errors == [
-        "summary: claims available evidence but no evidence_queries row records "
-        "an integer result_count; copy the integer counts from the executed "
-        "queries or describe the gap in data_gaps"
+        "summary: claims available evidence but no succeeded evidence_queries "
+        "row records an integer result_count; copy the integer counts from the "
+        "executed queries or describe the gap in data_gaps"
     ]
 
 

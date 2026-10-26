@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
@@ -443,7 +444,7 @@ def test_shared_compiler_rendering_renders_structured_output_contract():
     assert '"conditions": []' in rendered
     assert '"query_template_id": "knowledge-pack-recipe-id or null"' in rendered
     assert "`evidence_queries`: only name/resource/source/status/query_template_id" in rendered
-    assert "current claims need >=1 row" in rendered
+    assert "current claims need >=1 succeeded row" in rendered
     assert "/filter_summary/field_mask_summary/result_count/list_all/artifact/reason" in rendered
     assert f"status is exactly {'|'.join(EVIDENCE_QUERY_STATUS_VALUES)}" in rendered
     assert "skipped requires a reason" in rendered
@@ -475,6 +476,48 @@ def test_evidence_status_vocabulary_locksteps_with_taught_guidance():
         + f", or {EVIDENCE_QUERY_STATUS_VALUES[-1]}"
     )
     assert f"Status is exactly {spoken}" in guidance["evidence-ledger"]
+
+
+def _taught_evidence_query_status_values(instructions: str) -> list[tuple[int, str]]:
+    """Status strings taught inside ``"evidence_queries": [`` example blocks.
+
+    Scoped to the ledger blocks on purpose: a file-wide scan would trip on
+    unrelated status vocabularies such as ``project_resolution.status``.
+    """
+
+    statuses: list[tuple[int, str]] = []
+    depth = 0
+    for number, line in enumerate(instructions.splitlines(), start=1):
+        if depth == 0:
+            if '"evidence_queries"' in line and "[" in line:
+                depth = line.count("[") - line.count("]")
+        else:
+            depth += line.count("[") - line.count("]")
+            match = re.search(r'"status"\s*:\s*"([^"]+)"', line)
+            if match:
+                statuses.append((number, match.group(1)))
+            if depth <= 0:
+                depth = 0
+    return statuses
+
+
+def test_taught_ledger_status_examples_use_the_closed_vocabulary():
+    allowed = set(EVIDENCE_QUERY_STATUS_VALUES)
+    agents_root = repo_root() / "source" / "agents"
+    scanned = 0
+    offenders: list[str] = []
+    for instructions_path in sorted(agents_root.glob("*/instructions.md")):
+        text = instructions_path.read_text(encoding="utf-8")
+        for line_number, taught in _taught_evidence_query_status_values(text):
+            scanned += 1
+            tokens = {token.strip() for token in taught.split("|")}
+            unknown = tokens - allowed
+            if unknown:
+                offenders.append(
+                    f"{instructions_path.parent.name}:{line_number}: {sorted(unknown)}"
+                )
+    assert scanned, "no taught evidence_queries status examples found"
+    assert offenders == []
 
 
 def test_shared_compiler_rendering_renders_compact_structured_output_contract():

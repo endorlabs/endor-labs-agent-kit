@@ -1201,7 +1201,7 @@ membership when capped. Sampling or incomplete inventory requires
       "name": "Onboarding coverage evidence",
       "resource": "GitHubRepository | Project | ScanResult",
       "source": "github | endorctl_agent_api | endor_mcp | local_repository",
-      "status": "succeeded | partial | failed | skipped",
+      "status": "succeeded | failed | skipped | unavailable",
       "query_template_id": "github-inventory | project-onboarding-check | null",
       "filter_summary": "Repository, org, project, or monitored-branch selector",
       "field_mask_summary": "Repository, project, scan, branch, and package-manager fields used",

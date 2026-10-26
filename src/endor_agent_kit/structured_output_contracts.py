@@ -393,7 +393,7 @@ def validate_structured_output_payload(
     )
     errors.extend(_project_scope_resolution_errors(payload))
     errors.extend(_summary_count_errors(payload))
-    errors.extend(_evidence_gap_contract_errors(contract, payload))
+    errors.extend(_evidence_gap_contract_errors(agent_id, contract, payload))
     return errors
 
 
@@ -1691,6 +1691,7 @@ def _kind_errors(field: StructuredOutputField, value: Any) -> list[str]:
 
 
 def _evidence_gap_contract_errors(
+    agent_id: str,
     contract: tuple[StructuredOutputField, ...],
     payload: dict[str, Any],
 ) -> list[str]:
@@ -1708,7 +1709,7 @@ def _evidence_gap_contract_errors(
             if isinstance(row, dict)
             and _text(row.get("status")) in EVIDENCE_QUERY_SUCCESS_STATUSES
         ]
-        if not succeeded_rows and _claims_current_evidence(payload):
+        if not succeeded_rows and _claims_current_evidence(agent_id, payload):
             return [
                 "evidence_queries: at least one succeeded row is required when "
                 "current Endor or repository evidence is claimed"
@@ -1762,8 +1763,8 @@ ARTIFACT_METADATA_RE = re.compile(
 )
 _SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 _LEGACY_LIST_ALL_NEGATION_RE = re.compile(
-    r"(?:\b(?:no|not|without|omit\w*|skip\w*)\b"
-    r"(?:\s+(?:a|an|any|the|use|uses|used|using|of|run|running|flag|option))*"
+    r"(?:\b(?:no|not|never|without|omit\w*|skip\w*)\b"
+    r"(?:\s+(?:a|an|any|the|use|uses|used|using|of|run|running|with|need|needed|flag|option))*"
     r"[\s:=-]*(?:--)?list-all)"
     r"|(?:list-all\s*(?:==|=|:)\s*false\b)"
     r"|(?:list-all\b[^.;,]{0,20}\bnot\b)"
@@ -1918,19 +1919,18 @@ def _project_scope_resolution_errors(payload: dict[str, Any]) -> list[str]:
     """A claimed resolution must carry the identifiers that prove it."""
 
     errors: list[str] = []
-    for field in ("project_resolution",):
-        value = payload.get(field)
-        if not isinstance(value, dict):
-            continue
-        if _text(value.get("status")).lower() != "resolved":
-            continue
-        if not _text(value.get("project_uuid")):
-            errors.append(f"{field}.project_uuid: required when status is resolved")
-        if not _text(value.get("namespace")) and not _text(value.get("endor_namespace")):
-            errors.append(
-                f"{field}.namespace: required when status is resolved; record "
-                "the namespace the project was found in (namespace or endor_namespace)"
-            )
+    value = payload.get("project_resolution")
+    if not isinstance(value, dict) or _text(value.get("status")).lower() != "resolved":
+        return errors
+    if not _text(value.get("project_uuid")):
+        errors.append(
+            "project_resolution.project_uuid: required when status is resolved"
+        )
+    if not _text(value.get("namespace")) and not _text(value.get("endor_namespace")):
+        errors.append(
+            "project_resolution.namespace: required when status is resolved; record "
+            "the namespace the project was found in (namespace or endor_namespace)"
+        )
     return errors
 
 
@@ -1961,9 +1961,10 @@ def _summary_count_errors(payload: dict[str, Any]) -> list[str]:
         prefix = lowered[max(0, match.start() - 40) : match.start()]
         if not _AVAILABLE_NEGATION_RE.search(prefix):
             return [
-                "summary: claims available evidence but no evidence_queries row "
-                "records an integer result_count; copy the integer counts from "
-                "the executed queries or describe the gap in data_gaps"
+                "summary: claims available evidence but no succeeded "
+                "evidence_queries row records an integer result_count; copy the "
+                "integer counts from the executed queries or describe the gap "
+                "in data_gaps"
             ]
     return []
 
@@ -1997,26 +1998,39 @@ VERDICT_CLAIM_FIELDS = (
     "action",
 )
 NONDECISIVE_VERDICT_VALUES = frozenset({"INSUFFICIENT_DATA", "UNKNOWN"})
+# Fail-closed verdicts: values an agent's instructions direct it to return
+# precisely BECAUSE evidence could not be fetched (dependency-reviewer's
+# package-decision lane answers NOT_RECOMMENDED when the risk lookup is
+# unavailable). In claim terms they are abstentions, so they do not demand a
+# succeeded ledger row — but only while data_gaps records what was missing.
+# Keys and values must stay inside ENUM_FIELD_VALUES (lockstep test).
+FAIL_CLOSED_VERDICT_VALUES = {
+    ("dependency-reviewer", "verdict"): frozenset({"NOT_RECOMMENDED"}),
+}
 
 
-def _claims_current_evidence(payload: dict[str, Any]) -> bool:
+def _claims_current_evidence(agent_id: str, payload: dict[str, Any]) -> bool:
     for field in EVIDENCE_CLAIM_LIST_FIELDS:
         if isinstance(payload.get(field), list) and payload[field]:
             return True
+    recorded_gaps = bool(_string_list(payload.get("data_gaps")))
     for field in VERDICT_CLAIM_FIELDS:
         value = payload.get(field)
-        if (
-            isinstance(value, str)
-            and value.strip()
-            and value.strip() not in NONDECISIVE_VERDICT_VALUES
+        if not isinstance(value, str) or not value.strip():
+            continue
+        verdict = value.strip()
+        if verdict in NONDECISIVE_VERDICT_VALUES:
+            continue
+        if recorded_gaps and verdict in FAIL_CLOSED_VERDICT_VALUES.get(
+            (agent_id, field), frozenset()
         ):
+            continue
+        return True
+    value = payload.get("project_resolution")
+    if isinstance(value, dict):
+        status = _text(value.get("status")).lower()
+        if status == "resolved" and _text(value.get("project_uuid")):
             return True
-    for field in ("project_resolution",):
-        value = payload.get(field)
-        if isinstance(value, dict):
-            status = _text(value.get("status")).lower()
-            if status == "resolved" and _text(value.get("project_uuid")):
-                return True
     return False
 
 

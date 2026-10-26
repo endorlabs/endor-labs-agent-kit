@@ -303,7 +303,7 @@ The JSON object must include:
       "name": "Troubleshooting evidence lane",
       "resource": "Project | ScanResult | Integration | user_input",
       "source": "endorctl_agent_api | endor_mcp | user_input | public_docs",
-      "status": "succeeded | partial | failed | skipped",
+      "status": "succeeded | failed | skipped | unavailable",
       "query_template_id": "lane-specific-read | public-doc-reference | null",
       "filter_summary": "Issue selector, resource id, or provided-input field",
       "field_mask_summary": "Status, error, integration, workflow, and scan fields used",
@@ -493,7 +493,7 @@ Use structured JSON mode only when the user or calling runtime explicitly reques
 The same evidence, safety, and completeness requirements apply in both modes. In human-readable mode, render the relevant contract fields naturally and do not omit material data gaps. Do not expose the output schema, internal routing language, or raw JSON.
 Required top-level fields and types:
 enum: `troubleshooting_verdict`; object: `executive_summary`, `intake_classification`, `evidence_summary`, `support_escalation_packet`, `policy_context`; list[object]: `issue_lanes`, `affected_resources`, `evidence_queries`, `root_cause_hypotheses`, `recommended_actions`, `validation_plan`, `future_action_contracts`, `policy_evaluations`; list[string]: `data_gaps`, `future_scope`
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/list_all/artifact/reason; status is exactly succeeded|failed|skipped|unavailable and skipped requires a reason; set `list_all` true only for complete-inventory reads and copy the summarizer output into `artifact` {artifact_ref, sha256, format, bytes, row_count}, else leave both null; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/list_all/artifact/reason; status is exactly succeeded|failed|skipped|unavailable and skipped requires a reason; set `list_all` true only for complete-inventory reads and copy the summarizer output into `artifact` {artifact_ref, sha256, format, bytes, row_count}, else leave both null; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 succeeded row; gaps -> `data_gaps`.
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 Structured JSON types: arrays stay arrays, counts int/null, objects null only with `data_gaps`; in structured mode, missing inputs return JSON.
 Do not omit required fields. Use [] for unavailable list evidence and `data_gaps` for missing evidence.

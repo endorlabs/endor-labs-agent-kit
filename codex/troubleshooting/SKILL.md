@@ -1103,7 +1103,7 @@ The JSON object must include:
       "name": "Troubleshooting evidence lane",
       "resource": "Project | ScanResult | Integration | user_input",
       "source": "endorctl_agent_api | endor_mcp | user_input | public_docs",
-      "status": "succeeded | partial | failed | skipped",
+      "status": "succeeded | failed | skipped | unavailable",
       "query_template_id": "lane-specific-read | public-doc-reference | null",
       "filter_summary": "Issue selector, resource id, or provided-input field",
       "field_mask_summary": "Status, error, integration, workflow, and scan fields used",
@@ -1464,7 +1464,7 @@ Required top-level fields must appear in this order:
 - `policy_context` (`object`): Trusted policy pack status, id, version, SHA-256, and source. Use not_configured when no policy pack is active.
 - `policy_evaluations` (`list[object]`): Applicable policy decisions with policy id, effect, decision, message, facts used, and missing facts.
 
-`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/list_all/artifact/reason; status is exactly succeeded|failed|skipped|unavailable and skipped requires a reason; set `list_all` true only for complete-inventory reads and copy the summarizer output into `artifact` {artifact_ref, sha256, format, bytes, row_count}, else leave both null; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 row; gaps -> `data_gaps`.
+`evidence_queries`: only name/resource/source/status/query_template_id/filter_summary/field_mask_summary/result_count/list_all/artifact/reason; status is exactly succeeded|failed|skipped|unavailable and skipped requires a reason; set `list_all` true only for complete-inventory reads and copy the summarizer output into `artifact` {artifact_ref, sha256, format, bytes, row_count}, else leave both null; one row per attempted lookup, including zero-result, failed, and retry attempts; one API invocation yields one row, and local projection or summarization does not create another row; source=endorctl_agent_api for Endor CLI API reads, even via adapters, never adapter/command/path; no raw commands; current claims need >=1 succeeded row; gaps -> `data_gaps`.
 
 `data_gaps`: prefix task/profile skips with `out_of_scope:` and missing sought evidence with `unavailable:`; source tag optional.
 

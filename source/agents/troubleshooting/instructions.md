@@ -1091,7 +1091,7 @@ The JSON object must include:
       "name": "Troubleshooting evidence lane",
       "resource": "Project | ScanResult | Integration | user_input",
       "source": "endorctl_agent_api | endor_mcp | user_input | public_docs",
-      "status": "succeeded | partial | failed | skipped",
+      "status": "succeeded | failed | skipped | unavailable",
       "query_template_id": "lane-specific-read | public-doc-reference | null",
       "filter_summary": "Issue selector, resource id, or provided-input field",
       "field_mask_summary": "Status, error, integration, workflow, and scan fields used",
