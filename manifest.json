@@ -6366,9 +6366,9 @@
     {
       "artifacts": [
         {
-          "bytes": 1324,
+          "bytes": 1599,
           "path": "plugins/codex-directory/endor-labs-agent-kit/.codex-plugin/plugin.json",
-          "sha256": "0ed4bd16bbdd66ece3721c9f54e037d3f9f75da7c3f6ce251e01e1d61fb3b3e9"
+          "sha256": "d2cd43d099bbcd5224a1f4dcaa7a0b400313d6cb31f63f1331fdef1bdcd0d620"
         },
         {
           "bytes": 10110,

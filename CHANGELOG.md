@@ -28,6 +28,13 @@ package metadata.
   that path is missing.
 - The package version is bumped so Antigravity clients that installed the
   earlier `2.2.2` package detect the changed manifest and hooks.
+- The Universal Plugins Directory manifest under `plugins/codex-directory/`
+  now carries the listing presentation published for the live entry (category
+  `Security`, the packaged-workflows description, and the full capabilities
+  list) plus the `supportURL`, `privacyPolicyURL`, and `termsOfServiceURL`
+  fields the portal requires on import. Added after the `2.2.3` tag; the
+  directory submission ZIP is built from the `ai-plugins` commit that carries
+  this change.
 
 ## 2.2.2 - 2026-08-27
 
