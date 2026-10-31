@@ -12,13 +12,21 @@ import stat
 import struct
 import sys
 import unicodedata
+from urllib.parse import urlsplit
 import zipfile
 
 
 PLUGIN_NAME = "endor-labs-agent-kit"
 PACKAGE_PATH = Path("plugins") / "codex-directory" / PLUGIN_NAME
 CHANNEL = "official-directory"
-VALIDATOR_VERSION = "3"
+VALIDATOR_VERSION = "4"
+# The Universal Plugins Directory portal requires these listing URLs on import.
+REQUIRED_LISTING_URL_KEYS = (
+    "websiteURL",
+    "supportURL",
+    "privacyPolicyURL",
+    "termsOfServiceURL",
+)
 MAX_ARCHIVE_BYTES = 100 * 1024 * 1024
 MAX_ARCHIVE_ENTRIES = 5000
 CANONICAL_SKILL_IDS = (
@@ -196,6 +204,14 @@ def _validate_plugin_manifest(
                 errors.append("plugin.json: starter prompts must not contain app mentions")
     if "screenshots" in interface:
         errors.append("plugin.json: screenshots are excluded from skills-only ZIP uploads")
+    for key in REQUIRED_LISTING_URL_KEYS:
+        value = interface.get(key)
+        if not isinstance(value, str) or not value.strip():
+            errors.append(f"plugin.json: interface.{key} is required")
+            continue
+        parsed = urlsplit(value)
+        if parsed.scheme != "https" or not parsed.hostname:
+            errors.append(f"plugin.json: interface.{key} must be an https URL with a hostname")
     for key in ("composerIcon", "logo"):
         value = interface.get(key)
         if not isinstance(value, str) or not value.startswith("./"):

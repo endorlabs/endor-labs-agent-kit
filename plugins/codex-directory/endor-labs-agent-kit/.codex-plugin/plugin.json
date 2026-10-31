@@ -9,10 +9,14 @@
     "brandColor": "#26D07C",
     "capabilities": [
       "Security",
+      "Remediation",
       "Investigation",
-      "Remediation"
+      "Application Security",
+      "Agentic Workflows",
+      "Agentic Remediation",
+      "Agentic AppSec"
     ],
-    "category": "Developer Tools",
+    "category": "Security",
     "composerIcon": "./assets/composer-icon.png",
     "defaultPrompt": [
       "Browse and summarize my active Endor findings.",
@@ -22,8 +26,11 @@
     "developerName": "Endor Labs",
     "displayName": "Endor Labs Agent Kit",
     "logo": "./assets/logo.png",
-    "longDescription": "Use eleven source-generated Endor Labs workflows plus a setup skill to investigate, triage, plan, and remediate application security and software supply-chain risks from Codex.",
+    "longDescription": "Packaged AppSec workflows for SCA remediation, AI SAST triage, CI/CD posture, malware response, findings review, Endor Labs setup, and more.",
+    "privacyPolicyURL": "https://www.endorlabs.com/legal/privacy-policy",
     "shortDescription": "Endor security workflows",
+    "supportURL": "https://www.endorlabs.com/lp/contact-us",
+    "termsOfServiceURL": "https://www.endorlabs.com/legal/terms-of-use",
     "websiteURL": "https://www.endorlabs.com/"
   },
   "keywords": [
@@ -37,5 +44,5 @@
   "name": "endor-labs-agent-kit",
   "repository": "https://github.com/endorlabs/ai-plugins",
   "skills": "./skills/",
-  "version": "2.2.3"
+  "version": "2.2.4"
 }

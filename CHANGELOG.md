@@ -3,11 +3,28 @@
 All notable changes to Endor Labs Agent Kit and the generated `ai-plugins`
 distribution are tracked here.
 
-The current generated package version is `2.2.3`. Merging to `main` does not
+The current generated package version is `2.2.4`. Merging to `main` does not
 automatically increment this version. Maintainers bump `pyproject.toml`
 intentionally for a release, regenerate artifacts, and use the same version
 across Claude Code, Codex, Gemini CLI, Antigravity CLI, Cursor, and Cursor SDK
 package metadata.
+
+## 2.2.4 - 2026-10-30
+
+### Changed
+
+- The Universal Plugins Directory manifest under `plugins/codex-directory/`
+  now carries the listing presentation published for the live entry (category
+  `Security`, the packaged-workflows description, and the full capabilities
+  list) plus the `supportURL`, `privacyPolicyURL`, and `termsOfServiceURL`
+  fields the portal requires on import. The `2.2.3` directory ZIP raised
+  three blocking portal findings for the missing URLs.
+- The directory submission validator (`VALIDATOR_VERSION` `4`) requires all
+  four listing URLs (`websiteURL`, `supportURL`, `privacyPolicyURL`,
+  `termsOfServiceURL`) to be `https` URLs with a hostname.
+- The package version is bumped because the `2.2.3` tag already ships the
+  earlier directory manifest; the submitted directory ZIP is built from the
+  `2.2.4` tag.
 
 ## 2.2.3 - 2026-10-22
 

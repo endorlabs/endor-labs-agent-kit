@@ -22,9 +22,11 @@ from endor_agent_kit.publication.codex_directory_plugin import (
     CODEX_DIRECTORY_PACKAGE_ROOT,
     CODEX_DIRECTORY_SETUP_SKILL_ID,
     CODEX_DIRECTORY_SKILL_IDS,
+    _codex_directory_manifest,
     publish_codex_directory_plugin_package,
 )
 from endor_agent_kit.publication.coordinator import HostArtifactPublication
+from endor_agent_kit.publication.plugin_package_common import package_version
 from endor_agent_kit.publisher import publish_recipes
 from scripts.build_codex_directory_submission import build_archive, validate_package
 
@@ -346,3 +348,80 @@ def test_submission_archive_is_deterministic_and_has_one_plugin_root(
         assert names
         assert all(name.startswith("endor-labs-agent-kit/") for name in names)
         assert all(".." not in Path(name).parts for name in names)
+
+
+def test_directory_manifest_carries_the_published_listing_metadata():
+    interface = _codex_directory_manifest(package_version())["interface"]
+
+    # The Universal Plugins Directory portal imports listing presentation from
+    # the manifest and requires the support, privacy, and terms URLs. These
+    # values are the ones already published and accepted for the live listing.
+    assert interface["category"] == "Security"
+    assert interface["longDescription"] == (
+        "Packaged AppSec workflows for SCA remediation, AI SAST triage, "
+        "CI/CD posture, malware response, findings review, Endor Labs setup, "
+        "and more."
+    )
+    assert interface["capabilities"] == [
+        "Security",
+        "Remediation",
+        "Investigation",
+        "Application Security",
+        "Agentic Workflows",
+        "Agentic Remediation",
+        "Agentic AppSec",
+    ]
+    for key, url in {
+        "websiteURL": "https://www.endorlabs.com/",
+        "supportURL": "https://www.endorlabs.com/lp/contact-us",
+        "privacyPolicyURL": "https://www.endorlabs.com/legal/privacy-policy",
+        "termsOfServiceURL": "https://www.endorlabs.com/legal/terms-of-use",
+    }.items():
+        assert interface[key] == url
+        assert url.startswith("https://")
+
+
+def _rewrite_directory_manifest(catalog: Path, mutate) -> None:
+    manifest_path = _package(catalog) / ".codex-plugin" / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    mutate(manifest["interface"])
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("mutate", "expected"),
+    [
+        pytest.param(
+            lambda interface: interface.pop("supportURL"),
+            "plugin.json: interface.supportURL is required",
+            id="missing-support-url",
+        ),
+        pytest.param(
+            lambda interface: interface.__setitem__(
+                "privacyPolicyURL", "http://www.endorlabs.com/legal/privacy-policy"
+            ),
+            "plugin.json: interface.privacyPolicyURL must be an https URL with a hostname",
+            id="http-privacy-url",
+        ),
+        pytest.param(
+            lambda interface: interface.__setitem__("termsOfServiceURL", "https:///terms"),
+            "plugin.json: interface.termsOfServiceURL must be an https URL with a hostname",
+            id="terms-url-without-host",
+        ),
+    ],
+)
+def test_submission_validator_rejects_missing_or_insecure_listing_urls(
+    tmp_path,
+    generated_catalog: GeneratedCatalog,
+    mutate,
+    expected,
+):
+    catalog = tmp_path / "catalog"
+    shutil.copytree(generated_catalog.root, catalog)
+    _rewrite_directory_manifest(catalog, mutate)
+
+    report = validate_package(catalog)
+
+    # Editing plugin.json without refreshing manifest.json also trips the hash
+    # and size checks, so assert on the URL error specifically.
+    assert any(expected in error for error in report["errors"]), report["errors"]
