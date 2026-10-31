@@ -379,3 +379,49 @@ def test_directory_manifest_carries_the_published_listing_metadata():
     }.items():
         assert interface[key] == url
         assert url.startswith("https://")
+
+
+def _rewrite_directory_manifest(catalog: Path, mutate) -> None:
+    manifest_path = _package(catalog) / ".codex-plugin" / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    mutate(manifest["interface"])
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("mutate", "expected"),
+    [
+        pytest.param(
+            lambda interface: interface.pop("supportURL"),
+            "plugin.json: interface.supportURL is required",
+            id="missing-support-url",
+        ),
+        pytest.param(
+            lambda interface: interface.__setitem__(
+                "privacyPolicyURL", "http://www.endorlabs.com/legal/privacy-policy"
+            ),
+            "plugin.json: interface.privacyPolicyURL must be an https URL with a hostname",
+            id="http-privacy-url",
+        ),
+        pytest.param(
+            lambda interface: interface.__setitem__("termsOfServiceURL", "https:///terms"),
+            "plugin.json: interface.termsOfServiceURL must be an https URL with a hostname",
+            id="terms-url-without-host",
+        ),
+    ],
+)
+def test_submission_validator_rejects_missing_or_insecure_listing_urls(
+    tmp_path,
+    generated_catalog: GeneratedCatalog,
+    mutate,
+    expected,
+):
+    catalog = tmp_path / "catalog"
+    shutil.copytree(generated_catalog.root, catalog)
+    _rewrite_directory_manifest(catalog, mutate)
+
+    report = validate_package(catalog)
+
+    # Editing plugin.json without refreshing manifest.json also trips the hash
+    # and size checks, so assert on the URL error specifically.
+    assert any(expected in error for error in report["errors"]), report["errors"]

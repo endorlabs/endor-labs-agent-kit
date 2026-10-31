@@ -33,9 +33,8 @@ or approval is complete.
   1. Browse and summarize my active Endor findings.
   2. Investigate an Endor vulnerability and explain its impact.
   3. Plan a safe dependency remediation using Endor evidence.
-- Release notes: Add the initial skills-only public plugin distribution
-  generated from the same canonical Agent Kit recipes as the CLI/custom-agent
-  package.
+- Release notes: write them per submission from that version's `CHANGELOG.md`
+  entry, covering directory-package changes only.
 - Regions: decide with Product and Legal immediately before submission.
 
 The generated `.codex-plugin/plugin.json` carries the listing presentation and

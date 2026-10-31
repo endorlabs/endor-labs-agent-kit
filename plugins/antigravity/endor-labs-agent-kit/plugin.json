@@ -28,5 +28,5 @@
     "Triage the top AI SAST findings for my repo and propose a PR to fix them",
     "Plan a safe dependency remediation using Endor Labs evidence"
   ],
-  "version": "2.2.3"
+  "version": "2.2.4"
 }
