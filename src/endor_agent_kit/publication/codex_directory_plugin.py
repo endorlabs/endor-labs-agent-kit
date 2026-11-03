@@ -300,18 +300,33 @@ def _codex_directory_manifest(version: str) -> dict[str, object]:
         "license": "MIT",
         "keywords": ["endor-labs", "security", "sca", "sast", "codex"],
         "skills": "./skills/",
+        # Listing presentation matches the live Universal Plugins Directory
+        # entry published for 2.2.2, so an uploaded ZIP imports the same
+        # metadata the portal already shows instead of regressing it. The
+        # portal requires the support, privacy, and terms URLs on import.
         "interface": {
             "displayName": PLUGIN_DISPLAY_NAME,
             "shortDescription": "Endor security workflows",
             "longDescription": (
-                "Use eleven source-generated Endor Labs workflows plus a setup "
-                "skill to investigate, triage, plan, and remediate application "
-                "security and software supply-chain risks from Codex."
+                "Packaged AppSec workflows for SCA remediation, AI SAST triage, "
+                "CI/CD posture, malware response, findings review, Endor Labs "
+                "setup, and more."
             ),
             "developerName": "Endor Labs",
-            "category": "Developer Tools",
-            "capabilities": ["Security", "Investigation", "Remediation"],
+            "category": "Security",
+            "capabilities": [
+                "Security",
+                "Remediation",
+                "Investigation",
+                "Application Security",
+                "Agentic Workflows",
+                "Agentic Remediation",
+                "Agentic AppSec",
+            ],
             "websiteURL": "https://www.endorlabs.com/",
+            "supportURL": "https://www.endorlabs.com/lp/contact-us",
+            "privacyPolicyURL": "https://www.endorlabs.com/legal/privacy-policy",
+            "termsOfServiceURL": "https://www.endorlabs.com/legal/terms-of-use",
             "defaultPrompt": [
                 "Browse and summarize my active Endor findings.",
                 "Investigate an Endor vulnerability and explain its impact.",

@@ -19,21 +19,29 @@ or approval is complete.
 - Name: Endor Labs Agent Kit
 - Short description: Endor security workflows
 - Developer: Endor Labs
-- Category: Developer Tools
-- Long description: Use eleven source-generated Endor Labs workflows plus setup
-  to investigate, triage, plan, and remediate application security and software
-  supply-chain risks from Codex.
+- Category: Security
+- Long description: Packaged AppSec workflows for SCA remediation, AI SAST
+  triage, CI/CD posture, malware response, findings review, Endor Labs setup,
+  and more.
+- Capabilities: Security, Remediation, Investigation, Application Security,
+  Agentic Workflows, Agentic Remediation, Agentic AppSec
+- Website: https://www.endorlabs.com/
+- Support: https://www.endorlabs.com/lp/contact-us
+- Privacy policy: https://www.endorlabs.com/legal/privacy-policy
+- Terms of service: https://www.endorlabs.com/legal/terms-of-use
 - Starter prompts:
   1. Browse and summarize my active Endor findings.
   2. Investigate an Endor vulnerability and explain its impact.
   3. Plan a safe dependency remediation using Endor evidence.
-- Release notes: Add the initial skills-only public plugin distribution
-  generated from the same canonical Agent Kit recipes as the CLI/custom-agent
-  package.
+- Release notes: write them per submission from that version's `CHANGELOG.md`
+  entry, covering directory-package changes only.
 - Regions: decide with Product and Legal immediately before submission.
 
-Verify the current production website, support, privacy, and terms URLs in the
-portal. Do not guess or copy staging/internal URLs into the artifact or listing.
+The generated `.codex-plugin/plugin.json` carries the listing presentation and
+all four listing URLs in its `interface` block, and the portal imports them
+from the uploaded ZIP. Verify they still match the current production website,
+support, privacy, and terms pages before each submission. Do not guess or copy
+staging/internal URLs into the artifact or listing.
 
 ## Authentication Boundary
 
