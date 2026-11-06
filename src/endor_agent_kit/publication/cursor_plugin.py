@@ -384,7 +384,7 @@ def _cursor_host_contract(recipe: EndorAgentRecipe) -> str:
         ])
     else:
         lines.extend([
-            "- Keep the workflow read-only: do not edit files, run mutating package-manager commands, open change requests, post comments, or mutate Endor state.",
+            "- Keep the workflow read-only: do not edit files, run mutating package-manager commands, open change requests, or post comments.",
             "- If a read-only lookup is unavailable, record the missing signal in `data_gaps` and continue with verified evidence only.",
         ])
     if not posture.can_run_commands:

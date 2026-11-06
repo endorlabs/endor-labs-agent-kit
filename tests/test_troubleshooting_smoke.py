@@ -167,7 +167,8 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "--resource PRCommentConfig" in artifact
     assert "--resource NotificationTarget" in artifact
     assert "--resource Exporter" in artifact
-    assert "Do not generalize them into create, update, delete, scan" in artifact
+    assert "Do not generalize them into scan, comment, or source-provider" in artifact
+    assert "any Endor agent API create action" not in artifact
     assert '--filter \'context.type==CONTEXT_TYPE_MAIN and spec.project_uuid=="<project_uuid>"\'' in artifact
     assert "does not require, configure, or start an Endor MCP server" in artifact
     assert "Scan Lifecycle And Stuck States" in artifact
@@ -350,10 +351,14 @@ def test_troubleshooting_publish_writes_host_catalog_surfaces(tmp_path):
     assert "large monorepo" in agent_readme
     assert "Diagnose this Endor scan failure" in managed_readme
     assert "create scan log requests" not in agent_readme
-    assert "It must not run scans, change credentials, edit scan profiles" in agent_readme
-    assert "It should not run scans, change credentials, edit scan\nprofiles" in agent_readme
+    assert "It must not run scans, post comments, or open PRs/MRs." in agent_readme
+    assert "It should not run scans, post comments, or open PRs/MRs." in agent_readme
+    assert "edit scan profiles" not in agent_readme
+    assert "mutate Endor state" not in agent_readme
     assert "create scan log requests" not in managed_readme
-    assert "It still must not run scans, change credentials, edit scan profiles" in managed_readme
+    assert "It still must not run scans, post comments, or open PRs/MRs." in managed_readme
+    assert "edit scan profiles" not in managed_readme
+    assert "mutate Endor state" not in managed_readme
     assert "Troubleshooting Codex Skill" in codex_readme
     assert "Use the troubleshooting skill to diagnose this Endor scan failure" in codex_readme
     assert "## Codex Host Contract" in codex_skill

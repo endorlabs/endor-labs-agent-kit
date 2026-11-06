@@ -209,7 +209,7 @@ def _cursor_sdk_host_contract(prepared: PreparedSourceRecipe) -> str:
         ])
     else:
         lines.extend([
-            "- Keep the workflow read-only: do not edit files, run mutating package-manager commands, open change requests, post comments, or mutate Endor state.",
+            "- Keep the workflow read-only: do not edit files, run mutating package-manager commands, open change requests, or post comments.",
             "- If a read-only lookup is unavailable, record the missing signal in `data_gaps` and continue with verified evidence only.",
         ])
     if not posture.can_run_commands:
@@ -247,7 +247,7 @@ def _render_setup_prompt(prepared_recipes: list[PreparedSourceRecipe]) -> str:
         "",
         "Use this prompt through `cursor-sdk/run_cursor_agent.py` or equivalent Python SDK code.",
         "Setup is readiness guidance only. It must not run `endorctl scan`, run `endorctl host-check`,",
-        "edit shell profiles, install tools, create credentials, mutate repositories, or mutate Endor state.",
+        "edit shell profiles, install tools, create credentials, or mutate repositories.",
         "Report credential presence by key name only; never print, persist, or copy secret values.",
         "If a required readiness signal is unavailable, record it in `data_gaps` instead of inventing evidence.",
         "",

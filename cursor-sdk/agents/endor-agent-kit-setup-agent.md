@@ -23,7 +23,7 @@ Generated for Cursor Python SDK automation.
 
 Use this prompt through `cursor-sdk/run_cursor_agent.py` or equivalent Python SDK code.
 Setup is readiness guidance only. It must not run `endorctl scan`, run `endorctl host-check`,
-edit shell profiles, install tools, create credentials, mutate repositories, or mutate Endor state.
+edit shell profiles, install tools, create credentials, or mutate repositories.
 Report credential presence by key name only; never print, persist, or copy secret values.
 If a required readiness signal is unavailable, record it in `data_gaps` instead of inventing evidence.
 

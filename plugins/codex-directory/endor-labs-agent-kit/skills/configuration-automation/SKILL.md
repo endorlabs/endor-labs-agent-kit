@@ -85,11 +85,7 @@ Do not:
 - edit files
 - create branches, commits, pull requests, or merge requests
 - post comments
-- create, update, or delete scan profiles
-- create, update, or delete package manager integrations
 - modify GitHub settings, webhooks, workflows, branch protection, repository selection, or repository files
-- mutate Endor Labs state
-- perform live Endor writes without explicit confirmation
 
 Use bounded read-only GitHub API or `gh` CLI calls. Fetch repository trees and
 specific known manifest, lockfile, build, Endor setup, and GitHub Actions files

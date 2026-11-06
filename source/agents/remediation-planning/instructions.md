@@ -81,14 +81,14 @@ zero-result, retry, and fallback calls. Endor CLI API reads use
 
 <!-- developer-edition:start -->
 Use only authenticated `endorctl agent api --agent-id <agent-id>` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups. Do not edit files or open pull requests.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
 <!-- developer-edition:end -->
 
 <!-- enterprise-edition:start -->
 Use only authenticated `endorctl agent api --agent-id <agent-id>` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+Use Bash only for read-only `endorctl agent api --agent-id <agent-id>` lookups. Do not edit files or open pull requests.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
 <!-- enterprise-edition:end -->

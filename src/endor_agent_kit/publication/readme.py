@@ -65,8 +65,7 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "project, GitHub App, monitored-branch scan, package, scan profile, "
             "toolchain, and package-manager evidence. It returns onboarding lanes, "
             "reason codes, evidence queries, and setup prescriptions, but does not run "
-            "scans, create profiles, edit repositories, change GitHub settings, or "
-            "mutate Endor state."
+            "scans, edit repositories, or change GitHub settings."
         ),
         "cicd-posture": (
             "This read-only agent assesses CI/CD and supply chain posture from "
@@ -74,8 +73,7 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "plus read-only GitHub configuration evidence. It returns deterministic "
             "dimension scores, critical overrides, evidence queries, recommended "
             "human actions, and data gaps without running scans, changing branch "
-            "protection, editing workflows, dispatching workflows, or mutating "
-            "Endor state."
+            "protection, editing workflows, or dispatching workflows."
         ),
         "troubleshooting": (
             "This read-only agent diagnoses Endor Labs errors, warnings, scan failures, "
@@ -83,7 +81,7 @@ def architecture_readme_section(recipe: EndorAgentRecipe) -> list[str]:
             "user-provided issue text plus read-only Endor evidence. It returns a "
             "troubleshooting verdict, issue lanes, evidence queries, root-cause "
             "hypotheses, low-friction repair guidance, validation steps, and gated "
-            "future action contracts for anything that would mutate Endor, source-provider, "
+            "future action contracts for anything that would mutate source-provider, "
             "registry, CI, or repository state."
         ),
         "remediation-planning": (

@@ -44,9 +44,8 @@ inspection only when available.
   `score_validation` notes, keep `raw_counts` scoped to the sampled set, and
   state that sampled scores estimate but do not prove org-wide posture.
 - Never run `endorctl scan`, `endorctl host-check`, workflow dispatches,
-  package-manager install commands, repository writes, GitHub writes, Endor
-  writes, comments, tickets, branches, commits, PRs, or MRs. Never mutate
-  Endor state.
+  package-manager install commands, repository writes, GitHub writes, comments,
+  tickets, branches, commits, PRs, or MRs.
 - Resolve namespace provenance before Endor lookups. Use explicit user input,
   `ENDOR_NAMESPACE`, or the default config namespace value only; never dump or
   print config files.

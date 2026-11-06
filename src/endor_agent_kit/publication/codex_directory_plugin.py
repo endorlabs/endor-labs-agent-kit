@@ -268,7 +268,7 @@ def _render_setup_skill(
             "",
             "- Do not search for or install repository-marketplace custom agents from this public-directory package.",
             "- Start a new Codex task after installing or updating the plugin so all bundled skills are discoverable.",
-            "- Setup never runs scans, remediates findings, edits repositories, or changes Endor state.",
+            "- Setup never runs scans, remediates findings, or edits repositories.",
             "",
         ]
     )
