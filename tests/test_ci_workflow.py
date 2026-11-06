@@ -112,3 +112,37 @@ def test_codex_directory_submission_workflow_requires_immutable_mirror_sha():
     assert "git rev-parse HEAD" in workflow
     assert "build_codex_directory_submission.py build" in workflow
     assert "publish_release_assets" in workflow
+
+
+def test_ai_plugins_sync_commit_is_built_by_github_so_it_is_signed() -> None:
+    workflow = (
+        repo_root() / ".github" / "workflows" / "publish-ai-plugins-pr.yml"
+    ).read_text()
+
+    # Local `git commit` produces an unsigned commit object whatever token
+    # pushes it, and the mirror's main branch requires signed commits. The
+    # publish step must keep handing the staged change set to GitHub.
+    assert "scripts/create_signed_commit.py" in workflow
+    assert "git commit -m" not in workflow
+    assert "git push" not in workflow
+
+    # The change set still comes from `git add -A`, so removals and exact blob
+    # bytes reach the mirror the way they always did.
+    assert "git add -A" in workflow
+
+    # The publish step stays behind the dry-run guard and keeps reusing the
+    # App installation token rather than minting credentials of its own.
+    assert "if: ${{ env.DRY_RUN != 'true' }}" in workflow
+    assert "GH_TOKEN: ${{ steps.ai-plugins-token.outputs.token }}" in workflow
+
+
+def test_ai_plugins_sync_keeps_its_branch_name_message_and_pr_behaviour() -> None:
+    workflow = (
+        repo_root() / ".github" / "workflows" / "publish-ai-plugins-pr.yml"
+    ).read_text()
+
+    assert 'branch="agent-kit-sync/${GITHUB_SHA:0:12}"' in workflow
+    assert '--message "Sync Agent Kit generated artifacts"' in workflow
+    assert 'title="Sync Agent Kit generated artifacts (${GITHUB_SHA:0:12})"' in workflow
+    assert "gh pr edit" in workflow
+    assert "gh pr create" in workflow
