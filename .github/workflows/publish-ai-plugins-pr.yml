@@ -370,12 +370,19 @@ jobs:
           fi
 
           branch="agent-kit-sync/${GITHUB_SHA:0:12}"
-          git config user.name "endor-agent-kit-sync[bot]"
-          git config user.email "endor-agent-kit-sync[bot]@users.noreply.github.com"
-          git checkout -B "$branch"
+          base_oid="$(git rev-parse HEAD)"
           git add -A
-          git commit -m "Sync Agent Kit generated artifacts"
-          git push --force-with-lease origin "$branch"
+          # A commit built by local `git commit` is unsigned whatever token
+          # pushes it. Hand the staged change set to the GitHub API instead so
+          # GitHub builds and signs the commit object itself. No key material
+          # is involved, and the resulting tree is the one `git commit` would
+          # have written.
+          python3 ../endor-labs-agent-kit/scripts/create_signed_commit.py \
+            --repo-dir . \
+            --repository "$AI_PLUGINS_REPOSITORY" \
+            --branch "$branch" \
+            --base-oid "$base_oid" \
+            --message "Sync Agent Kit generated artifacts"
 
           title="Sync Agent Kit generated artifacts (${GITHUB_SHA:0:12})"
           if gh pr view "$branch" --repo "$AI_PLUGINS_REPOSITORY" >/dev/null 2>&1; then
