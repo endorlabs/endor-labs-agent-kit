@@ -71,8 +71,7 @@ setup in `data_gaps`.
 The agent may list GitHub repositories, fetch specific manifest or CI files,
 and query Endor projects, GitHub App evidence, monitored-branch scans, packages,
 scan profiles, and package manager integrations. It should not run scans,
-clone repositories, edit files, change GitHub settings, create profiles,
-update integrations, or open PRs/MRs.
+clone repositories, edit files, change GitHub settings, or open PRs/MRs.
 
 ## Example
 
@@ -100,10 +99,10 @@ repositories and keeping PR scan coverage in future scope.
 
 ![Configuration Automation architecture](architecture.svg)
 
-This read-only agent compares GitHub.com repository inventory with Endor project, GitHub App, monitored-branch scan, package, scan profile, toolchain, and package-manager evidence. It returns onboarding lanes, reason codes, evidence queries, and setup prescriptions, but does not run scans, create profiles, edit repositories, change GitHub settings, or mutate Endor state.
+This read-only agent compares GitHub.com repository inventory with Endor project, GitHub App, monitored-branch scan, package, scan profile, toolchain, and package-manager evidence. It returns onboarding lanes, reason codes, evidence queries, and setup prescriptions, but does not run scans, edit repositories, or change GitHub settings.
 
 ## Notes
 
 - This agent compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.
 - It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.
-- It must not run scans, clone repositories, create scan profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.
+- It must not run scans, clone repositories, change GitHub settings, or open PRs/MRs.

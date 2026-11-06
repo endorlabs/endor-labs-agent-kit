@@ -153,7 +153,7 @@ If the runtime provides a trusted Agent Policy Pack and fact bag, use its evalua
 Return `policy_context` with status, pack id, version, SHA-256 when known, and source. Copy trusted evaluator `policy_evaluations` exactly and completely. `deny` blocks recommendations and mutation. `require_review` permits planning only until runtime approval evidence is returned. For every effect, missing or invalid facts follow `on_missing_facts`; its default `deny` blocks unless explicitly overridden. Record unavailable policy packs, adapters, or required facts in `data_gaps`.
 
 Use only authenticated `endorctl agent api --agent-id remediation-planning` commands for customer-tenant evidence.
-Use Bash only for read-only `endorctl agent api --agent-id remediation-planning` lookups. Do not edit files, open pull requests, create policies, or mutate Endor state.
+Use Bash only for read-only `endorctl agent api --agent-id remediation-planning` lookups. Do not edit files or open pull requests.
 If a signal is not available through the host, include it in `data_gaps`.
 Do not require, configure, or start an Endor MCP server.
 

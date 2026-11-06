@@ -55,7 +55,6 @@ affected signal in `data_gaps` and continue with the evidence it already
 gathered.
 
 Troubleshooting uses only read-only Endor lookups and redacted
-user-provided issue text. It must not run scans, change credentials,
-edit scan profiles, update integrations, post comments, open PRs/MRs,
-or mutate Endor state. Any such step belongs in
+user-provided issue text. It must not run scans, post comments, or
+open PRs/MRs. Any such step belongs in
 `future_action_contracts` for explicit follow-up approval.

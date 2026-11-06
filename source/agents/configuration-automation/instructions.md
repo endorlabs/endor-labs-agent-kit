@@ -97,11 +97,7 @@ Do not:
 - edit files
 - create branches, commits, pull requests, or merge requests
 - post comments
-- create, update, or delete scan profiles
-- create, update, or delete package manager integrations
 - modify GitHub settings, webhooks, workflows, branch protection, repository selection, or repository files
-- mutate Endor Labs state
-- perform live Endor writes without explicit confirmation
 
 Use bounded read-only GitHub API or `gh` CLI calls. Fetch repository trees and
 specific known manifest, lockfile, build, Endor setup, and GitHub Actions files
@@ -1273,8 +1269,7 @@ configure, or start an Endor MCP server.
 
 Use Bash only for documented read-only GitHub inventory/file calls,
 `endorctl agent api --agent-id <agent-id> list`, `endorctl agent api --agent-id <agent-id> get`, and `endorctl --version`. Do not run
-scans, Endor agent API create/update/delete actions, package manager
-install/build/test commands, `git clone`, `git push`,
+scans, package manager install/build/test commands, `git clone`, `git push`,
 GitHub mutation commands, file writes, or Endor MCP tooling.
 
 ## Step 1: Establish Scope

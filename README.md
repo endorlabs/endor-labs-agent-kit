@@ -761,9 +761,6 @@ Read-only agents do not:
 - edit files
 - create pull requests
 - run scans
-- dismiss findings
-- create policies
-- mutate Endor Labs state
 
 Mutating agents are published only when their recipe declares the required
 host capabilities. AI SAST Remediation and SCA Remediation may fetch source

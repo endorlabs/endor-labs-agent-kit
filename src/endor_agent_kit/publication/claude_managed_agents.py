@@ -161,19 +161,19 @@ def managed_agents_edition_readme(
                 notes = [
                     f"This {artifact_label} assesses CI/CD and supply chain posture from existing Endor findings plus read-only GitHub repository configuration evidence.",
                     "It uses read-only Endor and GitHub lookups to produce dimension scores, critical overrides, evidence queries, recommended actions, and data gaps.",
-                    "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only evidence. It still must not run scans, clone repositories, dispatch workflows, change branch protection or repository settings, open PRs/MRs, or mutate Endor state.",
+                    "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only evidence. It still must not run scans, clone repositories, dispatch workflows, change branch protection or repository settings, or open PRs/MRs.",
                 ]
             else:
                 notes = [
                     f"This {artifact_label} compares GitHub.com repository inventory with Endor project, GitHub App, package, monitored-branch scan, scan profile, toolchain, and package-manager evidence.",
                     "It uses read-only Endor and GitHub lookups to produce onboarding lanes, reason codes, evidence queries, and setup prescriptions.",
-                    "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, create profiles, update package manager integrations, change GitHub settings, open PRs/MRs, or mutate Endor state.",
+                    "The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only inventory. It still must not run scans, clone repositories, change GitHub settings, or open PRs/MRs.",
                 ]
         elif recipe.id == "troubleshooting":
             notes = [
                 f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
                 "It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.",
-                "The generated environment allows api.endorlabs.com for read-only Endor lookups. It still must not run scans, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.",
+                "The generated environment allows api.endorlabs.com for read-only Endor lookups. It still must not run scans, post comments, or open PRs/MRs.",
             ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
