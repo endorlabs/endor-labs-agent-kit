@@ -68,7 +68,6 @@ Do not:
 
 - run `endorctl scan`
 - rerun failed scans
-- create scan log requests
 - create, update, or delete scan profiles
 - create, update, or delete package manager integrations
 - create, update, or delete SCM credentials
@@ -87,10 +86,12 @@ ticket, or create-style API call, add a `future_action_contracts[]` entry and
 stop before performing it. Each future action contract must include the owner,
 reason, expected effect, exact confirmation needed, and validation step.
 
-`ScanLogRequest` is a create-style API even though it is used to retrieve logs.
-Do not create one in V1. If deeper logs are required and are not already in the
-provided error text or `ScanResult` evidence, add a future action contract for
-a human-approved log retrieval step.
+`ScanLogRequest` is a create-style API even though it only retrieves logs. It
+is the one create-style call this agent may make. When the provided error text
+and `ScanResult` evidence do not explain the failure, retrieve the scan log
+through `endorctl agent api --agent-id troubleshooting` and record the lookup
+in `evidence_queries[]`. Project the response before reporting it, and do not
+print secrets, tokens, or credential fields that appear in log output.
 
 
 
@@ -805,7 +806,8 @@ Treat the following lifecycle states as distinct from ordinary failures:
   that may collide with the stuck record. Recommend waiting for the terminal
   state, then escalating to Endor Support with the redacted scan result UUID,
   workflow result UUID, namespace, and the first few log entries if no useful
-  cause is visible. Do not create a `ScanLogRequest` in V1.
+  cause is visible. Retrieve those entries with a `ScanLogRequest` when they
+  are not already in the provided evidence.
 - Parallel scan contention. An automated scan that begins while another
   automated scan for the same project is still running can fail with an
   initialization-stage error. Recommend waiting for the in-flight scan to
@@ -1305,7 +1307,7 @@ Classify the issue lane before reading tenant resources.
 
 Diagnose one narrow Endor issue lane with read-only, lane-specific evidence.
 - Query order: 1. Classify the issue lane and resolve namespace provenance. 2. Resolve Project, PackageVersion, Finding, ScanResult, integration, policy, or notification evidence only for that lane. 3. For missing project findings, resolve Project and run the active main-context count; for an exact ScanResult UUID, run the one bounded get-plus-local-projection recipe. 4. Correlate the user's exact error text with the selected resource evidence and local command context.
-- Avoid: Do not run a new scan, create scan log requests, edit integrations, rotate credentials, or print config contents. Do not broaden to every troubleshooting domain when one lane has enough evidence.
+- Avoid: Do not run a new scan, edit integrations, rotate credentials, or print config contents. Do not broaden to every troubleshooting domain when one lane has enough evidence.
 - Stop after: Stop after root cause is supported, disproven, or blocked with concrete next evidence needs.
 - Data gaps: Record missing resource access, unavailable scan or integration IDs, redacted logs, and host-blocked Endor reads in data_gaps.
 
@@ -1384,7 +1386,7 @@ Prepare a minimal support packet without secrets or mutation.
 
 - Preferred evidence resources: `Project`, `ScanResult`, `ScanWorkflowResult`, `Integration`.
 - `Project`: Resolve scoped project identity before repository, finding, package, scan, or integration diagnosis. Fields: `uuid`, `meta.name`, `meta.parent_uuid`, `spec.git`.
-- `ScanResult`: Inspect scan lifecycle, exit code, toolchain, and failure state without creating scan log requests. Fields: `uuid`, `meta.name`, `spec.exit_code`, `spec.status`.
+- `ScanResult`: Inspect scan lifecycle, exit code, toolchain, and failure state. Fields: `uuid`, `meta.name`, `spec.exit_code`, `spec.status`.
 - `ScanWorkflowResult`: Connect scan workflow status to scheduler, CI, PR scan, and baseline behavior. Fields: `uuid`, `meta.name`, `spec.status`, `spec.execution_id`.
 - `Integration`: Inspect configured package managers, SCM credentials, identity providers, notifications, and exporters. Fields: `uuid`, `meta.name`, `spec`.
 - Retrieval order: 1. Inspect supplied context, error text, scan UUIDs, or `.endorlabs-context` snapshots before live lookups. 2. Resolve namespace and project before scoped evidence queries; use main-context repository evidence unless the issue is explicitly about PR or CI scans. 3. Query only the minimal resource lanes needed for the user-reported issue area and preserve command/error provenance.
@@ -1408,6 +1410,8 @@ Allowed:
 - `endorctl --version`
 - `endorctl agent api --agent-id troubleshooting get ...` for a supplied UUID and documented resource
 - `endorctl agent api --agent-id troubleshooting list ...` for documented lane-specific resources
+- `endorctl agent api --agent-id troubleshooting` scan log retrieval through
+  `CreateScanLogRequest` for a supplied scan result UUID
 - local shell projection tools such as `jq` when they only summarize command
   output and do not alter state
 
@@ -1415,7 +1419,7 @@ Not allowed:
 
 - Endor MCP server setup or MCP tool use
 - `endorctl scan`
-- any Endor agent API create action, including `CreateScanLogRequest`
+- any Endor agent API create action other than `CreateScanLogRequest`
 - any Endor agent API update action
 - any Endor agent API delete action
 - package manager installs, builds, tests, or toolchain detection

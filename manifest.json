@@ -1270,9 +1270,9 @@
         {
           "artifacts": [
             {
-              "bytes": 5751,
+              "bytes": 5699,
               "path": "claude-code/troubleshooting/README.md",
-              "sha256": "9043b7d37333374b6ce287289041494e7378bb3f212b1290f14ef4224e1dba8a"
+              "sha256": "35ac975e514c4960ccca7ef4d2f0eee6b7e571586df600c6831f1865caff1285"
             },
             {
               "bytes": 9829,
@@ -1280,57 +1280,57 @@
               "sha256": "e0830f01e7b1d2c5f0b727dd1605b63ecc616673dd102e64271114c57e8b89d5"
             },
             {
-              "bytes": 2482,
+              "bytes": 2456,
               "path": "claude-code/troubleshooting/endorctl-setup.md",
-              "sha256": "c74bde2368dff755a18d1395d56b486e3922d202f9b9187b35080211688dddd5"
+              "sha256": "e46d6c176347f41980ca1136f679271c96ee7865c8647996cd8c1646722f7fc7"
             },
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "e04f5c1d47db2c224d37f9e457f27005381ed7c8b1d70add16cba9b263bca41e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-code/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "38e507941a48c75537bde313030474a48736926f2e09e66a1fa0b9bd063c3256"
             },
             {
               "bytes": 41579,
               "path": "claude-code/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "c3d3791f7be724a961b80e582bd32ba7c4cf42d599d12ee06be47e12ee0eaf5e",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "966edbe97329fa966f38172f7198b73d5b217c47f908e68e46af974b9874cad7"
             },
             {
               "bytes": 34324,
               "path": "claude-code/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "1142d18405e31700ab0e2e1d65e8b2f59afb5bcbb079004603b68c4f6d7ad1f6"
             },
             {
               "bytes": 41585,
               "path": "claude-code/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "9aedc9f2beff7527e37c49cca2c1a90018980f44e0f63eafa0a1a35acb25e4a1",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "7b73cfff6e09da0c912d24008fd3834ff28c656089b83f7879f35bc5901dc5c6"
             },
             {
               "bytes": 34235,
@@ -1338,20 +1338,20 @@
               "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
             },
             {
-              "bytes": 16392,
+              "bytes": 16683,
               "path": "claude-code/troubleshooting/troubleshooting-diagnose.md",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "abd38c2680491d0a2705271c659c37c046fef2eec48ef717d1d7e2702d41b4be"
+              "sha256": "db776bf03d3f884a2accbf8e629ae9ab226ec27f442f2aaf9fd0d86457eec9c4"
             },
             {
-              "bytes": 91076,
+              "bytes": 91367,
               "path": "claude-code/troubleshooting/troubleshooting.md",
-              "sha256": "129e89edfecd1d107ad208fef1e639f27bff5ee7d758af69ca54b8e2d197d337"
+              "sha256": "14039f69238f7816e34dc30f92e337a505e4fb7024017d909811f19e5d902afd"
             }
           ],
           "id": "enterprise-edition",
@@ -2135,14 +2135,14 @@
         {
           "artifacts": [
             {
-              "bytes": 3551,
+              "bytes": 3525,
               "path": "claude-managed-agents/troubleshooting/README.md",
-              "sha256": "f02b5a30ffdc7ed7b5ebe5a36d4b93fa8d54a47da8aa6538796f9a6c669ae7ff"
+              "sha256": "e567f57819294580b3fb9eedf1ccb50736b713fd98982b5f9788e1fb70be0c28"
             },
             {
-              "bytes": 94247,
+              "bytes": 94546,
               "path": "claude-managed-agents/troubleshooting/agent.yaml",
-              "sha256": "1f9696d15d55e1cae4abcf19f33f3015873e04453167ef0b551051d913b3a938"
+              "sha256": "9d9e4ad41e71eae50cb83bda1b26e1caf6b45b720e0483b050c65f4d6230ef4c"
             },
             {
               "bytes": 9829,
@@ -2150,9 +2150,9 @@
               "sha256": "e0830f01e7b1d2c5f0b727dd1605b63ecc616673dd102e64271114c57e8b89d5"
             },
             {
-              "bytes": 2482,
+              "bytes": 2456,
               "path": "claude-managed-agents/troubleshooting/endorctl-setup.md",
-              "sha256": "c74bde2368dff755a18d1395d56b486e3922d202f9b9187b35080211688dddd5"
+              "sha256": "e46d6c176347f41980ca1136f679271c96ee7865c8647996cd8c1646722f7fc7"
             },
             {
               "bytes": 231,
@@ -2162,50 +2162,50 @@
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "e04f5c1d47db2c224d37f9e457f27005381ed7c8b1d70add16cba9b263bca41e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "claude-managed-agents/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "38e507941a48c75537bde313030474a48736926f2e09e66a1fa0b9bd063c3256"
             },
             {
               "bytes": 41579,
               "path": "claude-managed-agents/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "c3d3791f7be724a961b80e582bd32ba7c4cf42d599d12ee06be47e12ee0eaf5e",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "966edbe97329fa966f38172f7198b73d5b217c47f908e68e46af974b9874cad7"
             },
             {
               "bytes": 34324,
               "path": "claude-managed-agents/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "1142d18405e31700ab0e2e1d65e8b2f59afb5bcbb079004603b68c4f6d7ad1f6"
             },
             {
               "bytes": 41585,
               "path": "claude-managed-agents/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "9aedc9f2beff7527e37c49cca2c1a90018980f44e0f63eafa0a1a35acb25e4a1",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "7b73cfff6e09da0c912d24008fd3834ff28c656089b83f7879f35bc5901dc5c6"
             },
             {
               "bytes": 34235,
@@ -3292,9 +3292,9 @@
               "sha256": "f837572eb6df3c2327052a9efa7a70b2eb676991aea361bb16577f01979ecbcb"
             },
             {
-              "bytes": 91714,
+              "bytes": 92005,
               "path": "codex/troubleshooting/SKILL.md",
-              "sha256": "fd599a4b671f1d4a578f221f47fea21bf23e47b1fb7184b1115b1a0d5b6bc8aa"
+              "sha256": "de5814fbd550bbd31d37230da20978232a8f97eac24013b3d51e583221eccf3f"
             },
             {
               "bytes": 9829,
@@ -3302,57 +3302,57 @@
               "sha256": "e0830f01e7b1d2c5f0b727dd1605b63ecc616673dd102e64271114c57e8b89d5"
             },
             {
-              "bytes": 2482,
+              "bytes": 2456,
               "path": "codex/troubleshooting/endorctl-setup.md",
-              "sha256": "c74bde2368dff755a18d1395d56b486e3922d202f9b9187b35080211688dddd5"
+              "sha256": "e46d6c176347f41980ca1136f679271c96ee7865c8647996cd8c1646722f7fc7"
             },
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "e04f5c1d47db2c224d37f9e457f27005381ed7c8b1d70add16cba9b263bca41e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "codex/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "38e507941a48c75537bde313030474a48736926f2e09e66a1fa0b9bd063c3256"
             },
             {
               "bytes": 41579,
               "path": "codex/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "c3d3791f7be724a961b80e582bd32ba7c4cf42d599d12ee06be47e12ee0eaf5e",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "966edbe97329fa966f38172f7198b73d5b217c47f908e68e46af974b9874cad7"
             },
             {
               "bytes": 34324,
               "path": "codex/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "1142d18405e31700ab0e2e1d65e8b2f59afb5bcbb079004603b68c4f6d7ad1f6"
             },
             {
               "bytes": 41585,
               "path": "codex/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "9aedc9f2beff7527e37c49cca2c1a90018980f44e0f63eafa0a1a35acb25e4a1",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "7b73cfff6e09da0c912d24008fd3834ff28c656089b83f7879f35bc5901dc5c6"
             },
             {
               "bytes": 34235,
@@ -4469,9 +4469,9 @@
               "sha256": "6fcd5261eee785c49aed40b60fc9442dd72d1a7e2c268557d7ab73dcdd3f1473"
             },
             {
-              "bytes": 91743,
+              "bytes": 92034,
               "path": "gemini/troubleshooting/SKILL.md",
-              "sha256": "3142b001857c76735d8e9c7e30c2c0cab5243b72ce4398c4415071f6a19bfbae"
+              "sha256": "8cefdce6e60a02db9c15e47b5080353c369235619bd51ce4ce01043efa3a56dd"
             },
             {
               "bytes": 9829,
@@ -4479,57 +4479,57 @@
               "sha256": "e0830f01e7b1d2c5f0b727dd1605b63ecc616673dd102e64271114c57e8b89d5"
             },
             {
-              "bytes": 2482,
+              "bytes": 2456,
               "path": "gemini/troubleshooting/endorctl-setup.md",
-              "sha256": "c74bde2368dff755a18d1395d56b486e3922d202f9b9187b35080211688dddd5"
+              "sha256": "e46d6c176347f41980ca1136f679271c96ee7865c8647996cd8c1646722f7fc7"
             },
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "e04f5c1d47db2c224d37f9e457f27005381ed7c8b1d70add16cba9b263bca41e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "gemini/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "38e507941a48c75537bde313030474a48736926f2e09e66a1fa0b9bd063c3256"
             },
             {
               "bytes": 41579,
               "path": "gemini/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "c3d3791f7be724a961b80e582bd32ba7c4cf42d599d12ee06be47e12ee0eaf5e",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "966edbe97329fa966f38172f7198b73d5b217c47f908e68e46af974b9874cad7"
             },
             {
               "bytes": 34324,
               "path": "gemini/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "1142d18405e31700ab0e2e1d65e8b2f59afb5bcbb079004603b68c4f6d7ad1f6"
             },
             {
               "bytes": 41585,
               "path": "gemini/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "9aedc9f2beff7527e37c49cca2c1a90018980f44e0f63eafa0a1a35acb25e4a1",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "7b73cfff6e09da0c912d24008fd3834ff28c656089b83f7879f35bc5901dc5c6"
             },
             {
               "bytes": 34235,
@@ -4537,9 +4537,9 @@
               "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
             },
             {
-              "bytes": 92002,
+              "bytes": 92293,
               "path": "gemini/troubleshooting/troubleshooting.md",
-              "sha256": "d740451c78dfa1aaa786d4de151dbb5bf9b4b940309b4e3195b1ab58a4a773e1"
+              "sha256": "9719dcfe2ff48785d0b2472fb4334f2144c3cea8b14e321fb5fcc285dba9a056"
             }
           ],
           "id": "gemini-cli",
@@ -5706,9 +5706,9 @@
               "sha256": "1eb59c98c67ac002aa5b462aaffb1b04c28fd024da282a0f9db0cc3dfc058815"
             },
             {
-              "bytes": 91734,
+              "bytes": 92025,
               "path": "portable/troubleshooting/agent.md",
-              "sha256": "9a59c56e2e9f28d72d8216cd2ac142b91ee9272149217e0b85d5669f1c554443"
+              "sha256": "ad17a8b063916afc59480755492ba69bdac6366d730fdbb5f2a97a39c0e1f5d0"
             },
             {
               "bytes": 9829,
@@ -5716,24 +5716,24 @@
               "sha256": "e0830f01e7b1d2c5f0b727dd1605b63ecc616673dd102e64271114c57e8b89d5"
             },
             {
-              "bytes": 2482,
+              "bytes": 2456,
               "path": "portable/troubleshooting/endorctl-setup.md",
-              "sha256": "c74bde2368dff755a18d1395d56b486e3922d202f9b9187b35080211688dddd5"
+              "sha256": "e46d6c176347f41980ca1136f679271c96ee7865c8647996cd8c1646722f7fc7"
             },
             {
               "bytes": 9159,
               "evidence_execution_mode": "prompt_fallback",
-              "evidence_plan_digest": "415d29d2ab42c23e70386dc44746484fb02ca8699f4796320057ea79fddc0044",
+              "evidence_plan_digest": "e04f5c1d47db2c224d37f9e457f27005381ed7c8b1d70add16cba9b263bca41e",
               "evidence_plan_executable": false,
               "evidence_plan_schema_version": "1",
               "path": "portable/troubleshooting/evidence-plans/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "94cd7290cf797ecc48d4394b2dfeba23cac501ffa4976cac2a30ad5305ed662b"
+              "sha256": "38e507941a48c75537bde313030474a48736926f2e09e66a1fa0b9bd063c3256"
             },
             {
               "bytes": 7206,
@@ -5743,35 +5743,35 @@
             {
               "bytes": 41579,
               "path": "portable/troubleshooting/profile-contracts/classify.json",
-              "profile_contract_digest": "1ad2971b98b096cf5a5fa4b4d4e538ed7e715f939b02e6624c128244a6f39754",
+              "profile_contract_digest": "c3d3791f7be724a961b80e582bd32ba7c4cf42d599d12ee06be47e12ee0eaf5e",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "classify",
-              "sha256": "6d246a84b571d877601806977a3c192f84df409aa9b5aa27b93adb19f230bcaa"
+              "sha256": "966edbe97329fa966f38172f7198b73d5b217c47f908e68e46af974b9874cad7"
             },
             {
               "bytes": 34324,
               "path": "portable/troubleshooting/profile-contracts/diagnose.json",
-              "profile_contract_digest": "171dac49b0fc8757c36cc1a5dff2eafa198fcd81f125db19b58193aad4b2a641",
+              "profile_contract_digest": "69317803c72f85f62f41a3f760c5dd1c1285d43e0d338d853d7e1aca83d7bebe",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "diagnose",
-              "sha256": "be5148d58c66c260ffef9b0b513cc96deea29fa3c9901ea8d66ffef26baeec84"
+              "sha256": "1142d18405e31700ab0e2e1d65e8b2f59afb5bcbb079004603b68c4f6d7ad1f6"
             },
             {
               "bytes": 41585,
               "path": "portable/troubleshooting/profile-contracts/support-packet.json",
-              "profile_contract_digest": "dbced39c0c29b3798a35875e77483e2958f8582c655e88f1d1cc0a2118ba3c77",
+              "profile_contract_digest": "9aedc9f2beff7527e37c49cca2c1a90018980f44e0f63eafa0a1a35acb25e4a1",
               "profile_gate_validator": {
                 "id": "troubleshooting.structured-output",
                 "version": "1"
               },
               "profile_id": "support-packet",
-              "sha256": "dd9385f99384b9629da01b503fd047382c6bb561dac0e88805805d28d81cde2e"
+              "sha256": "7b73cfff6e09da0c912d24008fd3834ff28c656089b83f7879f35bc5901dc5c6"
             },
             {
               "bytes": 34235,
@@ -5935,9 +5935,9 @@
           "sha256": "4bd1f133a76b859a3c9d7fa79513203ea57179112cfcb304249935a09e3d1435"
         },
         {
-          "bytes": 29251,
+          "bytes": 29542,
           "path": "plugins/antigravity/endor-labs-agent-kit/agents/troubleshooting.md",
-          "sha256": "ddde14a5248def7674ec8c6f0ade6b23c75b6a42251e6e85a6d07584264ae77c"
+          "sha256": "eb24e6619715ae8a31ee929b457e82aa616c10086de685e9c7d37ed62efdf815"
         },
         {
           "bytes": 14668,
@@ -6035,9 +6035,9 @@
           "sha256": "2f34a32a8c621ca33b4403ef40957b00f1970cacff29b8e3487c109b464c54a8"
         },
         {
-          "bytes": 29002,
+          "bytes": 29293,
           "path": "plugins/antigravity/endor-labs-agent-kit/skills/troubleshooting/SKILL.md",
-          "sha256": "461319024bd09c3787d651ded816a69cf7aa45daa4915656d7fd268d47b3eda0"
+          "sha256": "863e16ac13b895e383c236d471fe2edb710cc3ef749edd22bda95e4be12293e7"
         },
         {
           "bytes": 14411,
@@ -6128,9 +6128,9 @@
           "sha256": "909acdfabf9076479b5cfa03c32bbf8fdbb85173fecbd950221c455b6c98b762"
         },
         {
-          "bytes": 28194,
+          "bytes": 28485,
           "path": "plugins/claude/ai-plugins/agents/troubleshooting.md",
-          "sha256": "f920fa084676effe5dae26beda4d5bb0425dc817ce83c6b4558f18ed8e607fd8"
+          "sha256": "ca8ec85562533963d3dd196c225f3f14914d9d8fe32c8ec35bc9a91b6c3c285a"
         },
         {
           "bytes": 13949,
@@ -6262,9 +6262,9 @@
           "sha256": "909acdfabf9076479b5cfa03c32bbf8fdbb85173fecbd950221c455b6c98b762"
         },
         {
-          "bytes": 28194,
+          "bytes": 28485,
           "path": "plugins/claude/endor-labs-agent-kit/agents/troubleshooting.md",
-          "sha256": "f920fa084676effe5dae26beda4d5bb0425dc817ce83c6b4558f18ed8e607fd8"
+          "sha256": "ca8ec85562533963d3dd196c225f3f14914d9d8fe32c8ec35bc9a91b6c3c285a"
         },
         {
           "bytes": 13949,
@@ -6526,9 +6526,9 @@
           "sha256": "c226ee88f123538a43cd729a6e9bf1ddb9059d541f123e4f1efe3d0958b5d26f"
         },
         {
-          "bytes": 28520,
+          "bytes": 28811,
           "path": "plugins/codex-directory/endor-labs-agent-kit/skills/troubleshooting/SKILL.md",
-          "sha256": "241e68ebce0f38ac4f4fb07f4630f4d7784ac47ff02535509a6b69745ded2885"
+          "sha256": "3257b467c99c3fb71d2fe149756f6412037349921ed49c7c3edeabe907976cf9"
         },
         {
           "bytes": 302,
@@ -6644,9 +6644,9 @@
           "sha256": "af5df5c468012d22ce0782f5b7bb320a1ecd5be00628fb6e32ce9a41bd991408"
         },
         {
-          "bytes": 29664,
+          "bytes": 29958,
           "path": "plugins/codex/endor-labs-agent-kit/agents/endor-troubleshooting-agent.toml",
-          "sha256": "231e0cfb887afc200256f53fddb7e776386d66b3d850bb75847582b5e90d67f0"
+          "sha256": "689eabd2c718c8c5f9b3b27a3f36c62e4ab01296040f1c2573b5f5ab1aa5a5a1"
         },
         {
           "bytes": 14492,
@@ -6704,9 +6704,9 @@
           "sha256": "1bfe43de7951ae8e09d9601c42af16b9171fb886bb7ff15b2787844671f8e7b5"
         },
         {
-          "bytes": 28209,
+          "bytes": 28500,
           "path": "plugins/codex/endor-labs-agent-kit/bundled-skills/troubleshooting/SKILL.md",
-          "sha256": "380f017e85c582f4093d01820d6ba7fe3063d9daa2468af0d4cee92fa32e1ff2"
+          "sha256": "61d088fd4c0708eda7580c5f7d63249572c0a9e3bd2577bc8973e694042826f3"
         },
         {
           "bytes": 13521,
@@ -6853,9 +6853,9 @@
           "sha256": "78ca76b0bded63fa4f8d2207fd7e7745b8a67a46782fcc5e1e856c8c8ec424fd"
         },
         {
-          "bytes": 28987,
+          "bytes": 29278,
           "path": "agents/endor-troubleshooting-agent.md",
-          "sha256": "c6c47623921096b9fc6f0684931b10efac871edd0e2d67e2baa19e7353211e82"
+          "sha256": "5984cbaecad7849bce165f3cdb70bc73b51055511d2738ee1831b4fd273c39a9"
         },
         {
           "bytes": 14420,
@@ -7003,9 +7003,9 @@
           "sha256": "f2553d3a62cb44ddae0605fe0b7fbcca69424daea158b7dc9f88b4295e9556ae"
         },
         {
-          "bytes": 28675,
+          "bytes": 28966,
           "path": "skills/troubleshooting/SKILL.md",
-          "sha256": "d3803f630c200e294ac95e8a9df80f98a77d215ef701f74aeaf3f8be37c139bf"
+          "sha256": "91239a1483b77d8aa8c560a3687c4104b9fea9e2e92a080c08f7c6ab2b0d655a"
         },
         {
           "bytes": 9829,
@@ -7162,9 +7162,9 @@
           "sha256": "e0830f01e7b1d2c5f0b727dd1605b63ecc616673dd102e64271114c57e8b89d5"
         },
         {
-          "bytes": 28316,
+          "bytes": 28607,
           "path": "cursor-sdk/agents/endor-troubleshooting-agent.md",
-          "sha256": "0de8d2d1167ac88c479b7345bb9c01287b9e752abe0b8f78b2089d8c27ee9a9a"
+          "sha256": "f4b7f480d88e987203650bc4303cd8a18e783b020b6e771fe00bbd8470f6ac86"
         },
         {
           "bytes": 13679,
@@ -7265,9 +7265,9 @@
           "sha256": "b92e819d62a69e4cabac70461285b062a30f47e417abb65ed6caad6e66ceba09"
         },
         {
-          "bytes": 28701,
+          "bytes": 28992,
           "path": "plugins/gemini/endor-labs-agent-kit/agents/troubleshooting.md",
-          "sha256": "71bed29f38ca87375f099352e04763b03ec36a2e82e7373e6342a13440e47efd"
+          "sha256": "b56de9d85d779596e20020dcfa25e3ffba0d4806d343cfcf977ebe5107050fc0"
         },
         {
           "bytes": 14118,
@@ -7365,9 +7365,9 @@
           "sha256": "8027e22320ded2d90e6cec55b18eb1ad58692fdc4f81757f839fc1895b08a696"
         },
         {
-          "bytes": 28442,
+          "bytes": 28733,
           "path": "plugins/gemini/endor-labs-agent-kit/skills/troubleshooting/SKILL.md",
-          "sha256": "71a4394c538c976a8ffb53b73872b453d5068d3e67045e73e1c746bbc2100d34"
+          "sha256": "d4a77b96578ae39aa739ba06657c730c0a0b228c8c2cf6bc9573ef9f3b6dde00"
         },
         {
           "bytes": 13851,

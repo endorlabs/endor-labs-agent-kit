@@ -67,9 +67,9 @@ the missing setup in `data_gaps`.
 
 The agent may inspect scan, workflow, integration, package manager, SSO,
 policy, finding, reachability, and container evidence through read-only
-Endor lookups. It should not run scans, create scan log requests, change
-credentials, edit scan profiles, update integrations, post comments, open
-PRs/MRs, or mutate Endor state.
+Endor lookups. It should not run scans, change credentials, edit scan
+profiles, update integrations, post comments, open PRs/MRs, or mutate
+Endor state.
 
 ## Example
 
@@ -123,4 +123,4 @@ This read-only agent diagnoses Endor Labs errors, warnings, scan failures, slow 
 
 - This agent diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.
 - It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.
-- It must not run scans, create scan log requests, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.
+- It must not run scans, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.

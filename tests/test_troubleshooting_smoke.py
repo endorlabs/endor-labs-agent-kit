@@ -139,8 +139,10 @@ def test_troubleshooting_compiled_artifact_carries_diagnostic_contract(tmp_path)
     assert "HOST_CHECK_SANDBOX_AND_RUNTIME" in artifact
     assert "This agent is read-only and prescriptive" in artifact
     assert "run `endorctl scan`" in artifact
-    assert "create scan log requests" in artifact
+    assert "create scan log requests" not in artifact
     assert "`ScanLogRequest` is a create-style API" in artifact
+    assert "is the one create-style call this agent may make" in artifact
+    assert "endorctl agent api --agent-id troubleshooting` and record the lookup" in artifact
     assert "Use `endorctl --version`" in artifact
     assert "Do not use\n`endorctl version`" in artifact
     assert "Do not run a version check before a successful exact API read" in normalized_artifact
@@ -245,7 +247,8 @@ def test_troubleshooting_managed_agents_artifacts_are_read_only(tmp_path):
     assert "This Managed Agents artifact" in managed["system"]
     assert "read-only `endorctl agent api --agent-id troubleshooting` lookups" in managed["system"]
     assert "Do not require Endor MCP" in managed["system"]
-    assert "create scan log requests" in managed["system"]
+    assert "create scan log requests" not in managed["system"]
+    assert "is the one create-style call this agent may make" in managed["system"]
     assert_mcp_free_generated_artifact(managed_text)
     _assert_no_private_source_references(managed_text)
 
@@ -346,6 +349,11 @@ def test_troubleshooting_publish_writes_host_catalog_surfaces(tmp_path):
     assert "@agent-troubleshooting diagnose this Endor scan failure" in agent_readme
     assert "large monorepo" in agent_readme
     assert "Diagnose this Endor scan failure" in managed_readme
+    assert "create scan log requests" not in agent_readme
+    assert "It must not run scans, change credentials, edit scan profiles" in agent_readme
+    assert "It should not run scans, change credentials, edit scan\nprofiles" in agent_readme
+    assert "create scan log requests" not in managed_readme
+    assert "It still must not run scans, change credentials, edit scan profiles" in managed_readme
     assert "Troubleshooting Codex Skill" in codex_readme
     assert "Use the troubleshooting skill to diagnose this Endor scan failure" in codex_readme
     assert "## Codex Host Contract" in codex_skill

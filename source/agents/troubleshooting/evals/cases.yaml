@@ -96,7 +96,7 @@ cases:
         - classify SCAN_EXECUTION_FAILURE with a stuck STATUS_RUNNING reason code and surface that the scan process likely failed before writing terminal status
         - inspect ScanResult evidence including spec.status, spec.exit_code, stale update_time, and the first few log entries
         - recommend waiting for housekeeping to transition the record to STATUS_FAILURE rather than racing a rerun, and assemble a redacted escalation packet
-        - keep ScanLogRequest creation and any cancel-running mutation in future_action_contracts with confirmation_required true
+        - keep any cancel-running mutation in future_action_contracts with confirmation_required true
       data_gaps_allowed: true
 
   - id: pr-shallow-clone-diff-failure

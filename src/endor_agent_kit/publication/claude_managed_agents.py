@@ -173,7 +173,7 @@ def managed_agents_edition_readme(
             notes = [
                 f"This {artifact_label} diagnoses Endor Labs errors, warnings, missing integrations, scan failures, slow scans, and unhealthy configuration from user-provided issue text plus read-only Endor evidence.",
                 "It returns a troubleshooting verdict, issue lanes, evidence queries, root-cause hypotheses, low-friction repair guidance, validation steps, and gated future action contracts.",
-                "The generated environment allows api.endorlabs.com for read-only Endor lookups. It still must not run scans, create scan log requests, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.",
+                "The generated environment allows api.endorlabs.com for read-only Endor lookups. It still must not run scans, change credentials, edit scan profiles, update integrations, post comments, open PRs/MRs, or mutate Endor state.",
             ]
 
     architecture = architecture_readme_section(recipe) if has_architecture else []
