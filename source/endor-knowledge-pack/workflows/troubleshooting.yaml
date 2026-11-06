@@ -73,7 +73,7 @@ resources:
       - meta.parent_uuid
       - spec.git
   - name: ScanResult
-    purpose: Inspect scan lifecycle, exit code, toolchain, and failure state without creating scan log requests.
+    purpose: Inspect scan lifecycle, exit code, toolchain, and failure state.
     fields:
       - uuid
       - meta.name
@@ -130,7 +130,7 @@ evidence_query_plans:
         run the one bounded get-plus-local-projection recipe.
       - Correlate the user's exact error text with the selected resource evidence and local command context.
     avoid:
-      - Do not run a new scan, create scan log requests, edit integrations, rotate credentials, or print config contents.
+      - Do not run a new scan, edit integrations, rotate credentials, or print config contents.
       - Do not broaden to every troubleshooting domain when one lane has enough evidence.
     stop_after:
       - Stop after root cause is supported, disproven, or blocked with concrete next evidence needs.
