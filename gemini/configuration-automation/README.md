@@ -65,7 +65,7 @@ Use @configuration-automation to probe GitHub org <org> for Endor monitored-bran
 
 ![Configuration Automation architecture](architecture.svg)
 
-This read-only agent compares GitHub.com repository inventory with Endor project, GitHub App, monitored-branch scan, package, scan profile, toolchain, and package-manager evidence. It returns onboarding lanes, reason codes, evidence queries, and setup prescriptions, but does not run scans, create profiles, edit repositories, change GitHub settings, or mutate Endor state.
+This read-only agent compares GitHub.com repository inventory with Endor project, GitHub App, monitored-branch scan, package, scan profile, toolchain, and package-manager evidence. It returns onboarding lanes, reason codes, evidence queries, and setup prescriptions, but does not run scans, edit repositories, or change GitHub settings.
 
 ## Notes
 

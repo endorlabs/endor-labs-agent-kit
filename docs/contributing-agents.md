@@ -50,6 +50,14 @@ Recommended protection for `ai-plugins`:
 Use `.github/ISSUE_TEMPLATE/agent-proposal.md` when the agent idea needs review
 before source files exist.
 
+## 🔒 The Authorization Boundary Is Not Prompt Text
+
+Agent prompts do not describe which Endor operations an agent may perform. The
+Endor backend decides that for every agent token, so a prompt that restates the
+boundary adds no enforcement and drifts out of date as the backend changes. Keep
+the prohibitions nothing else enforces, such as running `endorctl scan`, editing
+files, opening pull requests, posting comments, or changing GitHub settings.
+
 ## 🧪 New Agent Checklist
 
 A new public agent must include:

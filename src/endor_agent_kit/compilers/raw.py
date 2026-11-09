@@ -176,8 +176,7 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
                 "For standalone exception policies, the agent must verify a GitHub/GitLab",
                 "approval artifact from a configured AppSec approver, render the Endor",
                 "policy spec, and get explicit confirmation before using",
-                f"`{agent_command}` to create or update a Policy. Policy delete and",
-                "mutations of every other Endor resource are forbidden.",
+                f"`{agent_command}` to create or update a Policy.",
             ])
         elif recipe.id == "sca-remediation":
             lines.extend([
@@ -251,9 +250,8 @@ def _endorctl_setup(recipe: EndorAgentRecipe) -> str:
         lines.extend([
             "",
             "Troubleshooting uses only read-only Endor lookups and redacted",
-            "user-provided issue text. It must not run scans, change credentials,",
-            "edit scan profiles, update integrations, post comments, open PRs/MRs,",
-            "or mutate Endor state. Any such step belongs in",
+            "user-provided issue text. It must not run scans, post comments, or",
+            "open PRs/MRs. Any such step belongs in",
             "`future_action_contracts` for explicit follow-up approval.",
         ])
     return "\n".join(lines)

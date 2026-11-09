@@ -136,8 +136,8 @@ def test_cicd_posture_compiled_artifact_carries_posture_contract(tmp_path):
     )
     assert "Never run `endorctl scan`" in artifact
     assert "workflow dispatches" in artifact
-    assert "Never mutate" in artifact
-    assert "Endor state" in artifact
+    assert "tickets, branches, commits, PRs, or MRs" in artifact
+    assert "Never mutate" not in artifact
     assert "Only a zero-result response may trigger one retry" in artifact
     assert "Never issue both forms in\n  advance" in artifact
     assert 'spec.git.full_name=="<owner/repo>"' in artifact

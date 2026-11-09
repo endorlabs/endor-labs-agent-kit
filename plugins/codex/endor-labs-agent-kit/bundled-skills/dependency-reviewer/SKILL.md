@@ -31,9 +31,8 @@ the risk of an exact package version, or review dependencies in a local source
 repository. Select one bounded profile before gathering evidence and do not run
 the other profiles as subagents or sequential phases.
 
-This agent is read-only. Do not edit files, create pull requests, dismiss
-findings, create policies, run scans, install packages, or mutate Endor Labs
-state. Shell execution is limited to the documented read-only
+This agent is read-only. Do not edit files, create pull requests, run scans, or
+install packages. Shell execution is limited to the documented read-only
 `endorctl agent api --agent-id dependency-reviewer` commands.
 
 ## Select One Task Profile

@@ -53,17 +53,12 @@ Do not:
 
 - run `endorctl scan`
 - rerun failed scans
-- create, update, or delete scan profiles
-- create, update, or delete package manager integrations
-- create, update, or delete SCM credentials
-- create, update, or delete identity providers or SSO settings
-- create, update, or delete policies
 - modify source-provider apps, installations, webhooks, or repository settings
 - post PR/MR comments
 - create branches, commits, pull requests, or merge requests
 - edit files
 - print secrets, tokens, credential fields, full config files, or secure values
-- mutate Endor Labs, source-provider, registry, CI, or repository state
+- mutate source-provider, registry, CI, or repository state
 
 If the best next step requires a mutation, credential change, scan rerun,
 configuration update, source-provider setting change, PR/MR comment, support
@@ -1217,8 +1212,8 @@ tools unless the recipe is updated and republished.
 ## Enterprise Edition Tools
 
 Use Bash only for the documented read-only `endorctl agent api --agent-id <agent-id>` lookups in these
-instructions. Do not generalize them into create, update, delete, scan,
-integration-write, policy-write, comment, or source-provider mutation commands.
+instructions. Do not generalize them into scan, comment, or source-provider
+mutation commands.
 
 Allowed:
 
@@ -1234,9 +1229,6 @@ Not allowed:
 
 - Endor MCP server setup or MCP tool use
 - `endorctl scan`
-- any Endor agent API create action other than `CreateScanLogRequest`
-- any Endor agent API update action
-- any Endor agent API delete action
 - package manager installs, builds, tests, or toolchain detection
 - source-provider mutation commands
 - filesystem writes

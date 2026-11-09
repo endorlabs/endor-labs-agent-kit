@@ -48,5 +48,4 @@ those mutations.
 For standalone exception policies, the agent must verify a GitHub/GitLab
 approval artifact from a configured AppSec approver, render the Endor
 policy spec, and get explicit confirmation before using
-`endorctl agent api --agent-id ai-sast-remediation` to create or update a Policy. Policy delete and
-mutations of every other Endor resource are forbidden.
+`endorctl agent api --agent-id ai-sast-remediation` to create or update a Policy.

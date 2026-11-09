@@ -60,10 +60,10 @@ Assess CI/CD and supply chain posture for namespace <namespace>. Keep the workfl
 
 ![CI/CD And Supply Chain Posture architecture](architecture.svg)
 
-This read-only agent assesses CI/CD and supply chain posture from existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain findings plus read-only GitHub configuration evidence. It returns deterministic dimension scores, critical overrides, evidence queries, recommended human actions, and data gaps without running scans, changing branch protection, editing workflows, dispatching workflows, or mutating Endor state.
+This read-only agent assesses CI/CD and supply chain posture from existing Endor SCPM, CI/CD, GitHub Actions, and supply-chain findings plus read-only GitHub configuration evidence. It returns deterministic dimension scores, critical overrides, evidence queries, recommended human actions, and data gaps without running scans, changing branch protection, editing workflows, or dispatching workflows.
 
 ## Notes
 
 - This agent assesses CI/CD and supply chain posture from existing Endor findings plus read-only GitHub repository configuration evidence.
 - It uses read-only Endor and GitHub lookups to produce dimension scores, critical overrides, evidence queries, recommended actions, and data gaps.
-- The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only evidence. It still must not run scans, clone repositories, dispatch workflows, change branch protection or repository settings, open PRs/MRs, or mutate Endor state.
+- The generated environment allows api.endorlabs.com plus GitHub.com/API hosts for read-only evidence. It still must not run scans, clone repositories, dispatch workflows, change branch protection or repository settings, or open PRs/MRs.
